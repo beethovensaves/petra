@@ -18,6 +18,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   M1_GROUNDED_SYNTHESIS_QUESTION,
+  createM1GroundedSynthesisServiceActor,
   createM1GroundedSynthesisRuntime,
 } from "../src/m1-grounded-synthesis.js";
 import { startPetraServer } from "../src/server.js";
@@ -181,6 +182,33 @@ class FakeCertifiedCodexProvider implements CodexSubscriptionProviderPort {
 }
 
 describe("M1.6-W18 certified grounded server composition", () => {
+  it("publishes one canonical certification service Actor for fresh-store setup", () => {
+    const certification = JSON.parse(
+      readFileSync(
+        new URL(
+          "../../../config/model-certifications/codex-terra-synthesist-1.1.0.json",
+          import.meta.url,
+        ),
+        "utf8",
+      ),
+    ) as {
+      certification: Parameters<
+        typeof createM1GroundedSynthesisServiceActor
+      >[0];
+    };
+
+    expect(
+      createM1GroundedSynthesisServiceActor(certification.certification),
+    ).toEqual({
+      schema_name: "petra.actor",
+      schema_version: "1.0.0",
+      actor_id: "actor_7RVPE6RBYWGY6B71FQGPHREE8Q",
+      actor_kind: "service",
+      display_name: "Petra grounded synthesis service",
+      created_at: "2026-09-15T02:34:10.059Z",
+    });
+  });
+
   it("refuses to expose the live model route without a terminal boundary", async () => {
     await expect(
       startPetraServer({

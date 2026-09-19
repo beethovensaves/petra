@@ -839,6 +839,50 @@ describePostgres("PostgreSQL grounded-response authority", () => {
     locale: "en",
   });
 
+  it("persists compiled packet authority without manufacturing an execution cache", async () => {
+    const { registry: packets, evidence } = makePackets();
+    const contextPacketId =
+      evidence.content.context_packet_ref.context_packet_id;
+    const repository = new PostgresGroundedResponseAuthorityRepository(
+      pool,
+      packets,
+    );
+
+    const first = await repository.registerPacketAuthority({
+      contextPacketId,
+      evidencePacketId: evidence.evidence_packet_id,
+    });
+    const replay = await repository.registerPacketAuthority({
+      contextPacketId,
+      evidencePacketId: evidence.evidence_packet_id,
+    });
+    expect(replay).toEqual(first);
+
+    const counts = (
+      await pool.query<{
+        context_packets: string;
+        evidence_packets: string;
+        model_requests: string;
+        model_calls: string;
+        grounded_responses: string;
+      }>(
+        `SELECT
+           (SELECT count(*) FROM petra.context_packets) AS context_packets,
+           (SELECT count(*) FROM petra.evidence_packets) AS evidence_packets,
+           (SELECT count(*) FROM petra.model_requests) AS model_requests,
+           (SELECT count(*) FROM petra.model_calls) AS model_calls,
+           (SELECT count(*) FROM petra.grounded_responses) AS grounded_responses`,
+      )
+    ).rows[0];
+    expect(counts).toEqual({
+      context_packets: "1",
+      evidence_packets: "1",
+      model_requests: "0",
+      model_calls: "0",
+      grounded_responses: "0",
+    });
+  });
+
   it("composes communication from exact canonical owners with repeatable reads and no new authority records", async () => {
     const promotion = await registerReviewedPromotion();
     const terminal = await persistTerminal(

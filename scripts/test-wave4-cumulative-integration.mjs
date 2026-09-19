@@ -51,6 +51,7 @@ import {
 } from "@petra/postgres";
 import {
   M1_GROUNDED_SYNTHESIS_QUESTION,
+  createM1GroundedSynthesisServiceActor,
   createGroundedSynthesisPersistenceFromEnvironment,
   createProjectShellPersistenceFromEnvironment,
   startPetraServer,
@@ -74,9 +75,10 @@ const writingProjectId = "project_01K4E000000000000000000001";
 const traceMode = process.env.PETRA_WAVE4_TRACE;
 const item49Mode = traceMode === "conversation-model-identity";
 const wave5Mode = traceMode === "wave5-cumulative";
-const liveProjectModelMode = wave5Mode;
+const wave6ActualModelUiMode = traceMode === "wave6-actual-model-ui";
+const liveProjectModelMode = wave5Mode || wave6ActualModelUiMode;
 const item53Mode = traceMode === "evidence-remediation-support" || wave5Mode;
-const item49ProfileMode = item49Mode || item53Mode;
+const item49ProfileMode = item49Mode || item53Mode || wave6ActualModelUiMode;
 const item49Published = Object.freeze({
   projectThreadId: "project_thread_1TVS320FP5Z477P8NY46FXAZF9",
   projectTurnId: "project_turn_7MH84CJ73Z12ZV2YTEP9S188QB",
@@ -1608,6 +1610,163 @@ const item53Observer = async () => {
   return observer;
 };
 
+const exerciseWave6ActualModelUiTrace = async ({
+  environment,
+  pool,
+  packetAuthority,
+}) => {
+  const observer = await item53Observer();
+  assert(
+    observer !== undefined,
+    "The Wave 6 actual-model trace requires a production React evidence observer.",
+  );
+  let active;
+  try {
+    const [project, grounded] = await Promise.all([
+      createProjectShellPersistenceFromEnvironment(environment),
+      createGroundedSynthesisPersistenceFromEnvironment(environment),
+    ]);
+    try {
+      active = await startPetraServer({
+        port: 0,
+        authToken: token,
+        projectShellPersistence: project,
+        codexWorkspaceRoot: root,
+        codexSidecar: { cwd: root, requestTimeoutMs: 30_000 },
+        codexGroundedSynthesis: { timeoutMs: 120_000 },
+        groundedSynthesisPersistence: grounded,
+      });
+    } catch (error) {
+      await Promise.all([project.close(), grounded.close?.()]);
+      throw error;
+    }
+
+    const account = await active.codexProvider?.readAccount();
+    const readiness = await new ProjectModelClient({
+      baseUrl: active.url,
+      token,
+    }).readReadiness(scientificProjectId);
+    assert(
+      account?.authenticated === true &&
+        account.authMode === "chatgpt" &&
+        readiness.readiness.state === "ready" &&
+        readiness.readiness.provider.state === "ready" &&
+        readiness.readiness.context.state === "bound" &&
+        readiness.readiness.context.binding.context_packet_ref.record_id ===
+          packetAuthority.context.context_packet_id &&
+        readiness.readiness.context.binding.evidence_packet_ref.record_id ===
+          packetAuthority.evidencePacket.evidence_packet_id,
+      `The fresh actual-model Project was not ready against its exact packet authority: ${JSON.stringify(readiness.readiness)}`,
+    );
+    progress(
+      "fresh certified Project model readiness exposed exact packets with no execution cache",
+    );
+
+    const browser = await observer.record("actual_model_ui", {
+      root,
+      backendUrl: active.url,
+      token,
+      scientificProjectId,
+      registeredPrompt: M1_GROUNDED_SYNTHESIS_QUESTION,
+      readiness,
+    });
+    assert(
+      browser?.execution_source === "Provider" &&
+        browser?.authority_effect === "No authority effect" &&
+        browser?.prompt === M1_GROUNDED_SYNTHESIS_QUESTION &&
+        browser?.context_packet_id ===
+          packetAuthority.context.context_packet_id &&
+        browser?.evidence_packet_id ===
+          packetAuthority.evidencePacket.evidence_packet_id,
+      `The production React composer did not retain the provider terminal and exact authority boundary: ${JSON.stringify(browser)}`,
+    );
+
+    const durable = (
+      await pool.query(
+        `SELECT
+           (SELECT count(*)::integer FROM petra.model_requests WHERE project_id = $1) AS model_requests,
+           (SELECT count(*)::integer FROM petra.model_calls AS call
+              JOIN petra.model_requests AS request
+                ON request.model_request_id = call.model_request_id
+             WHERE request.project_id = $1) AS model_calls,
+           (SELECT count(*)::integer FROM petra.grounded_responses WHERE project_id = $1) AS grounded_responses,
+           (SELECT count(*)::integer FROM petra.interaction_runs WHERE project_id = $1) AS interaction_runs,
+           (SELECT count(*)::integer FROM petra.interaction_replay_records WHERE project_id = $1) AS interaction_replays,
+           (SELECT call.payload FROM petra.model_calls AS call
+              JOIN petra.model_requests AS request
+                ON request.model_request_id = call.model_request_id
+             WHERE request.project_id = $1
+             ORDER BY call.completed_at DESC NULLS LAST, call.model_call_id
+             LIMIT 1) AS model_call,
+           (SELECT revision.payload FROM petra.grounded_responses AS head
+              JOIN petra.grounded_response_revisions AS revision
+                ON revision.grounded_response_id = head.grounded_response_id
+               AND revision.revision = head.current_revision
+             WHERE head.project_id = $1
+             LIMIT 1) AS grounded_response`,
+        [scientificProjectId],
+      )
+    ).rows[0];
+    assert(
+      durable.model_requests === 1 &&
+        durable.model_calls === 1 &&
+        durable.grounded_responses === 1 &&
+        durable.interaction_runs === 1 &&
+        durable.interaction_replays === 1 &&
+        typeof durable.model_call?.content?.provider_request_id === "string" &&
+        durable.model_call.content.provider_request_id.length > 0 &&
+        durable.model_call.content.deployment.provider_kind ===
+          "codex_app_server" &&
+        durable.grounded_response?.content?.terminal?.state === "completed" &&
+        durable.grounded_response.content.terminal.authority_effect ===
+          "none" &&
+        durable.grounded_response.content.context_packet_ref
+          .context_packet_id === packetAuthority.context.context_packet_id &&
+        durable.grounded_response.content.evidence_packet_ref
+          .evidence_packet_id ===
+          packetAuthority.evidencePacket.evidence_packet_id,
+      `The provider terminal did not persist one exact uncached execution: ${JSON.stringify(durable)}`,
+    );
+    progress(
+      "production React submission completed through one provider call and persisted its exact no-authority terminal",
+    );
+    return {
+      ok: true,
+      scenario: "UX1.6-MODEL/actual-certified-model-ui-path",
+      boundary: {
+        path: "production React Petra composer",
+        setup_kind: "fresh_compiled_packets_without_execution_cache",
+        execution_source: "provider",
+        direct_backend_invocation: false,
+        authority_effect: "none",
+      },
+      readiness: {
+        auth_mode: account.authMode,
+        provider_state: readiness.readiness.provider.state,
+        role_semantic_key: readiness.readiness.role.semantic_key,
+        model: readiness.readiness.provider.model,
+        context_packet_id: packetAuthority.context.context_packet_id,
+        evidence_packet_id: packetAuthority.evidencePacket.evidence_packet_id,
+        snapshot_id:
+          readiness.readiness.context.binding.snapshot_ref.snapshot_id,
+      },
+      browser,
+      durable: {
+        model_requests: durable.model_requests,
+        model_calls: durable.model_calls,
+        grounded_responses: durable.grounded_responses,
+        interaction_runs: durable.interaction_runs,
+        interaction_delivery_records: durable.interaction_replays,
+        provider_request_id: durable.model_call.content.provider_request_id,
+        model_call_id: durable.model_call.model_call_id,
+        grounded_response_id: durable.grounded_response.grounded_response_id,
+      },
+    };
+  } finally {
+    await Promise.all([observer.close?.(), active?.shutdown()]);
+  }
+};
+
 const exerciseTrace = async (environment, pool, scientific, writing) => {
   let active;
   let vite;
@@ -2775,6 +2934,32 @@ const item53WorkAndInteraction = async ({ pool, scientific }) => {
   };
 };
 
+const certifiedGroundedPacketRecords = () => {
+  const changeSet = readAccepted("change-set");
+  const approval = readAccepted("command-record-approval").command.approval;
+  const apply = readAccepted("command-apply-change-set");
+  const authority = {
+    zone: "trusted",
+    review_state: "human_accepted",
+    promotion: {
+      change_set_id: changeSet.change_set_id,
+      approval_basis: {
+        approval_kind: "human",
+        approval_id: approval.approval_id,
+        approved_by: clone(approval.decided_by),
+      },
+      applied_at: apply.submitted_at,
+    },
+  };
+  const claim = readAccepted("claim");
+  claim.revision += 1;
+  claim.authority = clone(authority);
+  const assertion = readAccepted("assertion");
+  assertion.revision += 1;
+  assertion.authority = clone(authority);
+  return [claim, assertion, readAccepted("source-span")];
+};
+
 const item53GroundedPresentation = async ({
   pool,
   scientific,
@@ -2789,12 +2974,8 @@ const item53GroundedPresentation = async ({
     ),
   );
   const certification = clone(runtimeRecord.certification);
-  const certificationActor = actor(
-    certification.certified_by.actor_id,
-    "service",
-    "Petra certified synthesist evaluator",
-  );
-  certificationActor.created_at = certification.certified_at;
+  const certificationActor =
+    createM1GroundedSynthesisServiceActor(certification);
   await scopes.registerActor(certificationActor);
   await synthesistExecutions.registerCertification(certification);
 
@@ -2807,31 +2988,6 @@ const item53GroundedPresentation = async ({
     currentClaim !== undefined && currentAssertion !== undefined,
     "The item 49 ContextPacket baseline authority is unavailable.",
   );
-  const certifiedPacketRecords = () => {
-    const changeSet = readAccepted("change-set");
-    const approval = readAccepted("command-record-approval").command.approval;
-    const apply = readAccepted("command-apply-change-set");
-    const authority = {
-      zone: "trusted",
-      review_state: "human_accepted",
-      promotion: {
-        change_set_id: changeSet.change_set_id,
-        approval_basis: {
-          approval_kind: "human",
-          approval_id: approval.approval_id,
-          approved_by: clone(approval.decided_by),
-        },
-        applied_at: apply.submitted_at,
-      },
-    };
-    const claim = readAccepted("claim");
-    claim.revision += 1;
-    claim.authority = clone(authority);
-    const assertion = readAccepted("assertion");
-    assertion.revision += 1;
-    assertion.authority = clone(authority);
-    return [claim, assertion, readAccepted("source-span")];
-  };
   const context = readAccepted("context-packet");
   context.compiled_by = {
     actor_id: serviceActorId,
@@ -2844,7 +3000,7 @@ const item53GroundedPresentation = async ({
     "The continuation ContextPacket lost the published item 49 identity.",
   );
   const contextRecords = liveProjectModelMode
-    ? certifiedPacketRecords()
+    ? certifiedGroundedPacketRecords()
     : [currentClaim, currentAssertion, scientific.documentBundle.spans[0]];
   if (!liveProjectModelMode) {
     for (const inclusion of context.content.included_objects) {
@@ -3084,6 +3240,68 @@ const item53GroundedPresentation = async ({
     "The natural-conversation continuation lost its published thread or turn identity.",
   );
   return { context, evidencePacket, response, projectThread, call };
+};
+
+const wave6ActualModelPacketAuthority = async ({ pool }) => {
+  const runtimeRecord = readJson(
+    resolve(
+      root,
+      "config/model-certifications/codex-terra-synthesist-1.1.0.json",
+    ),
+  );
+  const certification = clone(runtimeRecord.certification);
+  const serviceActor = createM1GroundedSynthesisServiceActor(certification);
+  const scopes = new PostgresResearchScopeRepository(pool);
+  await scopes.registerActor(serviceActor);
+  await new PostgresSynthesistExecutionRepository(pool).registerCertification(
+    certification,
+  );
+
+  const context = readAccepted("context-packet");
+  const evidencePacket = readAccepted("evidence-packet");
+  context.compiled_by = {
+    actor_id: serviceActor.actor_id,
+    actor_kind: serviceActor.actor_kind,
+  };
+  evidencePacket.compiled_by = clone(context.compiled_by);
+  const packets = new InMemoryContextPacketRegistry();
+  packets.registerContextPacket(context, certifiedGroundedPacketRecords());
+  packets.registerEvidencePacket(evidencePacket);
+  const persisted = await new PostgresGroundedResponseAuthorityRepository(
+    pool,
+    packets,
+  ).registerPacketAuthority({
+    contextPacketId: context.context_packet_id,
+    evidencePacketId: evidencePacket.evidence_packet_id,
+  });
+  const cacheCounts = (
+    await pool.query(
+      `SELECT
+         (SELECT count(*)::integer FROM petra.model_requests WHERE project_id = $1) AS model_requests,
+         (SELECT count(*)::integer FROM petra.model_calls AS call
+            JOIN petra.model_requests AS request
+              ON request.model_request_id = call.model_request_id
+           WHERE request.project_id = $1) AS model_calls,
+         (SELECT count(*)::integer FROM petra.grounded_responses WHERE project_id = $1) AS grounded_responses`,
+      [scientificProjectId],
+    )
+  ).rows[0];
+  assert(
+    canonicalize(cacheCounts) ===
+      canonicalize({
+        model_requests: 0,
+        model_calls: 0,
+        grounded_responses: 0,
+      }),
+    "The actual-model setup manufactured a matching durable execution cache.",
+  );
+  return {
+    context: persisted.context,
+    evidencePacket: persisted.evidence,
+    certification,
+    serviceActor,
+    cacheCounts,
+  };
 };
 
 const item53ExtractorPresentation = async ({ pool, scientific, context }) => {
@@ -5444,43 +5662,55 @@ try {
   });
   const scientific = await seedScientific(pool, environment.PETRA_NEO4J_URI);
   progress("scientific authority, working state, and Review seeded");
-  const result = item49Mode
-    ? await exerciseItem49Trace(environment, pool, scientific)
-    : await (async () => {
-        const writing = await seedControlledWriting(
-          pool,
-          sourceArtifactInput().manifest,
-        );
+  const result = wave6ActualModelUiMode
+    ? await (async () => {
+        const packetAuthority = await wave6ActualModelPacketAuthority({ pool });
         progress(
-          "controlled-writing candidate and Review seeded without Apply",
+          "exact certified packet authority persisted without a ModelRequest, ModelCall, or GroundedResponse",
         );
-        if (!item53Mode)
-          return exerciseTrace(environment, pool, scientific, writing);
-        const workAndInteraction = await item53WorkAndInteraction({
-          pool,
-          scientific,
-        });
-        const grounded = await item53GroundedPresentation({
-          pool,
-          scientific,
-          workAndInteraction,
-        });
-        const extractor = await item53ExtractorPresentation({
-          pool,
-          scientific,
-          context: grounded.context,
-        });
-        progress(
-          "exact item 49 identities reconstructed for provider-free presentation continuation",
-        );
-        return exerciseItem53Trace({
+        return exerciseWave6ActualModelUiTrace({
           environment,
           pool,
-          scientific,
-          writing,
-          continuation: { workAndInteraction, grounded, extractor },
+          packetAuthority,
         });
-      })();
+      })()
+    : item49Mode
+      ? await exerciseItem49Trace(environment, pool, scientific)
+      : await (async () => {
+          const writing = await seedControlledWriting(
+            pool,
+            sourceArtifactInput().manifest,
+          );
+          progress(
+            "controlled-writing candidate and Review seeded without Apply",
+          );
+          if (!item53Mode)
+            return exerciseTrace(environment, pool, scientific, writing);
+          const workAndInteraction = await item53WorkAndInteraction({
+            pool,
+            scientific,
+          });
+          const grounded = await item53GroundedPresentation({
+            pool,
+            scientific,
+            workAndInteraction,
+          });
+          const extractor = await item53ExtractorPresentation({
+            pool,
+            scientific,
+            context: grounded.context,
+          });
+          progress(
+            "exact item 49 identities reconstructed for provider-free presentation continuation",
+          );
+          return exerciseItem53Trace({
+            environment,
+            pool,
+            scientific,
+            writing,
+            continuation: { workAndInteraction, grounded, extractor },
+          });
+        })();
   const renderedResult = `${JSON.stringify(result, null, 2)}\n`;
   const resultOutput = process.env.PETRA_WAVE4_RESULT_OUTPUT?.trim();
   if (resultOutput !== undefined && resultOutput !== "")
