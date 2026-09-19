@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Link, useLoaderData } from "react-router";
 
 import { PetraMark } from "../design-system/brand.js";
@@ -27,6 +26,7 @@ import type {
 } from "./project-data.js";
 import { useProjectRecord } from "./ReferenceWorkbench.js";
 import { SuggestedWorkAction } from "./SuggestedAction.js";
+import { PetraModelInteraction } from "./PetraModelInteraction.js";
 import {
   FocusedGraphEntryLink,
   focusedGraphDefinitionRef,
@@ -608,7 +608,7 @@ export const WorkDetailSurface = ({
         <div>
           <p className="reference-panel-kicker">Operational controls</p>
           <h2 id="work-controls-title">Manage this task</h2>
-          <p id="work-control-boundary">
+          <p id="work-control-boundary" tabIndex={-1}>
             {unit.cancellation} The operational command boundary is unavailable
             in this workspace, so no control can change execution locally.
           </p>
@@ -631,7 +631,13 @@ export const WorkDetailSurface = ({
         <div className="work-controls__returns">
           <Link
             className="reference-text-link"
-            to={`/projects/${project.id}/petra`}
+            to={`/projects/${encodeURIComponent(project.id)}/petra?${new URLSearchParams(
+              {
+                return_to: `/projects/${encodeURIComponent(project.id)}/work/${encodeURIComponent(unit.id)}`,
+                return_label: "Work task",
+                return_focus: "work-control-boundary",
+              },
+            )}`}
           >
             Discuss this task with Petra
           </Link>
@@ -1266,14 +1272,17 @@ export const PetraSurface = ({
   suggestedWorkAction,
   suggestedActionInvocation,
   communicationPlan,
+  modelReadiness,
+  returnContext,
 }: {
   project: ProjectRecord;
   thread?: PetraThread | undefined;
   suggestedWorkAction?: PetraSuggestedActionViewV11;
   suggestedActionInvocation?: PetraSuggestedActionInvocationView;
   communicationPlan?: PetraCommunicationPlan;
+  modelReadiness?: ProjectPetraData["modelReadiness"];
+  returnContext?: ProjectPetraData["returnContext"];
 }): React.JSX.Element => {
-  const [draft, setDraft] = useState("");
   const focusedDefinition = communicationPlan?.content.composition_definition;
   const focusedSemantics =
     focusedDefinition === undefined
@@ -1306,7 +1315,9 @@ export const PetraSurface = ({
         </div>
       </header>
 
-      {thread === undefined && communicationPlan === undefined ? (
+      {thread === undefined &&
+      communicationPlan === undefined &&
+      modelReadiness === undefined ? (
         <section
           className="reference-empty"
           aria-labelledby="petra-empty-title"
@@ -1329,9 +1340,11 @@ export const PetraSurface = ({
           <section
             className="petra-thread"
             aria-labelledby={
-              thread === undefined
-                ? "communication-plan-title"
-                : "petra-thread-title"
+              thread !== undefined
+                ? "petra-thread-title"
+                : communicationPlan !== undefined
+                  ? "communication-plan-title"
+                  : "petra-model-readiness-title"
             }
           >
             {thread === undefined ? null : (
@@ -1403,32 +1416,45 @@ export const PetraSurface = ({
               </>
             )}
 
-            <form
-              className="petra-composer"
-              onSubmit={(event) => event.preventDefault()}
-            >
-              <PetraTextArea
-                label="Message Petra"
-                hint="Your unsent text remains local to this page."
-                rows={4}
-                value={draft}
-                onChange={(event) => setDraft(event.currentTarget.value)}
+            {modelReadiness === undefined ? (
+              <form
+                className="petra-composer"
+                onSubmit={(event) => event.preventDefault()}
+              >
+                <PetraTextArea
+                  label="Message Petra"
+                  hint="Your unsent text remains local to this page."
+                  rows={4}
+                  value=""
+                  onChange={() => undefined}
+                />
+                <div>
+                  <span id="petra-send-boundary">
+                    The model response boundary is unavailable. No prompt will
+                    be sent.
+                  </span>
+                  <PetraButton
+                    type="submit"
+                    variant="primary"
+                    aria-disabled="true"
+                    aria-describedby="petra-send-boundary"
+                  >
+                    Send
+                  </PetraButton>
+                </div>
+              </form>
+            ) : (
+              <PetraModelInteraction
+                projectId={project.id}
+                readiness={modelReadiness}
+                returnContext={
+                  returnContext ?? {
+                    path: `/projects/${encodeURIComponent(project.id)}/brief`,
+                    label: "Brief",
+                  }
+                }
               />
-              <div>
-                <span id="petra-send-boundary">
-                  The model response boundary is unavailable. No prompt will be
-                  sent.
-                </span>
-                <PetraButton
-                  type="submit"
-                  variant="primary"
-                  aria-disabled="true"
-                  aria-describedby="petra-send-boundary"
-                >
-                  Send
-                </PetraButton>
-              </div>
-            </form>
+            )}
           </section>
 
           <aside
@@ -1442,15 +1468,19 @@ export const PetraSurface = ({
             </p>
             <h2 id="petra-task-context-title">
               {thread?.activeWorkTitle ??
-                (communicationPlan === undefined
-                  ? "Source coverage Work"
-                  : "Communication context")}
+                (communicationPlan !== undefined
+                  ? "Communication context"
+                  : modelReadiness?.readiness.state === "ready"
+                    ? modelReadiness.readiness.role.label
+                    : "Source coverage Work")}
             </h2>
             <p>
               {thread?.activeWorkSummary ??
-                (communicationPlan === undefined
-                  ? "The Work task is awaiting an exact permitted-copy choice. The thread can explain this state; only the Work input adapter can resolve it."
-                  : "This response is a read-only composition. Its communication record grants no command, Review, recovery, or Project authority.")}
+                (communicationPlan !== undefined
+                  ? "This response is a read-only composition. Its communication record grants no command, Review, recovery, or Project authority."
+                  : modelReadiness?.readiness.state === "ready"
+                    ? "This server-selected role can answer only its registered Project question. Its result is advisory; Work and Review remain separate."
+                    : "The Work task is awaiting an exact permitted-copy choice. The thread can explain this state; only the Work input adapter can resolve it.")}
             </p>
             {thread?.activeWorkId === undefined ? null : (
               <Link

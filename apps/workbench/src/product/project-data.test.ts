@@ -20,6 +20,7 @@ import type {
   PetraProjectHistoryRetainedContinuationFailure,
   PetraProjectHistoryRetainedViewV12,
   PetraProjectInquiryView,
+  PetraProjectModelReadinessView,
   PetraProjectObjectLocationView,
   PetraProjectObjective,
   PetraProjectProfileTaxonomyView,
@@ -109,6 +110,50 @@ import {
   workProjectFromView,
   workUnitFromView,
 } from "./project-data.js";
+
+const unavailableModelReadiness = (
+  projectId: string,
+): PetraProjectModelReadinessView => ({
+  schema_name: "petra.project-model-readiness-view",
+  schema_version: "1.0.0",
+  project_id: projectId,
+  project_revision: 1,
+  project_definition_ref: {
+    project_definition_id: "project_definition_01K4C000000000000000000001",
+    revision: 1,
+    content_hash:
+      "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    record_hash:
+      "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    definition_family: "petra.scientific-evidence",
+  },
+  readiness: {
+    state: "unavailable",
+    reason: "role_unavailable",
+    role: {
+      state: "unavailable",
+      reason: "runtime_not_configured",
+      message: "No certified runtime is configured.",
+    },
+    provider: {
+      state: "unavailable",
+      provider_kind: "codex_app_server",
+      message: "The provider is unavailable.",
+    },
+    context: {
+      state: "unavailable",
+      reason: "project_context_not_compiled",
+      message: "Exact Project context is unavailable.",
+    },
+    command: {
+      state: "unavailable",
+      reason: "role_unavailable",
+      message: "No prompt will be submitted.",
+    },
+  },
+  limitations: ["The model has no authority effect."],
+  read_at: "2026-09-19T05:30:00.000Z",
+});
 
 const view = JSON.parse(
   readFileSync(
@@ -4472,13 +4517,15 @@ describe("Project shell workbench adapter", () => {
           : input instanceof URL
             ? input.href
             : input.url;
-      const value = path.includes("/suggested-action-invocations/")
-        ? suggestedActionInvocationView
-        : path.includes("/suggested-actions?")
-          ? suggestedWorkActionView
-          : path.includes(`/threads/${threadId}`)
-            ? threadDetailView
-            : threadCollectionView;
+      const value = path.includes("/model-readiness")
+        ? unavailableModelReadiness(suggestedWorkActionView.project_id)
+        : path.includes("/suggested-action-invocations/")
+          ? suggestedActionInvocationView
+          : path.includes("/suggested-actions?")
+            ? suggestedWorkActionView
+            : path.includes(`/threads/${threadId}`)
+              ? threadDetailView
+              : threadCollectionView;
       return Promise.resolve(Response.json(value));
     });
     vi.stubGlobal("fetch", fetch);
@@ -4504,10 +4551,19 @@ describe("Project shell workbench adapter", () => {
       suggestedActionInvocationView,
     );
     expect(data.thread?.id).toBe(threadId);
-    expect(fetch.mock.calls.map(([path]) => path)).toEqual([
+    expect(
+      fetch.mock.calls.map(([path]) =>
+        typeof path === "string"
+          ? path
+          : path instanceof URL
+            ? path.href
+            : path.url,
+      ),
+    ).toEqual([
       `/api/queries/projects/${projectId}/threads?limit=1&lifecycle=open`,
       `/api/queries/projects/${projectId}/suggested-actions?inquiry_result_link_id=${linkId}&action_kind=run_grounded_synthesis`,
       `/api/queries/projects/${projectId}/suggested-action-invocations/${commandId}`,
+      `http://petra.local/api/queries/projects/${projectId}/model-readiness`,
       `/api/queries/projects/${projectId}/threads/${threadId}`,
     ]);
   });
@@ -4520,7 +4576,11 @@ describe("Project shell workbench adapter", () => {
           : input instanceof URL
             ? input.href
             : input.url;
-      const value = path.includes("/communication?") ? communicationPlan : {};
+      const value = path.includes("/model-readiness")
+        ? unavailableModelReadiness(communicationPlan.project_id)
+        : path.includes("/communication?")
+          ? communicationPlan
+          : {};
       void init;
       return Promise.resolve(Response.json(value));
     });
@@ -4551,7 +4611,7 @@ describe("Project shell workbench adapter", () => {
 
     expect(data.communicationPlan).toEqual(communicationPlan);
     expect(data.thread).toBeUndefined();
-    expect(fetch).toHaveBeenCalledOnce();
+    expect(fetch).toHaveBeenCalledTimes(2);
     const communicationCall = fetch.mock.calls.find(([input]) => {
       const path =
         typeof input === "string"
@@ -4590,6 +4650,30 @@ describe("Project shell workbench adapter", () => {
     const projectId = communicationPlan.project_id;
     const url = new URL(
       `http://petra.test/projects/${projectId}/petra?communication_response_id=${communicationPlan.content.source_response.grounded_response_id}`,
+    );
+
+    await expect(
+      loadProjectPetra({
+        request: new Request(url),
+        url,
+        pattern: "/projects/:projectId/petra",
+        params: { projectId },
+        context: new RouterContextProvider(),
+      }),
+    ).rejects.toMatchObject({ status: 400 });
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("rejects a Petra return that crosses the current Project boundary", async () => {
+    const fetch = vi.fn<typeof globalThis.fetch>();
+    vi.stubGlobal("fetch", fetch);
+    const projectId = communicationPlan.project_id;
+    const query = new URLSearchParams({
+      return_to: "/projects/project_01K4C000000000000000000099/brief#attention",
+      return_label: "Another Project",
+    });
+    const url = new URL(
+      `http://petra.test/projects/${projectId}/petra?${query}`,
     );
 
     await expect(

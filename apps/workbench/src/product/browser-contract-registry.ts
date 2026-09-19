@@ -43,6 +43,7 @@ import projectSourceSchema from "../../../../packages/contracts/schemas/project-
 import projectDefinitionSchema from "../../../../packages/contracts/schemas/project-definition/1.0.0/schema.json";
 import registeredProjectProfileSchema from "../../../../packages/contracts/schemas/registered-project-profile/1.0.0/schema.json";
 import projectProfileTaxonomyViewSchema from "../../../../packages/contracts/schemas/project-profile-taxonomy-view/1.0.0/schema.json";
+import projectModelReadinessViewSchema from "../../../../packages/contracts/schemas/project-model-readiness-view/1.0.0/schema.json";
 import projectProfileCommandRequestSchema from "../../../../packages/contracts/schemas/project-profile-command-request/1.0.0/schema.json";
 import projectProfileCommandReceiptSchema from "../../../../packages/contracts/schemas/project-profile-command-receipt/1.0.0/schema.json";
 import applyResultSchema from "../../../../packages/contracts/schemas/review-session-apply-result/1.0.0/schema.json";
@@ -101,6 +102,7 @@ type BrowserContractName =
   | "review-session@1.1.0"
   | "registered-project-profile@1.0.0"
   | "project-profile-taxonomy-view@1.0.0"
+  | "project-model-readiness-view@1.0.0"
   | "project-profile-command-request@1.0.0"
   | "project-profile-command-receipt@1.0.0"
   | "working-candidate@1.0.0"
@@ -165,6 +167,7 @@ const schemas = [
   projectDefinitionSchema,
   registeredProjectProfileSchema,
   projectProfileTaxonomyViewSchema,
+  projectModelReadinessViewSchema,
   projectProfileCommandRequestSchema,
   projectProfileCommandReceiptSchema,
   projectSourceSchema,
@@ -223,6 +226,7 @@ const contractIds: Record<BrowserContractName, string> = {
   "review-session@1.1.0": reviewSessionV11Schema.$id,
   "registered-project-profile@1.0.0": registeredProjectProfileSchema.$id,
   "project-profile-taxonomy-view@1.0.0": projectProfileTaxonomyViewSchema.$id,
+  "project-model-readiness-view@1.0.0": projectModelReadinessViewSchema.$id,
   "project-profile-command-request@1.0.0":
     projectProfileCommandRequestSchema.$id,
   "project-profile-command-receipt@1.0.0":
@@ -311,6 +315,12 @@ export class PetraContractRegistry {
       version: "1.0.0",
       canonical_sha256:
         "sha256:4176da336913b2eaf10679fb9f984e23c0ca8fbc3b03e14d1bc1b149402dd4a6",
+    },
+    {
+      name: "project-model-readiness-view",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:6a9cacc35e9df3b73a4eaed2db936f8c2452cf07ebd0256523388c743eb2b22e",
     },
     {
       name: "project-profile-command-request",

@@ -24,9 +24,9 @@ missing from that inventory.
 | State | Operations | Meaning |
 | --- | ---: | --- |
 | Live | 43 | A visible control appears to reach its production boundary. Exact runtime ownership and executed evidence still have to be attached before a milestone gate passes. |
-| Partial | 34 | Part of the operation works, but a required command, state, return, recovery path, or executed browser record is absent. |
+| Partial | 36 | Part of the operation works, but a required command, state, return, recovery path, or executed browser record is absent. |
 | Presentation only | 9 | The UI demonstrates presentation with local or fixture state. |
-| Unavailable | 21 | The accepted operation is shown as disabled or unavailable. |
+| Unavailable | 19 | The accepted operation is shown as disabled or unavailable. |
 | Missing | 9 | The accepted operation has no discoverable control. |
 
 Wave 6 owns 97 core operations. Forty-three are currently live and 54 remain
@@ -36,9 +36,10 @@ controls, but remain partial in this ledger until the usable-profile browser
 scenario records their exact commands, results, cross-surface terms, and return.
 Material gaps still include objective framing, source registration and removal,
 Review rejection, Work input and steering, cancellation and each distinct
-recovery action, the Petra composer, durable interrupt responses, visible model
-readiness, personal-setting persistence, and the stable in-product test/reset
-path.
+recovery action, durable interrupt responses, personal-setting persistence, and
+the stable in-product test/reset path. The Petra composer and certified-model
+readiness are now production-bound but remain partial until their required live
+browser evidence is recorded.
 
 ## Wave 6 backend contract baseline
 
@@ -100,6 +101,28 @@ unavailable or missing to partial. `shell.project-map` and
 `taxonomy.inspect-profile` remain partial. No row was promoted to live and no
 evidence object was attached: the required named usable-profile scenario was
 not executed through a live browser in this implementation slice.
+
+### Slice 6 certified-model Petra UI update
+
+The production Petra route now reads one exact Project model-readiness view,
+shows the selected certified role, provider, bound context, registered prompt,
+and server-supplied limitations, and submits through `ProjectModelClient` to the
+guarded grounded-synthesis command. The browser cannot choose a different role,
+provider, prompt, context packet, EvidencePacket, workflow, or authority effect.
+
+The response presentation separates progress, answer, statement origins,
+packet references, coverage, durable Work destination, Review interrupts, and
+the explicit no-authority result. Provider failure and uncertain delivery keep
+the Project-scoped draft and exact run/connection identity; reconnect performs
+durable replay rather than starting another model call. Registered scientific,
+unsupported controlled-writing, and unavailable provider/context states remain
+distinct, and contextual entry returns to its exact task and focus.
+
+`petra.ask` and `model.use` move from unavailable to partial. The existing
+partial readiness, context, references, and retained-thread operations now name
+their production or browser-local owners. No row moves to live and no evidence
+object is attached: the actual certified-model production-UI scenario has not
+been executed in this implementation slice.
 
 Wave 7 owns 15 atomic Composition operations. None is currently live:
 collection creation, durable editing and save, contextual Petra work,

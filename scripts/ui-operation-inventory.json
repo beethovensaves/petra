@@ -1063,7 +1063,7 @@
       "control": "Resume thread",
       "interaction": "navigation",
       "evidence": [],
-      "runtime_owner": "",
+      "runtime_owner": "sessionStorage Project draft/run identity + GET /api/interactions/:runId -> PetraInteractionRuntime durable replay",
       "paths": ["UX-PATH-01", "UX-PATH-02"]
     },
     {
@@ -1073,12 +1073,12 @@
       "surfaces": ["SP13"],
       "flows": ["UX-FLOW-10"],
       "requests": ["UX-REQ-006", "UX-REQ-021"],
-      "current_state": "unavailable",
+      "current_state": "partial",
       "route": "/projects/:projectId/petra",
       "control": "Send",
       "interaction": "command",
       "evidence": [],
-      "runtime_owner": "",
+      "runtime_owner": "POST /api/interactions/run -> ProjectModelClient + PetraInteractionRuntime guarded by PostgresProjectModelReadinessReader",
       "paths": ["UX-PATH-01", "UX-PATH-02"]
     },
     {
@@ -1093,7 +1093,7 @@
       "control": "Context disclosure",
       "interaction": "query",
       "evidence": [],
-      "runtime_owner": "",
+      "runtime_owner": "GET /api/queries/projects/:projectId/model-readiness -> PostgresProjectModelReadinessReader",
       "paths": ["UX-PATH-01", "UX-PATH-02", "UX-PATH-04"]
     },
     {
@@ -1108,7 +1108,7 @@
       "control": "Response basis",
       "interaction": "query",
       "evidence": [],
-      "runtime_owner": "",
+      "runtime_owner": "POST /api/interactions/run terminal -> grounded ContextPacket, EvidencePacket, origin, coverage, Work, and authority bindings",
       "paths": ["UX-PATH-01", "UX-PATH-02", "UX-PATH-04"]
     },
     {
@@ -1168,7 +1168,7 @@
       "control": "Model status",
       "interaction": "query",
       "evidence": [],
-      "runtime_owner": "",
+      "runtime_owner": "GET /api/queries/projects/:projectId/model-readiness -> PostgresProjectModelReadinessReader",
       "paths": ["UX-PATH-01", "UX-PATH-02"]
     },
     {
@@ -1178,12 +1178,12 @@
       "surfaces": ["SP11", "SP13"],
       "flows": ["UX-FLOW-10", "UX-FLOW-17"],
       "requests": ["UX-REQ-020", "UX-REQ-021"],
-      "current_state": "unavailable",
+      "current_state": "partial",
       "route": "/projects/:projectId/petra",
       "control": "Send",
       "interaction": "command",
       "evidence": [],
-      "runtime_owner": "",
+      "runtime_owner": "POST /api/interactions/run -> ProjectModelClient + certified Codex grounded-synthesis runtime",
       "paths": ["UX-PATH-01", "UX-PATH-02"]
     },
     {

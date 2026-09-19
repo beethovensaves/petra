@@ -213,6 +213,8 @@ export const SuggestedWorkAction = ({
     invocation?.content.invocation.content.command_ref.command_id;
   const conversationalQuery = new URLSearchParams({
     inquiry_result_link_id: linkId,
+    return_to: `/projects/${encodeURIComponent(projectId)}/brief?inquiry_result_link_id=${encodeURIComponent(linkId)}`,
+    return_label: "Brief action",
     ...(invocationCommandId === undefined
       ? {}
       : { suggested_action_command_id: invocationCommandId }),

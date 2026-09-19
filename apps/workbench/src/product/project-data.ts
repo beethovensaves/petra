@@ -2,6 +2,7 @@ import { readProjectBrief } from "./brief-read.js";
 import {
   FocusedGraphClient,
   FocusedGraphClientError,
+  ProjectModelClient,
   ProjectProfileClient,
 } from "@petra/adapters";
 import {
@@ -35,6 +36,7 @@ import type {
   PetraProjectHistoryRetainedViewV12,
   PetraCommunicationPlan,
   PetraProjectInquiryView,
+  PetraProjectModelReadinessView,
   PetraProjectObjectLocationView,
   PetraProjectDefinition,
   PetraProjectProfileCommandReceipt,
@@ -6583,7 +6585,115 @@ export interface ProjectPetraData {
   readonly suggestedWorkAction?: PetraSuggestedActionViewV11;
   readonly suggestedActionInvocation?: PetraSuggestedActionInvocationView;
   readonly communicationPlan?: PetraCommunicationPlan;
+  readonly modelReadiness: PetraProjectModelReadinessView;
+  readonly returnContext: ProjectPetraReturnContext;
 }
+
+export interface ProjectPetraReturnContext {
+  readonly path: string;
+  readonly label: string;
+}
+
+export interface ProjectModelRunIdentity {
+  readonly threadId: string;
+  readonly runId: string;
+  readonly connectionId: string;
+}
+
+export const createProjectModelRunIdentity = (): ProjectModelRunIdentity => ({
+  threadId: `thread_${randomUlidPayload()}`,
+  runId: `run_${randomUlidPayload()}`,
+  connectionId: `interaction_connection_${randomUlidPayload()}`,
+});
+
+const projectModelClient = (): ProjectModelClient =>
+  new ProjectModelClient({
+    baseUrl: apiBaseUrl(),
+    token: apiToken(),
+  });
+
+export const getProjectModelReadiness = async (
+  projectId: string,
+): Promise<PetraProjectModelReadinessView> =>
+  projectModelClient().readReadiness(projectId);
+
+export const runProjectModelInteraction = async (
+  readiness: PetraProjectModelReadinessView,
+  identity: ProjectModelRunIdentity,
+  prompt: string,
+): Promise<PetraInteractionResult> =>
+  projectModelClient().run({
+    readiness,
+    threadId: identity.threadId,
+    runId: identity.runId,
+    connectionId: identity.connectionId,
+    prompt,
+  });
+
+export const replayProjectModelInteraction = async (
+  readiness: PetraProjectModelReadinessView,
+  identity: ProjectModelRunIdentity,
+): Promise<PetraInteractionResult> => {
+  const endpoint =
+    readiness.readiness.state === "ready"
+      ? readiness.readiness.command.endpoint
+      : "/api/interactions/run";
+  return new PetraInteractionClient({
+    endpoint: new URL(endpoint, apiBaseUrl()).toString(),
+    token: apiToken(),
+  }).replay({
+    threadId: identity.threadId,
+    runId: identity.runId,
+    connectionId: identity.connectionId,
+    afterSequence: 0,
+  });
+};
+
+const projectPetraReturnContext = (
+  projectId: string,
+  search: URLSearchParams,
+): ProjectPetraReturnContext => {
+  const fallback = {
+    path: `/projects/${encodeURIComponent(projectId)}/brief`,
+    label: "Brief",
+  };
+  const paths = search.getAll("return_to");
+  const labels = search.getAll("return_label");
+  const focusIds = search.getAll("return_focus");
+  if (paths.length === 0 && labels.length === 0 && focusIds.length === 0) {
+    return fallback;
+  }
+  if (paths.length !== 1 || labels.length !== 1 || focusIds.length > 1) {
+    throw new ProjectDataError(
+      "A Petra return must name one exact same-Project path and label.",
+      400,
+    );
+  }
+  const suppliedPath = paths[0]!;
+  const label = labels[0]!.trim();
+  const focusId = focusIds[0]?.trim();
+  const parsed = new URL(suppliedPath, "http://petra.local");
+  const projectRoot = `/projects/${encodeURIComponent(projectId)}/`;
+  if (
+    parsed.origin !== "http://petra.local" ||
+    !parsed.pathname.startsWith(projectRoot) ||
+    label.length === 0 ||
+    label.length > 100 ||
+    (focusId !== undefined &&
+      (focusId.length === 0 ||
+        focusId.length > 100 ||
+        !/^[A-Za-z][A-Za-z0-9_.:-]*$/u.test(focusId)))
+  ) {
+    throw new ProjectDataError(
+      "The Petra return target is invalid or crosses the current Project boundary.",
+      400,
+    );
+  }
+  const path = `${parsed.pathname}${parsed.search}${
+    focusId === undefined ? parsed.hash : `#${encodeURIComponent(focusId)}`
+  }`;
+  return { path, label };
+};
 
 type CommunicationReadRequest = Parameters<CommunicationPlanClient["read"]>[1];
 
@@ -6673,6 +6783,7 @@ export const loadProjectPetra = async (
     "A Project ID",
   );
   const incoming = new URL(args.request.url).searchParams;
+  const returnContext = projectPetraReturnContext(projectId, incoming);
   const communicationRequest = communicationRequestFromSearch(incoming);
   const linkIds = incoming.getAll("inquiry_result_link_id");
   const commandIds = incoming.getAll("suggested_action_command_id");
@@ -6713,6 +6824,7 @@ export const loadProjectPetra = async (
     suggestedWorkAction,
     suggestedActionInvocation,
     communicationPlan,
+    modelReadiness,
   ] = await Promise.all([
     communicationRequest === undefined
       ? loadProjectPetraThread(args)
@@ -6726,6 +6838,7 @@ export const loadProjectPetra = async (
     communicationRequest === undefined
       ? undefined
       : getProjectCommunicationPlan(projectId, communicationRequest),
+    getProjectModelReadiness(projectId),
   ]);
   if (
     suggestedWorkAction !== undefined &&
@@ -6746,6 +6859,8 @@ export const loadProjectPetra = async (
       ? {}
       : { suggestedActionInvocation }),
     ...(communicationPlan === undefined ? {} : { communicationPlan }),
+    modelReadiness,
+    returnContext,
   };
 };
 
