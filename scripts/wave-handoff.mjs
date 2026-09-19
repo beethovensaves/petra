@@ -3,6 +3,7 @@ import { spawn, spawnSync } from "node:child_process";
 import {
   createWriteStream,
   existsSync,
+  mkdtempSync,
   mkdirSync,
   readFileSync,
   renameSync,
@@ -11,6 +12,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { dirname, join, resolve } from "node:path";
+import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 import { isDeepStrictEqual } from "node:util";
 
@@ -164,7 +166,7 @@ function mergeJsonValue(base, ours, theirs, location) {
     return result;
   }
 
-  throw new Error(`Competing package.json edits at ${location}.`);
+  throw new Error(`Competing JSON edits at ${location}.`);
 }
 
 export function mergePackageJsonDocuments(baseText, oursText, theirsText) {
@@ -190,6 +192,106 @@ export function mergePackageJsonDocuments(baseText, oursText, theirsText) {
   return `${JSON.stringify(merged, null, 2)}\n`;
 }
 
+export function mergeOperationInventoryDocuments(
+  baseText,
+  oursText,
+  theirsText,
+) {
+  let base;
+  let ours;
+  let theirs;
+  try {
+    base = JSON.parse(baseText);
+    ours = JSON.parse(oursText);
+    theirs = JSON.parse(theirsText);
+  } catch (error) {
+    throw new Error(
+      "Cannot resolve the operation inventory with invalid JSON.",
+      {
+        cause: error,
+      },
+    );
+  }
+  const index = (document, label) => {
+    if (!Array.isArray(document.operations)) {
+      throw new Error(`${label} operation inventory has no operations array.`);
+    }
+    const result = {};
+    for (const operation of document.operations) {
+      if (
+        !nonEmptyString(operation?.id) ||
+        Object.hasOwn(result, operation.id)
+      ) {
+        throw new Error(
+          `${label} operation inventory has an invalid or duplicate id.`,
+        );
+      }
+      result[operation.id] = operation;
+    }
+    return result;
+  };
+  const baseOperations = index(base, "Base");
+  const oursOperations = index(ours, "Design");
+  const theirsOperations = index(theirs, "Backend");
+  const mergedOperations = mergeJsonValue(
+    baseOperations,
+    oursOperations,
+    theirsOperations,
+    "ui-operation-inventory.operations",
+  );
+  const withoutOperations = (document) => {
+    const copy = { ...document };
+    delete copy.operations;
+    return copy;
+  };
+  const merged = mergeJsonValue(
+    withoutOperations(base),
+    withoutOperations(ours),
+    withoutOperations(theirs),
+    "ui-operation-inventory",
+  );
+  const order = [
+    ...base.operations,
+    ...ours.operations,
+    ...theirs.operations,
+  ].map((operation) => operation.id);
+  merged.operations = [...new Set(order)].map((id) => mergedOperations[id]);
+  return `${JSON.stringify(merged, null, 2)}\n`;
+}
+
+export function mergeAdditiveMarkdownDocuments(baseText, oursText, theirsText) {
+  const root = mkdtempSync(join(tmpdir(), "petra-wave-markdown-"));
+  const basePath = join(root, "base.md");
+  const oursPath = join(root, "ours.md");
+  const theirsPath = join(root, "theirs.md");
+  try {
+    writeFileSync(basePath, baseText, "utf8");
+    writeFileSync(oursPath, oursText, "utf8");
+    writeFileSync(theirsPath, theirsText, "utf8");
+    const result = spawnSync(
+      "git",
+      ["merge-file", "-p", "--union", oursPath, basePath, theirsPath],
+      { encoding: "utf8", env: pinnedEnvironment() },
+    );
+    if (result.error) throw result.error;
+    if (
+      result.status !== 0 ||
+      /^(?:<<<<<<<|=======|>>>>>>>)/mu.test(result.stdout)
+    ) {
+      throw new Error("Additive Markdown merge left an unresolved conflict.");
+    }
+    const headings = [
+      ...result.stdout.matchAll(/^### (Slice \d+[^\n]*)$/gmu),
+    ].map(([, heading]) => heading);
+    if (new Set(headings).size !== headings.length) {
+      throw new Error("Additive Markdown merge duplicated a slice section.");
+    }
+    return result.stdout;
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+}
+
 export function isCompatiblePackageJsonConflictSet(conflicted) {
   return conflicted.length === 1 && conflicted[0] === "package.json";
 }
@@ -209,6 +311,42 @@ export function resolveCompatiblePackageJsonConflict(root) {
   );
   writeFileSync(join(root, "package.json"), merged, "utf8");
   git(root, "add", "package.json");
+  const remaining = git(root, "diff", "--name-only", "--diff-filter=U");
+  if (remaining.length > 0) {
+    throw new Error(`Unresolved merge paths remain: ${remaining}`);
+  }
+  git(root, "commit", "--no-edit");
+  return true;
+}
+
+export function resolveCompatibleIntegrationConflicts(root) {
+  const conflicted = git(root, "diff", "--name-only", "--diff-filter=U")
+    .split("\n")
+    .filter(Boolean);
+  const allowed = new Set([
+    "package.json",
+    "scripts/ui-operation-inventory.json",
+    "reports/UI-OPERATION-COVERAGE.md",
+  ]);
+  if (
+    conflicted.length === 0 ||
+    conflicted.some((path) => !allowed.has(path))
+  ) {
+    return false;
+  }
+  for (const path of conflicted) {
+    const base = git(root, "show", `:1:${path}`);
+    const ours = git(root, "show", `:2:${path}`);
+    const theirs = git(root, "show", `:3:${path}`);
+    const merged =
+      path === "package.json"
+        ? mergePackageJsonDocuments(base, ours, theirs)
+        : path === "scripts/ui-operation-inventory.json"
+          ? mergeOperationInventoryDocuments(base, ours, theirs)
+          : mergeAdditiveMarkdownDocuments(base, ours, theirs);
+    writeFileSync(join(root, path), merged, "utf8");
+    git(root, "add", path);
+  }
   const remaining = git(root, "diff", "--name-only", "--diff-filter=U");
   if (remaining.length > 0) {
     throw new Error(`Unresolved merge paths remain: ${remaining}`);
@@ -1097,20 +1235,20 @@ async function integrateBackendForDesign(wave, claimedState) {
     );
     if (mergeHead.status === 0) {
       try {
-        if (resolveCompatiblePackageJsonConflict(roles.design.root)) {
+        if (resolveCompatibleIntegrationConflicts(roles.design.root)) {
           process.stdout.write(
-            "[design] Resolved compatible package.json additions with a strict three-way merge.\n",
+            "[design] Resolved compatible shared-ledger additions with strict three-way merges.\n",
           );
         } else {
           throw new Error(
-            "The merge includes conflicts outside the supported package.json boundary.",
+            "The merge includes conflicts outside the supported shared-ledger boundary.",
             { cause: error },
           );
         }
       } catch (resolutionError) {
         git(roles.design.root, "merge", "--abort");
         throw new Error(
-          `Design synchronization with backend ${backend.head} failed: ${error.message}\nAutomatic package resolution was unavailable: ${resolutionError.message}`,
+          `Design synchronization with backend ${backend.head} failed: ${error.message}\nAutomatic shared-ledger resolution was unavailable: ${resolutionError.message}`,
           { cause: resolutionError },
         );
       }
@@ -1618,7 +1756,7 @@ async function doctor(wave, maxSlices) {
       requireCleanAndPushed(role, snapshot);
       if (
         current?.status === "waiting" &&
-        current.recovery &&
+        (current.recovery || current.next_role !== role) &&
         snapshot.head !== current.commits[role]
       ) {
         if (

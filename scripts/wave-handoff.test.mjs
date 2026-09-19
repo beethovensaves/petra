@@ -25,6 +25,8 @@ import {
   inventoryAuditOverdue,
   isCompatiblePackageJsonConflictSet,
   isRetryableWorkerError,
+  mergeAdditiveMarkdownDocuments,
+  mergeOperationInventoryDocuments,
   mergePackageJsonDocuments,
   matchesRecoverySnapshot,
   missingRequiredEvidence,
@@ -355,8 +357,67 @@ test("three-way package merge preserves one-sided deletion and rejects competiti
           scripts: { keep: "same", remove: "old", collide: "theirs" },
         }),
       ),
-    /Competing package.json edits at package.json.scripts.collide/,
+    /Competing JSON edits at package.json.scripts.collide/,
   );
+});
+
+test("merges independent operation ownership and UI-state changes by id", () => {
+  const base = {
+    schema_name: "petra.ui-operation-inventory",
+    operations: [
+      {
+        id: "work.cancel",
+        current_state: "unavailable",
+        runtime_owner: "",
+      },
+    ],
+  };
+  const ours = {
+    ...base,
+    operations: [
+      {
+        ...base.operations[0],
+        current_state: "partial",
+      },
+    ],
+  };
+  const theirs = {
+    ...base,
+    operations: [
+      {
+        ...base.operations[0],
+        runtime_owner: "PostgresProjectWorkOperations.cancel",
+      },
+    ],
+  };
+  assert.deepEqual(
+    JSON.parse(
+      mergeOperationInventoryDocuments(
+        JSON.stringify(base),
+        JSON.stringify(ours),
+        JSON.stringify(theirs),
+      ),
+    ).operations,
+    [
+      {
+        id: "work.cancel",
+        current_state: "partial",
+        runtime_owner: "PostgresProjectWorkOperations.cancel",
+      },
+    ],
+  );
+});
+
+test("merges disjoint Wave coverage sections without conflict markers", () => {
+  const base = "# Coverage\n\n## Updates\n\n## Exit\n";
+  const ours =
+    "# Coverage\n\n## Updates\n\n### Slice 6 design\n\nDesign result.\n\n## Exit\n";
+  const theirs =
+    "# Coverage\n\n## Updates\n\n### Slice 7 backend\n\nBackend result.\n\n## Exit\n";
+  const merged = mergeAdditiveMarkdownDocuments(base, ours, theirs);
+  assert.match(merged, /### Slice 6 design/);
+  assert.match(merged, /### Slice 7 backend/);
+  assert.doesNotMatch(merged, /<<<<<<<|=======|>>>>>>>/);
 });
 
 test("automatic conflict recovery stays inside the package.json boundary", () => {
