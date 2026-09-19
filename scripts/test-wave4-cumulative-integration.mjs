@@ -6,6 +6,7 @@ import { resolve } from "node:path";
 import {
   FocusedGraphClient,
   PetraInteractionClient,
+  ProjectModelClient,
   ProjectBriefClient,
   ProjectWorkingStateClient,
   ReviewCandidateCorrectionClient,
@@ -73,6 +74,7 @@ const writingProjectId = "project_01K4E000000000000000000001";
 const traceMode = process.env.PETRA_WAVE4_TRACE;
 const item49Mode = traceMode === "conversation-model-identity";
 const wave5Mode = traceMode === "wave5-cumulative";
+const liveProjectModelMode = wave5Mode;
 const item53Mode = traceMode === "evidence-remediation-support" || wave5Mode;
 const item49ProfileMode = item49Mode || item53Mode;
 const item49Published = Object.freeze({
@@ -709,7 +711,19 @@ const seedScientific = async (pool, neo4jUri) => {
   const bundle = documentBundle(source.manifest.artifact_manifest_id);
   await documents.registerDocumentBundle(bundle);
 
-  const definition = readAccepted("project-definition-working-scientific");
+  if (liveProjectModelMode) {
+    await definitions.registerDefinitionRevision(
+      readAccepted("project-definition-working-scientific"),
+    );
+    await definitions.registerObjectiveRevision(
+      readAccepted("project-objective-working-scientific"),
+    );
+  }
+  const definition = readAccepted(
+    liveProjectModelMode
+      ? "project-definition-certified-scientific"
+      : "project-definition-working-scientific",
+  );
   if (item49ProfileMode) {
     const modelRole = definition.content.registrations.find(
       (entry) => entry.registration_kind === "model_role",
@@ -769,7 +783,11 @@ const seedScientific = async (pool, neo4jUri) => {
   });
   definition.content_hash = hash(definition.content);
   await definitions.registerDefinitionRevision(definition);
-  const objective = readAccepted("project-objective-working-scientific");
+  const objective = readAccepted(
+    liveProjectModelMode
+      ? "project-objective-certified-scientific"
+      : "project-objective-working-scientific",
+  );
   objective.project_definition_ref.content_hash = definition.content_hash;
   await definitions.registerObjectiveRevision(objective);
   await definitions.setCurrentObjectiveFocus({
@@ -2789,6 +2807,31 @@ const item53GroundedPresentation = async ({
     currentClaim !== undefined && currentAssertion !== undefined,
     "The item 49 ContextPacket baseline authority is unavailable.",
   );
+  const certifiedPacketRecords = () => {
+    const changeSet = readAccepted("change-set");
+    const approval = readAccepted("command-record-approval").command.approval;
+    const apply = readAccepted("command-apply-change-set");
+    const authority = {
+      zone: "trusted",
+      review_state: "human_accepted",
+      promotion: {
+        change_set_id: changeSet.change_set_id,
+        approval_basis: {
+          approval_kind: "human",
+          approval_id: approval.approval_id,
+          approved_by: clone(approval.decided_by),
+        },
+        applied_at: apply.submitted_at,
+      },
+    };
+    const claim = readAccepted("claim");
+    claim.revision += 1;
+    claim.authority = clone(authority);
+    const assertion = readAccepted("assertion");
+    assertion.revision += 1;
+    assertion.authority = clone(authority);
+    return [claim, assertion, readAccepted("source-span")];
+  };
   const context = readAccepted("context-packet");
   context.compiled_by = {
     actor_id: serviceActorId,
@@ -2800,46 +2843,49 @@ const item53GroundedPresentation = async ({
       context.snapshot_ref.snapshot_id === item49Published.snapshotId,
     "The continuation ContextPacket lost the published item 49 identity.",
   );
-  const contextRecords = [
-    currentClaim,
-    currentAssertion,
-    scientific.documentBundle.spans[0],
-  ];
-  for (const inclusion of context.content.included_objects) {
-    const record = contextRecords.find((candidate) =>
-      Object.values(candidate).includes(inclusion.object_ref.object_id),
-    );
-    assert(
-      record !== undefined,
-      `The continuation ContextPacket lost ${inclusion.object_ref.object_id}.`,
-    );
-    inclusion.object_ref.object_revision = record.revision;
-    inclusion.object_ref.object_hash = hash(record);
+  const contextRecords = liveProjectModelMode
+    ? certifiedPacketRecords()
+    : [currentClaim, currentAssertion, scientific.documentBundle.spans[0]];
+  if (!liveProjectModelMode) {
+    for (const inclusion of context.content.included_objects) {
+      const record = contextRecords.find((candidate) =>
+        Object.values(candidate).includes(inclusion.object_ref.object_id),
+      );
+      assert(
+        record !== undefined,
+        `The continuation ContextPacket lost ${inclusion.object_ref.object_id}.`,
+      );
+      inclusion.object_ref.object_revision = record.revision;
+      inclusion.object_ref.object_hash = hash(record);
+    }
+    context.content.objective.target_refs =
+      context.content.objective.target_refs.map((target) =>
+        clone(
+          context.content.included_objects.find(
+            (inclusion) =>
+              inclusion.object_ref.object_kind === target.object_kind &&
+              inclusion.object_ref.object_id === target.object_id,
+          ).object_ref,
+        ),
+      );
+    context.content_hash = hash(context.content);
   }
-  context.content.objective.target_refs =
-    context.content.objective.target_refs.map((target) =>
-      clone(
-        context.content.included_objects.find(
-          (inclusion) =>
-            inclusion.object_ref.object_kind === target.object_kind &&
-            inclusion.object_ref.object_id === target.object_id,
-        ).object_ref,
-      ),
-    );
-  context.content_hash = hash(context.content);
   const evidencePacket = readAccepted("evidence-packet");
-  evidencePacket.content.context_packet_ref.content_hash = context.content_hash;
-  evidencePacket.content.selected_evidence =
-    evidencePacket.content.selected_evidence.map((selection) => ({
-      ...selection,
-      object_ref: clone(
-        context.content.included_objects.find(
-          (inclusion) =>
-            inclusion.selection_order === selection.context_selection_order,
-        ).object_ref,
-      ),
-    }));
-  evidencePacket.content_hash = hash(evidencePacket.content);
+  if (!liveProjectModelMode) {
+    evidencePacket.content.context_packet_ref.content_hash =
+      context.content_hash;
+    evidencePacket.content.selected_evidence =
+      evidencePacket.content.selected_evidence.map((selection) => ({
+        ...selection,
+        object_ref: clone(
+          context.content.included_objects.find(
+            (inclusion) =>
+              inclusion.selection_order === selection.context_selection_order,
+          ).object_ref,
+        ),
+      }));
+    evidencePacket.content_hash = hash(evidencePacket.content);
+  }
   evidencePacket.compiled_by = clone(context.compiled_by);
   evidencePacket.compiled_at = context.compiled_at;
   const packets = new InMemoryContextPacketRegistry();
@@ -3689,6 +3735,7 @@ const exerciseItem53Trace = async ({
   let active;
   let vite;
   let wave5GraphRequest;
+  const modelRuntimeChecks = [];
   const observer = await item53Observer();
   const nativeFetch = globalThis.fetch;
   globalThis.fetch = (input, init) => {
@@ -3699,16 +3746,64 @@ const exerciseItem53Trace = async ({
     return nativeFetch(resolved, init);
   };
   const launch = async () => {
-    const persistence =
-      await createProjectShellPersistenceFromEnvironment(environment);
+    let server;
+    const [project, grounded] = await Promise.all([
+      createProjectShellPersistenceFromEnvironment(environment),
+      liveProjectModelMode
+        ? createGroundedSynthesisPersistenceFromEnvironment(environment)
+        : undefined,
+    ]);
     try {
-      return await startPetraServer({
+      server = await startPetraServer({
         port: 0,
         authToken: token,
-        projectShellPersistence: persistence,
+        projectShellPersistence: project,
+        ...(grounded === undefined
+          ? {}
+          : {
+              codexWorkspaceRoot: root,
+              codexSidecar: { cwd: root, requestTimeoutMs: 30_000 },
+              codexGroundedSynthesis: { timeoutMs: 120_000 },
+              groundedSynthesisPersistence: grounded,
+            }),
       });
+      if (liveProjectModelMode) {
+        const account = await server.codexProvider?.readAccount();
+        assert(
+          account?.authenticated === true && account.authMode === "chatgpt",
+          "The cumulative production browser requires managed ChatGPT OAuth for the certified Project model runtime.",
+        );
+        const readiness = await new ProjectModelClient({
+          baseUrl: server.url,
+          token,
+        }).readReadiness(scientificProjectId);
+        assert(
+          readiness.readiness.state === "ready" &&
+            readiness.readiness.role.semantic_key ===
+              "scientific.grounded-synthesist" &&
+            readiness.readiness.provider.state === "ready" &&
+            readiness.readiness.context.state === "bound" &&
+            readiness.readiness.command.endpoint === "/api/interactions/run",
+          `The cumulative production browser did not start the certified Project model runtime: ${JSON.stringify(readiness.readiness)}`,
+        );
+        modelRuntimeChecks.push({
+          auth_mode: account.authMode,
+          provider_state: readiness.readiness.provider.state,
+          role_semantic_key: readiness.readiness.role.semantic_key,
+          context_state: readiness.readiness.context.state,
+          command_endpoint: readiness.readiness.command.endpoint,
+        });
+        progress(
+          "certified Project model readiness is live against exact PostgreSQL context",
+        );
+      }
+      return server;
     } catch (error) {
-      await persistence.close();
+      if (server === undefined) {
+        await Promise.all([project.close(), grounded?.close?.()]);
+      } else {
+        await server.shutdown();
+      }
       throw error;
     }
   };
@@ -4552,10 +4647,17 @@ const exerciseItem53Trace = async ({
       boundary: {
         setup_kind: "provider_free_item49_presentation_continuation",
         external_model_call_executed: false,
+        certified_model_runtime:
+          liveProjectModelMode && modelRuntimeChecks.length >= 2
+            ? "live_on_initial_launch_and_restart"
+            : "not_in_bounded_trace",
         provider_evidence_owner:
           "reports/WAVE4-NATURAL-CONVERSATION-MODEL-IDENTITY-TRACE.md",
         browser_scenarios_executed: observer !== undefined,
       },
+      ...(modelRuntimeChecks.length === 0
+        ? {}
+        : { model_runtime_checks: modelRuntimeChecks }),
       identities: {
         ...item49Published,
         directCandidateRevision: 1,
@@ -5294,7 +5396,7 @@ let failure;
 let pool;
 try {
   const services = ["postgres-source", "neo4j-restored"];
-  if (item49Mode) services.push("artifacts-source");
+  if (item49Mode || liveProjectModelMode) services.push("artifacts-source");
   await requireRun(
     "docker",
     composeArgs("up", "--detach", "--wait", ...services),
@@ -5310,9 +5412,10 @@ try {
   );
   const postgresPort = await servicePort("postgres-source", "5432");
   const neo4jPort = await servicePort("neo4j-restored", "7687");
-  const s3Port = item49Mode
-    ? await servicePort("artifacts-source", "8333")
-    : undefined;
+  const s3Port =
+    item49Mode || liveProjectModelMode
+      ? await servicePort("artifacts-source", "8333")
+      : undefined;
   const environment = {
     PETRA_AUTH_TOKEN: token,
     PETRA_LOCAL_ACTOR_ID: humanActorId,
