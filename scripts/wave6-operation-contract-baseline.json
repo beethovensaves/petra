@@ -171,12 +171,12 @@
       "persistence": "PostgreSQL canonical ChangeSet, Approval, command execution, domain event, authority revisions, projection checkpoint, and per-member Apply result.",
       "recovery": "Checkpoint revalidation and exact result distinguish applied, conflicted, retained, unknown-effect, and reconciliation-required outcomes."
     },
-    "review-reject-missing": {
-      "kind": "missing",
-      "production_owner": "",
-      "authorization": "Lower-level review decision planning exists, but no authenticated public Review rejection owner is configured.",
-      "persistence": "No product-level rejection command/receipt is composed into ReviewSession state and History.",
-      "recovery": "No exact rejection result, independent member outcome, or safe retry/reread boundary exists."
+    "review-reject": {
+      "kind": "command",
+      "production_owner": "GET reject-checkpoint and POST /api/commands/projects/:projectId/reviews/:reviewSessionId/reject -> PostgresReviewSessionApplyBoundary",
+      "authorization": "Bearer authentication plus one server-resolved human holding current SubmitChangeSet and RecordApproval grants; rejection cannot carry or send ApplyChangeSet authority.",
+      "persistence": "PostgreSQL canonical ChangeSet, rejected Approval, command execution, domain event, and exact retained rejection checkpoint request; no second Review ledger and no target evidence authority revision.",
+      "recovery": "Checkpoint revalidation, exact retained request, ordered two-command prefix, canonical D020 assessment, and restart replay distinguish rejected from reconciliation-required without inferring no effect from absence."
     },
     "review-lifecycle": {
       "kind": "command",
@@ -559,9 +559,9 @@
     },
     {
       "operation_id": "review.reject",
-      "owner": "review-reject-missing",
-      "owner_status": "missing",
-      "missing_owner": "Authenticated public rejection command composed into ReviewSession and History outcomes."
+      "owner": "review-reject",
+      "owner_status": "owned",
+      "missing_owner": ""
     },
     {
       "operation_id": "review.defer",

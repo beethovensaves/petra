@@ -1,5 +1,5 @@
 {
-  "registry_version": "1.93.0",
+  "registry_version": "1.96.0",
   "schemas": [
     {
       "name": "contract-smoke",
@@ -1780,6 +1780,39 @@
       "canonical_sha256": "sha256:9b215bf6867aa2dd4e402687204bc3034b22487dd34aaa31f0d809f35e761860",
       "generate_typescript": true,
       "typescript_path": "src/generated/review-session-apply-result.ts"
+    },
+    {
+      "name": "review-session-reject-checkpoint",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/review-session-reject-checkpoint/1.0.0/schema.json",
+      "path": "schemas/review-session-reject-checkpoint/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-manual-review-rejection-checkpoint",
+      "canonical_sha256": "sha256:158260f4ca5626e5ebf75bf91e1c157453055cf36c538dec59cb3ef75ba41552",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/review-session-reject-checkpoint.ts"
+    },
+    {
+      "name": "review-session-reject-request",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/review-session-reject-request/1.0.0/schema.json",
+      "path": "schemas/review-session-reject-request/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-manual-review-rejection-checkpoint",
+      "canonical_sha256": "sha256:4b92d31c8aa4ee3709dfd22701184e0958c7eda25ca7df8db0bec5a3e1ce172c",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/review-session-reject-request.ts"
+    },
+    {
+      "name": "review-session-reject-result",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/review-session-reject-result/1.0.0/schema.json",
+      "path": "schemas/review-session-reject-result/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-manual-review-rejection-checkpoint",
+      "canonical_sha256": "sha256:c1e57184efa7728f4176b9b2f415d8569b379f285d0a16a02f6c18cb8693a301",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/review-session-reject-result.ts"
     },
     {
       "name": "research-brief-payload",

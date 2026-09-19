@@ -24,13 +24,21 @@ import {
 } from "@petra/core";
 import {
   ReviewSessionApplyError,
+  ReviewSessionRejectError,
   type ReviewSessionApplyBoundary,
+  type ReviewSessionRejectBoundary,
   type ReviewApplyAuthority,
+  type ReviewRejectAuthority,
 } from "@petra/core";
-import type { PetraReviewSessionApplyRequest } from "@petra/contracts";
+import type {
+  PetraReviewSessionApplyRequest,
+  PetraReviewSessionRejectRequest,
+} from "@petra/contracts";
 import {
   validateReviewApplyCheckpoint,
   validateReviewApplyResult,
+  validateReviewRejectCheckpoint,
+  validateReviewRejectResult,
 } from "@petra/adapters";
 import {
   ReviewRecoveryAssessmentError,
@@ -169,6 +177,7 @@ export interface PetraAppOptions {
   projectReviewViews?: ProjectReviewViewReader;
   reviewRecoveryAssessments?: ReviewRecoveryAssessmentReader;
   reviewSessionApply?: ReviewSessionApplyBoundary;
+  reviewSessionReject?: ReviewSessionRejectBoundary;
   reviewSessionLifecycleAuthority?: ReviewSessionLifecycleAuthorityRepository;
   reviewSessionRefreshAuthority?: ReviewSessionRefreshAuthorityRepository;
   reviewCandidateBasisRevisionAuthority?: ReviewCandidateBasisRevisionAuthorityRepository;
@@ -1003,6 +1012,84 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
       "The Apply observation is unavailable. Effects may exist; reconcile canonical Review status through D020 before another attempt.",
     );
   };
+  const resolveRejectAuthority = async (
+    projectId: string,
+  ): Promise<ReviewRejectAuthority> => {
+    if (options.commandPrincipalResolver === undefined)
+      throw new ReviewSessionRejectError(
+        "REVIEW_REJECT_DENIED",
+        "Authenticated command authority is unavailable.",
+      );
+    const commands = ["SubmitChangeSet", "RecordApproval"] as const;
+    const resolved = await Promise.all(
+      commands.map((commandName) =>
+        options.commandPrincipalResolver!.resolveCommandPrincipal({
+          projectId,
+          commandName,
+        }),
+      ),
+    );
+    const first = resolved[0];
+    const second = resolved[1];
+    if (
+      first?.state !== "resolved" ||
+      second?.state !== "resolved" ||
+      first.actor.actor_kind !== "human" ||
+      resolved.some(
+        (entry) =>
+          entry.state !== "resolved" ||
+          canonicalize(entry.actor) !== canonicalize(first.actor),
+      )
+    )
+      throw new ReviewSessionRejectError(
+        "REVIEW_REJECT_DENIED",
+        "One authenticated human must hold current grants for SubmitChangeSet and RecordApproval.",
+      );
+    return {
+      authorization_basis: {
+        kind: "authenticated_human_checkpoint",
+        decision: "reject",
+        actor: { actor_id: first.actor.actor_id, actor_kind: "human" },
+      },
+      capability_grants: {
+        SubmitChangeSet: first.capabilityGrantId,
+        RecordApproval: second.capabilityGrantId,
+      },
+    };
+  };
+  const rejectError = (
+    context: Context<{ Variables: Variables }>,
+    error: unknown,
+  ) => {
+    if (error instanceof ReviewSessionRejectError) {
+      const status =
+        error.code === "REVIEW_REJECT_DENIED"
+          ? 403
+          : error.code === "REVIEW_REJECT_UNSUPPORTED"
+            ? 422
+            : error.code === "REVIEW_REJECT_CORRUPT"
+              ? 503
+              : 409;
+      return jsonError(context, status, error.code, error.message);
+    }
+    if (
+      error instanceof ContractRegistryError ||
+      error instanceof SyntaxError ||
+      error instanceof TypeError
+    )
+      return jsonError(
+        context,
+        422,
+        "REVIEW_REJECT_INVALID",
+        "The exact versioned Review rejection request is invalid.",
+      );
+    return jsonError(
+      context,
+      503,
+      "REVIEW_REJECT_RECONCILE",
+      "The rejection observation is unavailable. Effects may exist; reconcile canonical Review status through D020 before another attempt.",
+    );
+  };
   app.get(
     "/api/queries/projects/:projectId/reviews/:reviewSessionId/apply-checkpoint",
     async (context) => {
@@ -1107,6 +1194,113 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
         return context.json(result);
       } catch (error) {
         return applyError(context, error);
+      }
+    },
+  );
+  app.get(
+    "/api/queries/projects/:projectId/reviews/:reviewSessionId/reject-checkpoint",
+    async (context) => {
+      if (options.reviewSessionReject === undefined)
+        return jsonError(
+          context,
+          503,
+          "REVIEW_REJECT_UNAVAILABLE",
+          "ReviewSession rejection authority is unavailable.",
+        );
+      try {
+        const projectId = context.req.param("projectId");
+        const sessionId = context.req.param("reviewSessionId");
+        const params = new URL(context.req.url).searchParams;
+        if (
+          !PROJECT_ID_PATTERN.test(projectId) ||
+          !REVIEW_SESSION_ID_PATTERN.test(sessionId) ||
+          [...params.keys()].sort().join(",") !==
+            "expected_content_hash,expected_revision,selected_review_member_id"
+        )
+          throw new TypeError("Invalid rejection selection.");
+        const selection = {
+          project_id: projectId,
+          review_session_id: sessionId,
+          expected_revision: Number(params.get("expected_revision")),
+          expected_content_hash: params.get("expected_content_hash")!,
+          selected_review_member_id: params.get("selected_review_member_id")!,
+        };
+        if (
+          !Number.isSafeInteger(selection.expected_revision) ||
+          selection.expected_revision < 1 ||
+          !/^sha256:[0-9a-f]{64}$/u.test(selection.expected_content_hash) ||
+          !REVIEW_MEMBER_ID_PATTERN.test(selection.selected_review_member_id)
+        )
+          throw new TypeError("Invalid exact Review rejection selection.");
+        const authority = await resolveRejectAuthority(projectId);
+        const result = await options.reviewSessionReject.prepareReviewReject(
+          selection,
+          authority,
+        );
+        await validateReviewRejectCheckpoint(result, selection);
+        if (
+          canonicalize(result.binding.authorization_basis) !==
+            canonicalize(authority.authorization_basis) ||
+          canonicalize(result.binding.capability_grants) !==
+            canonicalize(authority.capability_grants)
+        )
+          throw new Error("Mismatched authenticated rejection checkpoint.");
+        context.header("Cache-Control", "no-store");
+        return context.json(result);
+      } catch (error) {
+        return rejectError(context, error);
+      }
+    },
+  );
+  app.post(
+    "/api/commands/projects/:projectId/reviews/:reviewSessionId/reject",
+    async (context) => {
+      if (options.reviewSessionReject === undefined)
+        return jsonError(
+          context,
+          503,
+          "REVIEW_REJECT_UNAVAILABLE",
+          "ReviewSession rejection authority is unavailable.",
+        );
+      try {
+        const projectId = context.req.param("projectId");
+        const sessionId = context.req.param("reviewSessionId");
+        if (
+          !PROJECT_ID_PATTERN.test(projectId) ||
+          !REVIEW_SESSION_ID_PATTERN.test(sessionId) ||
+          new URL(context.req.url).search !== ""
+        )
+          throw new TypeError("Invalid rejection route binding.");
+        const body: unknown = await context.req.json();
+        contracts.assertValid("review-session-reject-request", "1.0.0", body);
+        const request = body as PetraReviewSessionRejectRequest;
+        if (
+          request.checkpoint.binding.project_id !== projectId ||
+          request.checkpoint.binding.review_session.review_session_id !==
+            sessionId
+        )
+          throw new TypeError("Mismatched rejection route binding.");
+        const authority = await resolveRejectAuthority(projectId);
+        if (
+          canonicalize(authority.authorization_basis) !==
+            canonicalize(request.checkpoint.binding.authorization_basis) ||
+          canonicalize(authority.capability_grants) !==
+            canonicalize(request.checkpoint.binding.capability_grants)
+        )
+          throw new ReviewSessionRejectError(
+            "REVIEW_REJECT_DENIED",
+            "The rejection checkpoint does not bind the authenticated human's exact current grants.",
+          );
+        await validateReviewRejectCheckpoint(request.checkpoint);
+        const result = await options.reviewSessionReject.executeReviewReject(
+          request,
+          authority,
+        );
+        await validateReviewRejectResult(result, request);
+        context.header("Cache-Control", "no-store");
+        return context.json(result);
+      } catch (error) {
+        return rejectError(context, error);
       }
     },
   );

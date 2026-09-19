@@ -583,7 +583,7 @@
       "control": "Reject candidate",
       "interaction": "command",
       "evidence": [],
-      "runtime_owner": "",
+      "runtime_owner": "GET /api/queries/projects/:projectId/reviews/:reviewSessionId/reject-checkpoint and POST /api/commands/projects/:projectId/reviews/:reviewSessionId/reject -> PostgresReviewSessionApplyBoundary",
       "paths": ["UX-PATH-01", "UX-PATH-02", "UX-PATH-04"]
     },
     {

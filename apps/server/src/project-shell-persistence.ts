@@ -61,6 +61,7 @@ import type {
   ReviewCandidateCorrectionAuthorityRepository,
   ReviewSessionLifecycleAuthorityRepository,
   ReviewSessionApplyBoundary,
+  ReviewSessionRejectBoundary,
   ReviewSessionRefreshAuthorityRepository,
   ReviewSessionSeparationAuthorityRepository,
   ProjectShellViewReader,
@@ -125,6 +126,7 @@ export interface ProjectShellPersistence {
   readonly reviewViews: ProjectReviewViewReader;
   readonly reviewRecoveryAssessments: ReviewRecoveryAssessmentReader;
   readonly reviewSessionApply: ReviewSessionApplyBoundary;
+  readonly reviewSessionReject: ReviewSessionRejectBoundary;
   readonly reviewSessionLifecycleAuthority: ReviewSessionLifecycleAuthorityRepository;
   readonly reviewSessionRefreshAuthority: ReviewSessionRefreshAuthorityRepository;
   readonly reviewCandidateBasisRevisionAuthority: ReviewCandidateBasisRevisionAuthorityRepository;
@@ -334,6 +336,13 @@ export const createProjectShellPersistenceFromEnvironment = async (
           AND to_regclass('petra.project_work_operation_receipts') IS NOT NULL
           AND EXISTS (
             SELECT 1
+            FROM information_schema.columns
+            WHERE table_schema = 'petra'
+              AND table_name = 'command_executions'
+              AND column_name = 'review_reject_request'
+          )
+          AND EXISTS (
+            SELECT 1
             FROM pg_constraint
             WHERE conname = 'command_executions_command_name_check'
               AND pg_get_constraintdef(oid) LIKE '%SeparateReviewSessionMember%'
@@ -348,7 +357,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
     );
     if (schema.rows[0]?.ready !== true) {
       throw new ProjectShellPersistenceConfigurationError(
-        "PostgreSQL is reachable, but the V045 Project Work operation runtime is unavailable.",
+        "PostgreSQL is reachable, but the V046 Review rejection runtime is unavailable.",
       );
     }
     for (const profile of await readBuiltInProfiles()) {
@@ -428,6 +437,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
           historyViews,
         ),
         reviewSessionApply,
+        reviewSessionReject: reviewSessionApply,
         reviewSessionLifecycleAuthority,
         reviewSessionRefreshAuthority: reviewSessionLifecycleAuthority,
         reviewCandidateBasisRevisionAuthority: reviewSessionLifecycleAuthority,
@@ -512,6 +522,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
       historyViews,
     ),
     reviewSessionApply,
+    reviewSessionReject: reviewSessionApply,
     reviewSessionLifecycleAuthority,
     reviewSessionRefreshAuthority: reviewSessionLifecycleAuthority,
     reviewCandidateBasisRevisionAuthority: reviewSessionLifecycleAuthority,
