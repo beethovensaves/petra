@@ -208,10 +208,15 @@ export class PostgresProjectProfileRuntime
 
   async listRegisteredProfiles(): Promise<PetraRegisteredProjectProfile[]> {
     const result = await this.#pool.query<PayloadRow>(
-      `SELECT payload
-         FROM petra.registered_project_profiles
-        WHERE status = 'active'
-        ORDER BY payload -> 'content' ->> 'label', profile_id, profile_version`,
+      `SELECT latest.payload
+         FROM (
+           SELECT DISTINCT ON (profile_id) profile_id, payload
+             FROM petra.registered_project_profiles
+            WHERE status = 'active'
+            ORDER BY profile_id,
+                     string_to_array(profile_version, '.')::int[] DESC
+         ) AS latest
+        ORDER BY latest.payload -> 'content' ->> 'label', latest.profile_id`,
     );
     return result.rows.map((row) => this.#profileFrom(row.payload));
   }

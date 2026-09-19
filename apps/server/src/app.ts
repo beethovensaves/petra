@@ -58,6 +58,7 @@ import {
 import type {
   PetraClaim,
   PetraProjectProfileCommandRequest,
+  PetraProjectWorkOperationRequest,
   PetraWorkingCandidate,
   PetraSuggestedActionInvocationRequest,
   PetraProjectHistoryCompensationExecutionRequest,
@@ -79,6 +80,7 @@ import {
   ProjectHistoryViewRequestError,
   ProjectProfileRuntimeError,
   ProjectModelReadinessError,
+  ProjectWorkOperationError,
   ProjectSourceLifecycleAuthorityError,
   ProjectSourceReplacementCommandError,
   ReviewCandidateBasisRevisionAuthorityError,
@@ -123,6 +125,8 @@ import {
   type ProjectThreadLifecycleFilter,
   type ProjectThreadViewReader,
   type ProjectWorkStateFilter,
+  type ProjectWorkOperationAuthority,
+  type ProjectWorkOperationsViewReader,
   type ProjectWorkViewReader,
   type ProjectWorkingStateSnapshotReader,
   type SuggestedActionViewReader,
@@ -176,6 +180,8 @@ export interface PetraAppOptions {
   projectRelationshipOverlayViews?: ProjectRelationshipOverlayViewReader;
   projectObjectLocations?: ProjectObjectLocationViewReader;
   projectWorkViews?: ProjectWorkViewReader;
+  projectWorkOperations?: ProjectWorkOperationsViewReader;
+  projectWorkOperationAuthority?: ProjectWorkOperationAuthority;
   projectThreadViews?: ProjectThreadViewReader;
   projectInquiryViews?: ProjectInquiryViewReader;
   suggestedActionViews?: SuggestedActionViewReader;
@@ -3345,6 +3351,198 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
           error instanceof Error
             ? error.message
             : "The Project Work detail is unavailable.",
+          error instanceof InteractionInputError ? error.issues : undefined,
+        );
+      }
+    },
+  );
+
+  app.get(
+    "/api/queries/projects/:projectId/work/:workUnitId/operations",
+    async (context) => {
+      if (options.projectWorkOperations === undefined) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_WORK_OPERATIONS_UNAVAILABLE",
+          "The composed Project Work operation assessment is not configured.",
+        );
+      }
+      try {
+        const parameters = new URL(context.req.url).searchParams;
+        if ([...parameters.keys()].length > 0) {
+          throw new InteractionInputError(
+            "Project Work operation assessment does not accept query parameters.",
+            [...new Set(parameters.keys())],
+          );
+        }
+        const projectId = context.req.param("projectId");
+        const workUnitId = context.req.param("workUnitId");
+        if (
+          !PROJECT_ID_PATTERN.test(projectId) ||
+          !WORK_UNIT_ID_PATTERN.test(workUnitId)
+        ) {
+          throw new InteractionInputError(
+            "Project Work operation assessment requires canonical Project and WorkUnit identities.",
+          );
+        }
+        const view =
+          await options.projectWorkOperations.getProjectWorkOperationsView(
+            projectId,
+            workUnitId,
+          );
+        if (view === undefined) {
+          return jsonError(
+            context,
+            404,
+            "PROJECT_WORK_NOT_FOUND",
+            "The requested WorkUnit is not bound to this Project.",
+          );
+        }
+        contracts.assertValid("project-work-operations-view", "1.0.0", view);
+        if (
+          view.project_id !== projectId ||
+          view.work_unit_ref.work_unit_id !== workUnitId
+        ) {
+          throw new Error(
+            "The Work operation assessment crossed its exact Project or WorkUnit boundary.",
+          );
+        }
+        context.header("Cache-Control", "no-store");
+        return context.json(view);
+      } catch (error) {
+        return jsonError(
+          context,
+          error instanceof InteractionInputError ? 422 : 503,
+          error instanceof InteractionInputError
+            ? "PROJECT_WORK_OPERATIONS_QUERY_INVALID"
+            : error instanceof ProjectWorkOperationError
+              ? error.code
+              : "PROJECT_WORK_OPERATIONS_READ_FAILED",
+          error instanceof Error
+            ? error.message
+            : "The Project Work operation assessment is unavailable.",
+          error instanceof InteractionInputError ? error.issues : undefined,
+        );
+      }
+    },
+  );
+
+  app.post(
+    "/api/commands/projects/:projectId/work/:workUnitId",
+    async (context) => {
+      if (
+        options.projectWorkOperationAuthority === undefined ||
+        options.commandPrincipalResolver === undefined
+      ) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_WORK_OPERATION_UNAVAILABLE",
+          "The authenticated Project Work command boundary is not configured.",
+        );
+      }
+      try {
+        const parameters = new URL(context.req.url).searchParams;
+        if ([...parameters.keys()].length > 0) {
+          throw new InteractionInputError(
+            "Project Work commands do not accept query parameters.",
+            [...new Set(parameters.keys())],
+          );
+        }
+        const projectId = context.req.param("projectId");
+        const workUnitId = context.req.param("workUnitId");
+        if (
+          !PROJECT_ID_PATTERN.test(projectId) ||
+          !WORK_UNIT_ID_PATTERN.test(workUnitId)
+        ) {
+          throw new InteractionInputError(
+            "Project Work commands require canonical Project and WorkUnit identities.",
+          );
+        }
+        const body = (await readBoundedJson(
+          context,
+          maxBodyBytes,
+        )) as PetraProjectWorkOperationRequest;
+        contracts.assertValid("project-work-operation-request", "1.0.0", body);
+        if (body.expected_work_unit_ref.work_unit_id !== workUnitId) {
+          throw new InteractionInputError(
+            "The Work command route and expected WorkUnit must identify the same task.",
+          );
+        }
+        const principal =
+          await options.commandPrincipalResolver.resolveCommandPrincipal({
+            projectId,
+            commandName: "ManageProjectWork",
+          });
+        if (
+          principal.state !== "resolved" ||
+          principal.actor.actor_kind !== "human"
+        ) {
+          throw new ProjectWorkOperationError(
+            "PROJECT_WORK_OPERATION_NOT_AUTHORIZED",
+            `The authenticated Work command principal was denied: ${principal.state === "resolved" ? "actor_not_human" : principal.reason}.`,
+          );
+        }
+        const receipt =
+          await options.projectWorkOperationAuthority.executeProjectWorkOperation(
+            projectId,
+            body,
+            {
+              actor: {
+                actor_id: principal.actor.actor_id,
+                actor_kind: "human",
+              },
+              capabilityGrantId: principal.capabilityGrantId,
+            },
+          );
+        contracts.assertValid(
+          "project-work-operation-receipt",
+          "1.0.0",
+          receipt,
+        );
+        if (
+          receipt.project_id !== projectId ||
+          receipt.command_id !== body.command_id ||
+          receipt.idempotency_key !== body.idempotency_key ||
+          receipt.operation !== body.operation ||
+          receipt.requested_work_unit_ref.work_unit_id !== workUnitId
+        ) {
+          throw new Error(
+            "The Work operation receipt crossed its exact command boundary.",
+          );
+        }
+        return context.json(receipt);
+      } catch (error) {
+        const invalid =
+          error instanceof InteractionInputError ||
+          error instanceof ContractRegistryError ||
+          error instanceof SyntaxError;
+        const status = invalid
+          ? 422
+          : error instanceof ProjectWorkOperationError
+            ? error.code === "PROJECT_WORK_OPERATION_NOT_FOUND"
+              ? 404
+              : error.code === "PROJECT_WORK_OPERATION_NOT_AUTHORIZED"
+                ? 403
+                : error.code === "PROJECT_WORK_OPERATION_STALE" ||
+                    error.code === "PROJECT_WORK_OPERATION_CONFLICT"
+                  ? 409
+                  : error.code === "PROJECT_WORK_OPERATION_UNAVAILABLE"
+                    ? 422
+                    : 503
+            : 503;
+        return jsonError(
+          context,
+          status,
+          invalid
+            ? "PROJECT_WORK_OPERATION_REQUEST_INVALID"
+            : error instanceof ProjectWorkOperationError
+              ? error.code
+              : "PROJECT_WORK_OPERATION_FAILED",
+          error instanceof Error
+            ? error.message
+            : "The Project Work command failed.",
           error instanceof InteractionInputError ? error.issues : undefined,
         );
       }

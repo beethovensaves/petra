@@ -838,7 +838,7 @@
       "control": "Work list",
       "interaction": "query",
       "evidence": [],
-      "runtime_owner": "",
+      "runtime_owner": "GET /api/queries/projects/:projectId/work -> PostgresProjectWorkViewReader",
       "paths": ["UX-PATH-01", "UX-PATH-03", "UX-PATH-04"]
     },
     {
@@ -853,7 +853,7 @@
       "control": "Open Work",
       "interaction": "navigation",
       "evidence": [],
-      "runtime_owner": "",
+      "runtime_owner": "GET /api/queries/projects/:projectId/work/:workUnitId -> PostgresProjectWorkViewReader",
       "paths": ["UX-PATH-01", "UX-PATH-03", "UX-PATH-04"]
     },
     {
@@ -868,7 +868,7 @@
       "control": "Start work",
       "interaction": "command",
       "evidence": [],
-      "runtime_owner": "",
+      "runtime_owner": "POST /api/commands/projects/:projectId/work/:workUnitId -> PostgresProjectWorkOperations; registered SuggestedAction starts retain their existing coordinator",
       "paths": ["UX-PATH-01", "UX-PATH-02", "UX-PATH-03", "UX-PATH-04"]
     },
     {
@@ -883,7 +883,7 @@
       "control": "Required input responses",
       "interaction": "command",
       "evidence": [],
-      "runtime_owner": "",
+      "runtime_owner": "POST /api/commands/projects/:projectId/work/:workUnitId -> PostgresProjectWorkOperations.answer_input",
       "paths": ["UX-PATH-01", "UX-PATH-03", "UX-PATH-04"]
     },
     {
@@ -898,7 +898,7 @@
       "control": "Steer Work",
       "interaction": "command",
       "evidence": [],
-      "runtime_owner": "",
+      "runtime_owner": "POST /api/commands/projects/:projectId/work/:workUnitId -> PostgresProjectWorkOperations.steer",
       "paths": ["UX-PATH-01", "UX-PATH-03", "UX-PATH-04"]
     },
     {
@@ -913,7 +913,7 @@
       "control": "Prioritize line",
       "interaction": "command",
       "evidence": [],
-      "runtime_owner": "",
+      "runtime_owner": "POST /api/commands/projects/:projectId/work/:workUnitId -> PostgresProjectWorkOperations.prioritize",
       "paths": ["UX-PATH-01", "UX-PATH-03", "UX-PATH-04"]
     },
     {
@@ -928,7 +928,7 @@
       "control": "Leave running",
       "interaction": "navigation",
       "evidence": [],
-      "runtime_owner": "",
+      "runtime_owner": "Browser task return over GET /api/queries/projects/:projectId/work/:workUnitId/operations durable state",
       "paths": ["UX-PATH-01", "UX-PATH-03", "UX-PATH-04"]
     },
     {
@@ -943,7 +943,7 @@
       "control": "Reconnect",
       "interaction": "query",
       "evidence": [],
-      "runtime_owner": "",
+      "runtime_owner": "GET /api/queries/projects/:projectId/work/:workUnitId/operations plus GET /api/queries/interactions/:runId",
       "paths": ["UX-PATH-01", "UX-PATH-03", "UX-PATH-04"]
     },
     {
@@ -958,7 +958,7 @@
       "control": "Replay delivery",
       "interaction": "query",
       "evidence": [],
-      "runtime_owner": "",
+      "runtime_owner": "GET /api/queries/projects/:projectId/work/:workUnitId/operations plus GET /api/interactions/:runId",
       "paths": ["UX-PATH-01", "UX-PATH-03", "UX-PATH-04"]
     },
     {
@@ -973,7 +973,7 @@
       "control": "Cancel work",
       "interaction": "command",
       "evidence": [],
-      "runtime_owner": "",
+      "runtime_owner": "POST /api/commands/projects/:projectId/work/:workUnitId -> PostgresProjectWorkOperations.cancel",
       "paths": ["UX-PATH-01", "UX-PATH-03", "UX-PATH-04"]
     },
     {
@@ -988,7 +988,7 @@
       "control": "Retry failed work",
       "interaction": "command",
       "evidence": [],
-      "runtime_owner": "",
+      "runtime_owner": "POST /api/commands/projects/:projectId/work/:workUnitId -> PostgresProjectWorkOperations.retry",
       "paths": ["UX-PATH-01", "UX-PATH-03", "UX-PATH-04"]
     },
     {
@@ -1003,7 +1003,7 @@
       "control": "Resume work",
       "interaction": "command",
       "evidence": [],
-      "runtime_owner": "",
+      "runtime_owner": "GET /api/queries/projects/:projectId/work/:workUnitId/operations eligibility assessment; mutation remains explicitly unavailable without a registered compatible checkpoint transition",
       "paths": ["UX-PATH-01", "UX-PATH-03", "UX-PATH-04"]
     },
     {
@@ -1018,7 +1018,7 @@
       "control": "Start again",
       "interaction": "command",
       "evidence": [],
-      "runtime_owner": "",
+      "runtime_owner": "GET /api/queries/projects/:projectId/work/:workUnitId/operations eligibility assessment; mutation remains explicitly unavailable without workflow-specific input rebinding",
       "paths": ["UX-PATH-01", "UX-PATH-03", "UX-PATH-04"]
     },
     {
@@ -1033,7 +1033,7 @@
       "control": "Open result",
       "interaction": "navigation",
       "evidence": [],
-      "runtime_owner": "",
+      "runtime_owner": "GET /api/queries/projects/:projectId/work/:workUnitId/operations -> exact GroundedResponse or WorkerOutputManifest destination",
       "paths": ["UX-PATH-01", "UX-PATH-03", "UX-PATH-04"]
     },
     {

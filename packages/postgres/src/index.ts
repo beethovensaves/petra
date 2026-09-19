@@ -20,6 +20,7 @@ export * from "./project-effective-controls-view-reader.js";
 export * from "./project-history-view-reader.js";
 export * from "./project-history-compensation-executor.js";
 export * from "./project-work-view-reader.js";
+export * from "./project-work-operations.js";
 export * from "./project-working-state-snapshot-reader.js";
 export * from "./suggested-action-view-reader.js";
 export * from "./suggested-action-invocation-authority-repository.js";

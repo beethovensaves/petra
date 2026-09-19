@@ -6,6 +6,8 @@ import type {
   PetraArtifact,
   PetraArtifactManifest,
   PetraAuthor,
+  PetraCapabilityGrantV180,
+  PetraProjectWorkOperationRequest,
   PetraProject,
   PetraProjectDefinition,
   PetraRightsDecision,
@@ -22,8 +24,13 @@ import pg from "pg";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { PostgresArtifactAuthorityRepository } from "../src/artifact-authority-repository.js";
+import {
+  PostgresCapabilityGrantAuthorityRepository,
+  PostgresCapabilityGrantCommandAuthorizer,
+} from "../src/capability-grant-authority-repository.js";
 import { PostgresProjectDefinitionAuthorityRepository } from "../src/project-definition-authority-repository.js";
 import { PostgresProjectObjectLocationViewReader } from "../src/project-object-location-view-reader.js";
+import { PostgresProjectWorkOperations } from "../src/project-work-operations.js";
 import { PostgresProjectWorkViewReader } from "../src/project-work-view-reader.js";
 import { PostgresResearchScopeRepository } from "../src/research-scope-repository.js";
 import { PostgresScholarlyIdentityRepository } from "../src/scholarly-identity-repository.js";
@@ -69,6 +76,11 @@ describePostgres("PostgreSQL bounded WorkUnit authority", () => {
   const definitions = new PostgresProjectDefinitionAuthorityRepository(pool);
   const objectLocations = new PostgresProjectObjectLocationViewReader(pool);
   const workViews = new PostgresProjectWorkViewReader(pool);
+  const capabilities = new PostgresCapabilityGrantAuthorityRepository(pool);
+  const workOperations = new PostgresProjectWorkOperations(
+    pool,
+    new PostgresCapabilityGrantCommandAuthorizer(),
+  );
 
   beforeAll(async () => {
     await pool.query("SELECT 1");
@@ -589,6 +601,277 @@ describePostgres("PostgreSQL bounded WorkUnit authority", () => {
         "2026-08-29T14:00:06.000Z",
       ),
     ).resolves.toEqual(expect.objectContaining({ revision: 2 }));
+  });
+
+  it("composes authorized input, planning, lifecycle recovery, and exact result destinations", async () => {
+    const actor = readFixture<PetraActor>("actor");
+    const grantContent: PetraCapabilityGrantV180["content"] = {
+      scope_kind: "project_commands",
+      allowed_commands: ["ManageProjectWork"],
+      valid_from: "2026-09-01T00:00:00.000Z",
+      reason: "Allow the Project owner to manage exact durable Work.",
+    };
+    const grant: PetraCapabilityGrantV180 = {
+      schema_name: "petra.capability-grant",
+      schema_version: "1.8.0",
+      capability_grant_id: "capability_grant_01K6P000000000000000000700",
+      revision: 1,
+      project_id: "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+      grantee: { actor_id: actor.actor_id, actor_kind: "human" },
+      content: grantContent,
+      content_hash: canonicalHash(grantContent),
+      issued_by: { actor_id: actor.actor_id, actor_kind: "human" },
+      issued_at: "2026-09-01T00:00:00.000Z",
+    };
+    await capabilities.registerCapabilityGrant(grant);
+    const principal = {
+      actor: { actor_id: actor.actor_id, actor_kind: "human" as const },
+      capabilityGrantId: grant.capability_grant_id,
+    };
+    const operation = (
+      name: PetraProjectWorkOperationRequest["operation"],
+      work: PetraWorkUnit,
+      identity: string,
+      fields: Partial<PetraProjectWorkOperationRequest> = {},
+    ): PetraProjectWorkOperationRequest => ({
+      schema_name: "petra.project-work-operation-request",
+      schema_version: "1.0.0",
+      command_id: `command_01K6P0000000000000000007${identity}`,
+      idempotency_key: `wave6:work:${name}:${identity}`,
+      operation: name,
+      expected_work_unit_ref: {
+        work_unit_id: work.work_unit_id,
+        revision: work.revision,
+        spec_hash: work.spec_hash,
+      },
+      submitted_at: `2026-09-19T12:00:${identity}.000Z`,
+      ...fields,
+    });
+
+    const first = registration();
+    await workUnits.register(first);
+    await workOperations.registerRequiredInput({
+      inputRequestId: "work_input_request_01K6P000000000000000000701",
+      projectId: first.workUnit.project_id,
+      workUnitId: first.workUnit.work_unit_id,
+      expectedWorkUnitRevision: first.workUnit.revision,
+      kind: "clarification",
+      question: "Which bounded parsing mode should Petra use?",
+      responseOptions: ["tables_and_text", "text_only"],
+      consequence: "The chosen mode constrains the next worker execution.",
+      registeredAt: "2026-09-19T12:00:00.000Z",
+    });
+    const pending = await workOperations.getProjectWorkOperationsView(
+      first.workUnit.project_id,
+      first.workUnit.work_unit_id,
+    );
+    expect(pending?.required_inputs[0]?.state).toBe("pending");
+    expect(
+      pending?.controls.find((control) => control.operation === "start")?.state,
+    ).toBe("unavailable");
+
+    await expect(
+      workOperations.executeProjectWorkOperation(
+        first.workUnit.project_id,
+        operation("answer_input", first.workUnit, "01", {
+          input_request_ref: {
+            input_request_id: "work_input_request_01K6P000000000000000000701",
+            revision: 1,
+          },
+          response: "unregistered_mode",
+        }),
+        principal,
+      ),
+    ).rejects.toEqual(
+      expect.objectContaining({ code: "PROJECT_WORK_OPERATION_STALE" }),
+    );
+    const answered = operation("answer_input", first.workUnit, "02", {
+      input_request_ref: {
+        input_request_id: "work_input_request_01K6P000000000000000000701",
+        revision: 1,
+      },
+      response: "tables_and_text",
+    });
+    await expect(
+      workOperations.executeProjectWorkOperation(
+        first.workUnit.project_id,
+        answered,
+        principal,
+      ),
+    ).resolves.toEqual(expect.objectContaining({ outcome: "input_answered" }));
+    const prioritized = operation("prioritize", first.workUnit, "03", {
+      expected_plan_revision: 0,
+      priority: "user_visible",
+    });
+    await workOperations.executeProjectWorkOperation(
+      first.workUnit.project_id,
+      prioritized,
+      principal,
+    );
+    const steered = operation("steer", first.workUnit, "04", {
+      expected_plan_revision: 1,
+      instruction: "Preserve table captions with their nearest table.",
+      priority: "user_blocking",
+    });
+    await workOperations.executeProjectWorkOperation(
+      first.workUnit.project_id,
+      steered,
+      principal,
+    );
+    const planned = await workOperations.getProjectWorkOperationsView(
+      first.workUnit.project_id,
+      first.workUnit.work_unit_id,
+    );
+    expect(planned?.plan).toMatchObject({
+      revision: 2,
+      selected_priority: "user_blocking",
+      latest_instruction: "Preserve table captions with their nearest table.",
+    });
+
+    const start = operation("start", first.workUnit, "05");
+    const started = await workOperations.executeProjectWorkOperation(
+      first.workUnit.project_id,
+      start,
+      principal,
+    );
+    expect(started).toMatchObject({ outcome: "started" });
+    await expect(
+      workOperations.executeProjectWorkOperation(
+        first.workUnit.project_id,
+        start,
+        principal,
+      ),
+    ).resolves.toStrictEqual(started);
+    const running = await workUnits.getWorkUnit(first.workUnit.work_unit_id);
+    if (running === undefined) throw new Error("Expected running Work.");
+    const cancel = operation("cancel", running, "06", {
+      reason: "The user stopped this exact parsing attempt.",
+    });
+    await expect(
+      workOperations.executeProjectWorkOperation(
+        first.workUnit.project_id,
+        cancel,
+        principal,
+      ),
+    ).resolves.toEqual(expect.objectContaining({ outcome: "cancelled" }));
+    const cancelled = await workOperations.getProjectWorkOperationsView(
+      first.workUnit.project_id,
+      first.workUnit.work_unit_id,
+    );
+    expect(
+      cancelled?.controls.find((control) => control.operation === "resume")
+        ?.state,
+    ).toBe("unavailable");
+    expect(
+      cancelled?.controls.find((control) => control.operation === "start_again")
+        ?.state,
+    ).toBe("unavailable");
+
+    const second = registration();
+    second.workUnit.work_unit_id = "work_unit_01K6P000000000000000000702";
+    second.inputManifest.worker_input_manifest_id =
+      "worker_input_manifest_01K6P000000000000000000702";
+    second.inputManifest.work_unit_id = second.workUnit.work_unit_id;
+    second.workUnit.spec.input_manifest_ref.worker_input_manifest_id =
+      second.inputManifest.worker_input_manifest_id;
+    second.workUnit.spec.idempotency_key = "parse:artifact-fb1:wave6-retry";
+    second.workUnit.spec.cache = {
+      cache_mode: "reuse_exact",
+      cache_key: "parse:artifact-fb1:wave6-retry",
+    };
+    second.workUnit.spec_hash = canonicalHash(second.workUnit.spec);
+    second.workUnit.trace_id = "trace_01K6P000000000000000000702";
+    await workUnits.register(second);
+    await workUnits.queue(
+      second.workUnit.work_unit_id,
+      1,
+      "2026-09-19T12:01:01.000Z",
+    );
+    await workUnits.start(
+      second.workUnit.work_unit_id,
+      2,
+      1,
+      "2026-09-19T12:01:02.000Z",
+    );
+    const failed = await workUnits.failValidation(
+      second.workUnit.work_unit_id,
+      3,
+      1,
+      {
+        code: "OUTPUT_CONTRACT_INVALID",
+        message: "The first output did not satisfy its declared contract.",
+        retryable: true,
+      },
+      "2026-09-19T12:01:03.000Z",
+    );
+    const failedView = await workOperations.getProjectWorkOperationsView(
+      second.workUnit.project_id,
+      second.workUnit.work_unit_id,
+    );
+    expect(
+      failedView?.controls.find((control) => control.operation === "retry")
+        ?.state,
+    ).toBe("available");
+    const retry = operation("retry", failed, "07", {
+      submitted_at: "2026-09-19T12:01:04.000Z",
+    });
+    const retried = await workOperations.executeProjectWorkOperation(
+      second.workUnit.project_id,
+      retry,
+      principal,
+    );
+    await expect(
+      workOperations.executeProjectWorkOperation(
+        second.workUnit.project_id,
+        retry,
+        principal,
+      ),
+    ).resolves.toStrictEqual(retried);
+    const retryRunning = await workUnits.getWorkUnit(
+      second.workUnit.work_unit_id,
+    );
+    if (retryRunning === undefined) throw new Error("Expected retrying Work.");
+    expect(retryRunning.status).toMatchObject({ state: "running", attempt: 2 });
+    if (retryRunning.status.state !== "running") {
+      throw new Error("Expected the retry command to enter running Work.");
+    }
+
+    const output = successfulOutput();
+    output.worker_output_manifest_id =
+      "worker_output_manifest_01K6P000000000000000000702";
+    output.work_unit_id = second.workUnit.work_unit_id;
+    output.attempt = 2;
+    output.worker_input_manifest_id =
+      second.inputManifest.worker_input_manifest_id;
+    output.content.started_at = retryRunning.status.started_at;
+    output.content.completed_at = "2026-09-19T12:01:10.000Z";
+    output.reported_at = output.content.completed_at;
+    output.content_hash = canonicalHash(output.content);
+    await workUnits.complete(output, retryRunning.revision);
+    const completed = await workOperations.getProjectWorkOperationsView(
+      second.workUnit.project_id,
+      second.workUnit.work_unit_id,
+    );
+    expect(completed?.delivery.state).toBe("unavailable");
+    expect(completed?.results).toHaveLength(1);
+    const result = completed?.results[0];
+    expect(result?.result_kind).toBe("worker_output_manifest");
+    expect(result?.record_ref.record_id).toBe(output.worker_output_manifest_id);
+    expect(result?.destination).toStrictEqual({
+      state: "available",
+      place_role: "work",
+      target_ref: {
+        semantic_key: "petra.worker-output-manifest",
+        object_id: output.worker_output_manifest_id,
+        revision: 1,
+      },
+    });
+    await expect(
+      pool.query(
+        "DELETE FROM petra.project_work_operation_receipts WHERE command_id = $1",
+        [answered.command_id],
+      ),
+    ).rejects.toEqual(expect.objectContaining({ code: "55000" }));
   });
 
   it("rejects idempotency rebound and direct mutation", async () => {

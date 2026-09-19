@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/capability-grant/1.8.0/schema.json",
+  "title": "PetraCapabilityGrantV180",
+  "description": "An immutable Project-scoped grant extended with authority to manage exact durable Work through the registered Work operation boundary.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "capability_grant_id",
+    "revision",
+    "project_id",
+    "grantee",
+    "content",
+    "content_hash",
+    "issued_by",
+    "issued_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.capability-grant" },
+    "schema_version": { "const": "1.8.0" },
+    "capability_grant_id": {
+      "$ref": "../../capability-grant/1.0.0/schema.json#/properties/capability_grant_id"
+    },
+    "revision": { "const": 1 },
+    "project_id": { "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId" },
+    "grantee": {
+      "$ref": "../../capability-grant/1.0.0/schema.json#/properties/grantee"
+    },
+    "content": { "$ref": "#/$defs/GrantContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "issued_by": {
+      "$ref": "../../capability-grant/1.0.0/schema.json#/$defs/HumanActorRef"
+    },
+    "issued_at": { "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp" }
+  },
+  "$defs": {
+    "GrantContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scope_kind", "allowed_commands", "valid_from", "reason"],
+      "properties": {
+        "scope_kind": { "const": "project_commands" },
+        "allowed_commands": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "SubmitChangeSet",
+              "RecordApproval",
+              "ApplyChangeSet",
+              "ExcludeProjectSource",
+              "RestoreProjectSource",
+              "CreateProjectSourceReplacement",
+              "RetractProjectSourceReplacement",
+              "InvokeSuggestedAction",
+              "DeferReviewSession",
+              "ReopenReviewSession",
+              "RefreshReviewSession",
+              "CorrectReviewCandidate",
+              "ReviseReviewCandidateBasis",
+              "SeparateReviewSessionMember",
+              "ManageProjectWork"
+            ]
+          }
+        },
+        "valid_from": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "expires_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 4000 }
+      }
+    }
+  }
+}

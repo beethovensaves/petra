@@ -1,0 +1,59 @@
+import type {
+  PetraProjectWorkOperationReceipt,
+  PetraProjectWorkOperationRequest,
+  PetraProjectWorkOperationsView,
+} from "@petra/contracts";
+
+export type ProjectWorkOperationErrorCode =
+  | "PROJECT_WORK_OPERATION_CONFLICT"
+  | "PROJECT_WORK_OPERATION_NOT_AUTHORIZED"
+  | "PROJECT_WORK_OPERATION_NOT_FOUND"
+  | "PROJECT_WORK_OPERATION_STALE"
+  | "PROJECT_WORK_OPERATION_UNAVAILABLE"
+  | "PROJECT_WORK_OPERATION_STORED_RECORD_CORRUPT";
+
+export class ProjectWorkOperationError extends Error {
+  readonly code: ProjectWorkOperationErrorCode;
+
+  constructor(code: ProjectWorkOperationErrorCode, message: string) {
+    super(message);
+    this.name = "ProjectWorkOperationError";
+    this.code = code;
+  }
+}
+
+export interface ProjectWorkCommandPrincipal {
+  readonly actor: PetraProjectWorkOperationReceipt["actor"];
+  readonly capabilityGrantId: string;
+}
+
+export interface RegisterProjectWorkRequiredInput {
+  readonly inputRequestId: string;
+  readonly projectId: string;
+  readonly workUnitId: string;
+  readonly expectedWorkUnitRevision: number;
+  readonly kind:
+    "clarification" | "capability" | "budget" | "validation_judgment";
+  readonly question: string;
+  readonly responseOptions: readonly string[];
+  readonly consequence: string;
+  readonly registeredAt: string;
+}
+
+/** Server-owned command and trusted worker-input boundary for exact Project Work. */
+export interface ProjectWorkOperationAuthority {
+  executeProjectWorkOperation(
+    projectId: string,
+    request: PetraProjectWorkOperationRequest,
+    principal: ProjectWorkCommandPrincipal,
+  ): Promise<PetraProjectWorkOperationReceipt>;
+  registerRequiredInput(input: RegisterProjectWorkRequiredInput): Promise<void>;
+}
+
+/** Snapshot-consistent Work controls, delivery, required input, and result composition. */
+export interface ProjectWorkOperationsViewReader {
+  getProjectWorkOperationsView(
+    projectId: string,
+    workUnitId: string,
+  ): Promise<PetraProjectWorkOperationsView | undefined>;
+}

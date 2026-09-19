@@ -473,6 +473,25 @@ export const startPetraServer = async (
         : options.projectShellPersistence === undefined
           ? {}
           : { projectWorkViews: options.projectShellPersistence.workViews }),
+      ...(options.projectWorkOperations !== undefined
+        ? { projectWorkOperations: options.projectWorkOperations }
+        : options.projectShellPersistence === undefined
+          ? {}
+          : {
+              projectWorkOperations:
+                options.projectShellPersistence.workOperations,
+            }),
+      ...(options.projectWorkOperationAuthority !== undefined
+        ? {
+            projectWorkOperationAuthority:
+              options.projectWorkOperationAuthority,
+          }
+        : options.projectShellPersistence === undefined
+          ? {}
+          : {
+              projectWorkOperationAuthority:
+                options.projectShellPersistence.workOperationAuthority,
+            }),
       ...(options.projectThreadViews !== undefined
         ? { projectThreadViews: options.projectThreadViews }
         : options.projectShellPersistence === undefined

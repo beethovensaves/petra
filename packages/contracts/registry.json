@@ -122,6 +122,17 @@
       "typescript_path": "src/generated/capability-grant-v1-7.ts"
     },
     {
+      "name": "capability-grant",
+      "version": "1.8.0",
+      "$id": "https://petra.local/schemas/capability-grant/1.8.0/schema.json",
+      "path": "schemas/capability-grant/1.8.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-project-work-management-command",
+      "canonical_sha256": "sha256:2a5f4815fe328e7d4a32bf83ed6405b8bcee786aa55fa9717567403544ebd456",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/capability-grant-v1-8.ts"
+    },
+    {
       "name": "capability-grant-revocation",
       "version": "1.0.0",
       "$id": "https://petra.local/schemas/capability-grant-revocation/1.0.0/schema.json",
@@ -560,6 +571,39 @@
       "canonical_sha256": "sha256:35e993577e4a1d2d5dee9e2814292394bcdefe6ef64a7fe63238dfa2f1f0771b",
       "generate_typescript": true,
       "typescript_path": "src/generated/project-work-view.ts"
+    },
+    {
+      "name": "project-work-operation-request",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-work-operation-request/1.0.0/schema.json",
+      "path": "schemas/project-work-operation-request/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-authenticated-project-work-operation-request",
+      "canonical_sha256": "sha256:b0364e9458c0cf08ec28a729a8e88e3c066ca5c970d8fd65eaf5f0c791cdcb7d",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-work-operation-request.ts"
+    },
+    {
+      "name": "project-work-operation-receipt",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-work-operation-receipt/1.0.0/schema.json",
+      "path": "schemas/project-work-operation-receipt/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-idempotent-project-work-operation-result",
+      "canonical_sha256": "sha256:80a46aa22cee93ddd1d7542dfb67dec75db34f44f555ba4bff15a935a70e615b",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-work-operation-receipt.ts"
+    },
+    {
+      "name": "project-work-operations-view",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-work-operations-view/1.0.0/schema.json",
+      "path": "schemas/project-work-operations-view/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-composed-work-input-control-delivery-and-result-assessment",
+      "canonical_sha256": "sha256:cc61cba0158681b3f8417a6e52c0feb356bb1c4838cf952facaaf4c37cbb5010",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-work-operations-view.ts"
     },
     {
       "name": "project-thread",
