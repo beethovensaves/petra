@@ -50,6 +50,16 @@ interface ProcessedEventRow {
   affected_response_count: string;
 }
 
+export interface RegisterGroundedPacketAuthorityInput {
+  readonly contextPacketId: string;
+  readonly evidencePacketId: string;
+}
+
+export interface RegisteredGroundedPacketAuthority {
+  readonly context: PetraContextPacket;
+  readonly evidence: PetraEvidencePacket;
+}
+
 const clone = <Value>(value: Value): Value => structuredClone(value);
 
 const canonicalHash = (value: unknown): string =>
@@ -80,6 +90,50 @@ export class PostgresGroundedResponseAuthorityRepository implements GroundedResp
     this.#pool = pool;
     this.#packets = packets;
     this.#contracts = contracts;
+  }
+
+  /**
+   * Persists an already compiled and registry-validated packet pair before a
+   * model call. This is deliberately separate from response registration so a
+   * fresh Project can expose exact readiness without manufacturing a cached
+   * ModelRequest, ModelCall, or GroundedResponse.
+   */
+  async registerPacketAuthority(
+    input: RegisterGroundedPacketAuthorityInput,
+  ): Promise<RegisteredGroundedPacketAuthority> {
+    const context = this.#packets.getContextPacket(input.contextPacketId);
+    const evidence = this.#packets.getEvidencePacket(input.evidencePacketId);
+    if (context === undefined || evidence === undefined) {
+      throw new GroundedResponseError(
+        "GROUNDED_RESPONSE_CONTEXT_MISSING",
+        "The exact compiled ContextPacket and EvidencePacket must be registered before persistence.",
+      );
+    }
+    if (
+      evidence.project_id !== context.project_id ||
+      evidence.content.context_packet_ref.context_packet_id !==
+        context.context_packet_id ||
+      evidence.content.context_packet_ref.content_hash !== context.content_hash
+    ) {
+      throw new GroundedResponsePersistenceError(
+        "GROUNDED_RESPONSE_PERSISTENCE_PACKET_CONFLICT",
+        "The compiled EvidencePacket does not bind the exact ContextPacket.",
+      );
+    }
+
+    await this.#transaction(async (client) => {
+      await this.#lock(client, [
+        `grounded-response-project:${context.project_id}`,
+        `grounded-context:${context.context_packet_id}`,
+        `grounded-evidence:${evidence.evidence_packet_id}`,
+      ]);
+      await this.#persistContextPacket(client, asContext(context));
+      await this.#persistEvidencePacket(client, asEvidence(evidence));
+    });
+    return {
+      context: asContext(context),
+      evidence: asEvidence(evidence),
+    };
   }
 
   async register(

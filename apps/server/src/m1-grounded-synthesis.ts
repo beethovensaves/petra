@@ -42,6 +42,23 @@ const execFileAsync = promisify(execFile);
 export const M1_GROUNDED_SYNTHESIS_QUESTION =
   PETRA_GROUNDED_SYNTHESIST_PROFILE_V1_1.publicQuestion;
 
+/**
+ * Builds the one canonical service Actor owned by the certified grounded
+ * synthesist runtime. Fresh-store setup must use this exact content instead of
+ * assigning a second display identity to the certification Actor ID.
+ */
+export const createM1GroundedSynthesisServiceActor = (certification: {
+  readonly certified_by: PetraSynthesistRoleCertification["certified_by"];
+  readonly certified_at: string;
+}): PetraActor => ({
+  schema_name: "petra.actor",
+  schema_version: "1.0.0",
+  actor_id: certification.certified_by.actor_id,
+  actor_kind: "service",
+  display_name: "Petra grounded synthesis service",
+  created_at: certification.certified_at,
+});
+
 interface RecordedCodexSynthesistCertification {
   readonly schema_name: "petra.recorded-codex-synthesist-certification";
   readonly schema_version: "1.0.0";
@@ -233,13 +250,9 @@ export const createM1GroundedSynthesisRuntime = async (
       "The M1 packet requires the recorded applied ChangeSet.",
     );
   }
-  const serviceActor: PetraActor = {
-    ...structuredClone(actor),
-    actor_id: record.certification.certified_by.actor_id,
-    actor_kind: "service",
-    display_name: "Petra grounded synthesis service",
-    created_at: record.certification.certified_at,
-  };
+  const serviceActor = createM1GroundedSynthesisServiceActor(
+    record.certification,
+  );
   context.compiled_by = serviceRef(serviceActor);
   evidence.compiled_by = serviceRef(serviceActor);
   featureManifest.compiled_by = serviceRef(serviceActor);
