@@ -60,6 +60,47 @@ import type {
 const join = (...parts: Array<string | false | undefined>): string =>
   parts.filter(Boolean).join(" ");
 
+type ProjectSwitchOrigin = {
+  readonly href: string;
+  readonly projectId: string;
+  readonly projectTitle: string;
+  readonly taskLabel: string;
+};
+
+type ProjectSwitchLocationState = {
+  readonly projectSwitchOrigin: ProjectSwitchOrigin;
+};
+
+const projectSwitchOriginFromState = (
+  state: unknown,
+): ProjectSwitchOrigin | undefined => {
+  if (typeof state !== "object" || state === null) return undefined;
+  const origin = (state as Partial<ProjectSwitchLocationState>)
+    .projectSwitchOrigin;
+  if (
+    typeof origin !== "object" ||
+    origin === null ||
+    typeof origin.href !== "string" ||
+    !origin.href.startsWith("/projects/") ||
+    typeof origin.projectId !== "string" ||
+    !/^project_[0-9A-HJKMNP-TV-Z]{26}$/u.test(origin.projectId) ||
+    !origin.href.startsWith(
+      `/projects/${encodeURIComponent(origin.projectId)}/`,
+    ) ||
+    typeof origin.projectTitle !== "string" ||
+    origin.projectTitle.trim().length === 0 ||
+    typeof origin.taskLabel !== "string"
+  ) {
+    return undefined;
+  }
+  return origin;
+};
+
+const projectSwitchState = (
+  origin: ProjectSwitchOrigin | undefined,
+): ProjectSwitchLocationState | undefined =>
+  origin === undefined ? undefined : { projectSwitchOrigin: origin };
+
 const ProjectStateLabel = ({ project }: { project: ProjectRecord }) => (
   <span className="reference-status" data-state={project.state}>
     <span aria-hidden="true" className="reference-status__symbol">
@@ -189,6 +230,9 @@ export const ProjectsSurface = ({
     request: ProjectShellCollectionRequest,
   ) => Promise<ProjectCollectionPage>;
 }): React.JSX.Element => {
+  const location = useLocation();
+  const switchOrigin = projectSwitchOriginFromState(location.state);
+  const targetState = projectSwitchState(switchOrigin);
   const [searchText, setSearchText] = useState(initialQuery.search ?? "");
   const [status, setStatus] = useState<"" | "active" | "archived">(
     initialQuery.status ?? "",
@@ -372,6 +416,36 @@ export const ProjectsSurface = ({
         </div>
       </section>
 
+      {switchOrigin === undefined ? null : (
+        <section
+          className="reference-project-switch"
+          aria-labelledby="project-switch-title"
+        >
+          <div>
+            <p className="reference-panel-kicker">Project switch</p>
+            <h2 id="project-switch-title">
+              Choose another Project without stopping prior Work
+            </h2>
+            <p>
+              You came from {switchOrigin.taskLabel} in{" "}
+              <strong>{switchOrigin.projectTitle}</strong>. Opening a different
+              Project only changes the visible workspace; it does not cancel or
+              replace Work in the prior Project.
+            </p>
+            <p>
+              The opened Project will offer an exact return to this task.
+              Unsubmitted fields, local selection, browser focus, and local
+              presentation history are not transferred between Projects; save or
+              submit them first when their surface does not say they are
+              retained.
+            </p>
+          </div>
+          <Link className="reference-primary-link" to={switchOrigin.href}>
+            Return to prior task
+          </Link>
+        </section>
+      )}
+
       {creating ? (
         <ProjectCreationPanel
           profiles={[...profiles]}
@@ -522,7 +596,10 @@ export const ProjectsSurface = ({
                     <ProjectStateLabel project={project} />
                   </div>
                   <h2>
-                    <Link to={`/projects/${project.id}/brief`}>
+                    <Link
+                      to={`/projects/${project.id}/brief`}
+                      state={targetState}
+                    >
                       {project.title}
                     </Link>
                   </h2>
@@ -544,6 +621,7 @@ export const ProjectsSurface = ({
                       <Link
                         className="reference-text-link"
                         to={`/projects/${project.id}/brief`}
+                        state={targetState}
                       >
                         Open Brief
                       </Link>
@@ -551,6 +629,7 @@ export const ProjectsSurface = ({
                         <Link
                           className="reference-primary-link"
                           to={`/projects/${project.id}/resume`}
+                          state={targetState}
                         >
                           {project.resume.state === "available"
                             ? "Resume Project"
@@ -689,6 +768,30 @@ export const ProjectShell = (): React.JSX.Element => {
   const location = useLocation();
   const projectNav = useRef<HTMLElement>(null);
   const currentPlace = placeFromPath(location.pathname);
+  const incomingSwitchOrigin = projectSwitchOriginFromState(location.state);
+  const currentTaskLabel =
+    location.pathname.endsWith("/resume") &&
+    project.resume?.state === "available"
+      ? (project.resume.retained_task?.label ?? "the retained Graph task")
+      : currentPlace === "profile_tool"
+        ? "the Project profile"
+        : `the Project ${currentPlace}`;
+  const currentSwitchOrigin: ProjectSwitchOrigin = {
+    href: `${location.pathname}${location.search}${location.hash}`,
+    projectId: project.id,
+    projectTitle: project.title,
+    taskLabel: currentTaskLabel,
+  };
+  const collectionSwitchOrigin =
+    incomingSwitchOrigin === undefined ||
+    incomingSwitchOrigin.projectId === project.id
+      ? currentSwitchOrigin
+      : incomingSwitchOrigin;
+  const returnSwitchOrigin =
+    incomingSwitchOrigin !== undefined &&
+    incomingSwitchOrigin.projectId !== project.id
+      ? incomingSwitchOrigin
+      : undefined;
 
   useEffect(() => {
     projectNav.current
@@ -721,7 +824,11 @@ export const ProjectShell = (): React.JSX.Element => {
         aria-label="Current Project context"
       >
         <div className="reference-context-bar__identity">
-          <Link to="/" className="reference-context-back">
+          <Link
+            to="/"
+            className="reference-context-back"
+            state={projectSwitchState(collectionSwitchOrigin)}
+          >
             <span aria-hidden="true">←</span> Projects
           </Link>
           <div>
@@ -735,6 +842,14 @@ export const ProjectShell = (): React.JSX.Element => {
             <small>{project.snapshot.asOf}</small>
           </span>
           <ProjectionLabel project={project} />
+          {returnSwitchOrigin === undefined ? null : (
+            <Link
+              className="reference-context-action"
+              to={returnSwitchOrigin.href}
+            >
+              Return to {returnSwitchOrigin.projectTitle}
+            </Link>
+          )}
           <Link
             className="reference-context-action"
             to={`/settings?project=${project.id}`}

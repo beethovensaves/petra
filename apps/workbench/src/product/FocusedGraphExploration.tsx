@@ -1054,6 +1054,7 @@ export const FocusedGraphExploration = ({
       <label className="focused-graph-exploration__selection">
         <span>Active selection</span>
         <select
+          id="focused-graph-active-selection"
           value={state.selectedKey}
           onChange={(event) =>
             updatePresentation({ selectedKey: event.currentTarget.value })

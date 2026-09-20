@@ -100,7 +100,9 @@ export const ProjectBriefSurface = ({
         aria-labelledby="brief-focus"
       >
         <p className="reference-panel-kicker">Orientation</p>
-        <h2 id="brief-focus">Current focus</h2>
+        <h2 id="brief-focus" tabIndex={-1}>
+          Current focus
+        </h2>
         <p className="brief-focus__statement">{c.orientation.statement}</p>
         <ProjectObjectiveControl context={objectiveCommandContext} />
         <Limitations items={c.coverage.limitations} />

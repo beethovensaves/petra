@@ -127,6 +127,41 @@ describe("neutral Petra reference workbench", () => {
     expect(markup).not.toContain("projects/demo");
   });
 
+  it("explains browser-local state before switching Projects", () => {
+    const priorProjectId = "project_01ARZ3NDEKTSV4RRFFQ69G5FAW";
+    const markup = renderToStaticMarkup(
+      <MemoryRouter
+        initialEntries={[
+          {
+            pathname: "/",
+            state: {
+              projectSwitchOrigin: {
+                href: `/projects/${priorProjectId}/brief#brief-focus`,
+                projectId: priorProjectId,
+                projectTitle: inletProject.title,
+                taskLabel: "the Project brief",
+              },
+            },
+          },
+        ]}
+      >
+        <ProjectsSurface projects={REFERENCE_PROJECTS} />
+      </MemoryRouter>,
+    );
+
+    expect(markup).toContain(
+      "Choose another Project without stopping prior Work",
+    );
+    expect(markup).toContain(
+      "it does not cancel or replace Work in the prior Project",
+    );
+    expect(markup).toContain(
+      "Unsubmitted fields, local selection, browser focus, and local presentation history are not transferred",
+    );
+    expect(markup).toContain("Return to prior task");
+    expect(markup).toContain(`/projects/${priorProjectId}/brief#brief-focus`);
+  });
+
   it("exposes the server-assessed Project resume control and honest retry state", () => {
     const noTask: ProjectShellResumeContext = {
       state: "not_found",

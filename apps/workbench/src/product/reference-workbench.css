@@ -537,6 +537,33 @@
   backdrop-filter: blur(12px);
 }
 
+.reference-project-switch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--petra-space-5);
+  margin: 0 0 var(--petra-space-6);
+  padding: var(--petra-space-5);
+  border: var(--petra-rule-thin) solid var(--petra-border-default);
+  border-left: 3px solid var(--petra-brand-accent);
+  border-radius: var(--petra-radius-medium);
+  background: var(--petra-surface-panel);
+}
+
+.reference-project-switch h2,
+.reference-project-switch p {
+  margin-bottom: var(--petra-space-2);
+}
+
+.reference-project-switch p:last-child {
+  margin-bottom: 0;
+  color: var(--petra-text-secondary);
+}
+
+.reference-project-switch .reference-primary-link {
+  flex: 0 0 auto;
+}
+
 .reference-context-bar__identity,
 .reference-context-bar__state {
   display: flex;
@@ -2148,6 +2175,7 @@
   .reference-page-heading,
   .reference-surface-heading,
   .reference-context-bar,
+  .reference-project-switch,
   .reference-reader-return {
     align-items: stretch;
     flex-direction: column;

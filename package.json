@@ -122,6 +122,7 @@
     "audit:wave6:operation-control": "node scripts/audit-wave6-operation-control.mjs",
     "test:wave6:project-search-ui": "npm run build:packages && node apps/workbench/test/project-search-browser.mjs",
     "test:wave6:project-open-ui": "npm run build:packages && node apps/workbench/test/project-open-browser.mjs",
+    "test:wave6:project-switch-ui": "npm run build:packages && node apps/workbench/test/project-switch-browser.mjs",
     "test:wave6:project-switch": "PETRA_WAVE6_PROJECT_SWITCH_EVIDENCE_OUTPUT=reports/WAVE6-PROJECT-SWITCH-AUTHORITY.json node scripts/test-postgres-integration.mjs"
   },
   "devDependencies": {
