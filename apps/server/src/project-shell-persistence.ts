@@ -15,6 +15,7 @@ import {
   PostgresSingleUserCommandPrincipalResolver,
   PostgresProjectEffectiveControlsViewReader,
   PostgresProjectModelReadinessReader,
+  PostgresProjectImportAuthority,
   PostgresProjectProfileRuntime,
   PostgresProjectHistoryViewReader,
   PostgresProjectInquirySaveAuthority,
@@ -53,6 +54,9 @@ import type {
   ProjectProfileRuntimeReader,
   ProjectHistoryViewReader,
   ProjectHistoryCompensationExecutionBoundary,
+  ProjectImportAncestryReader,
+  ProjectImportCommandAuthority,
+  ProjectImportCommandRecoveryReader,
   ProjectInquiryViewReader,
   ProjectInquirySaveAuthority,
   ProjectObjectLocationViewReader,
@@ -123,6 +127,9 @@ export interface ProjectShellPersistence {
   readonly profileReads: ProjectProfileRuntimeReader;
   readonly profileCommands: ProjectProfileCommandAuthority;
   readonly profileRecovery: ProjectProfileCommandRecoveryReader;
+  readonly importCommands: ProjectImportCommandAuthority;
+  readonly importRecovery: ProjectImportCommandRecoveryReader;
+  readonly importAncestry: ProjectImportAncestryReader;
   readonly communicationPlans?: CommunicationPlanReader;
   readonly briefViews: ProjectBriefViewReader;
   readonly views: ProjectShellViewReader;
@@ -275,6 +282,13 @@ export const createProjectShellPersistenceFromEnvironment = async (
       : { actor_id: configuredActorId, actor_kind: "human" },
     contracts,
   );
+  const importRuntime = new PostgresProjectImportAuthority(
+    pool,
+    configuredActorId === undefined || configuredActorId === ""
+      ? undefined
+      : { actor_id: configuredActorId, actor_kind: "human" },
+    contracts,
+  );
   const historyViews = new PostgresProjectHistoryViewReader(pool, contracts, {
     cursorSecret: historyCursorSecret(environment),
     ...(configuredActorId === undefined || configuredActorId === ""
@@ -345,6 +359,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
           AND to_regclass('petra.project_profile_command_receipts') IS NOT NULL
           AND to_regclass('petra.project_work_operation_receipts') IS NOT NULL
           AND to_regclass('petra.project_inquiry_save_receipts') IS NOT NULL
+          AND to_regclass('petra.project_import_command_receipts') IS NOT NULL
           AND EXISTS (
             SELECT 1
             FROM information_schema.columns
@@ -368,7 +383,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
     );
     if (schema.rows[0]?.ready !== true) {
       throw new ProjectShellPersistenceConfigurationError(
-        "PostgreSQL is reachable, but the V048 ProjectInquiry save runtime is unavailable.",
+        "PostgreSQL is reachable, but the V049 Project import runtime is unavailable.",
       );
     }
     for (const profile of await readBuiltInProfiles()) {
@@ -434,6 +449,9 @@ export const createProjectShellPersistenceFromEnvironment = async (
         profileReads: profileRuntime,
         profileCommands: profileRuntime,
         profileRecovery: profileRuntime,
+        importCommands: importRuntime,
+        importRecovery: importRuntime,
+        importAncestry: importRuntime,
         views: new PostgresProjectShellViewReader(pool),
         briefViews: new PostgresProjectBriefViewReader(pool, contracts),
         communicationPlans: new PostgresCommunicationPlanReader(
@@ -529,6 +547,9 @@ export const createProjectShellPersistenceFromEnvironment = async (
     profileReads: profileRuntime,
     profileCommands: profileRuntime,
     profileRecovery: profileRuntime,
+    importCommands: importRuntime,
+    importRecovery: importRuntime,
+    importAncestry: importRuntime,
     views: new PostgresProjectShellViewReader(pool),
     briefViews: new PostgresProjectBriefViewReader(pool, contracts),
     communicationPlans: new PostgresCommunicationPlanReader(pool, contracts),

@@ -105,6 +105,18 @@ export type {
   Subject as ProjectProfileRecoverySubject,
   UnavailableToVerify as ProjectProfileRecoveryUnavailableToVerify,
 } from "./generated/project-profile-command-recovery-view.js";
+export type { PetraProjectImportCommandRequest } from "./generated/project-import-command-request.js";
+export type {
+  PetraProjectImportCommandReceipt,
+  SourceAncestry as ProjectImportSourceAncestry,
+} from "./generated/project-import-command-receipt.js";
+export type {
+  Action as ProjectImportRecoveryAction,
+  Content as ProjectImportRecoveryContent,
+  Effect as ProjectImportRecoveryEffect,
+  PetraProjectImportCommandRecoveryView,
+  PreservedItem as ProjectImportRecoveryPreservedItem,
+} from "./generated/project-import-command-recovery-view.js";
 export type {
   BoundContext as ProjectModelBoundContext,
   CertificationRef as ProjectModelCertificationRef,

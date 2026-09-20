@@ -103,7 +103,7 @@
       "control": "Import Project",
       "interaction": "command",
       "evidence": [],
-      "runtime_owner": "",
+      "runtime_owner": "POST /api/commands/projects/import, POST /api/queries/project-import-command-recovery, and GET /api/queries/projects/:projectId/import-ancestry -> PostgresProjectImportAuthority",
       "paths": ["UX-PATH-03"]
     },
     {

@@ -66,6 +66,7 @@ import {
 } from "@petra/adapters/server";
 import type {
   PetraClaim,
+  PetraProjectImportCommandRequest,
   PetraProjectInquirySaveRequest,
   PetraProjectProfileCommandRequest,
   PetraProjectWorkOperationRequest,
@@ -89,6 +90,7 @@ import {
   ProjectHistoryRecoveryPreviewUnavailableError,
   ProjectHistoryViewRequestError,
   ProjectInquirySaveError,
+  ProjectImportError,
   ProjectProfileRuntimeError,
   ProjectModelReadinessError,
   ProjectWorkOperationError,
@@ -106,6 +108,9 @@ import {
   type ProjectEffectiveControlsViewReader,
   type ProjectHistoryViewReader,
   type ProjectHistoryCompensationExecutionBoundary,
+  type ProjectImportAncestryReader,
+  type ProjectImportCommandAuthority,
+  type ProjectImportCommandRecoveryReader,
   type ProjectInquiryAuthoredStatus,
   type ProjectInquirySaveAuthority,
   type ProjectProfileCommandAuthority,
@@ -169,6 +174,9 @@ export interface PetraAppOptions {
   projectProfileReads?: ProjectProfileRuntimeReader;
   projectProfileCommands?: ProjectProfileCommandAuthority;
   projectProfileRecovery?: ProjectProfileCommandRecoveryReader;
+  projectImportCommands?: ProjectImportCommandAuthority;
+  projectImportRecovery?: ProjectImportCommandRecoveryReader;
+  projectImportAncestry?: ProjectImportAncestryReader;
   projectModelReadiness?: ProjectModelReadinessReader;
   projectShellViews?: ProjectShellViewReader;
   projectEffectiveControls?: ProjectEffectiveControlsViewReader;
@@ -787,6 +795,44 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
       error instanceof Error
         ? error.message
         : "The registered Project profile runtime is unavailable.",
+    );
+  };
+  const projectImportError = (
+    context: Context<{ Variables: Variables }>,
+    error: unknown,
+  ): Response => {
+    if (error instanceof ProjectImportError) {
+      const status =
+        error.code === "PROJECT_IMPORT_COMMAND_DENIED"
+          ? 403
+          : error.code === "PROJECT_IMPORT_SOURCE_NOT_FOUND"
+            ? 404
+            : error.code === "PROJECT_IMPORT_RUNTIME_CORRUPT"
+              ? 503
+              : 409;
+      return jsonError(context, status, error.code, error.message);
+    }
+    if (
+      error instanceof ContractRegistryError ||
+      error instanceof InteractionInputError ||
+      error instanceof SyntaxError
+    ) {
+      return jsonError(
+        context,
+        422,
+        "PROJECT_IMPORT_REQUEST_INVALID",
+        error instanceof Error
+          ? error.message
+          : "The Project import request is invalid.",
+      );
+    }
+    return jsonError(
+      context,
+      503,
+      "PROJECT_IMPORT_RUNTIME_FAILED",
+      error instanceof Error
+        ? error.message
+        : "The Project import runtime is unavailable.",
     );
   };
 
@@ -1527,6 +1573,106 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
       return projectProfileError(context, error);
     }
   });
+
+  app.post("/api/commands/projects/import", async (context) => {
+    if (options.projectImportCommands === undefined) {
+      return jsonError(
+        context,
+        503,
+        "PROJECT_IMPORT_RUNTIME_UNAVAILABLE",
+        "The reviewed Project import boundary is not configured.",
+      );
+    }
+    try {
+      const request = (await readBoundedJson(
+        context,
+        maxBodyBytes,
+      )) as PetraProjectImportCommandRequest;
+      contracts.assertValid("project-import-command-request", "1.0.0", request);
+      const receipt =
+        await options.projectImportCommands.executeProjectImportCommand(
+          request,
+        );
+      contracts.assertValid("project-import-command-receipt", "1.0.0", receipt);
+      return context.json(receipt, 201);
+    } catch (error) {
+      return projectImportError(context, error);
+    }
+  });
+
+  app.post("/api/queries/project-import-command-recovery", async (context) => {
+    if (options.projectImportRecovery === undefined) {
+      return jsonError(
+        context,
+        503,
+        "PROJECT_IMPORT_RUNTIME_UNAVAILABLE",
+        "The Project import recovery boundary is not configured.",
+      );
+    }
+    try {
+      const request = (await readBoundedJson(
+        context,
+        maxBodyBytes,
+      )) as PetraProjectImportCommandRequest;
+      contracts.assertValid("project-import-command-request", "1.0.0", request);
+      const assessment =
+        await options.projectImportRecovery.assessProjectImportCommandRecovery(
+          request,
+        );
+      contracts.assertValid(
+        "project-import-command-recovery-view",
+        "1.0.0",
+        assessment,
+      );
+      context.header("Cache-Control", "no-store");
+      return context.json(assessment);
+    } catch (error) {
+      return projectImportError(context, error);
+    }
+  });
+
+  app.get(
+    "/api/queries/projects/:projectId/import-ancestry",
+    async (context) => {
+      if (options.projectImportAncestry === undefined) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_IMPORT_RUNTIME_UNAVAILABLE",
+          "The Project import ancestry read is not configured.",
+        );
+      }
+      try {
+        const projectId = context.req.param("projectId");
+        if (!PROJECT_ID_PATTERN.test(projectId)) {
+          throw new InteractionInputError(
+            "Project import ancestry requires a canonical Project ID.",
+          );
+        }
+        const receipt =
+          await options.projectImportAncestry.getProjectImportAncestry(
+            projectId,
+          );
+        if (receipt === undefined) {
+          return jsonError(
+            context,
+            404,
+            "PROJECT_IMPORT_ANCESTRY_NOT_FOUND",
+            "This Project has no retained import ancestry receipt.",
+          );
+        }
+        contracts.assertValid(
+          "project-import-command-receipt",
+          "1.0.0",
+          receipt,
+        );
+        context.header("Cache-Control", "no-store");
+        return context.json(receipt);
+      } catch (error) {
+        return projectImportError(context, error);
+      }
+    },
+  );
 
   app.get("/api/queries/projects", async (context) => {
     if (options.projectShellViews === undefined) {

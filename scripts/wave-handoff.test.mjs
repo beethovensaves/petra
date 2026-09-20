@@ -17,9 +17,11 @@ import Ajv2020 from "ajv/dist/2020.js";
 import {
   buildCodexExecArguments,
   buildWorkerPrompt,
+  canResumeBlockedRecovery,
   canRetryUnchangedWorkerFailure,
   canRetryWorkerFailure,
   clearRetryAttempt,
+  codexEventFailure,
   enforceCompletionDisposition,
   enforceProgressDisposition,
   evidenceOwnerCanSatisfy,
@@ -147,6 +149,14 @@ test("retries only unchanged transient worker failures with a bounded attempt co
     true,
   );
   assert.equal(
+    isRetryableWorkerError(
+      new Error(
+        "Codex backend worker exited with status 1: You've hit your usage limit. Try again at Sep 23rd, 2026 9:11 AM.",
+      ),
+    ),
+    false,
+  );
+  assert.equal(
     isRetryableWorkerError(new Error("Design synchronization failed.")),
     false,
   );
@@ -175,6 +185,19 @@ test("retries only unchanged transient worker failures with a bounded attempt co
     }),
     false,
   );
+});
+
+test("extracts terminal Codex failures from JSON events", () => {
+  assert.equal(
+    codexEventFailure(
+      JSON.stringify({
+        type: "turn.failed",
+        error: { message: "You've hit your usage limit." },
+      }),
+    ),
+    "You've hit your usage limit.",
+  );
+  assert.equal(codexEventFailure("not-json"), "");
 });
 
 test("continues a transient failure from only the owning fingerprinted worktree", () => {
@@ -283,6 +306,47 @@ test("operator recovery restores the repaired slice retry budget", () => {
   assert.equal(clearRetryAttempt(state, 8, "design"), true);
   assert.deepEqual(state.retry_attempts, { "9:backend": 1 });
   assert.equal(clearRetryAttempt(state, 8, "design"), false);
+});
+
+test("operator recovery can resume an unchanged fingerprinted partial worktree", () => {
+  const recorded = "a".repeat(40);
+  const repairedController = "b".repeat(40);
+  const digest = `sha256:${"c".repeat(64)}`;
+  const state = {
+    status: "blocked",
+    commits: { backend: recorded },
+    recovery: {
+      role: "backend",
+      expected_head: recorded,
+      expected_remote: recorded,
+      worktree_digest: digest,
+    },
+  };
+  const exact = {
+    head: recorded,
+    remote: recorded,
+    unexpected: [{ status: " M", path: "packages/core/src/index.ts" }],
+    worktree_digest: digest,
+  };
+  assert.equal(canResumeBlockedRecovery(state, "backend", exact, true), true);
+  assert.equal(
+    canResumeBlockedRecovery(
+      state,
+      "backend",
+      { ...exact, head: repairedController, remote: repairedController },
+      true,
+    ),
+    true,
+  );
+  assert.equal(
+    canResumeBlockedRecovery(
+      state,
+      "backend",
+      { ...exact, worktree_digest: `sha256:${"d".repeat(64)}` },
+      true,
+    ),
+    false,
+  );
 });
 
 test("fingerprints exact tracked and untracked partial worktree bytes", () => {

@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-import-command-request/1.0.0/schema.json",
+  "title": "PetraProjectImportCommandRequest",
+  "description": "An authenticated request to reuse one exact retained Project as a new derived Project after explicit human review. Actor and authority are server-owned.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "command_id",
+    "idempotency_key",
+    "source",
+    "admission",
+    "project"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.project-import-command-request" },
+    "schema_version": { "const": "1.0.0" },
+    "command_id": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        { "type": "string", "pattern": "^command_" }
+      ]
+    },
+    "idempotency_key": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,511}$"
+    },
+    "source": { "$ref": "#/$defs/Source" },
+    "admission": { "$ref": "#/$defs/Admission" },
+    "project": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "description": { "type": "string", "minLength": 1, "maxLength": 4000 }
+      }
+    }
+  },
+  "$defs": {
+    "DefinitionRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project_definition_id", "revision", "content_hash"],
+      "properties": {
+        "project_definition_id": {
+          "allOf": [
+            { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+            { "type": "string", "pattern": "^project_definition_" }
+          ]
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "ObjectiveRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["objective_id", "revision", "content_hash"],
+      "properties": {
+        "objective_id": {
+          "allOf": [
+            { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+            { "type": "string", "pattern": "^objective_" }
+          ]
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "Source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_kind",
+        "project_id",
+        "project_revision",
+        "project_definition_ref",
+        "focused_objective_ref"
+      ],
+      "properties": {
+        "source_kind": { "const": "retained_project" },
+        "project_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+        },
+        "project_revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "project_definition_ref": { "$ref": "#/$defs/DefinitionRef" },
+        "focused_objective_ref": { "$ref": "#/$defs/ObjectiveRef" }
+      }
+    },
+    "Admission": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["decision", "copy_scope", "source_effect", "reviewed_at"],
+      "properties": {
+        "decision": { "const": "create_derived_project" },
+        "copy_scope": { "const": "definition_and_focused_objective" },
+        "source_effect": { "const": "preserve_without_modification" },
+        "reviewed_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        }
+      }
+    }
+  }
+}

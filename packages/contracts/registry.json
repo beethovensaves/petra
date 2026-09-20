@@ -1,5 +1,5 @@
 {
-  "registry_version": "1.97.0",
+  "registry_version": "1.100.0",
   "schemas": [
     {
       "name": "contract-smoke",
@@ -252,6 +252,39 @@
       "canonical_sha256": "sha256:77534795a71219fd9974160e547455966389f642f85c0e26fa3b44e2295c195e",
       "generate_typescript": true,
       "typescript_path": "src/generated/project-profile-command-recovery-view.ts"
+    },
+    {
+      "name": "project-import-command-request",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-import-command-request/1.0.0/schema.json",
+      "path": "schemas/project-import-command-request/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-reviewed-retained-project-reuse-request",
+      "canonical_sha256": "sha256:e4ea1c2594c0c92ae0ccf17bd2cf1e2365753a04dac0022091dd77df40a4e4c2",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-import-command-request.ts"
+    },
+    {
+      "name": "project-import-command-receipt",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-import-command-receipt/1.0.0/schema.json",
+      "path": "schemas/project-import-command-receipt/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-immutable-derived-project-ancestry-receipt",
+      "canonical_sha256": "sha256:76ce2aa5258d10be647ca47d782b124dfff8d611f5c51705ce0907bfae8b2bd6",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-import-command-receipt.ts"
+    },
+    {
+      "name": "project-import-command-recovery-view",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-import-command-recovery-view/1.0.0/schema.json",
+      "path": "schemas/project-import-command-recovery-view/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-project-import-command-reconciliation",
+      "canonical_sha256": "sha256:1ba7b7d77a05f49014b08bb154f9511eed96cff7de08972d73ba7dfda9734930",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-import-command-recovery-view.ts"
     },
     {
       "name": "project-inquiry-role",
