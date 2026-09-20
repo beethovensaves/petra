@@ -1,0 +1,76 @@
+{
+  "schema_name": "petra.project-work-start-again-receipt",
+  "schema_version": "1.0.0",
+  "receipt_id": "project_work_start_again_receipt_01K6P000000000000000000911",
+  "command_id": "command_01K6P000000000000000000911",
+  "idempotency_key": "wave6:work:start-again:001",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "outcome": "started_again",
+  "actor": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "human"
+  },
+  "capability_grant_id": "capability_grant_01ARZ3NDEKTSV4RRFFQ69G5FBJ",
+  "requested_prior_work_unit_ref": {
+    "work_unit_id": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+    "revision": 4,
+    "spec_hash": "sha256:2e6c6536312fead0c9abc2d902035ba1c41b9e4a5fb6835f7666101940a6a737"
+  },
+  "start_again_registration": {
+    "start_again_registration_id": "work_start_again_registration_01K6P000000000000000000910",
+    "content_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  },
+  "prior_attempt": {
+    "work_unit_ref": {
+      "work_unit_id": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+      "revision": 4,
+      "spec_hash": "sha256:2e6c6536312fead0c9abc2d902035ba1c41b9e4a5fb6835f7666101940a6a737"
+    },
+    "work_attempt": 1,
+    "lineage_attempt": 1,
+    "input_manifest_ref": {
+      "worker_input_manifest_id": "worker_input_manifest_01ARZ3NDEKTSV4RRFFQ69G5FC3",
+      "content_hash": "sha256:43057052df0f0067186c2a1a0daa8b0827823487141265996ed2deb0fdb7d3e7"
+    }
+  },
+  "fresh_input": {
+    "strategy": "fresh_input",
+    "prior_input_manifest_ref": {
+      "worker_input_manifest_id": "worker_input_manifest_01ARZ3NDEKTSV4RRFFQ69G5FC3",
+      "content_hash": "sha256:43057052df0f0067186c2a1a0daa8b0827823487141265996ed2deb0fdb7d3e7"
+    },
+    "fresh_input_manifest_ref": {
+      "worker_input_manifest_id": "worker_input_manifest_01K6P000000000000000000912",
+      "content_hash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+    },
+    "retained_output_reuse": "none",
+    "summary": "Use the newly registered source revision and rerun this workflow without reusing prior outputs."
+  },
+  "new_attempt": {
+    "lineage_attempt": 2,
+    "work_attempt": 1,
+    "work_unit_ref": {
+      "work_unit_id": "work_unit_01K6P000000000000000000912",
+      "revision": 3,
+      "spec_hash": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    }
+  },
+  "effect": {
+    "kind": "operational_only",
+    "summary": "A distinct linked Work task began with registered fresh input; prior Work, attempts, outputs, and cost remain retained.",
+    "prior_work_preserved": true,
+    "prior_attempts_preserved": true,
+    "fresh_work_identity": true,
+    "domain_authority_changed": false
+  },
+  "destination": {
+    "place_role": "work",
+    "work_unit_ref": {
+      "work_unit_id": "work_unit_01K6P000000000000000000912",
+      "revision": 3,
+      "spec_hash": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    }
+  },
+  "recorded_at": "2026-09-20T16:10:04.000Z",
+  "record_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+}

@@ -4,6 +4,8 @@ import type {
   PetraProjectWorkOperationsView,
   PetraProjectWorkResumeReceipt,
   PetraProjectWorkResumeRequest,
+  PetraProjectWorkStartAgainReceipt,
+  PetraProjectWorkStartAgainRequest,
   PetraWorkerOutputManifest,
 } from "@petra/contracts";
 import { PetraContractRegistry } from "@petra/contracts/validator";
@@ -75,14 +77,30 @@ export class ProjectWorkClient {
       (control) =>
         control.operation === "resume" && control.state === "available",
     );
+    const startAgainAvailable = view.controls.some(
+      (control) =>
+        control.operation === "start_again" && control.state === "available",
+    );
     if (
       view.project_id !== projectId ||
       view.work_unit_ref.work_unit_id !== workUnitId ||
       resumeAvailable !== (view.resume_binding !== undefined) ||
+      startAgainAvailable !== (view.start_again_binding !== undefined) ||
       (view.resume_binding !== undefined &&
         (view.resume_binding.project_id !== projectId ||
           canonicalize(view.resume_binding.expected_work_unit_ref) !==
-            canonicalize(view.work_unit_ref)))
+            canonicalize(view.work_unit_ref))) ||
+      (view.start_again_binding !== undefined &&
+        (view.start_again_binding.project_id !== projectId ||
+          canonicalize(
+            view.start_again_binding.expected_prior_work_unit_ref,
+          ) !== canonicalize(view.work_unit_ref) ||
+          view.start_again_binding.fresh_work_unit_ref.work_unit_id ===
+            workUnitId ||
+          view.start_again_binding.input_transition.prior_input_manifest_ref
+            .content_hash ===
+            view.start_again_binding.input_transition.fresh_input_manifest_ref
+              .content_hash))
     ) {
       throw new ProjectWorkClientError(
         503,
@@ -180,6 +198,63 @@ export class ProjectWorkClient {
         503,
         "PROJECT_WORK_RESPONSE_INVALID",
         "The checkpoint resume receipt does not match the exact command, checkpoint, or retained Work identity.",
+      );
+    }
+    return structuredClone(receipt);
+  }
+
+  async startAgain(
+    projectId: string,
+    priorWorkUnitId: string,
+    request: PetraProjectWorkStartAgainRequest,
+  ): Promise<PetraProjectWorkStartAgainReceipt> {
+    this.#assertTarget(projectId, priorWorkUnitId);
+    this.#contracts.assertValid(
+      "project-work-start-again-request",
+      "1.0.0",
+      request,
+    );
+    if (request.expected_prior_work_unit_ref.work_unit_id !== priorWorkUnitId) {
+      throw new TypeError(
+        "The Start again request must bind the exact route prior WorkUnit.",
+      );
+    }
+    const response = await this.#request(
+      `/api/commands/projects/${projectId}/work/${priorWorkUnitId}/start-again`,
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(request),
+      },
+    );
+    const body: unknown = await response.json();
+    this.#contracts.assertValid(
+      "project-work-start-again-receipt",
+      "1.0.0",
+      body,
+    );
+    const receipt = body as PetraProjectWorkStartAgainReceipt;
+    if (
+      receipt.project_id !== projectId ||
+      receipt.requested_prior_work_unit_ref.work_unit_id !== priorWorkUnitId ||
+      receipt.prior_attempt.work_unit_ref.work_unit_id !== priorWorkUnitId ||
+      receipt.new_attempt.work_unit_ref.work_unit_id === priorWorkUnitId ||
+      receipt.destination.work_unit_ref.work_unit_id !==
+        receipt.new_attempt.work_unit_ref.work_unit_id ||
+      receipt.command_id !== request.command_id ||
+      receipt.idempotency_key !== request.idempotency_key ||
+      canonicalize(receipt.start_again_registration) !==
+        canonicalize(request.start_again_registration_ref) ||
+      receipt.fresh_input.prior_input_manifest_ref.content_hash ===
+        receipt.fresh_input.fresh_input_manifest_ref.content_hash ||
+      receipt.new_attempt.lineage_attempt !==
+        receipt.prior_attempt.lineage_attempt + 1 ||
+      receipt.new_attempt.work_attempt !== 1
+    ) {
+      throw new ProjectWorkClientError(
+        503,
+        "PROJECT_WORK_RESPONSE_INVALID",
+        "The Start again receipt crossed its exact command, fresh-input, prior-attempt, or linked fresh Work boundary.",
       );
     }
     return structuredClone(receipt);

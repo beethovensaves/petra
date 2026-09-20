@@ -40,6 +40,7 @@ export interface PetraProjectWorkOperationsView {
   required_inputs: RequiredInput[];
   delivery: Delivery;
   resume_binding?: ResumeBinding;
+  start_again_binding?: StartAgainBinding;
   /**
    * @minItems 11
    * @maxItems 11
@@ -328,6 +329,43 @@ export interface CheckpointRef {
    * An RFC 3339 timestamp normalized to UTC with millisecond precision.
    */
   recorded_at: string;
+}
+/**
+ * The exact server-owned fresh-input registration a client may copy into a Start again request. It is present only while all source, replacement Work, input, workflow, and authority prerequisites remain exact.
+ */
+export interface StartAgainBinding {
+  /**
+   * A Petra identifier whose kind is project.
+   */
+  project_id: string;
+  expected_prior_work_unit_ref: WorkUnitRef;
+  start_again_registration_ref: StartAgainRegistrationRef;
+  fresh_work_unit_ref: WorkUnitRef;
+  prior_work_attempt: number;
+  prior_lineage_attempt: number;
+  new_lineage_attempt: number;
+  input_transition: FreshInput;
+}
+export interface StartAgainRegistrationRef {
+  start_again_registration_id: string;
+  /**
+   * A SHA-256 content identity over the exact bytes or canonical JSON projection defined by the enclosing contract.
+   */
+  content_hash: string;
+}
+export interface FreshInput {
+  strategy: "fresh_input";
+  prior_input_manifest_ref: InputManifestRef;
+  fresh_input_manifest_ref: InputManifestRef;
+  retained_output_reuse: "none";
+  summary: string;
+}
+export interface InputManifestRef {
+  worker_input_manifest_id: string;
+  /**
+   * A SHA-256 content identity over the exact bytes or canonical JSON projection defined by the enclosing contract.
+   */
+  content_hash: string;
 }
 export interface Control {
   operation:

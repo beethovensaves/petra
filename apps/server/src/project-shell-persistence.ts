@@ -100,6 +100,7 @@ import type {
   ProjectWorkOperationAuthority,
   ProjectWorkOperationsViewReader,
   ProjectWorkResumeAuthority,
+  ProjectWorkStartAgainAuthority,
   ProjectWorkerOutputManifestReader,
   ProjectWorkViewReader,
   ProjectWorkingStateSnapshotReader,
@@ -194,6 +195,7 @@ export interface ProjectShellPersistence {
   readonly workOperations: ProjectWorkOperationsViewReader;
   readonly workOperationAuthority: ProjectWorkOperationAuthority;
   readonly workResumeAuthority: ProjectWorkResumeAuthority;
+  readonly workStartAgainAuthority: ProjectWorkStartAgainAuthority;
   readonly threadViews: ProjectThreadViewReader;
   readonly inquiryViews: ProjectInquiryViewReader;
   readonly inquirySaveAuthority?: ProjectInquirySaveAuthority;
@@ -735,6 +737,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
         workOperations,
         workOperationAuthority: workOperations,
         workResumeAuthority: workOperations,
+        workStartAgainAuthority: workOperations,
         threadViews,
         inquiryViews: new PostgresProjectInquiryViewReader(pool),
         inquirySaveAuthority,
@@ -838,6 +841,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
     workOperations,
     workOperationAuthority: workOperations,
     workResumeAuthority: workOperations,
+    workStartAgainAuthority: workOperations,
     threadViews,
     inquiryViews: new PostgresProjectInquiryViewReader(pool),
     suggestedActionViews,

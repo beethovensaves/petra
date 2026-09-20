@@ -6,12 +6,15 @@ import type {
   PetraProjectWorkOperationsView,
   PetraProjectWorkResumeReceipt,
   PetraProjectWorkResumeRequest,
+  PetraProjectWorkStartAgainReceipt,
+  PetraProjectWorkStartAgainRequest,
 } from "@petra/contracts";
 import type {
   AuthenticatedCommandPrincipalResolver,
   ProjectWorkOperationAuthority,
   ProjectWorkOperationsViewReader,
   ProjectWorkResumeAuthority,
+  ProjectWorkStartAgainAuthority,
 } from "@petra/core";
 import { describe, expect, it, vi } from "vitest";
 
@@ -47,9 +50,16 @@ const resumeRequest = readFixture<PetraProjectWorkResumeRequest>(
 const resumeReceipt = readFixture<PetraProjectWorkResumeReceipt>(
   "project-work-resume-receipt",
 );
+const startAgainRequest = readFixture<PetraProjectWorkStartAgainRequest>(
+  "project-work-start-again-request",
+);
+const startAgainReceipt = readFixture<PetraProjectWorkStartAgainReceipt>(
+  "project-work-start-again-receipt",
+);
 const commandPath = `/api/commands/projects/${view.project_id}/work/${view.work_unit_ref.work_unit_id}`;
 const queryPath = `/api/queries/projects/${view.project_id}/work/${view.work_unit_ref.work_unit_id}/operations`;
 const resumePath = `/api/commands/projects/${resumeReceipt.project_id}/work/${resumeRequest.expected_work_unit_ref.work_unit_id}/resume`;
+const startAgainPath = `/api/commands/projects/${startAgainReceipt.project_id}/work/${startAgainRequest.expected_prior_work_unit_ref.work_unit_id}/start-again`;
 
 const authorized = (path: string, init: RequestInit = {}): Request =>
   new Request(`http://petra.local${path}`, {
@@ -278,6 +288,52 @@ describe("Project Work operation routes", () => {
       principal: {
         actor: resumeReceipt.actor,
         capabilityGrantId: resumeReceipt.capability_grant_id,
+      },
+    });
+  });
+
+  it("resolves server-owned authority for an exact fresh-input Start again transition", async () => {
+    let execution:
+      | {
+          projectId: string;
+          body: PetraProjectWorkStartAgainRequest;
+          principal: {
+            actor: typeof startAgainReceipt.actor;
+            capabilityGrantId: string;
+          };
+        }
+      | undefined;
+    const authority: ProjectWorkStartAgainAuthority = {
+      executeProjectWorkStartAgain: (projectId, body, principal) => {
+        execution = {
+          projectId,
+          body: structuredClone(body),
+          principal: structuredClone(principal),
+        };
+        return Promise.resolve(structuredClone(startAgainReceipt));
+      },
+    };
+    const petra = createPetraApp({
+      authToken: TOKEN,
+      commandPrincipalResolver: resolvedPrincipal,
+      projectWorkStartAgainAuthority: authority,
+    });
+
+    const response = await petra.app.fetch(
+      authorized(startAgainPath, {
+        method: "POST",
+        body: JSON.stringify(startAgainRequest),
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toStrictEqual(startAgainReceipt);
+    expect(execution).toStrictEqual({
+      projectId: startAgainReceipt.project_id,
+      body: startAgainRequest,
+      principal: {
+        actor: startAgainReceipt.actor,
+        capabilityGrantId: startAgainReceipt.capability_grant_id,
       },
     });
   });

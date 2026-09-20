@@ -7,6 +7,8 @@ import type {
   PetraProjectWorkOperationsView,
   PetraProjectWorkResumeReceipt,
   PetraProjectWorkResumeRequest,
+  PetraProjectWorkStartAgainReceipt,
+  PetraProjectWorkStartAgainRequest,
   PetraWorkerOutputManifest,
 } from "@petra/contracts";
 import { canonicalize } from "json-canonicalize";
@@ -45,6 +47,12 @@ const resumeRequest = readFixture<PetraProjectWorkResumeRequest>(
 );
 const resumeReceipt = readFixture<PetraProjectWorkResumeReceipt>(
   "project-work-resume-receipt",
+);
+const startAgainRequest = readFixture<PetraProjectWorkStartAgainRequest>(
+  "project-work-start-again-request",
+);
+const startAgainReceipt = readFixture<PetraProjectWorkStartAgainReceipt>(
+  "project-work-start-again-receipt",
 );
 const output = readFixture<PetraWorkerOutputManifest>("worker-output-manifest");
 const outputRecordHash = `sha256:${createHash("sha256")
@@ -242,6 +250,61 @@ describe("ProjectWorkClient", () => {
         resumeReceipt.project_id,
         resumeRequest.expected_work_unit_ref.work_unit_id,
         resumeRequest,
+      ),
+    ).rejects.toEqual(
+      expect.objectContaining<Partial<ProjectWorkClientError>>({
+        code: "PROJECT_WORK_RESPONSE_INVALID",
+      }),
+    );
+  });
+
+  it("starts again only through the exact registered fresh-input transition", async () => {
+    let capturedUrl: string | undefined;
+    let call = 0;
+    const fetch = vi.fn((input: URL | RequestInfo) => {
+      capturedUrl =
+        input instanceof Request
+          ? input.url
+          : input instanceof URL
+            ? input.href
+            : input;
+      call += 1;
+      return Promise.resolve(
+        Response.json(
+          call === 1
+            ? startAgainReceipt
+            : {
+                ...startAgainReceipt,
+                new_attempt: {
+                  ...startAgainReceipt.new_attempt,
+                  lineage_attempt:
+                    startAgainReceipt.prior_attempt.lineage_attempt + 2,
+                },
+              },
+        ),
+      );
+    });
+    const client = new ProjectWorkClient({
+      baseUrl: "http://petra.local",
+      token: "work-token",
+      fetch,
+    });
+
+    await expect(
+      client.startAgain(
+        startAgainReceipt.project_id,
+        startAgainRequest.expected_prior_work_unit_ref.work_unit_id,
+        startAgainRequest,
+      ),
+    ).resolves.toStrictEqual(startAgainReceipt);
+    expect(capturedUrl).toBe(
+      `http://petra.local/api/commands/projects/${startAgainReceipt.project_id}/work/${startAgainRequest.expected_prior_work_unit_ref.work_unit_id}/start-again`,
+    );
+    await expect(
+      client.startAgain(
+        startAgainReceipt.project_id,
+        startAgainRequest.expected_prior_work_unit_ref.work_unit_id,
+        startAgainRequest,
       ),
     ).rejects.toEqual(
       expect.objectContaining<Partial<ProjectWorkClientError>>({

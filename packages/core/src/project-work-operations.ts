@@ -4,6 +4,8 @@ import type {
   PetraProjectWorkOperationsView,
   PetraProjectWorkResumeReceipt,
   PetraProjectWorkResumeRequest,
+  PetraProjectWorkStartAgainReceipt,
+  PetraProjectWorkStartAgainRequest,
   PetraWorkUnit,
 } from "@petra/contracts";
 
@@ -85,6 +87,31 @@ export interface RegisterProjectWorkCheckpointResume {
   readonly registeredAt: string;
 }
 
+export interface RegisterProjectWorkStartAgain {
+  readonly startAgainRegistrationId: string;
+  readonly projectId: string;
+  readonly priorWorkUnitRef: {
+    readonly work_unit_id: string;
+    readonly revision: number;
+    readonly spec_hash: string;
+  };
+  readonly freshWorkUnitRef: {
+    readonly work_unit_id: string;
+    readonly revision: number;
+    readonly spec_hash: string;
+  };
+  readonly inputTransition: {
+    readonly strategy: "fresh_input";
+    readonly retainedOutputReuse: "none";
+    readonly summary: string;
+  };
+  readonly registeredBy: {
+    readonly actor_id: string;
+    readonly actor_kind: "service";
+  };
+  readonly registeredAt: string;
+}
+
 /** Server-owned command and trusted worker-input boundary for exact Project Work. */
 export interface ProjectWorkOperationAuthority {
   executeProjectWorkOperation(
@@ -118,4 +145,18 @@ export interface ProjectWorkCheckpointResumeRegistry {
   registerCheckpointResume(
     input: RegisterProjectWorkCheckpointResume,
   ): Promise<void>;
+}
+
+/** Authenticated human command over a trusted fresh-input Work registration. */
+export interface ProjectWorkStartAgainAuthority {
+  executeProjectWorkStartAgain(
+    projectId: string,
+    request: PetraProjectWorkStartAgainRequest,
+    principal: ProjectWorkCommandPrincipal,
+  ): Promise<PetraProjectWorkStartAgainReceipt>;
+}
+
+/** Trusted workflow boundary that links exact prior Work to distinct fresh Work. */
+export interface ProjectWorkStartAgainRegistry {
+  registerStartAgain(input: RegisterProjectWorkStartAgain): Promise<void>;
 }

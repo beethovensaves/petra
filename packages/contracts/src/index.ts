@@ -538,11 +538,17 @@ export type { PetraProjectWorkOperationReceipt } from "./generated/project-work-
 export type { PetraProjectWorkResumeRequest } from "./generated/project-work-resume-request.js";
 export type { PetraProjectWorkResumeReceipt } from "./generated/project-work-resume-receipt.js";
 export type {
+  PetraProjectWorkStartAgainRequest,
+  StartAgainRegistrationRef as ProjectWorkStartAgainRegistrationRef,
+} from "./generated/project-work-start-again-request.js";
+export type { PetraProjectWorkStartAgainReceipt } from "./generated/project-work-start-again-receipt.js";
+export type {
   Control as ProjectWorkOperationControl,
   PetraProjectWorkOperationsView,
   RequiredInput as ProjectWorkRequiredInput,
   ResumeBinding as ProjectWorkResumeBinding,
   Result as ProjectWorkOperationResult,
+  StartAgainBinding as ProjectWorkStartAgainBinding,
 } from "./generated/project-work-operations-view.js";
 export type {
   AuthorityContext as ProjectThreadAuthorityContext,
