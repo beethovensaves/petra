@@ -751,6 +751,7 @@ const seedScientific = async (pool, neo4jUri) => {
       ["scientific.research-question", "project-objective"],
       ["scientific.claim", "claim"],
       ["scientific.assertion", "assertion"],
+      ["scientific.literature", "rights-decision"],
     ]) {
       const registration = definition.content.registrations.find(
         (entry) => entry.semantic_key === semanticKey,
@@ -4873,6 +4874,154 @@ const exerciseItem53Trace = async ({
           .relationship_refs[0].revision === validatedRelationship.revision,
       "Refresh lost exact current heads or idempotent replay.",
     );
+    if (wave5Mode) {
+      const review = await rawReview(
+        active.url,
+        scientificProjectId,
+        scientific.session.review_session_id,
+      );
+      const member = review.content.members.find(
+        (candidate) =>
+          candidate.review_member_id ===
+          refreshed.review_session.content.members[0]?.review_member_id,
+      );
+      const candidate = member?.working_state.candidate;
+      const relationship = member?.working_state.relationships[0];
+      assert(
+        review.content.session.lifecycle === "open" &&
+          member !== undefined &&
+          candidate !== undefined &&
+          member.working_state.relationships.length === 1 &&
+          relationship !== undefined,
+        "The refreshed production Review did not expose one exact open member, WorkingCandidate, and WorkingRelationship.",
+      );
+      const focusRef = {
+        record_id: candidate.profile_object.object_record_ref.record_id,
+        revision: candidate.profile_object.object_record_ref.revision,
+        record_hash: candidate.profile_object.object_record_ref.record_hash,
+      };
+      const graphRequest = {
+        request_id: derivePetraId(
+          "focused_graph_request",
+          "wave6-cumulative:open-review-working-relationship",
+        ),
+        task_kind: "neighborhood",
+        task_semantic_key: "scientific.research-question",
+        question: "Which recorded relationship is bound to this open Review?",
+        focus_ref: focusRef,
+        origin: {
+          origin_kind: "review",
+          origin_ref: clone(focusRef),
+        },
+        project_definition_ref: {
+          project_definition_id: scientific.definition.project_definition_id,
+          revision: scientific.definition.revision,
+          content_hash: scientific.definition.content_hash,
+          record_hash: hash(scientific.definition),
+          definition_family: scientific.definition.definition_family,
+        },
+        semantic_layer: "working",
+        temporal_position: {
+          position_kind: "current",
+          dimension: "project_snapshot",
+        },
+        object_semantic_key: "scientific.claim",
+        relationship_semantic_key: "scientific.assertion",
+        return_action_semantic_key: "scientific.graph.return",
+        return_destination: {
+          destination_key: "destination:review:exact-member",
+          destination_kind: "review",
+          state: "available",
+          owner: "project_review_view",
+          label: "Review",
+          target_ref: clone(focusRef),
+        },
+        limits: {
+          maximum_depth: 1,
+          maximum_nodes: 25,
+          maximum_relationships: 24,
+          maximum_paths: 24,
+        },
+      };
+      const graphClient = new FocusedGraphClient({
+        baseUrl: active.url,
+        token,
+        projectDefinition: scientific.definition,
+      });
+      const graph = await graphClient.read(scientificProjectId, graphRequest);
+      const exactRelationship = graph.content.relationships.find(
+        (candidateRelationship) =>
+          candidateRelationship.layer === "working" &&
+          candidateRelationship.relationship_ref.element_id ===
+            relationship.working_relationship_id &&
+          candidateRelationship.relationship_ref.revision ===
+            relationship.revision &&
+          candidateRelationship.relationship_ref.record_hash ===
+            hash(relationship),
+      );
+      assert(
+        exactRelationship !== undefined &&
+          graph.content.nodes.some(
+            (node) =>
+              node.semantic_key === "scientific.literature" &&
+              node.record_ref.record_id ===
+                scientific.workVersion.work_version_id,
+          ),
+        "The production focused-graph route did not compose the open Review's exact WorkingRelationship and registered scientific source.",
+      );
+      const countsBeforePreview = await item53Counts(pool);
+      const preview = await graphClient.readActionPreview(scientificProjectId, {
+        action_request_id: derivePetraId(
+          "focused_graph_action_request",
+          "wave6-cumulative:open-review-working-relationship",
+        ),
+        focused_graph_request: {
+          ...graphRequest,
+          expected_snapshot: clone(graph.content.requested_snapshot),
+        },
+        expected_graph: {
+          schema_name: graph.schema_name,
+          schema_version: graph.schema_version,
+          content_hash: graph.content_hash,
+        },
+        selection: {
+          selection_kind: "relationship",
+          selected_keys: [exactRelationship.relationship_key],
+        },
+        target: {
+          action_kind: "governed_correction",
+          requested_change: "edit_relationship",
+          review_session_id: review.review_session_id,
+          review_member_id: member.review_member_id,
+        },
+      });
+      assert(
+        preview.content.preview.preview_kind === "governed_correction" &&
+          preview.content.preview.review_member_id ===
+            member.review_member_id &&
+          preview.content.preview.selected_relationship.relationship_ref
+            .element_id === relationship.working_relationship_id &&
+          preview.content.preview.selected_relationship.relationship_ref
+            .revision === relationship.revision &&
+          preview.content.authority_boundary.command_issued === false &&
+          preview.content.authority_boundary.preview_is_read_only === true &&
+          canonicalize(await item53Counts(pool)) ===
+            canonicalize(countsBeforePreview),
+        "The production governed-correction preview lost its exact Review relationship or read-only authority boundary.",
+      );
+      wave5Cumulative.open_review_graph = {
+        review_session_id: review.review_session_id,
+        review_member_id: member.review_member_id,
+        working_relationship_id: relationship.working_relationship_id,
+        working_relationship_revision: relationship.revision,
+        graph_content_hash: graph.content_hash,
+        preview_content_hash: preview.content_hash,
+        command_issued: preview.content.authority_boundary.command_issued,
+      };
+      progress(
+        "production routes composed the exact open-Review WorkingRelationship and read-only governed correction preview",
+      );
+    }
     const staleRefreshRequest = clone(refreshRequest);
     staleRefreshRequest.command_id = derivePetraId(
       "command",
