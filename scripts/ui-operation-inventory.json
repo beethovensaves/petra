@@ -728,12 +728,18 @@
       "surfaces": ["SP06"],
       "flows": ["UX-FLOW-08", "UX-FLOW-09"],
       "requests": ["UX-REQ-013", "UX-REQ-016"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/graph",
-      "control": "Expand selection",
+      "control": "Expand selected object",
       "interaction": "query",
-      "evidence": [],
-      "runtime_owner": "",
+      "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:graph-ui",
+          "artifact": "reports/WAVE6-GRAPH-EXPANSION-BROWSER.json",
+          "boundary": "Isolated Chrome used the production Graph route and controls against authenticated live HTTP plus fresh disposable PostgreSQL and Neo4j stores. It selected the exact server-returned focus, invoked the registered scientific.graph.show-downstream recipe at finite depth 3, rendered v1.1 groups, accounting, and omissions, preserved selection, and executed the exact Brief return. This operation trace does not claim the complete UX1.6-GRAPH scenario."
+        }
+      ],
+      "runtime_owner": "POST /api/queries/projects/:projectId/focused-graph -> PostgresFocusedGraphViewReader and Neo4jAuthorityGraphStore",
       "paths": ["UX-PATH-01", "UX-PATH-03"]
     },
     {
@@ -743,12 +749,18 @@
       "surfaces": ["SP06"],
       "flows": ["UX-FLOW-08", "UX-FLOW-09"],
       "requests": ["UX-REQ-013", "UX-REQ-016"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/graph",
-      "control": "Filter graph",
+      "control": "Relationship meaning, Direction, Recorded origin, and Finite depth",
       "interaction": "query",
-      "evidence": [],
-      "runtime_owner": "",
+      "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:graph-ui",
+          "artifact": "reports/WAVE6-GRAPH-EXPANSION-BROWSER.json",
+          "boundary": "Isolated Chrome changed the production Graph controls to support, outgoing, canonical record, and finite depth 3 before invoking the registered live expansion. The retained v1.1 response proves normalized filters, exact scope accounting, omission disclosure, and preserved return context on fresh disposable PostgreSQL and Neo4j stores. This operation trace does not claim the complete UX1.6-GRAPH scenario."
+        }
+      ],
+      "runtime_owner": "POST /api/queries/projects/:projectId/focused-graph -> PostgresFocusedGraphViewReader and Neo4jAuthorityGraphStore",
       "paths": ["UX-PATH-01", "UX-PATH-03"]
     },
     {

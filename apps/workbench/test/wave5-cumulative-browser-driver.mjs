@@ -935,6 +935,276 @@ export const startWave5CumulativeBrowser = async ({
     };
   };
 
+  const recordRegisteredGraphExpansion = async () => {
+    await navigate(
+      `/projects/${scientificProjectId}/brief`,
+      'document.querySelector(".live-project-brief") !== null',
+      "representative Brief",
+    );
+    const graphEntryPath = await evaluate(`(async () => {
+      const {
+        createFocusedGraphRequestId,
+        focusedGraphDefinitionRef,
+        focusedGraphEntryPath,
+        scientificFocusedGraphEntryDraft,
+      } = await import("/src/product/focused-graph-entry.tsx");
+      const [briefResponse, overlayResponse] = await Promise.all([
+        fetch(${JSON.stringify(`/api/queries/projects/${scientificProjectId}/brief`)}, {
+          headers: { authorization: "Bearer petra-local-development" },
+        }),
+        fetch(${JSON.stringify(`/api/queries/projects/${scientificProjectId}/relationship-overlay`)}, {
+          headers: { authorization: "Bearer petra-local-development" },
+        }),
+      ]);
+      if (!briefResponse.ok || !overlayResponse.ok) {
+        throw new Error("The live Graph entry basis is unavailable.");
+      }
+      const brief = await briefResponse.json();
+      const overlay = await overlayResponse.json();
+      const focusNode = overlay.content.nodes.find(
+        (node) =>
+          node.layer === "current" &&
+          node.object_kind === "claim" &&
+          overlay.content.relationships.some(
+            (relationship) =>
+              relationship.source_node_key === node.node_key ||
+              relationship.target_node_key === node.node_key,
+          ),
+      );
+      if (focusNode === undefined) {
+        throw new Error(
+          "The live relationship overlay omitted a connected current Claim.",
+        );
+      }
+      const focusRef = focusNode.owner.record_ref;
+      const draft = scientificFocusedGraphEntryDraft({
+        projectId: ${JSON.stringify(scientificProjectId)},
+        question:
+          "Which recorded downstream relationships concern this exact Claim?",
+        focusRef,
+        originKind: "brief",
+        definitionRef: focusedGraphDefinitionRef(brief.content.definition),
+        returnDestinationKind: "brief",
+        returnDestinationOwner: "project_brief_view",
+        returnLabel: "Brief focus",
+        returnFocusId: "brief-focus",
+      });
+      return focusedGraphEntryPath({
+        ...draft,
+        request_id: createFocusedGraphRequestId(),
+        return_context: {
+          ...draft.return_context,
+          path: ${JSON.stringify(`/projects/${scientificProjectId}/brief#brief-focus`)},
+        },
+      });
+    })()`);
+    assert.ok(graphEntryPath?.includes("graphEntry=1"));
+    const entryUrl = new URL(graphEntryPath, workbench.url);
+    const returnPath = entryUrl.searchParams.get("returnPath");
+    const returnFocus = entryUrl.searchParams.get("returnFocus");
+    assert.ok(returnPath?.includes(`/projects/${scientificProjectId}/brief`));
+    assert.equal(returnFocus, "brief-focus");
+
+    await navigate(
+      graphEntryPath,
+      'document.querySelector(".focused-graph-exploration") !== null && document.querySelector(".focused-graph-production-canvas")?.dataset.rendererState === "ready"',
+      "registered scientific Graph expansion",
+    );
+    const initial = focusedCall();
+    assert.equal(initial?.status, 200);
+    assert.equal(initial?.json?.schema_version, "1.0.0");
+    assert.equal(initial.requestJson.semantic_layer, "current");
+
+    const recipe = await evaluate(`(() => {
+      const control = document.querySelector(".focused-graph-expansion-controls > label select");
+      return {
+        value: control?.value,
+        labels: [...(control?.options ?? [])].map((option) => option.textContent.trim()),
+      };
+    })()`);
+    assert.equal(recipe.value, "scientific.graph.show-downstream");
+    assert.deepEqual(recipe.labels, ["Show downstream effects"]);
+
+    const target = initial.json.content.nodes[0];
+    assert.ok(target !== undefined, "The expansion target is not represented.");
+    const selectedMeaning = "support";
+    await evaluate(`(() => {
+      const control = document.querySelector(".focused-graph-exploration__selection select");
+      control.focus();
+      control.value = ${JSON.stringify(target.node_key)};
+      control.dispatchEvent(new Event("change", { bubbles: true }));
+    })()`);
+    await until(
+      `document.querySelector(".focused-graph-exploration__selection select").value === ${JSON.stringify(target.node_key)}`,
+      "exact Graph expansion target selection",
+    );
+
+    await evaluate(`(() => {
+      const controls = [...document.querySelectorAll(".focused-graph-expansion-controls label")];
+      for (const label of controls) {
+        const checkbox = label.querySelector('input[type="checkbox"]');
+        if (checkbox === null) continue;
+        const text = label.textContent.trim();
+        const keep = [
+          ${JSON.stringify("outgoing")},
+          ${JSON.stringify("support")},
+          ${JSON.stringify("canonical record")},
+        ].includes(text);
+        if (checkbox.checked !== keep) checkbox.click();
+      }
+      const depth = controls.find((label) => label.textContent.includes("Finite depth"))?.querySelector("select");
+      depth.value = "3";
+      depth.dispatchEvent(new Event("change", { bubbles: true }));
+    })()`);
+    await until(
+      `(() => {
+        const checked = [...document.querySelectorAll('.focused-graph-expansion-controls input[type="checkbox"]:checked')].map((input) => input.closest("label").textContent.trim()).sort();
+        const depth = [...document.querySelectorAll(".focused-graph-expansion-controls label")].find((label) => label.textContent.includes("Finite depth"))?.querySelector("select")?.value;
+        return JSON.stringify(checked) === JSON.stringify(${JSON.stringify(
+          ["support", "canonical record", "outgoing"].sort(),
+        )}) && depth === "3";
+      })()`,
+      "registered filters and finite depth",
+    );
+
+    const returnHrefBefore = await evaluate(
+      `${link("Return to Brief focus")}.getAttribute("href")`,
+    );
+    await activate(button("Expand selected object"));
+    await until(
+      'document.querySelector(".focused-graph-expansion-summary") !== null && document.body.innerText.includes("Accepted Show downstream effects for the exact active snapshot")',
+      "live registered expansion result",
+    );
+
+    const expansion = focusedCall();
+    assert.equal(expansion?.status, 200);
+    assert.equal(expansion?.json?.schema_version, "1.1.0");
+    assert.equal(
+      expansion.requestJson.exploration.recipe_semantic_key,
+      "scientific.graph.show-downstream",
+    );
+    assert.deepEqual(
+      expansion.requestJson.exploration.target_ref,
+      target.record_ref,
+    );
+    assert.equal(expansion.requestJson.exploration.maximum_depth, 3);
+    assert.deepEqual(expansion.requestJson.exploration.filters, {
+      meaning_kinds: [selectedMeaning],
+      directions: ["outgoing"],
+      origins: ["canonical_record"],
+    });
+    assert.deepEqual(
+      expansion.json.content.exploration.filters,
+      expansion.requestJson.exploration.filters,
+    );
+    assert.equal(expansion.json.content.exploration.maximum_depth, 3);
+    assert.ok(expansion.json.content.groups.length > 0);
+    assert.ok(Array.isArray(expansion.json.content.scope.omissions));
+    assert.ok(
+      Object.values(expansion.json.content.exploration.accounting).every(
+        (value) => value !== undefined,
+      ),
+    );
+    assert.equal(
+      await evaluate(
+        'document.querySelector(".focused-graph-exploration__selection select").value',
+      ),
+      target.node_key,
+    );
+    const summary = await evaluate(
+      'document.querySelector(".focused-graph-expansion-summary").innerText',
+    );
+    for (const text of [
+      "Show downstream effects",
+      target.record_ref.record_id,
+      "Normalized meanings",
+      selectedMeaning,
+      "Normalized directions",
+      "outgoing",
+      "Normalized origins",
+      "canonical record",
+      "Capped members",
+      "Hidden relationships",
+      "Restricted paths",
+      "Cyclic paths",
+      "Incomplete paths",
+      "Unknown paths",
+      "do not establish absence or completeness",
+    ]) {
+      assert.ok(summary.includes(text), `Expansion summary omitted ${text}.`);
+    }
+    assert.equal(
+      await evaluate(
+        'document.querySelectorAll(".focused-graph-expansion-summary__groups > li").length',
+      ),
+      expansion.json.content.groups.length,
+    );
+    const returnHrefAfter = await evaluate(
+      `${link("Return to Brief focus")}.getAttribute("href")`,
+    );
+    assert.equal(returnHrefAfter, returnHrefBefore);
+    assert.equal(returnHrefAfter, returnPath);
+
+    await activate(link("Return to Brief focus"));
+    await until(
+      `window.location.pathname === ${JSON.stringify(`/projects/${scientificProjectId}/brief`)} && window.location.hash === ${JSON.stringify(`#${returnFocus}`)} && document.querySelector("#brief-focus") !== null`,
+      "exact Brief return after expansion",
+    );
+
+    return {
+      browser: {
+        product: browser.product,
+        user_agent: browser.userAgent,
+        protocol_version: browser.protocolVersion,
+      },
+      route_transport:
+        "production React Router and authenticated HTTP through the production server",
+      project_id: scientificProjectId,
+      entry: {
+        path: entryUrl.pathname,
+        origin: initial.requestJson.origin.origin_kind,
+        return_path: returnPath,
+        return_focus: returnFocus,
+      },
+      registration: {
+        semantic_key: recipe.value,
+        label: recipe.labels[0],
+        contract: "petra.focused-graph-view@1.1.0",
+      },
+      request: {
+        request_id: expansion.requestJson.request_id,
+        target_ref: expansion.requestJson.exploration.target_ref,
+        maximum_depth: expansion.requestJson.exploration.maximum_depth,
+        filters: expansion.requestJson.exploration.filters,
+      },
+      response: {
+        schema_name: expansion.json.schema_name,
+        schema_version: expansion.json.schema_version,
+        content_hash: expansion.json.content_hash,
+        result_state:
+          expansion.json.content.exploration.accounting.result_state,
+        accounting: expansion.json.content.exploration.accounting,
+        groups: expansion.json.content.groups.map((group) => ({
+          group_key: group.group_key,
+          label: group.label,
+          returned_count: group.returned_count,
+          filtered_count: group.filtered_count,
+          hidden_count: group.hidden_count,
+          coverage: group.coverage,
+        })),
+        omissions: expansion.json.content.scope.omissions,
+      },
+      interaction: {
+        exact_target_selected: true,
+        filters_changed: true,
+        finite_depth_changed: true,
+        selection_preserved: true,
+        disclosure_rendered: true,
+        exact_return_executed: true,
+      },
+    };
+  };
+
   const inspectionUrls = () => {
     const route = (path) => new URL(path, workbench.url).href;
     return [
@@ -977,6 +1247,7 @@ export const startWave5CumulativeBrowser = async ({
   return {
     prepareReviewActionTarget,
     recordFocusedGraph,
+    recordRegisteredGraphExpansion,
     recordProjectionLag,
     inspectionUrls,
     inspectionIndexUrl: () =>
