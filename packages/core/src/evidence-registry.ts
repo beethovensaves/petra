@@ -167,7 +167,8 @@ export interface CommandAuthorizationRequest {
     | "RegisterProjectSource"
     | "ReuseProjectSource"
     | "StartProjectSourceProcessing"
-    | "AddProjectSourceRevision";
+    | "AddProjectSourceRevision"
+    | "DeleteLocalSourceCopy";
   readonly projectId: string;
 }
 

@@ -134,6 +134,21 @@ export const createMemoryArtifactStore = (): ArtifactStore => {
         })(),
       };
     },
+    deleteByHash(contentHash, expected) {
+      const entry = available.get(contentHash);
+      if (
+        entry === undefined ||
+        expected.byteSize !== entry.value.byteSize ||
+        expected.mediaType !== entry.value.mediaType
+      ) {
+        return Promise.resolve({ state: "not_found" as const });
+      }
+      available.delete(contentHash);
+      return Promise.resolve({
+        state: "deleted" as const,
+        artifact: structuredClone(entry.value),
+      });
+    },
     cleanupAbandonedStaging() {
       const deletedStageIds = [...staged.keys()];
       staged.clear();

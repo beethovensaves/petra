@@ -3,11 +3,12 @@ import { readFileSync } from "node:fs";
 
 import type {
   PetraActor,
-  PetraCapabilityGrantV1140,
+  PetraCapabilityGrantV1150,
   PetraProject,
   PetraProjectDefinition,
   PetraProjectSourceRegistrationRequest,
   PetraProjectSourceLinkRemovalRequest,
+  PetraProjectSourceLocalCopyDeletionRequest,
   PetraProjectSourceRevisionRequest,
 } from "@petra/contracts";
 import type { ArtifactStore } from "@petra/core";
@@ -22,6 +23,7 @@ import {
   PostgresProjectSourceRegistrationAuthority,
   PostgresProjectSourceLifecycleAuthorityRepository,
   PostgresProjectSourceLifecycleViewReader,
+  PostgresProjectSourceLocalCopyDeletionAuthority,
   PostgresProjectSourceRevisionAuthority,
   PostgresResearchScopeRepository,
 } from "../src/index.js";
@@ -131,6 +133,10 @@ describePostgres("PostgresProjectSourceRevisionAuthority", () => {
   const definitions = new PostgresProjectDefinitionAuthorityRepository(pool);
   const capabilities = new PostgresCapabilityGrantAuthorityRepository(pool);
   const stagedHashes: string[] = [];
+  const availableCopies = new Map<
+    string,
+    Awaited<ReturnType<ArtifactStore["makeAvailable"]>>
+  >();
   const stage = vi.fn<ArtifactStore["stage"]>(async (input) => {
     const chunks: Uint8Array[] = [];
     for await (const chunk of input.bytes) chunks.push(chunk);
@@ -154,8 +160,8 @@ describePostgres("PostgresProjectSourceRevisionAuthority", () => {
       },
     };
   });
-  const makeAvailable = vi.fn<ArtifactStore["makeAvailable"]>((staged) =>
-    Promise.resolve({
+  const makeAvailable = vi.fn<ArtifactStore["makeAvailable"]>((staged) => {
+    const available = {
       storeName: "petra-test-artifacts",
       objectKey: `sha256/${staged.contentHash.slice("sha256:".length)}`,
       availableAt: "2026-09-01T12:01:01.000Z",
@@ -163,13 +169,37 @@ describePostgres("PostgresProjectSourceRevisionAuthority", () => {
       byteSize: staged.byteSize,
       mediaType: staged.mediaType,
       verification: staged.verification,
-    }),
+    };
+    availableCopies.set(staged.contentHash, available);
+    return Promise.resolve(structuredClone(available));
+  });
+  const inspectByHash = vi.fn<ArtifactStore["inspectByHash"]>(
+    (contentHash, expected) => {
+      const available = availableCopies.get(contentHash);
+      return Promise.resolve(
+        available !== undefined &&
+          (expected === undefined ||
+            (expected.byteSize === available.byteSize &&
+              expected.mediaType === available.mediaType))
+          ? structuredClone(available)
+          : undefined,
+      );
+    },
+  );
+  const deleteByHash = vi.fn<ArtifactStore["deleteByHash"]>(
+    async (contentHash, expected) => {
+      const available = await inspectByHash(contentHash, expected);
+      if (available === undefined) return { state: "not_found" };
+      availableCopies.delete(contentHash);
+      return { state: "deleted", artifact: available };
+    },
   );
   const store: ArtifactStore = {
     stage,
     makeAvailable,
-    inspectByHash: vi.fn(),
+    inspectByHash,
     readByHash: vi.fn(),
+    deleteByHash,
     cleanupAbandonedStaging: vi.fn(),
   };
   const authorizer = new PostgresCapabilityGrantCommandAuthorizer();
@@ -195,19 +225,20 @@ describePostgres("PostgresProjectSourceRevisionAuthority", () => {
     await scopes.registerActor(human);
     await scopes.registerProjectRevision(project);
     await definitions.registerDefinitionRevision(definition);
-    const content: PetraCapabilityGrantV1140["content"] = {
+    const content: PetraCapabilityGrantV1150["content"] = {
       scope_kind: "project_commands",
       allowed_commands: [
         "RegisterProjectSource",
         "AddProjectSourceRevision",
         "ExcludeProjectSource",
+        "DeleteLocalSourceCopy",
       ],
       valid_from: "2026-09-01T00:00:00.000Z",
       reason: "Allow exact source registration and immutable version intake.",
     };
-    const grant: PetraCapabilityGrantV1140 = {
+    const grant: PetraCapabilityGrantV1150 = {
       schema_name: "petra.capability-grant",
-      schema_version: "1.14.0",
+      schema_version: "1.15.0",
       capability_grant_id: grantId,
       revision: 1,
       project_id: project.project_id,
@@ -516,6 +547,173 @@ describePostgres("PostgresProjectSourceRevisionAuthority", () => {
       ...before.rows[0],
       receipts: "1",
       lifecycle_receipts: "1",
+    });
+  });
+
+  it("deletes one eligible exact local copy after durable intent and reconciles an unknown outcome", async () => {
+    const sourceId = request.expected.current_source_ref.project_source_id;
+    const authority = new PostgresProjectSourceLocalCopyDeletionAuthority(
+      pool,
+      store,
+      authorizer,
+    );
+    const preview = await authority.getProjectSourceLocalCopyDeletionPreview(
+      project.project_id,
+      sourceId,
+    );
+    expect(preview).toMatchObject({
+      project_id: project.project_id,
+      project_source_id: sourceId,
+      eligibility: {
+        state: "eligible",
+        policy_version: "petra-local-copy-retention-v1",
+        blockers: [],
+      },
+      consequences: {
+        project_link_unchanged: true,
+        representations_may_stop_resolving: true,
+        recovery: "resupply_required",
+      },
+      operation: {
+        state: "ready",
+        command_name: "DeleteLocalSourceCopy",
+      },
+    });
+    if (preview === undefined) throw new Error("Expected deletion preview.");
+    const deletionRequest: PetraProjectSourceLocalCopyDeletionRequest = {
+      schema_name: "petra.project-source-local-copy-deletion-request",
+      schema_version: "1.0.0",
+      command_id: "command_01K6X000000000000000000001",
+      idempotency_key: "wave6:postgres:source-local-copy-deletion",
+      expected: structuredClone(preview.expected),
+      reason:
+        "Delete only these exact eligible bytes after reviewing retained authority.",
+    };
+    const denied = new PostgresProjectSourceLocalCopyDeletionAuthority(
+      pool,
+      store,
+      { authorize: () => Promise.resolve(false) },
+    );
+    await expect(
+      denied.executeProjectSourceLocalCopyDeletion(
+        project.project_id,
+        sourceId,
+        deletionRequest,
+        principal,
+      ),
+    ).rejects.toEqual(
+      expect.objectContaining({
+        code: "PROJECT_SOURCE_LOCAL_COPY_DELETION_NOT_AUTHORIZED",
+      }),
+    );
+
+    deleteByHash.mockRejectedValueOnce(
+      new Error("Simulated response loss before storage acknowledgement."),
+    );
+    await expect(
+      authority.executeProjectSourceLocalCopyDeletion(
+        project.project_id,
+        sourceId,
+        deletionRequest,
+        principal,
+      ),
+    ).rejects.toEqual(
+      expect.objectContaining({
+        code: "PROJECT_SOURCE_LOCAL_COPY_DELETION_OUTCOME_UNKNOWN",
+      }),
+    );
+    const pending =
+      await authority.assessProjectSourceLocalCopyDeletionRecovery(
+        project.project_id,
+        sourceId,
+        deletionRequest,
+        principal,
+      );
+    expect(pending.effect).toMatchObject({
+      state: "outcome_unknown",
+      reason: "storage_delivery_unconfirmed",
+      durable_intent: true,
+      retry: { reuse_exact_request: true },
+    });
+
+    const first = await authority.executeProjectSourceLocalCopyDeletion(
+      project.project_id,
+      sourceId,
+      deletionRequest,
+      principal,
+    );
+    expect(first.applied).toBe(true);
+    expect(first.receipt).toMatchObject({
+      command_id: deletionRequest.command_id,
+      request_hash: canonicalHash(deletionRequest),
+      project_ref: deletionRequest.expected.project_ref,
+      project_definition_ref: deletionRequest.expected.project_definition_ref,
+      source_ref: deletionRequest.expected.current_source_ref,
+      copy_ref: deletionRequest.expected.copy_ref,
+      effect: {
+        kind: "local_source_copy_deleted",
+        local_copy_state: "absent",
+        observation: "deleted_now",
+      },
+      preservation: {
+        project_link: "retained",
+        artifact_manifest: "retained_as_tombstoned_copy_identity",
+        provenance: "retained",
+        history: "retained",
+      },
+    });
+    expect(
+      await store.inspectByHash(first.receipt.copy_ref.content_hash, {
+        byteSize: first.receipt.copy_ref.byte_size,
+        mediaType: first.receipt.copy_ref.media_type,
+      }),
+    ).toBeUndefined();
+
+    const restarted = new PostgresProjectSourceLocalCopyDeletionAuthority(
+      pool,
+      store,
+      authorizer,
+    );
+    await expect(
+      restarted.executeProjectSourceLocalCopyDeletion(
+        project.project_id,
+        sourceId,
+        deletionRequest,
+        principal,
+      ),
+    ).resolves.toStrictEqual({ ...first, applied: false });
+    const recovery =
+      await restarted.assessProjectSourceLocalCopyDeletionRecovery(
+        project.project_id,
+        sourceId,
+        deletionRequest,
+        principal,
+      );
+    expect(recovery.effect).toStrictEqual({
+      state: "effect_confirmed",
+      receipt: first.receipt,
+    });
+    expect(recovery.return).toStrictEqual({
+      state: "exact",
+      destination: first.receipt.destination,
+    });
+    const retained = await pool.query<{
+      project_sources: string;
+      manifests: string;
+      attempts: string;
+      receipts: string;
+    }>(
+      `SELECT
+         (SELECT count(*) FROM petra.project_sources)::text AS project_sources,
+         (SELECT count(*) FROM petra.artifact_manifests)::text AS manifests,
+         (SELECT count(*) FROM petra.project_source_local_copy_deletion_attempts)::text AS attempts,
+         (SELECT count(*) FROM petra.project_source_local_copy_deletion_receipts)::text AS receipts`,
+    );
+    expect(retained.rows[0]).toMatchObject({
+      project_sources: "2",
+      manifests: "2",
+      attempts: "1",
+      receipts: "1",
     });
   });
 });

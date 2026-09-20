@@ -1,0 +1,140 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-source-local-copy-deletion-recovery-view/1.0.0/schema.json",
+  "title": "PetraProjectSourceLocalCopyDeletionRecoveryView",
+  "description": "Read-only reconciliation for an exact local-copy deletion, including a durable pending intent after uncertain storage delivery.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "assessment_id",
+    "project_id",
+    "project_source_id",
+    "subject",
+    "effect",
+    "return",
+    "observed_at",
+    "content_hash"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.project-source-local-copy-deletion-recovery-view"
+    },
+    "schema_version": { "const": "1.0.0" },
+    "assessment_id": {
+      "type": "string",
+      "pattern": "^source_copy_deletion_recovery_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "project_id": { "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId" },
+    "project_source_id": {
+      "type": "string",
+      "pattern": "^project_source_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "subject": {
+      "$ref": "../../project-source-revision-recovery-view/1.0.0/schema.json#/$defs/Subject"
+    },
+    "effect": { "$ref": "#/$defs/Effect" },
+    "return": { "$ref": "#/$defs/Return" },
+    "observed_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    }
+  },
+  "$defs": {
+    "Return": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "destination"],
+          "properties": {
+            "state": { "const": "exact" },
+            "destination": {
+              "$ref": "../../project-source-local-copy-deletion-receipt/1.0.0/schema.json#/$defs/Destination"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "destination", "reason"],
+          "properties": {
+            "state": { "const": "safe_fallback" },
+            "destination": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["place_role", "project_id"],
+              "properties": {
+                "place_role": { "const": "sources" },
+                "project_id": {
+                  "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+                }
+              }
+            },
+            "reason": { "type": "string", "minLength": 1, "maxLength": 2000 }
+          }
+        }
+      ]
+    },
+    "Effect": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "receipt"],
+          "properties": {
+            "state": { "const": "effect_confirmed" },
+            "receipt": {
+              "$ref": "../../project-source-local-copy-deletion-receipt/1.0.0/schema.json"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "reason", "durable_intent", "retry"],
+          "properties": {
+            "state": { "const": "outcome_unknown" },
+            "reason": {
+              "enum": [
+                "receipt_not_observed_at_cutoff",
+                "storage_delivery_unconfirmed"
+              ]
+            },
+            "durable_intent": { "type": "boolean" },
+            "retry": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["method", "path", "reuse_exact_request"],
+              "properties": {
+                "method": { "const": "POST" },
+                "path": {
+                  "type": "string",
+                  "pattern": "^/api/commands/projects/[^/]+/sources/[^/]+/local-copy-deletion$"
+                },
+                "reuse_exact_request": { "const": true }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "reason"],
+          "properties": {
+            "state": { "const": "unavailable_to_verify" },
+            "reason": {
+              "enum": [
+                "command_identity_conflict",
+                "command_not_owned_by_authenticated_actor"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  }
+}

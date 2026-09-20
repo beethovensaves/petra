@@ -443,12 +443,12 @@
       "surfaces": ["SP04", "SP10", "SP14"],
       "flows": ["UX-FLOW-18"],
       "requests": ["UX-REQ-005", "UX-REQ-010", "UX-REQ-023"],
-      "current_state": "missing",
+      "current_state": "partial",
       "route": "/projects/:projectId/sources/:sourceId",
       "control": "Delete local copy",
       "interaction": "command",
       "evidence": [],
-      "runtime_owner": "",
+      "runtime_owner": "GET /api/queries/projects/:projectId/sources/:projectSourceId/local-copy-deletion + POST /api/commands/projects/:projectId/sources/:projectSourceId/local-copy-deletion + POST /api/queries/projects/:projectId/sources/:projectSourceId/local-copy-deletion-recovery -> PostgresProjectSourceLocalCopyDeletionAuthority + S3ArtifactStore.deleteByHash",
       "paths": ["UX-PATH-04"]
     },
     {

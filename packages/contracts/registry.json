@@ -1,5 +1,5 @@
 {
-  "registry_version": "1.113.0",
+  "registry_version": "1.118.0",
   "schemas": [
     {
       "name": "contract-smoke",
@@ -197,6 +197,17 @@
       "canonical_sha256": "sha256:4ed63a50b481dd3dc6dfcd0dc4e1da7e5a1127e8d4d37e123f9df9e0e56c066a",
       "generate_typescript": true,
       "typescript_path": "src/generated/capability-grant-v1-14.ts"
+    },
+    {
+      "name": "capability-grant",
+      "version": "1.15.0",
+      "$id": "https://petra.local/schemas/capability-grant/1.15.0/schema.json",
+      "path": "schemas/capability-grant/1.15.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-project-source-local-copy-deletion-command",
+      "canonical_sha256": "sha256:dd7eff19f03bd96998d9ab505c41d3d75b4edd16d6c62350ce51531d630adf08",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/capability-grant-v1-15.ts"
     },
     {
       "name": "capability-grant-revocation",
@@ -2275,6 +2286,50 @@
       "canonical_sha256": "sha256:358b6cce0cf1b1fefc31d621c1ee207a20b9a2a9adc276637810f23cfbbc4730",
       "generate_typescript": true,
       "typescript_path": "src/generated/project-source-link-removal-recovery-view.ts"
+    },
+    {
+      "name": "project-source-local-copy-deletion-request",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-source-local-copy-deletion-request/1.0.0/schema.json",
+      "path": "schemas/project-source-local-copy-deletion-request/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-exact-local-copy-deletion",
+      "canonical_sha256": "sha256:e00f0f94fbde05f903935576d6489d2c06757a88fc50f5c560dc3b339fc55451",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-source-local-copy-deletion-request.ts"
+    },
+    {
+      "name": "project-source-local-copy-deletion-preview",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-source-local-copy-deletion-preview/1.0.0/schema.json",
+      "path": "schemas/project-source-local-copy-deletion-preview/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-exact-local-copy-deletion",
+      "canonical_sha256": "sha256:3dcc16dcab6e5a770d7497d1ea8aa87eddcf1d20d0d59c26af49bd314520d8de",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-source-local-copy-deletion-preview.ts"
+    },
+    {
+      "name": "project-source-local-copy-deletion-receipt",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-source-local-copy-deletion-receipt/1.0.0/schema.json",
+      "path": "schemas/project-source-local-copy-deletion-receipt/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-exact-local-copy-deletion",
+      "canonical_sha256": "sha256:6495a67536c7ec2dcd0f740b43170f10b629c74e79218bf527310e8856daf85a",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-source-local-copy-deletion-receipt.ts"
+    },
+    {
+      "name": "project-source-local-copy-deletion-recovery-view",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-source-local-copy-deletion-recovery-view/1.0.0/schema.json",
+      "path": "schemas/project-source-local-copy-deletion-recovery-view/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-exact-local-copy-deletion",
+      "canonical_sha256": "sha256:2aa1e357697f59c2751e189101ef7a963e7247d3a2be04531a2b98516cbb5639",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-source-local-copy-deletion-recovery-view.ts"
     }
   ]
 }

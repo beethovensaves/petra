@@ -63,6 +63,10 @@ export type {
   PetraCapabilityGrantV1140,
 } from "./generated/capability-grant-v1-14.js";
 export type {
+  GrantContent as CapabilityGrantContentV1150,
+  PetraCapabilityGrantV1150,
+} from "./generated/capability-grant-v1-15.js";
+export type {
   GrantRef as CapabilityGrantRevocationGrantRef,
   HumanActorRef as CapabilityGrantRevokerRef,
   PetraCapabilityGrantRevocation,
@@ -564,6 +568,31 @@ export type {
   WorkRef as ProjectSourceWorkRef,
   WorkVersionRef as ProjectSourceWorkVersionRef,
 } from "./generated/project-source.js";
+export type {
+  CurrentSourceRef as ProjectSourceLocalCopyDeletionSourceRef,
+  CopyRef as ProjectSourceLocalCopyDeletionCopyRef,
+  Expected as ProjectSourceLocalCopyDeletionExpected,
+  PetraProjectSourceLocalCopyDeletionRequest,
+} from "./generated/project-source-local-copy-deletion-request.js";
+export type {
+  Blocker as ProjectSourceLocalCopyDeletionBlocker,
+  Consequences as ProjectSourceLocalCopyDeletionConsequences,
+  Eligibility as ProjectSourceLocalCopyDeletionEligibility,
+  Operation as ProjectSourceLocalCopyDeletionOperation,
+  PetraProjectSourceLocalCopyDeletionPreview,
+  RetentionItem as ProjectSourceLocalCopyDeletionRetentionItem,
+} from "./generated/project-source-local-copy-deletion-preview.js";
+export type {
+  Destination as ProjectSourceLocalCopyDeletionDestination,
+  Effect as ProjectSourceLocalCopyDeletionEffect,
+  PetraProjectSourceLocalCopyDeletionReceipt,
+  Preservation as ProjectSourceLocalCopyDeletionPreservation,
+  Recovery as ProjectSourceLocalCopyDeletionRecovery,
+} from "./generated/project-source-local-copy-deletion-receipt.js";
+export type {
+  Effect as ProjectSourceLocalCopyDeletionRecoveryEffect,
+  PetraProjectSourceLocalCopyDeletionRecoveryView,
+} from "./generated/project-source-local-copy-deletion-recovery-view.js";
 export type {
   Author as ProjectSourceRegistrationAuthor,
   DefinitionRef as ProjectSourceRegistrationExpectedDefinitionRef,
@@ -1559,6 +1588,7 @@ import type { PetraCapabilityGrantV1110 } from "./generated/capability-grant-v1-
 import type { PetraCapabilityGrantV1120 } from "./generated/capability-grant-v1-12.js";
 import type { PetraCapabilityGrantV1130 } from "./generated/capability-grant-v1-13.js";
 import type { PetraCapabilityGrantV1140 } from "./generated/capability-grant-v1-14.js";
+import type { PetraCapabilityGrantV1150 } from "./generated/capability-grant-v1-15.js";
 import type { PetraCommandEnvelope } from "./generated/command-envelope.js";
 import type { PetraCommandEnvelopeV110 } from "./generated/command-envelope-v1-1.js";
 import type { PetraDomainEvent } from "./generated/domain-event.js";
@@ -1594,7 +1624,8 @@ export type PetraCapabilityGrantRecord =
   | PetraCapabilityGrantV1110
   | PetraCapabilityGrantV1120
   | PetraCapabilityGrantV1130
-  | PetraCapabilityGrantV1140;
+  | PetraCapabilityGrantV1140
+  | PetraCapabilityGrantV1150;
 export type PetraCommandEnvelopeRecord =
   PetraCommandEnvelope | PetraCommandEnvelopeV110;
 export type PetraDomainEventRecord =

@@ -216,6 +216,25 @@ describeS3("SeaweedFS S3-compatible ArtifactStore", () => {
         }),
       ),
     ).rejects.toMatchObject({ $metadata: { httpStatusCode: 404 } });
+
+    await expect(
+      store.deleteByHash(contentHash, {
+        byteSize: bytes.byteLength,
+        mediaType: "application/pdf",
+      }),
+    ).resolves.toEqual({ state: "deleted", artifact: available });
+    await expect(
+      store.inspectByHash(contentHash, {
+        byteSize: bytes.byteLength,
+        mediaType: "application/pdf",
+      }),
+    ).resolves.toBeUndefined();
+    await expect(
+      store.deleteByHash(contentHash, {
+        byteSize: bytes.byteLength,
+        mediaType: "application/pdf",
+      }),
+    ).resolves.toEqual({ state: "not_found" });
   });
 
   it("publishes grounded-response Markdown with its exact charset identity", async () => {

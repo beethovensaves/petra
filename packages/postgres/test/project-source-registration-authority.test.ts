@@ -166,6 +166,7 @@ describePostgres("PostgresProjectSourceRegistrationAuthority", () => {
     makeAvailable,
     inspectByHash: vi.fn(),
     readByHash: vi.fn(),
+    deleteByHash: vi.fn(),
     cleanupAbandonedStaging: vi.fn(),
   };
   const authority = new PostgresProjectSourceRegistrationAuthority(

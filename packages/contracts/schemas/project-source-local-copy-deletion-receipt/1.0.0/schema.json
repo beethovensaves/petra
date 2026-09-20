@@ -1,0 +1,153 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-source-local-copy-deletion-receipt/1.0.0/schema.json",
+  "title": "PetraProjectSourceLocalCopyDeletionReceipt",
+  "description": "Immutable tombstone and receipt for one exact local copy made absent after a durable deletion intent.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "receipt_id",
+    "command_id",
+    "idempotency_key",
+    "request_hash",
+    "project_id",
+    "actor",
+    "capability_grant_id",
+    "project_ref",
+    "project_definition_ref",
+    "source_ref",
+    "copy_ref",
+    "effect",
+    "preservation",
+    "destination",
+    "recovery",
+    "recorded_at",
+    "record_hash"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.project-source-local-copy-deletion-receipt"
+    },
+    "schema_version": { "const": "1.0.0" },
+    "receipt_id": {
+      "type": "string",
+      "pattern": "^source_copy_deletion_receipt_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "command_id": {
+      "$ref": "../../project-source-registration-request/1.0.0/schema.json#/properties/command_id"
+    },
+    "idempotency_key": {
+      "$ref": "../../project-source-registration-request/1.0.0/schema.json#/properties/idempotency_key"
+    },
+    "request_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "project_id": { "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId" },
+    "actor": {
+      "$ref": "../../capability-grant/1.0.0/schema.json#/$defs/HumanActorRef"
+    },
+    "capability_grant_id": {
+      "$ref": "../../capability-grant/1.0.0/schema.json#/properties/capability_grant_id"
+    },
+    "project_ref": {
+      "$ref": "../../project-source-registration-request/1.0.0/schema.json#/$defs/ProjectRef"
+    },
+    "project_definition_ref": {
+      "$ref": "../../project-source-registration-request/1.0.0/schema.json#/$defs/DefinitionRef"
+    },
+    "source_ref": {
+      "$ref": "../../project-source-local-copy-deletion-request/1.0.0/schema.json#/$defs/CurrentSourceRef"
+    },
+    "copy_ref": {
+      "$ref": "../../project-source-local-copy-deletion-request/1.0.0/schema.json#/$defs/CopyRef"
+    },
+    "effect": { "$ref": "#/$defs/Effect" },
+    "preservation": { "$ref": "#/$defs/Preservation" },
+    "destination": { "$ref": "#/$defs/Destination" },
+    "recovery": { "$ref": "#/$defs/Recovery" },
+    "recorded_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    },
+    "record_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    }
+  },
+  "$defs": {
+    "Effect": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "local_copy_state", "observation", "summary"],
+      "properties": {
+        "kind": { "const": "local_source_copy_deleted" },
+        "local_copy_state": { "const": "absent" },
+        "observation": {
+          "enum": ["deleted_now", "already_absent_after_durable_intent"]
+        },
+        "summary": { "type": "string", "minLength": 1, "maxLength": 2000 }
+      }
+    },
+    "Preservation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_link",
+        "canonical_identity",
+        "artifact_manifest",
+        "rights_history",
+        "selectors",
+        "provenance",
+        "history"
+      ],
+      "properties": {
+        "project_link": { "const": "retained" },
+        "canonical_identity": { "const": "retained" },
+        "artifact_manifest": {
+          "const": "retained_as_tombstoned_copy_identity"
+        },
+        "rights_history": { "const": "retained" },
+        "selectors": { "const": "retained" },
+        "provenance": { "const": "retained" },
+        "history": { "const": "retained" }
+      }
+    },
+    "Destination": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["place_role", "project_id", "project_source_id"],
+      "properties": {
+        "place_role": { "const": "source_details" },
+        "project_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+        },
+        "project_source_id": {
+          "type": "string",
+          "pattern": "^project_source_[0-9A-HJKMNP-TV-Z]{26}$"
+        }
+      }
+    },
+    "Recovery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "command_path",
+        "assessment_path",
+        "retry_reuses_command_identity",
+        "missing_receipt_means_unknown"
+      ],
+      "properties": {
+        "command_path": {
+          "type": "string",
+          "pattern": "^/api/commands/projects/[^/]+/sources/[^/]+/local-copy-deletion$"
+        },
+        "assessment_path": {
+          "type": "string",
+          "pattern": "^/api/queries/projects/[^/]+/sources/[^/]+/local-copy-deletion-recovery$"
+        },
+        "retry_reuses_command_identity": { "const": true },
+        "missing_receipt_means_unknown": { "const": true }
+      }
+    }
+  }
+}

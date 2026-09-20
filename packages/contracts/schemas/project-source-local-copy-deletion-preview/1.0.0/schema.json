@@ -1,0 +1,150 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-source-local-copy-deletion-preview/1.0.0/schema.json",
+  "title": "PetraProjectSourceLocalCopyDeletionPreview",
+  "description": "Server-owned eligibility, retention, dependency, and recovery assessment for one exact local source copy.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "project_id",
+    "project_source_id",
+    "expected",
+    "eligibility",
+    "retention",
+    "consequences",
+    "operation",
+    "read_at",
+    "content_hash"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.project-source-local-copy-deletion-preview"
+    },
+    "schema_version": { "const": "1.0.0" },
+    "project_id": { "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId" },
+    "project_source_id": {
+      "type": "string",
+      "pattern": "^project_source_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "expected": {
+      "$ref": "../../project-source-local-copy-deletion-request/1.0.0/schema.json#/$defs/Expected"
+    },
+    "eligibility": { "$ref": "#/$defs/Eligibility" },
+    "retention": {
+      "type": "array",
+      "minItems": 7,
+      "maxItems": 7,
+      "items": { "$ref": "#/$defs/RetentionItem" }
+    },
+    "consequences": { "$ref": "#/$defs/Consequences" },
+    "operation": { "$ref": "#/$defs/Operation" },
+    "read_at": { "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    }
+  },
+  "$defs": {
+    "Blocker": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "count", "record_ids", "reason"],
+      "properties": {
+        "kind": {
+          "enum": [
+            "shared_storage_copy",
+            "shared_project_use",
+            "artifact_derivation",
+            "active_work",
+            "open_review",
+            "deletion_pending",
+            "copy_unavailable"
+          ]
+        },
+        "count": { "type": "integer", "minimum": 1, "maximum": 1000000 },
+        "record_ids": {
+          "type": "array",
+          "maxItems": 100,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 200 }
+        },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 2000 }
+      }
+    },
+    "Eligibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "policy_version", "blockers"],
+      "properties": {
+        "state": { "enum": ["eligible", "blocked", "already_deleted"] },
+        "policy_version": { "const": "petra-local-copy-retention-v1" },
+        "blockers": {
+          "type": "array",
+          "maxItems": 7,
+          "items": { "$ref": "#/$defs/Blocker" }
+        }
+      }
+    },
+    "RetentionItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["area", "state", "reason"],
+      "properties": {
+        "area": {
+          "enum": [
+            "project_link",
+            "canonical_identity",
+            "artifact_manifest",
+            "rights_history",
+            "selectors",
+            "provenance",
+            "local_bytes"
+          ]
+        },
+        "state": {
+          "enum": ["retained", "deleted_if_confirmed", "already_deleted"]
+        },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 2000 }
+      }
+    },
+    "Consequences": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_link_unchanged",
+        "representations_may_stop_resolving",
+        "recovery"
+      ],
+      "properties": {
+        "project_link_unchanged": { "const": true },
+        "representations_may_stop_resolving": { "const": true },
+        "recovery": {
+          "enum": [
+            "reacquire_from_registered_origin",
+            "resupply_required",
+            "regenerate_required"
+          ]
+        }
+      }
+    },
+    "Operation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "command_name", "method", "path", "recovery_path"],
+      "properties": {
+        "state": { "enum": ["ready", "blocked", "already_completed"] },
+        "command_name": { "const": "DeleteLocalSourceCopy" },
+        "method": { "const": "POST" },
+        "path": {
+          "type": "string",
+          "pattern": "^/api/commands/projects/[^/]+/sources/[^/]+/local-copy-deletion$"
+        },
+        "recovery_path": {
+          "type": "string",
+          "pattern": "^/api/queries/projects/[^/]+/sources/[^/]+/local-copy-deletion-recovery$"
+        }
+      }
+    }
+  }
+}
