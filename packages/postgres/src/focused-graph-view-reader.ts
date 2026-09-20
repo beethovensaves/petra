@@ -21,6 +21,7 @@ import type {
   PetraProjectDefinition,
   PetraProjectionCheckpoint,
   PetraSourceSpan,
+  PetraWorkVersion,
   PetraWorkingCandidate,
   PetraWorkingRelationship,
 } from "@petra/contracts";
@@ -46,6 +47,10 @@ import { canonicalize } from "json-canonicalize";
 import type { Pool, PoolClient } from "pg";
 
 import { PostgresProjectObjectLocationViewReader } from "./project-object-location-view-reader.js";
+import {
+  PostgresProjectReviewViewReader,
+  type OpenReviewFocusedMember,
+} from "./project-review-view-reader.js";
 import { PostgresProjectSourceViewReader } from "./project-source-view-reader.js";
 
 interface ProjectContextRow {
@@ -65,6 +70,12 @@ interface SourceSpanRow extends PayloadHashRow {
 
 interface SourceBindingRow {
   project_source_id: string;
+}
+
+interface ReviewSourceBindingRow extends SourceBindingRow {
+  revision: string;
+  record_hash: string;
+  status: "active" | "excluded";
 }
 
 interface AuthorityRow {
@@ -116,6 +127,15 @@ interface ResolvedFocusedGraphSemantics {
   relationship: FocusedGraphResolvedSemantic;
   action: FocusedGraphResolvedSemantic;
   expansion?: FocusedGraphResolvedSemantic;
+}
+
+interface OpenReviewFocusSnapshotReader {
+  readOpenReviewFocusInSnapshot(
+    client: PoolClient,
+    readAt: string,
+    projectId: string,
+    focusRef: FocusedGraphExactRef,
+  ): Promise<OpenReviewFocusedMember | undefined>;
 }
 
 type FocusedGraphMeaning = FocusedGraphRelationship["meaning_kind"];
@@ -313,11 +333,16 @@ export class PostgresFocusedGraphViewReader implements FocusedGraphViewReader {
   readonly #resolver: FocusedGraphViewContractResolver;
   readonly #objectLocations: PostgresProjectObjectLocationViewReader;
   readonly #sourceViews: PostgresProjectSourceViewReader;
+  readonly #reviewViews: OpenReviewFocusSnapshotReader;
 
   constructor(
     pool: Pool,
     graph: AuthorityGraphStore,
     contracts = new PetraContractRegistry(),
+    reviewViews: OpenReviewFocusSnapshotReader = new PostgresProjectReviewViewReader(
+      pool,
+      contracts,
+    ),
   ) {
     this.#pool = pool;
     this.#graph = graph;
@@ -328,6 +353,7 @@ export class PostgresFocusedGraphViewReader implements FocusedGraphViewReader {
       contracts,
     );
     this.#sourceViews = new PostgresProjectSourceViewReader(pool, contracts);
+    this.#reviewViews = reviewViews;
   }
 
   async queryFocusedGraphDetails(
@@ -694,6 +720,36 @@ export class PostgresFocusedGraphViewReader implements FocusedGraphViewReader {
         targetSequence: represented.target_sequence,
         positionKind: "represented",
       });
+
+      if (
+        request.semantic_layer === "working" &&
+        request.origin.origin_kind === "review" &&
+        !isExplorationRequest(request)
+      ) {
+        const reviewFocus =
+          await this.#reviewViews.readOpenReviewFocusInSnapshot(
+            client,
+            readAt,
+            projectId,
+            request.focus_ref,
+          );
+        if (reviewFocus !== undefined) {
+          return this.#openReviewWorkingView({
+            client,
+            readAt,
+            projectId,
+            request,
+            definition,
+            definitionRef,
+            semantics,
+            checkpoint,
+            observed,
+            requestedSnapshot,
+            representedSnapshot,
+            reviewFocus,
+          });
+        }
+      }
 
       const focusGraph = await this.#graph.getObject(
         projectId,
@@ -1653,6 +1709,442 @@ export class PostgresFocusedGraphViewReader implements FocusedGraphViewReader {
       };
       return this.#resolve(definition, view);
     });
+  }
+
+  async #openReviewWorkingView(input: {
+    client: PoolClient;
+    readAt: string;
+    projectId: string;
+    request: FocusedGraphViewRequest;
+    definition: PetraProjectDefinition;
+    definitionRef: FocusedGraphProjectDefinitionRef;
+    semantics: ResolvedFocusedGraphSemantics;
+    checkpoint: PetraProjectionCheckpoint;
+    observed: {
+      targetSequence: number;
+      eventPosition: number;
+      streamRevision: number;
+    };
+    requestedSnapshot: FocusedGraphProjectSnapshotRef;
+    representedSnapshot: FocusedGraphProjectSnapshotRef;
+    reviewFocus: OpenReviewFocusedMember;
+  }): Promise<PetraFocusedGraphView> {
+    const {
+      client,
+      readAt,
+      projectId,
+      request,
+      definition,
+      definitionRef,
+      semantics,
+      checkpoint,
+      observed,
+      requestedSnapshot,
+      representedSnapshot,
+      reviewFocus,
+    } = input;
+    if (
+      request.limits.maximum_nodes < 2 ||
+      request.limits.maximum_relationships < 1 ||
+      request.limits.maximum_paths < 1
+    ) {
+      throw this.#error(
+        "FOCUSED_GRAPH_QUERY_INVALID",
+        "The open Review relationship requires room for two exact endpoints, one relationship, and one path.",
+      );
+    }
+    if (checkpoint.content.position.position_kind !== "advanced") {
+      throw this.#projectionIncoherent(
+        "An open Review relationship requires an advanced represented checkpoint.",
+      );
+    }
+    const member = reviewFocus.review.content.members.find(
+      (candidate) =>
+        candidate.review_member_id === reviewFocus.review_member_id,
+    );
+    const candidate = member?.working_state.candidate;
+    const relationship = member?.working_state.relationships[0];
+    if (
+      member === undefined ||
+      candidate === undefined ||
+      relationship === undefined ||
+      member.working_state.relationships.length !== 1 ||
+      member.working_state.selection_basis !==
+        "exact_review_session_working_bindings" ||
+      member.working_state.authority_effect !== "none" ||
+      candidate.project_id !== projectId ||
+      relationship.project_id !== projectId ||
+      relationship.profile_relationship.predicate !== "ASSERTS" ||
+      relationship.endpoints.subject.endpoint_kind !== "profile_record" ||
+      relationship.endpoints.object.endpoint_kind !== "working_candidate" ||
+      relationship.endpoints.object.candidate_ref.working_candidate_id !==
+        candidate.working_candidate_id ||
+      relationship.endpoints.object.candidate_ref.revision !==
+        candidate.revision ||
+      relationship.endpoints.object.candidate_ref.content_hash !==
+        candidate.content_hash ||
+      !sameExactRef(
+        candidate.profile_object.object_record_ref,
+        request.focus_ref,
+      )
+    ) {
+      throw this.#corrupt(
+        "The open Review focus does not preserve one exact scientific WorkingCandidate and ASSERTS WorkingRelationship composition.",
+      );
+    }
+    this.#assertWorkingContentHash(candidate);
+    this.#assertWorkingContentHash(relationship);
+    const claim = await this.#evidenceRevision<PetraClaim>(
+      client,
+      candidate.profile_object.object_record_ref,
+      "claim",
+      "claim",
+    );
+    const assertion = await this.#evidenceRevision<PetraAssertion>(
+      client,
+      relationship.profile_relationship.relationship_record_ref,
+      "assertion",
+      "assertion",
+    );
+    const sourceRef = relationship.endpoints.subject.record_ref;
+    if (
+      sourceRef.schema_name !== "petra.work-version" ||
+      sourceRef.schema_version !== "1.0.0" ||
+      assertion.subject_id !== sourceRef.record_id ||
+      assertion.object.object_kind !== "entity" ||
+      assertion.object.entity_id !== claim.claim_id ||
+      relationship.validation.target_record_hash !==
+        relationship.profile_relationship.relationship_record_ref.record_hash ||
+      candidate.validation.target_record_hash !==
+        candidate.profile_object.object_record_ref.record_hash
+    ) {
+      throw this.#corrupt(
+        "The open Review relationship does not preserve its exact WorkVersion-ASSERTS-Claim profile records.",
+      );
+    }
+    const sourceRecord = await client.query<PayloadHashRow>(
+      `SELECT payload, record_hash
+         FROM petra.canonical_entity_revisions
+        WHERE entity_id = $1
+          AND entity_kind = 'work_version'
+          AND revision = $2
+          AND record_hash = $3`,
+      [sourceRef.record_id, sourceRef.revision, sourceRef.record_hash],
+    );
+    const sourceRow = sourceRecord.rows[0];
+    if (sourceRow === undefined) {
+      throw this.#corrupt(
+        "The open Review relationship references an unavailable exact WorkVersion.",
+      );
+    }
+    const workVersion = this.#storedRecord<PetraWorkVersion>(
+      "work-version",
+      sourceRow.payload,
+      sourceRow.record_hash,
+    );
+    const sourceBindings = await client.query<ReviewSourceBindingRow>(
+      `SELECT binding.project_source_id,
+              binding.revision::text,
+              binding.record_hash,
+              binding.status
+         FROM petra.project_sources AS source
+         JOIN petra.project_source_revisions AS binding
+           ON binding.project_source_id = source.project_source_id
+          AND binding.revision = source.current_revision
+        WHERE source.project_id = $1
+          AND binding.project_definition_id = $2
+          AND binding.project_definition_revision = $3
+          AND binding.project_definition_content_hash = $4
+          AND binding.source_role = 'scientific.literature'
+          AND binding.work_version_id = $5
+          AND binding.work_version_revision = $6
+          AND binding.work_version_record_hash = $7
+        ORDER BY CASE binding.status WHEN 'active' THEN 0 ELSE 1 END,
+                 binding.project_source_id
+        LIMIT 1`,
+      [
+        projectId,
+        definition.project_definition_id,
+        definition.revision,
+        definition.content_hash,
+        workVersion.work_version_id,
+        workVersion.revision,
+        sourceRow.record_hash,
+      ],
+    );
+    const sourceBinding = sourceBindings.rows[0];
+    if (sourceBinding === undefined) {
+      throw this.#corrupt(
+        "The open Review relationship WorkVersion is not retained by an exact current ProjectSource binding.",
+      );
+    }
+    const sourceSemantic = this.#exactSemantic(
+      definition,
+      "scientific.literature",
+      "object",
+    );
+    if (sourceSemantic.registration_kind !== "source_role") {
+      throw this.#error(
+        "FOCUSED_GRAPH_SEMANTIC_UNSUPPORTED",
+        "The open Review WorkVersion requires the registered scientific source role.",
+      );
+    }
+
+    const sourceKey = `node:source:${workVersion.work_version_id.toLowerCase()}:${workVersion.revision}`;
+    const candidateKey = `node:working:${candidate.working_candidate_id.toLowerCase()}:${candidate.revision}`;
+    const relationshipKey = `relationship:working:${relationship.working_relationship_id.toLowerCase()}:${relationship.revision}`;
+    const candidateRecordRef: FocusedGraphExactRef = {
+      record_id: candidate.working_candidate_id,
+      revision: candidate.revision,
+      record_hash: canonicalHash(candidate),
+    };
+    const relationshipRecordRef: FocusedGraphExactRef = {
+      record_id: relationship.working_relationship_id,
+      revision: relationship.revision,
+      record_hash: canonicalHash(relationship),
+    };
+    const projectSourceRef: FocusedGraphExactRef = {
+      record_id: sourceBinding.project_source_id,
+      revision: Number(sourceBinding.revision),
+      record_hash: sourceBinding.record_hash,
+    };
+    const sourceNode: FocusedGraphNode = {
+      node_key: sourceKey,
+      record_ref: {
+        record_id: workVersion.work_version_id,
+        revision: workVersion.revision,
+        record_hash: sourceRow.record_hash,
+      },
+      semantic_key: sourceSemantic.semantic_key,
+      term: sourceSemantic.term,
+      label: workVersion.version_label,
+      summary: `The exact ${sourceSemantic.term.singular} version retained by ProjectSource ${sourceBinding.project_source_id}.`,
+      layer: "current",
+      authority_position: "current_authority",
+      lifecycle:
+        sourceBinding.status === "active" ? "represented" : "superseded",
+      basis: {
+        summary: `Canonical WorkVersion revision ${workVersion.revision}; publication status ${workVersion.publication_status}; ProjectSource status ${sourceBinding.status}.`,
+        record_refs: [projectSourceRef],
+        limitations:
+          sourceBinding.status === "active"
+            ? []
+            : [
+                "The exact source is retained but excluded from current Project use.",
+              ],
+      },
+      destination_keys: [],
+    };
+    const candidateNode: FocusedGraphNode = {
+      node_key: candidateKey,
+      record_ref: structuredClone(request.focus_ref),
+      semantic_key: semantics.object.semantic_key,
+      term: semantics.object.term,
+      label: claim.canonical_text,
+      summary: `The exact open Review ${semantics.object.term.singular} at WorkingCandidate revision ${candidate.revision}; validation ${candidate.validation.state}.`,
+      layer: "working",
+      authority_position: "working_non_authority",
+      lifecycle:
+        candidate.disposition === "available" ? "represented" : "superseded",
+      basis: {
+        summary: `${candidate.origin.summary} Review ${reviewFocus.review.review_session_id} member ${member.review_member_id} retains this exact non-authoritative revision.`,
+        record_refs: uniqueRefs([
+          candidateRecordRef,
+          request.focus_ref,
+          ...candidate.basis.map((item) => item.record_ref),
+          ...candidate.provenance.map((item) => item.record_ref),
+        ]),
+        limitations: [
+          "This WorkingCandidate is durable Review input and is not current Project authority.",
+          ...candidate.qualifications.statements.map(
+            (statement) => statement.statement,
+          ),
+        ],
+      },
+      destination_keys:
+        request.return_destination.state === "available"
+          ? [request.return_destination.destination_key]
+          : [],
+    };
+    const focusedRelationship: FocusedGraphRelationship = {
+      relationship_key: relationshipKey,
+      relationship_ref: {
+        element_id: relationship.working_relationship_id,
+        revision: relationship.revision,
+        record_hash: relationshipRecordRef.record_hash,
+      },
+      semantic_key: semantics.relationship.semantic_key,
+      term: semantics.relationship.term,
+      predicate: relationship.profile_relationship.predicate,
+      meaning_kind: "provenance",
+      source_node_key: sourceKey,
+      target_node_key: candidateKey,
+      direction: "outgoing",
+      origin: "working_candidate",
+      layer: "working",
+      authority_position: "working_non_authority",
+      summary: `${relationship.origin.summary} This exact Review relationship is non-authoritative.`,
+      basis: {
+        summary: `Exact WorkingRelationship revision ${relationship.revision}; Review member ${member.review_member_id}; validation ${relationship.validation.state}; source Project membership ${sourceBinding.status}.`,
+        record_refs: uniqueRefs([
+          relationshipRecordRef,
+          relationship.profile_relationship.relationship_record_ref,
+          ...relationship.basis.map((item) => item.record_ref),
+          ...relationship.provenance.map((item) => item.record_ref),
+        ]),
+        limitations: [
+          "Review inspection and selection grant no correction, Review-decision, Apply, or domain authority.",
+          ...relationship.qualifications.statements.map(
+            (statement) => statement.statement,
+          ),
+        ],
+      },
+      destination_keys: [],
+    };
+    const taskWithoutHash = {
+      request_id: request.request_id,
+      task_kind: request.task_kind,
+      task_semantic_key: semantics.task.semantic_key,
+      question: request.question,
+      question_hash: canonicalHash(request.question),
+      focus_refs: [request.focus_ref] as [FocusedGraphExactRef],
+      origin: request.origin,
+      return_destination_key: request.return_destination.destination_key,
+    };
+    const represented = checkpoint.content.position;
+    const pendingRecords =
+      observed.targetSequence - represented.target_sequence;
+    const projectionState = pendingRecords === 0 ? "current" : "catching_up";
+    const content: PetraFocusedGraphView["content"] = {
+      task: {
+        ...taskWithoutHash,
+        request_hash: canonicalHash(taskWithoutHash),
+      },
+      profile: {
+        project_definition_ref: definitionRef,
+        kernel_compatibility: definition.content.kernel_compatibility,
+        label: definition.content.label,
+        focused_graph_registration: semantics.focusedGraph,
+        resolved_semantics: [
+          semantics.task,
+          semantics.object,
+          sourceSemantic,
+          semantics.relationship,
+          semantics.action,
+        ],
+      },
+      source_views: [],
+      requested_snapshot: requestedSnapshot,
+      represented_snapshot: representedSnapshot,
+      semantic_layer: "working",
+      temporal_position: request.temporal_position,
+      projection_position: {
+        authority_source: "postgresql",
+        projection_source: "neo4j_rebuildable_projection",
+        state: projectionState,
+        checkpoint_ref: {
+          record_id: checkpoint.projection_checkpoint_id,
+          revision: checkpoint.revision,
+          record_hash: canonicalHash(checkpoint),
+        },
+        represented_event_position: represented.event_position,
+        observed_event_position: observed.eventPosition,
+        pending_records: pendingRecords,
+        detail:
+          projectionState === "current"
+            ? `Neo4j represents the exact PostgreSQL checkpoint at Project stream revision ${represented.stream_revision}; PostgreSQL supplies the exact open Review composition.`
+            : `Neo4j safely represents Project stream revision ${represented.stream_revision}; ${pendingRecords} graph ${pendingRecords === 1 ? "record is" : "records are"} pending, while PostgreSQL supplies the exact open Review composition.`,
+      },
+      scope: {
+        description:
+          "One exact open Review member with its retained source endpoint, WorkingCandidate, and WorkingRelationship revision.",
+        included_relationship_semantics: [semantics.relationship.semantic_key],
+        directions: ["outgoing", "incoming"],
+        included_layers: ["current", "working"],
+        limits: structuredClone(request.limits),
+        coverage: "complete_for_scope",
+        omissions: [
+          {
+            omission_kind: "out_of_scope",
+            description:
+              "Other Review members, whole-Project traversal, Historical state, unrelated Working heads, and expansion remain outside this exact Review-bound result.",
+            count: { state: "unknown" },
+          },
+        ],
+      },
+      nodes: [sourceNode, candidateNode],
+      relationships: [focusedRelationship],
+      paths: [
+        {
+          path_key: `path:${relationship.working_relationship_id.toLowerCase()}:${relationship.revision}`,
+          state: "complete",
+          ordering_rationale:
+            "The canonical open Review binding supplies this exact retained source-to-candidate relationship.",
+          steps: [
+            {
+              position: 1,
+              from_node_key: sourceKey,
+              relationship_key: relationshipKey,
+              to_node_key: candidateKey,
+              traversal_direction: "outgoing",
+              repeated_member: false,
+            },
+          ],
+          limitations: structuredClone(focusedRelationship.basis.limitations),
+        },
+      ],
+      selection: {
+        state: "selected",
+        selection_kind: "node",
+        selected_keys: [candidateKey],
+      },
+      destinations: [structuredClone(request.return_destination)],
+      actions: [
+        {
+          action_key: `action:${semantics.action.semantic_key.replaceAll(".", ":")}`,
+          action_kind: "return_to_origin",
+          semantic_key: semantics.action.semantic_key,
+          label: semantics.action.term.singular,
+          consequence: "read_only_navigation",
+          target_keys: [candidateKey],
+          availability:
+            request.return_destination.state === "available"
+              ? {
+                  state: "available",
+                  destination_key: request.return_destination.destination_key,
+                }
+              : {
+                  state: "unavailable",
+                  reason: request.return_destination.reason,
+                },
+        },
+      ],
+      authority_boundary: {
+        postgresql_authoritative: true,
+        neo4j_rebuildable_projection: true,
+        renderer_neutral: true,
+        renderer_queries_projection: false,
+        layout_grants_authority: false,
+        selection_grants_authority: false,
+        actions_issue_domain_mutation: false,
+        correction_requires_canonical_owner: true,
+        work_requires_typed_preview: true,
+      },
+      limitations: [
+        "The server resolves the exact unique open Review member from the focus Claim; the client supplies no WorkingCandidate or WorkingRelationship authority.",
+        "The selected WorkingRelationship is the same retained revision used by Review inspection and canonical preview/Apply validation; Graph selection grants no authority.",
+        "PostgreSQL supplies Review composition and authority; Neo4j remains a rebuildable checkpointed projection.",
+      ],
+    };
+    const view: PetraFocusedGraphView = {
+      schema_name: "petra.focused-graph-view",
+      schema_version: "1.0.0",
+      project_id: projectId,
+      content,
+      content_hash: canonicalHash(content),
+      read_at: readAt,
+    };
+    return this.#resolve(definition, view);
   }
 
   async #historicalView(
@@ -2872,40 +3364,42 @@ export class PostgresFocusedGraphViewReader implements FocusedGraphViewReader {
     };
   }
 
+  #exactSemantic(
+    definition: PetraProjectDefinition,
+    semanticKey: string,
+    role: FocusedGraphResolvedSemantic["role"],
+  ): FocusedGraphResolvedSemantic {
+    const registrations = definition.content.registrations.filter(
+      (candidate) => candidate.semantic_key === semanticKey,
+    );
+    const terms = definition.content.terms.filter(
+      (candidate) => candidate.semantic_key === semanticKey,
+    );
+    if (
+      registrations.length !== 1 ||
+      terms.length !== 1 ||
+      registrations[0] === undefined ||
+      terms[0] === undefined
+    ) {
+      throw this.#error(
+        "FOCUSED_GRAPH_SEMANTIC_UNSUPPORTED",
+        `The exact ${semanticKey} ${role} meaning is not registered once by this ProjectDefinition.`,
+      );
+    }
+    return {
+      semantic_key: semanticKey,
+      role,
+      registration_kind: registrations[0]
+        .registration_kind as FocusedGraphResolvedSemantic["registration_kind"],
+      contract: structuredClone(registrations[0].contract),
+      term: structuredClone(terms[0]),
+    };
+  }
+
   #resolveSemantics(
     definition: PetraProjectDefinition,
     request: FocusedGraphReadRequest,
   ): ResolvedFocusedGraphSemantics {
-    const exact = (
-      semanticKey: string,
-      role: FocusedGraphResolvedSemantic["role"],
-    ): FocusedGraphResolvedSemantic => {
-      const registrations = definition.content.registrations.filter(
-        (candidate) => candidate.semantic_key === semanticKey,
-      );
-      const terms = definition.content.terms.filter(
-        (candidate) => candidate.semantic_key === semanticKey,
-      );
-      if (
-        registrations.length !== 1 ||
-        terms.length !== 1 ||
-        registrations[0] === undefined ||
-        terms[0] === undefined
-      ) {
-        throw this.#error(
-          "FOCUSED_GRAPH_SEMANTIC_UNSUPPORTED",
-          `The exact ${semanticKey} ${role} meaning is not registered once by this ProjectDefinition.`,
-        );
-      }
-      return {
-        semantic_key: semanticKey,
-        role,
-        registration_kind: registrations[0]
-          .registration_kind as FocusedGraphResolvedSemantic["registration_kind"],
-        contract: structuredClone(registrations[0].contract),
-        term: structuredClone(terms[0]),
-      };
-    };
     const graphRegistrations = definition.content.registrations.filter(
       (candidate) => candidate.semantic_key === "petra.focused-graph",
     );
@@ -2920,15 +3414,32 @@ export class PostgresFocusedGraphViewReader implements FocusedGraphViewReader {
         "The exact ProjectDefinition does not register one focused graph extension.",
       );
     }
-    const task = exact(request.task_semantic_key, "task");
-    const object = exact(request.object_semantic_key, "object");
-    const relationship = exact(
+    const task = this.#exactSemantic(
+      definition,
+      request.task_semantic_key,
+      "task",
+    );
+    const object = this.#exactSemantic(
+      definition,
+      request.object_semantic_key,
+      "object",
+    );
+    const relationship = this.#exactSemantic(
+      definition,
       request.relationship_semantic_key,
       "relationship",
     );
-    const action = exact(request.return_action_semantic_key, "action");
+    const action = this.#exactSemantic(
+      definition,
+      request.return_action_semantic_key,
+      "action",
+    );
     const expansion = isExplorationRequest(request)
-      ? exact(request.exploration.recipe_semantic_key, "action")
+      ? this.#exactSemantic(
+          definition,
+          request.exploration.recipe_semantic_key,
+          "action",
+        )
       : undefined;
     if (
       task.registration_kind !== "objective_schema" ||

@@ -103,6 +103,11 @@ interface WorkingRecordRow {
   record_hash: string;
 }
 
+interface OpenReviewFocusRow {
+  review_session_id: string;
+  review_member_id: string;
+}
+
 interface ControlledWritingSourceRow extends WorkingRecordRow {
   status: "active" | "excluded";
   source_role: string;
@@ -164,6 +169,11 @@ const originLabel = (
     history_reversal: "History reversal",
   })[kind];
 
+export interface OpenReviewFocusedMember {
+  readonly review: PetraProjectReviewViewV120 | PetraProjectReviewViewV130;
+  readonly review_member_id: string;
+}
+
 export class PostgresProjectReviewViewReader implements ProjectReviewViewReader {
   readonly #pool: Pool;
   readonly #contracts: PetraContractRegistry;
@@ -200,6 +210,108 @@ export class PostgresProjectReviewViewReader implements ProjectReviewViewReader 
         ? undefined
         : await this.#compose(client, rows[0], readAt);
     });
+  }
+
+  async getOpenReviewFocus(
+    projectId: string,
+    focusRef: {
+      readonly record_id: string;
+      readonly revision: number;
+      readonly record_hash: string;
+    },
+  ): Promise<OpenReviewFocusedMember | undefined> {
+    return this.#readTransaction((client, readAt) =>
+      this.readOpenReviewFocusInSnapshot(client, readAt, projectId, focusRef),
+    );
+  }
+
+  /** Internal composition seam: caller owns a REPEATABLE READ READ ONLY transaction. */
+  async readOpenReviewFocusInSnapshot(
+    client: PoolClient,
+    readAt: string,
+    projectId: string,
+    focusRef: {
+      readonly record_id: string;
+      readonly revision: number;
+      readonly record_hash: string;
+    },
+  ): Promise<OpenReviewFocusedMember | undefined> {
+    const result = await client.query<OpenReviewFocusRow>(
+      `SELECT DISTINCT session.review_session_id,
+              candidate_binding.review_member_id
+         FROM petra.review_sessions AS session
+         JOIN petra.review_session_revisions AS session_revision
+           ON session_revision.review_session_id = session.review_session_id
+          AND session_revision.revision = session.current_revision
+         JOIN petra.review_session_working_candidate_bindings
+                AS candidate_binding
+           ON candidate_binding.review_session_id =
+                session_revision.review_session_id
+          AND candidate_binding.review_session_revision =
+                session_revision.revision
+         JOIN petra.working_candidate_revisions AS candidate
+           ON candidate.working_candidate_id =
+                candidate_binding.working_candidate_id
+          AND candidate.revision = candidate_binding.working_candidate_revision
+          AND candidate.content_hash =
+                candidate_binding.working_candidate_content_hash
+        WHERE session.project_id = $1
+          AND session_revision.lifecycle = 'open'
+          AND candidate.payload #>>
+                '{profile_object,object_record_ref,record_id}' = $2
+          AND (candidate.payload #>>
+                '{profile_object,object_record_ref,revision}')::integer = $3
+          AND candidate.payload #>>
+                '{profile_object,object_record_ref,record_hash}' = $4
+        ORDER BY session.review_session_id,
+                 candidate_binding.review_member_id
+        LIMIT 2`,
+      [projectId, focusRef.record_id, focusRef.revision, focusRef.record_hash],
+    );
+    if (result.rows.length === 0) return undefined;
+    if (result.rows.length !== 1) {
+      throw new PostgresProjectReviewViewError(
+        "PROJECT_REVIEW_VIEW_RENDERER_UNSUPPORTED",
+        "The exact focus belongs to more than one open Review member; choose an exact Review before inspecting its governed relationship.",
+      );
+    }
+    const match = result.rows[0]!;
+    const composed = await this.readReviewInSnapshot(
+      client,
+      readAt,
+      projectId,
+      match.review_session_id,
+    );
+    const review = composed?.view;
+    if (
+      review === undefined ||
+      (review.schema_version !== "1.2.0" &&
+        review.schema_version !== "1.3.0") ||
+      review.content.session.lifecycle !== "open"
+    ) {
+      throw new PostgresProjectReviewViewError(
+        "PROJECT_REVIEW_VIEW_STORED_RECORD_CORRUPT",
+        "The open Review focus no longer resolves to its exact composed Review revision.",
+      );
+    }
+    const member = review.content.members.find(
+      (candidate) => candidate.review_member_id === match.review_member_id,
+    );
+    const profileRef =
+      member?.working_state.candidate.profile_object.object_record_ref;
+    if (
+      member === undefined ||
+      profileRef === undefined ||
+      profileRef.record_id !== focusRef.record_id ||
+      profileRef.revision !== focusRef.revision ||
+      profileRef.record_hash !== focusRef.record_hash
+    ) {
+      throw new PostgresProjectReviewViewError(
+        "PROJECT_REVIEW_VIEW_STORED_RECORD_CORRUPT",
+        "The open Review focus does not match its exact composed WorkingCandidate revision.",
+      );
+    }
+    return { review, review_member_id: member.review_member_id };
   }
 
   /** Internal composition seam: caller owns a REPEATABLE READ READ ONLY transaction. */
