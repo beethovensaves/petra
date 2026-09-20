@@ -39,6 +39,10 @@ export type {
   PetraCapabilityGrantV180,
 } from "./generated/capability-grant-v1-8.js";
 export type {
+  GrantContent as CapabilityGrantContentV190,
+  PetraCapabilityGrantV190,
+} from "./generated/capability-grant-v1-9.js";
+export type {
   GrantRef as CapabilityGrantRevocationGrantRef,
   HumanActorRef as CapabilityGrantRevokerRef,
   PetraCapabilityGrantRevocation,
@@ -151,6 +155,18 @@ export type {
   RoleSummary as ProjectInquiryViewRoleSummary,
   WorkLink as ProjectInquiryViewWorkLink,
 } from "./generated/project-inquiry-view.js";
+export type {
+  FocusedGraphRef as ProjectInquirySaveFocusedGraphRef,
+  GraphRequest as ProjectInquirySaveGraphRequest,
+  PetraProjectInquirySaveRequest,
+  Selection as ProjectInquirySaveSelection,
+} from "./generated/project-inquiry-save-request.js";
+export type {
+  GraphBinding as ProjectInquirySaveGraphBinding,
+  ObjectiveRef as ProjectInquirySaveObjectiveRef,
+  PetraProjectInquirySaveReceipt,
+} from "./generated/project-inquiry-save-receipt.js";
+export type { PetraProjectInquirySaveRecoveryView } from "./generated/project-inquiry-save-recovery-view.js";
 export type {
   Action as SuggestedAction,
   AuthorityPosition as SuggestedActionAuthorityPosition,
@@ -1368,6 +1384,7 @@ import type { PetraCapabilityGrantV150 } from "./generated/capability-grant-v1-5
 import type { PetraCapabilityGrantV160 } from "./generated/capability-grant-v1-6.js";
 import type { PetraCapabilityGrantV170 } from "./generated/capability-grant-v1-7.js";
 import type { PetraCapabilityGrantV180 } from "./generated/capability-grant-v1-8.js";
+import type { PetraCapabilityGrantV190 } from "./generated/capability-grant-v1-9.js";
 import type { PetraCommandEnvelope } from "./generated/command-envelope.js";
 import type { PetraCommandEnvelopeV110 } from "./generated/command-envelope-v1-1.js";
 import type { PetraDomainEvent } from "./generated/domain-event.js";
@@ -1397,7 +1414,8 @@ export type PetraCapabilityGrantRecord =
   | PetraCapabilityGrantV150
   | PetraCapabilityGrantV160
   | PetraCapabilityGrantV170
-  | PetraCapabilityGrantV180;
+  | PetraCapabilityGrantV180
+  | PetraCapabilityGrantV190;
 export type PetraCommandEnvelopeRecord =
   PetraCommandEnvelope | PetraCommandEnvelopeV110;
 export type PetraDomainEventRecord =

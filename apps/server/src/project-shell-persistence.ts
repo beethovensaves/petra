@@ -17,6 +17,7 @@ import {
   PostgresProjectModelReadinessReader,
   PostgresProjectProfileRuntime,
   PostgresProjectHistoryViewReader,
+  PostgresProjectInquirySaveAuthority,
   PostgresProjectInquiryViewReader,
   PostgresProjectObjectLocationViewReader,
   PostgresProjectRelationshipOverlayViewReader,
@@ -53,6 +54,7 @@ import type {
   ProjectHistoryViewReader,
   ProjectHistoryCompensationExecutionBoundary,
   ProjectInquiryViewReader,
+  ProjectInquirySaveAuthority,
   ProjectObjectLocationViewReader,
   ProjectRelationshipOverlayViewReader,
   ProjectRelationshipViewReader,
@@ -147,6 +149,7 @@ export interface ProjectShellPersistence {
   readonly workOperationAuthority: ProjectWorkOperationAuthority;
   readonly threadViews: ProjectThreadViewReader;
   readonly inquiryViews: ProjectInquiryViewReader;
+  readonly inquirySaveAuthority?: ProjectInquirySaveAuthority;
   readonly suggestedActionViews: SuggestedActionViewReader;
   readonly suggestedActionInvocations: SuggestedActionInvocationAuthorityRepository;
   readonly commandPrincipalResolver?: AuthenticatedCommandPrincipalResolver;
@@ -337,6 +340,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
           AND to_regclass('petra.registered_project_profiles') IS NOT NULL
           AND to_regclass('petra.project_profile_command_receipts') IS NOT NULL
           AND to_regclass('petra.project_work_operation_receipts') IS NOT NULL
+          AND to_regclass('petra.project_inquiry_save_receipts') IS NOT NULL
           AND EXISTS (
             SELECT 1
             FROM information_schema.columns
@@ -360,7 +364,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
     );
     if (schema.rows[0]?.ready !== true) {
       throw new ProjectShellPersistenceConfigurationError(
-        "PostgreSQL is reachable, but the V046 Review rejection runtime is unavailable.",
+        "PostgreSQL is reachable, but the V048 ProjectInquiry save runtime is unavailable.",
       );
     }
     for (const profile of await readBuiltInProfiles()) {
@@ -400,6 +404,12 @@ export const createProjectShellPersistenceFromEnvironment = async (
       const focusedGraphViews = new PostgresFocusedGraphViewReader(
         pool,
         graph,
+        contracts,
+      );
+      const inquirySaveAuthority = new PostgresProjectInquirySaveAuthority(
+        pool,
+        focusedGraphViews,
+        new PostgresCapabilityGrantCommandAuthorizer(contracts),
         contracts,
       );
       const focusedGraphAnalysisViews = new FocusedGraphAnalysisViewComposer(
@@ -460,6 +470,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
         workOperationAuthority: workOperations,
         threadViews: new PostgresProjectThreadViewReader(pool),
         inquiryViews: new PostgresProjectInquiryViewReader(pool),
+        inquirySaveAuthority,
         suggestedActionViews,
         suggestedActionInvocations:
           new PostgresSuggestedActionInvocationAuthorityRepository(

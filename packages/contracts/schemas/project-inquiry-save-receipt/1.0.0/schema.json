@@ -1,0 +1,199 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-inquiry-save-receipt/1.0.0/schema.json",
+  "title": "PetraProjectInquirySaveReceipt",
+  "description": "The immutable result of retaining one server-verified focused Graph question as a ProjectInquiry without treating projection or selection as domain authority.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "receipt_id",
+    "command_id",
+    "idempotency_key",
+    "request_hash",
+    "project_id",
+    "actor",
+    "capability_grant_id",
+    "inquiry_role_ref",
+    "objective_ref",
+    "graph_binding",
+    "effect",
+    "recovery",
+    "recorded_at",
+    "record_hash"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.project-inquiry-save-receipt" },
+    "schema_version": { "const": "1.0.0" },
+    "receipt_id": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        { "type": "string", "pattern": "^project_inquiry_save_receipt_" }
+      ]
+    },
+    "command_id": {
+      "$ref": "../../project-inquiry-save-request/1.0.0/schema.json#/properties/command_id"
+    },
+    "idempotency_key": {
+      "$ref": "../../project-inquiry-save-request/1.0.0/schema.json#/properties/idempotency_key"
+    },
+    "request_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "actor": { "$ref": "#/$defs/HumanActorRef" },
+    "capability_grant_id": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        { "type": "string", "pattern": "^capability_grant_" }
+      ]
+    },
+    "inquiry_role_ref": {
+      "$ref": "../../project-inquiry-link/1.0.0/schema.json#/$defs/InquiryRoleRef"
+    },
+    "objective_ref": { "$ref": "#/$defs/ObjectiveRef" },
+    "graph_binding": { "$ref": "#/$defs/GraphBinding" },
+    "effect": { "$ref": "#/$defs/Effect" },
+    "recovery": { "$ref": "#/$defs/Recovery" },
+    "recorded_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    },
+    "record_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    }
+  },
+  "$defs": {
+    "HumanActorRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["actor_id", "actor_kind"],
+      "properties": {
+        "actor_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ActorId"
+        },
+        "actor_kind": { "const": "human" }
+      }
+    },
+    "ObjectiveRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["objective_id", "revision", "content_hash", "record_hash"],
+      "properties": {
+        "objective_id": {
+          "type": "string",
+          "pattern": "^objective_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "revision": { "const": 1 },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "GraphBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "graph_request_hash",
+        "focused_graph_ref",
+        "task_request_id",
+        "task_request_hash",
+        "question_hash",
+        "project_definition_ref",
+        "snapshot_ref",
+        "semantic_layer",
+        "focus_refs",
+        "selection",
+        "origin",
+        "return_destination"
+      ],
+      "properties": {
+        "graph_request_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "focused_graph_ref": {
+          "$ref": "../../project-inquiry-save-request/1.0.0/schema.json#/$defs/FocusedGraphRef"
+        },
+        "task_request_id": {
+          "type": "string",
+          "pattern": "^focused_graph_request_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "task_request_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "question_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "project_definition_ref": {
+          "$ref": "../../project-inquiry-save-request/1.0.0/schema.json#/$defs/ProjectDefinitionRef"
+        },
+        "snapshot_ref": {
+          "$ref": "../../project-inquiry-save-request/1.0.0/schema.json#/$defs/ProjectSnapshotRef"
+        },
+        "semantic_layer": { "enum": ["current", "working"] },
+        "focus_refs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": {
+            "$ref": "../../project-inquiry-save-request/1.0.0/schema.json#/$defs/ExactRef"
+          }
+        },
+        "selection": {
+          "$ref": "../../project-inquiry-save-request/1.0.0/schema.json#/$defs/Selection"
+        },
+        "origin": {
+          "$ref": "../../project-inquiry-save-request/1.0.0/schema.json#/$defs/Origin"
+        },
+        "return_destination": {
+          "$ref": "../../project-inquiry-save-request/1.0.0/schema.json#/$defs/SemanticDestination"
+        }
+      }
+    },
+    "Effect": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "summary",
+        "graph_authority_changed",
+        "selection_granted_authority"
+      ],
+      "properties": {
+        "kind": { "const": "project_inquiry_created" },
+        "summary": {
+          "const": "The exact question is retained as an active ProjectInquiry; its graph snapshot and selection remain provenance rather than authority."
+        },
+        "graph_authority_changed": { "const": false },
+        "selection_granted_authority": { "const": false }
+      }
+    },
+    "Recovery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "command_path",
+        "assessment_path",
+        "retry_reuses_command_identity",
+        "missing_receipt_means_unknown"
+      ],
+      "properties": {
+        "command_path": {
+          "type": "string",
+          "pattern": "^/api/commands/projects/[^/]+/inquiries$"
+        },
+        "assessment_path": {
+          "type": "string",
+          "pattern": "^/api/queries/projects/[^/]+/inquiries/save-recovery$"
+        },
+        "retry_reuses_command_identity": { "const": true },
+        "missing_receipt_means_unknown": { "const": true }
+      }
+    }
+  }
+}

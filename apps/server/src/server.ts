@@ -532,6 +532,16 @@ export const startPetraServer = async (
           : {
               projectInquiryViews: options.projectShellPersistence.inquiryViews,
             }),
+      ...(options.projectInquirySaveAuthority !== undefined
+        ? {
+            projectInquirySaveAuthority: options.projectInquirySaveAuthority,
+          }
+        : options.projectShellPersistence?.inquirySaveAuthority === undefined
+          ? {}
+          : {
+              projectInquirySaveAuthority:
+                options.projectShellPersistence.inquirySaveAuthority,
+            }),
       ...(options.suggestedActionViews !== undefined
         ? { suggestedActionViews: options.suggestedActionViews }
         : options.projectShellPersistence === undefined

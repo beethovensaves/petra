@@ -66,6 +66,7 @@ import {
 } from "@petra/adapters/server";
 import type {
   PetraClaim,
+  PetraProjectInquirySaveRequest,
   PetraProjectProfileCommandRequest,
   PetraProjectWorkOperationRequest,
   PetraWorkingCandidate,
@@ -87,6 +88,7 @@ import {
   ProjectHistoryRetainedContinuationError,
   ProjectHistoryRecoveryPreviewUnavailableError,
   ProjectHistoryViewRequestError,
+  ProjectInquirySaveError,
   ProjectProfileRuntimeError,
   ProjectModelReadinessError,
   ProjectWorkOperationError,
@@ -105,6 +107,7 @@ import {
   type ProjectHistoryViewReader,
   type ProjectHistoryCompensationExecutionBoundary,
   type ProjectInquiryAuthoredStatus,
+  type ProjectInquirySaveAuthority,
   type ProjectProfileCommandAuthority,
   type ProjectProfileCommandRecoveryReader,
   type ProjectProfileRuntimeReader,
@@ -198,6 +201,7 @@ export interface PetraAppOptions {
   projectWorkOperationAuthority?: ProjectWorkOperationAuthority;
   projectThreadViews?: ProjectThreadViewReader;
   projectInquiryViews?: ProjectInquiryViewReader;
+  projectInquirySaveAuthority?: ProjectInquirySaveAuthority;
   suggestedActionViews?: SuggestedActionViewReader;
   suggestedActionInvocations?: Pick<
     SuggestedActionInvocationCoordinator,
@@ -3429,6 +3433,244 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
           error instanceof Error
             ? error.message
             : "The Project inquiry detail is unavailable.",
+          error instanceof InteractionInputError ? error.issues : undefined,
+        );
+      }
+    },
+  );
+
+  app.post("/api/commands/projects/:projectId/inquiries", async (context) => {
+    if (
+      options.projectInquirySaveAuthority === undefined ||
+      options.commandPrincipalResolver === undefined
+    ) {
+      return jsonError(
+        context,
+        503,
+        "PROJECT_INQUIRY_SAVE_UNAVAILABLE",
+        "The authenticated ProjectInquiry save command boundary is not configured.",
+      );
+    }
+    try {
+      const parameters = new URL(context.req.url).searchParams;
+      if ([...parameters.keys()].length > 0) {
+        throw new InteractionInputError(
+          "ProjectInquiry save commands do not accept query parameters.",
+          [...new Set(parameters.keys())],
+        );
+      }
+      const projectId = context.req.param("projectId");
+      if (!PROJECT_ID_PATTERN.test(projectId)) {
+        throw new InteractionInputError(
+          "ProjectInquiry save commands require one canonical Project identity.",
+        );
+      }
+      const request = (await readBoundedJson(
+        context,
+        maxBodyBytes,
+      )) as PetraProjectInquirySaveRequest;
+      contracts.assertValid("project-inquiry-save-request", "1.0.0", request);
+      parseFocusedGraphViewRequest(request.graph_request);
+      const principal =
+        await options.commandPrincipalResolver.resolveCommandPrincipal({
+          projectId,
+          commandName: "SaveProjectInquiry",
+        });
+      if (
+        principal.state !== "resolved" ||
+        principal.actor.actor_kind !== "human"
+      ) {
+        throw new ProjectInquirySaveError(
+          "PROJECT_INQUIRY_SAVE_NOT_AUTHORIZED",
+          `The authenticated ProjectInquiry save principal was denied: ${principal.state === "resolved" ? "actor_not_human" : principal.reason}.`,
+        );
+      }
+      const result =
+        await options.projectInquirySaveAuthority.saveProjectInquiry(
+          projectId,
+          request,
+          {
+            actor: {
+              actor_id: principal.actor.actor_id,
+              actor_kind: "human",
+            },
+            capabilityGrantId: principal.capabilityGrantId,
+          },
+        );
+      contracts.assertValid(
+        "project-inquiry-save-receipt",
+        "1.0.0",
+        result.receipt,
+      );
+      contracts.assertValid("project-objective", "1.0.0", result.inquiry);
+      if (
+        result.receipt.project_id !== projectId ||
+        result.receipt.command_id !== request.command_id ||
+        result.receipt.idempotency_key !== request.idempotency_key ||
+        result.receipt.graph_binding.task_request_id !==
+          request.graph_request.request_id ||
+        result.receipt.graph_binding.focused_graph_ref.content_hash !==
+          request.expected_graph.content_hash ||
+        result.receipt.objective_ref.objective_id !==
+          result.inquiry.objective_id ||
+        result.inquiry.project_id !== projectId ||
+        result.inquiry.content.statement !== request.graph_request.question
+      ) {
+        throw new Error(
+          "The ProjectInquiry save authority returned a different command, Graph question, Project, or Objective.",
+        );
+      }
+      context.header("Cache-Control", "no-store");
+      return context.json(result);
+    } catch (error) {
+      const invalid =
+        error instanceof InteractionInputError ||
+        error instanceof ContractRegistryError ||
+        error instanceof SyntaxError ||
+        (error instanceof FocusedGraphQueryError &&
+          error.code === "FOCUSED_GRAPH_QUERY_INVALID");
+      const status = invalid
+        ? 422
+        : error instanceof ProjectInquirySaveError
+          ? error.code === "PROJECT_INQUIRY_SAVE_NOT_AUTHORIZED"
+            ? 403
+            : error.code === "PROJECT_INQUIRY_SAVE_GRAPH_NOT_FOUND"
+              ? 404
+              : error.code === "PROJECT_INQUIRY_SAVE_ROLE_UNAVAILABLE" ||
+                  error.code === "PROJECT_INQUIRY_SAVE_SELECTION_INVALID"
+                ? 422
+                : error.code === "PROJECT_INQUIRY_SAVE_STORED_RECORD_CORRUPT"
+                  ? 503
+                  : 409
+          : error instanceof FocusedGraphQueryError
+            ? error.code === "FOCUSED_GRAPH_PROJECT_NOT_FOUND" ||
+              error.code === "FOCUSED_GRAPH_FOCUS_NOT_FOUND"
+              ? 404
+              : error.code === "FOCUSED_GRAPH_DEFINITION_STALE" ||
+                  error.code === "FOCUSED_GRAPH_SNAPSHOT_STALE"
+                ? 409
+                : 503
+            : 503;
+      return jsonError(
+        context,
+        status,
+        invalid
+          ? "PROJECT_INQUIRY_SAVE_REQUEST_INVALID"
+          : error instanceof ProjectInquirySaveError
+            ? error.code
+            : error instanceof FocusedGraphQueryError
+              ? error.code
+              : "PROJECT_INQUIRY_SAVE_FAILED",
+        error instanceof Error
+          ? error.message
+          : "The ProjectInquiry save command failed.",
+        error instanceof InteractionInputError ? error.issues : undefined,
+      );
+    }
+  });
+
+  app.post(
+    "/api/queries/projects/:projectId/inquiries/save-recovery",
+    async (context) => {
+      if (
+        options.projectInquirySaveAuthority === undefined ||
+        options.commandPrincipalResolver === undefined
+      ) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_INQUIRY_SAVE_RECOVERY_UNAVAILABLE",
+          "The authenticated ProjectInquiry save recovery boundary is not configured.",
+        );
+      }
+      try {
+        const parameters = new URL(context.req.url).searchParams;
+        if ([...parameters.keys()].length > 0) {
+          throw new InteractionInputError(
+            "ProjectInquiry save recovery does not accept query parameters.",
+            [...new Set(parameters.keys())],
+          );
+        }
+        const projectId = context.req.param("projectId");
+        if (!PROJECT_ID_PATTERN.test(projectId)) {
+          throw new InteractionInputError(
+            "ProjectInquiry save recovery requires one canonical Project identity.",
+          );
+        }
+        const request = (await readBoundedJson(
+          context,
+          maxBodyBytes,
+        )) as PetraProjectInquirySaveRequest;
+        contracts.assertValid("project-inquiry-save-request", "1.0.0", request);
+        parseFocusedGraphViewRequest(request.graph_request);
+        const principal =
+          await options.commandPrincipalResolver.resolveCommandPrincipal({
+            projectId,
+            commandName: "SaveProjectInquiry",
+          });
+        if (
+          principal.state !== "resolved" ||
+          principal.actor.actor_kind !== "human"
+        ) {
+          throw new ProjectInquirySaveError(
+            "PROJECT_INQUIRY_SAVE_NOT_AUTHORIZED",
+            `The authenticated ProjectInquiry recovery principal was denied: ${principal.state === "resolved" ? "actor_not_human" : principal.reason}.`,
+          );
+        }
+        const view =
+          await options.projectInquirySaveAuthority.assessProjectInquirySaveRecovery(
+            projectId,
+            request,
+            {
+              actor: {
+                actor_id: principal.actor.actor_id,
+                actor_kind: "human",
+              },
+              capabilityGrantId: principal.capabilityGrantId,
+            },
+          );
+        contracts.assertValid(
+          "project-inquiry-save-recovery-view",
+          "1.0.0",
+          view,
+        );
+        if (
+          view.project_id !== projectId ||
+          view.subject.command_id !== request.command_id ||
+          view.subject.idempotency_key !== request.idempotency_key
+        ) {
+          throw new Error(
+            "The ProjectInquiry save recovery view crossed its exact request boundary.",
+          );
+        }
+        context.header("Cache-Control", "no-store");
+        return context.json(view);
+      } catch (error) {
+        const invalid =
+          error instanceof InteractionInputError ||
+          error instanceof ContractRegistryError ||
+          error instanceof SyntaxError ||
+          (error instanceof FocusedGraphQueryError &&
+            error.code === "FOCUSED_GRAPH_QUERY_INVALID");
+        return jsonError(
+          context,
+          invalid
+            ? 422
+            : error instanceof ProjectInquirySaveError &&
+                error.code === "PROJECT_INQUIRY_SAVE_NOT_AUTHORIZED"
+              ? 403
+              : error instanceof ProjectInquirySaveError &&
+                  error.code === "PROJECT_INQUIRY_SAVE_STORED_RECORD_CORRUPT"
+                ? 503
+                : 409,
+          invalid
+            ? "PROJECT_INQUIRY_SAVE_RECOVERY_REQUEST_INVALID"
+            : error instanceof ProjectInquirySaveError
+              ? error.code
+              : "PROJECT_INQUIRY_SAVE_RECOVERY_FAILED",
+          error instanceof Error
+            ? error.message
+            : "The ProjectInquiry save recovery assessment failed.",
           error instanceof InteractionInputError ? error.issues : undefined,
         );
       }

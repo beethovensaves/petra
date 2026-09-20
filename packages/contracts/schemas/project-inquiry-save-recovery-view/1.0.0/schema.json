@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-inquiry-save-recovery-view/1.0.0/schema.json",
+  "title": "PetraProjectInquirySaveRecoveryView",
+  "description": "A read-only reconciliation of one exact ProjectInquiry save request. A missing receipt remains an unknown outcome and permits only exact idempotent redelivery.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "assessment_id",
+    "project_id",
+    "subject",
+    "effect",
+    "observed_at",
+    "content_hash"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.project-inquiry-save-recovery-view" },
+    "schema_version": { "const": "1.0.0" },
+    "assessment_id": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        { "type": "string", "pattern": "^project_inquiry_save_recovery_" }
+      ]
+    },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "subject": { "$ref": "#/$defs/Subject" },
+    "effect": { "$ref": "#/$defs/Effect" },
+    "observed_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    }
+  },
+  "$defs": {
+    "Subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["command_id", "idempotency_key", "request_hash"],
+      "properties": {
+        "command_id": {
+          "$ref": "../../project-inquiry-save-request/1.0.0/schema.json#/properties/command_id"
+        },
+        "idempotency_key": {
+          "$ref": "../../project-inquiry-save-request/1.0.0/schema.json#/properties/idempotency_key"
+        },
+        "request_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "Effect": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "receipt"],
+          "properties": {
+            "state": { "const": "effect_confirmed" },
+            "receipt": {
+              "$ref": "../../project-inquiry-save-receipt/1.0.0/schema.json"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "reason", "retry"],
+          "properties": {
+            "state": { "const": "outcome_unknown" },
+            "reason": { "const": "receipt_not_observed_at_cutoff" },
+            "retry": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["method", "path", "reuse_exact_request"],
+              "properties": {
+                "method": { "const": "POST" },
+                "path": {
+                  "type": "string",
+                  "pattern": "^/api/commands/projects/[^/]+/inquiries$"
+                },
+                "reuse_exact_request": { "const": true }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "reason"],
+          "properties": {
+            "state": { "const": "unavailable_to_verify" },
+            "reason": {
+              "enum": [
+                "command_identity_conflict",
+                "command_not_owned_by_authenticated_actor"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  }
+}

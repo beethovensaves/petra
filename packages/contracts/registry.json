@@ -133,6 +133,17 @@
       "typescript_path": "src/generated/capability-grant-v1-8.ts"
     },
     {
+      "name": "capability-grant",
+      "version": "1.9.0",
+      "$id": "https://petra.local/schemas/capability-grant/1.9.0/schema.json",
+      "path": "schemas/capability-grant/1.9.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-project-inquiry-save-command",
+      "canonical_sha256": "sha256:b87b23671a601cb459a20c5eba8ed638a48f2e43c66b1b4820ffe608e829db6c",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/capability-grant-v1-9.ts"
+    },
+    {
       "name": "capability-grant-revocation",
       "version": "1.0.0",
       "$id": "https://petra.local/schemas/capability-grant-revocation/1.0.0/schema.json",
@@ -626,6 +637,39 @@
       "canonical_sha256": "sha256:cc61cba0158681b3f8417a6e52c0feb356bb1c4838cf952facaaf4c37cbb5010",
       "generate_typescript": true,
       "typescript_path": "src/generated/project-work-operations-view.ts"
+    },
+    {
+      "name": "project-inquiry-save-request",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-inquiry-save-request/1.0.0/schema.json",
+      "path": "schemas/project-inquiry-save-request/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-authenticated-focused-graph-project-inquiry-save-request",
+      "canonical_sha256": "sha256:d3c5e003a9e76c889d3ff20a4a525ffb2cca09ceba9d2da437da028e7a5ed172",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-inquiry-save-request.ts"
+    },
+    {
+      "name": "project-inquiry-save-receipt",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-inquiry-save-receipt/1.0.0/schema.json",
+      "path": "schemas/project-inquiry-save-receipt/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-immutable-project-inquiry-save-result",
+      "canonical_sha256": "sha256:751c95a680a418e8e443ecaedb6f81c5d39d9781f93cb92f6b197e9f73b71564",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-inquiry-save-receipt.ts"
+    },
+    {
+      "name": "project-inquiry-save-recovery-view",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-inquiry-save-recovery-view/1.0.0/schema.json",
+      "path": "schemas/project-inquiry-save-recovery-view/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-project-inquiry-save-unknown-effect-recovery",
+      "canonical_sha256": "sha256:2a58c626437eaef3a7f18feee19883e44b235971b1c1ee068084fb8ae6677b44",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-inquiry-save-recovery-view.ts"
     },
     {
       "name": "project-thread",

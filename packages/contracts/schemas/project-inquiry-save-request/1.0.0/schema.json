@@ -1,0 +1,210 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-inquiry-save-request/1.0.0/schema.json",
+  "title": "PetraProjectInquirySaveRequest",
+  "description": "An exact idempotent request to retain one server-verified focused Graph question as a ProjectInquiry. Actor and capability authority are resolved by the authenticated server.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "command_id",
+    "idempotency_key",
+    "graph_request",
+    "expected_graph",
+    "selection",
+    "submitted_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.project-inquiry-save-request" },
+    "schema_version": { "const": "1.0.0" },
+    "command_id": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        { "type": "string", "pattern": "^command_" }
+      ]
+    },
+    "idempotency_key": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,511}$"
+    },
+    "graph_request": { "$ref": "#/$defs/GraphRequest" },
+    "expected_graph": { "$ref": "#/$defs/FocusedGraphRef" },
+    "selection": { "$ref": "#/$defs/Selection" },
+    "submitted_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "SemanticKey": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9._/-]{1,199}$"
+    },
+    "StableKey": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9._:/-]{1,999}$"
+    },
+    "ExactRef": {
+      "$ref": "../../focused-graph-view/1.0.0/schema.json#/$defs/ExactRef"
+    },
+    "ProjectDefinitionRef": {
+      "$ref": "../../focused-graph-view/1.0.0/schema.json#/$defs/ProjectDefinitionRef"
+    },
+    "ProjectSnapshotRef": {
+      "$ref": "../../focused-graph-view/1.0.0/schema.json#/$defs/ProjectSnapshotRef"
+    },
+    "Origin": {
+      "$ref": "../../focused-graph-view/1.0.0/schema.json#/$defs/Origin"
+    },
+    "SemanticDestination": {
+      "$ref": "../../focused-graph-view/1.0.0/schema.json#/$defs/SemanticDestination"
+    },
+    "TemporalPosition": {
+      "$ref": "../../focused-graph-view/1.0.0/schema.json#/$defs/TemporalPosition"
+    },
+    "Limits": {
+      "$ref": "../../focused-graph-view/1.0.0/schema.json#/$defs/Limits"
+    },
+    "Exploration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "expansion_key",
+        "recipe_semantic_key",
+        "target_ref",
+        "maximum_depth",
+        "filters"
+      ],
+      "properties": {
+        "mode": { "const": "named_expansion" },
+        "expansion_key": { "$ref": "#/$defs/StableKey" },
+        "recipe_semantic_key": { "$ref": "#/$defs/SemanticKey" },
+        "target_ref": { "$ref": "#/$defs/ExactRef" },
+        "maximum_depth": { "type": "integer", "minimum": 1, "maximum": 4 },
+        "filters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["meaning_kinds", "directions", "origins"],
+          "properties": {
+            "meaning_kinds": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "enum": [
+                  "citation",
+                  "support",
+                  "contradiction",
+                  "qualification",
+                  "inference",
+                  "structural",
+                  "provenance",
+                  "governance",
+                  "dependency"
+                ]
+              }
+            },
+            "directions": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": { "enum": ["outgoing", "incoming"] }
+            },
+            "origins": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "enum": [
+                  "canonical_record",
+                  "working_candidate",
+                  "historical_record",
+                  "model_inference"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "GraphRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "request_id",
+        "task_kind",
+        "task_semantic_key",
+        "question",
+        "focus_ref",
+        "origin",
+        "project_definition_ref",
+        "semantic_layer",
+        "temporal_position",
+        "object_semantic_key",
+        "relationship_semantic_key",
+        "return_action_semantic_key",
+        "return_destination",
+        "limits"
+      ],
+      "properties": {
+        "request_id": {
+          "type": "string",
+          "pattern": "^focused_graph_request_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "task_kind": { "const": "neighborhood" },
+        "task_semantic_key": { "$ref": "#/$defs/SemanticKey" },
+        "question": { "type": "string", "minLength": 1, "maxLength": 8000 },
+        "focus_ref": { "$ref": "#/$defs/ExactRef" },
+        "origin": { "$ref": "#/$defs/Origin" },
+        "project_definition_ref": { "$ref": "#/$defs/ProjectDefinitionRef" },
+        "semantic_layer": { "enum": ["current", "working", "historical"] },
+        "temporal_position": { "$ref": "#/$defs/TemporalPosition" },
+        "object_semantic_key": { "$ref": "#/$defs/SemanticKey" },
+        "relationship_semantic_key": { "$ref": "#/$defs/SemanticKey" },
+        "return_action_semantic_key": { "$ref": "#/$defs/SemanticKey" },
+        "return_destination": { "$ref": "#/$defs/SemanticDestination" },
+        "limits": { "$ref": "#/$defs/Limits" },
+        "expected_snapshot": { "$ref": "#/$defs/ProjectSnapshotRef" },
+        "exploration": { "$ref": "#/$defs/Exploration" }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "semantic_layer": { "const": "historical" } },
+            "required": ["semantic_layer"]
+          },
+          "then": {
+            "properties": { "expected_snapshot": {} },
+            "required": ["expected_snapshot"]
+          }
+        },
+        {
+          "if": {
+            "properties": { "exploration": {} },
+            "required": ["exploration"]
+          },
+          "then": {
+            "properties": { "expected_snapshot": {} },
+            "required": ["expected_snapshot"]
+          }
+        }
+      ]
+    },
+    "FocusedGraphRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_name", "schema_version", "content_hash"],
+      "properties": {
+        "schema_name": { "const": "petra.focused-graph-view" },
+        "schema_version": { "enum": ["1.0.0", "1.1.0"] },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "Selection": {
+      "$ref": "../../focused-graph-view/1.0.0/schema.json#/$defs/Selection"
+    }
+  }
+}

@@ -199,12 +199,12 @@
       "persistence": "PostgreSQL authority/working/history records plus Neo4j authoritative relationship projection; selections and layout remain client-local.",
       "recovery": "Explicit invalid, unsupported, not-found, stale-definition, stale-snapshot, source-incompatible, projection-incoherent, and unavailable states."
     },
-    "graph-question-missing": {
-      "kind": "missing",
-      "production_owner": "",
-      "authorization": "ProjectInquiry read authority exists, but no authenticated command saves an exact Graph question/inquiry.",
-      "persistence": "PostgreSQL ProjectInquiry persistence exists below the product boundary; no public command receipt links the graph request.",
-      "recovery": "No conflict/idempotency result or exact return to the originating graph context exists."
+    "graph-question-command": {
+      "kind": "command",
+      "production_owner": "POST /api/commands/projects/:projectId/inquiries and POST /api/queries/projects/:projectId/inquiries/save-recovery -> PostgresProjectInquirySaveAuthority",
+      "authorization": "Bearer authentication plus a server-resolved human principal and exact active SaveProjectInquiry capability grant; the request cannot carry Actor, grant, Objective, role, or receipt authority.",
+      "persistence": "PostgreSQL V048 atomically retains one ProjectObjective and immutable receipt binding the exact Project, ProjectDefinition, ProjectInquiry role, graph request, question, snapshot, focus or selection, origin, and return destination without granting graph authority.",
+      "recovery": "Stable command and idempotency identities return the exact retained receipt, conflicting identities fail closed, and a missing receipt is reported as outcome_unknown with only exact-request redelivery allowed."
     },
     "work-read": {
       "kind": "query",
@@ -631,9 +631,9 @@
     },
     {
       "operation_id": "graph.save-question",
-      "owner": "graph-question-missing",
-      "owner_status": "missing",
-      "missing_owner": "Authenticated ProjectInquiry save command bound to the exact graph question."
+      "owner": "graph-question-command",
+      "owner_status": "owned",
+      "missing_owner": ""
     },
     {
       "operation_id": "graph.compare",
