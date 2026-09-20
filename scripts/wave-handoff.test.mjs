@@ -34,7 +34,9 @@ import {
   normalizePlannedEvidenceRecords,
   parseArguments,
   parsePorcelainZ,
+  resolveCompatibleIntegrationConflicts,
   resolveCompatiblePackageJsonConflict,
+  retainDesignIntegrationConflict,
   unexpectedChanges,
   validateEvidencePlan,
   validateCommitTransition,
@@ -502,6 +504,60 @@ test("resolves and commits a real additive package.json merge conflict", () => {
         .length,
       3,
     );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("retains ordinary source conflicts for the visible design worker", () => {
+  const root = mkdtempSync(join(tmpdir(), "petra-wave-source-merge-"));
+  const runGit = (...args) =>
+    execFileSync("git", args, { cwd: root, encoding: "utf8" });
+  const sourcePath = join(root, "project-data.ts");
+  try {
+    runGit("init", "--initial-branch=design/m1-ux");
+    runGit("config", "user.name", "Wave Test");
+    runGit("config", "user.email", "wave-test@example.invalid");
+    writeFileSync(sourcePath, 'export const mode = "base";\n');
+    runGit("add", "project-data.ts");
+    runGit("commit", "-m", "base");
+    runGit("branch", "backend");
+
+    writeFileSync(sourcePath, 'export const mode = "design";\n');
+    runGit("add", "project-data.ts");
+    runGit("commit", "-m", "design change");
+
+    runGit("checkout", "backend");
+    writeFileSync(sourcePath, 'export const mode = "backend";\n');
+    runGit("add", "project-data.ts");
+    runGit("commit", "-m", "backend change");
+    const backendCommit = runGit("rev-parse", "HEAD").trim();
+    runGit("checkout", "design/m1-ux");
+
+    const merge = spawnSync(
+      "git",
+      ["merge", "--no-ff", "backend", "-m", "integrate backend"],
+      { cwd: root, encoding: "utf8" },
+    );
+    assert.equal(merge.status, 1, merge.stderr || merge.stdout);
+    assert.equal(resolveCompatibleIntegrationConflicts(root), false);
+    assert.equal(
+      runGit("diff", "--name-only", "--diff-filter=U").trim(),
+      "project-data.ts",
+    );
+
+    const retained = retainDesignIntegrationConflict(
+      { handoff_prompt: "Run the assigned browser scenario." },
+      backendCommit,
+      ["project-data.ts"],
+      "outside the deterministic resolver",
+    );
+    assert.match(retained.handoff_prompt, /DESIGN INTEGRATION RECOVERY/);
+    assert.match(retained.handoff_prompt, /project-data\.ts/);
+    assert.match(retained.handoff_prompt, new RegExp(backendCommit));
+    assert.match(retained.handoff_prompt, /complete the merge commit/);
+    assert.match(retained.handoff_prompt, /Run the assigned browser scenario/);
+    assert.doesNotThrow(() => runGit("rev-parse", "--verify", "MERGE_HEAD"));
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
