@@ -358,7 +358,7 @@
       "control": "Reuse source",
       "interaction": "command",
       "evidence": [],
-      "runtime_owner": "POST /api/commands/projects/:projectId/sources/reuse + POST /api/queries/projects/:projectId/source-reuse-recovery",
+      "runtime_owner": "GET /api/queries/projects/:projectId/source-reuse-options + POST /api/commands/projects/:projectId/sources/reuse + POST /api/queries/projects/:projectId/source-reuse-recovery",
       "paths": ["UX-PATH-02", "UX-PATH-03", "UX-PATH-04"]
     },
     {

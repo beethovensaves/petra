@@ -103,7 +103,7 @@
     },
     "source-reuse": {
       "kind": "command",
-      "production_owner": "POST /api/commands/projects/:projectId/sources/reuse and POST /api/queries/projects/:projectId/source-reuse-recovery -> PostgresProjectSourceReuseAuthority",
+      "production_owner": "GET /api/queries/projects/:projectId/source-reuse-options -> PostgresProjectSourceReuseOptionsReader; POST /api/commands/projects/:projectId/sources/reuse and POST /api/queries/projects/:projectId/source-reuse-recovery -> PostgresProjectSourceReuseAuthority",
       "authorization": "Bearer authentication plus a server-resolved human principal and exact ReuseProjectSource capability grant. The request binds the exact current target Project and ProjectDefinition, one registered source role, and one exact current originating ProjectSource identity and copy. Actor, grant, new membership identity, storage, and record timestamps remain server-owned. The origin membership must be owned by the authenticated human and its retained RightsDecision must still permit the available copy.",
       "persistence": "PostgreSQL V052 atomically appends only the target ProjectSource membership and immutable reuse receipt. Canonical Work, WorkVersion, authors, Artifact, ArtifactManifest, RightsDecision, storage, and bytes remain unchanged and are referenced exactly.",
       "recovery": "Stable command and idempotency identities replay the exact receipt. The read-only assessment distinguishes confirmed, unknown, conflicting, and differently owned outcomes and returns either the exact reused ProjectSource or the safe target Project source collection."

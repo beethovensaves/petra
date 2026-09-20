@@ -591,6 +591,14 @@ export type {
   ProjectMembership as ProjectSourceReuseMembershipRequest,
 } from "./generated/project-source-reuse-request.js";
 export type {
+  Availability as ProjectSourceReuseOptionsAvailability,
+  Candidate as ProjectSourceReuseCandidate,
+  CandidateDisplay as ProjectSourceReuseCandidateDisplay,
+  PetraProjectSourceReuseOptionsView,
+  Profile as ProjectSourceReuseOptionsProfile,
+  SourceRole as ProjectSourceReuseOptionRole,
+} from "./generated/project-source-reuse-options-view.js";
+export type {
   MaterialOutcome as ProjectSourceReuseMaterialOutcome,
   Membership as ProjectSourceReuseMembership,
   PetraProjectSourceReuseReceipt,

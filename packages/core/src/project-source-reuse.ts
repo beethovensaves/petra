@@ -1,5 +1,6 @@
 import type {
   PetraProjectSource,
+  PetraProjectSourceReuseOptionsView,
   PetraProjectSourceReuseReceipt,
   PetraProjectSourceReuseRecoveryView,
   PetraProjectSourceReuseRequest,
@@ -39,6 +40,18 @@ export interface ProjectSourceReuseResult {
   readonly projectSource: PetraProjectSource;
   /** False only when the exact idempotent reuse receipt was replayed. */
   readonly applied: boolean;
+}
+
+/**
+ * Authenticated read owner for a source-reuse selector. The server-resolved
+ * principal is used only to authorize the target Project and constrain
+ * candidates to copies owned by that human; it is never returned to clients.
+ */
+export interface ProjectSourceReuseOptionsReader {
+  readProjectSourceReuseOptions(
+    projectId: string,
+    principal: ProjectSourceReusePrincipal,
+  ): Promise<PetraProjectSourceReuseOptionsView>;
 }
 
 /**
