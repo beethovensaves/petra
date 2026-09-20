@@ -292,6 +292,16 @@ export const startPetraServer = async (
               projectSourceRegistrationAuthority:
                 options.groundedSynthesisPersistence.sourceRegistrations,
             }),
+      ...(options.projectSourceReuseAuthority !== undefined
+        ? {
+            projectSourceReuseAuthority: options.projectSourceReuseAuthority,
+          }
+        : options.groundedSynthesisPersistence === undefined
+          ? {}
+          : {
+              projectSourceReuseAuthority:
+                options.groundedSynthesisPersistence.sourceReuses,
+            }),
       ...(options.projectShellViews !== undefined
         ? { projectShellViews: options.projectShellViews }
         : options.projectShellPersistence === undefined

@@ -101,12 +101,12 @@
       "persistence": "Verified content-addressed bytes and PostgreSQL V051 atomically retain server-derived Author, Work, WorkVersion, Artifact, ArtifactManifest, RightsDecision, ProjectSource membership, immutable ancestry, and one idempotent receipt. Registration never endorses source meaning.",
       "recovery": "Stable command and idempotency identities replay the exact receipt. A read-only assessment distinguishes confirmed, unknown, conflicting, and differently owned outcomes, returning either the exact registered source or the safe Project source collection."
     },
-    "source-reuse-missing": {
-      "kind": "missing",
-      "production_owner": "",
-      "authorization": "No authenticated source reuse command yet links an existing global source identity and exact copy into another Project role.",
-      "persistence": "New-source registration deliberately rejects already registered bytes so reuse cannot be smuggled through intake.",
-      "recovery": "No idempotent existing-source reuse receipt or reconciliation query exists."
+    "source-reuse": {
+      "kind": "command",
+      "production_owner": "POST /api/commands/projects/:projectId/sources/reuse and POST /api/queries/projects/:projectId/source-reuse-recovery -> PostgresProjectSourceReuseAuthority",
+      "authorization": "Bearer authentication plus a server-resolved human principal and exact ReuseProjectSource capability grant. The request binds the exact current target Project and ProjectDefinition, one registered source role, and one exact current originating ProjectSource identity and copy. Actor, grant, new membership identity, storage, and record timestamps remain server-owned. The origin membership must be owned by the authenticated human and its retained RightsDecision must still permit the available copy.",
+      "persistence": "PostgreSQL V052 atomically appends only the target ProjectSource membership and immutable reuse receipt. Canonical Work, WorkVersion, authors, Artifact, ArtifactManifest, RightsDecision, storage, and bytes remain unchanged and are referenced exactly.",
+      "recovery": "Stable command and idempotency identities replay the exact receipt. The read-only assessment distinguishes confirmed, unknown, conflicting, and differently owned outcomes and returns either the exact reused ProjectSource or the safe target Project source collection."
     },
     "source-processing-missing": {
       "kind": "missing",
@@ -476,9 +476,9 @@
     },
     {
       "operation_id": "source.reuse",
-      "owner": "source-reuse-missing",
-      "owner_status": "missing",
-      "missing_owner": "Source reuse/link command with retained global identity and new Project role."
+      "owner": "source-reuse",
+      "owner_status": "owned",
+      "missing_owner": ""
     },
     {
       "operation_id": "source.start-processing",

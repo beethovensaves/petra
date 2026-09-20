@@ -10,6 +10,7 @@ import {
   PostgresInteractionAuthorityRepository,
   PostgresResearchScopeRepository,
   PostgresProjectSourceRegistrationAuthority,
+  PostgresProjectSourceReuseAuthority,
   PostgresSynthesistExecutionRepository,
   PostgresWorkUnitAuthorityRepository,
 } from "@petra/postgres";
@@ -24,6 +25,7 @@ import type {
   InteractionAuthorityRepository,
   ResearchScopeRepository,
   ProjectSourceRegistrationAuthority,
+  ProjectSourceReuseAuthority,
   SynthesistExecutionRepository,
   WorkUnitAuthorityRepository,
 } from "@petra/core";
@@ -35,6 +37,7 @@ export interface GroundedSynthesisPersistence {
   readonly artifactStore: ArtifactStore;
   readonly artifacts: ArtifactAuthorityRepository;
   readonly sourceRegistrations: ProjectSourceRegistrationAuthority;
+  readonly sourceReuses: ProjectSourceReuseAuthority;
   readonly executions: SynthesistExecutionRepository;
   readonly workUnits: WorkUnitAuthorityRepository;
   readonly interactions: InteractionAuthorityRepository;
@@ -196,11 +199,12 @@ export const createGroundedSynthesisPersistenceFromEnvironment = async (
     const schema = await pool.query<{ ready: boolean }>(
       `SELECT to_regclass('petra.grounded_responses') IS NOT NULL
           AND to_regclass('petra.project_source_registration_receipts') IS NOT NULL
+          AND to_regclass('petra.project_source_reuse_receipts') IS NOT NULL
           AS ready`,
     );
     if (schema.rows[0]?.ready !== true) {
       throw new GroundedSynthesisPersistenceConfigurationError(
-        "PostgreSQL is reachable, but the grounded response or source registration authority is not migrated.",
+        "PostgreSQL is reachable, but the grounded response, source registration, or source reuse authority is not migrated.",
       );
     }
     await ensureBucket(client, bucket);
@@ -221,6 +225,10 @@ export const createGroundedSynthesisPersistenceFromEnvironment = async (
     sourceRegistrations: new PostgresProjectSourceRegistrationAuthority(
       pool,
       artifactStore,
+      new PostgresCapabilityGrantCommandAuthorizer(),
+    ),
+    sourceReuses: new PostgresProjectSourceReuseAuthority(
+      pool,
       new PostgresCapabilityGrantCommandAuthorizer(),
     ),
     executions: new PostgresSynthesistExecutionRepository(pool),
