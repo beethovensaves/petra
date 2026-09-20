@@ -9399,7 +9399,31 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
     try {
       const body = await readBoundedJson(context, maxBodyBytes);
       const response = parseAgUiReviewResponse(body);
-      if (options.reviewAuthority === undefined) {
+      let reviewAuthority = options.reviewAuthority;
+      if (options.commandPrincipalResolver !== undefined) {
+        const directAuthority =
+          response.decision === "accept"
+            ? await resolveApplyAuthority(response.project_id)
+            : await resolveRejectAuthority(response.project_id);
+        const grants = Object.values(directAuthority.capability_grants);
+        if (
+          new Set(grants).size !== 1 ||
+          directAuthority.authorization_basis.actor.actor_kind !== "human"
+        ) {
+          throw new DurableReviewInterruptError(
+            "REVIEW_INTERRUPT_UNAUTHORIZED",
+            "The durable InteractionRun requires one exact authenticated human grant for the direct Review command sequence.",
+          );
+        }
+        reviewAuthority = {
+          actor: {
+            actor_id: directAuthority.authorization_basis.actor.actor_id,
+            actor_kind: "human",
+          },
+          capability_grant_id: grants[0]!,
+        };
+      }
+      if (reviewAuthority === undefined) {
         return jsonError(
           context,
           503,
@@ -9408,7 +9432,12 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
         );
       }
       return context.json(
-        await runtime.resolveReview(response, options.reviewAuthority),
+        options.reviewBoundary === undefined
+          ? await runtime.resolveReview(response, reviewAuthority)
+          : await options.reviewBoundary.resolveReview(
+              response,
+              reviewAuthority,
+            ),
       );
     } catch (error: unknown) {
       const status =

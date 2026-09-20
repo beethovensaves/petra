@@ -12,6 +12,7 @@ import { PostgresProjectBriefViewReader } from "@petra/postgres";
 import type { ProjectBriefViewReader } from "@petra/core";
 import {
   PostgresCapabilityGrantCommandAuthorizer,
+  PostgresArtifactAuthorityRepository,
   PostgresChangeControlAuthorityRepository,
   PostgresFocusedGraphViewReader,
   PostgresReviewSessionApplyBoundary,
@@ -23,6 +24,7 @@ import {
   PostgresProjectEffectiveControlsViewReader,
   PostgresProjectModelReadinessReader,
   PostgresProjectImportAuthority,
+  PostgresInteractionAuthorityRepository,
   PostgresProjectObjectiveCommandAuthority,
   PostgresProjectProfileRuntime,
   PostgresProjectHistoryViewReader,
@@ -102,8 +104,12 @@ import type {
   ProjectWorkingStateSnapshotReader,
   SuggestedActionViewReader,
   SuggestedActionInvocationAuthorityRepository,
+  ReviewInterruptBoundary,
 } from "@petra/core";
 import {
+  ArtifactStoreReviewResponsePayloadRecorder,
+  DurableReviewInterruptCoordinator,
+  DurableReviewInterruptProductBindingLoader,
   FocusedGraphActionPreviewViewComposer,
   FocusedGraphAnalysisViewComposer,
   parsePetraId,
@@ -192,6 +198,10 @@ export interface ProjectShellPersistence {
   readonly sourceLinkRemovals: ProjectSourceLinkRemovalAuthority;
   readonly sourceLocalCopyDeletions: ProjectSourceLocalCopyDeletionAuthority;
   readonly sourceReplacementAuthority: ProjectSourceReplacementCommandAuthorityRepository;
+  readonly createReviewInterruptBoundary: (serviceActor: {
+    readonly actor_id: string;
+    readonly actor_kind: "human" | "service" | "model";
+  }) => ReviewInterruptBoundary;
   readonly close: () => Promise<void>;
 }
 
@@ -377,6 +387,10 @@ export const createProjectShellPersistenceFromEnvironment = async (
     storeName: "petra-artifacts",
     namespace: "petra",
   });
+  const artifactAuthority = new PostgresArtifactAuthorityRepository(
+    pool,
+    artifactStore,
+  );
   const contracts = new PetraContractRegistry();
   const profileRuntime = new PostgresProjectProfileRuntime(
     pool,
@@ -409,6 +423,12 @@ export const createProjectShellPersistenceFromEnvironment = async (
         }),
   });
   const reviewViews = new PostgresProjectReviewViewReader(pool, contracts);
+  const threadViews = new PostgresProjectThreadViewReader(pool, contracts);
+  const workViews = new PostgresProjectWorkViewReader(pool, contracts);
+  const interactions = new PostgresInteractionAuthorityRepository(
+    pool,
+    contracts,
+  );
   const suggestedActionViews = new PostgresSuggestedActionViewReader(
     pool,
     contracts,
@@ -435,6 +455,79 @@ export const createProjectShellPersistenceFromEnvironment = async (
       contracts,
       new PostgresCapabilityGrantCommandAuthorizer(contracts),
     );
+  const createReviewInterruptBoundary = (serviceActor: {
+    readonly actor_id: string;
+    readonly actor_kind: "human" | "service" | "model";
+  }): ReviewInterruptBoundary => {
+    if (serviceActor.actor_kind !== "service") {
+      throw new ProjectShellPersistenceConfigurationError(
+        "The durable Review interrupt boundary requires Petra's server-owned service Actor.",
+      );
+    }
+    const durableServiceActor = {
+      actor_id: serviceActor.actor_id,
+      actor_kind: "service" as const,
+    };
+    const authorizer = new PostgresCapabilityGrantCommandAuthorizer(contracts);
+    return new DurableReviewInterruptCoordinator({
+      repository: interactions,
+      executor: changeControlAuthority,
+      payloads: new ArtifactStoreReviewResponsePayloadRecorder({
+        store: artifactStore,
+        artifacts: artifactAuthority,
+        serviceActor: durableServiceActor,
+      }),
+      authorizer: {
+        authorize: async (input) => {
+          const client = await pool.connect();
+          try {
+            await client.query("BEGIN");
+            const commands =
+              input.decision === "accept"
+                ? ([
+                    "SubmitChangeSet",
+                    "RecordApproval",
+                    "ApplyChangeSet",
+                  ] as const)
+                : (["SubmitChangeSet", "RecordApproval"] as const);
+            for (const commandName of commands) {
+              if (
+                !(await authorizer.authorize(
+                  {
+                    projectId: input.project_id,
+                    actor: input.actor,
+                    capabilityGrantId: input.capability_grant_id,
+                    commandName,
+                  },
+                  client,
+                ))
+              ) {
+                await client.query("ROLLBACK");
+                return false;
+              }
+            }
+            await client.query("COMMIT");
+            return true;
+          } catch (error) {
+            await client.query("ROLLBACK");
+            throw error;
+          } finally {
+            client.release();
+          }
+        },
+      },
+      serviceActor: durableServiceActor,
+      bindingLoader: new DurableReviewInterruptProductBindingLoader({
+        interactions,
+        artifactStore,
+        reviews: reviewViews,
+        threads: threadViews,
+        work: workViews,
+        apply: reviewSessionApply,
+        reject: reviewSessionApply,
+      }),
+    });
+  };
   const historyCompensationExecution =
     new PostgresProjectHistoryCompensationExecutor(
       pool,
@@ -495,6 +588,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
           AND to_regclass('petra.project_import_command_receipts') IS NOT NULL
           AND to_regclass('petra.project_objective_command_receipts') IS NOT NULL
           AND to_regclass('petra.project_source_processing_commands') IS NOT NULL
+          AND to_regclass('petra.interaction_interrupts') IS NOT NULL
           AND EXISTS (
             SELECT 1
             FROM information_schema.columns
@@ -627,14 +721,14 @@ export const createProjectShellPersistenceFromEnvironment = async (
           contracts,
         ),
         objectLocations: new PostgresProjectObjectLocationViewReader(pool),
-        workViews: new PostgresProjectWorkViewReader(pool),
+        workViews,
         workerOutputManifests: new PostgresProjectWorkerOutputManifestReader(
           pool,
           contracts,
         ),
         workOperations,
         workOperationAuthority: workOperations,
-        threadViews: new PostgresProjectThreadViewReader(pool),
+        threadViews,
         inquiryViews: new PostgresProjectInquiryViewReader(pool),
         inquirySaveAuthority,
         suggestedActionViews,
@@ -661,6 +755,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
             pool,
             new PostgresCapabilityGrantCommandAuthorizer(),
           ),
+        createReviewInterruptBoundary,
         relationshipViews,
         focusedGraphViews,
         focusedGraphActionPreviewViews,
@@ -728,14 +823,14 @@ export const createProjectShellPersistenceFromEnvironment = async (
       contracts,
     ),
     objectLocations: new PostgresProjectObjectLocationViewReader(pool),
-    workViews: new PostgresProjectWorkViewReader(pool),
+    workViews,
     workerOutputManifests: new PostgresProjectWorkerOutputManifestReader(
       pool,
       contracts,
     ),
     workOperations,
     workOperationAuthority: workOperations,
-    threadViews: new PostgresProjectThreadViewReader(pool),
+    threadViews,
     inquiryViews: new PostgresProjectInquiryViewReader(pool),
     suggestedActionViews,
     suggestedActionInvocations:
@@ -761,6 +856,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
         pool,
         new PostgresCapabilityGrantCommandAuthorizer(),
       ),
+    createReviewInterruptBoundary,
     close,
   };
 };

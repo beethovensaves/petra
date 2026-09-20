@@ -1,11 +1,21 @@
 import { PostgresProjectShellViewReader } from "../src/project-shell-view-reader.js";
-import { ProjectBriefClient } from "@petra/adapters";
+import {
+  InteractionInputError,
+  PetraInteractionClient,
+  ProjectBriefClient,
+} from "@petra/adapters";
 import { projectBriefSnapshotMaterial } from "@petra/core";
 import { PostgresProjectBriefViewReader } from "../src/project-brief-view-reader.js";
 import type { PostgresCommandAuthorizer } from "../src/command-authorizer.js";
 import type { ReviewApplyAuthority, ReviewRejectAuthority } from "@petra/core";
 import type {
   PetraCapabilityGrant,
+  PetraInteractionEventRecord,
+  PetraInteractionFeatureManifest,
+  PetraInteractionInterrupt,
+  PetraInteractionRun,
+  PetraProjectThreadView,
+  PetraReviewInterruptResponse,
   PetraReviewSessionApplyCheckpoint,
   PetraReviewSessionApplyRequest,
   PetraReviewSessionRejectRequest,
@@ -21,7 +31,7 @@ import {
 } from "@petra/adapters";
 import { PostgresReviewRecoveryAssessmentReader } from "../src/review-recovery-assessment-reader.js";
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 
 import type {
   PetraActor,
@@ -65,6 +75,14 @@ import type {
   PersistDocumentBundleInput,
   PersistVerifiedArtifactInput,
 } from "@petra/core";
+import {
+  ArtifactStoreReviewResponsePayloadRecorder,
+  DurableReviewInterruptCoordinator,
+  DurableReviewInterruptProductBindingLoader,
+  buildReviewApplyPlan,
+  reviewInterruptCommandPromptBytes,
+  type ReviewInterruptCommandPrompt,
+} from "@petra/core";
 import type {
   ReviewCandidateCorrectionAuthorityError,
   ReviewCandidateBasisRevisionAuthorityError,
@@ -80,6 +98,7 @@ import type {
 } from "@petra/core";
 import { canonicalize } from "json-canonicalize";
 import pg from "pg";
+import { format as formatText } from "prettier";
 import {
   afterAll,
   beforeAll,
@@ -99,6 +118,7 @@ import { PostgresChangeControlAuthorityRepository } from "../src/change-control-
 import { PostgresDocumentAuthorityRepository } from "../src/document-authority-repository.js";
 import { PostgresEvidenceAuthorityRepository } from "../src/evidence-authority-repository.js";
 import { PostgresGraphProjectionAuthorityRepository } from "../src/graph-projection-authority-repository.js";
+import { PostgresInteractionAuthorityRepository } from "../src/interaction-authority-repository.js";
 import { PostgresProjectDefinitionAuthorityRepository } from "../src/project-definition-authority-repository.js";
 import { PostgresProjectHistoryViewReader } from "../src/project-history-view-reader.js";
 import { PostgresProjectReviewViewReader } from "../src/project-review-view-reader.js";
@@ -111,7 +131,11 @@ import {
 import { PostgresScholarlyIdentityRepository } from "../src/scholarly-identity-repository.js";
 import { PostgresWorkingStateAuthorityRepository } from "../src/working-state-authority-repository.js";
 import { PostgresWorkUnitAuthorityRepository } from "../src/work-unit-authority-repository.js";
-import { availableArtifactStore } from "./artifact-store-fixture.js";
+import { PostgresProjectWorkViewReader } from "../src/project-work-view-reader.js";
+import {
+  availableArtifactStore,
+  createMemoryArtifactStore,
+} from "./artifact-store-fixture.js";
 
 const { Pool } = pg;
 const connectionString = process.env.PETRA_TEST_POSTGRES_URL;
@@ -3946,6 +3970,500 @@ describePostgres("PostgreSQL ReviewSession authority and Project view", () => {
       await expect(
         validateReviewApplyResult(changed, request),
       ).rejects.toThrow();
+    }
+  });
+
+  it("uses the exact direct Review commands for a durable Petra interrupt after restart", async () => {
+    const setup = await applySetup();
+    const decidedAt = "2026-09-20T16:00:00.000Z";
+    const directBoundary = new PostgresReviewSessionApplyBoundary(
+      pool,
+      setup.authorizer,
+      new PostgresChangeControlAuthorityRepository(pool, setup.authorizer),
+      contracts,
+      undefined,
+      () => decidedAt,
+    );
+    const applyCheckpoint = await directBoundary.prepareReviewApply(
+      setup.selection,
+      setup.authority,
+    );
+    const rejectAuthority: ReviewRejectAuthority = {
+      authorization_basis: {
+        kind: "authenticated_human_checkpoint",
+        decision: "reject",
+        actor: structuredClone(setup.authority.authorization_basis.actor),
+      },
+      capability_grants: {
+        SubmitChangeSet: setup.authority.capability_grants.SubmitChangeSet,
+        RecordApproval: setup.authority.capability_grants.RecordApproval,
+      },
+    };
+    const rejectCheckpoint = await directBoundary.prepareReviewReject(
+      setup.selection,
+      rejectAuthority,
+    );
+    const review = await new PostgresProjectReviewViewReader(
+      pool,
+      contracts,
+    ).getProjectReviewView(
+      setup.selection.project_id,
+      setup.selection.review_session_id,
+    );
+    const candidateTask = setup.candidate.task_context;
+    if (review === undefined || candidateTask.task_kind !== "work_unit") {
+      throw new Error("Expected one exact Work-backed Review fixture.");
+    }
+    const workViews = new PostgresProjectWorkViewReader(pool, contracts);
+    const work = await workViews.getProjectWorkView(
+      setup.selection.project_id,
+      candidateTask.work_unit_ref.record_id,
+    );
+    if (work === undefined || work.content.view_kind !== "detail") {
+      throw new Error("Expected the exact originating Work detail.");
+    }
+
+    const interactionRun = readFixture<PetraInteractionRun>("interaction-run");
+    interactionRun.project_id = setup.selection.project_id;
+    interactionRun.content.correlation.protocol_thread_id =
+      "project_thread_01K4C000000000000000000101";
+    interactionRun.content.correlation.protocol_run_id =
+      "run-wave6-review-interrupt";
+    interactionRun.content.correlation.work_unit_ref = {
+      work_unit_id: work.content.summary.work_unit_ref.work_unit_id,
+      revision: work.content.summary.work_unit_ref.revision,
+      spec_hash: work.content.summary.work_unit_ref.spec_hash,
+    };
+    interactionRun.content.authority_context.actor = {
+      actor_id: setup.actor.actor_id,
+      actor_kind: "human",
+    };
+    interactionRun.content.authority_context.capability_grant_id =
+      setup.authority.capability_grants.RecordApproval;
+    interactionRun.content_hash = canonicalHash(interactionRun.content);
+
+    const thread = readFixture<PetraProjectThreadView>(
+      "project-thread-view-detail",
+    );
+    if (thread.content.view_kind !== "detail") {
+      throw new Error("Expected a ProjectThread detail fixture.");
+    }
+    thread.project_id = setup.selection.project_id;
+    const threadRef = structuredClone(thread.content.summary.thread_ref);
+    const linkedTurn = thread.content.turns[0];
+    if (linkedTurn === undefined) throw new Error("Expected a linked turn.");
+    linkedTurn.turn.execution = {
+      interaction_run_ref: {
+        interaction_run_id: interactionRun.interaction_run_id,
+        revision: interactionRun.revision,
+        content_hash: interactionRun.content_hash,
+      },
+      work_unit_ref: {
+        work_unit_id: work.content.summary.work_unit_ref.work_unit_id,
+        revision: work.content.summary.work_unit_ref.revision,
+        spec_hash: work.content.summary.work_unit_ref.spec_hash,
+      },
+    };
+
+    const prompt: ReviewInterruptCommandPrompt = {
+      schema_name: "petra.review-interrupt-command-prompt",
+      schema_version: "1.0.0",
+      project_id: setup.selection.project_id,
+      interaction_run_ref: {
+        interaction_run_id: interactionRun.interaction_run_id,
+        revision: interactionRun.revision,
+        content_hash: interactionRun.content_hash,
+      },
+      project_thread_ref: threadRef,
+      work_unit_ref: structuredClone(work.content.summary.work_unit_ref),
+      review_session_ref: {
+        review_session_id: setup.selection.review_session_id,
+        revision: setup.selection.expected_revision,
+        content_hash: setup.selection.expected_content_hash,
+      },
+      review_member_id: setup.selection.selected_review_member_id,
+      return_context: structuredClone(review.content.session.return_context),
+      apply_checkpoint: applyCheckpoint,
+      reject_checkpoint: rejectCheckpoint,
+    };
+    const promptBytes = reviewInterruptCommandPromptBytes(prompt);
+    const artifactStore = createMemoryArtifactStore();
+    const promptHash = sha256(promptBytes);
+    const stagedPrompt = await artifactStore.stage({
+      bytes: [promptBytes],
+      declaredByteSize: promptBytes.byteLength,
+      declaredMediaType: "application/json",
+      expectedContentHash: promptHash,
+    });
+    await artifactStore.makeAvailable(stagedPrompt);
+    const responseArtifacts = new PostgresArtifactAuthorityRepository(
+      pool,
+      artifactStore,
+    );
+    const promptArtifact = parserArtifactInput(sourceArtifactInput());
+    promptArtifact.artifact.artifact_id = "artifact_01K4Z000000000000000000001";
+    promptArtifact.artifact.content_hash = promptHash;
+    promptArtifact.artifact.byte_size = promptBytes.byteLength;
+    promptArtifact.artifact.created_at = decidedAt;
+    promptArtifact.manifest.artifact_manifest_id =
+      "artifact_manifest_01K4Z000000000000000000002";
+    promptArtifact.manifest.artifact_id = promptArtifact.artifact.artifact_id;
+    promptArtifact.manifest.rights_decision_id =
+      "rights_decision_01K4Z000000000000000000003";
+    promptArtifact.manifest.origin = {
+      origin_kind: "generated",
+      generator_name: "petra-review-interrupt-command-prompt",
+      generator_version: "1.0.0",
+      generated_at: decidedAt,
+      input_artifact_ids: [sourceArtifactInput().artifact.artifact_id],
+    };
+    promptArtifact.manifest.storage_ref.object_key = `sha256/${promptHash.slice(7, 9)}/${promptHash.slice(9)}`;
+    promptArtifact.manifest.storage_ref.content_hash = promptHash;
+    promptArtifact.manifest.storage_ref.verified_at = decidedAt;
+    promptArtifact.manifest.integrity.checked_at = decidedAt;
+    promptArtifact.manifest.recorded_at = decidedAt;
+    promptArtifact.rightsDecision.rights_decision_id =
+      promptArtifact.manifest.rights_decision_id;
+    promptArtifact.rightsDecision.artifact_manifest_id =
+      promptArtifact.manifest.artifact_manifest_id;
+    promptArtifact.rightsDecision.source_location =
+      "urn:petra:review-interrupt-command-prompt:wave6";
+    promptArtifact.rightsDecision.observed_at = decidedAt;
+    promptArtifact.rightsDecision.created_at = decidedAt;
+    await artifacts.registerVerifiedAcquisition(promptArtifact);
+
+    const interactionRecords = new PostgresInteractionAuthorityRepository(
+      pool,
+      contracts,
+    );
+    const feature = readFixture<PetraInteractionFeatureManifest>(
+      "interaction-feature-manifest",
+    );
+    feature.compiled_by = {
+      actor_id: "actor_01ARZ3NDEKTSV4RRFFQ69G5FBE",
+      actor_kind: "service",
+    };
+    await interactionRecords.registerFeatureManifest(feature);
+    await interactionRecords.registerRun(interactionRun);
+    const event = readFixture<PetraInteractionEventRecord>(
+      "interaction-event-record",
+    );
+    event.project_id = setup.selection.project_id;
+    event.interaction_run_ref = {
+      interaction_run_id: interactionRun.interaction_run_id,
+      revision: interactionRun.revision,
+      content_hash: interactionRun.content_hash,
+    };
+    event.content.payload_artifact_ref = {
+      artifact_id: "artifact_01K4Z000000000000000000001",
+      content_sha256: promptHash,
+      byte_size: promptBytes.byteLength,
+      media_type: "application/json",
+    };
+    event.content_hash = canonicalHash(event.content);
+    event.recorded_by = {
+      actor_id: "actor_01ARZ3NDEKTSV4RRFFQ69G5FBE",
+      actor_kind: "service",
+    };
+    await interactionRecords.appendEvent(event);
+
+    const pending = readFixture<PetraInteractionInterrupt>(
+      "interaction-interrupt-pending",
+    );
+    if (pending.content.state !== "pending") {
+      throw new Error("Expected a pending interrupt fixture.");
+    }
+    pending.project_id = setup.selection.project_id;
+    pending.interaction_run_ref = {
+      interaction_run_id: interactionRun.interaction_run_id,
+      revision: interactionRun.revision,
+      content_hash: interactionRun.content_hash,
+    };
+    pending.content.request_event_ref = {
+      interaction_event_record_id: event.interaction_event_record_id,
+      sequence: event.sequence,
+      content_hash: event.content_hash,
+    };
+    pending.content.subject_refs = [
+      applyCheckpoint.binding.change_set.change_set_id,
+      rejectCheckpoint.binding.change_set.change_set_id,
+    ];
+    pending.content.prompt_artifact_ref = {
+      artifact_id: "artifact_01K4Z000000000000000000001",
+      content_sha256: promptHash,
+      byte_size: promptBytes.byteLength,
+      media_type: "application/json",
+    };
+    pending.content.response_schema_ref = {
+      schema_name: "review-interrupt-response",
+      schema_version: "1.0.0",
+      content_hash:
+        "sha256:81a8a6771e1e7155681741b024f94862bf0e4c1cb7b8ff737b2fcf14f2a20306",
+    };
+    pending.content_hash = canonicalHash(pending.content);
+    pending.recorded_by = {
+      actor_id: "actor_01ARZ3NDEKTSV4RRFFQ69G5FBE",
+      actor_kind: "service",
+    };
+    await interactionRecords.registerInterrupt(pending);
+
+    const response = readFixture<PetraReviewInterruptResponse>(
+      "review-interrupt-response",
+    );
+    response.client_response_id = "wave6-review-interrupt-response";
+    response.project_id = setup.selection.project_id;
+    response.interaction_run_id = interactionRun.interaction_run_id;
+    response.interrupt_ref = {
+      interaction_interrupt_id: pending.interaction_interrupt_id,
+      revision: pending.revision,
+      content_hash: pending.content_hash,
+    };
+    response.change_set_ref = {
+      change_set_id: applyCheckpoint.binding.change_set.change_set_id,
+      revision: applyCheckpoint.binding.change_set.revision,
+      content_hash: applyCheckpoint.binding.change_set.content_hash,
+    };
+    response.decision = "accept";
+    response.decided_at = decidedAt;
+
+    const threads = {
+      listProjectThreadView: vi.fn(() => Promise.resolve(undefined)),
+      getProjectThreadView: vi.fn(() => Promise.resolve(thread)),
+    };
+    const createBoundary = () =>
+      new DurableReviewInterruptCoordinator({
+        repository: interactionRecords,
+        executor: new PostgresChangeControlAuthorityRepository(
+          pool,
+          setup.authorizer,
+        ),
+        payloads: new ArtifactStoreReviewResponsePayloadRecorder({
+          store: artifactStore,
+          artifacts: responseArtifacts,
+          serviceActor: {
+            actor_id: "actor_01ARZ3NDEKTSV4RRFFQ69G5FBE",
+            actor_kind: "service",
+          },
+        }),
+        authorizer: { authorize: () => true },
+        serviceActor: {
+          actor_id: "actor_01ARZ3NDEKTSV4RRFFQ69G5FBE",
+          actor_kind: "service",
+        },
+        bindingLoader: new DurableReviewInterruptProductBindingLoader({
+          interactions: interactionRecords,
+          artifactStore,
+          reviews: new PostgresProjectReviewViewReader(pool, contracts),
+          threads,
+          work: workViews,
+          apply: directBoundary,
+          reject: directBoundary,
+        }),
+      });
+    const principal = new PostgresSingleUserCommandPrincipalResolver(pool, {
+      actor_id: setup.actor.actor_id,
+      actor_kind: "human",
+    });
+    const appFor = (reviewBoundary: DurableReviewInterruptCoordinator) =>
+      createPetraApp({
+        authToken: "wave6-interrupt-test",
+        reviewBoundary,
+        reviewSessionApply: directBoundary,
+        reviewSessionReject: directBoundary,
+        commandPrincipalResolver: principal,
+      });
+    const firstApp = appFor(createBoundary());
+    const client = new PetraInteractionClient({
+      endpoint: "http://petra.local/api/interactions/run",
+      token: "wave6-interrupt-test",
+      fetch: async (url, init) =>
+        firstApp.app.request(
+          new Request(url instanceof Request ? url : String(url), init),
+        ),
+    });
+    const first = await client
+      .resolveReview(response)
+      .catch((error: unknown) => {
+        if (error instanceof InteractionInputError) {
+          throw new Error(error.issues.join("\n"));
+        }
+        throw error;
+      });
+    expect(first).toMatchObject({
+      replayed: false,
+      response_recorded: true,
+      result: {
+        schema_name: "petra.review-session-apply-result",
+        outcome: "applied",
+      },
+      return_context: {
+        project_thread_ref: threadRef,
+        review_session_ref: prompt.review_session_ref,
+        work_unit_ref: prompt.work_unit_ref,
+      },
+    });
+    const firstResult = first.result as Awaited<
+      ReturnType<PostgresReviewSessionApplyBoundary["executeReviewApply"]>
+    >;
+    const directPlan = buildReviewApplyPlan(firstResult.request);
+    expect(firstResult.steps.map(({ envelope }) => envelope)).toEqual([
+      directPlan.submit,
+      directPlan.review,
+      directPlan.apply,
+    ]);
+    expect(firstResult.assessment.content.groups[0]).toMatchObject({
+      state: "applied",
+      member_ids: [setup.selection.selected_review_member_id],
+    });
+
+    const restartedApp = appFor(createBoundary());
+    const restartedClient = new PetraInteractionClient({
+      endpoint: "http://petra.local/api/interactions/run",
+      token: "wave6-interrupt-test",
+      fetch: async (url, init) =>
+        restartedApp.app.request(
+          new Request(url instanceof Request ? url : String(url), init),
+        ),
+    });
+    const replay = await restartedClient.resolveReview(response);
+    expect(replay).toMatchObject({
+      replayed: true,
+      response_recorded: false,
+      result: { outcome: "applied" },
+    });
+    const replayResult = replay.result as typeof firstResult;
+    expect(replayResult.steps.map(({ observation }) => observation)).toEqual([
+      "replayed",
+      "replayed",
+      "replayed",
+    ]);
+    expect(
+      replayResult.steps.map(({ envelope }) => ({
+        command_id: envelope.command_id,
+        idempotency_key: envelope.idempotency_key,
+        command_name: envelope.command.command_name,
+      })),
+    ).toEqual(
+      firstResult.steps.map(({ envelope }) => ({
+        command_id: envelope.command_id,
+        idempotency_key: envelope.idempotency_key,
+        command_name: envelope.command.command_name,
+      })),
+    );
+
+    const direct = await restartedApp.app.request(
+      new Request(
+        `http://petra.local/api/commands/projects/${setup.selection.project_id}/reviews/${setup.selection.review_session_id}/apply`,
+        {
+          method: "POST",
+          headers: {
+            authorization: "Bearer wave6-interrupt-test",
+            "content-type": "application/json",
+          },
+          body: JSON.stringify(firstResult.request),
+        },
+      ),
+    );
+    expect(direct.status).toBe(200);
+    const directReplay = (await direct.json()) as typeof firstResult;
+    expect(directReplay.outcome).toBe("applied");
+    expect(directReplay.steps.map(({ envelope }) => envelope)).toEqual(
+      firstResult.steps.map(({ envelope }) => envelope),
+    );
+    expect(directReplay.steps.map(({ observation }) => observation)).toEqual([
+      "replayed",
+      "replayed",
+      "replayed",
+    ]);
+
+    const authorityInjection = await restartedApp.app.request(
+      new Request("http://petra.local/api/commands/reviews/resolve", {
+        method: "POST",
+        headers: {
+          authorization: "Bearer wave6-interrupt-test",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          ...response,
+          actor: setup.authority.authorization_basis.actor,
+        }),
+      }),
+    );
+    expect(authorityInjection.status).toBe(422);
+    expect(threads.getProjectThreadView).toHaveBeenCalledWith(
+      setup.selection.project_id,
+      threadRef.project_thread_id,
+    );
+    const counts = await pool.query<{
+      interrupts: string;
+      commands: string;
+      approvals: string;
+      applied_events: string;
+    }>(
+      `SELECT
+         (SELECT count(*)::text
+            FROM petra.interaction_interrupt_revisions
+           WHERE interaction_interrupt_id = $1) AS interrupts,
+         (SELECT count(*)::text FROM petra.command_executions) AS commands,
+         (SELECT count(*)::text FROM petra.approvals) AS approvals,
+         (SELECT count(*)::text
+            FROM petra.domain_events
+           WHERE event_type = 'change_set.applied') AS applied_events`,
+      [pending.interaction_interrupt_id],
+    );
+    expect(counts.rows[0]).toEqual({
+      interrupts: "2",
+      commands: "3",
+      approvals: "1",
+      applied_events: "1",
+    });
+
+    const evidenceOutput = process.env.PETRA_WAVE6_ACTIONS_EVIDENCE_OUTPUT;
+    if (evidenceOutput !== undefined) {
+      writeFileSync(
+        evidenceOutput,
+        await formatText(
+          JSON.stringify(
+            {
+              evidence_id: "UX1.6-ACTIONS",
+              scenario_id: "direct-petra-command-parity",
+              status: "passed",
+              project_id: setup.selection.project_id,
+              project_thread_ref: threadRef,
+              review_session_ref: prompt.review_session_ref,
+              work_unit_ref: prompt.work_unit_ref,
+              interaction_run_ref: prompt.interaction_run_ref,
+              interrupt_ref: response.interrupt_ref,
+              change_set_ref: response.change_set_ref,
+              direct_and_petra_command_refs: firstResult.steps.map(
+                ({ envelope }) => ({
+                  command_id: envelope.command_id,
+                  idempotency_key: envelope.idempotency_key,
+                  command_name: envelope.command.command_name,
+                  actor: envelope.actor,
+                  capability_grant_id: envelope.capability_grant_id,
+                }),
+              ),
+              first_outcome: firstResult.outcome,
+              restart_replay_outcome: replayResult.outcome,
+              restart_observations: replayResult.steps.map(
+                ({ observation }) => observation,
+              ),
+              direct_replay_observations: directReplay.steps.map(
+                ({ observation }) => observation,
+              ),
+              recovery: firstResult.assessment,
+              durable_counts: counts.rows[0],
+              model_authority: "none",
+              boundary:
+                "Authenticated human response only; the retained prompt supplies exact direct Review checkpoints and model prose supplies no Actor, grant, command, or authority.",
+            },
+            null,
+            2,
+          ),
+          { parser: "json" },
+        ),
+      );
     }
   });
 

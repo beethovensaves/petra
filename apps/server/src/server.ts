@@ -143,13 +143,18 @@ export const startPetraServer = async (
               ),
             ...(interactionHistory === undefined ? {} : { interactionHistory }),
           }));
+    const reviewBoundary =
+      options.reviewBoundary ??
+      (grounded === undefined || options.projectShellPersistence === undefined
+        ? undefined
+        : options.projectShellPersistence.createReviewInterruptBoundary(
+            grounded.terminalContext.serviceActor,
+          ));
     const runtime =
       grounded === undefined
         ? options.runtime
         : new PetraInteractionRuntime({
-            ...(options.reviewBoundary === undefined
-              ? {}
-              : { reviewBoundary: options.reviewBoundary }),
+            ...(reviewBoundary === undefined ? {} : { reviewBoundary }),
             groundedSynthesisExecutor: grounded.executor,
             ...(groundedSynthesisTerminal === undefined
               ? {}
@@ -211,6 +216,7 @@ export const startPetraServer = async (
     petra = createPetraApp({
       ...options,
       ...(runtime === undefined ? {} : { runtime }),
+      ...(reviewBoundary === undefined ? {} : { reviewBoundary }),
       ...(codexProvider === undefined ? {} : { codexProvider }),
       ...(codexWorkspaceRoot === undefined ? {} : { codexWorkspaceRoot }),
       ...(projectModelReadiness === undefined ? {} : { projectModelReadiness }),

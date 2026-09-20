@@ -284,12 +284,12 @@
       "persistence": "PostgreSQL action basis and invocation/command/Work results for the currently registered families.",
       "recovery": "Reread and exact destinations exist for bounded SuggestedActions; no general allowlisted Petra action composition covers every Wave 6 action family."
     },
-    "review-interrupt-partial": {
-      "kind": "partial",
-      "production_owner": "POST /api/commands/reviews/resolve -> PetraInteractionRuntime -> DurableReviewInterrupt boundary",
-      "authorization": "Bearer authentication plus an injected authenticated ReviewResolutionContext; the production server currently does not configure that authority.",
-      "persistence": "Durable interrupt primitives exist, but no production ProjectThread/Review/Work response composition is wired at startup.",
-      "recovery": "The route rejects unavailable or unauthorized authority; product reread, duplicate response reconciliation, and exact return are incomplete."
+    "review-interrupt": {
+      "kind": "command",
+      "production_owner": "POST /api/commands/reviews/resolve -> server-resolved direct Review authority -> DurableReviewInterruptCoordinator -> DurableReviewInterruptProductBindingLoader -> Postgres Review apply/reject boundaries",
+      "authorization": "Bearer authentication resolves the same server-owned human Actor and capability grants as direct Review Apply or Reject. The retained command prompt, current ProjectThread, Review member, WorkUnit, InteractionRun, and direct checkpoint are reread exactly; client or model prose cannot supply identity, grants, commands, or authority.",
+      "persistence": "PostgreSQL retains InteractionRun, pending/responded interrupt revisions, exact Review commands, Approval, events, and outcomes. The canonical response bytes and retained command prompt use verified ArtifactStore bytes with immutable PostgreSQL Artifact authority records.",
+      "recovery": "Exact response replay after process restart returns the same idempotent direct command envelopes and outcome; conflicting, stale, authority-injected, mismatched, unavailable, and unknown-effect states fail without a second effect and return exact ProjectThread, Review, Work, and originating-task context."
     },
     "model-readiness": {
       "kind": "query",
@@ -808,9 +808,9 @@
     },
     {
       "operation_id": "petra.respond-interrupt",
-      "owner": "review-interrupt-partial",
-      "owner_status": "partial",
-      "missing_owner": "Production-wired authenticated interrupt authority with ProjectThread/Review/Work reread and return."
+      "owner": "review-interrupt",
+      "owner_status": "owned",
+      "missing_owner": ""
     },
     {
       "operation_id": "model.inspect-readiness",

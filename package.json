@@ -94,6 +94,7 @@
     "test:wave5:browser": "npm run build:packages && node apps/workbench/test/wave5-cumulative-browser.mjs",
     "test:wave5:cumulative": "npm run build:packages && node scripts/test-wave5-cumulative-integration.mjs",
     "test:wave6:actual-model-ui": "npm run build:packages && PETRA_WAVE4_TRACE=wave6-actual-model-ui PETRA_WAVE4_EVIDENCE_OBSERVER=./scripts/wave6-actual-model-ui-observer.mjs PETRA_WAVE4_RESULT_OUTPUT=reports/WAVE6-ACTUAL-MODEL-UI-TRACE.json PETRA_WAVE6_ACTUAL_MODEL_BROWSER_OUTPUT=reports/WAVE6-ACTUAL-MODEL-BROWSER-OBSERVATION.json node scripts/test-wave4-cumulative-integration.mjs",
+    "test:wave6:actions": "PETRA_WAVE6_ACTIONS_ONLY=1 PETRA_WAVE6_ACTIONS_EVIDENCE_OUTPUT=reports/WAVE6-DIRECT-PETRA-COMMAND-PARITY.json node scripts/test-postgres-integration.mjs",
     "test:wave6:source-local-copy-deletion-production": "npm run build:packages && PETRA_WAVE4_TRACE=wave6-source-local-copy-deletion PETRA_WAVE4_RESULT_OUTPUT=reports/WAVE6-SOURCE-LOCAL-COPY-DELETION-PRODUCTION.json node scripts/test-wave4-cumulative-integration.mjs",
     "test:wave6:work": "PETRA_WAVE6_WORK_EVIDENCE_OUTPUT=reports/WAVE6-WORK-PRODUCTION-COMMANDS.json node scripts/test-postgres-integration.mjs",
     "inspect:wave5": "npm run build:packages && PETRA_WAVE4_TRACE=wave5-cumulative PETRA_WAVE4_EVIDENCE_OBSERVER=./apps/workbench/test/wave5-cumulative-evidence-observer.mjs PETRA_WAVE5_BROWSER_OBSERVER_OUTPUT=/tmp/petra-wave5-inspection.json PETRA_WAVE5_INSPECT=1 node scripts/test-wave4-cumulative-integration.mjs",

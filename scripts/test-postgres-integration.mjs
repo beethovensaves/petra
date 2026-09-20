@@ -116,23 +116,36 @@ try {
     );
     process.stdout.write(workEvidence.stdout);
   }
-  const test = await requireRun(
-    "npm",
-    ["test", "--workspace", "@petra/postgres"],
-    {
-      env: {
-        PETRA_TEST_POSTGRES_URL: `postgresql://petra:petra-m12-integration-only@127.0.0.1:${port}/petra`,
-        ...(process.env.PETRA_WAVE6_EVIDENCE_OUTPUT === undefined
-          ? {}
-          : {
-              PETRA_WAVE6_EVIDENCE_OUTPUT: resolve(
-                root,
-                process.env.PETRA_WAVE6_EVIDENCE_OUTPUT,
-              ),
-            }),
-      },
+  const postgresTestArgs = ["test", "--workspace", "@petra/postgres"];
+  if (process.env.PETRA_WAVE6_ACTIONS_ONLY === "1") {
+    postgresTestArgs.push(
+      "--",
+      "review-session-authority-repository.test.ts",
+      "--testNamePattern",
+      "uses the exact direct Review commands for a durable Petra interrupt after restart",
+    );
+  }
+  const test = await requireRun("npm", postgresTestArgs, {
+    env: {
+      PETRA_TEST_POSTGRES_URL: `postgresql://petra:petra-m12-integration-only@127.0.0.1:${port}/petra`,
+      ...(process.env.PETRA_WAVE6_EVIDENCE_OUTPUT === undefined
+        ? {}
+        : {
+            PETRA_WAVE6_EVIDENCE_OUTPUT: resolve(
+              root,
+              process.env.PETRA_WAVE6_EVIDENCE_OUTPUT,
+            ),
+          }),
+      ...(process.env.PETRA_WAVE6_ACTIONS_EVIDENCE_OUTPUT === undefined
+        ? {}
+        : {
+            PETRA_WAVE6_ACTIONS_EVIDENCE_OUTPUT: resolve(
+              root,
+              process.env.PETRA_WAVE6_ACTIONS_EVIDENCE_OUTPUT,
+            ),
+          }),
     },
-  );
+  });
   process.stdout.write(test.stdout);
 } catch (error) {
   failure = error;

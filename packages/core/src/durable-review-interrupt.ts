@@ -3,6 +3,8 @@ import { createHash } from "node:crypto";
 import type {
   PetraInteractionInterrupt,
   PetraInteractionRun,
+  PetraReviewSessionApplyResult,
+  PetraReviewSessionRejectResult,
   PetraReviewInterruptResponse,
 } from "@petra/contracts";
 import { canonicalize } from "json-canonicalize";
@@ -63,7 +65,52 @@ export interface ReviewInterruptResolutionResult {
   readonly interaction_interrupt_id: string;
   readonly interaction_interrupt_revision: number;
   readonly command_id: string;
-  readonly result: ReviewDecisionExecutionResult;
+  readonly result:
+    | ReviewDecisionExecutionResult
+    | PetraReviewSessionApplyResult
+    | PetraReviewSessionRejectResult;
+  readonly return_context?: ReviewInterruptReturnContext;
+}
+
+export interface ReviewInterruptReturnContext {
+  readonly project_thread_ref: {
+    readonly project_thread_id: string;
+    readonly revision: number;
+    readonly content_hash: string;
+    readonly record_hash: string;
+  };
+  readonly review_session_ref: {
+    readonly review_session_id: string;
+    readonly revision: number;
+    readonly content_hash: string;
+  };
+  readonly review_member_id: string;
+  readonly work_unit_ref: {
+    readonly work_unit_id: string;
+    readonly revision: number;
+    readonly spec_hash: string;
+    readonly record_hash: string;
+  };
+  readonly destination: {
+    readonly place:
+      | "brief"
+      | "sources"
+      | "review"
+      | "graph"
+      | "work"
+      | "petra"
+      | "composition"
+      | "history"
+      | "profile_tool";
+    readonly object_ref?: string;
+    readonly label: string;
+  };
+  readonly paths: {
+    readonly project_thread: string;
+    readonly review: string;
+    readonly work: string;
+    readonly return: string;
+  };
 }
 
 export interface ReviewInterruptBoundary {
@@ -123,6 +170,25 @@ export interface ReviewInterruptBinding {
     readonly actor: ReviewActorRef;
     readonly capability_grant_id: string;
   }) => ReviewDecisionCommandPlan;
+  readonly executePlan?: (input: {
+    readonly plan: ReviewDecisionCommandPlan;
+    readonly response: PetraReviewInterruptResponse;
+    readonly context: ReviewResolutionContext;
+  }) => Promise<
+    | ReviewDecisionExecutionResult
+    | PetraReviewSessionApplyResult
+    | PetraReviewSessionRejectResult
+  >;
+  readonly return_context?: ReviewInterruptReturnContext;
+}
+
+export interface ReviewInterruptBindingLoader {
+  loadForProtocolRun(
+    protocolRunId: string,
+  ): Promise<ReviewInterruptBinding | undefined>;
+  loadForResponse(
+    response: PetraReviewInterruptResponse,
+  ): Promise<ReviewInterruptBinding | undefined>;
 }
 
 export type DurableReviewInterruptErrorCode =
@@ -190,7 +256,8 @@ const assertPlan = (
     plan.review.capability_grant_id !== context.capability_grant_id ||
     !equal(plan.review.actor, context.actor) ||
     plan.review.command.command_name !== "RecordApproval" ||
-    plan.review.command.approval.rationale !== response.rationale ||
+    (expectedDecision === "rejected" &&
+      plan.review.command.approval.rationale !== response.rationale) ||
     plan.review.command.approval.decided_at !== response.decided_at ||
     !equal(plan.review.command.approval.decided_by, context.actor) ||
     (expectedDecision === "accepted" && plan.apply === undefined) ||
@@ -213,6 +280,7 @@ export class DurableReviewInterruptCoordinator implements ReviewInterruptBoundar
   readonly #payloads: ReviewResponsePayloadRecorder;
   readonly #authorizer: ReviewInterruptAuthorizer;
   readonly #serviceActor: ServiceActorRef;
+  readonly #bindingLoader: ReviewInterruptBindingLoader | undefined;
   readonly #bindingsByRun = new Map<string, ReviewInterruptBinding>();
   readonly #bindingsByInterrupt = new Map<string, ReviewInterruptBinding>();
 
@@ -222,12 +290,14 @@ export class DurableReviewInterruptCoordinator implements ReviewInterruptBoundar
     payloads: ReviewResponsePayloadRecorder;
     authorizer: ReviewInterruptAuthorizer;
     serviceActor: ServiceActorRef;
+    bindingLoader?: ReviewInterruptBindingLoader;
   }) {
     this.#repository = input.repository;
     this.#executor = input.executor;
     this.#payloads = input.payloads;
     this.#authorizer = input.authorizer;
     this.#serviceActor = structuredClone(input.serviceActor);
+    this.#bindingLoader = input.bindingLoader;
   }
 
   registerBinding(binding: ReviewInterruptBinding): void {
@@ -252,13 +322,16 @@ export class DurableReviewInterruptCoordinator implements ReviewInterruptBoundar
   async presentReview(
     protocolRunId: string,
   ): Promise<ReviewInterruptPresentation> {
-    const binding = this.#bindingsByRun.get(protocolRunId);
+    const binding =
+      this.#bindingsByRun.get(protocolRunId) ??
+      (await this.#bindingLoader?.loadForProtocolRun(protocolRunId));
     if (binding === undefined) {
       throw new DurableReviewInterruptError(
         "REVIEW_INTERRUPT_NOT_FOUND",
         "No durable review interrupt is bound to this protocol run.",
       );
     }
+    this.#rememberLoadedBinding(binding);
     const pending = await this.#repository.getInterruptRevision(
       binding.presentation.interrupt_ref.interaction_interrupt_id,
       binding.presentation.interrupt_ref.revision,
@@ -305,15 +378,17 @@ export class DurableReviewInterruptCoordinator implements ReviewInterruptBoundar
     response: PetraReviewInterruptResponse,
     context: ReviewResolutionContext,
   ): Promise<ReviewInterruptResolutionResult> {
-    const binding = this.#bindingsByInterrupt.get(
-      response.interrupt_ref.interaction_interrupt_id,
-    );
+    const binding =
+      this.#bindingsByInterrupt.get(
+        response.interrupt_ref.interaction_interrupt_id,
+      ) ?? (await this.#bindingLoader?.loadForResponse(response));
     if (binding === undefined) {
       throw new DurableReviewInterruptError(
         "REVIEW_INTERRUPT_NOT_FOUND",
         "The response does not name a registered review interrupt.",
       );
     }
+    this.#rememberLoadedBinding(binding);
     const presentation = binding.presentation;
     if (
       response.project_id !== presentation.project_id ||
@@ -418,9 +493,9 @@ export class DurableReviewInterruptCoordinator implements ReviewInterruptBoundar
     const current = await this.#repository.getInterrupt(
       pending.interaction_interrupt_id,
     );
-    let replayed = false;
+    let replayed: boolean;
     if (current?.content.state === "pending") {
-      await this.#repository.registerInterrupt(responded);
+      replayed = false;
     } else if (current !== undefined && equal(current, responded)) {
       replayed = true;
     } else {
@@ -429,8 +504,11 @@ export class DurableReviewInterruptCoordinator implements ReviewInterruptBoundar
         "This interrupt already has a different terminal response.",
       );
     }
-
-    const result = await executeReviewDecisionPlan(this.#executor, plan);
+    const result =
+      binding.executePlan === undefined
+        ? await executeReviewDecisionPlan(this.#executor, plan)
+        : await binding.executePlan({ plan, response, context });
+    if (!replayed) await this.#repository.registerInterrupt(responded);
     return {
       replayed,
       response_recorded: !replayed,
@@ -438,6 +516,26 @@ export class DurableReviewInterruptCoordinator implements ReviewInterruptBoundar
       interaction_interrupt_revision: responded.revision,
       command_id: plan.review.command_id,
       result,
+      ...(binding.return_context === undefined
+        ? {}
+        : { return_context: structuredClone(binding.return_context) }),
     };
+  }
+
+  #rememberLoadedBinding(binding: ReviewInterruptBinding): void {
+    const byRun = this.#bindingsByRun.get(binding.presentation.protocol_run_id);
+    const byInterrupt = this.#bindingsByInterrupt.get(
+      binding.presentation.interrupt_ref.interaction_interrupt_id,
+    );
+    if (byRun === undefined && byInterrupt === undefined) {
+      this.registerBinding(binding);
+      return;
+    }
+    if (byRun !== binding || byInterrupt !== binding) {
+      throw new DurableReviewInterruptError(
+        "REVIEW_INTERRUPT_BINDING_CONFLICT",
+        "The restored durable interrupt conflicts with the active process binding.",
+      );
+    }
   }
 }
