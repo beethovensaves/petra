@@ -29,6 +29,7 @@ import {
   PostgresReviewSessionAuthorityRepository,
   PostgresProjectShellViewReader,
   PostgresProjectSourceLifecycleViewReader,
+  PostgresProjectSourceReuseOptionsReader,
   PostgresProjectSourceViewReader,
   PostgresProjectThreadViewReader,
   PostgresProjectWorkOperations,
@@ -75,6 +76,7 @@ import type {
   ReviewSessionSeparationAuthorityRepository,
   ProjectShellViewReader,
   ProjectSourceLifecycleViewReader,
+  ProjectSourceReuseOptionsReader,
   ProjectSourceLifecycleAuthorityRepository,
   ProjectSourceReplacementCommandAuthorityRepository,
   ProjectSourceViewReader,
@@ -140,6 +142,7 @@ export interface ProjectShellPersistence {
   readonly historyViews: ProjectHistoryViewReader;
   readonly historyCompensationExecution: ProjectHistoryCompensationExecutionBoundary;
   readonly sourceViews: ProjectSourceViewReader;
+  readonly sourceReuseOptions: ProjectSourceReuseOptionsReader;
   readonly sourceLifecycleViews: ProjectSourceLifecycleViewReader;
   readonly reviewViews: ProjectReviewViewReader;
   readonly reviewRecoveryAssessments: ReviewRecoveryAssessmentReader;
@@ -472,6 +475,11 @@ export const createProjectShellPersistenceFromEnvironment = async (
         historyViews,
         historyCompensationExecution,
         sourceViews: new PostgresProjectSourceViewReader(pool),
+        sourceReuseOptions: new PostgresProjectSourceReuseOptionsReader(
+          pool,
+          new PostgresCapabilityGrantCommandAuthorizer(contracts),
+          contracts,
+        ),
         sourceLifecycleViews: new PostgresProjectSourceLifecycleViewReader(
           pool,
         ),
@@ -568,6 +576,11 @@ export const createProjectShellPersistenceFromEnvironment = async (
     historyViews,
     historyCompensationExecution,
     sourceViews: new PostgresProjectSourceViewReader(pool),
+    sourceReuseOptions: new PostgresProjectSourceReuseOptionsReader(
+      pool,
+      new PostgresCapabilityGrantCommandAuthorizer(contracts),
+      contracts,
+    ),
     sourceLifecycleViews: new PostgresProjectSourceLifecycleViewReader(pool),
     reviewViews,
     reviewRecoveryAssessments: new PostgresReviewRecoveryAssessmentReader(

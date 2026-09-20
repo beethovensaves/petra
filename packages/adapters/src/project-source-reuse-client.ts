@@ -1,5 +1,6 @@
 import type {
   PetraProjectSource,
+  PetraProjectSourceReuseOptionsView,
   PetraProjectSourceReuseReceipt,
   PetraProjectSourceReuseRecoveryView,
   PetraProjectSourceReuseRequest,
@@ -83,6 +84,37 @@ export class ProjectSourceReuseClient {
     return structuredClone(result as ProjectSourceReuseClientResult);
   }
 
+  async getOptions(
+    projectId: string,
+  ): Promise<PetraProjectSourceReuseOptionsView> {
+    this.#assertProjectId(projectId);
+    const body: unknown = await this.#json(
+      `/api/queries/projects/${projectId}/source-reuse-options`,
+    );
+    this.#contracts.assertValid(
+      "project-source-reuse-options-view",
+      "1.0.0",
+      body,
+    );
+    const view = body as PetraProjectSourceReuseOptionsView;
+    const manifests = view.candidates.map(
+      (candidate) =>
+        candidate.existing_source.artifact_manifest_ref.artifact_manifest_id,
+    );
+    if (
+      view.project_id !== projectId ||
+      view.expected.project_ref.project_id !== projectId ||
+      view.counts.permitted !== view.candidates.length ||
+      new Set(manifests).size !== manifests.length ||
+      (view.availability.state === "available" &&
+        view.candidates.length === 0) ||
+      (view.availability.state !== "available" && view.candidates.length !== 0)
+    ) {
+      throw this.#invalidResponse();
+    }
+    return structuredClone(view);
+  }
+
   async assessRecovery(
     projectId: string,
     request: PetraProjectSourceReuseRequest,
@@ -113,9 +145,7 @@ export class ProjectSourceReuseClient {
     projectId: string,
     request: PetraProjectSourceReuseRequest,
   ): void {
-    if (!PROJECT_ID.test(projectId)) {
-      throw new TypeError("Source reuse requires a canonical Project.");
-    }
+    this.#assertProjectId(projectId);
     this.#contracts.assertValid(
       "project-source-reuse-request",
       "1.0.0",
@@ -128,17 +158,23 @@ export class ProjectSourceReuseClient {
     }
   }
 
+  #assertProjectId(projectId: string): void {
+    if (!PROJECT_ID.test(projectId)) {
+      throw new TypeError("Source reuse requires a canonical Project.");
+    }
+  }
+
   async #json(
     path: string,
-    body: PetraProjectSourceReuseRequest,
+    body?: PetraProjectSourceReuseRequest,
   ): Promise<unknown> {
     const response = await this.#fetch(new URL(path, this.options.baseUrl), {
-      method: "POST",
+      method: body === undefined ? "GET" : "POST",
       headers: {
         authorization: `Bearer ${this.options.token}`,
-        "content-type": "application/json",
+        ...(body === undefined ? {} : { "content-type": "application/json" }),
       },
-      body: JSON.stringify(body),
+      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
     });
     if (response.ok) return response.json();
     let code = "PROJECT_SOURCE_REUSE_REQUEST_FAILED";

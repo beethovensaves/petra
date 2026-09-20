@@ -122,6 +122,7 @@ import {
   type ProjectObjectiveCommandAuthority,
   type ProjectSourceRegistrationAuthority,
   type ProjectSourceReuseAuthority,
+  type ProjectSourceReuseOptionsReader,
   type ProjectProfileCommandAuthority,
   type ProjectProfileCommandRecoveryReader,
   type ProjectProfileRuntimeReader,
@@ -190,6 +191,7 @@ export interface PetraAppOptions {
   projectObjectiveCommands?: ProjectObjectiveCommandAuthority;
   projectSourceRegistrationAuthority?: ProjectSourceRegistrationAuthority;
   projectSourceReuseAuthority?: ProjectSourceReuseAuthority;
+  projectSourceReuseOptions?: ProjectSourceReuseOptionsReader;
   projectModelReadiness?: ProjectModelReadinessReader;
   projectShellViews?: ProjectShellViewReader;
   projectEffectiveControls?: ProjectEffectiveControlsViewReader;
@@ -2029,6 +2031,53 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
       capabilityGrantId: principal.capabilityGrantId,
     };
   };
+
+  app.get(
+    "/api/queries/projects/:projectId/source-reuse-options",
+    async (context) => {
+      if (options.projectSourceReuseOptions === undefined) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_SOURCE_REUSE_OPTIONS_UNAVAILABLE",
+          "The permitted existing-source selector is not configured.",
+        );
+      }
+      try {
+        const projectId = context.req.param("projectId");
+        if (
+          !PROJECT_ID_PATTERN.test(projectId) ||
+          new URL(context.req.url).searchParams.size !== 0
+        ) {
+          throw new InteractionInputError(
+            "Source reuse options require one canonical Project and accept no query overrides.",
+          );
+        }
+        const view =
+          await options.projectSourceReuseOptions.readProjectSourceReuseOptions(
+            projectId,
+            await sourceReusePrincipal(projectId),
+          );
+        contracts.assertValid(
+          "project-source-reuse-options-view",
+          "1.0.0",
+          view,
+        );
+        if (
+          view.project_id !== projectId ||
+          view.expected.project_ref.project_id !== projectId
+        ) {
+          throw new Error(
+            "The source reuse selector crossed its exact target Project boundary.",
+          );
+        }
+        context.header("Cache-Control", "no-store");
+        return context.json(view);
+      } catch (error) {
+        return projectSourceReuseResponse(context, error);
+      }
+    },
+  );
 
   app.post(
     "/api/commands/projects/:projectId/sources/register",

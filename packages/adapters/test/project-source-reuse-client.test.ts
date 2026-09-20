@@ -1,5 +1,6 @@
 import type {
   PetraProjectSource,
+  PetraProjectSourceReuseOptionsView,
   PetraProjectSourceReuseReceipt,
   PetraProjectSourceReuseRecoveryView,
   PetraProjectSourceReuseRequest,
@@ -45,13 +46,28 @@ const recovery = {
   },
   return: { destination: { project_id: projectId } },
 } as PetraProjectSourceReuseRecoveryView;
+const optionsView = {
+  project_id: projectId,
+  expected: { project_ref: { project_id: projectId } },
+  availability: { state: "available" },
+  counts: { permitted: 1, already_linked: 0 },
+  candidates: [
+    {
+      existing_source: {
+        artifact_manifest_ref: {
+          artifact_manifest_id: "artifact_manifest_01K6T000000000000000000001",
+        },
+      },
+    },
+  ],
+} as PetraProjectSourceReuseOptionsView;
 
 const contracts = {
   assertValid: vi.fn(),
 } as unknown as PetraContractRegistry;
 
 describe("ProjectSourceReuseClient", () => {
-  it("submits only the exact authenticated request and validates reuse and recovery bindings", async () => {
+  it("reads server-composed options, submits only the exact request, and validates all bindings", async () => {
     const calls: Array<{ url: string; init: RequestInit | undefined }> = [];
     const fetch = vi.fn((input: URL | RequestInfo, init?: RequestInit) => {
       const url =
@@ -63,8 +79,10 @@ describe("ProjectSourceReuseClient", () => {
       calls.push({ url, init });
       return Promise.resolve(
         calls.length === 1
-          ? Response.json({ receipt, projectSource, applied: true })
-          : Response.json(recovery),
+          ? Response.json(optionsView)
+          : calls.length === 2
+            ? Response.json({ receipt, projectSource, applied: true })
+            : Response.json(recovery),
       );
     });
     const client = new ProjectSourceReuseClient({
@@ -74,6 +92,9 @@ describe("ProjectSourceReuseClient", () => {
       contracts,
     });
 
+    await expect(client.getOptions(projectId)).resolves.toStrictEqual(
+      optionsView,
+    );
     await expect(client.reuse(projectId, request)).resolves.toStrictEqual({
       receipt,
       projectSource,
@@ -83,16 +104,26 @@ describe("ProjectSourceReuseClient", () => {
       client.assessRecovery(projectId, request),
     ).resolves.toStrictEqual(recovery);
     expect(calls.map((call) => call.url)).toStrictEqual([
+      `http://petra.local/api/queries/projects/${projectId}/source-reuse-options`,
       `http://petra.local/api/commands/projects/${projectId}/sources/reuse`,
       `http://petra.local/api/queries/projects/${projectId}/source-reuse-recovery`,
     ]);
+    expect(calls[0]?.init).toMatchObject({ method: "GET" });
+    expect(calls[0]?.init?.body).toBeUndefined();
     expect(
       calls.every(
         (call) =>
           new Headers(call.init?.headers).get("authorization") ===
-            "Bearer source-token" &&
-          call.init?.body === JSON.stringify(request),
+          "Bearer source-token",
       ),
+    ).toBe(true);
+    expect(calls.slice(1).every((call) => call.init?.method === "POST")).toBe(
+      true,
+    );
+    expect(
+      calls
+        .slice(1)
+        .every((call) => call.init?.body === JSON.stringify(request)),
     ).toBe(true);
   });
 
@@ -137,6 +168,32 @@ describe("ProjectSourceReuseClient", () => {
         status: 403,
         code: "PROJECT_SOURCE_REUSE_NOT_AUTHORIZED",
         message: "Denied.",
+      }),
+    );
+  });
+
+  it("rejects duplicated or crossed selector authority", async () => {
+    const client = new ProjectSourceReuseClient({
+      baseUrl: "http://petra.local",
+      token: "source-token",
+      contracts,
+      fetch: vi.fn(() =>
+        Promise.resolve(
+          Response.json({
+            ...optionsView,
+            counts: { ...optionsView.counts, permitted: 2 },
+            candidates: [
+              ...optionsView.candidates,
+              structuredClone(optionsView.candidates[0]),
+            ],
+          }),
+        ),
+      ),
+    });
+
+    await expect(client.getOptions(projectId)).rejects.toEqual(
+      expect.objectContaining<Partial<ProjectSourceReuseClientError>>({
+        code: "PROJECT_SOURCE_REUSE_RESPONSE_INVALID",
       }),
     );
   });

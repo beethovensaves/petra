@@ -1,5 +1,5 @@
 {
-  "registry_version": "1.112.0",
+  "registry_version": "1.113.0",
   "schemas": [
     {
       "name": "contract-smoke",
@@ -857,6 +857,17 @@
       "canonical_sha256": "sha256:9be4b4d55326dc521184f58c807895319349e8838770da5fc9746db4682a80b1",
       "generate_typescript": true,
       "typescript_path": "src/generated/project-source-reuse-request.ts"
+    },
+    {
+      "name": "project-source-reuse-options-view",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-source-reuse-options-view/1.0.0/schema.json",
+      "path": "schemas/project-source-reuse-options-view/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-authenticated-permitted-source-selector",
+      "canonical_sha256": "sha256:36837fccc0c9e32f147a6a02bb458b72f147c8908ff2bec039530b4fabcb1407",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-source-reuse-options-view.ts"
     },
     {
       "name": "project-source-reuse-receipt",

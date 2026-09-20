@@ -302,6 +302,14 @@ export const startPetraServer = async (
               projectSourceReuseAuthority:
                 options.groundedSynthesisPersistence.sourceReuses,
             }),
+      ...(options.projectSourceReuseOptions !== undefined
+        ? { projectSourceReuseOptions: options.projectSourceReuseOptions }
+        : options.projectShellPersistence === undefined
+          ? {}
+          : {
+              projectSourceReuseOptions:
+                options.projectShellPersistence.sourceReuseOptions,
+            }),
       ...(options.projectShellViews !== undefined
         ? { projectShellViews: options.projectShellViews }
         : options.projectShellPersistence === undefined

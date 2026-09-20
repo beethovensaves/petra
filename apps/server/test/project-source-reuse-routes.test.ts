@@ -4,6 +4,7 @@ import type {
   PetraArtifact,
   PetraArtifactManifest,
   PetraProjectSource,
+  PetraProjectSourceReuseOptionsView,
   PetraProjectSourceReuseReceipt,
   PetraProjectSourceReuseRecoveryView,
   PetraProjectSourceReuseRequest,
@@ -11,6 +12,7 @@ import type {
 } from "@petra/contracts";
 import type {
   ProjectSourceReuseAuthority,
+  ProjectSourceReuseOptionsReader,
   ProjectSourceReusePrincipal,
 } from "@petra/core";
 import { describe, expect, it, vi } from "vitest";
@@ -162,6 +164,51 @@ const recovery: PetraProjectSourceReuseRecoveryView = {
   content_hash: hash("9"),
 };
 
+const optionsView: PetraProjectSourceReuseOptionsView = {
+  schema_name: "petra.project-source-reuse-options-view",
+  schema_version: "1.0.0",
+  project_id: PROJECT_ID,
+  expected: request.expected,
+  profile: {
+    resolution: "project_authored",
+    definition_family: "petra.scientific-evidence",
+    label: "Scientific evidence inquiry",
+    purpose: "Compare evidence without changing source authority.",
+  },
+  source_roles: [
+    {
+      semantic_key: "scientific.literature",
+      label: "Source",
+      meaning: "A versioned and rights-governed basis.",
+    },
+  ],
+  availability: {
+    state: "available",
+    reason: "permitted_sources_found",
+    message: "Choose a retained source copy.",
+  },
+  counts: { permitted: 1, already_linked: 0 },
+  candidates: [
+    {
+      display: {
+        title: "Reusable source",
+        contributors: ["Ada Source"],
+        version_label: "accepted manuscript",
+        publication_status: "accepted",
+        origin_project_name: "Source Project",
+        origin_source_role: {
+          semantic_key: "scientific.literature",
+          label: "Source",
+          meaning: "A versioned and rights-governed basis.",
+        },
+        origin_membership_status: "active",
+        copy_status: "available_for_reuse",
+      },
+      existing_source: request.existing_source,
+    },
+  ],
+};
+
 const principal = {
   actor: { actor_id: ACTOR_ID, actor_kind: "human" as const },
   capabilityGrantId: GRANT_ID,
@@ -201,10 +248,18 @@ describe("project source reuse routes", () => {
       ),
       assessProjectSourceReuseRecovery: vi.fn(() => Promise.resolve(recovery)),
     };
+    const options: ProjectSourceReuseOptionsReader = {
+      readProjectSourceReuseOptions: vi.fn((projectId, resolved) => {
+        expect(projectId).toBe(PROJECT_ID);
+        expect(resolved).toStrictEqual(principal);
+        return Promise.resolve(optionsView);
+      }),
+    };
     const petra = createPetraApp({
       authToken: TOKEN,
       commandPrincipalResolver: resolver,
       projectSourceReuseAuthority: authority,
+      projectSourceReuseOptions: options,
     });
     const headers = {
       authorization: `Bearer ${TOKEN}`,
@@ -220,6 +275,13 @@ describe("project source reuse routes", () => {
       projectSource: resultSource,
       applied: true,
     });
+    const optionsResponse = await petra.app.request(
+      `/api/queries/projects/${PROJECT_ID}/source-reuse-options`,
+      { headers: { authorization: `Bearer ${TOKEN}` } },
+    );
+    expect(optionsResponse.status).toBe(200);
+    expect(optionsResponse.headers.get("cache-control")).toBe("no-store");
+    expect(await optionsResponse.json()).toStrictEqual(optionsView);
     const recoveryResponse = await petra.app.request(
       `/api/queries/projects/${PROJECT_ID}/source-reuse-recovery`,
       { method: "POST", headers, body: JSON.stringify(request) },
@@ -274,5 +336,32 @@ describe("project source reuse routes", () => {
       const unauthorized = await petra.app.request(path, { method: "POST" });
       expect(unauthorized.status).toBe(401);
     }
+    const unauthorizedOptions = await petra.app.request(
+      `/api/queries/projects/${PROJECT_ID}/source-reuse-options`,
+    );
+    expect(unauthorizedOptions.status).toBe(401);
+  });
+
+  it("fails closed when the selector crosses its target Project", async () => {
+    const petra = createPetraApp({
+      authToken: TOKEN,
+      commandPrincipalResolver: resolver,
+      projectSourceReuseOptions: {
+        readProjectSourceReuseOptions: vi.fn(() =>
+          Promise.resolve({
+            ...optionsView,
+            project_id: "project_01K4E000000000000000000001",
+          }),
+        ),
+      },
+    });
+    const response = await petra.app.request(
+      `/api/queries/projects/${PROJECT_ID}/source-reuse-options`,
+      { headers: { authorization: `Bearer ${TOKEN}` } },
+    );
+    expect(response.status).toBe(503);
+    await expect(response.json()).resolves.toMatchObject({
+      error: { code: "PROJECT_SOURCE_REUSE_FAILED" },
+    });
   });
 });
