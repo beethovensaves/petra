@@ -1075,7 +1075,7 @@
       "surfaces": ["SP07", "SP14"],
       "flows": ["UX-FLOW-11", "UX-FLOW-16"],
       "requests": ["UX-REQ-014", "UX-REQ-015", "UX-REQ-023"],
-      "current_state": "unavailable",
+      "current_state": "live",
       "route": "/projects/:projectId/work/:workId",
       "control": "Resume work",
       "interaction": "command",
@@ -1083,7 +1083,12 @@
         {
           "command": "npm run test:wave6:work",
           "artifact": "reports/WAVE6-WORK-PRODUCTION-COMMANDS.json",
-          "boundary": "Fresh PostgreSQL 18.6 executes the production assessment and authenticated resume route after a trusted workflow registers one exact retained checkpoint; the trace proves same-Work/same-attempt continuation, immutable transition lineage, restart replay, and no duplicate effect. The frozen React control remains unavailable, so visible browser invocation is still design-owned."
+          "boundary": "Fresh PostgreSQL 18.6 executes the production assessment and authenticated resume route after a trusted workflow registers one exact retained checkpoint; the trace proves same-Work/same-attempt continuation, immutable transition lineage, restart replay, and no duplicate effect. This backend trace alone makes no visible browser-invocation claim; the paired production browser record owns that boundary."
+        },
+        {
+          "command": "npm run test:wave6:work-ui",
+          "artifact": "reports/WAVE6-WORK-BROWSER-OBSERVATION.json",
+          "boundary": "The production React Work route consumes the server-supplied resume_binding, copies its exact Work revision and checkpoint into ProjectWorkClient.resume, renders same-Work/same-attempt progress and outcome, refreshes availability, preserves the contextual return, and keeps Start again unavailable. The disposable-store harness performs trusted representative worker registration and checkpoint setup; the browser does not select authority or infer compatibility."
         }
       ],
       "runtime_owner": "GET /api/queries/projects/:projectId/work/:workUnitId/operations plus POST /api/commands/projects/:projectId/work/:workUnitId/resume -> PostgresProjectWorkOperations registered checkpoint compatibility and canonical same-attempt Work transition",

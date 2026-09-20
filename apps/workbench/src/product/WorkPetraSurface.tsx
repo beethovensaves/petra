@@ -14,6 +14,8 @@ import type {
   PetraProjectWorkOperationReceipt,
   PetraProjectWorkOperationRequest,
   PetraProjectWorkOperationsView,
+  PetraProjectWorkResumeReceipt,
+  PetraProjectWorkResumeRequest,
   PetraSuggestedActionInvocationView,
   PetraSuggestedActionViewV11,
 } from "@petra/contracts";
@@ -32,7 +34,9 @@ import type {
 } from "./project-data.js";
 import {
   createProjectWorkOperationRequest,
+  createProjectWorkResumeRequest,
   executeProjectWorkOperation,
+  executeProjectWorkResume,
   readProjectWorkOperations,
   reconnectProjectWorkDelivery,
   replayProjectWorkDelivery,
@@ -373,6 +377,11 @@ type RetainedWorkRequest = {
   request: PetraProjectWorkOperationRequest;
 };
 
+type RetainedWorkResumeRequest = {
+  fingerprint: string;
+  request: PetraProjectWorkResumeRequest;
+};
+
 const workOperationLabel: Record<
   PetraProjectWorkOperationsView["controls"][number]["operation"],
   string
@@ -422,6 +431,20 @@ const unavailableFor = (
       };
 };
 
+const unavailableForResume = (
+  view: PetraProjectWorkOperationsView,
+): { reason: string; prerequisite?: string } | undefined => {
+  const assessed = unavailableFor(view, "resume");
+  if (assessed !== undefined) return assessed;
+  if (view.resume_binding === undefined) {
+    return {
+      reason:
+        "The server has not supplied the exact retained checkpoint binding required to resume this task.",
+    };
+  }
+  return undefined;
+};
+
 const withUnavailable = (
   unavailable: { reason: string; prerequisite?: string } | undefined,
 ): { unavailable: { reason: string; prerequisite?: string } } | object =>
@@ -445,9 +468,17 @@ const WorkOperationControls = ({
   const [confirmingCancel, setConfirmingCancel] = useState(false);
   const [pending, setPending] = useState<string>();
   const [receipt, setReceipt] = useState<PetraProjectWorkOperationReceipt>();
+  const [resumeReceipt, setResumeReceipt] =
+    useState<PetraProjectWorkResumeReceipt>();
   const [delivery, setDelivery] = useState<ProjectWorkDeliveryObservation>();
-  const [error, setError] = useState<string>();
+  const [error, setError] = useState<{
+    message: string;
+    recovery: string;
+  }>();
   const retained = useRef<RetainedWorkRequest | undefined>(undefined);
+  const retainedResume = useRef<RetainedWorkResumeRequest | undefined>(
+    undefined,
+  );
 
   useEffect(() => {
     setView(initialView);
@@ -473,6 +504,7 @@ const WorkOperationControls = ({
     setPending(operation);
     setError(undefined);
     setDelivery(undefined);
+    setResumeReceipt(undefined);
     try {
       const nextReceipt = await executeProjectWorkOperation(
         view.project_id,
@@ -489,11 +521,83 @@ const WorkOperationControls = ({
       setConfirmingCancel(false);
       retained.current = undefined;
     } catch (caught) {
-      setError(
-        caught instanceof Error
-          ? caught.message
-          : "Petra could not complete this exact Work operation.",
+      setError({
+        message:
+          caught instanceof Error
+            ? caught.message
+            : "Petra could not complete this exact Work operation.",
+        recovery:
+          "Your instruction and exact command identity are retained. Resolve the stated condition, then try the same operation again.",
+      });
+    } finally {
+      setPending(undefined);
+    }
+  };
+
+  const executeResume = async (): Promise<void> => {
+    const fingerprint = JSON.stringify({
+      project: view.project_id,
+      binding: view.resume_binding,
+    });
+    const retainedRequest = retainedResume.current;
+    let request: PetraProjectWorkResumeRequest;
+    try {
+      request =
+        retainedRequest?.fingerprint === fingerprint
+          ? retainedRequest.request
+          : createProjectWorkResumeRequest(view);
+    } catch (caught) {
+      setError({
+        message:
+          caught instanceof Error
+            ? caught.message
+            : "Petra could not bind Resume to this exact checkpoint.",
+        recovery:
+          "Refresh this task to obtain the current server assessment. Resume stays unavailable without an exact registered checkpoint binding.",
+      });
+      return;
+    }
+    retainedResume.current = { fingerprint, request };
+    setPending("resume");
+    setError(undefined);
+    setReceipt(undefined);
+    setDelivery(undefined);
+    try {
+      const nextReceipt = await executeProjectWorkResume(
+        view.project_id,
+        view.work_unit_ref.work_unit_id,
+        request,
       );
+      const refreshed = await readProjectWorkOperations(
+        view.project_id,
+        view.work_unit_ref.work_unit_id,
+      );
+      setResumeReceipt(nextReceipt);
+      setView(refreshed);
+      retainedResume.current = undefined;
+    } catch (caught) {
+      let refreshed = view;
+      try {
+        refreshed = await readProjectWorkOperations(
+          view.project_id,
+          view.work_unit_ref.work_unit_id,
+        );
+        setView(refreshed);
+      } catch {
+        // Preserve the last verified assessment when refresh is unavailable.
+      }
+      const currentResume = workControl(refreshed, "resume");
+      setError({
+        message:
+          caught instanceof Error
+            ? caught.message
+            : "Petra could not complete this exact checkpoint Resume.",
+        recovery:
+          currentResume?.state === "available" &&
+          refreshed.resume_binding !== undefined
+            ? "The exact command identity and checkpoint binding are retained. Try Resume again to reconcile an unknown result without creating a second effect."
+            : `The server assessment was refreshed. ${currentResume?.reason ?? "Resume is no longer available for this Work revision."} No new attempt was inferred.`,
+      });
     } finally {
       setPending(undefined);
     }
@@ -505,6 +609,7 @@ const WorkOperationControls = ({
     setPending(operation);
     setError(undefined);
     setReceipt(undefined);
+    setResumeReceipt(undefined);
     try {
       const observation =
         operation === "reconnect"
@@ -518,11 +623,14 @@ const WorkOperationControls = ({
         ),
       );
     } catch (caught) {
-      setError(
-        caught instanceof Error
-          ? caught.message
-          : "Petra could not restore this exact Work delivery.",
-      );
+      setError({
+        message:
+          caught instanceof Error
+            ? caught.message
+            : "Petra could not restore this exact Work delivery.",
+        recovery:
+          "The current Work view remains unchanged. Resolve the stated condition, then retry the same delivery read.",
+      });
     } finally {
       setPending(undefined);
     }
@@ -648,7 +756,12 @@ const WorkOperationControls = ({
             >
               Retry failed work
             </PetraButton>
-            <PetraButton {...withUnavailable(unavailableFor(view, "resume"))}>
+            <PetraButton
+              busy={pending === "resume"}
+              busyLabel="Resuming work"
+              {...withUnavailable(unavailableForResume(view))}
+              onClick={() => void executeResume()}
+            >
               Resume work
             </PetraButton>
             <PetraButton
@@ -811,9 +924,8 @@ const WorkOperationControls = ({
             notice={{
               tone: "danger",
               title: "Work operation not completed",
-              message: error,
-              recovery:
-                "Your instruction and exact command identity are retained. Resolve the stated condition, then try the same operation again.",
+              message: error.message,
+              recovery: error.recovery,
             }}
           />
         )}
@@ -826,6 +938,24 @@ const WorkOperationControls = ({
               unchanged
             </p>
             <code>{receipt.receipt_id}</code>
+          </div>
+        )}
+        {resumeReceipt === undefined ? null : (
+          <div className="work-operation-result" role="status">
+            <strong>{resumeReceipt.effect.summary}</strong>
+            <p>
+              Resumed attempt {resumeReceipt.resumed_attempt} · Work revision{" "}
+              {resumeReceipt.resulting_work_unit_ref.revision} · retained
+              checkpoint and prior attempts preserved · Project authority
+              unchanged
+            </p>
+            <code>{resumeReceipt.receipt_id}</code>
+            <Link
+              className="reference-text-link"
+              to={`/projects/${encodeURIComponent(project.id)}/work/${encodeURIComponent(resumeReceipt.resulting_work_unit_ref.work_unit_id)}#work-control-boundary`}
+            >
+              Return to this Work task
+            </Link>
           </div>
         )}
         {delivery === undefined ? null : (

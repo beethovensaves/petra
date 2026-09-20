@@ -81,6 +81,8 @@ import projectImportCommandRecoveryViewSchema from "../../../../packages/contrac
 import projectWorkOperationRequestSchema from "../../../../packages/contracts/schemas/project-work-operation-request/1.0.0/schema.json";
 import projectWorkOperationReceiptSchema from "../../../../packages/contracts/schemas/project-work-operation-receipt/1.0.0/schema.json";
 import projectWorkOperationsViewSchema from "../../../../packages/contracts/schemas/project-work-operations-view/1.0.0/schema.json";
+import projectWorkResumeRequestSchema from "../../../../packages/contracts/schemas/project-work-resume-request/1.0.0/schema.json";
+import projectWorkResumeReceiptSchema from "../../../../packages/contracts/schemas/project-work-resume-receipt/1.0.0/schema.json";
 import applyResultSchema from "../../../../packages/contracts/schemas/review-session-apply-result/1.0.0/schema.json";
 import applyRequestSchema from "../../../../packages/contracts/schemas/review-session-apply-request/1.0.0/schema.json";
 import applyCheckpointSchema from "../../../../packages/contracts/schemas/review-session-apply-checkpoint/1.0.0/schema.json";
@@ -161,6 +163,8 @@ type BrowserContractName =
   | "project-work-operation-request@1.0.0"
   | "project-work-operation-receipt@1.0.0"
   | "project-work-operations-view@1.0.0"
+  | "project-work-resume-request@1.0.0"
+  | "project-work-resume-receipt@1.0.0"
   | "project-source-registration-request@1.0.0"
   | "project-source-registration-receipt@1.0.0"
   | "project-source-registration-recovery-view@1.0.0"
@@ -263,6 +267,8 @@ const schemas = [
   projectWorkOperationRequestSchema,
   projectWorkOperationReceiptSchema,
   projectWorkOperationsViewSchema,
+  projectWorkResumeRequestSchema,
+  projectWorkResumeReceiptSchema,
   projectSourceRegistrationRequestSchema,
   projectSourceRegistrationReceiptSchema,
   projectSourceRegistrationRecoveryViewSchema,
@@ -369,6 +375,8 @@ const contractIds: Record<BrowserContractName, string> = {
   "project-work-operation-request@1.0.0": projectWorkOperationRequestSchema.$id,
   "project-work-operation-receipt@1.0.0": projectWorkOperationReceiptSchema.$id,
   "project-work-operations-view@1.0.0": projectWorkOperationsViewSchema.$id,
+  "project-work-resume-request@1.0.0": projectWorkResumeRequestSchema.$id,
+  "project-work-resume-receipt@1.0.0": projectWorkResumeReceiptSchema.$id,
   "project-source-registration-request@1.0.0":
     projectSourceRegistrationRequestSchema.$id,
   "project-source-registration-receipt@1.0.0":
@@ -571,6 +579,18 @@ export class PetraContractRegistry {
       version: "1.0.0",
       canonical_sha256:
         "sha256:cc61cba0158681b3f8417a6e52c0feb356bb1c4838cf952facaaf4c37cbb5010",
+    },
+    {
+      name: "project-work-resume-request",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:6688eeb22907a81055240c80ab1aedd94751b37fa5433078002aef042e2120f9",
+    },
+    {
+      name: "project-work-resume-receipt",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:41ab775c6d9c0773574fd458ab09d146d99c0fb7e634741a777ad01476a57215",
     },
     {
       name: "project-source-registration-request",

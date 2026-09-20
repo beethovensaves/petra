@@ -93,11 +93,11 @@
           "source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7"
         ]
       },
-      "brief_content_hash": "sha256:7dff008af1c1f44d190a1c62d112514854df6b6551834e147d27eb5e39db272c",
-      "focused_graph_content_hash": "sha256:53360ea185f93b502f81ecb7eab28e7a5547073fbc4d2f6d7affd00ff11d4a93",
-      "details_content_hash": "sha256:c791bb51cfa8db7a6b4594fb3c7947152a5dbead4f6419c247b77c674bbb3dbf",
-      "evidence_view_content_hash": "sha256:507e02b7cd3c5bea50af62f3bd574eb67c783ff92af745d8c74527981b54574d",
-      "source_inspection_content_hash": "sha256:87bb2bbbcaa7945fa6b0416f2eb3413b7d578610b14706f571aa826925692736"
+      "brief_content_hash": "sha256:4cbdfc9671f6b2d9a3000a848b15b83d4f61beb89cc0577281c7310e60f42d5d",
+      "focused_graph_content_hash": "sha256:5d9f80cfc3fe853331d7e0e5c231de2083027a31ace49021990e184f25b78cd1",
+      "details_content_hash": "sha256:0aec3e437aa2a70e3711e74620d3f64ee3b7ac25ea2509bf5c5b476a45fc46c0",
+      "evidence_view_content_hash": "sha256:3cb985764c9714440b0d806bdf956d523f9713988a71e788c034d67216acab83",
+      "source_inspection_content_hash": "sha256:f16fe7c01e5cd58cdf455cbb583e19673bd7d4682535518688f50174b6de4611"
     },
     "relationship_meanings": [
       {
@@ -138,7 +138,7 @@
       "checkpoint_ref": {
         "record_id": "projection_checkpoint_01ARZ3NDEKTSV4RRFFQ69G5FC9",
         "revision": 2,
-        "record_hash": "sha256:8a5631cd98e7776eeeb7cbaaf83857d7e1650b934ccb34d17f331a951228d4f7"
+        "record_hash": "sha256:95d7d01e5a8f5298b2c179b2297b2224c7d299a95e677887581e8a9ef22dfed5"
       },
       "represented_event_position": 3,
       "observed_event_position": 3,
@@ -177,7 +177,7 @@
         "authority_effect": "none"
       },
       "applied": {
-        "change_set_id": "change_set_6HN3RJ7W9PJK39YV63SAV0CQKR",
+        "change_set_id": "change_set_3RBY8653Q7E5JNRRSP9PDP0SWT",
         "outcome": "applied",
         "authority_effect": "canonical_change_set"
       },
@@ -187,23 +187,32 @@
         "authority_effect": "none"
       }
     },
+    "open_review_graph": {
+      "review_session_id": "review_session_01K4D000000000000000000004",
+      "review_member_id": "review_member_73XZTG07J43ED75B7CG77CGRD6",
+      "working_relationship_id": "working_relationship_5MV0X9MX2PGD1T6W4AE42AC5DT",
+      "working_relationship_revision": 3,
+      "graph_content_hash": "sha256:fb853b61451c9483a52ea74a5b345c7201e9934ab1ac2980b7857f867f1bb32b",
+      "preview_content_hash": "sha256:6e7c96e071554b55985548304490b3b5e4cb8b9d0ec68fb7de040e14f17c4c49",
+      "command_issued": false
+    },
     "review": {
       "inspected_review_session_id": "review_session_01K4D000000000000000000004",
       "corrected_candidate_revision": 2,
-      "applied_change_set_id": "change_set_6HN3RJ7W9PJK39YV63SAV0CQKR",
-      "applied_event_id": "event_01M2YAX52Q8RDMZZ080CJ2679Z",
-      "compensation_plan_content_hash": "sha256:469b44b51cacc3d0d6f4cfc0dae25f17e9c9746791917ac542627f2b9e94fb0c",
-      "compensation_change_set_id": "change_set_0FF0PBSVAJK65EPGBW0CGYMWX3",
-      "replay_compensation_change_set_id": "change_set_0FF0PBSVAJK65EPGBW0CGYMWX3"
+      "applied_change_set_id": "change_set_3RBY8653Q7E5JNRRSP9PDP0SWT",
+      "applied_event_id": "event_01M30AQPF1PC89CH70VT4G93YX",
+      "compensation_plan_content_hash": "sha256:80d30c22ba9acb52d9a687e559bb5fa333f716109e05f89305caf05874f8f3d4",
+      "compensation_change_set_id": "change_set_76VVWF9YNSR41KB39RBZ3TE2KW",
+      "replay_compensation_change_set_id": "change_set_76VVWF9YNSR41KB39RBZ3TE2KW"
     },
     "restart_replay": {
-      "working_content_hash_before": "sha256:08ff981a341c6a73013b61f93d438ff00dc6f31f5da733fee4191c884ed0ad22",
-      "working_content_hash_after": "sha256:08ff981a341c6a73013b61f93d438ff00dc6f31f5da733fee4191c884ed0ad22",
-      "focused_graph_content_hash_before": "sha256:67c591f521a3ffbd834eedc1edb1a857ea20ba5632bd58a5ba842d7e7d549e4f",
-      "focused_graph_content_hash_after": "sha256:67c591f521a3ffbd834eedc1edb1a857ea20ba5632bd58a5ba842d7e7d549e4f",
-      "review_content_hash_after": "sha256:671cd8aa4bee38174b418e557cb5bc2e45654966e16651835814be7df0bd0e0f",
+      "working_content_hash_before": "sha256:713056243935242c251c854fa9663830aec732a45c2585f5da6674c511f1fd4f",
+      "working_content_hash_after": "sha256:713056243935242c251c854fa9663830aec732a45c2585f5da6674c511f1fd4f",
+      "focused_graph_content_hash_before": "sha256:523236dab57b101f538436a25e1a8c457f6204d1e74ddf1d1a22172e75b5904a",
+      "focused_graph_content_hash_after": "sha256:523236dab57b101f538436a25e1a8c457f6204d1e74ddf1d1a22172e75b5904a",
+      "review_content_hash_after": "sha256:4b9da2e294794a833445efce01d91dcd29bd4d213d5664265ffe5468c3e45a46",
       "durable_counts_before": {
-        "work_units": 2,
+        "work_units": 3,
         "worker_output_manifests": 1,
         "grounded_responses": 1,
         "interaction_run_revisions": 3,
@@ -219,7 +228,7 @@
         "writing_events": 0
       },
       "durable_counts_after": {
-        "work_units": 2,
+        "work_units": 3,
         "worker_output_manifests": 1,
         "grounded_responses": 1,
         "interaction_run_revisions": 3,
@@ -238,7 +247,7 @@
     }
   },
   "durable_counts": {
-    "work_units": 2,
+    "work_units": 3,
     "worker_output_manifests": 1,
     "grounded_responses": 1,
     "interaction_run_revisions": 3,

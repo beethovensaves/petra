@@ -73,6 +73,8 @@ import type {
   PetraProjectWorkOperationReceipt,
   PetraProjectWorkOperationRequest,
   PetraProjectWorkOperationsView,
+  PetraProjectWorkResumeReceipt,
+  PetraProjectWorkResumeRequest,
   PetraWorkerOutputManifest,
   FocusedGraphProjectSnapshotRef,
   ProjectDefinitionTerm,
@@ -2805,7 +2807,7 @@ const executionFrom = (
   if (execution.state === "checkpointed") {
     return {
       state: "running",
-      label: "Checkpoint recorded · resume unavailable",
+      label: "Checkpoint recorded · open task to assess Resume",
     };
   }
   if (execution.state === "cancelled") {
@@ -6244,6 +6246,12 @@ export interface ProjectWorkCommandOptions {
   readonly reason?: string;
 }
 
+export interface ProjectWorkResumeCommandOptions {
+  readonly commandId?: string;
+  readonly idempotencyKey?: string;
+  readonly submittedAt?: string;
+}
+
 export const createProjectWorkCommandIdentity = (
   operation: ProjectWorkCommandOperation,
 ): { commandId: string; idempotencyKey: string } => {
@@ -6362,6 +6370,54 @@ export const createProjectWorkOperationRequest = (
   return { ...common, operation };
 };
 
+/**
+ * Copies the complete server-supplied checkpoint binding into one resume
+ * request. The browser never derives checkpoint compatibility from Work prose
+ * or execution state.
+ */
+export const createProjectWorkResumeRequest = (
+  view: PetraProjectWorkOperationsView,
+  options: ProjectWorkResumeCommandOptions = {},
+): PetraProjectWorkResumeRequest => {
+  const control = view.controls.find(
+    (candidate) => candidate.operation === "resume",
+  );
+  const binding = view.resume_binding;
+  if (control?.state !== "available") {
+    throw new ProjectDataError(
+      control?.reason ?? "The server did not make Resume available.",
+      409,
+    );
+  }
+  if (binding === undefined) {
+    throw new ProjectDataError(
+      "The server did not register an exact checkpoint for Resume.",
+      409,
+    );
+  }
+  if (
+    binding.project_id !== view.project_id ||
+    canonicalize(binding.expected_work_unit_ref) !==
+      canonicalize(view.work_unit_ref)
+  ) {
+    throw new ProjectDataError(
+      "The Resume binding does not match this exact Project and Work revision.",
+      409,
+    );
+  }
+  const identity = randomUlidPayload();
+  return {
+    schema_name: "petra.project-work-resume-request",
+    schema_version: "1.0.0",
+    command_id: options.commandId ?? `command_${identity}`,
+    idempotency_key:
+      options.idempotencyKey ?? `project-work:${identity}:resume`,
+    expected_work_unit_ref: structuredClone(binding.expected_work_unit_ref),
+    expected_checkpoint: structuredClone(binding.expected_checkpoint),
+    submitted_at: options.submittedAt ?? new Date().toISOString(),
+  };
+};
+
 export const readProjectWorkOperations = async (
   projectId: string,
   workUnitId: string,
@@ -6374,6 +6430,13 @@ export const executeProjectWorkOperation = async (
   request: PetraProjectWorkOperationRequest,
 ): Promise<PetraProjectWorkOperationReceipt> =>
   projectWorkClient().execute(projectId, workUnitId, request);
+
+export const executeProjectWorkResume = async (
+  projectId: string,
+  workUnitId: string,
+  request: PetraProjectWorkResumeRequest,
+): Promise<PetraProjectWorkResumeReceipt> =>
+  projectWorkClient().resume(projectId, workUnitId, request);
 
 export interface ProjectWorkDeliveryObservation {
   readonly kind: "reconnected" | "replayed";

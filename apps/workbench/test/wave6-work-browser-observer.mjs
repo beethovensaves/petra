@@ -28,6 +28,7 @@ export const createWave4EvidenceObserver = async ({ root }) => {
   let scientificProjectId;
   let scientificReviewSessionId;
   let completedWorkUnitId;
+  let resumableWorkUnitId;
   let workbench;
   let chrome;
   let cdp;
@@ -166,6 +167,114 @@ export const createWave4EvidenceObserver = async ({ root }) => {
       return group?.querySelector("a")?.getAttribute("href");
     })()`);
     assert.ok(attentionPath, "No exact Work task requiring input is visible.");
+
+    assert.ok(
+      resumableWorkUnitId,
+      "No exact registered-checkpoint Work task is available to Resume.",
+    );
+    const resumePath = `/projects/${scientificProjectId}/work/${resumableWorkUnitId}`;
+    await navigate(
+      resumePath,
+      'document.querySelector(".work-controls") !== null',
+      "checkpointed Work task",
+    );
+    const assessedResume = calls.findLast(
+      (call) =>
+        call.method === "GET" &&
+        call.path.endsWith(`/work/${resumableWorkUnitId}/operations`),
+    );
+    const resumeBinding = assessedResume?.json?.resume_binding;
+    assert.equal(
+      assessedResume?.json?.controls?.find(
+        (control) => control.operation === "resume",
+      )?.state,
+      "available",
+      "The production assessment did not make registered Resume available.",
+    );
+    assert.ok(
+      resumeBinding,
+      "The available Resume control omitted its exact checkpoint binding.",
+    );
+    assert.equal(
+      await cdp.evaluate(
+        `${button("Resume work")}.getAttribute("aria-disabled")`,
+      ),
+      null,
+      "The visible Resume control stayed unavailable despite its exact binding.",
+    );
+    assert.equal(
+      await cdp.evaluate(
+        `${button("Start again")}.getAttribute("aria-disabled")`,
+      ),
+      "true",
+      "Start again became available without a workflow-specific fresh-input transition.",
+    );
+    await cdp.evaluate(`${button("Resume work")}.click()`);
+    await cdp.until(
+      'document.querySelector(".work-operation-result")?.textContent.includes("registered compatible transition") === true',
+      "resumed checkpointed Work",
+    );
+    const resumeCall = calls.findLast(
+      (call) =>
+        call.method === "POST" &&
+        call.path.endsWith(`/work/${resumableWorkUnitId}/resume`),
+    );
+    assert.ok(
+      resumeCall,
+      "The visible Resume control issued no production command.",
+    );
+    assert.deepEqual(
+      resumeCall.requestJson.expected_work_unit_ref,
+      resumeBinding.expected_work_unit_ref,
+      "Resume did not copy the exact assessed Work revision and specification.",
+    );
+    assert.deepEqual(
+      resumeCall.requestJson.expected_checkpoint,
+      resumeBinding.expected_checkpoint,
+      "Resume did not copy the exact assessed checkpoint.",
+    );
+    assert.equal(
+      Object.hasOwn(resumeCall.requestJson, "actor"),
+      false,
+      "The browser selected resume authority.",
+    );
+    const resumeResultText = await cdp.evaluate(
+      'document.querySelector(".work-operation-result")?.innerText',
+    );
+    for (const value of [
+      "Resumed attempt 1",
+      "retained checkpoint and prior attempts preserved",
+      "Project authority unchanged",
+      "Return to this Work task",
+    ]) {
+      assert.ok(
+        resumeResultText.includes(value),
+        `Resume outcome omitted ${value}.`,
+      );
+    }
+    const resumeReturn = await cdp.evaluate(
+      `${link("Return to this Work task")}.getAttribute("href")`,
+    );
+    assert.equal(
+      resumeReturn,
+      `${resumePath}#work-control-boundary`,
+      "Resume did not preserve the exact Work return.",
+    );
+    assert.equal(
+      await cdp.evaluate("window.location.pathname"),
+      resumePath,
+      "Resume left the originating Work task.",
+    );
+    assert.equal(
+      await cdp.evaluate(
+        `${button("Resume work")}.getAttribute("aria-disabled")`,
+      ),
+      "true",
+      "Resume remained available after the checkpoint was consumed.",
+    );
+    execution.completed_checks.push(
+      "registered checkpoint resumed through exact visible control",
+    );
 
     await navigate(
       attentionPath,
@@ -468,6 +577,18 @@ export const createWave4EvidenceObserver = async ({ root }) => {
       detach_exercised: true,
       reconnect_exercised: true,
       replay_exercised: true,
+      resume_exercised: true,
+      resumed_work: {
+        work_unit_id: resumableWorkUnitId,
+        requested_revision:
+          resumeCall.requestJson.expected_work_unit_ref.revision,
+        resulting_revision: resumeCall.json.resulting_work_unit_ref.revision,
+        resumed_attempt: resumeCall.json.resumed_attempt,
+        exact_checkpoint_copied: true,
+        contextual_return: resumeReturn,
+        start_again_unavailable: true,
+        authority_selected_by_browser: false,
+      },
       grounded_response: {
         id: groundedResult.id,
         destination: groundedUrl,
@@ -490,7 +611,7 @@ export const createWave4EvidenceObserver = async ({ root }) => {
         diagnostics_count: exactDiagnostics.length,
       },
       boundary:
-        "Executed the complete production Work browser path through registered controls and exact result reads. Worker registration and representative setup occur through the cumulative disposable-store harness; no browser response or Work result is mocked.",
+        "Executed the complete production Work browser path through registered controls, including exact registered-checkpoint Resume, and exact result reads. Worker registration and representative setup occur through the cumulative disposable-store harness; no browser response or Work result is mocked. Start again remains honestly unavailable without a workflow-specific fresh-input transition.",
       operation_call_count: operationCalls.length,
       console_errors: consoleErrors,
     };
@@ -504,6 +625,7 @@ export const createWave4EvidenceObserver = async ({ root }) => {
     scientificReviewSessionId = context.scientificReviewSessionId;
     if (stage === "corrected_blocked_limited_basis") {
       completedWorkUnitId = context.workUnitId;
+      resumableWorkUnitId = context.resumableWorkUnitId;
       return undefined;
     }
     if (stage === "refreshed_paired_profile") {

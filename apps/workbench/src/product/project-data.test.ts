@@ -53,6 +53,8 @@ import type {
   PetraProjectWorkOperationReceipt,
   PetraProjectWorkOperationRequest,
   PetraProjectWorkOperationsView,
+  PetraProjectWorkResumeReceipt,
+  PetraProjectWorkResumeRequest,
   PetraProjectWorkView,
   PetraProjectWorkViewV11,
   PetraWorkerOutputManifest,
@@ -70,6 +72,7 @@ import {
   cancelProjectSuggestedActionWork,
   composeProjectHistoryCompensationPlan,
   createProjectWorkOperationRequest,
+  createProjectWorkResumeRequest,
   createReviewCandidateBasisRevisionCommandInput,
   createReviewCandidateCorrectionCommandInput,
   createReviewSessionDeferCommandInput,
@@ -88,6 +91,7 @@ import {
   executeReviewSessionSeparationCommand,
   executeProjectHistoryCompensationPlan,
   executeProjectWorkOperation,
+  executeProjectWorkResume,
   getRecentProjectHistory,
   getProjectSuggestedAction,
   getProjectHistoryEpisode,
@@ -1153,6 +1157,36 @@ const workOperationsView = JSON.parse(
     "utf8",
   ),
 ) as PetraProjectWorkOperationsView;
+
+const resumableWorkOperationsView = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-work-operations-view-resumable.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectWorkOperationsView;
+
+const projectWorkResumeRequest = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-work-resume-request.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectWorkResumeRequest;
+
+const projectWorkResumeReceipt = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-work-resume-receipt.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectWorkResumeReceipt;
 
 const workerOutputManifest = JSON.parse(
   readFileSync(
@@ -4707,6 +4741,54 @@ describe("Project shell workbench adapter", () => {
     );
     expect(new Headers(init?.headers).get("authorization")).toBe(
       "Bearer petra-local-development",
+    );
+  });
+
+  it("copies the server Resume binding into the typed command without client inference", async () => {
+    const request = createProjectWorkResumeRequest(
+      resumableWorkOperationsView,
+      {
+        commandId: projectWorkResumeRequest.command_id,
+        idempotencyKey: projectWorkResumeRequest.idempotency_key,
+        submittedAt: projectWorkResumeRequest.submitted_at,
+      },
+    );
+    expect(request).toStrictEqual(projectWorkResumeRequest);
+    expect(request).not.toHaveProperty("actor");
+    expect(request).not.toHaveProperty("capability_grant_id");
+
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValueOnce(Response.json(projectWorkResumeReceipt));
+    vi.stubGlobal("fetch", fetch);
+    await expect(
+      executeProjectWorkResume(
+        resumableWorkOperationsView.project_id,
+        resumableWorkOperationsView.work_unit_ref.work_unit_id,
+        request,
+      ),
+    ).resolves.toStrictEqual(projectWorkResumeReceipt);
+    const [url, init] = fetch.mock.calls[0]!;
+    expect(
+      typeof url === "string" ? url : url instanceof URL ? url.href : url.url,
+    ).toBe(
+      `http://petra.local/api/commands/projects/${resumableWorkOperationsView.project_id}/work/${resumableWorkOperationsView.work_unit_ref.work_unit_id}/resume`,
+    );
+    const submittedBody = init?.body;
+    if (typeof submittedBody !== "string") {
+      throw new TypeError("Expected the Resume request as a JSON body.");
+    }
+    expect(JSON.parse(submittedBody)).toStrictEqual(projectWorkResumeRequest);
+  });
+
+  it("keeps Resume unavailable without both server control and exact binding", () => {
+    expect(() => createProjectWorkResumeRequest(workOperationsView)).toThrow(
+      "No compatible registered checkpoint",
+    );
+    const missingBinding = structuredClone(resumableWorkOperationsView);
+    delete missingBinding.resume_binding;
+    expect(() => createProjectWorkResumeRequest(missingBinding)).toThrow(
+      "server did not register an exact checkpoint",
     );
   });
 

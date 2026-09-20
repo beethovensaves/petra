@@ -1553,6 +1553,87 @@ const seedScientific = async (
     ],
     registeredAt: "2026-09-19T00:00:01.500Z",
   });
+  let resumableWorkUnit;
+  if (wave5Mode) {
+    const resumeInputManifest = clone(inputManifest);
+    resumeInputManifest.worker_input_manifest_id = derivePetraId(
+      "worker_input_manifest",
+      "wave6-browser-resumable-work",
+    );
+    resumeInputManifest.work_unit_id = derivePetraId(
+      "work_unit",
+      "wave6-browser-resumable-work",
+    );
+    const resumeRequested = clone(requested);
+    resumeRequested.work_unit_id = resumeInputManifest.work_unit_id;
+    resumeRequested.spec.objective =
+      "Continue the exact registered parsing task from its retained compatible checkpoint without changing Project authority.";
+    resumeRequested.spec.input_manifest_ref = {
+      worker_input_manifest_id: resumeInputManifest.worker_input_manifest_id,
+      content_hash: resumeInputManifest.content_hash,
+    };
+    resumeRequested.spec.idempotency_key =
+      "wave6-browser:registered-checkpoint-resume";
+    resumeRequested.spec.cache = {
+      cache_mode: "reuse_exact",
+      cache_key: "wave6-browser:registered-checkpoint-resume",
+    };
+    resumeRequested.spec.checkpoint_policy = "latest_valid";
+    resumeRequested.spec_hash = hash(resumeRequested.spec);
+    resumeRequested.trace_id = derivePetraId(
+      "trace",
+      "wave6-browser-resumable-work",
+    );
+    let registeredResumeWork = await workUnits.register({
+      workUnit: resumeRequested,
+      inputManifest: resumeInputManifest,
+    });
+    registeredResumeWork = await workUnits.queue(
+      registeredResumeWork.work_unit_id,
+      registeredResumeWork.revision,
+      "2026-09-19T00:00:02.000Z",
+    );
+    registeredResumeWork = await workUnits.start(
+      registeredResumeWork.work_unit_id,
+      registeredResumeWork.revision,
+      1,
+      "2026-09-19T00:00:03.000Z",
+    );
+    const checkpointInput = resumeInputManifest.content.inputs.find(
+      (input) => input.binding_kind === "artifact",
+    );
+    assert(
+      checkpointInput !== undefined,
+      "The resumable Work fixture requires one exact Artifact input.",
+    );
+    const checkpoint = {
+      artifact_id: checkpointInput.artifact_id,
+      content_hash: checkpointInput.content_hash,
+      recorded_at: "2026-09-19T00:00:04.000Z",
+    };
+    resumableWorkUnit = await workUnits.checkpoint(
+      registeredResumeWork.work_unit_id,
+      registeredResumeWork.revision,
+      1,
+      checkpoint,
+      checkpoint.recorded_at,
+    );
+    await workOperations.registerCheckpointResume({
+      resumeRegistrationId: derivePetraId(
+        "work_resume_registration",
+        "wave6-browser-resumable-work",
+      ),
+      projectId: scientificProjectId,
+      workUnitRef: {
+        work_unit_id: resumableWorkUnit.work_unit_id,
+        revision: resumableWorkUnit.revision,
+        spec_hash: resumableWorkUnit.spec_hash,
+      },
+      checkpoint,
+      registeredBy: { actor_id: serviceActorId, actor_kind: "service" },
+      registeredAt: "2026-09-19T00:00:04.500Z",
+    });
+  }
   const graphPairs = [];
   if (wave5Mode) {
     const currentBaselineClaim = await evidence.getClaim(
@@ -1713,6 +1794,7 @@ const seedScientific = async (
     localCopyWalkthrough,
     localCopyDeletionGrant,
     workUnit,
+    resumableWorkUnit,
     projectSource,
     applyGrant,
     lifecycleGrant,
@@ -5336,6 +5418,7 @@ const exerciseItem53Trace = async ({
       projectTurnId:
         continuation.grounded.projectThread.content.turns[0].project_turn_id,
       workUnitId: continuation.workAndInteraction.work.work_unit_id,
+      resumableWorkUnitId: scientific.resumableWorkUnit?.work_unit_id,
       interactionRunId:
         continuation.workAndInteraction.deliveredRun.interaction_run_id,
       correctedCandidateId: correction.candidate.working_candidate_id,

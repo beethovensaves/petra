@@ -118,6 +118,16 @@ const workOperations = JSON.parse(
   ),
 ) as PetraProjectWorkOperationsView;
 
+const resumableWorkOperations = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-work-operations-view-resumable.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectWorkOperationsView;
+
 const selectedWorkerOutput: ProjectWorkerOutputSelection = {
   resultRef: {
     semanticKey: "petra.worker-output-manifest",
@@ -303,6 +313,36 @@ describe("reference Work and Petra packets", () => {
       "Fresh execution requires a workflow-specific input-rebinding command",
     );
     expect(markup).toContain("Project authority remains unchanged");
+  });
+
+  it("enables only server-bound Resume while Start again stays unavailable", () => {
+    const liveUnit = {
+      ...runningTask,
+      id: resumableWorkOperations.work_unit_ref.work_unit_id,
+    };
+    const markup = render(
+      <WorkDetailSurface
+        project={project}
+        unit={liveUnit}
+        work={{ ...work, units: [liveUnit] }}
+        operations={resumableWorkOperations}
+      />,
+    );
+    const buttonMarkup = (label: string): string | undefined => {
+      const labelIndex = markup.indexOf(`>${label}</span>`);
+      if (labelIndex < 0) return undefined;
+      const start = markup.lastIndexOf("<button", labelIndex);
+      const end = markup.indexOf("</button>", labelIndex);
+      return start < 0 || end < 0
+        ? undefined
+        : markup.slice(start, end + "</button>".length);
+    };
+
+    expect(buttonMarkup("Resume work")).not.toContain("aria-disabled");
+    expect(buttonMarkup("Start again")).toContain('aria-disabled="true"');
+    expect(markup).toContain(
+      "owning workflow registered this exact retained checkpoint",
+    );
   });
 
   it("enables server-assessed query-only reconnect and replay controls", () => {
