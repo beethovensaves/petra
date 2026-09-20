@@ -14,6 +14,7 @@ export * from "./model-execution-repository.js";
 export * from "./project-definition-authority-repository.js";
 export * from "./project-profile-runtime.js";
 export * from "./project-import-authority.js";
+export * from "./project-objective-command-authority.js";
 export * from "./project-model-readiness-reader.js";
 export * from "./project-inquiry-authority-repository.js";
 export * from "./project-inquiry-save-authority.js";

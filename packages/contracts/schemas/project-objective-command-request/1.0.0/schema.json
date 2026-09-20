@@ -1,0 +1,175 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-objective-command-request/1.0.0/schema.json",
+  "title": "PetraProjectObjectiveCommandRequest",
+  "description": "An exact reviewed request to frame or revise the focused Project Objective. Actor, capability grant, Objective identity, revision, and timestamps are server-owned.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "command_id",
+    "idempotency_key",
+    "operation",
+    "expected",
+    "review"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.project-objective-command-request" },
+    "schema_version": { "const": "1.0.0" },
+    "command_id": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        { "type": "string", "pattern": "^command_" }
+      ]
+    },
+    "idempotency_key": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,511}$"
+    },
+    "operation": { "enum": ["frame", "revise"] },
+    "expected": { "$ref": "#/$defs/Expected" },
+    "review": { "$ref": "#/$defs/Review" }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "operation": { "const": "frame" } },
+        "required": ["operation"]
+      },
+      "then": {
+        "properties": {
+          "expected": {
+            "type": "object",
+            "properties": { "focus": { "$ref": "#/$defs/NoFocus" } }
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "expected": {
+            "type": "object",
+            "properties": { "focus": { "$ref": "#/$defs/Focused" } }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "ProjectRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project_id", "revision", "record_hash"],
+      "properties": {
+        "project_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "DefinitionRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_definition_id",
+        "revision",
+        "content_hash",
+        "record_hash"
+      ],
+      "properties": {
+        "project_definition_id": {
+          "type": "string",
+          "pattern": "^project_definition_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "ObjectiveRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["objective_id", "revision", "content_hash", "record_hash"],
+      "properties": {
+        "objective_id": {
+          "type": "string",
+          "pattern": "^objective_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "NoFocus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state"],
+      "properties": { "state": { "const": "none" } }
+    },
+    "Focused": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "objective_ref"],
+      "properties": {
+        "state": { "const": "focused" },
+        "objective_ref": { "$ref": "#/$defs/ObjectiveRef" }
+      }
+    },
+    "Expected": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project_ref", "project_definition_ref", "focus"],
+      "properties": {
+        "project_ref": { "$ref": "#/$defs/ProjectRef" },
+        "project_definition_ref": { "$ref": "#/$defs/DefinitionRef" },
+        "focus": {
+          "oneOf": [
+            { "$ref": "#/$defs/NoFocus" },
+            { "$ref": "#/$defs/Focused" }
+          ]
+        }
+      }
+    },
+    "Review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "decision",
+        "rough_statement",
+        "proposed_content",
+        "reviewed_at"
+      ],
+      "properties": {
+        "decision": { "const": "apply" },
+        "rough_statement": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "proposed_content": {
+          "$ref": "../../project-objective/1.0.0/schema.json#/$defs/ObjectiveContent"
+        },
+        "reviewed_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        }
+      }
+    }
+  }
+}

@@ -1,5 +1,5 @@
 {
-  "registry_version": "1.100.0",
+  "registry_version": "1.104.0",
   "schemas": [
     {
       "name": "contract-smoke",
@@ -144,6 +144,17 @@
       "typescript_path": "src/generated/capability-grant-v1-9.ts"
     },
     {
+      "name": "capability-grant",
+      "version": "1.10.0",
+      "$id": "https://petra.local/schemas/capability-grant/1.10.0/schema.json",
+      "path": "schemas/capability-grant/1.10.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-project-objective-framing-command",
+      "canonical_sha256": "sha256:204a039cbb9d07961dc2b49cffcfc62c12e0d94fba28da6c77459362459a8bac",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/capability-grant-v1-10.ts"
+    },
+    {
       "name": "capability-grant-revocation",
       "version": "1.0.0",
       "$id": "https://petra.local/schemas/capability-grant-revocation/1.0.0/schema.json",
@@ -186,6 +197,39 @@
       "canonical_sha256": "sha256:fc8a37e66cfd29feb5613f744497b3b82f6623372a2a19dda9ff0ada02fab792",
       "generate_typescript": true,
       "typescript_path": "src/generated/project-objective.ts"
+    },
+    {
+      "name": "project-objective-command-request",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-objective-command-request/1.0.0/schema.json",
+      "path": "schemas/project-objective-command-request/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-reviewed-objective-framing-and-revision-request",
+      "canonical_sha256": "sha256:55e4423042dab6c37f913f43198c444b5f4cde584108b1cd4b30d216b89ee373",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-objective-command-request.ts"
+    },
+    {
+      "name": "project-objective-command-receipt",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-objective-command-receipt/1.0.0/schema.json",
+      "path": "schemas/project-objective-command-receipt/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-immutable-objective-command-outcome",
+      "canonical_sha256": "sha256:15414d1bbd0f2c94e7909206d49134ea94f233f4d12b357cdce99c607e53be7c",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-objective-command-receipt.ts"
+    },
+    {
+      "name": "project-objective-command-recovery-view",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-objective-command-recovery-view/1.0.0/schema.json",
+      "path": "schemas/project-objective-command-recovery-view/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-objective-command-reconciliation-and-brief-return",
+      "canonical_sha256": "sha256:b64ac1a2076a71feb56f5defde4867013f5386ebcc67ce00486430df702c0fd6",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-objective-command-recovery-view.ts"
     },
     {
       "name": "registered-project-profile",

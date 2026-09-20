@@ -235,7 +235,7 @@
       "control": "Frame objective",
       "interaction": "command",
       "evidence": [],
-      "runtime_owner": "",
+      "runtime_owner": "POST /api/commands/projects/:projectId/objective and POST /api/queries/projects/:projectId/objective-command-recovery -> PostgresProjectObjectiveCommandAuthority",
       "paths": ["UX-PATH-03"]
     },
     {
