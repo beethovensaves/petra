@@ -5,9 +5,11 @@ import {
 } from "@aws-sdk/client-s3";
 import {
   PostgresArtifactAuthorityRepository,
+  PostgresCapabilityGrantCommandAuthorizer,
   PostgresGroundedResponseAuthorityRepository,
   PostgresInteractionAuthorityRepository,
   PostgresResearchScopeRepository,
+  PostgresProjectSourceRegistrationAuthority,
   PostgresSynthesistExecutionRepository,
   PostgresWorkUnitAuthorityRepository,
 } from "@petra/postgres";
@@ -21,6 +23,7 @@ import type {
   InMemoryContextPacketRegistry,
   InteractionAuthorityRepository,
   ResearchScopeRepository,
+  ProjectSourceRegistrationAuthority,
   SynthesistExecutionRepository,
   WorkUnitAuthorityRepository,
 } from "@petra/core";
@@ -31,6 +34,7 @@ export interface GroundedSynthesisPersistence {
   readonly scopes: ResearchScopeRepository;
   readonly artifactStore: ArtifactStore;
   readonly artifacts: ArtifactAuthorityRepository;
+  readonly sourceRegistrations: ProjectSourceRegistrationAuthority;
   readonly executions: SynthesistExecutionRepository;
   readonly workUnits: WorkUnitAuthorityRepository;
   readonly interactions: InteractionAuthorityRepository;
@@ -190,11 +194,13 @@ export const createGroundedSynthesisPersistenceFromEnvironment = async (
 
   try {
     const schema = await pool.query<{ ready: boolean }>(
-      "SELECT to_regclass('petra.grounded_responses') IS NOT NULL AS ready",
+      `SELECT to_regclass('petra.grounded_responses') IS NOT NULL
+          AND to_regclass('petra.project_source_registration_receipts') IS NOT NULL
+          AS ready`,
     );
     if (schema.rows[0]?.ready !== true) {
       throw new GroundedSynthesisPersistenceConfigurationError(
-        "PostgreSQL is reachable, but Petra migrations have not created petra.grounded_responses.",
+        "PostgreSQL is reachable, but the grounded response or source registration authority is not migrated.",
       );
     }
     await ensureBucket(client, bucket);
@@ -212,6 +218,11 @@ export const createGroundedSynthesisPersistenceFromEnvironment = async (
     scopes: new PostgresResearchScopeRepository(pool),
     artifactStore,
     artifacts: new PostgresArtifactAuthorityRepository(pool, artifactStore),
+    sourceRegistrations: new PostgresProjectSourceRegistrationAuthority(
+      pool,
+      artifactStore,
+      new PostgresCapabilityGrantCommandAuthorizer(),
+    ),
     executions: new PostgresSynthesistExecutionRepository(pool),
     workUnits: new PostgresWorkUnitAuthorityRepository(pool),
     interactions: new PostgresInteractionAuthorityRepository(pool),

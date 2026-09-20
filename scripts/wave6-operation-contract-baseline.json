@@ -94,12 +94,19 @@
       "persistence": "PostgreSQL ProjectSource revisions, retained source/artifact identity, rights, parse coverage, preview spans, downstream use, and authority position.",
       "recovery": "Returns not-found or unavailable states and never converts a retained copy into endorsed meaning."
     },
-    "source-intake-missing": {
+    "source-registration": {
+      "kind": "command",
+      "production_owner": "POST /api/commands/projects/:projectId/sources/register and POST /api/queries/projects/:projectId/source-registration-recovery -> PostgresProjectSourceRegistrationAuthority",
+      "authorization": "Bearer authentication plus a server-resolved human principal and exact RegisterProjectSource capability grant. The request binds the exact active Project and ProjectDefinition, one registered source role, reviewed identity/material, and explicit copy rights without carrying Actor, grant, authority IDs, storage location, or record timestamps.",
+      "persistence": "Verified content-addressed bytes and PostgreSQL V051 atomically retain server-derived Author, Work, WorkVersion, Artifact, ArtifactManifest, RightsDecision, ProjectSource membership, immutable ancestry, and one idempotent receipt. Registration never endorses source meaning.",
+      "recovery": "Stable command and idempotency identities replay the exact receipt. A read-only assessment distinguishes confirmed, unknown, conflicting, and differently owned outcomes, returning either the exact registered source or the safe Project source collection."
+    },
+    "source-reuse-missing": {
       "kind": "missing",
       "production_owner": "",
-      "authorization": "No authenticated source registration/reuse command owns bytes, identity, rights, and Project membership together.",
-      "persistence": "Artifact, document, ProjectSource, and ancestry repositories exist separately; no Wave 6 intake transaction composes them.",
-      "recovery": "No idempotent registration/reuse receipt or partial upload/admission recovery exists."
+      "authorization": "No authenticated source reuse command yet links an existing global source identity and exact copy into another Project role.",
+      "persistence": "New-source registration deliberately rejects already registered bytes so reuse cannot be smuggled through intake.",
+      "recovery": "No idempotent existing-source reuse receipt or reconciliation query exists."
     },
     "source-processing-missing": {
       "kind": "missing",
@@ -463,13 +470,13 @@
     },
     {
       "operation_id": "source.register",
-      "owner": "source-intake-missing",
-      "owner_status": "missing",
-      "missing_owner": "Source registration command spanning bytes, rights, identity, ancestry, and Project membership."
+      "owner": "source-registration",
+      "owner_status": "owned",
+      "missing_owner": ""
     },
     {
       "operation_id": "source.reuse",
-      "owner": "source-intake-missing",
+      "owner": "source-reuse-missing",
       "owner_status": "missing",
       "missing_owner": "Source reuse/link command with retained global identity and new Project role."
     },

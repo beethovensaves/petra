@@ -361,7 +361,7 @@
       "control": "Add source",
       "interaction": "command",
       "evidence": [],
-      "runtime_owner": "",
+      "runtime_owner": "POST /api/commands/projects/:projectId/sources/register + POST /api/queries/projects/:projectId/source-registration-recovery",
       "paths": ["UX-PATH-02", "UX-PATH-03", "UX-PATH-04"]
     },
     {

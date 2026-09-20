@@ -69,6 +69,7 @@ import type {
   PetraProjectImportCommandRequest,
   PetraProjectInquirySaveRequest,
   PetraProjectObjectiveCommandRequest,
+  PetraProjectSourceRegistrationRequest,
   PetraProjectProfileCommandRequest,
   PetraProjectWorkOperationRequest,
   PetraWorkingCandidate,
@@ -93,6 +94,7 @@ import {
   ProjectInquirySaveError,
   ProjectImportError,
   ProjectObjectiveCommandError,
+  ProjectSourceRegistrationError,
   ProjectProfileRuntimeError,
   ProjectModelReadinessError,
   ProjectWorkOperationError,
@@ -116,6 +118,7 @@ import {
   type ProjectInquiryAuthoredStatus,
   type ProjectInquirySaveAuthority,
   type ProjectObjectiveCommandAuthority,
+  type ProjectSourceRegistrationAuthority,
   type ProjectProfileCommandAuthority,
   type ProjectProfileCommandRecoveryReader,
   type ProjectProfileRuntimeReader,
@@ -169,6 +172,7 @@ export interface PetraAppOptions {
   reviewAuthority?: ReviewResolutionContext;
   authToken?: string;
   maxBodyBytes?: number;
+  maxSourceRegistrationBodyBytes?: number;
   publicDir?: string;
   codexProvider?: CodexSubscriptionProviderPort;
   codexWorkspaceRoot?: string;
@@ -181,6 +185,7 @@ export interface PetraAppOptions {
   projectImportRecovery?: ProjectImportCommandRecoveryReader;
   projectImportAncestry?: ProjectImportAncestryReader;
   projectObjectiveCommands?: ProjectObjectiveCommandAuthority;
+  projectSourceRegistrationAuthority?: ProjectSourceRegistrationAuthority;
   projectModelReadiness?: ProjectModelReadinessReader;
   projectShellViews?: ProjectShellViewReader;
   projectEffectiveControls?: ProjectEffectiveControlsViewReader;
@@ -721,6 +726,8 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
     );
   const authToken = options.authToken ?? "petra-local-development";
   const maxBodyBytes = options.maxBodyBytes ?? 64 * 1024;
+  const maxSourceRegistrationBodyBytes =
+    options.maxSourceRegistrationBodyBytes ?? 48 * 1024 * 1024;
   const activeStreams = new Set<AbortController>();
   const contracts = new PetraContractRegistry();
   const retainedHistoryContinuationFailure = (
@@ -1876,6 +1883,213 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
         return context.json(assessment);
       } catch (error) {
         return projectObjectiveCommandResponse(context, error);
+      }
+    },
+  );
+
+  const projectSourceRegistrationResponse = (
+    context: Context<{ Variables: Variables }>,
+    error: unknown,
+  ) => {
+    const invalid =
+      error instanceof InteractionInputError ||
+      error instanceof ContractRegistryError ||
+      error instanceof SyntaxError ||
+      error instanceof TypeError;
+    const status = invalid
+      ? 422
+      : error instanceof ProjectSourceRegistrationError
+        ? error.code === "PROJECT_SOURCE_REGISTRATION_NOT_AUTHORIZED"
+          ? 403
+          : error.code === "PROJECT_SOURCE_REGISTRATION_PROJECT_NOT_FOUND"
+            ? 404
+            : error.code === "PROJECT_SOURCE_REGISTRATION_ROLE_UNREGISTERED" ||
+                error.code === "PROJECT_SOURCE_REGISTRATION_RIGHTS_INVALID" ||
+                error.code === "PROJECT_SOURCE_REGISTRATION_MATERIAL_INVALID"
+              ? 422
+              : error.code ===
+                  "PROJECT_SOURCE_REGISTRATION_STORED_RECORD_CORRUPT"
+                ? 503
+                : 409
+        : 503;
+    return jsonError(
+      context,
+      status,
+      invalid
+        ? "PROJECT_SOURCE_REGISTRATION_REQUEST_INVALID"
+        : error instanceof ProjectSourceRegistrationError
+          ? error.code
+          : "PROJECT_SOURCE_REGISTRATION_FAILED",
+      error instanceof Error
+        ? error.message
+        : "The source registration boundary is unavailable.",
+      error instanceof InteractionInputError ? error.issues : undefined,
+    );
+  };
+
+  const sourceRegistrationPrincipal = async (projectId: string) => {
+    if (options.commandPrincipalResolver === undefined) {
+      throw new ProjectSourceRegistrationError(
+        "PROJECT_SOURCE_REGISTRATION_NOT_AUTHORIZED",
+        "Authenticated source registration authority is unavailable.",
+      );
+    }
+    const principal =
+      await options.commandPrincipalResolver.resolveCommandPrincipal({
+        projectId,
+        commandName: "RegisterProjectSource",
+      });
+    if (
+      principal.state !== "resolved" ||
+      principal.actor.actor_kind !== "human"
+    ) {
+      throw new ProjectSourceRegistrationError(
+        "PROJECT_SOURCE_REGISTRATION_NOT_AUTHORIZED",
+        `The authenticated source registration principal was denied: ${principal.state === "resolved" ? "actor_not_human" : principal.reason}.`,
+      );
+    }
+    return {
+      actor: {
+        actor_id: principal.actor.actor_id,
+        actor_kind: "human" as const,
+      },
+      capabilityGrantId: principal.capabilityGrantId,
+    };
+  };
+
+  app.post(
+    "/api/commands/projects/:projectId/sources/register",
+    async (context) => {
+      if (options.projectSourceRegistrationAuthority === undefined) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_SOURCE_REGISTRATION_UNAVAILABLE",
+          "The new source registration boundary is not configured.",
+        );
+      }
+      try {
+        const projectId = context.req.param("projectId");
+        if (
+          !PROJECT_ID_PATTERN.test(projectId) ||
+          new URL(context.req.url).searchParams.size !== 0
+        ) {
+          throw new InteractionInputError(
+            "Source registration requires one canonical Project and accepts no query overrides.",
+          );
+        }
+        const request = (await readBoundedJson(
+          context,
+          maxSourceRegistrationBodyBytes,
+        )) as PetraProjectSourceRegistrationRequest;
+        contracts.assertValid(
+          "project-source-registration-request",
+          "1.0.0",
+          request,
+        );
+        if (request.expected.project_ref.project_id !== projectId) {
+          throw new ProjectSourceRegistrationError(
+            "PROJECT_SOURCE_REGISTRATION_PROJECT_STALE",
+            "The source registration route and exact expected Project must match.",
+          );
+        }
+        const result =
+          await options.projectSourceRegistrationAuthority.executeProjectSourceRegistration(
+            projectId,
+            request,
+            await sourceRegistrationPrincipal(projectId),
+          );
+        contracts.assertValid(
+          "project-source-registration-receipt",
+          "1.0.0",
+          result.receipt,
+        );
+        contracts.assertValid("project-source", "1.0.0", result.projectSource);
+        if (
+          result.receipt.project_id !== projectId ||
+          result.receipt.command_id !== request.command_id ||
+          result.receipt.idempotency_key !== request.idempotency_key ||
+          result.receipt.project_source_ref.project_source_id !==
+            result.projectSource.project_source_id ||
+          result.receipt.project_source_ref.revision !==
+            result.projectSource.revision ||
+          result.receipt.destination.project_id !== projectId ||
+          result.receipt.destination.project_source_id !==
+            result.projectSource.project_source_id
+        ) {
+          throw new Error(
+            "The source registration authority returned a different command, Project, membership, or Sources destination.",
+          );
+        }
+        context.header("Cache-Control", "no-store");
+        return context.json(result, result.applied ? 201 : 200);
+      } catch (error) {
+        return projectSourceRegistrationResponse(context, error);
+      }
+    },
+  );
+
+  app.post(
+    "/api/queries/projects/:projectId/source-registration-recovery",
+    async (context) => {
+      if (options.projectSourceRegistrationAuthority === undefined) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_SOURCE_REGISTRATION_RECOVERY_UNAVAILABLE",
+          "The source registration recovery boundary is not configured.",
+        );
+      }
+      try {
+        const projectId = context.req.param("projectId");
+        if (
+          !PROJECT_ID_PATTERN.test(projectId) ||
+          new URL(context.req.url).searchParams.size !== 0
+        ) {
+          throw new InteractionInputError(
+            "Source registration recovery requires one canonical Project and accepts no query overrides.",
+          );
+        }
+        const request = (await readBoundedJson(
+          context,
+          maxSourceRegistrationBodyBytes,
+        )) as PetraProjectSourceRegistrationRequest;
+        contracts.assertValid(
+          "project-source-registration-request",
+          "1.0.0",
+          request,
+        );
+        if (request.expected.project_ref.project_id !== projectId) {
+          throw new ProjectSourceRegistrationError(
+            "PROJECT_SOURCE_REGISTRATION_PROJECT_STALE",
+            "The source registration recovery route and exact expected Project must match.",
+          );
+        }
+        const assessment =
+          await options.projectSourceRegistrationAuthority.assessProjectSourceRegistrationRecovery(
+            projectId,
+            request,
+            await sourceRegistrationPrincipal(projectId),
+          );
+        contracts.assertValid(
+          "project-source-registration-recovery-view",
+          "1.0.0",
+          assessment,
+        );
+        if (
+          assessment.project_id !== projectId ||
+          assessment.subject.command_id !== request.command_id ||
+          assessment.subject.idempotency_key !== request.idempotency_key ||
+          assessment.return.destination.project_id !== projectId
+        ) {
+          throw new Error(
+            "The source registration recovery assessment crossed its exact command or Sources return boundary.",
+          );
+        }
+        context.header("Cache-Control", "no-store");
+        return context.json(assessment);
+      } catch (error) {
+        return projectSourceRegistrationResponse(context, error);
       }
     },
   );
