@@ -102,6 +102,10 @@ import {
   type FocusedGraphEntry,
   type FocusedGraphRouteData,
 } from "./focused-graph-entry.js";
+import {
+  projectObjectiveCanonicalHash,
+  type ProjectObjectiveCommandContext,
+} from "./project-objective-command.js";
 
 import type {
   AttentionItem,
@@ -4260,10 +4264,128 @@ export const loadProjectRecord = async ({
 
 export interface ProjectBriefData {
   readonly briefView?: PetraProjectBriefReadView;
+  readonly objectiveCommandContext?: ProjectObjectiveCommandContext;
   readonly suggestedAction?: PetraSuggestedActionView;
   readonly suggestedWorkAction?: PetraSuggestedActionViewV11;
   readonly invokedInquiry?: PetraProjectInquiryView;
 }
+
+const objectiveCommandContextFromCurrentBrief = async (
+  projectId: string,
+  brief: PetraProjectBriefReadView,
+  controls: PetraProjectEffectiveControlsView,
+): Promise<ProjectObjectiveCommandContext> => {
+  const content = brief.content;
+  const project = content.shell.content.project;
+  const shellDefinition = content.shell.content.definition;
+  const shellObjective = content.shell.content.current_objective;
+  const definitionRef = controls.content.project_definition_ref;
+  const objective = content.objective;
+  const term = content.definition.content.terms.find(
+    (candidate) => candidate.semantic_key === objective.content.objective_kind,
+  );
+  const [definitionRecordHash, objectiveRecordHash] = await Promise.all([
+    projectObjectiveCanonicalHash(content.definition),
+    projectObjectiveCanonicalHash(objective),
+  ]);
+  if (
+    brief.project_id !== projectId ||
+    project.project_id !== projectId ||
+    controls.project_id !== projectId ||
+    controls.content.project_ref.record_id !== projectId ||
+    controls.content.project_ref.revision !== project.revision ||
+    definitionRef.project_definition_id !==
+      content.definition.project_definition_id ||
+    definitionRef.revision !== content.definition.revision ||
+    definitionRef.content_hash !== content.definition.content_hash ||
+    definitionRef.record_hash !== definitionRecordHash ||
+    shellDefinition.project_definition_id !==
+      content.definition.project_definition_id ||
+    shellDefinition.revision !== content.definition.revision ||
+    shellDefinition.content_hash !== content.definition.content_hash ||
+    objective.project_id !== projectId ||
+    objective.project_definition_ref.project_definition_id !==
+      definitionRef.project_definition_id ||
+    objective.project_definition_ref.revision !== definitionRef.revision ||
+    objective.project_definition_ref.content_hash !==
+      definitionRef.content_hash ||
+    shellObjective === undefined ||
+    shellObjective.objective_id !== objective.objective_id ||
+    shellObjective.revision !== objective.revision ||
+    shellObjective.content_hash !== objective.content_hash ||
+    term === undefined
+  ) {
+    throw new ProjectDataError(
+      "The Brief cannot bind Objective review to one exact current Project, ProjectDefinition, focus, and registered term. Refresh before editing.",
+      409,
+    );
+  }
+  return {
+    projectId,
+    projectName: project.name,
+    definitionLabel: content.definition.content.label,
+    projectRef: {
+      project_id: projectId,
+      revision: controls.content.project_ref.revision,
+      record_hash: controls.content.project_ref.record_hash,
+    },
+    projectDefinitionRef: structuredClone(definitionRef),
+    focus: {
+      state: "focused",
+      objective: structuredClone(objective),
+      objectiveRecordHash,
+      term: term.singular,
+    },
+  };
+};
+
+const objectiveCommandContextFromEmptyShell = (
+  projectId: string,
+  shell: ProjectShellView,
+  controls: PetraProjectEffectiveControlsView,
+): ProjectObjectiveCommandContext => {
+  const project = shell.content.project;
+  const definition = shell.content.definition;
+  const definitionRef = controls.content.project_definition_ref;
+  const focusTerms = definition.terms.filter(
+    (term) => term.generic_family === "focus",
+  );
+  const term = focusTerms[0];
+  if (
+    shell.project_id !== projectId ||
+    project.project_id !== projectId ||
+    shell.content.current_objective !== undefined ||
+    controls.project_id !== projectId ||
+    controls.content.project_ref.record_id !== projectId ||
+    controls.content.project_ref.revision !== project.revision ||
+    definitionRef.project_definition_id !== definition.project_definition_id ||
+    definitionRef.revision !== definition.revision ||
+    definitionRef.content_hash !== definition.content_hash ||
+    focusTerms.length !== 1 ||
+    term === undefined
+  ) {
+    throw new ProjectDataError(
+      "The Brief cannot bind Objective framing to one exact reviewed absence and one registered focus term. Refresh or inspect the Project profile.",
+      409,
+    );
+  }
+  return {
+    projectId,
+    projectName: project.name,
+    definitionLabel: definition.label,
+    projectRef: {
+      project_id: projectId,
+      revision: controls.content.project_ref.revision,
+      record_hash: controls.content.project_ref.record_hash,
+    },
+    projectDefinitionRef: structuredClone(definitionRef),
+    focus: {
+      state: "none",
+      objectiveKind: term.semantic_key,
+      term: term.singular,
+    },
+  };
+};
 
 export const getProjectSuggestedAction = async (
   projectId: string,
@@ -4396,17 +4518,46 @@ export const loadProjectBrief = async (
       400,
     );
   }
-  const briefView = await readProjectBrief({
+  const controlsPromise = requestJson(
+    `/api/queries/projects/${encodeURIComponent(projectId)}/effective-controls`,
+  );
+  let briefView: PetraProjectBriefReadView;
+  try {
+    briefView = await readProjectBrief({
+      projectId,
+      baseUrl: apiBaseUrl(),
+      token: apiToken(),
+      signal: args.request.signal,
+    });
+  } catch (error) {
+    const [controlsValue, shellValue] = await Promise.all([
+      controlsPromise,
+      requestJson(
+        `/api/queries/projects/${encodeURIComponent(projectId)}/shell`,
+      ),
+    ]);
+    const controls = effectiveControlsView(controlsValue);
+    const shell = shellView(shellValue);
+    if (shell.content.current_objective !== undefined) throw error;
+    return {
+      objectiveCommandContext: objectiveCommandContextFromEmptyShell(
+        projectId,
+        shell,
+        controls,
+      ),
+    };
+  }
+  const controls = effectiveControlsView(await controlsPromise);
+  const objectiveCommandContext = await objectiveCommandContextFromCurrentBrief(
     projectId,
-    baseUrl: apiBaseUrl(),
-    token: apiToken(),
-    signal: args.request.signal,
-  });
+    briefView,
+    controls,
+  );
   const selected =
     query.has("inquiry_result_link_id") || query.has("invoke")
       ? await loadProjectBriefAction(args)
       : {};
-  return { briefView, ...selected };
+  return { briefView, objectiveCommandContext, ...selected };
 };
 
 export const loadProjectBriefAction = async ({

@@ -116,6 +116,107 @@
   font-weight: var(--petra-weight-medium);
 }
 
+.brief-objective-control {
+  margin-block: var(--petra-space-4);
+}
+
+.brief-objective-control > form {
+  display: grid;
+  gap: var(--petra-space-4);
+  padding: var(--petra-space-5);
+  border: var(--petra-rule-thin) solid var(--petra-border-default);
+  border-radius: var(--petra-radius-medium);
+  background: var(--petra-surface-panel);
+}
+
+.brief-objective-control header > p:last-child,
+.brief-objective-review > p,
+.brief-objective-outcome > p {
+  max-inline-size: 72ch;
+  color: var(--petra-text-secondary);
+}
+
+.brief-objective-control__fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--petra-space-4);
+}
+
+.brief-objective-review,
+.brief-objective-outcome {
+  padding: var(--petra-space-4);
+  border-inline-start: 4px solid var(--petra-brand-accent);
+  background: var(--petra-surface-inset);
+}
+
+.brief-objective-review h4,
+.brief-objective-outcome h2 {
+  margin-block-end: var(--petra-space-3);
+}
+
+.brief-objective-review dl {
+  display: grid;
+  gap: var(--petra-space-3);
+  margin: 0;
+}
+
+.brief-objective-review dl > div {
+  display: grid;
+  gap: var(--petra-space-1);
+}
+
+.brief-objective-review dt {
+  color: var(--petra-text-secondary);
+  font-size: var(--petra-font-size-label);
+  font-weight: var(--petra-weight-semibold);
+}
+
+.brief-objective-review dd {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.brief-objective-failure,
+.brief-objective-recovery {
+  display: grid;
+  gap: var(--petra-space-1);
+  padding: var(--petra-space-4);
+  border-inline-start: 4px solid var(--petra-tone-caution);
+  background: var(--petra-tone-caution-soft);
+  color: var(--petra-text-secondary);
+}
+
+.brief-objective-failure[data-failure="conflict"],
+.brief-objective-failure[data-failure="permission_lost"],
+.brief-objective-recovery[data-recovery="unavailable_to_verify"] {
+  border-inline-start-color: var(--petra-tone-danger);
+  background: var(--petra-tone-danger-soft);
+}
+
+.brief-objective-failure strong,
+.brief-objective-recovery strong {
+  color: var(--petra-text-primary);
+}
+
+.brief-objective-control__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--petra-space-3);
+}
+
+.brief-objective-outcome {
+  max-inline-size: 68rem;
+  margin-block: var(--petra-space-4);
+  border-inline-start-color: var(--petra-tone-positive);
+}
+
+@media (max-width: 48rem) {
+  .brief-objective-control__fields {
+    grid-template-columns: 1fr;
+  }
+}
+
 .brief-limitations {
   max-inline-size: 72ch;
   margin-block: var(--petra-space-4);

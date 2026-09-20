@@ -15,6 +15,9 @@ import briefProjectInquiryLinkV100Schema from "../../../../packages/contracts/sc
 import projectInquirySaveReceiptSchema from "../../../../packages/contracts/schemas/project-inquiry-save-receipt/1.0.0/schema.json";
 import projectInquirySaveRecoveryViewSchema from "../../../../packages/contracts/schemas/project-inquiry-save-recovery-view/1.0.0/schema.json";
 import projectInquirySaveRequestSchema from "../../../../packages/contracts/schemas/project-inquiry-save-request/1.0.0/schema.json";
+import projectObjectiveCommandRequestSchema from "../../../../packages/contracts/schemas/project-objective-command-request/1.0.0/schema.json";
+import projectObjectiveCommandReceiptSchema from "../../../../packages/contracts/schemas/project-objective-command-receipt/1.0.0/schema.json";
+import projectObjectiveCommandRecoveryViewSchema from "../../../../packages/contracts/schemas/project-objective-command-recovery-view/1.0.0/schema.json";
 import briefProjectBriefViewV110Schema from "../../../../packages/contracts/schemas/project-brief-view/1.1.0/schema.json";
 import briefProjectBriefViewV100Schema from "../../../../packages/contracts/schemas/project-brief-view/1.0.0/schema.json";
 import briefModelSynthesistOutputV100Schema from "../../../../packages/contracts/schemas/model-synthesist-output/1.0.0/schema.json";
@@ -124,6 +127,9 @@ type BrowserContractName =
   | "project-inquiry-save-request@1.0.0"
   | "project-inquiry-save-receipt@1.0.0"
   | "project-inquiry-save-recovery-view@1.0.0"
+  | "project-objective-command-request@1.0.0"
+  | "project-objective-command-receipt@1.0.0"
+  | "project-objective-command-recovery-view@1.0.0"
   | "project-profile-command-request@1.0.0"
   | "project-profile-command-receipt@1.0.0"
   | "project-profile-command-recovery-view@1.0.0"
@@ -181,6 +187,9 @@ const schemas = [
   projectInquirySaveRequestSchema,
   projectInquirySaveReceiptSchema,
   projectInquirySaveRecoveryViewSchema,
+  projectObjectiveCommandRequestSchema,
+  projectObjectiveCommandReceiptSchema,
+  projectObjectiveCommandRecoveryViewSchema,
   briefProjectObjectLocationViewV100Schema,
   briefProjectObjectiveV100Schema,
   briefProjectShellViewV100Schema,
@@ -278,6 +287,12 @@ const contractIds: Record<BrowserContractName, string> = {
   "project-inquiry-save-receipt@1.0.0": projectInquirySaveReceiptSchema.$id,
   "project-inquiry-save-recovery-view@1.0.0":
     projectInquirySaveRecoveryViewSchema.$id,
+  "project-objective-command-request@1.0.0":
+    projectObjectiveCommandRequestSchema.$id,
+  "project-objective-command-receipt@1.0.0":
+    projectObjectiveCommandReceiptSchema.$id,
+  "project-objective-command-recovery-view@1.0.0":
+    projectObjectiveCommandRecoveryViewSchema.$id,
   "project-profile-command-request@1.0.0":
     projectProfileCommandRequestSchema.$id,
   "project-profile-command-receipt@1.0.0":
@@ -382,6 +397,24 @@ export class PetraContractRegistry {
       version: "1.0.0",
       canonical_sha256:
         "sha256:6a9cacc35e9df3b73a4eaed2db936f8c2452cf07ebd0256523388c743eb2b22e",
+    },
+    {
+      name: "project-objective-command-request",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:55e4423042dab6c37f913f43198c444b5f4cde584108b1cd4b30d216b89ee373",
+    },
+    {
+      name: "project-objective-command-receipt",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:15414d1bbd0f2c94e7909206d49134ea94f233f4d12b357cdce99c607e53be7c",
+    },
+    {
+      name: "project-objective-command-recovery-view",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:b64ac1a2076a71feb56f5defde4867013f5386ebcc67ce00486430df702c0fd6",
     },
     {
       name: "project-profile-command-request",

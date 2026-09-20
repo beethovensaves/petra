@@ -1,4 +1,8 @@
 import { ProjectBriefSurface } from "./ProjectBriefSurface.js";
+import {
+  ProjectObjectiveEmptyBrief,
+  type ProjectObjectiveReturnOutcome,
+} from "./ProjectObjectiveControl.js";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type {
   PetraProjectInquiryView,
@@ -1189,13 +1193,32 @@ export const ProjectResumeOutcome = ({
 export const BriefRoute = (): React.JSX.Element => {
   const data = useLoaderData<ProjectBriefData>();
   const project = useProjectRecord();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const resumeOutcome = searchParams.get("projectResume");
-  if (data.briefView === undefined)
-    throw new Error("The Project Brief read is unavailable.");
+  if (data.objectiveCommandContext === undefined)
+    throw new Error("The reviewed Project Objective boundary is unavailable.");
+  const state = location.state as {
+    objectiveCommandOutcome?: ProjectObjectiveReturnOutcome;
+  } | null;
+  const objectiveCommandOutcome = state?.objectiveCommandOutcome;
+  if (data.briefView === undefined) {
+    return (
+      <ProjectObjectiveEmptyBrief
+        context={data.objectiveCommandContext}
+        {...(objectiveCommandOutcome === undefined
+          ? {}
+          : { outcome: objectiveCommandOutcome })}
+      />
+    );
+  }
   return (
     <ProjectBriefSurface
       view={data.briefView}
+      objectiveCommandContext={data.objectiveCommandContext}
+      {...(objectiveCommandOutcome === undefined
+        ? {}
+        : { objectiveCommandOutcome })}
       {...(resumeOutcome === null
         ? {}
         : {

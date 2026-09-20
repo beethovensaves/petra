@@ -230,11 +230,17 @@
         "UX-REQ-021",
         "UX-REQ-023"
       ],
-      "current_state": "missing",
+      "current_state": "live",
       "route": "/projects/:projectId/brief",
       "control": "Frame objective",
       "interaction": "command",
-      "evidence": [],
+      "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH PETRA_WAVE6_OBJECTIVE_BROWSER_OUTPUT=reports/WAVE6-OBJECTIVE-COMMAND-BROWSER.json npm run test:wave6:objective-ui",
+          "artifact": "reports/WAVE6-OBJECTIVE-COMMAND-BROWSER.json",
+          "boundary": "Isolated Chrome executed the production Brief loader, reviewed Objective component, typed command and recovery adapters, exact Project/ProjectDefinition/focus binding, applied and replayed results, unknown-effect assessment with exact retry, conflict fail-closed behavior, and exact Brief focus return using deterministic schema-valid HTTP. The exact backend counterpart separately proves live server and PostgreSQL ownership; this artifact does not claim a named Wave 6 evidence-plan scenario."
+        }
+      ],
       "runtime_owner": "POST /api/commands/projects/:projectId/objective and POST /api/queries/projects/:projectId/objective-command-recovery -> PostgresProjectObjectiveCommandAuthority",
       "paths": ["UX-PATH-03"]
     },

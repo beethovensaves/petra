@@ -7,6 +7,12 @@ import {
   scientificFocusedGraphEntryDraft,
   scientificFocusedGraphSemantics,
 } from "./focused-graph-entry.js";
+import {
+  ProjectObjectiveControl,
+  ProjectObjectiveOutcome,
+  type ProjectObjectiveReturnOutcome,
+} from "./ProjectObjectiveControl.js";
+import type { ProjectObjectiveCommandContext } from "./project-objective-command.js";
 import "./project-brief.css";
 
 const RecordDetails = ({ label, value }: { label: string; value: unknown }) => (
@@ -44,10 +50,14 @@ export const ProjectBriefSurface = ({
   view,
   resumeOutcome,
   selectedAction,
+  objectiveCommandContext,
+  objectiveCommandOutcome,
 }: {
   view: PetraProjectBriefReadView;
   resumeOutcome?: ReactNode;
   selectedAction?: ReactNode;
+  objectiveCommandContext: ProjectObjectiveCommandContext;
+  objectiveCommandOutcome?: ProjectObjectiveReturnOutcome;
 }) => {
   const c = view.content;
   const payload = c.profile_payload;
@@ -82,6 +92,9 @@ export const ProjectBriefSurface = ({
         </span>
       </div>
       {resumeOutcome}
+      {objectiveCommandOutcome === undefined ? null : (
+        <ProjectObjectiveOutcome outcome={objectiveCommandOutcome} />
+      )}
       <section
         className="brief-section brief-focus"
         aria-labelledby="brief-focus"
@@ -89,6 +102,7 @@ export const ProjectBriefSurface = ({
         <p className="reference-panel-kicker">Orientation</p>
         <h2 id="brief-focus">Current focus</h2>
         <p className="brief-focus__statement">{c.orientation.statement}</p>
+        <ProjectObjectiveControl context={objectiveCommandContext} />
         <Limitations items={c.coverage.limitations} />
         <RecordDetails
           label="Technical position and scope"
