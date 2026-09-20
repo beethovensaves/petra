@@ -5,11 +5,13 @@ import type {
   PetraChangeSetRecord,
   PetraClaim,
   PetraDraftArtifact,
+  PetraGroundedResponse,
   PetraProjectDefinition,
   PetraProjectObjectLocationView,
   PetraProjectSource,
   PetraProjectSourceReplacement,
   PetraProjectionCheckpoint,
+  PetraWorkerOutputManifest,
   PetraWorkUnit,
   ProjectObjectDescriptor,
   ProjectObjectDestination,
@@ -79,7 +81,13 @@ interface StoredRevision {
 interface LocatedRecord {
   current: StoredRevision;
   selected?: StoredRevision;
+  parentRef?: ProjectObjectExactRef;
   replacementSteps?: ReplacementStep[];
+}
+
+interface ParentRevisionLookupRow extends RevisionLookupRow {
+  parent_revision: string;
+  parent_record_hash: string;
 }
 
 interface ReplacementStep {
@@ -455,6 +463,100 @@ const draftArtifactLookup = async (
   return row === undefined ? undefined : rowRecord(row);
 };
 
+const groundedResponseLookup = async (
+  client: PoolClient,
+  projectId: string,
+  objectId: string,
+  revision: number | undefined,
+): Promise<LocatedRecord | undefined> => {
+  const result = await client.query<ParentRevisionLookupRow>(
+    `SELECT head.current_revision::text,
+            current_revision.record_hash AS current_record_hash,
+            current_revision.payload AS current_payload,
+            current_revision.payload #>> '{content,terminal,state}' AS current_lifecycle,
+            selected_revision.revision::text AS selected_revision,
+            selected_revision.record_hash AS selected_record_hash,
+            selected_revision.payload AS selected_payload,
+            selected_revision.payload #>> '{content,terminal,state}' AS selected_lifecycle,
+            parent.revision::text AS parent_revision,
+            parent.record_hash AS parent_record_hash
+       FROM petra.grounded_responses AS head
+       JOIN petra.grounded_response_revisions AS current_revision
+         ON current_revision.grounded_response_id = head.grounded_response_id
+        AND current_revision.revision = head.current_revision
+       LEFT JOIN petra.grounded_response_revisions AS selected_revision
+         ON selected_revision.grounded_response_id = head.grounded_response_id
+        AND selected_revision.revision = COALESCE($3, head.current_revision)
+       JOIN petra.work_unit_revisions AS parent
+         ON parent.project_id = head.project_id
+        AND parent.work_unit_id = head.work_unit_id
+        AND parent.revision = head.work_unit_revision
+      WHERE head.project_id = $1
+        AND head.grounded_response_id = $2`,
+    [projectId, objectId, revision ?? null],
+  );
+  const row = result.rows[0];
+  return row === undefined
+    ? undefined
+    : {
+        ...rowRecord(row),
+        parentRef: {
+          semantic_key: "petra.work-unit",
+          object_id: (row.current_payload as PetraGroundedResponse).content
+            .interaction_ref.work_unit_ref.work_unit_id,
+          revision: Number(row.parent_revision),
+          record_hash: row.parent_record_hash,
+        },
+      };
+};
+
+const workerOutputManifestLookup = async (
+  client: PoolClient,
+  projectId: string,
+  objectId: string,
+  revision: number | undefined,
+): Promise<LocatedRecord | undefined> => {
+  const result = await client.query<ParentRevisionLookupRow>(
+    `SELECT manifest.revision::text AS current_revision,
+            manifest.record_hash AS current_record_hash,
+            manifest.payload AS current_payload,
+            manifest.outcome_kind AS current_lifecycle,
+            CASE WHEN COALESCE($3, manifest.revision) = manifest.revision
+              THEN manifest.revision::text END AS selected_revision,
+            CASE WHEN COALESCE($3, manifest.revision) = manifest.revision
+              THEN manifest.record_hash END AS selected_record_hash,
+            CASE WHEN COALESCE($3, manifest.revision) = manifest.revision
+              THEN manifest.payload END AS selected_payload,
+            CASE WHEN COALESCE($3, manifest.revision) = manifest.revision
+              THEN manifest.outcome_kind END AS selected_lifecycle,
+            parent.revision::text AS parent_revision,
+            parent.record_hash AS parent_record_hash
+       FROM petra.worker_output_manifests AS manifest
+       JOIN petra.work_units AS work
+         ON work.project_id = manifest.project_id
+        AND work.work_unit_id = manifest.work_unit_id
+       JOIN petra.work_unit_revisions AS parent
+         ON parent.work_unit_id = work.work_unit_id
+        AND parent.revision = work.current_revision
+      WHERE manifest.project_id = $1
+        AND manifest.worker_output_manifest_id = $2`,
+    [projectId, objectId, revision ?? null],
+  );
+  const row = result.rows[0];
+  return row === undefined
+    ? undefined
+    : {
+        ...rowRecord(row),
+        parentRef: {
+          semantic_key: "petra.work-unit",
+          object_id: (row.current_payload as PetraWorkerOutputManifest)
+            .work_unit_id,
+          revision: Number(row.parent_revision),
+          record_hash: row.parent_record_hash,
+        },
+      };
+};
+
 const term = (
   definition: PetraProjectDefinition,
   semanticKey: string,
@@ -671,6 +773,69 @@ const DEFAULT_ADAPTERS: readonly ObjectLocationAdapter[] = [
       };
     },
   },
+  {
+    semanticKey: "petra.grounded-response",
+    idPattern: /^grounded_response_[0-9A-HJKMNP-TV-Z]{26}$/u,
+    schemaName: "grounded-response",
+    destinations: [
+      {
+        role: "petra",
+        purpose:
+          "Inspect the exact grounded response with its retained context and authority limits.",
+        intents: ["orient", "inspect", "trace"],
+      },
+      {
+        role: "work",
+        purpose: "Inspect the Work that produced this grounded response.",
+        intents: ["continue_work"],
+      },
+      {
+        role: "history",
+        purpose: "Inspect retained Project history for this response.",
+        intents: ["view_history"],
+      },
+    ],
+    locate: groundedResponseLookup,
+    descriptor: (record) => {
+      const response = record.payload as PetraGroundedResponse;
+      return {
+        semantic_key: "petra.grounded-response",
+        generic_family: "output",
+        label: "Grounded response",
+        summary: `Grounded response · ${response.content.cache.state.replaceAll("_", " ")} cache · ${response.content.terminal.authority_effect} authority effect`,
+        lifecycle_state: record.lifecycleState,
+      };
+    },
+  },
+  {
+    semanticKey: "petra.worker-output-manifest",
+    idPattern: /^worker_output_manifest_[0-9A-HJKMNP-TV-Z]{26}$/u,
+    schemaName: "worker-output-manifest",
+    destinations: [
+      {
+        role: "work",
+        purpose:
+          "Inspect the exact worker result, diagnostics, measured use, and producing Work.",
+        intents: ["orient", "inspect", "trace", "continue_work"],
+      },
+      {
+        role: "history",
+        purpose: "Inspect retained Project history for this worker result.",
+        intents: ["view_history"],
+      },
+    ],
+    locate: workerOutputManifestLookup,
+    descriptor: (record) => {
+      const manifest = record.payload as PetraWorkerOutputManifest;
+      return {
+        semantic_key: "petra.worker-output-manifest",
+        generic_family: "output",
+        label: "Worker output",
+        summary: `${manifest.content.worker.worker_name} · ${manifest.content.outcome.outcome_kind.replaceAll("_", " ")} · ${manifest.content.outcome.produced_outputs.length} reported output${manifest.content.outcome.produced_outputs.length === 1 ? "" : "s"}`,
+        lifecycle_state: record.lifecycleState,
+      };
+    },
+  },
 ];
 
 export class PostgresProjectObjectLocationViewReader implements ProjectObjectLocationViewReader {
@@ -839,6 +1004,9 @@ export class PostgresProjectObjectLocationViewReader implements ProjectObjectLoc
         resolved_ref: resolvedRef,
         current_ref: currentRef,
         descriptor: adapter.descriptor(located.selected, definition),
+        ...(located.parentRef === undefined
+          ? {}
+          : { parent_ref: clone(located.parentRef) }),
         replacement_chain: (located.replacementSteps ?? []).map((replacement) =>
           this.#exactRef(
             adapter.semanticKey,

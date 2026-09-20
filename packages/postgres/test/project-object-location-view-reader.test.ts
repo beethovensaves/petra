@@ -6,8 +6,10 @@ import type {
   PetraClaim,
   PetraChangeSet,
   PetraDraftArtifact,
+  PetraGroundedResponse,
   PetraProjectDefinition,
   PetraProjectSource,
+  PetraWorkerOutputManifest,
   PetraWorkUnit,
 } from "@petra/contracts";
 import { canonicalize } from "json-canonicalize";
@@ -40,6 +42,10 @@ const changeSet = fixture<PetraChangeSet>("change-set");
 const workCurrent = fixture<PetraWorkUnit>("work-unit-completed");
 const workRequested = fixture<PetraWorkUnit>("work-unit-requested");
 const draft = fixture<PetraDraftArtifact>("draft-artifact");
+const groundedResponse = fixture<PetraGroundedResponse>("grounded-response");
+const workerOutput = fixture<PetraWorkerOutputManifest>(
+  "worker-output-manifest",
+);
 
 interface Stored {
   current: unknown;
@@ -81,6 +87,20 @@ const stored = new Map<string, Stored>([
     },
   ],
   [draft.draft_artifact_id, { current: draft, currentLifecycle: "passed" }],
+  [
+    groundedResponse.grounded_response_id,
+    {
+      current: groundedResponse,
+      currentLifecycle: groundedResponse.content.terminal.state,
+    },
+  ],
+  [
+    workerOutput.worker_output_manifest_id,
+    {
+      current: workerOutput,
+      currentLifecycle: workerOutput.content.outcome.outcome_kind,
+    },
+  ],
 ]);
 
 const result = <Row extends Record<string, unknown>>(
@@ -172,6 +192,8 @@ class LocationClient {
         selected_payload:
           selected === undefined ? null : structuredClone(selected),
         selected_lifecycle: selectedLifecycle ?? null,
+        parent_revision: String(workCurrent.revision),
+        parent_record_hash: canonicalHash(workCurrent),
       } as unknown as Row,
     ]);
   }
@@ -183,7 +205,7 @@ const poolFor = (client: LocationClient): Pool =>
   ({ connect: () => Promise.resolve(client) }) as unknown as Pool;
 
 describe("PostgreSQL Project semantic destination reader", () => {
-  it("resolves the six M1 object kinds through one profile-aware registry", async () => {
+  it("resolves registered Project objects and Work results through one profile-aware registry", async () => {
     const client = new LocationClient();
     const reader = new PostgresProjectObjectLocationViewReader(poolFor(client));
     const cases = [
@@ -229,6 +251,22 @@ describe("PostgreSQL Project semantic destination reader", () => {
         role: "composition",
         family: "output",
       },
+      {
+        semanticKey: "petra.grounded-response",
+        objectId: groundedResponse.grounded_response_id,
+        intent: "inspect" as const,
+        role: "petra",
+        family: "output",
+        parentWork: true,
+      },
+      {
+        semanticKey: "petra.worker-output-manifest",
+        objectId: workerOutput.worker_output_manifest_id,
+        intent: "inspect" as const,
+        role: "work",
+        family: "output",
+        parentWork: true,
+      },
     ];
 
     for (const value of cases) {
@@ -249,6 +287,14 @@ describe("PostgreSQL Project semantic destination reader", () => {
       }
       expect(resolution.descriptor.generic_family).toBe(value.family);
       expect(resolution.resolved_ref).toEqual(resolution.current_ref);
+      if (value.parentWork === true) {
+        expect(resolution.parent_ref).toEqual({
+          semantic_key: "petra.work-unit",
+          object_id: workCurrent.work_unit_id,
+          revision: workCurrent.revision,
+          record_hash: canonicalHash(workCurrent),
+        });
+      }
       expect(view?.content.fallback_destination?.role).toBe("brief");
       expect(view?.content.projection.state).toBe("unavailable");
     }

@@ -783,6 +783,18 @@ export function enforceCompletionDisposition(disposition, plan, evidence = []) {
   return disposition;
 }
 
+export function enforceProgressDisposition(result, plan, evidence = []) {
+  const disposition = enforceCompletionDisposition(
+    result.disposition,
+    plan,
+    evidence,
+  );
+  if (disposition === "blocked" && nonEmptyString(result.handoff_prompt)) {
+    return "handoff";
+  }
+  return disposition;
+}
+
 function mergeEvidence(existing = [], additions = [], metadata = {}) {
   const merged = new Map(
     existing.map((record) => [evidenceKey(record), record]),
@@ -979,7 +991,7 @@ Process exactly ONE bounded slice. Inspect the repository and the exact counterp
 
 For a completed slice, run proportionate focused checks, the complete repository verification gate, and real PostgreSQL integration when persistence or PostgreSQL behavior changes. If the slice changes repository files, commit and push the coherent change before responding. If a bounded role-owned review finds no safe repository change, return a handoff from the unchanged clean and pushed commit and say so explicitly; do not fabricate a file change merely to create a commit. Confirm that your HEAD equals its remote tracking branch and that the worktree is clean except for the two explicitly known design assets. Do not continue to a second slice yourself.
 
-If a consequential product, architecture, authority, information-hierarchy, or freeze decision is unresolved, make no partial commit and return needs_user. If a required gate, service, authorization, push, branch, worktree, or usage limit prevents safe completion, return blocked. A coherent prerequisite fix may be committed and pushed before reporting blocked; the coordinator will retain that clean pushed commit without advancing the slice, so the same slice can resume after the intervention. Never label partial or unverified work complete.
+If a consequential product, architecture, authority, information-hierarchy, or freeze decision is unresolved, make no partial commit and return needs_user. A failed completion gate or a repository defect owned by either worker is remediation work: return handoff with the exact defect and next bounded owning-role task so the controller keeps the wave moving. Return blocked only when an external dependency prevents either repository role from making progress, such as unavailable authorization, an unavailable required service, a push failure, an unsafe worktree, or an exhausted usage limit; for that external-only disposition, leave handoff_prompt empty and state the intervention in user_attention. A coherent prerequisite fix may be committed and pushed before either disposition. Never label partial or unverified work complete.
 
 Your final response must be only the JSON object required by the supplied output schema. Use the full 40-character HEAD in commit and the exact supplied counterpart commit in counterpart_commit. Return evidence as an array; use an empty array when this slice executed no named evidence-plan scenario. For handoff, write a complete next-turn prompt for the other role. For needs_user or blocked, explain the exact intervention in user_attention. Declare wave_complete only under the packet's full exit rule.
 
@@ -1484,8 +1496,8 @@ async function finalizeTurn(wave, role, claimedState, worker) {
     claimedState.evidence,
     resultEvidence,
   );
-  const disposition = enforceCompletionDisposition(
-    result.disposition,
+  const disposition = enforceProgressDisposition(
+    result,
     evidencePlan,
     prospectiveEvidence,
   );
@@ -1517,11 +1529,18 @@ async function finalizeTurn(wave, role, claimedState, worker) {
       evidencePlan,
       state.evidence,
     );
-    const completionRejected = disposition !== result.disposition;
+    const completionRejected =
+      disposition === "handoff" &&
+      ["wave_complete", "needs_user"].includes(result.disposition);
+    const actionableBlockerContinued =
+      disposition === "handoff" && result.disposition === "blocked";
     const evidenceRejection = completionRejected
       ? `Coordinator rejected ${result.disposition}; missing executed evidence: ${missingEvidence
           .map((requirement) => evidenceKey(requirement))
           .join(", ")}.`
+      : "";
+    const progressAdjustment = actionableBlockerContinued
+      ? "Coordinator continued the actionable repository blocker as a worker handoff; no external intervention was required."
       : "";
     state.active = null;
     delete state.recovery;
@@ -1538,7 +1557,9 @@ async function finalizeTurn(wave, role, claimedState, worker) {
       next_safe_boundary: result.next_safe_boundary,
       wave_exit_assessment: evidenceRejection
         ? `${result.wave_exit_assessment} ${evidenceRejection}`.trim()
-        : result.wave_exit_assessment,
+        : progressAdjustment
+          ? `${result.wave_exit_assessment} ${progressAdjustment}`.trim()
+          : result.wave_exit_assessment,
       user_attention: result.user_attention,
       commit_changed: commitChanged,
       run_id: worker.runId,
@@ -1567,6 +1588,7 @@ async function finalizeTurn(wave, role, claimedState, worker) {
     } else {
       state.status = result.disposition;
       state.next_role = null;
+      state.handoff_prompt = result.handoff_prompt;
       state.stop_reason = result.user_attention;
     }
     writeJsonAtomic(statePath(wave), state);
@@ -1892,6 +1914,28 @@ async function stop(wave) {
   process.stdout.write(`Wave ${wave} handoff stopped.\n`);
 }
 
+function retainedBlockedHandoff(wave, state) {
+  const lastRunId = state.history.at(-1)?.run_id;
+  if (nonEmptyString(lastRunId)) {
+    const resultPath = join(
+      stateDirectory(wave),
+      "runs",
+      `${lastRunId}.result.json`,
+    );
+    if (existsSync(resultPath)) {
+      try {
+        const result = JSON.parse(readFileSync(resultPath, "utf8"));
+        if (nonEmptyString(result.handoff_prompt)) {
+          return result.handoff_prompt;
+        }
+      } catch {
+        // Fall back to the state copy when a retained run result is unreadable.
+      }
+    }
+  }
+  return state.handoff_prompt;
+}
+
 async function resumeBlockedWave(wave, role) {
   if (!roles[role]) {
     throw new Error("resume requires --role backend or --role design.");
@@ -1926,6 +1970,8 @@ async function resumeBlockedWave(wave, role) {
     }
     const previousCommit = state.commits[role];
     const previousReason = state.stop_reason;
+    const previousRole = state.history.at(-1)?.role ?? role;
+    const retainedHandoff = retainedBlockedHandoff(wave, state);
     const timestamp = new Date().toISOString();
     state.status = "waiting";
     state.next_role = role;
@@ -1934,9 +1980,11 @@ async function resumeBlockedWave(wave, role) {
     clearRetryAttempt(state, state.slice_count + 1, role);
     state.stop_reason = "";
     state.handoff_prompt =
-      `Recover Wave ${wave} slice ${state.slice_count + 1} after coordinator validation stopped the prior ${role} attempt. ` +
-      `The clean pushed ${role} branch advanced from ${previousCommit} to ${own.head}; inspect that exact commit range and the latest run logs before changing anything. ` +
-      `Preserve completed work, execute or correct only the rejected handoff/evidence boundary (${previousReason}), then return the same bounded slice. Do not duplicate implementation or begin the next slice.`;
+      `Recover Wave ${wave} slice ${state.slice_count + 1} in the ${role} role after the prior ${previousRole} attempt stopped. ` +
+      `The controller recorded ${role} at ${previousCommit}; its clean pushed head is now ${own.head}. Inspect any exact commit range and the latest run logs before changing anything. ` +
+      `Preserve completed work and address only this blocker: ${previousReason} ` +
+      `Then return one bounded slice without duplicating implementation.\n\n` +
+      `DETAILED PRIOR HANDOFF\n${retainedHandoff || "No additional handoff was retained."}`;
     state.updated_at = timestamp;
     state.operator_recoveries ??= [];
     state.operator_recoveries.push({
