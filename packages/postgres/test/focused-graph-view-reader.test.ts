@@ -6,6 +6,7 @@ import type {
   PetraClaim,
   PetraProjectDefinition,
   PetraProjectionCheckpoint,
+  PetraRegisteredProjectProfile,
   PetraSourceSpan,
   PetraWorkingCandidate,
   PetraWorkingRelationship,
@@ -824,20 +825,26 @@ describe("PostgreSQL focused graph query reader", () => {
     );
     expect(queries.at(-1)).toBe("ROLLBACK");
 
-    const focusedV11 = contract("focused-graph-view", "1.1.0");
-    projectDefinition.content.registrations.push({
-      registration_kind: "extension",
-      semantic_key: "scientific.graph.show-downstream",
-      contract: focusedV11,
-    });
-    projectDefinition.content.terms.push({
-      semantic_key: "scientific.graph.show-downstream",
-      singular: "Show downstream effects",
-      plural: "Show downstream effects",
-      definition:
-        "Reveal recorded downstream relationships within an exact bounded query.",
-      generic_family: "task",
-    });
+    const registeredProfile = fixture<PetraRegisteredProjectProfile>(
+      "registered-project-profile-scientific-v1-2",
+    );
+    const expansionRegistration =
+      registeredProfile.content.definition.registrations.find(
+        (registration) =>
+          registration.semantic_key === "scientific.graph.show-downstream",
+      );
+    const expansionTerm = registeredProfile.content.definition.terms.find(
+      (term) => term.semantic_key === "scientific.graph.show-downstream",
+    );
+    if (expansionRegistration === undefined || expansionTerm === undefined) {
+      throw new Error(
+        "The registered scientific profile has no downstream Graph recipe.",
+      );
+    }
+    projectDefinition.content.registrations.push(
+      structuredClone(expansionRegistration),
+    );
+    projectDefinition.content.terms.push(structuredClone(expansionTerm));
     projectDefinition.content_hash = hash(projectDefinition.content);
     const expansionDefinitionRef = {
       project_definition_id: projectDefinition.project_definition_id,

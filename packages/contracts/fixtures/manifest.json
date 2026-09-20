@@ -1,5 +1,5 @@
 {
-  "fixture_manifest_version": "1.60.0",
+  "fixture_manifest_version": "1.61.0",
   "accepted": [
     {
       "schema": "contract-smoke",
@@ -78,6 +78,10 @@
     {
       "schema": "registered-project-profile",
       "path": "fixtures/accepted/registered-project-profile-scientific-v1-1.json"
+    },
+    {
+      "schema": "registered-project-profile",
+      "path": "fixtures/accepted/registered-project-profile-scientific-v1-2.json"
     },
     {
       "schema": "registered-project-profile",
