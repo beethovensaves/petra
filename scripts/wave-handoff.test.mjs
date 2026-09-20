@@ -21,6 +21,7 @@ import {
   canRetryWorkerFailure,
   clearRetryAttempt,
   enforceCompletionDisposition,
+  enforceProgressDisposition,
   evidenceOwnerCanSatisfy,
   initialHandoff,
   inventoryAuditOverdue,
@@ -694,6 +695,29 @@ test("retains clean blocked work without accepting stopped work changes", () => 
   );
 });
 
+test("continues actionable repository blockers and stops only external blockers", () => {
+  assert.equal(
+    enforceProgressDisposition(
+      {
+        disposition: "blocked",
+        handoff_prompt:
+          "Backend should implement the missing production owner.",
+      },
+      evidencePlan,
+      [],
+    ),
+    "handoff",
+  );
+  assert.equal(
+    enforceProgressDisposition(
+      { disposition: "blocked", handoff_prompt: "" },
+      evidencePlan,
+      [],
+    ),
+    "blocked",
+  );
+});
+
 test("the handoff output schema accepts the complete result", () => {
   const schema = JSON.parse(
     readFileSync(
@@ -964,6 +988,9 @@ test("worker prompt fixes one-slice, commit, role, and stop boundaries", () => {
   assert.match(prompt, /presence in your branch is not a design edit/);
   assert.match(prompt, /Do not edit backend contracts/);
   assert.match(prompt, /return needs_user/);
+  assert.match(prompt, /failed completion gate.*remediation work/);
+  assert.match(prompt, /Return blocked only when an external dependency/);
+  assert.match(prompt, /leave handoff_prompt empty/);
   assert.match(prompt, /Map the exact backend slice/);
 });
 
