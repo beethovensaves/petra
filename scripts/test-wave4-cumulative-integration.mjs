@@ -965,6 +965,29 @@ const seedScientific = async (pool, neo4jUri) => {
     issued_at: "2026-09-19T00:00:00.000Z",
   };
   if (wave5Mode) await grants.registerCapabilityGrant(workManagementGrant);
+  const inquirySaveContent = {
+    scope_kind: "project_commands",
+    allowed_commands: ["SaveProjectInquiry"],
+    valid_from: "2026-09-19T00:00:00.000Z",
+    reason:
+      "Allow the representative Project author to retain an exact server-verified Graph question.",
+  };
+  const inquirySaveGrant = {
+    schema_name: "petra.capability-grant",
+    schema_version: "1.9.0",
+    capability_grant_id: derivePetraId(
+      "capability_grant",
+      "wave6-checkpoint-save-project-inquiry",
+    ),
+    revision: 1,
+    project_id: scientificProjectId,
+    grantee: { actor_id: humanActorId, actor_kind: "human" },
+    content: inquirySaveContent,
+    content_hash: hash(inquirySaveContent),
+    issued_by: { actor_id: humanActorId, actor_kind: "human" },
+    issued_at: "2026-09-19T00:00:00.000Z",
+  };
+  if (wave5Mode) await grants.registerCapabilityGrant(inquirySaveGrant);
   const changes = new PostgresChangeControlAuthorityRepository(
     pool,
     new PostgresCapabilityGrantCommandAuthorizer(contracts),

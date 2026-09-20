@@ -1,7 +1,11 @@
 import type {
+  PetraProjectInquirySaveReceipt,
+  PetraProjectInquirySaveRecoveryView,
+  PetraProjectInquirySaveRequest,
   PetraProjectInquiryLink,
   PetraProjectInquiryRole,
   PetraProjectInquiryView,
+  PetraProjectObjective,
 } from "@petra/contracts";
 
 export type ProjectInquiryAuthoredStatus =
@@ -57,4 +61,54 @@ export interface ProjectInquiryAuthorityRepository {
     projectId: string,
     workUnitId: string,
   ): Promise<PetraProjectInquiryLink[]>;
+}
+
+export type ProjectInquirySaveErrorCode =
+  | "PROJECT_INQUIRY_SAVE_CONFLICT"
+  | "PROJECT_INQUIRY_SAVE_NOT_AUTHORIZED"
+  | "PROJECT_INQUIRY_SAVE_GRAPH_NOT_FOUND"
+  | "PROJECT_INQUIRY_SAVE_GRAPH_STALE"
+  | "PROJECT_INQUIRY_SAVE_DEFINITION_STALE"
+  | "PROJECT_INQUIRY_SAVE_ROLE_UNAVAILABLE"
+  | "PROJECT_INQUIRY_SAVE_SELECTION_INVALID"
+  | "PROJECT_INQUIRY_SAVE_STORED_RECORD_CORRUPT";
+
+export class ProjectInquirySaveError extends Error {
+  constructor(
+    readonly code: ProjectInquirySaveErrorCode,
+    message: string,
+  ) {
+    super(message);
+    this.name = "ProjectInquirySaveError";
+  }
+}
+
+export interface ProjectInquirySavePrincipal {
+  readonly actor: PetraProjectInquirySaveReceipt["actor"];
+  readonly capabilityGrantId: string;
+}
+
+export interface ProjectInquirySaveResult {
+  readonly receipt: PetraProjectInquirySaveReceipt;
+  readonly inquiry: PetraProjectObjective;
+  /** False only when the exact command was replayed idempotently. */
+  readonly applied: boolean;
+}
+
+/**
+ * Authenticated command owner for a server-verified Graph question. The
+ * renderer supplies no Actor, grant, ProjectInquiry identity, or Objective
+ * content beyond the exact bounded question request.
+ */
+export interface ProjectInquirySaveAuthority {
+  saveProjectInquiry(
+    projectId: string,
+    request: PetraProjectInquirySaveRequest,
+    principal: ProjectInquirySavePrincipal,
+  ): Promise<ProjectInquirySaveResult>;
+  assessProjectInquirySaveRecovery(
+    projectId: string,
+    request: PetraProjectInquirySaveRequest,
+    principal: ProjectInquirySavePrincipal,
+  ): Promise<PetraProjectInquirySaveRecoveryView>;
 }

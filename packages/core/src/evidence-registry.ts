@@ -161,7 +161,8 @@ export interface CommandAuthorizationRequest {
     | "CorrectReviewCandidate"
     | "ReviseReviewCandidateBasis"
     | "SeparateReviewSessionMember"
-    | "ManageProjectWork";
+    | "ManageProjectWork"
+    | "SaveProjectInquiry";
   readonly projectId: string;
 }
 

@@ -763,7 +763,7 @@
       "control": "Save exact question",
       "interaction": "command",
       "evidence": [],
-      "runtime_owner": "",
+      "runtime_owner": "POST /api/commands/projects/:projectId/inquiries and POST /api/queries/projects/:projectId/inquiries/save-recovery -> PostgresProjectInquirySaveAuthority",
       "paths": ["UX-PATH-01", "UX-PATH-03"]
     },
     {

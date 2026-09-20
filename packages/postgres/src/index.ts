@@ -15,6 +15,7 @@ export * from "./project-definition-authority-repository.js";
 export * from "./project-profile-runtime.js";
 export * from "./project-model-readiness-reader.js";
 export * from "./project-inquiry-authority-repository.js";
+export * from "./project-inquiry-save-authority.js";
 export * from "./project-inquiry-view-reader.js";
 export * from "./project-effective-controls-view-reader.js";
 export * from "./project-history-view-reader.js";
