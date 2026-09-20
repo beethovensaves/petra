@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-shell-collection-view/1.0.0/schema.json",
+  "title": "PetraProjectShellCollectionView",
+  "description": "An authenticated, server-filtered, snapshot-consistent page of Project shell results. Search is bounded to current Project name, objective statement, and registered profile label; clients do not decide collection membership.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "content",
+    "content_hash",
+    "read_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.project-shell-collection-view" },
+    "schema_version": { "const": "1.0.0" },
+    "content": { "$ref": "#/$defs/CollectionContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "read_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "CollectionQuery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["limit"],
+      "properties": {
+        "search": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "status": { "enum": ["active", "archived"] },
+        "profile": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9.-]{2,127}$"
+        },
+        "limit": { "type": "integer", "minimum": 1, "maximum": 100 },
+        "cursor": { "type": "string", "pattern": "^offset:[0-9]{1,9}$" }
+      }
+    },
+    "Page": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["returned_count", "total_count", "has_more"],
+      "properties": {
+        "returned_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "total_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "has_more": { "type": "boolean" },
+        "next_cursor": {
+          "type": "string",
+          "pattern": "^offset:[0-9]{1,9}$"
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "has_more": { "const": true } } },
+          "then": {
+            "required": ["next_cursor"],
+            "properties": { "next_cursor": {} }
+          },
+          "else": { "properties": { "next_cursor": false } }
+        }
+      ]
+    },
+    "CollectionContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["query", "projects", "page"],
+      "properties": {
+        "query": { "$ref": "#/$defs/CollectionQuery" },
+        "projects": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "oneOf": [
+              { "$ref": "../../project-shell-view/1.0.0/schema.json" },
+              { "$ref": "../../project-shell-view/1.1.0/schema.json" },
+              { "$ref": "../../project-shell-view/1.2.0/schema.json" }
+            ]
+          }
+        },
+        "page": { "$ref": "#/$defs/Page" }
+      }
+    }
+  }
+}

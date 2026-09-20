@@ -16,6 +16,7 @@ export * from "./review-session-apply-client.js";
 export * from "./review-session-reject-client.js";
 
 export * from "./project-brief-client.js";
+export * from "./project-shell-client.js";
 export * from "./project-profile-client.js";
 export * from "./project-model-client.js";
 export * from "./project-work-client.js";

@@ -5039,6 +5039,35 @@ class PetraProjectShellViewV110(PetraModel):
     read_at: str
 
 
+class ProjectShellCollectionQuery(PetraModel):
+    search: str | None = None
+    status: Literal["active", "archived"] | None = None
+    profile: str | None = None
+    limit: int
+    cursor: str | None = None
+
+
+class ProjectShellCollectionPage(PetraModel):
+    returned_count: int
+    total_count: int
+    has_more: bool
+    next_cursor: str | None = None
+
+
+class ProjectShellCollectionContent(PetraModel):
+    query: ProjectShellCollectionQuery
+    projects: list[dict[str, Any]]
+    page: ProjectShellCollectionPage
+
+
+class PetraProjectShellCollectionView(PetraModel):
+    schema_name: Literal["petra.project-shell-collection-view"]
+    schema_version: Literal["1.0.0"]
+    content: ProjectShellCollectionContent
+    content_hash: str
+    read_at: str
+
+
 ProjectControlState = Literal[
     "effective",
     "inherited",
@@ -11121,6 +11150,7 @@ PYDANTIC_MODELS_V100: dict[str, type[BaseModel]] = {
     "registered-project-profile": PetraRegisteredProjectProfile,
     "project-objective": PetraProjectObjective,
     "project-shell-view": PetraProjectShellView,
+    "project-shell-collection-view": PetraProjectShellCollectionView,
     "project-history-view": PetraProjectHistoryView,
     "project-history-episode-view": PetraProjectHistoryEpisodeView,
     "project-history-retained-view": PetraProjectHistoryRetainedView,

@@ -279,6 +279,12 @@ export type {
   ShellContent as ProjectShellContentV12,
 } from "./generated/project-shell-view-v1-2.js";
 export type {
+  CollectionContent as ProjectShellCollectionContent,
+  CollectionQuery as ProjectShellCollectionQuery,
+  Page as ProjectShellCollectionPage,
+  PetraProjectShellCollectionView,
+} from "./generated/project-shell-collection-view.js";
+export type {
   AuthorityPosition as ProjectHistoryAuthorityPosition,
   CommandRef as ProjectHistoryCommandRef,
   EligibleRecovery as ProjectHistoryEligibleRecovery,

@@ -48,6 +48,7 @@ import type {
   PetraProjectRelationshipOverlayView,
   PetraProjectRelationshipView,
   PetraProjectReviewViewRecord,
+  PetraProjectShellCollectionView,
   PetraReviewSessionRefreshReceipt,
   PetraReviewSessionLifecycleReceipt,
   PetraReviewSessionRecord,
@@ -3864,13 +3865,22 @@ export const graphQuestionFromOverlayView = (
 
 export const loadProjectCollection = async (): Promise<ProjectRecord[]> => {
   const value = await requestJson("/api/queries/projects");
-  if (!isRecord(value) || !Array.isArray(value.projects)) {
+  if (
+    !isRecord(value) ||
+    value.schema_name !== "petra.project-shell-collection-view" ||
+    value.schema_version !== "1.0.0" ||
+    !isRecord(value.content) ||
+    !Array.isArray(value.content.projects) ||
+    !isRecord(value.content.page) ||
+    value.content.page.returned_count !== value.content.projects.length
+  ) {
     throw new ProjectDataError(
       "Petra returned an invalid Project collection.",
       502,
     );
   }
-  return value.projects.map((project) =>
+  const collection = value as unknown as PetraProjectShellCollectionView;
+  return collection.content.projects.map((project) =>
     projectRecordFromShellView(shellView(project)),
   );
 };

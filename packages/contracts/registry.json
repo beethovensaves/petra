@@ -507,6 +507,17 @@
       "typescript_path": "src/generated/project-shell-view-v1-2.ts"
     },
     {
+      "name": "project-shell-collection-view",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-shell-collection-view/1.0.0/schema.json",
+      "path": "schemas/project-shell-collection-view/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-bounded-server-owned-project-search-and-pagination",
+      "canonical_sha256": "sha256:bac8053554ca391baaba96cd0e84c65b9813e7e542ca49bf35704450fe798bff",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-shell-collection-view.ts"
+    },
+    {
       "name": "project-history-view",
       "version": "1.0.0",
       "$id": "https://petra.local/schemas/project-history-view/1.0.0/schema.json",

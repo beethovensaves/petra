@@ -125,6 +125,14 @@ try {
       "uses the exact direct Review commands for a durable Petra interrupt after restart",
     );
   }
+  if (process.env.PETRA_WAVE6_PROJECT_SEARCH_ONLY === "1") {
+    postgresTestArgs.push(
+      "--",
+      "project-definition-authority-repository.test.ts",
+      "--testNamePattern",
+      "executes bounded server-owned Project search across paired project-authored definitions",
+    );
+  }
   const test = await requireRun("npm", postgresTestArgs, {
     env: {
       PETRA_TEST_POSTGRES_URL: `postgresql://petra:petra-m12-integration-only@127.0.0.1:${port}/petra`,
@@ -142,6 +150,14 @@ try {
             PETRA_WAVE6_ACTIONS_EVIDENCE_OUTPUT: resolve(
               root,
               process.env.PETRA_WAVE6_ACTIONS_EVIDENCE_OUTPUT,
+            ),
+          }),
+      ...(process.env.PETRA_WAVE6_PROJECT_SEARCH_EVIDENCE_OUTPUT === undefined
+        ? {}
+        : {
+            PETRA_WAVE6_PROJECT_SEARCH_EVIDENCE_OUTPUT: resolve(
+              root,
+              process.env.PETRA_WAVE6_PROJECT_SEARCH_EVIDENCE_OUTPUT,
             ),
           }),
     },

@@ -1,0 +1,15 @@
+{
+  "schema_name": "petra.project-shell-collection-view",
+  "schema_version": "1.0.0",
+  "content": {
+    "query": { "limit": 50 },
+    "projects": [],
+    "page": {
+      "returned_count": 0,
+      "total_count": 0,
+      "has_more": false
+    }
+  },
+  "content_hash": "sha256:6996af6c68033ba7b6ab039bcf92efde149edb0b7bcda9e391ba8379d035d58c",
+  "read_at": "2026-09-20T12:00:00.000Z"
+}

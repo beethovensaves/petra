@@ -23,6 +23,7 @@ import type {
   PetraProjectReviewView,
   PetraProjectReviewViewV120,
   PetraProjectWorkingStateSnapshot,
+  PetraProjectShellCollectionView,
   PetraProjectShellView,
   PetraProjectShellViewV11,
   PetraProjectShellViewV12,
@@ -44,6 +45,7 @@ import type {
   ProjectRelationshipViewReader,
   ProjectReviewViewReader,
   ProjectWorkingStateSnapshotReader,
+  ProjectShellCollectionRequest,
   ProjectShellSelectionRequest,
   ProjectShellViewReader,
   ProjectSourceLifecycleViewReader,
@@ -769,7 +771,40 @@ const suggestedActionInvocationViewFixture = JSON.parse(
   ),
 ) as PetraSuggestedActionInvocationView;
 
+const collectionView = (
+  projects: PetraProjectShellCollectionView["content"]["projects"],
+  request: ProjectShellCollectionRequest = {},
+): PetraProjectShellCollectionView => {
+  const query: PetraProjectShellCollectionView["content"]["query"] = {
+    ...(request.search === undefined ? {} : { search: request.search }),
+    ...(request.status === undefined ? {} : { status: request.status }),
+    ...(request.profile === undefined ? {} : { profile: request.profile }),
+    limit: request.limit ?? 50,
+    ...(request.cursor === undefined ? {} : { cursor: request.cursor }),
+  };
+  const content: PetraProjectShellCollectionView["content"] = {
+    query,
+    projects: structuredClone(projects),
+    page: {
+      returned_count: projects.length,
+      total_count: projects.length,
+      has_more: false,
+    },
+  };
+  return {
+    schema_name: "petra.project-shell-collection-view",
+    schema_version: "1.0.0",
+    content,
+    content_hash: `sha256:${createHash("sha256")
+      .update(canonicalize(content))
+      .digest("hex")}`,
+    read_at: "2026-09-20T12:00:00.000Z",
+  };
+};
+
 const reader: ProjectShellViewReader = {
+  searchProjectShellViews: (request) =>
+    Promise.resolve(collectionView([fixture], request)),
   listProjectShellViews: () => Promise.resolve([structuredClone(fixture)]),
   getProjectShellView: (projectId) =>
     Promise.resolve(
@@ -1040,7 +1075,7 @@ describe("authorized Project shell query routes", () => {
       authorized("/api/queries/projects"),
     );
     expect(collection.status).toBe(200);
-    await expect(collection.json()).resolves.toEqual({ projects: [fixture] });
+    await expect(collection.json()).resolves.toEqual(collectionView([fixture]));
 
     const detail = await petra.app.request(
       authorized(`/api/queries/projects/${fixture.project_id}/shell`),
@@ -1049,8 +1084,54 @@ describe("authorized Project shell query routes", () => {
     await expect(detail.json()).resolves.toEqual(fixture);
   });
 
+  it("forwards only bounded Project search, filter, and pagination controls", async () => {
+    let observed: ProjectShellCollectionRequest | undefined;
+    const searchReader: ProjectShellViewReader = {
+      ...reader,
+      searchProjectShellViews: (request) => {
+        observed = request;
+        return Promise.resolve(collectionView([fixture], request));
+      },
+    };
+    const petra = createPetraApp({
+      authToken: TOKEN,
+      projectShellViews: searchReader,
+    });
+    const response = await petra.app.request(
+      authorized(
+        "/api/queries/projects?search=evidence&status=active&profile=petra.scientific-evidence&limit=1&cursor=offset:1",
+      ),
+    );
+    expect(response.status).toBe(200);
+    expect(observed).toEqual({
+      search: "evidence",
+      status: "active",
+      profile: "petra.scientific-evidence",
+      limit: 1,
+      cursor: "offset:1",
+    });
+    expect(response.headers.get("cache-control")).toBe("no-store");
+
+    for (const path of [
+      "/api/queries/projects?search=%20evidence",
+      "/api/queries/projects?limit=101",
+      "/api/queries/projects?cursor=offset:-1",
+      "/api/queries/projects?search=a&search=b",
+      "/api/queries/projects?clientFilter=all",
+    ]) {
+      const invalid = await petra.app.request(authorized(path));
+      expect(invalid.status).toBe(422);
+      const body = JSON.parse(await invalid.text()) as {
+        error?: { code?: string };
+      };
+      expect(body.error?.code).toBe("PROJECT_COLLECTION_QUERY_INVALID");
+    }
+  });
+
   it("shares the server-owned resume result across collection and shell reads", async () => {
     const resumeReader: ProjectShellViewReader = {
+      searchProjectShellViews: (request) =>
+        Promise.resolve(collectionView([shellV12Fixture], request)),
       listProjectShellViews: () =>
         Promise.resolve([structuredClone(shellV12Fixture)]),
       getProjectShellView: (projectId) =>
@@ -1068,9 +1149,9 @@ describe("authorized Project shell query routes", () => {
       authorized("/api/queries/projects"),
     );
     expect(collection.status).toBe(200);
-    await expect(collection.json()).resolves.toEqual({
-      projects: [shellV12Fixture],
-    });
+    await expect(collection.json()).resolves.toEqual(
+      collectionView([shellV12Fixture]),
+    );
 
     const detail = await petra.app.request(
       authorized(`/api/queries/projects/${shellV12Fixture.project_id}/shell`),
@@ -1082,6 +1163,8 @@ describe("authorized Project shell query routes", () => {
   it("composes an exact optional selection into the 1.1 shell view", async () => {
     let observedSelection: ProjectShellSelectionRequest | undefined;
     const v11Reader: ProjectShellViewReader = {
+      searchProjectShellViews: (request) =>
+        Promise.resolve(collectionView([shellV11Fixture], request)),
       listProjectShellViews: () =>
         Promise.resolve([structuredClone(shellV11Fixture)]),
       getProjectShellView: (projectId, selection) => {
@@ -1608,6 +1691,8 @@ describe("authorized Project shell query routes", () => {
     const unavailable = createPetraApp({
       authToken: TOKEN,
       projectShellViews: {
+        searchProjectShellViews: () =>
+          Promise.reject(new Error("repeatable-read snapshot unavailable")),
         listProjectShellViews: () =>
           Promise.reject(new Error("repeatable-read snapshot unavailable")),
         getProjectShellView: () => Promise.resolve(undefined),
