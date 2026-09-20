@@ -63,8 +63,14 @@
       "route": "/",
       "control": "Project switcher",
       "interaction": "navigation",
-      "evidence": [],
-      "runtime_owner": "",
+      "evidence": [
+        {
+          "command": "npm run test:wave6:project-switch",
+          "artifact": "reports/WAVE6-PROJECT-SWITCH-AUTHORITY.json",
+          "boundary": "Real disposable PostgreSQL, the production HTTP server, bearer authentication, and ProjectShellClient prove that selecting a different exact collection member resolves that Project's server-owned shell and Brief fallback while the prior Project's immutable retained Graph task and running Work remain independently unchanged. This backend trace does not invoke the visible Project switcher or prove browser-local draft, selection, focus, history, or return-context preservation; that visible DB18-P11 execution remains design-owned."
+        }
+      ],
+      "runtime_owner": "GET /api/queries/projects -> ProjectShellViewReader.searchProjectShellViews -> PostgresProjectShellViewReader; GET /api/queries/projects/:projectId/shell -> ProjectShellViewReader.getProjectShellView -> PostgresProjectShellViewReader (authenticated REPEATABLE READ per-Project shell, server-owned resume/Brief destination, retained ProjectInquiry and Work isolation)",
       "paths": ["UX-PATH-03"]
     },
     {

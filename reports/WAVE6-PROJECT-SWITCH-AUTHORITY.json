@@ -1,0 +1,56 @@
+{
+  "schema_name": "petra.wave6-project-switch-authority-evidence",
+  "schema_version": "1.0.0",
+  "status": "passed",
+  "operation_id": "project.switch",
+  "executed_at": "2026-09-20T22:57:06.138Z",
+  "command": "npm run test:wave6:project-switch",
+  "database": "fresh disposable PostgreSQL 18.6 with Flyway V001-V058",
+  "runtime_owner": "GET /api/queries/projects -> ProjectShellViewReader.searchProjectShellViews -> PostgresProjectShellViewReader; GET /api/queries/projects/:projectId/shell -> ProjectShellViewReader.getProjectShellView -> PostgresProjectShellViewReader",
+  "production_boundary": {
+    "server": "startPetraServer over an ephemeral TCP port",
+    "client": "ProjectShellClient.search and ProjectShellClient.open",
+    "authentication": "Bearer middleware at /api/*",
+    "persistence": "Current Project, ProjectDefinition, Objective, retained ProjectInquiry, and running Work authority in PostgreSQL REPEATABLE READ READ ONLY shell transactions"
+  },
+  "observations": {
+    "prior_project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+    "target_project_id": "project_01K4E000000000000000000001",
+    "target_was_different": true,
+    "target_destination": "/projects/project_01K4E000000000000000000001/brief",
+    "target_destination_owner": "project-shell-view@1.2.0 resume.recovery open_brief",
+    "prior_retained_task_state_before": "available",
+    "prior_retained_task_state_after": "available",
+    "prior_retained_task_request_hash": "sha256:1e47fc0e85e710cff7d07f01eb302927fa72cbdbe492b07e44ddd60ea1641f15",
+    "prior_work_unit_id": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+    "prior_work_state_before": "running",
+    "prior_work_state_after": "running",
+    "prior_work_revision_before": 3,
+    "prior_work_revision_after": 3,
+    "cancellation_rows": 0,
+    "substituted_project": false,
+    "calls": [
+      {
+        "method": "GET",
+        "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/shell",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/queries/projects",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/queries/projects/project_01K4E000000000000000000001/shell",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/shell",
+        "status": 200
+      }
+    ]
+  },
+  "boundary": "Real disposable PostgreSQL, the production HTTP server, bearer authentication, and the renderer-neutral typed client prove that selecting a different exact collection member resolves that Project's server-owned shell and Brief fallback while the prior Project's immutable retained Graph task and running Work remain independently unchanged. This backend trace does not invoke the visible Project switcher or prove browser-local draft, selection, focus, history, or return-context preservation; that visible DB18-P11 execution remains design-owned."
+}
