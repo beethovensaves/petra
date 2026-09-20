@@ -4,11 +4,17 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import {
+  CreateBucketCommand,
+  HeadBucketCommand,
+  S3Client,
+} from "@aws-sdk/client-s3";
+import {
   CommunicationPlanClient,
   FocusedGraphClient,
   PetraInteractionClient,
   ProjectModelClient,
   ProjectBriefClient,
+  ProjectSourceLocalCopyDeletionClient,
   ProjectWorkClient,
   ProjectWorkingStateClient,
   ReviewCandidateCorrectionClient,
@@ -44,6 +50,7 @@ import {
   PostgresModelExecutionRepository,
   PostgresProjectDefinitionAuthorityRepository,
   PostgresProjectInquiryAuthorityRepository,
+  PostgresProjectSourceLocalCopyDeletionAuthority,
   PostgresProjectSourceAuthorityRepository,
   PostgresProjectThreadAuthorityRepository,
   PostgresResearchScopeRepository,
@@ -55,6 +62,7 @@ import {
   PostgresWorkUnitAuthorityRepository,
   projectInquiryRoleRef,
 } from "@petra/postgres";
+import { S3ArtifactStore } from "@petra/s3";
 import {
   M1_GROUNDED_SYNTHESIS_QUESTION,
   createM1GroundedSynthesisServiceActor,
@@ -80,11 +88,15 @@ const scientificProjectId = "project_01ARZ3NDEKTSV4RRFFQ69G5FAW";
 const writingProjectId = "project_01K4E000000000000000000001";
 const traceMode = process.env.PETRA_WAVE4_TRACE;
 const item49Mode = traceMode === "conversation-model-identity";
-const wave5Mode = traceMode === "wave5-cumulative";
+const sourceLocalCopyDeletionMode =
+  traceMode === "wave6-source-local-copy-deletion";
+const wave5Mode =
+  traceMode === "wave5-cumulative" || sourceLocalCopyDeletionMode;
 const wave6ActualModelUiMode = traceMode === "wave6-actual-model-ui";
 const liveProjectModelMode = wave5Mode || wave6ActualModelUiMode;
 const item53Mode = traceMode === "evidence-remediation-support" || wave5Mode;
 const item49ProfileMode = item49Mode || item53Mode || wave6ActualModelUiMode;
+const materializedRepresentativeSourceMode = item49Mode || liveProjectModelMode;
 const item49Published = Object.freeze({
   projectThreadId: "project_thread_1TVS320FP5Z477P8NY46FXAZF9",
   projectTurnId: "project_turn_7MH84CJ73Z12ZV2YTEP9S188QB",
@@ -104,13 +116,48 @@ const item49Published = Object.freeze({
   reviewSessionId: "review_session_01K4D000000000000000000004",
 });
 
+const hash = (value) =>
+  `sha256:${createHash("sha256").update(canonicalize(value)).digest("hex")}`;
+const fixtureSourceContentHash =
+  "sha256:76313fbb039e79b42da7b3ee67b26123f2b7e7157c80f019e688682337a0f09e";
+const representativeSourceBytes = new TextEncoder().encode(
+  "%PDF-1.7\nPetra demo!\n",
+);
+const representativeSourceContentHash = `sha256:${createHash("sha256")
+  .update(representativeSourceBytes)
+  .digest("hex")}`;
+const parserBytes = new TextEncoder().encode('{"parser":"output"}');
+const localCopyWalkthroughBytes = new TextEncoder().encode(
+  "%PDF-1.7\nLocal copy walkthrough\n",
+);
+const replaceFixtureSourceIdentity = (value) => {
+  if (value === fixtureSourceContentHash)
+    return representativeSourceContentHash;
+  if (Array.isArray(value)) return value.map(replaceFixtureSourceIdentity);
+  if (typeof value !== "object" || value === null) return value;
+  const replaced = Object.fromEntries(
+    Object.entries(value).map(([key, member]) => [
+      key,
+      replaceFixtureSourceIdentity(member),
+    ]),
+  );
+  if (
+    Object.hasOwn(replaced, "content_hash") &&
+    Object.hasOwn(replaced, "content")
+  ) {
+    replaced.content_hash = hash(replaced.content);
+  }
+  return replaced;
+};
 const readJson = (path) => JSON.parse(readFileSync(path, "utf8"));
-const readAccepted = (name) =>
+const readAcceptedRaw = (name) =>
   readJson(
     resolve(root, "packages/contracts/fixtures/accepted", `${name}.json`),
   );
-const hash = (value) =>
-  `sha256:${createHash("sha256").update(canonicalize(value)).digest("hex")}`;
+const readAccepted = (name) =>
+  materializedRepresentativeSourceMode
+    ? replaceFixtureSourceIdentity(readAcceptedRaw(name))
+    : readAcceptedRaw(name);
 const workingHash = (record) => {
   const material = structuredClone(record);
   delete material.content_hash;
@@ -199,11 +246,27 @@ const availableArtifactStore = {
   },
 };
 
-const sourceArtifactInput = () => {
+const sourceArtifactInput = (available) => {
   const artifact = readAccepted("artifact");
   const manifest = readAccepted("artifact-manifest");
   const rightsDecision = readAccepted("rights-decision");
   artifact.created_by.actor_kind = "human";
+  if (available !== undefined) {
+    artifact.content_hash = representativeSourceContentHash;
+    artifact.byte_size = representativeSourceBytes.byteLength;
+    manifest.storage_ref.store_name = available.storeName;
+    manifest.storage_ref.object_key = available.objectKey;
+    manifest.storage_ref.content_hash = available.contentHash;
+    manifest.storage_ref.verified_at = available.availableAt;
+    manifest.integrity = {
+      status: available.verification.status,
+      checked_at: available.availableAt,
+      problems: [...available.verification.problems],
+    };
+    manifest.recorded_at = available.availableAt;
+    rightsDecision.observed_at = available.availableAt;
+    rightsDecision.created_at = available.availableAt;
+  }
   manifest.recorded_by.actor_kind = "human";
   rightsDecision.decision_maker.actor_kind = "human";
   return { artifact, manifest, rightsDecision };
@@ -253,8 +316,7 @@ const continuationArtifactInput = ({
   return { artifact, manifest, rightsDecision };
 };
 
-const parserArtifactInput = (source) => {
-  const parserBytes = new TextEncoder().encode('{"parser":"output"}');
+const parserArtifactInput = (source, available) => {
   const parserHash = `sha256:${createHash("sha256").update(parserBytes).digest("hex")}`;
   const artifact = clone(source.artifact);
   artifact.artifact_id = "artifact_01ARZ3NDEKTSV4RRFFQ69G5FB8";
@@ -280,6 +342,22 @@ const parserArtifactInput = (source) => {
   manifest.storage_ref.verified_at = "2026-09-13T12:00:01.000Z";
   manifest.integrity.checked_at = "2026-09-13T12:00:01.000Z";
   manifest.recorded_at = "2026-09-13T12:00:01.000Z";
+  if (available !== undefined) {
+    manifest.storage_ref = {
+      storage_kind: "content_addressed_object",
+      store_name: available.storeName,
+      object_key: available.objectKey,
+      content_hash: available.contentHash,
+      availability: "available",
+      verified_at: available.availableAt,
+    };
+    manifest.integrity = {
+      status: available.verification.status,
+      checked_at: available.availableAt,
+      problems: [...available.verification.problems],
+    };
+    manifest.recorded_at = available.availableAt;
+  }
   const rightsDecision = clone(source.rightsDecision);
   rightsDecision.rights_decision_id = manifest.rights_decision_id;
   rightsDecision.artifact_manifest_id = manifest.artifact_manifest_id;
@@ -293,6 +371,144 @@ const parserArtifactInput = (source) => {
   rightsDecision.observed_at = "2026-09-13T12:00:01.000Z";
   rightsDecision.created_at = "2026-09-13T12:00:01.000Z";
   return { artifact, manifest, rightsDecision };
+};
+
+const localCopyWalkthroughInput = (available) => {
+  const timestamp = "2026-09-20T14:00:00.000Z";
+  const actorRef = { actor_id: humanActorId, actor_kind: "human" };
+  const author = readAccepted("author");
+  author.author_id = derivePetraId(
+    "author",
+    "wave6-local-copy-walkthrough-author",
+  );
+  author.display_name = "Petra walkthrough author";
+  author.created_by = clone(actorRef);
+  author.created_at = timestamp;
+  author.updated_at = timestamp;
+  const work = readAccepted("work");
+  work.work_id = derivePetraId("work", "wave6-local-copy-walkthrough-work");
+  work.title = "Local-copy deletion walkthrough";
+  work.author_credits = [
+    {
+      author_id: author.author_id,
+      position: 1,
+      credit_role: "author",
+      corresponding: true,
+    },
+  ];
+  work.created_by = clone(actorRef);
+  work.created_at = timestamp;
+  work.updated_at = timestamp;
+  const workVersion = readAccepted("work-version");
+  workVersion.work_version_id = derivePetraId(
+    "work_version",
+    "wave6-local-copy-walkthrough-version",
+  );
+  workVersion.work_id = work.work_id;
+  workVersion.version_label = "Retained local copy";
+  workVersion.publication_status = "unknown";
+  delete workVersion.published_date;
+  workVersion.metadata_source = {
+    source_kind: "repository",
+    source_name: "Petra representative setup",
+    source_record_id: "wave6-local-copy-walkthrough",
+  };
+  workVersion.metadata_retrieved_at = timestamp;
+  workVersion.created_by = clone(actorRef);
+  workVersion.created_at = timestamp;
+  workVersion.updated_at = timestamp;
+  const artifact = readAccepted("artifact");
+  artifact.artifact_id = derivePetraId(
+    "artifact",
+    "wave6-local-copy-walkthrough-artifact",
+  );
+  artifact.content_hash = available.contentHash;
+  artifact.byte_size = available.byteSize;
+  artifact.created_by = clone(actorRef);
+  artifact.created_at = timestamp;
+  const manifest = readAccepted("artifact-manifest");
+  manifest.artifact_manifest_id = derivePetraId(
+    "artifact_manifest",
+    "wave6-local-copy-walkthrough-manifest",
+  );
+  manifest.artifact_id = artifact.artifact_id;
+  manifest.rights_decision_id = derivePetraId(
+    "rights_decision",
+    "wave6-local-copy-walkthrough-rights",
+  );
+  manifest.origin = {
+    origin_kind: "acquired",
+    work_version_id: workVersion.work_version_id,
+    source_connector: "petra-representative-setup",
+    connector_version: "1.0.0",
+    retrieval_url: "https://example.test/petra/local-copy-walkthrough.pdf",
+    retrieved_at: timestamp,
+    response_metadata: {
+      status_code: 200,
+      content_type: artifact.media_type,
+      content_length: artifact.byte_size,
+      etag: '"wave6-local-copy-walkthrough"',
+    },
+  };
+  manifest.storage_ref = {
+    storage_kind: "content_addressed_object",
+    store_name: available.storeName,
+    object_key: available.objectKey,
+    content_hash: available.contentHash,
+    availability: "available",
+    verified_at: available.availableAt,
+  };
+  manifest.integrity = {
+    status: available.verification.status,
+    checked_at: available.availableAt,
+    problems: [...available.verification.problems],
+  };
+  manifest.recorded_by = clone(actorRef);
+  manifest.recorded_at = available.availableAt;
+  const rightsDecision = readAccepted("rights-decision");
+  rightsDecision.rights_decision_id = manifest.rights_decision_id;
+  rightsDecision.artifact_manifest_id = manifest.artifact_manifest_id;
+  rightsDecision.source_location = manifest.origin.retrieval_url;
+  rightsDecision.decision_maker = clone(actorRef);
+  rightsDecision.observed_at = timestamp;
+  rightsDecision.created_at = timestamp;
+  const projectSource = readAccepted("project-source");
+  projectSource.project_source_id = derivePetraId(
+    "project_source",
+    "wave6-local-copy-walkthrough-source",
+  );
+  projectSource.content.work_ref = {
+    work_id: work.work_id,
+    revision: work.revision,
+    record_hash: hash(work),
+  };
+  projectSource.content.work_version_ref = {
+    work_version_id: workVersion.work_version_id,
+    revision: workVersion.revision,
+    record_hash: hash(workVersion),
+  };
+  projectSource.content.author_refs = [
+    {
+      author_id: author.author_id,
+      revision: author.revision,
+      record_hash: hash(author),
+    },
+  ];
+  projectSource.content.artifact_manifest_ref = {
+    artifact_manifest_id: manifest.artifact_manifest_id,
+    revision: manifest.revision,
+    record_hash: hash(manifest),
+  };
+  projectSource.content_hash = hash(projectSource.content);
+  projectSource.added_by = clone(actorRef);
+  projectSource.added_at = timestamp;
+  return {
+    author,
+    work,
+    workVersion,
+    artifact: { artifact, manifest, rightsDecision },
+    projectSource,
+  };
 };
 
 const documentBundle = (sourceManifestId) => {
@@ -379,6 +595,71 @@ const resourceCount = async () => {
       count + result.stdout.split("\n").filter((line) => line !== "").length,
     0,
   );
+};
+
+const createRepresentativeArtifactStore = async (environment) => {
+  const client = new S3Client({
+    region: "us-east-1",
+    endpoint: environment.PETRA_S3_ENDPOINT,
+    forcePathStyle: true,
+    credentials: {
+      accessKeyId: environment.PETRA_S3_ACCESS_KEY,
+      secretAccessKey: environment.PETRA_S3_SECRET_KEY,
+    },
+  });
+  try {
+    try {
+      await client.send(
+        new HeadBucketCommand({ Bucket: environment.PETRA_S3_BUCKET }),
+      );
+    } catch {
+      await client.send(
+        new CreateBucketCommand({ Bucket: environment.PETRA_S3_BUCKET }),
+      );
+    }
+    const store = new S3ArtifactStore({
+      client,
+      bucket: environment.PETRA_S3_BUCKET,
+      storeName: "petra-artifacts",
+      namespace: "petra",
+    });
+    const publish = async (bytes, mediaType, contentHash) => {
+      const staged = await store.stage({
+        bytes: [bytes],
+        declaredByteSize: bytes.byteLength,
+        declaredMediaType: mediaType,
+        expectedContentHash: contentHash,
+      });
+      return store.makeAvailable(staged);
+    };
+    const [source, parser, localCopyWalkthrough] = await Promise.all([
+      publish(
+        representativeSourceBytes,
+        "application/pdf",
+        representativeSourceContentHash,
+      ),
+      publish(
+        parserBytes,
+        "application/json",
+        `sha256:${createHash("sha256").update(parserBytes).digest("hex")}`,
+      ),
+      publish(
+        localCopyWalkthroughBytes,
+        "application/pdf",
+        `sha256:${createHash("sha256")
+          .update(localCopyWalkthroughBytes)
+          .digest("hex")}`,
+      ),
+    ]);
+    return {
+      store,
+      available: { source, parser, localCopyWalkthrough },
+      close: () => client.destroy(),
+    };
+  } catch (error) {
+    client.destroy();
+    throw error;
+  }
 };
 
 const actor = (actorId, actorKind, displayName) => ({
@@ -657,13 +938,18 @@ const reviewMember = (pair, memberId, memberRole = "ordinary") => ({
   ],
 });
 
-const seedScientific = async (pool, neo4jUri) => {
+const seedScientific = async (
+  pool,
+  neo4jUri,
+  artifactStore = availableArtifactStore,
+  available = {},
+) => {
   const contracts = new PetraContractRegistry();
   const scopes = new PostgresResearchScopeRepository(pool);
   const identities = new PostgresScholarlyIdentityRepository(pool);
   const artifacts = new PostgresArtifactAuthorityRepository(
     pool,
-    availableArtifactStore,
+    artifactStore,
   );
   const documents = new PostgresDocumentAuthorityRepository(pool);
   const evidence = new PostgresEvidenceAuthorityRepository(pool);
@@ -719,11 +1005,25 @@ const seedScientific = async (pool, neo4jUri) => {
   const objectiveOne = readAccepted("project-objective");
   await definitions.registerDefinitionRevision(definitionOne);
   await definitions.registerObjectiveRevision(objectiveOne);
-  const source = sourceArtifactInput();
+  const source = sourceArtifactInput(available.source);
   await artifacts.registerVerifiedAcquisition(source);
-  await artifacts.registerVerifiedAcquisition(parserArtifactInput(source));
+  await artifacts.registerVerifiedAcquisition(
+    parserArtifactInput(source, available.parser),
+  );
   const bundle = documentBundle(source.manifest.artifact_manifest_id);
   await documents.registerDocumentBundle(bundle);
+  const localCopyWalkthrough =
+    available.localCopyWalkthrough === undefined
+      ? undefined
+      : localCopyWalkthroughInput(available.localCopyWalkthrough);
+  if (localCopyWalkthrough !== undefined) {
+    await identities.registerAuthorRevision(localCopyWalkthrough.author);
+    await identities.registerWorkRevision(localCopyWalkthrough.work);
+    await identities.registerWorkVersionRevision(
+      localCopyWalkthrough.workVersion,
+    );
+    await artifacts.registerVerifiedAcquisition(localCopyWalkthrough.artifact);
+  }
 
   if (liveProjectModelMode) {
     await definitions.registerDefinitionRevision(
@@ -887,6 +1187,19 @@ const seedScientific = async (pool, neo4jUri) => {
   );
   projectSource.content_hash = hash(projectSource.content);
   await sources.registerProjectSourceRevision(projectSource);
+  if (localCopyWalkthrough !== undefined) {
+    localCopyWalkthrough.projectSource.content.project_definition_ref = {
+      project_definition_id: definition.project_definition_id,
+      revision: definition.revision,
+      content_hash: definition.content_hash,
+    };
+    localCopyWalkthrough.projectSource.content_hash = hash(
+      localCopyWalkthrough.projectSource.content,
+    );
+    await sources.registerProjectSourceRevision(
+      localCopyWalkthrough.projectSource,
+    );
+  }
 
   const applyGrant = readAccepted("capability-grant");
   await grants.registerCapabilityGrant(applyGrant);
@@ -1004,6 +1317,31 @@ const seedScientific = async (pool, neo4jUri) => {
     issued_at: "2026-09-19T00:00:00.000Z",
   };
   if (wave5Mode) await grants.registerCapabilityGrant(inquirySaveGrant);
+  const localCopyDeletionContent = {
+    scope_kind: "project_commands",
+    allowed_commands: ["DeleteLocalSourceCopy"],
+    valid_from: "2026-09-20T00:00:00.000Z",
+    reason:
+      "Allow the representative Project author to delete one eligible exact local source copy after reviewing the retained authority.",
+  };
+  const localCopyDeletionGrant = {
+    schema_name: "petra.capability-grant",
+    schema_version: "1.15.0",
+    capability_grant_id: derivePetraId(
+      "capability_grant",
+      "wave6-checkpoint-delete-local-source-copy",
+    ),
+    revision: 1,
+    project_id: scientificProjectId,
+    grantee: { actor_id: humanActorId, actor_kind: "human" },
+    content: localCopyDeletionContent,
+    content_hash: hash(localCopyDeletionContent),
+    issued_by: { actor_id: humanActorId, actor_kind: "human" },
+    issued_at: "2026-09-20T00:00:00.000Z",
+  };
+  if (wave5Mode) {
+    await grants.registerCapabilityGrant(localCopyDeletionGrant);
+  }
   const changes = new PostgresChangeControlAuthorityRepository(
     pool,
     new PostgresCapabilityGrantCommandAuthorizer(contracts),
@@ -1102,6 +1440,8 @@ const seedScientific = async (pool, neo4jUri) => {
   };
   const requested = readAccepted("work-unit-requested");
   requested.created_by = clone(inputManifest.issued_by);
+  requested.spec.input_manifest_ref.content_hash = inputManifest.content_hash;
+  requested.spec_hash = hash(requested.spec);
   const workUnit = await workUnits.register({
     workUnit: requested,
     inputManifest,
@@ -1370,6 +1710,8 @@ const seedScientific = async (pool, neo4jUri) => {
     definition,
     objective,
     inquiryRole,
+    localCopyWalkthrough,
+    localCopyDeletionGrant,
     workUnit,
     projectSource,
     applyGrant,
@@ -1820,6 +2162,240 @@ const rawHistory = async (baseUrl, projectId) => {
   );
   assert(view.project_id === projectId, "History route substituted a Project.");
   return view;
+};
+
+const rawSource = async (baseUrl, projectId, projectSourceId) => {
+  const response = await fetch(
+    new URL(
+      `/api/queries/projects/${projectId}/sources/${projectSourceId}`,
+      baseUrl,
+    ),
+    { headers: { authorization: `Bearer ${token}` } },
+  );
+  const view = await response.json();
+  assert(
+    response.ok,
+    `Source route failed (${response.status}): ${JSON.stringify(view)}`,
+  );
+  new PetraContractRegistry().assertValid("project-source-view", "1.0.0", view);
+  assert(
+    view.project_id === projectId && view.project_source_id === projectSourceId,
+    "Source route substituted an identity.",
+  );
+  return view;
+};
+
+const localCopyPreservationCounts = async (pool, projectSourceId) => {
+  const result = await pool.query(
+    `SELECT
+       (SELECT count(*)::integer FROM petra.project_sources
+         WHERE project_source_id = $1) AS project_links,
+       (SELECT count(*)::integer FROM petra.project_source_revisions
+         WHERE project_source_id = $1) AS project_source_revisions,
+       (SELECT count(*)::integer FROM petra.project_source_author_refs
+         WHERE project_source_id = $1) AS author_bindings,
+       (SELECT count(*)::integer FROM petra.artifact_manifests AS manifest
+         JOIN petra.project_sources AS source
+           ON source.artifact_manifest_id = manifest.artifact_manifest_id
+        WHERE source.project_source_id = $1) AS manifests,
+       (SELECT count(*)::integer FROM petra.rights_decisions AS rights
+         JOIN petra.artifact_manifests AS manifest
+           ON manifest.rights_decision_id = rights.rights_decision_id
+         JOIN petra.project_sources AS source
+           ON source.artifact_manifest_id = manifest.artifact_manifest_id
+        WHERE source.project_source_id = $1) AS rights_decisions,
+       (SELECT count(*)::integer FROM petra.source_spans) AS selectors,
+       (SELECT count(*)::integer FROM petra.claim_source_spans) AS claim_provenance,
+       (SELECT count(*)::integer FROM petra.assertion_provenance) AS assertion_provenance,
+       (SELECT count(*)::integer
+          FROM petra.project_source_local_copy_deletion_attempts
+         WHERE project_source_id = $1) AS deletion_attempts,
+       (SELECT count(*)::integer
+          FROM petra.project_source_local_copy_deletion_receipts
+         WHERE project_source_id = $1) AS deletion_receipts`,
+    [projectSourceId],
+  );
+  return result.rows[0];
+};
+
+const exerciseProductionSourceLocalCopyDeletion = async ({
+  baseUrl,
+  pool,
+  scientific,
+  artifactStore,
+}) => {
+  const source = scientific.localCopyWalkthrough?.projectSource;
+  assert(
+    source !== undefined,
+    "The representative local-copy deletion ProjectSource was not seeded.",
+  );
+  const client = new ProjectSourceLocalCopyDeletionClient({
+    baseUrl,
+    token,
+  });
+  const preview = await client.preview(
+    scientificProjectId,
+    source.project_source_id,
+  );
+  assert(
+    preview.eligibility.state === "eligible" &&
+      preview.eligibility.blockers.length === 0 &&
+      preview.operation.state === "ready" &&
+      preview.operation.command_name === "DeleteLocalSourceCopy" &&
+      preview.expected.copy_ref.store_name === "petra-artifacts",
+    `The authenticated production preview was not eligible against the configured S3 copy: ${JSON.stringify(preview)}`,
+  );
+  const request = {
+    schema_name: "petra.project-source-local-copy-deletion-request",
+    schema_version: "1.0.0",
+    command_id: derivePetraId(
+      "command",
+      "wave6-production-local-copy-deletion",
+    ),
+    idempotency_key: "wave6:production:source-local-copy-deletion",
+    expected: clone(preview.expected),
+    reason:
+      "Delete the eligible walkthrough bytes after reviewing the retained Project authority.",
+  };
+  const beforeSource = await rawSource(
+    baseUrl,
+    scientificProjectId,
+    source.project_source_id,
+  );
+  const beforeHistory = await rawHistory(baseUrl, scientificProjectId);
+  const beforeCounts = await localCopyPreservationCounts(
+    pool,
+    source.project_source_id,
+  );
+  const faultingStore = {
+    stage: (...args) => artifactStore.stage(...args),
+    makeAvailable: (...args) => artifactStore.makeAvailable(...args),
+    inspectByHash: (...args) => artifactStore.inspectByHash(...args),
+    readByHash: (...args) => artifactStore.readByHash(...args),
+    deleteByHash: () =>
+      Promise.reject(
+        new Error("Simulated lost S3 acknowledgement after durable intent."),
+      ),
+    cleanupAbandonedStaging: (...args) =>
+      artifactStore.cleanupAbandonedStaging(...args),
+  };
+  const faultingAuthority = new PostgresProjectSourceLocalCopyDeletionAuthority(
+    pool,
+    faultingStore,
+    new PostgresCapabilityGrantCommandAuthorizer(new PetraContractRegistry()),
+    new PetraContractRegistry(),
+  );
+  try {
+    await faultingAuthority.executeProjectSourceLocalCopyDeletion(
+      scientificProjectId,
+      source.project_source_id,
+      request,
+      {
+        actor: { actor_id: humanActorId, actor_kind: "human" },
+        capabilityGrantId:
+          scientific.localCopyDeletionGrant.capability_grant_id,
+      },
+    );
+    throw new Error(
+      "The simulated lost S3 acknowledgement unexpectedly succeeded.",
+    );
+  } catch (error) {
+    assert(
+      error?.code === "PROJECT_SOURCE_LOCAL_COPY_DELETION_OUTCOME_UNKNOWN",
+      `The durable storage fault returned the wrong outcome: ${error?.code ?? error}`,
+    );
+  }
+  const unknown = await client.assessRecovery(
+    scientificProjectId,
+    source.project_source_id,
+    request,
+  );
+  assert(
+    unknown.subject.command_id === request.command_id &&
+      unknown.subject.idempotency_key === request.idempotency_key &&
+      unknown.subject.request_hash === hash(request) &&
+      unknown.effect.state === "outcome_unknown" &&
+      unknown.effect.durable_intent === true &&
+      unknown.effect.retry.reuse_exact_request === true,
+    "Unknown-effect recovery did not retain the exact request identity and durable intent.",
+  );
+  const first = await client.delete(
+    scientificProjectId,
+    source.project_source_id,
+    request,
+  );
+  const replay = await client.delete(
+    scientificProjectId,
+    source.project_source_id,
+    request,
+  );
+  assert(
+    first.applied === true &&
+      replay.applied === false &&
+      canonicalize(first.receipt) === canonicalize(replay.receipt) &&
+      first.receipt.effect.observation === "deleted_now" &&
+      Object.values(first.receipt.preservation).every(
+        (state) =>
+          state === "retained" ||
+          state === "retained_as_tombstoned_copy_identity",
+      ),
+    "Production deletion did not apply once, replay idempotently, and retain every declared authority area.",
+  );
+  assert(
+    (await artifactStore.inspectByHash(preview.expected.copy_ref.content_hash, {
+      byteSize: preview.expected.copy_ref.byte_size,
+      mediaType: preview.expected.copy_ref.media_type,
+    })) === undefined,
+    "The exact content-addressed S3 object remained after confirmed deletion.",
+  );
+  const confirmed = await client.assessRecovery(
+    scientificProjectId,
+    source.project_source_id,
+    request,
+  );
+  const afterSource = await rawSource(
+    baseUrl,
+    scientificProjectId,
+    source.project_source_id,
+  );
+  const afterHistory = await rawHistory(baseUrl, scientificProjectId);
+  const afterCounts = await localCopyPreservationCounts(
+    pool,
+    source.project_source_id,
+  );
+  const retainedBefore = { ...beforeCounts };
+  const retainedAfter = { ...afterCounts };
+  delete retainedBefore.deletion_attempts;
+  delete retainedBefore.deletion_receipts;
+  delete retainedAfter.deletion_attempts;
+  delete retainedAfter.deletion_receipts;
+  assert(
+    confirmed.effect.state === "effect_confirmed" &&
+      canonicalize(confirmed.effect.receipt) === canonicalize(first.receipt) &&
+      canonicalize(beforeSource.content) ===
+        canonicalize(afterSource.content) &&
+      beforeHistory.content_hash === afterHistory.content_hash &&
+      canonicalize(retainedBefore) === canonicalize(retainedAfter) &&
+      afterCounts.deletion_attempts === 1 &&
+      afterCounts.deletion_receipts === 1,
+    "Deletion changed the Project link, identities, rights, selectors, provenance, or canonical History, or duplicated its durable records.",
+  );
+  return {
+    project_source_id: source.project_source_id,
+    title: afterSource.content.identity.title,
+    preview_content_hash: preview.content_hash,
+    store_name: preview.expected.copy_ref.store_name,
+    object_key: preview.expected.copy_ref.object_key,
+    command_id: request.command_id,
+    idempotency_key: request.idempotency_key,
+    unknown_effect: unknown.effect.state,
+    first_applied: first.applied,
+    replay_applied: replay.applied,
+    confirmed_effect: confirmed.effect.state,
+    preservation: first.receipt.preservation,
+    retained_counts: afterCounts,
+    canonical_history_unchanged: true,
+  };
 };
 
 const item53Observer = async () => {
@@ -3265,7 +3841,7 @@ const certifiedGroundedPacketRecords = () => {
   const assertion = readAccepted("assertion");
   assertion.revision += 1;
   assertion.authority = clone(authority);
-  return [claim, assertion, readAccepted("source-span")];
+  return [claim, assertion, readAcceptedRaw("source-span")];
 };
 
 const item53GroundedPresentation = async ({
@@ -3296,7 +3872,7 @@ const item53GroundedPresentation = async ({
     currentClaim !== undefined && currentAssertion !== undefined,
     "The item 49 ContextPacket baseline authority is unavailable.",
   );
-  const context = readAccepted("context-packet");
+  const context = readAcceptedRaw("context-packet");
   context.compiled_by = {
     actor_id: serviceActorId,
     actor_kind: "service",
@@ -3334,7 +3910,7 @@ const item53GroundedPresentation = async ({
       );
     context.content_hash = hash(context.content);
   }
-  const evidencePacket = readAccepted("evidence-packet");
+  const evidencePacket = readAcceptedRaw("evidence-packet");
   if (!liveProjectModelMode) {
     evidencePacket.content.context_packet_ref.content_hash =
       context.content_hash;
@@ -3565,8 +4141,8 @@ const wave6ActualModelPacketAuthority = async ({ pool }) => {
     certification,
   );
 
-  const context = readAccepted("context-packet");
-  const evidencePacket = readAccepted("evidence-packet");
+  const context = readAcceptedRaw("context-packet");
+  const evidencePacket = readAcceptedRaw("evidence-packet");
   context.compiled_by = {
     actor_id: serviceActor.actor_id,
     actor_kind: serviceActor.actor_kind,
@@ -4257,6 +4833,7 @@ const exerciseItem53Trace = async ({
   scientific,
   writing,
   continuation,
+  artifactStore,
 }) => {
   let active;
   let vite;
@@ -5470,6 +6047,19 @@ const exerciseItem53Trace = async ({
       item49ReviewHash: postRestartReview?.content_hash,
       failureReviewHash: failureReview.content_hash,
     });
+    const sourceLocalCopyDeletion = sourceLocalCopyDeletionMode
+      ? await exerciseProductionSourceLocalCopyDeletion({
+          baseUrl: active.url,
+          pool,
+          scientific,
+          artifactStore,
+        })
+      : undefined;
+    if (sourceLocalCopyDeletion !== undefined) {
+      progress(
+        "authenticated production local-copy deletion retained authority and replayed without duplicate effects",
+      );
+    }
     return {
       ok: true,
       boundary: {
@@ -5517,6 +6107,9 @@ const exerciseItem53Trace = async ({
       ...(wave5Cumulative === undefined
         ? {}
         : { wave5_cumulative: wave5Cumulative }),
+      ...(sourceLocalCopyDeletion === undefined
+        ? {}
+        : { source_local_copy_deletion: sourceLocalCopyDeletion }),
       durable_counts: preRestartCounts,
     };
   } finally {
@@ -6222,6 +6815,7 @@ if (process.versions.node !== "24.20.0")
 
 let failure;
 let pool;
+let representativeArtifacts;
 try {
   const services = ["postgres-source", "neo4j-restored"];
   if (item49Mode || liveProjectModelMode) services.push("artifacts-source");
@@ -6270,7 +6864,16 @@ try {
     connectionString: `postgresql://petra:${postgresPassword}@127.0.0.1:${postgresPort}/petra`,
     application_name: "petra-wave4-cumulative-proof",
   });
-  const scientific = await seedScientific(pool, environment.PETRA_NEO4J_URI);
+  representativeArtifacts =
+    s3Port === undefined
+      ? undefined
+      : await createRepresentativeArtifactStore(environment);
+  const scientific = await seedScientific(
+    pool,
+    environment.PETRA_NEO4J_URI,
+    representativeArtifacts?.store,
+    representativeArtifacts?.available,
+  );
   progress("scientific authority, working state, and Review seeded");
   const result = wave6ActualModelUiMode
     ? await (async () => {
@@ -6289,7 +6892,7 @@ try {
       : await (async () => {
           const writing = await seedControlledWriting(
             pool,
-            sourceArtifactInput().manifest,
+            scientific.source.manifest,
           );
           progress(
             "controlled-writing candidate and Review seeded without Apply",
@@ -6320,6 +6923,7 @@ try {
             scientific,
             writing,
             continuation: { workAndInteraction, grounded, extractor },
+            artifactStore: representativeArtifacts?.store,
           });
         })();
   const renderedResult = `${JSON.stringify(result, null, 2)}\n`;
@@ -6337,6 +6941,7 @@ try {
   process.stderr.write(`${logs.stdout}\n${logs.stderr}`);
 } finally {
   await pool?.end();
+  representativeArtifacts?.close();
   const cleanup = await run(
     "docker",
     composeArgs("down", "--volumes", "--remove-orphans"),
