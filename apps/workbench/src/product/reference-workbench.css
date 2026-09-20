@@ -1243,6 +1243,86 @@
   font-size: var(--petra-font-size-caption);
 }
 
+.source-reuse-profile,
+.source-reuse-availability,
+.source-reuse-review {
+  display: grid;
+  gap: var(--petra-space-2);
+  padding: var(--petra-space-4);
+  border: var(--petra-rule-thin) solid var(--petra-border-subtle);
+  border-radius: var(--petra-radius-small);
+  background: var(--petra-surface-subtle);
+}
+
+.source-reuse-profile h3,
+.source-reuse-availability h3,
+.source-reuse-review h3,
+.source-reuse-profile p,
+.source-reuse-availability p,
+.source-reuse-review p,
+.source-reuse-loading {
+  margin-bottom: 0;
+}
+
+.source-reuse-candidates {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--petra-space-3);
+}
+
+.source-reuse-candidate {
+  display: flex;
+  min-height: var(--petra-control-height-comfortable);
+  align-items: flex-start;
+  gap: var(--petra-space-3);
+  padding: var(--petra-space-4);
+  border: var(--petra-rule-thin) solid var(--petra-border-default);
+  border-radius: var(--petra-radius-small);
+  background: var(--petra-surface-panel);
+  cursor: pointer;
+}
+
+.source-reuse-candidate:has(input:checked) {
+  border-color: var(--petra-action-primary);
+  box-shadow: 0 0 0 1px var(--petra-action-primary);
+}
+
+.source-reuse-candidate input {
+  width: 1.125rem;
+  height: 1.125rem;
+  flex: none;
+  margin-top: var(--petra-space-1);
+  accent-color: var(--petra-action-primary);
+}
+
+.source-reuse-candidate input:focus-visible {
+  outline: 2px solid var(--petra-focus-ring);
+  outline-offset: 2px;
+}
+
+.source-reuse-candidate__content {
+  display: grid;
+  min-width: 0;
+  gap: var(--petra-space-1);
+}
+
+.source-reuse-candidate__content > span {
+  color: var(--petra-text-secondary);
+  font-size: var(--petra-font-size-caption);
+  overflow-wrap: anywhere;
+}
+
+.source-reuse-load-failure .petra-action,
+.source-reuse-action-failure details {
+  justify-self: start;
+}
+
+.source-reuse-load-failure code,
+.source-reuse-action-failure code {
+  font-family: var(--petra-font-mono);
+  font-size: var(--petra-font-size-caption);
+}
+
 .reference-source-list {
   overflow: hidden;
   border: var(--petra-rule-thin) solid var(--petra-border-default);
@@ -1588,6 +1668,7 @@
 
   .source-registration-grid,
   .source-registration-checks,
+  .source-reuse-candidates,
   .source-registration-receipt > dl,
   .source-registration-receipt details dl {
     grid-template-columns: 1fr;

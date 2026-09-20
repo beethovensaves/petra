@@ -15,7 +15,9 @@ import {
   Outlet,
   useLoaderData,
   useLocation,
+  useNavigate,
   useOutletContext,
+  useRevalidator,
   useSearchParams,
 } from "react-router";
 
@@ -28,6 +30,7 @@ import {
   projectImportAvailability,
 } from "./ProjectImportSurface.js";
 import { SourceRegistrationPanel } from "./SourceRegistration.js";
+import { SourceReusePanel, type SourceReuseCompletion } from "./SourceReuse.js";
 import type {
   ProjectBriefData,
   ProjectCollectionData,
@@ -1253,12 +1256,20 @@ const sourceSearchText = (source: SourceRecord): string =>
 export const SourcesSurface = ({
   project,
   registration,
+  initialQuery = "",
+  onSourceReuseComplete,
 }: {
   project: ProjectRecord;
   registration?: ProjectSourceCollectionData["registration"];
+  initialQuery?: string;
+  onSourceReuseComplete?: (
+    completion: SourceReuseCompletion,
+    sourceQuery: string,
+  ) => void | Promise<void>;
 }) => {
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(initialQuery);
   const [adding, setAdding] = useState(false);
+  const [reusing, setReusing] = useState(false);
   const normalizedQuery = query.trim().toLocaleLowerCase();
   const sources = project.sources.filter((source) =>
     sourceSearchText(source).includes(normalizedQuery),
@@ -1274,7 +1285,10 @@ export const SourcesSurface = ({
           <div className="reference-source-actions">
             <PetraButton
               variant="primary"
-              onClick={() => setAdding(true)}
+              onClick={() => {
+                setReusing(false);
+                setAdding(true);
+              }}
               {...(registration === undefined ||
               registration.sourceRoles.length === 0
                 ? {
@@ -1290,9 +1304,9 @@ export const SourcesSurface = ({
             </PetraButton>
             <PetraButton
               variant="secondary"
-              unavailable={{
-                reason: `Reusing an existing ${project.profile.terms.reference.toLocaleLowerCase()} has no production command owner yet.`,
-                prerequisite: "Source reuse capability.",
+              onClick={() => {
+                setAdding(false);
+                setReusing(true);
               }}
             >
               Use existing {project.profile.terms.reference.toLocaleLowerCase()}
@@ -1306,6 +1320,18 @@ export const SourcesSurface = ({
           context={registration}
           sourceTerm={project.profile.terms.reference.toLocaleLowerCase()}
           onCancel={() => setAdding(false)}
+        />
+      ) : null}
+
+      {reusing ? (
+        <SourceReusePanel
+          projectId={project.id}
+          sourceTerm={project.profile.terms.reference.toLocaleLowerCase()}
+          sourceQuery={query}
+          onCancel={() => setReusing(false)}
+          onComplete={(completion) =>
+            onSourceReuseComplete?.(completion, query)
+          }
         />
       ) : null}
 
@@ -1390,10 +1416,30 @@ export const SourcesSurface = ({
 export const SourcesRoute = (): React.JSX.Element => {
   const project = useProjectRecord();
   const data = useLoaderData<ProjectSourceCollectionData>();
+  const navigate = useNavigate();
+  const revalidator = useRevalidator();
+  const [searchParams] = useSearchParams();
   return (
     <SourcesSurface
       project={{ ...project, sources: data.sources }}
       registration={data.registration}
+      initialQuery={searchParams.get("query") ?? ""}
+      onSourceReuseComplete={async (completion, sourceQuery) => {
+        await revalidator.revalidate();
+        const destinationQuery = new URLSearchParams({
+          from: "sources",
+          semanticKey: "petra.project-source",
+          selected: completion.projectSourceId,
+          revision: String(completion.receipt.project_source_ref.revision),
+          recordHash: completion.receipt.project_source_ref.record_hash,
+        });
+        if (sourceQuery.trim().length > 0) {
+          destinationQuery.set("sourceQuery", sourceQuery);
+        }
+        await navigate(
+          `/projects/${encodeURIComponent(completion.projectId)}/sources/${encodeURIComponent(completion.projectSourceId)}?${destinationQuery}`,
+        );
+      }}
     />
   );
 };
@@ -1554,6 +1600,7 @@ export const SourceReaderRoute = (): React.JSX.Element => {
   const source = useLoaderData<SourceRecord>();
   const [searchParams] = useSearchParams();
   const returnOrigin = searchParams.get("from");
+  const returnSourceQuery = searchParams.get("sourceQuery");
   const returnReviewId = searchParams.get("reviewId");
   const returnBasisId = searchParams.get("basisId");
   const returnGraphNodeId = searchParams.get("graphNodeId");
@@ -1568,23 +1615,32 @@ export const SourceReaderRoute = (): React.JSX.Element => {
           path: `/projects/${project.id}/brief#attention-source-depth`,
           label: "Return to Attention",
         }
-      : returnOrigin === "graph" &&
-          returnGraphNodeId !== null &&
-          returnGraphNodeId.length > 0
+      : returnOrigin === "sources"
         ? {
-            path: `/projects/${project.id}/graph?layer=${returnGraphLayer}&selected=${encodeURIComponent(returnGraphNodeId)}#graph-selection`,
-            label: "Return to Graph",
+            path: `/projects/${project.id}/sources${
+              returnSourceQuery === null || returnSourceQuery.length === 0
+                ? ""
+                : `?${new URLSearchParams({ query: returnSourceQuery })}`
+            }#source-reuse-return`,
+            label: `Return to ${project.profile.terms.referencePlural}`,
           }
-        : returnOrigin === "review" &&
-            returnReviewId !== null &&
-            returnReviewId.length > 0 &&
-            returnBasisId !== null &&
-            returnBasisId.length > 0
+        : returnOrigin === "graph" &&
+            returnGraphNodeId !== null &&
+            returnGraphNodeId.length > 0
           ? {
-              path: `/projects/${encodeURIComponent(project.id)}/review/${encodeURIComponent(returnReviewId)}#basis-${encodeURIComponent(returnBasisId)}`,
-              label: "Return to Review",
+              path: `/projects/${project.id}/graph?layer=${returnGraphLayer}&selected=${encodeURIComponent(returnGraphNodeId)}#graph-selection`,
+              label: "Return to Graph",
             }
-          : undefined;
+          : returnOrigin === "review" &&
+              returnReviewId !== null &&
+              returnReviewId.length > 0 &&
+              returnBasisId !== null &&
+              returnBasisId.length > 0
+            ? {
+                path: `/projects/${encodeURIComponent(project.id)}/review/${encodeURIComponent(returnReviewId)}#basis-${encodeURIComponent(returnBasisId)}`,
+                label: "Return to Review",
+              }
+            : undefined;
 
   return (
     <SourceReaderSurface

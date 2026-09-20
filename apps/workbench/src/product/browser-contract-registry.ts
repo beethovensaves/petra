@@ -50,6 +50,11 @@ import projectSourceSchema from "../../../../packages/contracts/schemas/project-
 import projectSourceRegistrationRequestSchema from "../../../../packages/contracts/schemas/project-source-registration-request/1.0.0/schema.json";
 import projectSourceRegistrationReceiptSchema from "../../../../packages/contracts/schemas/project-source-registration-receipt/1.0.0/schema.json";
 import projectSourceRegistrationRecoveryViewSchema from "../../../../packages/contracts/schemas/project-source-registration-recovery-view/1.0.0/schema.json";
+import projectSourceReuseRequestSchema from "../../../../packages/contracts/schemas/project-source-reuse-request/1.0.0/schema.json";
+import projectSourceReuseOptionsViewSchema from "../../../../packages/contracts/schemas/project-source-reuse-options-view/1.0.0/schema.json";
+import projectSourceReuseReceiptSchema from "../../../../packages/contracts/schemas/project-source-reuse-receipt/1.0.0/schema.json";
+import projectSourceReuseRecoveryViewSchema from "../../../../packages/contracts/schemas/project-source-reuse-recovery-view/1.0.0/schema.json";
+import capabilityGrantSchema from "../../../../packages/contracts/schemas/capability-grant/1.0.0/schema.json";
 import rightsDecisionSchema from "../../../../packages/contracts/schemas/rights-decision/1.0.0/schema.json";
 import projectDefinitionSchema from "../../../../packages/contracts/schemas/project-definition/1.0.0/schema.json";
 import registeredProjectProfileSchema from "../../../../packages/contracts/schemas/registered-project-profile/1.0.0/schema.json";
@@ -146,6 +151,10 @@ type BrowserContractName =
   | "project-source-registration-request@1.0.0"
   | "project-source-registration-receipt@1.0.0"
   | "project-source-registration-recovery-view@1.0.0"
+  | "project-source-reuse-request@1.0.0"
+  | "project-source-reuse-options-view@1.0.0"
+  | "project-source-reuse-receipt@1.0.0"
+  | "project-source-reuse-recovery-view@1.0.0"
   | "worker-output-manifest@1.0.0"
   | "working-candidate@1.0.0"
   | "working-relationship@1.0.0";
@@ -232,6 +241,11 @@ const schemas = [
   projectSourceRegistrationRequestSchema,
   projectSourceRegistrationReceiptSchema,
   projectSourceRegistrationRecoveryViewSchema,
+  projectSourceReuseRequestSchema,
+  projectSourceReuseOptionsViewSchema,
+  projectSourceReuseReceiptSchema,
+  projectSourceReuseRecoveryViewSchema,
+  capabilityGrantSchema,
   projectSourceSchema,
   rightsDecisionSchema,
   assertionSchema,
@@ -323,6 +337,12 @@ const contractIds: Record<BrowserContractName, string> = {
     projectSourceRegistrationReceiptSchema.$id,
   "project-source-registration-recovery-view@1.0.0":
     projectSourceRegistrationRecoveryViewSchema.$id,
+  "project-source-reuse-request@1.0.0": projectSourceReuseRequestSchema.$id,
+  "project-source-reuse-options-view@1.0.0":
+    projectSourceReuseOptionsViewSchema.$id,
+  "project-source-reuse-receipt@1.0.0": projectSourceReuseReceiptSchema.$id,
+  "project-source-reuse-recovery-view@1.0.0":
+    projectSourceReuseRecoveryViewSchema.$id,
   "worker-output-manifest@1.0.0": briefWorkerOutputManifestV100Schema.$id,
   "working-candidate@1.0.0": workingCandidateSchema.$id,
   "working-relationship@1.0.0": workingRelationshipSchema.$id,
@@ -504,6 +524,30 @@ export class PetraContractRegistry {
       version: "1.0.0",
       canonical_sha256:
         "sha256:af195b8e201dae246dfee82e82c0d2069b5b3828db646a7d5908d79b48c83906",
+    },
+    {
+      name: "project-source-reuse-request",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:9be4b4d55326dc521184f58c807895319349e8838770da5fc9746db4682a80b1",
+    },
+    {
+      name: "project-source-reuse-options-view",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:36837fccc0c9e32f147a6a02bb458b72f147c8908ff2bec039530b4fabcb1407",
+    },
+    {
+      name: "project-source-reuse-receipt",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:37dd0f699915772267d69db4247e5329ca1c9a0dcd8608a90eafe2b8a7bcec48",
+    },
+    {
+      name: "project-source-reuse-recovery-view",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:68bc2afbb5c9cd5134b55c0ac59f978ba4e16865e1ae80c04800913d6b78df81",
     },
     {
       name: "worker-output-manifest",

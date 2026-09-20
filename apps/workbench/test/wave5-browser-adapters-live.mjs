@@ -12,3 +12,4 @@ export * from "../../../packages/adapters/src/review-candidate-basis-revision-cl
 export * from "../../../packages/adapters/src/review-session-separation-client.js";
 export * from "../../../packages/adapters/src/communication-plan-client.js";
 export * from "../../../packages/adapters/src/project-working-state-client.js";
+export * from "../../../packages/adapters/src/project-source-reuse-client.js";
