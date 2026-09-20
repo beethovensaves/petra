@@ -758,11 +758,17 @@
       "surfaces": ["SP06"],
       "flows": ["UX-FLOW-08", "UX-FLOW-09"],
       "requests": ["UX-REQ-013", "UX-REQ-016"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/graph",
       "control": "Save exact question",
       "interaction": "command",
-      "evidence": [],
+      "evidence": [
+        {
+          "command": "PETRA_WAVE5_ADVERSE_OUTPUT=/tmp/petra-wave6-graph-browser-support.json PETRA_WAVE6_GRAPH_INQUIRY_OUTPUT=reports/WAVE6-GRAPH-INQUIRY-SAVE-BROWSER.json npm run test:wave5:adverse-browser",
+          "artifact": "reports/WAVE6-GRAPH-INQUIRY-SAVE-BROWSER.json",
+          "boundary": "Isolated Chrome executed the production Graph controller for applied and idempotently replayed saves, unknown-effect assessment and exact retry, conflict, stale state, retained inquiry destination, exact return, and absence of client authority fields using injected typed transport; the live server and PostgreSQL command were verified separately by the backend prerequisite and were not re-executed by this browser artifact."
+        }
+      ],
       "runtime_owner": "POST /api/commands/projects/:projectId/inquiries and POST /api/queries/projects/:projectId/inquiries/save-recovery -> PostgresProjectInquirySaveAuthority",
       "paths": ["UX-PATH-01", "UX-PATH-03"]
     },

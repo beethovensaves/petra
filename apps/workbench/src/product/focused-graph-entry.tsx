@@ -29,6 +29,10 @@ import {
 } from "./FocusedGraphExploration.js";
 import { FocusedGraphPositionNavigation } from "./FocusedGraphPositions.js";
 import type { FocusedGraphRendererFactory } from "./FocusedGraphResult.js";
+import type {
+  ProjectInquirySaveCommand,
+  ProjectInquirySaveRecoveryRead,
+} from "./project-inquiry-save.js";
 
 const PROJECT_ID = /^project_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const REQUEST_ID = /^focused_graph_request_[0-9A-HJKMNP-TV-Z]{26}$/u;
@@ -1165,11 +1169,15 @@ export const FocusedGraphOrientationSurface = ({
   data,
   explorationRead,
   actionPreviewRead,
+  saveInquiry,
+  assessInquirySave,
   rendererFactory,
 }: {
   data: FocusedGraphRouteData;
   explorationRead?: FocusedGraphExplorationRead | undefined;
   actionPreviewRead?: FocusedGraphActionPreviewRead | undefined;
+  saveInquiry?: ProjectInquirySaveCommand | undefined;
+  assessInquirySave?: ProjectInquirySaveRecoveryRead | undefined;
   rendererFactory?: FocusedGraphRendererFactory | undefined;
 }): React.JSX.Element => {
   const regions = focusedGraphRegionsFromView(data.view);
@@ -1438,6 +1446,8 @@ export const FocusedGraphOrientationSurface = ({
           initialView={data.view}
           {...(explorationRead === undefined ? {} : { read: explorationRead })}
           {...(actionPreviewRead === undefined ? {} : { actionPreviewRead })}
+          {...(saveInquiry === undefined ? {} : { saveInquiry })}
+          {...(assessInquirySave === undefined ? {} : { assessInquirySave })}
           {...(rendererFactory === undefined ? {} : { rendererFactory })}
         />
       ) : (

@@ -5,12 +5,16 @@ import type {
   FocusedGraphExplorationFiltersV11,
   PetraFocusedGraphViewV11,
   PetraProjectDefinition,
+  PetraProjectInquirySaveReceipt,
+  PetraProjectInquirySaveRecoveryView,
+  PetraProjectInquirySaveRequest,
 } from "@petra/contracts";
 import type {
   FocusedGraphExplorationViewRequest,
   FocusedGraphReadRequest,
 } from "@petra/core";
 import { useMemo, useRef, useState } from "react";
+import { Link } from "react-router";
 
 import { PetraButton, PetraButtonGroup } from "../design-system/primitives.js";
 import type { FocusedGraphEntry } from "./focused-graph-entry.js";
@@ -28,6 +32,16 @@ import {
   type FocusedGraphRepresentation,
   type FocusedGraphRendererFactory,
 } from "./FocusedGraphResult.js";
+import {
+  assessProjectInquirySaveRecovery,
+  createProjectInquirySaveRequest,
+  executeProjectInquirySave,
+  projectInquirySaveFailureKind,
+  type ProjectInquirySaveCommand,
+  type ProjectInquirySaveFailureKind,
+  type ProjectInquirySaveRecoveryRead,
+  type ProjectInquirySaveResult,
+} from "./project-inquiry-save.js";
 
 type ExplorationMeaning =
   FocusedGraphExplorationFiltersV11["meaning_kinds"][number];
@@ -469,6 +483,59 @@ interface BookmarkedExactView {
   readonly state: FocusedGraphPresentationState;
 }
 
+interface RetainedProjectInquirySaveRequest {
+  readonly signature: string;
+  readonly request: PetraProjectInquirySaveRequest;
+}
+
+type ProjectInquirySaveState =
+  | { readonly state: "idle" }
+  | {
+      readonly state: "saving";
+      readonly request: PetraProjectInquirySaveRequest;
+    }
+  | {
+      readonly state: "failed";
+      readonly request?: PetraProjectInquirySaveRequest;
+      readonly kind: ProjectInquirySaveFailureKind;
+      readonly message: string;
+    }
+  | {
+      readonly state: "assessing";
+      readonly request: PetraProjectInquirySaveRequest;
+      readonly failureKind: ProjectInquirySaveFailureKind;
+      readonly failureMessage: string;
+    }
+  | {
+      readonly state: "assessed";
+      readonly request: PetraProjectInquirySaveRequest;
+      readonly recovery: PetraProjectInquirySaveRecoveryView;
+    }
+  | {
+      readonly state: "retained";
+      readonly request: PetraProjectInquirySaveRequest;
+      readonly receipt: PetraProjectInquirySaveReceipt;
+      readonly result?: ProjectInquirySaveResult;
+    };
+
+const saveRequestSignature = (state: FocusedGraphPresentationState): string =>
+  JSON.stringify({
+    graphRequest: state.request,
+    graph: {
+      schemaVersion: state.view.schema_version,
+      contentHash: state.view.content_hash,
+    },
+    selectedKey: state.selectedKey,
+  });
+
+const saveFailureTitle: Record<ProjectInquirySaveFailureKind, string> = {
+  conflict: "Save identity conflict",
+  stale: "Graph position changed",
+  permission_lost: "Permission no longer available",
+  invalid: "This exact question cannot be saved",
+  outcome_unknown: "Save outcome unknown",
+};
+
 export const FocusedGraphExploration = ({
   entry,
   definition,
@@ -476,6 +543,8 @@ export const FocusedGraphExploration = ({
   initialView,
   read = readExpansion,
   actionPreviewRead,
+  saveInquiry = executeProjectInquirySave,
+  assessInquirySave = assessProjectInquirySaveRecovery,
   rendererFactory,
 }: {
   entry: FocusedGraphEntry;
@@ -484,6 +553,8 @@ export const FocusedGraphExploration = ({
   initialView: PetraFocusedGraphReadView;
   read?: FocusedGraphExplorationRead;
   actionPreviewRead?: FocusedGraphActionPreviewRead | undefined;
+  saveInquiry?: ProjectInquirySaveCommand | undefined;
+  assessInquirySave?: ProjectInquirySaveRecoveryRead | undefined;
   rendererFactory?: FocusedGraphRendererFactory | undefined;
 }): React.JSX.Element => {
   const initialSelectedKey = selectedKeyForView(initialView, entry.focus_ref);
@@ -532,6 +603,12 @@ export const FocusedGraphExploration = ({
   const [bookmarks, setBookmarks] = useState<readonly BookmarkedExactView[]>(
     [],
   );
+  const [inquirySave, setInquirySave] = useState<ProjectInquirySaveState>({
+    state: "idle",
+  });
+  const retainedInquirySave = useRef<
+    RetainedProjectInquirySaveRequest | undefined
+  >(undefined);
   const active = useRef<FocusedGraphActiveExploration | undefined>(undefined);
 
   const invalidatePending = (): void => {
@@ -699,6 +776,97 @@ export const FocusedGraphExploration = ({
     );
   };
 
+  const saveExactQuestion = async (
+    exactRetry?: PetraProjectInquirySaveRequest,
+  ): Promise<void> => {
+    let request = exactRetry;
+    if (request === undefined) {
+      const signature = saveRequestSignature(state);
+      if (retainedInquirySave.current?.signature === signature) {
+        request = retainedInquirySave.current.request;
+      } else {
+        try {
+          request = createProjectInquirySaveRequest({
+            projectId: entry.project_id,
+            graphRequest: state.request,
+            graph: state.view,
+            selectedKey: state.selectedKey,
+          });
+        } catch (error) {
+          const kind = projectInquirySaveFailureKind(error);
+          setInquirySave({
+            state: "failed",
+            ...(retainedInquirySave.current === undefined
+              ? {}
+              : { request: retainedInquirySave.current.request }),
+            kind,
+            message:
+              error instanceof Error
+                ? error.message
+                : "This exact Graph question cannot be saved.",
+          });
+          return;
+        }
+        retainedInquirySave.current = { signature, request };
+      }
+    }
+    setInquirySave({ state: "saving", request });
+    try {
+      const result = await saveInquiry(entry.project_id, request);
+      setInquirySave({
+        state: "retained",
+        request,
+        receipt: result.receipt,
+        result,
+      });
+    } catch (error) {
+      setInquirySave({
+        state: "failed",
+        request,
+        kind: projectInquirySaveFailureKind(error),
+        message:
+          error instanceof Error
+            ? error.message
+            : "The Project question save outcome is unknown.",
+      });
+    }
+  };
+
+  const assessSaveOutcome = async (
+    request: PetraProjectInquirySaveRequest,
+    failureKind: ProjectInquirySaveFailureKind,
+    failureMessage: string,
+  ): Promise<void> => {
+    setInquirySave({
+      state: "assessing",
+      request,
+      failureKind,
+      failureMessage,
+    });
+    try {
+      const recovery = await assessInquirySave(entry.project_id, request);
+      if (recovery.effect.state === "effect_confirmed") {
+        setInquirySave({
+          state: "retained",
+          request,
+          receipt: recovery.effect.receipt,
+        });
+      } else {
+        setInquirySave({ state: "assessed", request, recovery });
+      }
+    } catch (error) {
+      setInquirySave({
+        state: "failed",
+        request,
+        kind: projectInquirySaveFailureKind(error),
+        message:
+          error instanceof Error
+            ? error.message
+            : "Petra could not assess this exact save request.",
+      });
+    }
+  };
+
   const reset = (): void => {
     nextState({ ...baseline });
     const first = registeredFocusedGraphRecipes(
@@ -716,6 +884,9 @@ export const FocusedGraphExploration = ({
   };
 
   const regions = focusedGraphRegionsFromView(state.view);
+  const saveAvailable = state.view.content.semantic_layer !== "historical";
+  const assessedEffect =
+    inquirySave.state === "assessed" ? inquirySave.recovery.effect : undefined;
   return (
     <section
       className="focused-graph-exploration"
@@ -1020,12 +1191,12 @@ export const FocusedGraphExploration = ({
       >
         <header>
           <div>
-            <h3 id="focused-graph-saved-questions-title">
-              Views bookmarked in this tab
-            </h3>
+            <p className="reference-panel-kicker">Question and view</p>
+            <h3 id="focused-graph-saved-questions-title">Keep this context</h3>
             <p>
-              A bookmark restores this local view. It does not save a Project
-              question.
+              A Project question keeps the exact bounded request, snapshot,
+              selection, origin, and return. A tab bookmark keeps only this
+              local presentation.
             </p>
           </div>
           <PetraButton density="compact" onClick={bookmarkExactView}>
@@ -1034,18 +1205,199 @@ export const FocusedGraphExploration = ({
         </header>
         <PetraButton
           density="compact"
-          variant="quiet"
-          unavailable={{
-            reason:
-              "Petra does not yet provide an authenticated command that saves this exact Graph question to the Project.",
-            prerequisite:
-              "A server-owned ProjectInquiry save command with authorization, persistence, idempotency, and recovery.",
-          }}
+          variant="primary"
+          busy={inquirySave.state === "saving"}
+          busyLabel="Saving exact question…"
+          aria-disabled={inquirySave.state === "assessing" || undefined}
+          {...(saveAvailable
+            ? {}
+            : {
+                unavailable: {
+                  reason:
+                    "Historical Graph positions are read-only and cannot become a current Project question.",
+                  prerequisite:
+                    "Open the current or working Graph position before saving this question.",
+                },
+              })}
+          onClick={() => void saveExactQuestion()}
         >
           Save exact question to Project
         </PetraButton>
+        {inquirySave.state === "idle" ||
+        inquirySave.state === "saving" ? null : inquirySave.state ===
+          "retained" ? (
+          <section
+            className="focused-graph-inquiry-save"
+            data-state="retained"
+            aria-labelledby="focused-graph-inquiry-save-title"
+            aria-live="polite"
+          >
+            <header>
+              <div>
+                <p className="reference-panel-kicker">Project question</p>
+                <h4 id="focused-graph-inquiry-save-title">
+                  {inquirySave.result?.applied === false
+                    ? "Question was already saved"
+                    : inquirySave.result?.applied === true
+                      ? "Question saved to the Project"
+                      : "Saved outcome confirmed"}
+                </h4>
+              </div>
+              <span>Active</span>
+            </header>
+            <p>
+              {inquirySave.request.graph_request.question} The graph snapshot
+              and selection remain context; neither changed Project authority.
+            </p>
+            <dl className="history-facts">
+              <div>
+                <dt>Retained question</dt>
+                <dd>
+                  <code>{inquirySave.receipt.objective_ref.objective_id}</code>
+                </dd>
+              </div>
+              <div>
+                <dt>Recorded snapshot</dt>
+                <dd>
+                  <code>
+                    {inquirySave.receipt.graph_binding.snapshot_ref.snapshot_id}
+                  </code>
+                </dd>
+              </div>
+              <div>
+                <dt>Outcome</dt>
+                <dd>
+                  {inquirySave.result?.applied === false
+                    ? "Idempotent replay returned the original retained question."
+                    : "The exact request has one retained ProjectInquiry destination."}
+                </dd>
+              </div>
+            </dl>
+            <div className="focused-graph-inquiry-save__actions">
+              <Link
+                className="reference-primary-link"
+                to={`/projects/${encodeURIComponent(entry.project_id)}/work#inquiry-${encodeURIComponent(inquirySave.receipt.objective_ref.objective_id)}`}
+              >
+                Open retained Project question
+              </Link>
+              <Link
+                className="reference-text-link"
+                to={entry.return_context.path}
+                {...(entry.return_context.focus_id === undefined
+                  ? {}
+                  : { "data-return-focus": entry.return_context.focus_id })}
+              >
+                Return to {entry.return_context.label}
+              </Link>
+            </div>
+          </section>
+        ) : inquirySave.state === "failed" ? (
+          <section
+            className="focused-graph-inquiry-save"
+            data-state={inquirySave.kind}
+            aria-labelledby="focused-graph-inquiry-save-title"
+            role="alert"
+          >
+            <header>
+              <div>
+                <p className="reference-panel-kicker">Project question</p>
+                <h4 id="focused-graph-inquiry-save-title">
+                  {saveFailureTitle[inquirySave.kind]}
+                </h4>
+              </div>
+            </header>
+            <p>{inquirySave.message}</p>
+            <p>
+              Petra has not claimed success. The displayed Graph, selection, and
+              originating task remain unchanged.
+            </p>
+            <div className="focused-graph-inquiry-save__actions">
+              {inquirySave.request === undefined ? null : (
+                <PetraButton
+                  density="compact"
+                  variant="secondary"
+                  onClick={() =>
+                    void assessSaveOutcome(
+                      inquirySave.request!,
+                      inquirySave.kind,
+                      inquirySave.message,
+                    )
+                  }
+                >
+                  Check exact save outcome
+                </PetraButton>
+              )}
+              <Link
+                className="reference-text-link"
+                to={entry.return_context.path}
+              >
+                Return to {entry.return_context.label}
+              </Link>
+            </div>
+          </section>
+        ) : inquirySave.state === "assessing" ? (
+          <section
+            className="focused-graph-inquiry-save"
+            data-state="assessing"
+            aria-live="polite"
+          >
+            <h4>Checking the exact save request</h4>
+            <p>
+              {inquirySave.failureMessage} Petra is checking the retained
+              command identity before any retry.
+            </p>
+          </section>
+        ) : (
+          <section
+            className="focused-graph-inquiry-save"
+            data-state={assessedEffect?.state}
+            aria-labelledby="focused-graph-inquiry-save-title"
+            role={
+              assessedEffect?.state === "outcome_unknown" ? "alert" : undefined
+            }
+          >
+            <header>
+              <div>
+                <p className="reference-panel-kicker">Recovery assessment</p>
+                <h4 id="focused-graph-inquiry-save-title">
+                  {assessedEffect?.state === "outcome_unknown"
+                    ? "Outcome remains unknown"
+                    : "Exact request cannot be verified"}
+                </h4>
+              </div>
+            </header>
+            <p>
+              {assessedEffect?.state === "outcome_unknown"
+                ? "No receipt was observed. Only the retained request may be delivered again; a new identity could duplicate the question."
+                : assessedEffect?.state === "unavailable_to_verify"
+                  ? assessedEffect.reason === "command_identity_conflict"
+                    ? "This command identity belongs to a different request. Petra will not replace or reinterpret it."
+                    : "The authenticated person cannot verify this command identity. No Project effect is claimed."
+                  : "The recovery result is unavailable. No Project effect is claimed."}
+            </p>
+            <div className="focused-graph-inquiry-save__actions">
+              {assessedEffect?.state === "outcome_unknown" ? (
+                <PetraButton
+                  density="compact"
+                  variant="primary"
+                  onClick={() => void saveExactQuestion(inquirySave.request)}
+                >
+                  Retry exact save request
+                </PetraButton>
+              ) : null}
+              <Link
+                className="reference-text-link"
+                to={entry.return_context.path}
+              >
+                Return to {entry.return_context.label}
+              </Link>
+            </div>
+          </section>
+        )}
         {bookmarks.length === 0 ? (
-          <p>No view is bookmarked in this tab.</p>
+          <p className="focused-graph-saved-questions__empty">
+            No local view is bookmarked in this tab.
+          </p>
         ) : (
           <ol>
             {bookmarks.map((question) => (

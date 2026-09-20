@@ -11,6 +11,9 @@ import briefProjectShellViewV100Schema from "../../../../packages/contracts/sche
 import briefProjectObjectiveV100Schema from "../../../../packages/contracts/schemas/project-objective/1.0.0/schema.json";
 import briefProjectObjectLocationViewV100Schema from "../../../../packages/contracts/schemas/project-object-location-view/1.0.0/schema.json";
 import briefProjectInquiryLinkV100Schema from "../../../../packages/contracts/schemas/project-inquiry-link/1.0.0/schema.json";
+import projectInquirySaveReceiptSchema from "../../../../packages/contracts/schemas/project-inquiry-save-receipt/1.0.0/schema.json";
+import projectInquirySaveRecoveryViewSchema from "../../../../packages/contracts/schemas/project-inquiry-save-recovery-view/1.0.0/schema.json";
+import projectInquirySaveRequestSchema from "../../../../packages/contracts/schemas/project-inquiry-save-request/1.0.0/schema.json";
 import briefProjectBriefViewV110Schema from "../../../../packages/contracts/schemas/project-brief-view/1.1.0/schema.json";
 import briefProjectBriefViewV100Schema from "../../../../packages/contracts/schemas/project-brief-view/1.0.0/schema.json";
 import briefModelSynthesistOutputV100Schema from "../../../../packages/contracts/schemas/model-synthesist-output/1.0.0/schema.json";
@@ -113,6 +116,10 @@ type BrowserContractName =
   | "registered-project-profile@1.0.0"
   | "project-profile-taxonomy-view@1.0.0"
   | "project-model-readiness-view@1.0.0"
+  | "project-objective@1.0.0"
+  | "project-inquiry-save-request@1.0.0"
+  | "project-inquiry-save-receipt@1.0.0"
+  | "project-inquiry-save-recovery-view@1.0.0"
   | "project-profile-command-request@1.0.0"
   | "project-profile-command-receipt@1.0.0"
   | "project-profile-command-recovery-view@1.0.0"
@@ -164,6 +171,9 @@ const schemas = [
   briefProjectBriefViewV100Schema,
   briefProjectBriefViewV110Schema,
   briefProjectInquiryLinkV100Schema,
+  projectInquirySaveRequestSchema,
+  projectInquirySaveReceiptSchema,
+  projectInquirySaveRecoveryViewSchema,
   briefProjectObjectLocationViewV100Schema,
   briefProjectObjectiveV100Schema,
   briefProjectShellViewV100Schema,
@@ -252,6 +262,11 @@ const contractIds: Record<BrowserContractName, string> = {
   "registered-project-profile@1.0.0": registeredProjectProfileSchema.$id,
   "project-profile-taxonomy-view@1.0.0": projectProfileTaxonomyViewSchema.$id,
   "project-model-readiness-view@1.0.0": projectModelReadinessViewSchema.$id,
+  "project-objective@1.0.0": briefProjectObjectiveV100Schema.$id,
+  "project-inquiry-save-request@1.0.0": projectInquirySaveRequestSchema.$id,
+  "project-inquiry-save-receipt@1.0.0": projectInquirySaveReceiptSchema.$id,
+  "project-inquiry-save-recovery-view@1.0.0":
+    projectInquirySaveRecoveryViewSchema.$id,
   "project-profile-command-request@1.0.0":
     projectProfileCommandRequestSchema.$id,
   "project-profile-command-receipt@1.0.0":

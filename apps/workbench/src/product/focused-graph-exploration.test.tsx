@@ -26,6 +26,7 @@ import {
   registeredFocusedGraphRecipes,
   type FocusedGraphPresentationState,
 } from "./FocusedGraphExploration.js";
+import { createProjectInquirySaveRequest } from "./project-inquiry-save.js";
 
 const hash = `sha256:${"a".repeat(64)}`;
 const record = (record_id: string) => ({
@@ -448,6 +449,38 @@ const alignedExpansionResponse = (
 };
 
 describe("focused graph exploration state", () => {
+  it("creates a renderer-neutral save request from the exact active Graph state", () => {
+    const view = focusedGraphFixture();
+    const graphRequest = baseRequestFixture();
+    const request = createProjectInquirySaveRequest({
+      projectId: view.project_id,
+      graphRequest,
+      graph: view,
+      selectedKey: "node:claim-a",
+      identity: {
+        commandId: "command_01ARZ3NDEKTSV4RRFFQ69G5FAY",
+        idempotencyKey: "graph.save-question:component-test",
+      },
+      submittedAt: "2026-09-19T22:30:00.000Z",
+    });
+
+    expect(request.graph_request).toStrictEqual(graphRequest);
+    expect(request.expected_graph).toStrictEqual({
+      schema_name: view.schema_name,
+      schema_version: view.schema_version,
+      content_hash: view.content_hash,
+    });
+    expect(request.selection).toStrictEqual({
+      state: "selected",
+      selection_kind: "node",
+      selected_keys: ["node:claim-a"],
+    });
+    expect(request).not.toHaveProperty("actor");
+    expect(request).not.toHaveProperty("capability_grant_id");
+    expect(request).not.toHaveProperty("objective_ref");
+    expect(request).not.toHaveProperty("inquiry_role_ref");
+  });
+
   it("registers both focused graph response versions in the browser validator", () => {
     const contracts = new BrowserContractRegistry();
     expect(() =>
@@ -638,11 +671,10 @@ describe("focused graph exploration state", () => {
       "Direction",
       "Recorded origin",
       "Finite depth",
-      "Views bookmarked in this tab",
+      "Keep this context",
       "Bookmark this view",
       "Save exact question to Project",
-      "does not yet provide an authenticated command",
-      "server-owned ProjectInquiry save command",
+      "keeps the exact bounded request, snapshot, selection, origin, and return",
       "10-state limit",
       "grant no Project authority",
       "Inspect selected Details",
@@ -655,6 +687,9 @@ describe("focused graph exploration state", () => {
     expect(markup).toContain('aria-label="Selected object presentation"');
     expect(markup).toContain('aria-controls="focused-graph-details-region"');
     expect(markup).toContain('aria-disabled="true"');
+    expect(markup).not.toContain(
+      "does not yet provide an authenticated command",
+    );
     expect(markup).not.toContain("Prepare correction");
     expect(markup).not.toContain("Start new Work");
   });

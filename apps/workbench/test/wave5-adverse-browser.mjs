@@ -17,6 +17,9 @@ const artifactPath = resolve(
   process.env.PETRA_WAVE5_ADVERSE_OUTPUT?.trim() ||
     resolve(root, "reports/WAVE5-UX-FX25-BROWSER-OBSERVATION.json"),
 );
+const graphInquiryArtifactPath = process.env.PETRA_WAVE6_GRAPH_INQUIRY_OUTPUT
+  ? resolve(root, process.env.PETRA_WAVE6_GRAPH_INQUIRY_OUTPUT.trim())
+  : undefined;
 const backendSupportPath = resolve(
   root,
   "reports/WAVE5-ADVERSE-STATE-PERFORMANCE-OBSERVATION.json",
@@ -74,6 +77,7 @@ const consoleFailures = [];
 const networkFailures = [];
 const observations = {
   dense: {},
+  inquiry_save: {},
   correction_preview: {},
   renderer_recovery: {},
   offline_recovery: {},
@@ -301,6 +305,125 @@ try {
     layout_capture_sha256: firstCanvasHash,
     repeated_layout_capture_sha256: secondCanvasHash,
     layout_capture_stable: true,
+  };
+
+  await navigate(
+    "save-applied",
+    'document.querySelector(".focused-graph-production-canvas")?.dataset.rendererState === "ready"',
+    "ProjectInquiry applied and replay fixture",
+  );
+  await evaluate(`${button("Save exact question to Project")}.focus()`);
+  await key("Enter", "Enter", 13, "\r");
+  await until(
+    'document.querySelector(".focused-graph-inquiry-save")?.dataset.state === "retained"',
+    "applied ProjectInquiry result",
+  );
+  body = await evaluate("document.body.innerText");
+  for (const text of [
+    "Question saved to the Project",
+    "graph snapshot and selection remain context",
+    "Open retained Project question",
+    "Return to Exact Brief focus",
+  ]) {
+    assert.ok(body.includes(text), `Applied save omitted ${text}.`);
+  }
+  const appliedRequest = await evaluate(
+    "structuredClone(window.wave6InquirySaveRequests[0])",
+  );
+  assert.equal(
+    appliedRequest.schema_name,
+    "petra.project-inquiry-save-request",
+  );
+  assert.equal(
+    appliedRequest.graph_request.request_id,
+    "focused_graph_request_01ARZ3NDEKTSV4RRFFQ69G5FAA",
+  );
+  assert.equal(
+    appliedRequest.expected_graph.content_hash,
+    `sha256:${"a".repeat(64)}`,
+  );
+  assert.equal(appliedRequest.selection.selected_keys[0], "node:claim-0");
+  for (const authorityField of [
+    "actor",
+    "capability_grant_id",
+    "objective_ref",
+    "inquiry_role_ref",
+  ]) {
+    assert.equal(Object.hasOwn(appliedRequest, authorityField), false);
+  }
+  await evaluate(`${button("Save exact question to Project")}.click()`);
+  await until(
+    'window.wave6InquirySaveRequests.length === 2 && document.body.innerText.includes("Question was already saved")',
+    "idempotent ProjectInquiry replay",
+  );
+  const replayRequest = await evaluate(
+    "structuredClone(window.wave6InquirySaveRequests[1])",
+  );
+  assert.deepEqual(replayRequest, appliedRequest);
+
+  await navigate(
+    "save-unknown",
+    'document.querySelector(".focused-graph-production-canvas")?.dataset.rendererState === "ready"',
+    "ProjectInquiry unknown outcome fixture",
+  );
+  await evaluate(`${button("Save exact question to Project")}.click()`);
+  await until(
+    'document.querySelector(".focused-graph-inquiry-save")?.dataset.state === "outcome_unknown"',
+    "unknown ProjectInquiry delivery",
+  );
+  await evaluate(`${button("Check exact save outcome")}.click()`);
+  await until(
+    `${button("Retry exact save request")} !== undefined`,
+    "ProjectInquiry unknown-effect assessment",
+  );
+  body = await evaluate("document.body.innerText");
+  assert.ok(body.includes("Outcome remains unknown"));
+  assert.ok(body.includes("Only the retained request may be delivered again"));
+  await evaluate(`${button("Retry exact save request")}.click()`);
+  await until(
+    'document.querySelector(".focused-graph-inquiry-save")?.dataset.state === "retained"',
+    "exact ProjectInquiry retry",
+  );
+  const unknownRequests = await evaluate(
+    "structuredClone(window.wave6InquirySaveRequests)",
+  );
+  const recoveryRequests = await evaluate(
+    "structuredClone(window.wave6InquiryRecoveryRequests)",
+  );
+  assert.deepEqual(unknownRequests, [unknownRequests[0], unknownRequests[0]]);
+  assert.deepEqual(recoveryRequests, [unknownRequests[0]]);
+
+  for (const [mode, state, title] of [
+    ["save-conflict", "conflict", "Save identity conflict"],
+    ["save-stale", "stale", "Graph position changed"],
+  ]) {
+    await navigate(
+      mode,
+      'document.querySelector(".focused-graph-production-canvas")?.dataset.rendererState === "ready"',
+      `ProjectInquiry ${state} fixture`,
+    );
+    await evaluate(`${button("Save exact question to Project")}.click()`);
+    await until(
+      `document.querySelector(".focused-graph-inquiry-save")?.dataset.state === ${JSON.stringify(state)}`,
+      `ProjectInquiry ${state} result`,
+    );
+    body = await evaluate("document.body.innerText");
+    assert.ok(body.includes(title));
+    assert.ok(body.includes("Petra has not claimed success"));
+  }
+  observations.inquiry_save = {
+    applied_outcome_rendered: true,
+    idempotent_replay_rendered: true,
+    exact_request_reused: true,
+    recovery_assessment_called_with_exact_request: true,
+    outcome_unknown_rendered: true,
+    conflict_rendered_without_false_success: true,
+    stale_rendered_without_false_success: true,
+    retained_destination_rendered: true,
+    exact_return_rendered: true,
+    client_authority_fields_sent: false,
+    boundary:
+      "Production Graph state controller ran in isolated Chrome with injected typed save/recovery transport; live server and PostgreSQL authority were not invoked by this focused browser check.",
   };
 
   await navigate(
@@ -722,7 +845,7 @@ try {
     await evaluate("document.documentElement.scrollWidth <= window.innerWidth"),
     true,
   );
-  await evaluate(`${button("Save exact question")}.focus()`);
+  await evaluate(`${button("Bookmark this view")}.focus()`);
   await key("Enter", "Enter", 13, "\r");
   await until(
     'document.querySelector(".focused-graph-saved-questions ol") !== null',
@@ -956,6 +1079,39 @@ try {
   };
   mkdirSync(resolve(root, "reports"), { recursive: true });
   writeFileSync(artifactPath, `${JSON.stringify(artifact, null, 2)}\n`);
+  if (graphInquiryArtifactPath) {
+    const graphInquiryArtifact = {
+      schema_name: "petra.wave6-graph-inquiry-save-browser-observation",
+      schema_version: "1.0.0",
+      status: "pass",
+      recorded_at: artifact.recorded_at,
+      environment: artifact.environment,
+      production_components: [
+        "FocusedGraphOrientationSurface",
+        "FocusedGraphExploration",
+      ],
+      routes: {
+        command: "POST /api/commands/projects/:projectId/inquiries",
+        recovery:
+          "POST /api/queries/projects/:projectId/inquiries/save-recovery",
+      },
+      observation: observations.inquiry_save,
+      boundary: {
+        transport: "injected typed save and recovery transport",
+        live_server_invoked: false,
+        postgresql_invoked: false,
+        authority_fields_checked: true,
+      },
+      limitations: [
+        "This focused browser artifact does not re-execute the live server or PostgreSQL authority verified by the backend prerequisite.",
+        "This is not a complete UX1.6-GRAPH/task-graph-details-return scenario record.",
+      ],
+    };
+    writeFileSync(
+      graphInquiryArtifactPath,
+      `${JSON.stringify(graphInquiryArtifact, null, 2)}\n`,
+    );
+  }
   process.stdout.write(`${JSON.stringify(artifact, null, 2)}\n`);
 } catch (error) {
   failure = error;

@@ -100,6 +100,7 @@ const BranchCard = ({
   return (
     <article
       className="inquiry-branch"
+      id={`inquiry-${branch.id}`}
       data-recommended={branch.recommended || undefined}
     >
       <header>

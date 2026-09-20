@@ -2157,6 +2157,56 @@
   font-size: var(--petra-font-size-caption);
 }
 
+.focused-graph-inquiry-save {
+  display: grid;
+  gap: var(--petra-space-3);
+  padding: var(--petra-space-4);
+  border: var(--petra-rule-thin) solid var(--petra-border-subtle);
+  border-left: 3px solid var(--petra-tone-information);
+  border-radius: var(--petra-radius-small);
+  background: var(--petra-tone-information-soft);
+}
+
+.focused-graph-inquiry-save[data-state="retained"] {
+  border-left-color: var(--petra-tone-positive);
+  background: var(--petra-tone-positive-soft);
+}
+
+.focused-graph-inquiry-save:is(
+  [data-state="conflict"],
+  [data-state="stale"],
+  [data-state="permission_lost"],
+  [data-state="invalid"],
+  [data-state="outcome_unknown"],
+  [data-state="unavailable_to_verify"]
+) {
+  border-left-color: var(--petra-tone-caution);
+  background: var(--petra-tone-caution-soft);
+}
+
+.focused-graph-inquiry-save > header,
+.focused-graph-inquiry-save__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--petra-space-3);
+}
+
+.focused-graph-inquiry-save :is(h4, p),
+.focused-graph-saved-questions__empty {
+  margin: 0;
+}
+
+.focused-graph-inquiry-save > header > span {
+  color: var(--petra-text-secondary);
+  font-size: var(--petra-font-size-caption);
+}
+
+.focused-graph-inquiry-save__actions {
+  justify-content: flex-start;
+}
+
 .focused-graph-expansion-summary__groups small,
 .focused-graph-expansion-summary__groups span {
   color: var(--petra-text-secondary);
