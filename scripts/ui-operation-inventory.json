@@ -448,7 +448,7 @@
       "control": "Add new version",
       "interaction": "command",
       "evidence": [],
-      "runtime_owner": "",
+      "runtime_owner": "POST /api/commands/projects/:projectId/sources/:projectSourceId/revisions + POST /api/queries/projects/:projectId/source-revision-recovery -> PostgresProjectSourceRevisionAuthority; receipt hands off exact ExcludeProjectSource and CreateProjectSourceReplacement owners",
       "paths": ["UX-PATH-04"]
     },
     {

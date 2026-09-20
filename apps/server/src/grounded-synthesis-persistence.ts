@@ -10,6 +10,7 @@ import {
   PostgresInteractionAuthorityRepository,
   PostgresResearchScopeRepository,
   PostgresProjectSourceRegistrationAuthority,
+  PostgresProjectSourceRevisionAuthority,
   PostgresProjectSourceReuseAuthority,
   PostgresSynthesistExecutionRepository,
   PostgresWorkUnitAuthorityRepository,
@@ -25,6 +26,7 @@ import type {
   InteractionAuthorityRepository,
   ResearchScopeRepository,
   ProjectSourceRegistrationAuthority,
+  ProjectSourceRevisionAuthority,
   ProjectSourceReuseAuthority,
   SynthesistExecutionRepository,
   WorkUnitAuthorityRepository,
@@ -37,6 +39,7 @@ export interface GroundedSynthesisPersistence {
   readonly artifactStore: ArtifactStore;
   readonly artifacts: ArtifactAuthorityRepository;
   readonly sourceRegistrations: ProjectSourceRegistrationAuthority;
+  readonly sourceRevisions: ProjectSourceRevisionAuthority;
   readonly sourceReuses: ProjectSourceReuseAuthority;
   readonly executions: SynthesistExecutionRepository;
   readonly workUnits: WorkUnitAuthorityRepository;
@@ -200,11 +203,12 @@ export const createGroundedSynthesisPersistenceFromEnvironment = async (
       `SELECT to_regclass('petra.grounded_responses') IS NOT NULL
           AND to_regclass('petra.project_source_registration_receipts') IS NOT NULL
           AND to_regclass('petra.project_source_reuse_receipts') IS NOT NULL
+          AND to_regclass('petra.project_source_revision_receipts') IS NOT NULL
           AS ready`,
     );
     if (schema.rows[0]?.ready !== true) {
       throw new GroundedSynthesisPersistenceConfigurationError(
-        "PostgreSQL is reachable, but the grounded response, source registration, or source reuse authority is not migrated.",
+        "PostgreSQL is reachable, but the grounded response or source intake authority is not migrated.",
       );
     }
     await ensureBucket(client, bucket);
@@ -223,6 +227,11 @@ export const createGroundedSynthesisPersistenceFromEnvironment = async (
     artifactStore,
     artifacts: new PostgresArtifactAuthorityRepository(pool, artifactStore),
     sourceRegistrations: new PostgresProjectSourceRegistrationAuthority(
+      pool,
+      artifactStore,
+      new PostgresCapabilityGrantCommandAuthorizer(),
+    ),
+    sourceRevisions: new PostgresProjectSourceRevisionAuthority(
       pool,
       artifactStore,
       new PostgresCapabilityGrantCommandAuthorizer(),

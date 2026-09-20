@@ -1,0 +1,136 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-source-revision-request/1.0.0/schema.json",
+  "title": "PetraProjectSourceRevisionRequest",
+  "description": "An exact reviewed request to intake immutable bytes for a new version of the Work bound by one current ProjectSource. Actor, capability grant, successor identities, storage, and timestamps remain server-owned; predecessor exclusion and replacement remain separate governed commands.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "command_id",
+    "idempotency_key",
+    "expected",
+    "version",
+    "material",
+    "rights",
+    "replacement"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.project-source-revision-request" },
+    "schema_version": { "const": "1.0.0" },
+    "command_id": {
+      "$ref": "../../project-source-registration-request/1.0.0/schema.json#/properties/command_id"
+    },
+    "idempotency_key": {
+      "$ref": "../../project-source-registration-request/1.0.0/schema.json#/properties/idempotency_key"
+    },
+    "expected": { "$ref": "#/$defs/Expected" },
+    "version": { "$ref": "#/$defs/Version" },
+    "material": {
+      "$ref": "../../project-source-registration-request/1.0.0/schema.json#/$defs/Material"
+    },
+    "rights": {
+      "$ref": "../../project-source-registration-request/1.0.0/schema.json#/$defs/Rights"
+    },
+    "replacement": { "$ref": "#/$defs/Replacement" }
+  },
+  "$defs": {
+    "CurrentSourceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_source_id",
+        "revision",
+        "content_hash",
+        "record_hash",
+        "status"
+      ],
+      "properties": {
+        "project_source_id": {
+          "type": "string",
+          "pattern": "^project_source_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "status": { "const": "active" }
+      }
+    },
+    "Expected": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_ref",
+        "project_definition_ref",
+        "current_source_ref"
+      ],
+      "properties": {
+        "project_ref": {
+          "$ref": "../../project-source-registration-request/1.0.0/schema.json#/$defs/ProjectRef"
+        },
+        "project_definition_ref": {
+          "$ref": "../../project-source-registration-request/1.0.0/schema.json#/$defs/DefinitionRef"
+        },
+        "current_source_ref": { "$ref": "#/$defs/CurrentSourceRef" }
+      }
+    },
+    "Version": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version_label",
+        "publication_status",
+        "metadata_source_name",
+        "metadata_retrieved_at"
+      ],
+      "properties": {
+        "version_label": { "type": "string", "minLength": 1, "maxLength": 400 },
+        "publication_status": {
+          "enum": [
+            "preprint",
+            "peer_reviewed",
+            "accepted",
+            "corrected",
+            "retracted",
+            "unknown"
+          ]
+        },
+        "published_date": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PublicationDate"
+        },
+        "metadata_source_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "metadata_source_record_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "metadata_retrieved_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        }
+      }
+    },
+    "Replacement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["replacement_kind", "rationale", "reviewed_at"],
+      "properties": {
+        "replacement_kind": { "const": "newer_version" },
+        "rationale": { "type": "string", "minLength": 1, "maxLength": 4000 },
+        "reviewed_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        }
+      }
+    }
+  }
+}

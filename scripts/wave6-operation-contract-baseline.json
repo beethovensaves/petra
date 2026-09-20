@@ -122,6 +122,13 @@
       "persistence": "PostgreSQL composes current Project/profile/source bindings, parse permission, retained representation, the exact processing Work identity and its Work detail/operation destinations.",
       "recovery": "The Details read exposes explicit ready, unavailable, active, and terminal states with limitations and exact return; command reconciliation remains a distinct read-only assessment."
     },
+    "source-revision-intake": {
+      "kind": "command",
+      "production_owner": "POST /api/commands/projects/:projectId/sources/:projectSourceId/revisions plus POST /api/queries/projects/:projectId/source-revision-recovery -> PostgresProjectSourceRevisionAuthority; its retained receipt hands exact predecessor exclusion and successor replacement to the existing source-lifecycle and source-replacement owners",
+      "authorization": "Bearer authentication plus a server-resolved human principal and exact AddProjectSourceRevision capability grant. The request binds the exact active Project, current ProjectDefinition, and current active predecessor ProjectSource without carrying Actor, grant, successor identity, storage, or authority timestamps.",
+      "persistence": "Verified content-addressed bytes and PostgreSQL V054 atomically retain a new WorkVersion for the predecessor Work, Artifact, ArtifactManifest, RightsDecision, active successor ProjectSource, and immutable idempotent intake receipt. The predecessor is not silently changed.",
+      "recovery": "Stable command and idempotency identities replay the exact receipt. A read-only assessment distinguishes confirmed, unknown, conflicting, and differently owned outcomes; the confirmed receipt supplies exact ExcludeProjectSource and CreateProjectSourceReplacement handoff inputs without bypassing their independent grants, receipts, or expected-state checks."
+    },
     "source-replacement": {
       "kind": "command",
       "production_owner": "POST /api/commands/projects/:projectId/source-replacements -> ProjectSourceReplacementCommandAuthorityRepository -> PostgresProjectSourceReplacementCommandAuthorityRepository",
@@ -500,9 +507,9 @@
     },
     {
       "operation_id": "source.add-revision",
-      "owner": "source-replacement",
-      "owner_status": "partial",
-      "missing_owner": "Source intake owner for the new immutable bytes/revision before governed replacement links existing sources."
+      "owner": "source-revision-intake",
+      "owner_status": "owned",
+      "missing_owner": ""
     },
     {
       "operation_id": "source.remove-project-link",

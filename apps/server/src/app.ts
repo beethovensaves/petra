@@ -70,6 +70,7 @@ import type {
   PetraProjectInquirySaveRequest,
   PetraProjectObjectiveCommandRequest,
   PetraProjectSourceRegistrationRequest,
+  PetraProjectSourceRevisionRequest,
   PetraProjectSourceProcessingRequest,
   PetraProjectSourceReuseRequest,
   PetraProjectProfileCommandRequest,
@@ -97,6 +98,7 @@ import {
   ProjectImportError,
   ProjectObjectiveCommandError,
   ProjectSourceRegistrationError,
+  ProjectSourceRevisionError,
   ProjectSourceProcessingError,
   ProjectSourceReuseError,
   ProjectProfileRuntimeError,
@@ -123,6 +125,7 @@ import {
   type ProjectInquirySaveAuthority,
   type ProjectObjectiveCommandAuthority,
   type ProjectSourceRegistrationAuthority,
+  type ProjectSourceRevisionAuthority,
   type ProjectSourceProcessingAuthority,
   type ProjectSourceProcessingViewReader,
   type ProjectSourceReuseAuthority,
@@ -194,6 +197,7 @@ export interface PetraAppOptions {
   projectImportAncestry?: ProjectImportAncestryReader;
   projectObjectiveCommands?: ProjectObjectiveCommandAuthority;
   projectSourceRegistrationAuthority?: ProjectSourceRegistrationAuthority;
+  projectSourceRevisionAuthority?: ProjectSourceRevisionAuthority;
   projectSourceProcessingAuthority?: ProjectSourceProcessingAuthority;
   projectSourceProcessingViews?: ProjectSourceProcessingViewReader;
   projectSourceReuseAuthority?: ProjectSourceReuseAuthority;
@@ -1969,6 +1973,76 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
     };
   };
 
+  const projectSourceRevisionResponse = (
+    context: Context<{ Variables: Variables }>,
+    error: unknown,
+  ) => {
+    const invalid =
+      error instanceof InteractionInputError ||
+      error instanceof ContractRegistryError ||
+      error instanceof SyntaxError ||
+      error instanceof TypeError;
+    const status = invalid
+      ? 422
+      : error instanceof ProjectSourceRevisionError
+        ? error.code === "PROJECT_SOURCE_REVISION_NOT_AUTHORIZED"
+          ? 403
+          : error.code === "PROJECT_SOURCE_REVISION_PROJECT_NOT_FOUND" ||
+              error.code === "PROJECT_SOURCE_REVISION_SOURCE_NOT_FOUND"
+            ? 404
+            : error.code === "PROJECT_SOURCE_REVISION_ROLE_UNREGISTERED" ||
+                error.code === "PROJECT_SOURCE_REVISION_RIGHTS_INVALID" ||
+                error.code === "PROJECT_SOURCE_REVISION_MATERIAL_INVALID"
+              ? 422
+              : error.code === "PROJECT_SOURCE_REVISION_STORED_RECORD_CORRUPT"
+                ? 503
+                : 409
+        : 503;
+    return jsonError(
+      context,
+      status,
+      invalid
+        ? "PROJECT_SOURCE_REVISION_REQUEST_INVALID"
+        : error instanceof ProjectSourceRevisionError
+          ? error.code
+          : "PROJECT_SOURCE_REVISION_FAILED",
+      error instanceof Error
+        ? error.message
+        : "The source-version intake boundary is unavailable.",
+      error instanceof InteractionInputError ? error.issues : undefined,
+    );
+  };
+
+  const sourceRevisionPrincipal = async (projectId: string) => {
+    if (options.commandPrincipalResolver === undefined) {
+      throw new ProjectSourceRevisionError(
+        "PROJECT_SOURCE_REVISION_NOT_AUTHORIZED",
+        "Authenticated source-version authority is unavailable.",
+      );
+    }
+    const principal =
+      await options.commandPrincipalResolver.resolveCommandPrincipal({
+        projectId,
+        commandName: "AddProjectSourceRevision",
+      });
+    if (
+      principal.state !== "resolved" ||
+      principal.actor.actor_kind !== "human"
+    ) {
+      throw new ProjectSourceRevisionError(
+        "PROJECT_SOURCE_REVISION_NOT_AUTHORIZED",
+        `The authenticated source-version principal was denied: ${principal.state === "resolved" ? "actor_not_human" : principal.reason}.`,
+      );
+    }
+    return {
+      actor: {
+        actor_id: principal.actor.actor_id,
+        actor_kind: "human" as const,
+      },
+      capabilityGrantId: principal.capabilityGrantId,
+    };
+  };
+
   const projectSourceReuseResponse = (
     context: Context<{ Variables: Variables }>,
     error: unknown,
@@ -2289,6 +2363,153 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
         return context.json(assessment);
       } catch (error) {
         return projectSourceRegistrationResponse(context, error);
+      }
+    },
+  );
+
+  app.post(
+    "/api/commands/projects/:projectId/sources/:projectSourceId/revisions",
+    async (context) => {
+      if (options.projectSourceRevisionAuthority === undefined) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_SOURCE_REVISION_UNAVAILABLE",
+          "The source-version intake boundary is not configured.",
+        );
+      }
+      try {
+        const projectId = context.req.param("projectId");
+        const projectSourceId = context.req.param("projectSourceId");
+        if (
+          !PROJECT_ID_PATTERN.test(projectId) ||
+          !PROJECT_SOURCE_ID_PATTERN.test(projectSourceId) ||
+          new URL(context.req.url).searchParams.size !== 0
+        ) {
+          throw new InteractionInputError(
+            "Source-version intake requires one canonical Project and predecessor and accepts no query overrides.",
+          );
+        }
+        const request = (await readBoundedJson(
+          context,
+          maxSourceRegistrationBodyBytes,
+        )) as PetraProjectSourceRevisionRequest;
+        contracts.assertValid(
+          "project-source-revision-request",
+          "1.0.0",
+          request,
+        );
+        if (
+          request.expected.project_ref.project_id !== projectId ||
+          request.expected.current_source_ref.project_source_id !==
+            projectSourceId
+        ) {
+          throw new ProjectSourceRevisionError(
+            "PROJECT_SOURCE_REVISION_SOURCE_STALE",
+            "The source-version route must match the exact expected Project and predecessor.",
+          );
+        }
+        const result =
+          await options.projectSourceRevisionAuthority.executeProjectSourceRevision(
+            projectId,
+            request,
+            await sourceRevisionPrincipal(projectId),
+          );
+        contracts.assertValid(
+          "project-source-revision-receipt",
+          "1.0.0",
+          result.receipt,
+        );
+        contracts.assertValid("project-source", "1.0.0", result.projectSource);
+        if (
+          result.receipt.project_id !== projectId ||
+          result.receipt.command_id !== request.command_id ||
+          result.receipt.idempotency_key !== request.idempotency_key ||
+          result.receipt.predecessor_source_ref.project_source_id !==
+            projectSourceId ||
+          result.receipt.successor_source_ref.project_source_id !==
+            result.projectSource.project_source_id ||
+          result.receipt.successor_source_ref.revision !==
+            result.projectSource.revision ||
+          result.receipt.successor_source_ref.content_hash !==
+            result.projectSource.content_hash ||
+          result.receipt.destination.project_id !== projectId ||
+          result.receipt.destination.project_source_id !==
+            result.projectSource.project_source_id
+        ) {
+          throw new Error(
+            "The source-version authority returned a different command, predecessor, successor, or Sources destination.",
+          );
+        }
+        context.header("Cache-Control", "no-store");
+        return context.json(result, result.applied ? 201 : 200);
+      } catch (error) {
+        return projectSourceRevisionResponse(context, error);
+      }
+    },
+  );
+
+  app.post(
+    "/api/queries/projects/:projectId/source-revision-recovery",
+    async (context) => {
+      if (options.projectSourceRevisionAuthority === undefined) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_SOURCE_REVISION_RECOVERY_UNAVAILABLE",
+          "The source-version recovery boundary is not configured.",
+        );
+      }
+      try {
+        const projectId = context.req.param("projectId");
+        if (
+          !PROJECT_ID_PATTERN.test(projectId) ||
+          new URL(context.req.url).searchParams.size !== 0
+        ) {
+          throw new InteractionInputError(
+            "Source-version recovery requires one canonical Project and accepts no query overrides.",
+          );
+        }
+        const request = (await readBoundedJson(
+          context,
+          maxSourceRegistrationBodyBytes,
+        )) as PetraProjectSourceRevisionRequest;
+        contracts.assertValid(
+          "project-source-revision-request",
+          "1.0.0",
+          request,
+        );
+        if (request.expected.project_ref.project_id !== projectId) {
+          throw new ProjectSourceRevisionError(
+            "PROJECT_SOURCE_REVISION_PROJECT_STALE",
+            "The source-version recovery route and exact expected Project must match.",
+          );
+        }
+        const assessment =
+          await options.projectSourceRevisionAuthority.assessProjectSourceRevisionRecovery(
+            projectId,
+            request,
+            await sourceRevisionPrincipal(projectId),
+          );
+        contracts.assertValid(
+          "project-source-revision-recovery-view",
+          "1.0.0",
+          assessment,
+        );
+        if (
+          assessment.project_id !== projectId ||
+          assessment.subject.command_id !== request.command_id ||
+          assessment.subject.idempotency_key !== request.idempotency_key ||
+          assessment.return.destination.project_id !== projectId
+        ) {
+          throw new Error(
+            "The source-version recovery assessment crossed its exact command or Sources return boundary.",
+          );
+        }
+        context.header("Cache-Control", "no-store");
+        return context.json(assessment);
+      } catch (error) {
+        return projectSourceRevisionResponse(context, error);
       }
     },
   );

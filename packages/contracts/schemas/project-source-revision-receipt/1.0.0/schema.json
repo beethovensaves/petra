@@ -1,0 +1,211 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-source-revision-receipt/1.0.0/schema.json",
+  "title": "PetraProjectSourceRevisionReceipt",
+  "description": "The immutable outcome of one authorized source-version intake, including the exact successor and a server-owned handoff to separately governed predecessor exclusion and replacement creation.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "receipt_id",
+    "command_id",
+    "idempotency_key",
+    "request_hash",
+    "project_id",
+    "actor",
+    "capability_grant_id",
+    "project_ref",
+    "project_definition_ref",
+    "predecessor_source_ref",
+    "work_ref",
+    "work_version_ref",
+    "material",
+    "successor_source_ref",
+    "effect",
+    "replacement_handoff",
+    "destination",
+    "recovery",
+    "recorded_at",
+    "record_hash"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.project-source-revision-receipt" },
+    "schema_version": { "const": "1.0.0" },
+    "receipt_id": {
+      "type": "string",
+      "pattern": "^source_revision_receipt_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "command_id": {
+      "$ref": "../../project-source-revision-request/1.0.0/schema.json#/properties/command_id"
+    },
+    "idempotency_key": {
+      "$ref": "../../project-source-revision-request/1.0.0/schema.json#/properties/idempotency_key"
+    },
+    "request_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "actor": {
+      "$ref": "../../project-source-registration-receipt/1.0.0/schema.json#/$defs/HumanActorRef"
+    },
+    "capability_grant_id": {
+      "type": "string",
+      "pattern": "^capability_grant_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "project_ref": {
+      "$ref": "../../project-source-registration-request/1.0.0/schema.json#/$defs/ProjectRef"
+    },
+    "project_definition_ref": {
+      "$ref": "../../project-source-registration-request/1.0.0/schema.json#/$defs/DefinitionRef"
+    },
+    "predecessor_source_ref": {
+      "$ref": "../../project-source-revision-request/1.0.0/schema.json#/$defs/CurrentSourceRef"
+    },
+    "work_ref": {
+      "$ref": "../../project-source-registration-receipt/1.0.0/schema.json#/$defs/ExactRecordRef"
+    },
+    "work_version_ref": {
+      "$ref": "../../project-source-registration-receipt/1.0.0/schema.json#/$defs/ExactRecordRef"
+    },
+    "material": {
+      "$ref": "../../project-source-registration-receipt/1.0.0/schema.json#/$defs/Material"
+    },
+    "successor_source_ref": { "$ref": "#/$defs/SuccessorSourceRef" },
+    "effect": { "$ref": "#/$defs/Effect" },
+    "replacement_handoff": { "$ref": "#/$defs/ReplacementHandoff" },
+    "destination": {
+      "$ref": "../../project-source-registration-receipt/1.0.0/schema.json#/$defs/SourceDestination"
+    },
+    "recovery": { "$ref": "#/$defs/Recovery" },
+    "recorded_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    },
+    "record_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    }
+  },
+  "$defs": {
+    "SuccessorSourceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_source_id",
+        "revision",
+        "content_hash",
+        "record_hash",
+        "status"
+      ],
+      "properties": {
+        "project_source_id": {
+          "type": "string",
+          "pattern": "^project_source_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "revision": { "const": 1 },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "status": { "const": "active" }
+      }
+    },
+    "Effect": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "summary", "predecessor_unchanged"],
+      "properties": {
+        "kind": { "const": "source_revision_intake_retained" },
+        "summary": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "predecessor_unchanged": { "const": true }
+      }
+    },
+    "ReplacementHandoff": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "exclude_predecessor", "create_replacement"],
+      "properties": {
+        "state": { "const": "governed_replacement_required" },
+        "exclude_predecessor": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "command_name",
+            "method",
+            "path",
+            "requested_action",
+            "expected_source_ref",
+            "reason"
+          ],
+          "properties": {
+            "command_name": { "const": "ExcludeProjectSource" },
+            "method": { "const": "POST" },
+            "path": {
+              "type": "string",
+              "pattern": "^/api/commands/projects/[^/]+/sources/[^/]+/lifecycle$"
+            },
+            "requested_action": { "const": "exclude_project_source" },
+            "expected_source_ref": {
+              "$ref": "../../project-source-revision-request/1.0.0/schema.json#/$defs/CurrentSourceRef"
+            },
+            "reason": { "type": "string", "minLength": 1, "maxLength": 4000 }
+          }
+        },
+        "create_replacement": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "command_name",
+            "method",
+            "path",
+            "replacement_kind",
+            "replaced_source_from",
+            "replacement_source_ref",
+            "exclusion_receipt_from",
+            "rationale"
+          ],
+          "properties": {
+            "command_name": { "const": "CreateProjectSourceReplacement" },
+            "method": { "const": "POST" },
+            "path": {
+              "type": "string",
+              "pattern": "^/api/commands/projects/[^/]+/source-replacements$"
+            },
+            "replacement_kind": { "const": "newer_version" },
+            "replaced_source_from": {
+              "const": "exclude_result.resulting_source_ref"
+            },
+            "replacement_source_ref": { "$ref": "#/$defs/SuccessorSourceRef" },
+            "exclusion_receipt_from": { "const": "exclude_result.receipt" },
+            "rationale": { "type": "string", "minLength": 1, "maxLength": 4000 }
+          }
+        }
+      }
+    },
+    "Recovery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "command_path",
+        "assessment_path",
+        "retry_reuses_command_identity",
+        "missing_receipt_means_unknown"
+      ],
+      "properties": {
+        "command_path": {
+          "type": "string",
+          "pattern": "^/api/commands/projects/[^/]+/sources/[^/]+/revisions$"
+        },
+        "assessment_path": {
+          "type": "string",
+          "pattern": "^/api/queries/projects/[^/]+/source-revision-recovery$"
+        },
+        "retry_reuses_command_identity": { "const": true },
+        "missing_receipt_means_unknown": { "const": true }
+      }
+    }
+  }
+}
