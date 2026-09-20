@@ -47,8 +47,14 @@
       "route": "/",
       "control": "Open Brief",
       "interaction": "navigation",
-      "evidence": [],
-      "runtime_owner": "",
+      "evidence": [
+        {
+          "command": "npm run test:wave6:project-open",
+          "artifact": "reports/WAVE6-PROJECT-OPEN-AUTHORITY.json",
+          "boundary": "Real disposable PostgreSQL, the production HTTP server, bearer authentication, and ProjectShellClient prove that one exact representative member returned by GET /api/queries/projects resolves through GET /api/queries/projects/:projectId/shell to the same Project, ProjectDefinition, current Objective, and Open Brief destination. This backend trace does not invoke the visible Open Brief control and makes no browser-navigation claim; that execution remains design-owned."
+        }
+      ],
+      "runtime_owner": "GET /api/queries/projects -> ProjectShellViewReader.searchProjectShellViews -> PostgresProjectShellViewReader; GET /api/queries/projects/:projectId/shell -> ProjectShellViewReader.getProjectShellView -> PostgresProjectShellViewReader (authenticated REPEATABLE READ current Project/ProjectDefinition/Objective authority)",
       "paths": ["UX-PATH-03"]
     },
     {

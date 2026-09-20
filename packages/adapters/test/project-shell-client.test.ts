@@ -1,7 +1,10 @@
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 
-import type { PetraProjectShellCollectionView } from "@petra/contracts";
+import type {
+  PetraProjectShellCollectionView,
+  PetraProjectShellView,
+} from "@petra/contracts";
 import { canonicalize } from "json-canonicalize";
 import { describe, expect, it, vi } from "vitest";
 
@@ -19,6 +22,16 @@ const fixture = JSON.parse(
     "utf8",
   ),
 ) as PetraProjectShellCollectionView;
+
+const shellFixture = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../contracts/fixtures/accepted/project-shell-view.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectShellView;
 
 const withQuery = (
   query: PetraProjectShellCollectionView["content"]["query"],
@@ -129,6 +142,79 @@ describe("ProjectShellClient", () => {
       expect.objectContaining<Partial<ProjectShellClientError>>({
         code: "PROJECT_COLLECTION_RESPONSE_INVALID",
         status: 502,
+      }),
+    );
+  });
+
+  it("authenticates and validates one exact Project shell for open", async () => {
+    const fetchMock = vi.fn((input: URL | RequestInfo, init?: RequestInit) => {
+      const url = new URL(
+        input instanceof Request
+          ? input.url
+          : input instanceof URL
+            ? input.href
+            : input,
+      );
+      expect(url.pathname).toBe(
+        `/api/queries/projects/${shellFixture.project_id}/shell`,
+      );
+      expect(new Headers(init?.headers).get("authorization")).toBe(
+        "Bearer project-open-token",
+      );
+      return Promise.resolve(Response.json(shellFixture));
+    });
+    const client = new ProjectShellClient({
+      baseUrl: "http://petra.local",
+      token: "project-open-token",
+      fetch: fetchMock,
+    });
+
+    await expect(client.open(shellFixture.project_id)).resolves.toStrictEqual(
+      shellFixture,
+    );
+  });
+
+  it("rejects invalid and substituted Project identities and preserves not-found", async () => {
+    const substituted = structuredClone(shellFixture);
+    substituted.project_id = "project_01ARZ3NDEKTSV4RRFFQ69G5FAX";
+    substituted.content.project.project_id = substituted.project_id;
+    substituted.content_hash = `sha256:${createHash("sha256")
+      .update(canonicalize(substituted.content))
+      .digest("hex")}`;
+    const fetchMock = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValueOnce(Response.json(substituted))
+      .mockResolvedValueOnce(
+        Response.json(
+          {
+            error: {
+              code: "PROJECT_NOT_FOUND",
+              message: "The requested Project does not exist.",
+            },
+          },
+          { status: 404 },
+        ),
+      );
+    const client = new ProjectShellClient({
+      baseUrl: "http://petra.local",
+      token: "project-open-token",
+      fetch: fetchMock,
+    });
+
+    await expect(client.open("project-invalid")).rejects.toBeInstanceOf(
+      TypeError,
+    );
+    expect(fetchMock).not.toHaveBeenCalled();
+    await expect(client.open(shellFixture.project_id)).rejects.toEqual(
+      expect.objectContaining<Partial<ProjectShellClientError>>({
+        code: "PROJECT_SHELL_RESPONSE_INVALID",
+        status: 502,
+      }),
+    );
+    await expect(client.open(shellFixture.project_id)).rejects.toEqual(
+      expect.objectContaining<Partial<ProjectShellClientError>>({
+        code: "PROJECT_NOT_FOUND",
+        status: 404,
       }),
     );
   });
