@@ -248,6 +248,7 @@ describe("reference Review and Graph packets", () => {
     );
 
     expect(markup).toContain("Current · authoritative");
+    expect(markup).toContain('<h2 id="review-comparison-title" tabindex="-1">');
     expect(markup).toContain("No accepted relationship");
     expect(markup).toContain("Candidate · working");
     expect(markup).toContain("Inquiry analyst");

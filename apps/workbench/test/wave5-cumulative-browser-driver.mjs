@@ -128,6 +128,7 @@ export const startWave5CumulativeBrowser = async ({
             request_schema: call.requestJson?.schema_name,
             response_schema: call.json?.schema_name,
             error_code: call.json?.error?.code,
+            error_message: call.json?.error?.message,
           })),
         )}\nConsole: ${JSON.stringify(consoleFailures)}`,
         { cause: error },
@@ -176,15 +177,11 @@ export const startWave5CumulativeBrowser = async ({
       `${link("Inspect bounded current relationships")}.getAttribute("href")`,
     );
     assert.ok(reviewGraphPath?.includes("actionKind=governed_correction"));
-    const [overlay, review] = await evaluate(`Promise.all([
-      fetch(${JSON.stringify(`/api/queries/projects/${scientificProjectId}/relationship-overlay`)}, {
+    const review = await evaluate(
+      `fetch(${JSON.stringify(`/api/queries/projects/${scientificProjectId}/reviews/${scientificReviewSessionId}`)}, {
         headers: { authorization: "Bearer petra-local-development" },
-      }).then(async (response) => ({ status: response.status, body: await response.json() })),
-      fetch(${JSON.stringify(`/api/queries/projects/${scientificProjectId}/reviews/${scientificReviewSessionId}`)}, {
-        headers: { authorization: "Bearer petra-local-development" },
-      }).then(async (response) => ({ status: response.status, body: await response.json() })),
-    ])`);
-    assert.equal(overlay.status, 200);
+      }).then(async (response) => ({ status: response.status, body: await response.json() }))`,
+    );
     assert.equal(review.status, 200);
     assert.equal(review.body.content.session.lifecycle, "open");
     const preApplyUrl = new URL(reviewGraphPath, workbench.url);
@@ -193,27 +190,24 @@ export const startWave5CumulativeBrowser = async ({
       (member) => member.review_member_id === memberId,
     );
     assert.ok(reviewMember !== undefined);
-    const ownedRelationshipIds = new Set(
-      reviewMember.working_state.relationships.map(
-        (relationship) => relationship.working_relationship_id,
-      ),
+    assert.equal(reviewMember.working_state.relationships.length, 1);
+    const reviewRelationship = reviewMember.working_state.relationships[0];
+    assert.ok(reviewRelationship !== undefined);
+    const focusRef =
+      reviewMember.working_state.candidate.profile_object.object_record_ref;
+    assert.deepEqual(
+      {
+        record_id: preApplyUrl.searchParams.get("focusId"),
+        revision: Number(preApplyUrl.searchParams.get("focusRevision")),
+        record_hash: preApplyUrl.searchParams.get("focusHash"),
+      },
+      {
+        record_id: focusRef.record_id,
+        revision: focusRef.revision,
+        record_hash: focusRef.record_hash,
+      },
+      "The Review Graph link must retain its exact candidate focus.",
     );
-    const relatedCurrentNodeKeys = new Set(
-      overlay.body.content.relationships
-        .filter((relationship) => relationship.layer === "current")
-        .flatMap((relationship) => [
-          relationship.source_node_key,
-          relationship.target_node_key,
-        ]),
-    );
-    const focusNode = overlay.body.content.nodes.find(
-      (node) =>
-        node.layer === "current" &&
-        node.object_kind === "claim" &&
-        relatedCurrentNodeKeys.has(node.node_key),
-    );
-    assert.ok(focusNode !== undefined);
-    const focusRef = focusNode.owner.record_ref;
     preApplyUrl.searchParams.set(
       "question",
       "Which recorded relationship is bound to this open Review?",
@@ -238,26 +232,158 @@ export const startWave5CumulativeBrowser = async ({
     const ownedRelationship = graph.json.content.relationships.find(
       (relationship) =>
         relationship.layer === "working" &&
-        ownedRelationshipIds.has(relationship.relationship_ref.element_id),
+        relationship.relationship_ref.element_id ===
+          reviewRelationship.working_relationship_id &&
+        relationship.relationship_ref.revision === reviewRelationship.revision,
     );
-    assert.equal(ownedRelationship, undefined);
+    assert.ok(
+      ownedRelationship !== undefined,
+      "The exact Review WorkingRelationship was not composed in Graph.",
+    );
+    await evaluate(`(() => {
+      const control = document.querySelector(".focused-graph-exploration__selection select");
+      control.focus();
+      control.value = ${JSON.stringify(ownedRelationship.relationship_key)};
+      control.dispatchEvent(new Event("change", { bubbles: true }));
+    })()`);
+    await until(
+      `document.querySelector(".focused-graph-exploration__selection select").value === ${JSON.stringify(ownedRelationship.relationship_key)}`,
+      "exact Review relationship selection",
+    );
+    assert.equal(
+      await evaluate(
+        `${button("Preview edit relationship")}.getAttribute("aria-disabled")`,
+      ),
+      null,
+    );
+    await activate(button("Preview edit relationship"));
+    await until(
+      'document.querySelector(".focused-graph-action-preview")?.dataset.previewKind === "governed_correction"',
+      "live governed correction preview",
+    );
+    const previewCall = latestCall((call) =>
+      call.path.endsWith("/focused-graph/action-preview"),
+    );
+    assert.equal(previewCall?.status, 200);
+    assert.equal(
+      previewCall.requestJson.selection.selected_keys[0],
+      ownedRelationship.relationship_key,
+    );
+    assert.equal(
+      previewCall.requestJson.target.review_member_id,
+      reviewMember.review_member_id,
+    );
+    const preview = previewCall.json.content.preview;
+    assert.equal(preview.preview_kind, "governed_correction");
+    assert.equal(preview.review_member_id, reviewMember.review_member_id);
+    assert.equal(
+      preview.selected_relationship.relationship_ref.element_id,
+      reviewRelationship.working_relationship_id,
+    );
+    assert.equal(
+      preview.selected_relationship.relationship_ref.revision,
+      reviewRelationship.revision,
+    );
+    const previewRelationship = preview.working_relationship_refs.find(
+      (relationship) =>
+        relationship.working_relationship_id ===
+        reviewRelationship.working_relationship_id,
+    );
+    assert.deepEqual(previewRelationship, {
+      working_relationship_id: reviewRelationship.working_relationship_id,
+      revision: reviewRelationship.revision,
+      content_hash: reviewRelationship.content_hash,
+    });
+    assert.deepEqual(previewCall.json.content.authority_boundary, {
+      postgresql_authoritative: true,
+      neo4j_projection_only: true,
+      focused_graph_owner_reused: true,
+      working_candidate_owner: "reused",
+      review_owner: "reused",
+      suggested_action_owner: "not_applicable",
+      work_preview_owner: "not_applicable",
+      preview_is_read_only: true,
+      selection_grants_authority: false,
+      renderer_state_accepted: false,
+      command_issued: false,
+      work_started: false,
+    });
+    const previewText = await evaluate(
+      'document.querySelector(".focused-graph-action-preview").innerText',
+    );
+    for (const text of [
+      reviewMember.review_member_id,
+      reviewRelationship.working_relationship_id,
+      `revision ${reviewRelationship.revision}`,
+      "No command issued",
+    ]) {
+      assert.ok(
+        previewText.includes(text),
+        `Correction preview omitted ${text}.`,
+      );
+    }
+
+    await activate(button("Close preview and keep selection"));
+    await until(
+      `document.querySelector(".focused-graph-action-preview") === null && document.activeElement === ${button("Preview edit relationship")}`,
+      "correction preview close and trigger focus restoration",
+    );
+    assert.equal(
+      await evaluate(
+        'document.querySelector(".focused-graph-exploration__selection select").value',
+      ),
+      ownedRelationship.relationship_key,
+    );
+
+    await activate(button("Preview edit relationship"));
+    await until(
+      'document.querySelector(".focused-graph-action-preview")?.dataset.previewKind === "governed_correction"',
+      "restored governed correction preview",
+    );
+    await activate(link("Open this exact candidate in Review"));
+    await until(
+      `window.location.pathname === ${JSON.stringify(reviewPath)} && new URLSearchParams(window.location.search).get("reviewMemberId") === ${JSON.stringify(reviewMember.review_member_id)} && window.location.hash === "#review-comparison-title" && document.activeElement?.id === "review-comparison-title"`,
+      "exact Review member and comparison return focus",
+    );
+    const reviewAfter = await evaluate(
+      `fetch(${JSON.stringify(`/api/queries/projects/${scientificProjectId}/reviews/${scientificReviewSessionId}`)}, {
+        headers: { authorization: "Bearer petra-local-development" },
+      }).then(async (response) => ({ status: response.status, body: await response.json() }))`,
+    );
+    assert.equal(reviewAfter.status, 200);
+    assert.equal(reviewAfter.body.content_hash, review.body.content_hash);
+    assert.deepEqual(
+      reviewAfter.body.content.members.find(
+        (member) => member.review_member_id === reviewMember.review_member_id,
+      )?.working_state.relationships,
+      reviewMember.working_state.relationships,
+    );
     correctionPreviewObservation = {
       graph_duration_ms: graphDuration,
-      live_route_availability: "not_in_bounded_result",
+      live_route_availability: "preview_executed",
       open_review_session_id: scientificReviewSessionId,
-      review_relationship_ids: [...ownedRelationshipIds],
-      returned_relationship_ids: graph.json.content.relationships.map(
-        (relationship) => relationship.relationship_ref.element_id,
-      ),
+      review_member_id: reviewMember.review_member_id,
+      working_relationship_ref: {
+        working_relationship_id: reviewRelationship.working_relationship_id,
+        revision: reviewRelationship.revision,
+        content_hash: reviewRelationship.content_hash,
+      },
+      returned_relationship_ref: ownedRelationship.relationship_ref,
       graph_content_hash: graph.json.content_hash,
-      executed_supplement:
-        "UX-FX25 deterministic production-controller browser boundary",
+      preview_content_hash: previewCall.json.content_hash,
+      preview_trigger_focus_restored: true,
+      exact_review_member_returned: true,
+      exact_review_focus_restored: true,
+      review_authority_unchanged: true,
+      command_issued:
+        previewCall.json.content.authority_boundary.command_issued,
     };
     return {
       duration_ms: duration,
       action_target_sha256: sha256(
         new URL(reviewGraphPath, workbench.url).searchParams.toString(),
       ),
+      correction_preview: structuredClone(correctionPreviewObservation),
     };
   };
 

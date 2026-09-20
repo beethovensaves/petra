@@ -251,12 +251,13 @@ try {
         observation: {
           focus: liveGraph.focus,
           action_preview_focus:
-            adverse.observations.correction_preview
-              .preview_trigger_focus_restored,
+            liveGraph.correction_preview.preview_trigger_focus_restored,
+          exact_review_focus:
+            liveGraph.correction_preview.exact_review_focus_restored,
           renderer_recovery: adverse.observations.renderer_recovery,
         },
         boundary:
-          "Keyboard executed contextual entry, Graph/Text alternative, live Details, exact source disclosure, Details return, and exact Review return. UX-FX25 executed action-preview close/focus recovery and production renderer recovery; native screen-reader evaluation remains outside scope.",
+          "Keyboard executed contextual entry, Graph/Text alternative, live Details, exact source disclosure, Details return, governed-preview close/focus recovery, and exact Review-member return. UX-FX25 executed production renderer recovery; native screen-reader evaluation remains outside scope.",
       },
       {
         evidence_id: "UX1.5-EV03",
@@ -280,7 +281,7 @@ try {
           executed_preview: adverse.observations.correction_preview,
         },
         boundary:
-          "UX-FX25 dispatched a Cytoscape tap inside real Chrome and used the non-drag selection control to open equivalent production-controller requests to an existing candidate/Review preview; geometry was absent and no command was issued. The live route was also inspected and honestly failed closed because the open Review's exact relationship was outside that bounded result; no live action-preview response is claimed.",
+          "The authenticated live route composed the exact open-Review WorkingRelationship, selected it through the non-drag production control, opened the governed read-only preview, verified the same Review member and relationship revision, closed without changing selection, and returned to the exact Review member and comparison focus with no command or authority change. UX-FX25 retains independent pointer/non-drag request-convergence coverage without renderer geometry.",
       },
       {
         evidence_id: "UX1.5-EV03",
@@ -327,14 +328,14 @@ Status: executed and passed; mandatory evidence inventory and remediation remain
 
 \`npm run test:wave5:browser\` executed the ten previously outstanding design-owned UX1.5 records through three explicit browser boundaries: UX-FX24 paired-profile fixture transport, UX-FX25 adverse fixture transport, and a fresh-store authenticated live-route trace. The retained machine-readable observation is \`reports/WAVE5-CUMULATIVE-PRODUCTION-BROWSER-OBSERVATION.json\`.
 
-The live phase used production React Router loaders, focused-graph controllers, the Cytoscape renderer, the complete textual peer, and authenticated server routes backed by fresh PostgreSQL and Neo4j stores. It exercised contextual and direct entry, Current, Working changes, an exact retained Historical position, comparison, impact, time, synchronized Details, exact source inspection, Review return focus, projection catching up, and fail-closed expansion. UX-FX25 executed named expansion, pointer and non-drag correction, and adverse impact presentation states through production components with deterministic injected typed transport.
+The live phase used production React Router loaders, focused-graph controllers, the Cytoscape renderer, the complete textual peer, and authenticated server routes backed by fresh PostgreSQL and Neo4j stores. It exercised contextual and direct entry, Current, Working changes, the exact open-Review WorkingRelationship and governed correction preview, an exact retained Historical position, comparison, impact, time, synchronized Details, exact source inspection, Review return focus, projection catching up, and fail-closed expansion. UX-FX25 executed named expansion, pointer/non-drag convergence, and adverse impact presentation states through production components with deterministic injected typed transport.
 
 ## Critic findings
 
 - Every live relationship remained identifiable by profile term, predicate, direction, origin, authority layer, basis, source availability, and limitations without relying on color or layout.
 - Live Details exposed exact basis references, SourceSpan and ProjectSource identity, reproducible representation, rights, requested and represented snapshots, omissions, temporal layer, and projection position.
 - Graph and textual peers produced the same normalized relationship-fact hash: \`${liveGraph.graph_text_parity.normalized_facts_sha256}\`.
-- At the UX-FX25 production-controller boundary, pointer and non-drag correction entry produced equivalent typed requests after request identity was removed; neither request contained renderer coordinates, pan, zoom, position, or layout.
+- The live non-drag path selected the exact Review-bound WorkingRelationship, opened and closed its governed preview, and returned to the same Review member and comparison focus without issuing a command or changing Review authority. At the UX-FX25 production-controller boundary, pointer and non-drag correction entry also produced equivalent typed requests after request identity was removed; neither request contained renderer coordinates, pan, zoom, position, or layout.
 
 ## Honest boundaries
 
@@ -342,7 +343,7 @@ UX-FX24 ran in real Chrome through production UI code, but its controlled-writin
 
 The live scientific ProjectDefinition does not register a compatible named-expansion recipe for this semantic layer. The live workbench therefore exposed no expansion controls and preserved selection; named expansion itself is evidenced only at the UX-FX25 production-controller boundary.
 
-The open live Review's exact WorkingRelationship was not a member of the available bounded focused result, so the live workbench did not offer an invalid correction preview for another relationship. Pointer and non-drag request convergence was executed at the UX-FX25 production-controller boundary; no live action-preview response is claimed.
+The live scientific trace now enters Graph from the exact open-Review candidate focus supplied by the Review route. The server composes that Review member's exact WorkingRelationship, and the workbench executes its authenticated governed action-preview read through visible controls. The preview remains read-only: selection grants no authority, renderer state is rejected, and no command or Work is issued. Pointer/non-drag request convergence remains independently covered at the UX-FX25 production-controller boundary.
 
 The live impact request selected the recent-History event whose affected Claim object and revision matched the exact focused Claim. The production route composed the exact dependency inventory through the resolved-target binding fixed in backend commit \`f1516eb\` and explicitly reported consequences unavailable because no Review member assessed that exact focus. UX-FX25 separately exercised supplied, incomplete, and stale consequence presentation states with deterministic typed transport.
 

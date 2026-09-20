@@ -423,6 +423,8 @@ describe("focused graph correction and Work previews", () => {
     expect(markup).toContain("Corrected Claim text");
     expect(markup).toContain("Affected scope");
     expect(markup).toContain("Current Project authority remains unchanged");
+    expect(markup).toContain("working_relationship_01ARZ3NDEKTSV4RRFFQ69G5FAM");
+    expect(markup).toContain("revision 2");
     expect(markup).toContain("Open this exact candidate in Review");
     expect(markup).toContain("reviewMemberId=review_member_");
   });

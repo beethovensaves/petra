@@ -17,6 +17,7 @@ export const createWave4EvidenceObserver = async ({ root }) => {
   let scientificProjectId;
   let scientificReviewSessionId;
   let browser;
+  let correctionPreview;
   let observation;
   let observerFailure;
   let closed = false;
@@ -79,9 +80,9 @@ export const createWave4EvidenceObserver = async ({ root }) => {
       scientificProjectId = context.scientificProjectId;
       scientificReviewSessionId = context.scientificReviewSessionId;
       if (stage === "refreshed_paired_profile") {
-        observation = await (
-          await requireBrowser(context)
-        ).recordRegisteredGraphExpansion();
+        const liveBrowser = await requireBrowser(context);
+        correctionPreview = await liveBrowser.prepareReviewActionTarget();
+        observation = await liveBrowser.recordRegisteredGraphExpansion();
         return undefined;
       }
       if (stage === "projection_lag") {
@@ -118,6 +119,10 @@ export const createWave4EvidenceObserver = async ({ root }) => {
     }
     if (failure === undefined) {
       assert.ok(observation, "The live Graph expansion was not recorded.");
+      assert.ok(
+        correctionPreview,
+        "The live Review-to-Graph correction preview was not recorded.",
+      );
       const artifact = {
         schema_name: "petra.wave6-graph-expansion-browser-observation",
         schema_version: "1.0.0",
@@ -125,6 +130,7 @@ export const createWave4EvidenceObserver = async ({ root }) => {
         recorded_at: new Date().toISOString(),
         command:
           "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:graph-ui",
+        correction_preview: correctionPreview.correction_preview,
         ...observation,
         boundary: {
           browser:
@@ -134,10 +140,11 @@ export const createWave4EvidenceObserver = async ({ root }) => {
           persistence:
             "Fresh disposable PostgreSQL and Neo4j stores supplied exact authority and projection state.",
           authority:
-            "Expansion and filtering remained read-only; renderer state did not enter the request.",
+            "Correction preview, expansion, and filtering remained read-only; renderer state did not enter either request and no command was issued.",
         },
         limitations: [
           "This focused operation trace does not claim the complete UX1.6-GRAPH/task-graph-details-return scenario.",
+          "The correction-preview segment proves exact Review-to-Graph composition and return but does not claim the complete UX1.6-REVIEW/correct-reject-defer-apply scenario.",
           "The trace covers the representative scientific profile registration and does not repeat paired-profile or unsupported-profile evidence.",
         ],
       };

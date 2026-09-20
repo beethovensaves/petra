@@ -1991,7 +1991,9 @@ const ReviewSessionMemberSurface = ({
       >
         <header>
           <p className="reference-panel-kicker">Exact comparison</p>
-          <h2 id="review-comparison-title">Current and Candidate</h2>
+          <h2 id="review-comparison-title" tabIndex={-1}>
+            Current and Candidate
+          </h2>
         </header>
         <div className="review-comparison__positions">
           <article>
