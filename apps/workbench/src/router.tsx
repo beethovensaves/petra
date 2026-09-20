@@ -142,6 +142,11 @@ export const router = createBrowserRouter([
             element: <PetraRoute />,
           },
           {
+            path: "petra/:threadId",
+            loader: loadProjectPetra,
+            element: <PetraRoute />,
+          },
+          {
             path: "profile",
             loader: loadProjectTaxonomy,
             element: <ProjectProfileRoute />,

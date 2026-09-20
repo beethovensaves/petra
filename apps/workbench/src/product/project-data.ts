@@ -7785,6 +7785,33 @@ export const loadProjectPetraThread = async ({
   params,
 }: LoaderFunctionArgs): Promise<PetraThread | undefined> => {
   const projectId = requiredRouteIdentity(params.projectId, "A Project ID");
+  const requestedThreadId = params.threadId;
+  if (
+    requestedThreadId !== undefined &&
+    !/^project_thread_[0-9A-HJKMNP-TV-Z]{26}$/u.test(requestedThreadId)
+  ) {
+    throw new ProjectDataError(
+      "The Project thread return identity is invalid.",
+      400,
+    );
+  }
+  if (requestedThreadId !== undefined) {
+    const detailValue = await requestJson(
+      `/api/queries/projects/${encodeURIComponent(projectId)}/threads/${encodeURIComponent(requestedThreadId)}`,
+    );
+    const detail = projectThreadView(detailValue);
+    if (
+      detail.project_id !== projectId ||
+      detail.content.view_kind !== "detail" ||
+      detail.content.summary.thread_ref.project_thread_id !== requestedThreadId
+    ) {
+      throw new ProjectDataError(
+        "Petra returned a different Project thread identity.",
+        502,
+      );
+    }
+    return petraThreadFromView(detail);
+  }
   const collectionValue = await requestJson(
     `/api/queries/projects/${encodeURIComponent(projectId)}/threads?limit=1&lifecycle=open`,
   );

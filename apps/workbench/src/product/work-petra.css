@@ -1361,6 +1361,10 @@
   border-inline-start-color: var(--petra-tone-danger);
 }
 
+.petra-model-response[data-result-state="awaiting_response"] {
+  border-inline-start-color: var(--petra-tone-caution);
+}
+
 .petra-model-response__answer {
   white-space: pre-wrap;
   font-family: var(--petra-font-editorial);
@@ -1455,6 +1459,184 @@
   padding: var(--petra-space-4) var(--petra-space-5);
   border-top: var(--petra-rule-thin) solid var(--petra-border-default);
   background: var(--petra-surface-inset);
+}
+
+.petra-review-interrupt {
+  display: grid;
+  gap: var(--petra-space-4);
+  padding: var(--petra-space-5);
+  border-block: var(--petra-rule-thin) solid var(--petra-tone-caution);
+  border-inline-start: 4px solid var(--petra-tone-caution);
+  background: var(--petra-tone-caution-soft);
+}
+
+.petra-review-interrupt[data-response-state="resolved"] {
+  border-color: var(--petra-tone-positive);
+  background: var(--petra-tone-positive-soft);
+}
+
+.petra-review-interrupt > header,
+.petra-review-interrupt__outcome > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--petra-space-4);
+}
+
+.petra-review-interrupt > header h2,
+.petra-review-interrupt > header p,
+.petra-review-interrupt__outcome > header h3,
+.petra-review-interrupt__outcome > header p {
+  margin-bottom: 0;
+}
+
+.petra-review-interrupt > header > span {
+  flex: none;
+  padding: var(--petra-space-1) var(--petra-space-3);
+  border: var(--petra-rule-thin) solid currentColor;
+  border-radius: var(--petra-radius-pill);
+  color: var(--petra-tone-caution);
+  font-size: var(--petra-font-size-caption);
+  font-weight: var(--petra-weight-semibold);
+}
+
+.petra-review-interrupt__identity,
+.petra-review-interrupt__outcome > dl,
+.petra-review-interrupt__outcome details dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--petra-space-3);
+  margin: 0;
+}
+
+.petra-review-interrupt__identity > div,
+.petra-review-interrupt__outcome > dl > div,
+.petra-review-interrupt__outcome details dl > div {
+  min-width: 0;
+  padding-top: var(--petra-space-2);
+  border-top: var(--petra-rule-thin) solid var(--petra-border-default);
+}
+
+.petra-review-interrupt dt {
+  color: var(--petra-text-tertiary);
+  font-size: var(--petra-font-size-caption);
+  font-weight: var(--petra-weight-semibold);
+}
+
+.petra-review-interrupt dd {
+  display: grid;
+  gap: var(--petra-space-1);
+  margin: var(--petra-space-1) 0 0;
+  overflow-wrap: anywhere;
+}
+
+.petra-review-interrupt code {
+  font-family: var(--petra-font-mono);
+  font-size: var(--petra-font-size-caption);
+  overflow-wrap: anywhere;
+}
+
+.petra-review-interrupt form,
+.petra-review-interrupt fieldset,
+.petra-review-interrupt__outcome {
+  display: grid;
+  gap: var(--petra-space-4);
+}
+
+.petra-review-interrupt fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.petra-review-interrupt legend {
+  color: var(--petra-text-primary);
+  font-family: var(--petra-font-editorial);
+  font-size: var(--petra-font-size-body-large);
+  font-weight: var(--petra-weight-semibold);
+}
+
+.petra-review-interrupt fieldset > p,
+.petra-review-interrupt__retained {
+  margin: 0;
+  color: var(--petra-text-secondary);
+}
+
+.petra-review-interrupt__choices {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--petra-space-3);
+}
+
+.petra-review-interrupt__choices > label {
+  display: grid;
+  min-height: var(--petra-target-min);
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: var(--petra-space-3);
+  padding: var(--petra-space-3);
+  border: var(--petra-rule-thin) solid var(--petra-border-strong);
+  border-radius: var(--petra-radius-small);
+  background: var(--petra-surface-overlay);
+  cursor: pointer;
+}
+
+.petra-review-interrupt__choices input {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-top: 0.125rem;
+  accent-color: var(--petra-action-primary);
+}
+
+.petra-review-interrupt__choices input:focus-visible {
+  outline: 2px solid var(--petra-focus-ring);
+  outline-offset: 3px;
+}
+
+.petra-review-interrupt__choices span {
+  display: grid;
+  gap: var(--petra-space-1);
+}
+
+.petra-review-interrupt__choices small {
+  color: var(--petra-text-secondary);
+  font-size: var(--petra-font-size-caption);
+}
+
+.petra-review-interrupt form > .petra-button-group {
+  justify-content: flex-end;
+}
+
+.petra-review-interrupt__retained {
+  padding: var(--petra-space-3);
+  border: var(--petra-rule-thin) solid var(--petra-tone-information);
+  border-radius: var(--petra-radius-small);
+  background: var(--petra-tone-information-soft);
+}
+
+.petra-review-interrupt__outcome nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--petra-space-3);
+}
+
+.petra-review-interrupt__outcome details > summary {
+  display: flex;
+  min-height: var(--petra-target-min);
+  align-items: center;
+  cursor: pointer;
+  font-weight: var(--petra-weight-semibold);
+}
+
+.petra-review-interrupt__outcome details > summary:focus-visible {
+  outline: 2px solid var(--petra-focus-ring);
+  outline-offset: 2px;
+}
+
+.petra-review-interrupt__outcome details dl {
+  margin-top: var(--petra-space-3);
 }
 
 .petra-task-context {
@@ -1554,7 +1736,11 @@
 
   .petra-model-readiness__facts,
   .petra-model-readiness details dl,
-  .petra-model-response__basis dl {
+  .petra-model-response__basis dl,
+  .petra-review-interrupt__identity,
+  .petra-review-interrupt__outcome > dl,
+  .petra-review-interrupt__outcome details dl,
+  .petra-review-interrupt__choices {
     grid-template-columns: 1fr;
   }
 
@@ -1601,6 +1787,7 @@
   .petra-messages,
   .communication-plan,
   .petra-composer,
+  .petra-review-interrupt,
   .petra-task-context,
   .petra-suggested-action > header {
     padding: var(--petra-space-4);

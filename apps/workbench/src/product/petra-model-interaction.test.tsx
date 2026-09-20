@@ -291,6 +291,33 @@ describe("production Petra certified-model interaction", () => {
     expect(disconnected.message).toContain("reconnected and replayed");
   });
 
+  it("keeps a durable Review pause distinct from a delivery disconnect", () => {
+    const pending = projectModelResultPresentation({
+      events: [
+        {
+          type: "RUN_FINISHED",
+          payload: { outcome: { type: "interrupt", interrupts: [] } },
+        },
+      ],
+      messages: [],
+      state: {},
+      pendingInterrupts: [
+        {
+          id: "interaction_interrupt_01ARZ3NDEKTSV4RRFFQ69G5FD8",
+          reason: "changeset_review",
+          message: "Review the exact proposed ChangeSet.",
+        },
+      ],
+    });
+
+    expect(pending).toMatchObject({
+      state: "awaiting_response",
+      reviewInterrupts: 1,
+    });
+    expect(pending.message).toContain("durably paused");
+    expect(pending.message).toContain("No Review or Work authority changed");
+  });
+
   it("retains only canonical browser-owned run identities", () => {
     const identity = createProjectModelRunIdentity();
     const storage = {

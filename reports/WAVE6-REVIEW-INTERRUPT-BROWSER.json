@@ -1,0 +1,55 @@
+{
+  "operation_id": "petra.respond-interrupt",
+  "status": "passed",
+  "url": "http://127.0.0.1:57470/test/petra-review-interrupt-browser.html",
+  "control": "Respond",
+  "interaction": {
+    "keyboard_submit": true,
+    "first_delivery": "unconfirmed",
+    "exact_retry_payload_reused": true,
+    "durable_outcome": "applied"
+  },
+  "identities": {
+    "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+    "interaction_run_id": "interaction_run_01ARZ3NDEKTSV4RRFFQ69G5FD6",
+    "interrupt_ref": {
+      "interaction_interrupt_id": "interaction_interrupt_01ARZ3NDEKTSV4RRFFQ69G5FD8",
+      "revision": 1,
+      "content_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+    },
+    "change_set_ref": {
+      "change_set_id": "change_set_01ARZ3NDEKTSV4RRFFQ69G5FBF",
+      "revision": 1,
+      "content_hash": "sha256:40f3f95b427df39085f5471705ec3e8fad6290943320c98832ef2e2efc922a2a"
+    }
+  },
+  "authority": {
+    "payload_contains_actor": false,
+    "payload_contains_capability_grant": false,
+    "authenticated_actor_rendered": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV"
+  },
+  "exact_return_links": [
+    {
+      "text": "Return to Extract supported claims",
+      "href": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/work/work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2"
+    },
+    {
+      "text": "Open exact Review",
+      "href": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/review/review_session_01K4D000000000000000000004"
+    },
+    {
+      "text": "Open originating Work",
+      "href": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/work/work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2"
+    },
+    {
+      "text": "Open originating Project thread",
+      "href": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/petra/project_thread_01K4C000000000000000000101"
+    }
+  ],
+  "accessibility": {
+    "landmarks_and_names": true,
+    "narrow_200_percent_reflow": true,
+    "visible_text_outcome": true
+  },
+  "boundary": "Focused Chromium exercises the production Petra Review-interrupt component and typed command client with a synthetic response transport. Real PostgreSQL authority, restart replay, ArtifactStore bytes, and command parity remain covered separately by reports/WAVE6-DIRECT-PETRA-COMMAND-PARITY.json."
+}

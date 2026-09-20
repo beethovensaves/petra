@@ -5828,6 +5828,22 @@ describe("Project shell workbench adapter", () => {
       `/api/queries/projects/${projectId}/threads?limit=1&lifecycle=open`,
       `/api/queries/projects/${projectId}/threads/${thread.id}`,
     ]);
+
+    fetch.mockClear();
+    const exactUrl = new URL(
+      `http://petra.test/projects/${projectId}/petra/${thread.id}`,
+    );
+    const exact = await loadProjectPetraThread({
+      request: new Request(exactUrl),
+      url: exactUrl,
+      pattern: "/projects/:projectId/petra/:threadId",
+      params: { projectId, threadId: thread.id },
+      context: new RouterContextProvider(),
+    });
+    expect(exact).toEqual(thread);
+    expect(fetch.mock.calls.map((call) => call[0])).toEqual([
+      `/api/queries/projects/${projectId}/threads/${thread.id}`,
+    ]);
   });
 
   it("maps semantic roles to client routes while retaining exact identity", () => {

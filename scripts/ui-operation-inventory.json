@@ -1214,7 +1214,7 @@
       "surfaces": ["SP13", "SP14"],
       "flows": ["UX-FLOW-11", "UX-FLOW-12"],
       "requests": ["UX-REQ-006", "UX-REQ-012"],
-      "current_state": "missing",
+      "current_state": "live",
       "route": "/projects/:projectId/petra",
       "control": "Respond",
       "interaction": "command",
@@ -1222,7 +1222,12 @@
         {
           "command": "npm run test:wave6:actions",
           "artifact": "reports/WAVE6-DIRECT-PETRA-COMMAND-PARITY.json",
-          "boundary": "Real disposable PostgreSQL plus verified ArtifactStore semantics prove the authenticated direct/Petra Review command identity, idempotency, restart replay, durable outcome, exact ProjectThread/Review/Work return context, and no model authority. The design-owned visible Respond control remains outstanding."
+          "boundary": "Real disposable PostgreSQL plus verified ArtifactStore semantics prove the authenticated direct/Petra Review command identity, idempotency, restart replay, durable outcome, exact ProjectThread/Review/Work return context, and no model authority."
+        },
+        {
+          "command": "npm run test:wave6:review-interrupt-ui",
+          "artifact": "reports/WAVE6-REVIEW-INTERRUPT-BROWSER.json",
+          "boundary": "Focused Chromium executes the production Petra Respond component and typed command client, including keyboard submission, exact retry after uncertain delivery, authenticated outcome, recovery state, narrow reflow, and exact ProjectThread/Review/Work return links. The response transport is synthetic; the paired PostgreSQL artifact owns authority and persistence proof."
         }
       ],
       "runtime_owner": "POST /api/commands/reviews/resolve -> server-resolved direct Review authority -> DurableReviewInterruptCoordinator -> DurableReviewInterruptProductBindingLoader -> Postgres Review apply/reject boundaries",

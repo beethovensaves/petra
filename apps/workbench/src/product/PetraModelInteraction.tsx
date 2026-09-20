@@ -12,6 +12,11 @@ import {
   type ProjectModelRunIdentity,
   type ProjectPetraReturnContext,
 } from "./project-data.js";
+import { PetraReviewInterrupt } from "./PetraReviewInterrupt.js";
+import {
+  projectReviewInterruptsFromInteraction,
+  type ProjectReviewInterruptPresentation,
+} from "./petra-review-interrupt.js";
 
 const MODEL_DRAFT_PREFIX = "petra.model-draft.";
 const MODEL_RUN_PREFIX = "petra.model-run.";
@@ -116,7 +121,7 @@ export interface ProjectModelProgressItem {
 }
 
 export interface ProjectModelResultPresentation {
-  readonly state: "completed" | "failed" | "disconnected";
+  readonly state: "completed" | "failed" | "disconnected" | "awaiting_response";
   readonly message: string;
   readonly answer?: string;
   readonly progress: readonly ProjectModelProgressItem[];
@@ -139,6 +144,9 @@ const nestedString = (value: unknown, key: string): string | undefined =>
 export const projectModelResultPresentation = (
   result: PetraInteractionResult,
 ): ProjectModelResultPresentation => {
+  const reviewInterruptCount = result.pendingInterrupts.filter(
+    (interrupt) => interrupt.reason === "changeset_review",
+  ).length;
   const progress = result.events.flatMap((event) => {
     if (event.type !== "ACTIVITY_SNAPSHOT") return [];
     const content = event.payload.content;
@@ -164,7 +172,7 @@ export const projectModelResultPresentation = (
           : "The certified response failed before Petra could present it.",
       progress,
       origins: [],
-      reviewInterrupts: result.pendingInterrupts.length,
+      reviewInterrupts: reviewInterruptCount,
     };
   }
   const terminalEvent = result.events.find(
@@ -180,13 +188,23 @@ export const projectModelResultPresentation = (
         message.content.length > 0,
     )?.content;
   if (!isRecord(terminal)) {
+    if (reviewInterruptCount > 0) {
+      return {
+        state: "awaiting_response",
+        message:
+          "The certified run is durably paused for an authenticated response. No Review or Work authority changed when the model requested it.",
+        progress,
+        origins: [],
+        reviewInterrupts: reviewInterruptCount,
+      };
+    }
     return {
       state: "disconnected",
       message:
         "This browser did not receive a terminal response. The exact run can be reconnected and replayed without starting another model call.",
       progress,
       origins: [],
-      reviewInterrupts: result.pendingInterrupts.length,
+      reviewInterrupts: reviewInterruptCount,
     };
   }
   if (terminal.authorityEffect !== "none" || answer === undefined) {
@@ -196,7 +214,7 @@ export const projectModelResultPresentation = (
         "Petra withheld a response whose terminal authority or answer shape did not match the certified advisory boundary.",
       progress,
       origins: [],
-      reviewInterrupts: result.pendingInterrupts.length,
+      reviewInterrupts: reviewInterruptCount,
     };
   }
   const contextPacket = terminal.contextPacketRef;
@@ -256,7 +274,7 @@ export const projectModelResultPresentation = (
     ...(typeof terminal.executionSource === "string"
       ? { executionSource: readable(terminal.executionSource) }
       : {}),
-    reviewInterrupts: result.pendingInterrupts.length,
+    reviewInterrupts: reviewInterruptCount,
   };
 };
 
@@ -396,7 +414,9 @@ const ModelResponse = ({
           ? "Grounded answer"
           : presentation.state === "failed"
             ? "Response failed"
-            : "Response delivery interrupted"}
+            : presentation.state === "awaiting_response"
+              ? "Response needs your decision"
+              : "Response delivery interrupted"}
       </h2>
       <p role="status">{presentation.message}</p>
     </header>
@@ -507,6 +527,10 @@ export const PetraModelInteraction = ({
   const [activity, setActivity] = useState<ModelActivity>("idle");
   const [presentation, setPresentation] =
     useState<ProjectModelResultPresentation>();
+  const [reviewInterrupts, setReviewInterrupts] = useState<
+    ProjectReviewInterruptPresentation[]
+  >([]);
+  const [interruptError, setInterruptError] = useState<string>();
   const [transportError, setTransportError] = useState<string>();
   const retainedIdentity = useRef<ProjectModelRunIdentity | undefined>(
     readProjectModelRunIdentity(projectId),
@@ -547,6 +571,19 @@ export const PetraModelInteraction = ({
 
   const publish = (result: PetraInteractionResult): void => {
     const next = projectModelResultPresentation(result);
+    try {
+      setReviewInterrupts(
+        projectReviewInterruptsFromInteraction(result, projectId),
+      );
+      setInterruptError(undefined);
+    } catch (error) {
+      setReviewInterrupts([]);
+      setInterruptError(
+        error instanceof Error
+          ? error.message
+          : "Petra could not verify the pending Review identity.",
+      );
+    }
     if (
       next.state === "completed" &&
       readyState !== undefined &&
@@ -624,6 +661,24 @@ export const PetraModelInteraction = ({
       <ModelReadiness readiness={readiness} />
       {presentation === undefined ? null : (
         <ModelResponse projectId={projectId} presentation={presentation} />
+      )}
+      {reviewInterrupts.map((interrupt) => (
+        <PetraReviewInterrupt
+          key={interrupt.interruptRef.interaction_interrupt_id}
+          interrupt={interrupt}
+        />
+      ))}
+      {interruptError === undefined ? null : (
+        <StateNotice
+          announce
+          notice={{
+            tone: "danger",
+            title: "Review response unavailable",
+            message: interruptError,
+            recovery:
+              "Reconnect and replay the exact InteractionRun. Petra will not compose a response without the server-owned interrupt and ChangeSet identities.",
+          }}
+        />
       )}
       {transportError === undefined ? null : (
         <StateNotice
