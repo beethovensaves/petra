@@ -133,6 +133,9 @@ type BrowserContractName =
   | "research-brief-payload@1.0.0"
   | "project-brief-view@1.1.0"
   | "project-brief-view@1.0.0"
+  | "project-shell-view@1.0.0"
+  | "project-shell-view@1.1.0"
+  | "project-shell-view@1.2.0"
   | "project-shell-collection-view@1.0.0"
   | "review-session-apply-checkpoint@1.0.0"
   | "review-session-apply-request@1.0.0"
@@ -339,6 +342,9 @@ const contractIds: Record<BrowserContractName, string> = {
   "research-brief-payload@1.0.0": briefResearchBriefPayloadV100Schema.$id,
   "project-brief-view@1.1.0": briefProjectBriefViewV110Schema.$id,
   "project-brief-view@1.0.0": briefProjectBriefViewV100Schema.$id,
+  "project-shell-view@1.0.0": briefProjectShellViewV100Schema.$id,
+  "project-shell-view@1.1.0": briefProjectShellViewV110Schema.$id,
+  "project-shell-view@1.2.0": briefProjectShellViewV120Schema.$id,
   "project-shell-collection-view@1.0.0":
     projectShellCollectionViewV100Schema.$id,
   "review-session-apply-checkpoint@1.0.0": applyCheckpointSchema.$id,
@@ -511,6 +517,24 @@ export class PetraContractRegistry {
       version: "1.0.0",
       canonical_sha256:
         "sha256:6a9cacc35e9df3b73a4eaed2db936f8c2452cf07ebd0256523388c743eb2b22e",
+    },
+    {
+      name: "project-shell-view",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:b96d956d1a89d63965000bcb7cea7ea33d4e4cf6d44554c5acccbb37ac4b2cc4",
+    },
+    {
+      name: "project-shell-view",
+      version: "1.1.0",
+      canonical_sha256:
+        "sha256:859cf372c29e2ed06d7f4e0173a3f8955ba020ff7bb4a022be953d0e98038daf",
+    },
+    {
+      name: "project-shell-view",
+      version: "1.2.0",
+      canonical_sha256:
+        "sha256:c846435a0b3efa9707a2a83251b108d509a2ea2070559cd01bb1a74c5e98186b",
     },
     {
       name: "project-shell-collection-view",

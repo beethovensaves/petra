@@ -4235,6 +4235,7 @@ export const loadProjectRecord = async ({
   if (params.projectId === undefined || params.projectId.length === 0) {
     throw new ProjectDataError("A Project ID is required.", 400);
   }
+  const projectId = params.projectId;
   const requestUrl = new URL(request.url);
   const incoming = requestUrl.searchParams;
   const semanticKey = incoming.get("semanticKey");
@@ -4283,10 +4284,20 @@ export const loadProjectRecord = async ({
     query.set("taskIntent", "inspect");
   }
   const suffix = query.size === 0 ? "" : `?${query}`;
-  const value = await requestJson(
-    `/api/queries/projects/${encodeURIComponent(params.projectId)}/shell${suffix}`,
-  );
-  const view = shellView(value);
+  const view = hasExactSelection
+    ? shellView(
+        await requestJson(
+          `/api/queries/projects/${encodeURIComponent(params.projectId)}/shell${suffix}`,
+        ),
+      )
+    : await (async (): Promise<ProjectShellView> => {
+        const { ProjectShellClient } = await import("@petra/adapters");
+        return new ProjectShellClient({
+          baseUrl: apiBaseUrl(),
+          token: apiToken(),
+          fetch: (input, init) => fetch(input, init),
+        }).open(projectId);
+      })();
   if (hasExactSelection) {
     if (
       view.schema_version !== "1.1.0" ||

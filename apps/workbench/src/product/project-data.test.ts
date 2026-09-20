@@ -1871,6 +1871,49 @@ describe("Project shell workbench adapter", () => {
     expect(shellV12View).toEqual(before);
   });
 
+  it("opens an unselected Project route through the exact typed shell read", async () => {
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValue(Response.json(shellV11View));
+    vi.stubGlobal("fetch", fetch);
+    const projectId = "project_01ARZ3NDEKTSV4RRFFQ69G5FAW";
+    const url = new URL(`http://petra.test/projects/${projectId}/brief`);
+    const args: LoaderFunctionArgs = {
+      request: new Request(url),
+      url,
+      pattern: "/projects/:projectId",
+      params: { projectId },
+      context: new RouterContextProvider(),
+    };
+
+    const project = await loadProjectRecord(args);
+
+    expect(project.id).toBe(projectId);
+    expect(fetch).toHaveBeenCalledOnce();
+    const requested = fetch.mock.calls[0]?.[0];
+    if (!(requested instanceof URL)) {
+      throw new TypeError("Expected the Project open client to request a URL.");
+    }
+    expect(requested.href).toBe(
+      `http://petra.local/api/queries/projects/${projectId}/shell`,
+    );
+    expect(
+      new Headers(fetch.mock.calls[0]?.[1]?.headers).get("authorization"),
+    ).toBe("Bearer petra-local-development");
+
+    const crossed = structuredClone(shellV11View);
+    crossed.project_id = "project_01ARZ3NDEKTSV4RRFFQ69G5FZZ";
+    crossed.content.project.project_id = crossed.project_id;
+    crossed.content_hash = `sha256:${createHash("sha256")
+      .update(canonicalize(crossed.content))
+      .digest("hex")}`;
+    fetch.mockResolvedValueOnce(Response.json(crossed));
+
+    await expect(loadProjectRecord(args)).rejects.toThrow(
+      "Petra returned a Project shell for another Project",
+    );
+  });
+
   it("requests and verifies an exact route selection in the shell snapshot", async () => {
     const fetch = vi.fn<typeof globalThis.fetch>().mockResolvedValue(
       new Response(JSON.stringify(shellV11View), {

@@ -52,6 +52,11 @@
           "command": "npm run test:wave6:project-open",
           "artifact": "reports/WAVE6-PROJECT-OPEN-AUTHORITY.json",
           "boundary": "Real disposable PostgreSQL, the production HTTP server, bearer authentication, and ProjectShellClient prove that one exact representative member returned by GET /api/queries/projects resolves through GET /api/queries/projects/:projectId/shell to the same Project, ProjectDefinition, current Objective, and Open Brief destination. This backend trace does not invoke the visible Open Brief control and makes no browser-navigation claim; that execution remains design-owned."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:project-open-ui",
+          "artifact": "reports/WAVE6-PROJECT-OPEN-BROWSER.json",
+          "boundary": "Isolated Chromium keyboard-activated the visible Open Brief control for one representative Project through the production React Router collection, Project shell, and Brief loaders, then returned through the visible Projects control with the same Project destination retained. Deterministic schema-valid authenticated HTTP supplied the browser transport; reports/WAVE6-PROJECT-OPEN-AUTHORITY.json separately proves the same collection and shell owner against real PostgreSQL and the production server. This operation record covers project.open only and does not claim a named Wave 6 evidence-plan scenario or the complete guided workflow."
         }
       ],
       "runtime_owner": "GET /api/queries/projects -> ProjectShellViewReader.searchProjectShellViews -> PostgresProjectShellViewReader; GET /api/queries/projects/:projectId/shell -> ProjectShellViewReader.getProjectShellView -> PostgresProjectShellViewReader (authenticated REPEATABLE READ current Project/ProjectDefinition/Objective authority)",

@@ -120,7 +120,8 @@
     "inspect:wave6": "npm run build:packages && PETRA_WAVE4_TRACE=wave5-cumulative PETRA_WAVE4_EVIDENCE_OBSERVER=./apps/workbench/test/wave6-checkpoint-observer.mjs PETRA_WAVE5_INSPECT=1 node scripts/test-wave4-cumulative-integration.mjs",
     "audit:wave6:operation-control": "node scripts/audit-wave6-operation-control.mjs",
     "test:wave6:project-search-ui": "npm run build:packages && node apps/workbench/test/project-search-browser.mjs",
-    "test:wave6:project-open": "npm test --workspace @petra/adapters -- project-shell-client.test.ts && PETRA_WAVE6_PROJECT_OPEN_EVIDENCE_OUTPUT=reports/WAVE6-PROJECT-OPEN-AUTHORITY.json node scripts/test-postgres-integration.mjs"
+    "test:wave6:project-open": "npm test --workspace @petra/adapters -- project-shell-client.test.ts && PETRA_WAVE6_PROJECT_OPEN_EVIDENCE_OUTPUT=reports/WAVE6-PROJECT-OPEN-AUTHORITY.json node scripts/test-postgres-integration.mjs",
+    "test:wave6:project-open-ui": "npm run build:packages && node apps/workbench/test/project-open-browser.mjs"
   },
   "devDependencies": {
     "@aws-sdk/client-s3": "3.1124.0",
