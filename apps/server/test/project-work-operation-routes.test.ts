@@ -87,6 +87,7 @@ describe("Project Work operation routes", () => {
       | undefined;
     const authority: ProjectWorkOperationAuthority = {
       registerRequiredInput: () => Promise.resolve(),
+      registerStagePlan: () => Promise.resolve(),
       executeProjectWorkOperation: (projectId, body, principal) => {
         execution = {
           projectId,
@@ -137,6 +138,7 @@ describe("Project Work operation routes", () => {
       commandPrincipalResolver: resolvedPrincipal,
       projectWorkOperationAuthority: {
         registerRequiredInput: () => Promise.resolve(),
+        registerStagePlan: () => Promise.resolve(),
         executeProjectWorkOperation: execute,
       },
     });
@@ -178,6 +180,7 @@ describe("Project Work operation routes", () => {
       },
       projectWorkOperationAuthority: {
         registerRequiredInput: () => Promise.resolve(),
+        registerStagePlan: () => Promise.resolve(),
         executeProjectWorkOperation: execute,
       },
     });

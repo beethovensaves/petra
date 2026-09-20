@@ -3,20 +3,24 @@ import { createHash } from "node:crypto";
 import type {
   PetraProjectDefinition,
   PetraProjectWorkView,
+  PetraProjectWorkViewV11,
   PetraWorkerInputManifest,
   PetraWorkerOutputManifest,
   PetraWorkUnit,
   ProjectWorkAttentionSummary,
   ProjectWorkAuthorityPosition,
-  ProjectWorkCollectionContent,
+  ProjectWorkCollectionContentV11,
   ProjectWorkCollectionQuery,
   ProjectWorkControlSummary,
   ProjectWorkDependencySummary,
   ProjectWorkDetailContent,
+  ProjectWorkDetailContentV11,
   ProjectWorkElapsedSummary,
   ProjectWorkExecutionSummary,
   ProjectWorkOutputSummary,
+  ProjectWorkStageV11,
   ProjectWorkTaskSummary,
+  ProjectWorkTaskSummaryV11,
   ProjectWorkUnitRef,
 } from "@petra/contracts";
 import { PetraContractRegistry } from "@petra/contracts/validator";
@@ -58,6 +62,12 @@ interface WorkRow {
   input_record_hash: string;
   output_payload: unknown;
   output_record_hash: string | null;
+  stage_plan_payload: unknown;
+  stage_plan_content_hash: string | null;
+  pending_input_count: string;
+  answered_input_count: string;
+  input_registered_at: Date | null;
+  input_answered_at: Date | null;
 }
 
 interface CountRow {
@@ -76,6 +86,38 @@ interface ComposedWork {
   inputRecordHash: string;
   output?: PetraWorkerOutputManifest;
   outputRecordHash?: string;
+  stagePlan?: RegisteredStagePlan;
+  stagePlanContentHash?: string;
+  pendingInputCount: number;
+  answeredInputCount: number;
+  inputRegisteredAt?: string;
+  inputAnsweredAt?: string;
+}
+
+interface RegisteredStagePlan {
+  stage_plan_id: string;
+  revision: 1;
+  project_id: string;
+  work_unit_id: string;
+  work_unit_spec_hash: string;
+  workflow: {
+    workflow_name: string;
+    workflow_version: string;
+    task_family: string;
+    task_name: string;
+    task_version: string;
+  };
+  stages: Array<{
+    stage_id: string;
+    label: string;
+    purpose: string;
+    boundary: "required_input" | "execution" | "completion";
+    prerequisite_stage_ids: string[];
+    accountable_role: string;
+    input: string;
+    output: string;
+  }>;
+  registered_at: string;
 }
 
 const WORK_UNIT_ID = /^work_unit_[0-9A-HJKMNP-TV-Z]{26}$/u;
@@ -93,6 +135,15 @@ const canonicalHash = (value: unknown): string =>
   `sha256:${createHash("sha256").update(canonicalize(value)).digest("hex")}`;
 
 const clone = <Value>(value: Value): Value => structuredClone(value);
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+const validStageText = (value: unknown, maximum: number): value is string =>
+  typeof value === "string" && value.length >= 1 && value.length <= maximum;
+
+const STAGE_PLAN_ID = /^work_stage_plan_[0-9A-HJKMNP-TV-Z]{26}$/u;
+const STAGE_ID = /^[a-z][a-z0-9_-]{0,79}$/u;
 
 export class PostgresProjectWorkViewReader implements ProjectWorkViewReader {
   readonly #pool: Pool;
@@ -115,7 +166,7 @@ export class PostgresProjectWorkViewReader implements ProjectWorkViewReader {
   async listProjectWorkView(
     projectId: string,
     request: ProjectWorkCollectionRequest = {},
-  ): Promise<PetraProjectWorkView | undefined> {
+  ): Promise<PetraProjectWorkViewV11 | undefined> {
     const query = this.#collectionQuery(request);
     const offset = this.#offset(query.cursor);
     return this.#readTransaction(async (client, readAt) => {
@@ -134,7 +185,7 @@ export class PostgresProjectWorkViewReader implements ProjectWorkViewReader {
       );
       const totalCount = await this.#totalCount(client, projectId, query.state);
       const authority = await this.#authority(client, projectId);
-      const content: ProjectWorkCollectionContent = {
+      const content: ProjectWorkCollectionContentV11 = {
         view_kind: "collection",
         project_definition_ref: this.#definitionRef(definition),
         query,
@@ -156,7 +207,7 @@ export class PostgresProjectWorkViewReader implements ProjectWorkViewReader {
   async getProjectWorkView(
     projectId: string,
     workUnitId: string,
-  ): Promise<PetraProjectWorkView | undefined> {
+  ): Promise<PetraProjectWorkViewV11 | undefined> {
     if (!WORK_UNIT_ID.test(workUnitId)) {
       throw new PostgresProjectWorkViewError(
         "PROJECT_WORK_VIEW_REQUEST_INVALID",
@@ -174,7 +225,7 @@ export class PostgresProjectWorkViewReader implements ProjectWorkViewReader {
     readAt: string,
     projectId: string,
     workUnitId: string,
-  ): Promise<PetraProjectWorkView | undefined> {
+  ): Promise<PetraProjectWorkViewV11 | undefined> {
     const definition = await this.#definition(client, projectId);
     if (definition === undefined) return undefined;
     this.#assertWorkPlace(definition);
@@ -211,7 +262,8 @@ export class PostgresProjectWorkViewReader implements ProjectWorkViewReader {
         "The exact WorkUnit semantic destination could not be reproduced in the Work snapshot.",
       );
     }
-    const content: ProjectWorkDetailContent = {
+    const stagePlan = this.#stagePlan(composed);
+    const content: ProjectWorkDetailContentV11 = {
       view_kind: "detail",
       project_definition_ref: this.#definitionRef(definition),
       summary: this.#taskSummary(composed, definition, readAt),
@@ -236,11 +288,7 @@ export class PostgresProjectWorkViewReader implements ProjectWorkViewReader {
           : { deadline_at: composed.workUnit.spec.deadline_at }),
       },
       dependencies: await this.#dependencies(client, composed.workUnit),
-      stage_plan: {
-        state: "unavailable",
-        reason:
-          "This workflow has no registered stage-plan record; Petra does not reconstruct stages from execution prose.",
-      },
+      stage_plan: stagePlan,
       resources: {
         limits: clone(composed.input.content.resource_limits),
         usage:
@@ -282,8 +330,10 @@ export class PostgresProjectWorkViewReader implements ProjectWorkViewReader {
         { area: "dependencies", state: "complete" },
         {
           area: "stages",
-          state: "unavailable",
-          limitation: "No registered workflow stage plan exists.",
+          state: stagePlan.state === "available" ? "complete" : "unavailable",
+          ...(stagePlan.state === "available"
+            ? {}
+            : { limitation: "No registered workflow stage plan exists." }),
         },
         {
           area: "resources",
@@ -325,6 +375,53 @@ export class PostgresProjectWorkViewReader implements ProjectWorkViewReader {
       authority,
     };
     return this.#view(projectId, content, readAt);
+  }
+
+  /**
+   * Compatibility seam for composed views whose accepted contract still embeds
+   * project-work-view 1.0.0. The canonical Work routes use 1.1.0; this method
+   * deliberately removes the additive stage declaration instead of weakening
+   * the enclosing legacy contract.
+   */
+  async readLegacyWorkInSnapshot(
+    client: PoolClient,
+    readAt: string,
+    projectId: string,
+    workUnitId: string,
+  ): Promise<PetraProjectWorkView | undefined> {
+    const current = await this.readWorkInSnapshot(
+      client,
+      readAt,
+      projectId,
+      workUnitId,
+    );
+    if (current === undefined || current.content.view_kind !== "detail") {
+      return undefined;
+    }
+    const unavailableStagePlan = {
+      state: "unavailable" as const,
+      reason:
+        "Open the canonical Work detail to inspect its registered stage plan.",
+    };
+    const summary: ProjectWorkTaskSummary = {
+      ...current.content.summary,
+      stage_plan: unavailableStagePlan,
+    };
+    const content: ProjectWorkDetailContent = {
+      ...current.content,
+      summary,
+      stage_plan: unavailableStagePlan,
+    };
+    const legacy: PetraProjectWorkView = {
+      schema_name: "petra.project-work-view",
+      schema_version: "1.0.0",
+      project_id: projectId,
+      content,
+      content_hash: canonicalHash(content),
+      read_at: readAt,
+    };
+    this.#contracts.assertValid("project-work-view", "1.0.0", legacy);
+    return legacy;
   }
 
   #collectionQuery(
@@ -439,7 +536,15 @@ export class PostgresProjectWorkViewReader implements ProjectWorkViewReader {
               input.payload AS input_payload,
               input.record_hash AS input_record_hash,
               output.payload AS output_payload,
-              output.record_hash AS output_record_hash
+              output.record_hash AS output_record_hash,
+              stage_plan.plan_payload AS stage_plan_payload,
+              stage_plan.content_hash AS stage_plan_content_hash,
+              COALESCE(input_state.pending_input_count, 0)::text
+                AS pending_input_count,
+              COALESCE(input_state.answered_input_count, 0)::text
+                AS answered_input_count,
+              input_state.input_registered_at,
+              input_state.input_answered_at
          FROM petra.work_units AS head
          JOIN petra.work_unit_revisions AS revision
            ON revision.work_unit_id = head.work_unit_id
@@ -448,6 +553,21 @@ export class PostgresProjectWorkViewReader implements ProjectWorkViewReader {
            ON input.worker_input_manifest_id = head.input_manifest_id
          LEFT JOIN petra.worker_output_manifests AS output
            ON output.worker_output_manifest_id = revision.output_manifest_id
+         LEFT JOIN petra.project_work_stage_plans AS stage_plan
+           ON stage_plan.work_unit_id = head.work_unit_id
+          AND stage_plan.project_id = head.project_id
+         LEFT JOIN LATERAL (
+           SELECT
+             count(*) FILTER (WHERE request.state = 'pending')
+               AS pending_input_count,
+             count(*) FILTER (WHERE request.state = 'answered')
+               AS answered_input_count,
+             min(request.registered_at) AS input_registered_at,
+             max(request.answered_at) AS input_answered_at
+           FROM petra.project_work_input_requests AS request
+           WHERE request.project_id = head.project_id
+             AND request.work_unit_id = head.work_unit_id
+         ) AS input_state ON true
         WHERE head.project_id = $1
           AND ($2::text IS NULL OR revision.state = $2)
           AND ($3::text IS NULL OR head.work_unit_id = $3)
@@ -556,6 +676,7 @@ export class PostgresProjectWorkViewReader implements ProjectWorkViewReader {
         );
       }
     }
+    const stagePlan = this.#registeredStagePlan(row, workUnit, input);
     return {
       workUnit: clone(workUnit),
       workUnitRef: {
@@ -569,6 +690,287 @@ export class PostgresProjectWorkViewReader implements ProjectWorkViewReader {
       ...(output === undefined || row.output_record_hash === null
         ? {}
         : { output: clone(output), outputRecordHash: row.output_record_hash }),
+      ...(stagePlan === undefined || row.stage_plan_content_hash === null
+        ? {}
+        : {
+            stagePlan: clone(stagePlan),
+            stagePlanContentHash: row.stage_plan_content_hash,
+          }),
+      pendingInputCount: this.#safePosition(
+        row.pending_input_count,
+        "pending Work input count",
+      ),
+      answeredInputCount: this.#safePosition(
+        row.answered_input_count,
+        "answered Work input count",
+      ),
+      ...(row.input_registered_at === null
+        ? {}
+        : { inputRegisteredAt: row.input_registered_at.toISOString() }),
+      ...(row.input_answered_at === null
+        ? {}
+        : { inputAnsweredAt: row.input_answered_at.toISOString() }),
+    };
+  }
+
+  #registeredStagePlan(
+    row: WorkRow,
+    work: PetraWorkUnit,
+    input: PetraWorkerInputManifest,
+  ): RegisteredStagePlan | undefined {
+    if (
+      (row.stage_plan_payload === null) !==
+      (row.stage_plan_content_hash === null)
+    ) {
+      throw this.#corrupt(
+        "A Work stage plan payload and its immutable content hash disagree.",
+      );
+    }
+    if (row.stage_plan_payload === null) return undefined;
+    const payload = row.stage_plan_payload;
+    if (
+      !isRecord(payload) ||
+      !isRecord(payload.workflow) ||
+      !Array.isArray(payload.stages) ||
+      payload.stages.length < 2 ||
+      payload.stages.length > 20 ||
+      canonicalHash(payload) !== row.stage_plan_content_hash ||
+      typeof payload.stage_plan_id !== "string" ||
+      !STAGE_PLAN_ID.test(payload.stage_plan_id) ||
+      payload.revision !== 1 ||
+      payload.project_id !== work.project_id ||
+      payload.work_unit_id !== work.work_unit_id ||
+      payload.work_unit_spec_hash !== work.spec_hash ||
+      payload.workflow.workflow_name !== work.spec.workflow_name ||
+      payload.workflow.workflow_version !== work.spec.workflow_version ||
+      payload.workflow.task_family !== input.content.task.task_family ||
+      payload.workflow.task_name !== input.content.task.task_name ||
+      payload.workflow.task_version !== input.content.task.task_version ||
+      typeof payload.registered_at !== "string" ||
+      new Date(payload.registered_at).toISOString() !== payload.registered_at
+    ) {
+      throw this.#corrupt(
+        "A registered Work stage plan does not reproduce its exact Work and workflow authority chain.",
+      );
+    }
+    const seen = new Set<string>();
+    const boundaryOrder = { required_input: 0, execution: 1, completion: 2 };
+    let priorBoundary = 0;
+    let executionStages = 0;
+    let requiredInputStages = 0;
+    for (const stage of payload.stages) {
+      if (!isRecord(stage)) {
+        throw this.#corrupt("A registered Work stage is not an object.");
+      }
+      const boundary = stage.boundary;
+      const prerequisites = stage.prerequisite_stage_ids;
+      if (
+        typeof stage.stage_id !== "string" ||
+        !STAGE_ID.test(stage.stage_id) ||
+        seen.has(stage.stage_id) ||
+        !validStageText(stage.label, 120) ||
+        !validStageText(stage.purpose, 1000) ||
+        (boundary !== "required_input" &&
+          boundary !== "execution" &&
+          boundary !== "completion") ||
+        !Array.isArray(prerequisites) ||
+        prerequisites.length > 20 ||
+        new Set(prerequisites).size !== prerequisites.length ||
+        prerequisites.some(
+          (stageId) => typeof stageId !== "string" || !seen.has(stageId),
+        ) ||
+        !validStageText(stage.accountable_role, 120) ||
+        !validStageText(stage.input, 1000) ||
+        !validStageText(stage.output, 1000) ||
+        boundaryOrder[boundary] < priorBoundary
+      ) {
+        throw this.#corrupt(
+          "A registered Work stage has invalid identity, ordering, prerequisites, or presentation content.",
+        );
+      }
+      seen.add(stage.stage_id);
+      priorBoundary = boundaryOrder[boundary];
+      if (boundary === "execution") executionStages += 1;
+      if (boundary === "required_input") requiredInputStages += 1;
+    }
+    if (executionStages !== 1 || requiredInputStages > 1) {
+      throw this.#corrupt(
+        "A registered Work stage plan must have one execution boundary and at most one required-input boundary.",
+      );
+    }
+    return clone(payload) as unknown as RegisteredStagePlan;
+  }
+
+  #stagePlanRef(work: ComposedWork) {
+    if (
+      work.stagePlan === undefined ||
+      work.stagePlanContentHash === undefined
+    ) {
+      throw this.#corrupt("A registered Work stage plan lost its exact ref.");
+    }
+    return {
+      stage_plan_id: work.stagePlan.stage_plan_id,
+      revision: work.stagePlan.revision,
+      content_hash: work.stagePlanContentHash,
+      registered_at: work.stagePlan.registered_at,
+    };
+  }
+
+  #stagePlan(work: ComposedWork): ProjectWorkDetailContentV11["stage_plan"] {
+    if (work.stagePlan === undefined) {
+      return {
+        state: "unavailable",
+        reason:
+          "This workflow has no registered stage-plan record; Petra does not reconstruct stages from execution prose.",
+      };
+    }
+    const stages = work.stagePlan.stages.map((stage) =>
+      this.#stage(work, stage),
+    );
+    const current = stages.find((stage) =>
+      ["awaiting_input", "running", "ready", "failed"].includes(stage.state),
+    );
+    return {
+      state: "available",
+      stage_plan_ref: this.#stagePlanRef(work),
+      ...(current === undefined ? {} : { current_stage_id: current.stage_id }),
+      state_basis: "registered_plan_and_work_lifecycle",
+      stages,
+    } as unknown as ProjectWorkDetailContentV11["stage_plan"];
+  }
+
+  #stagePlanSummary(
+    work: ComposedWork,
+  ): ProjectWorkTaskSummaryV11["stage_plan"] {
+    const plan = this.#stagePlan(work);
+    if (plan.state === "unavailable") {
+      return {
+        state: "unavailable",
+        reason: "No registered workflow stage plan is available for this task.",
+      };
+    }
+    return {
+      state: "available",
+      stage_plan_ref: clone(plan.stage_plan_ref),
+      stage_count: plan.stages.length,
+      completed_stage_count: plan.stages.filter(
+        (stage) => stage.state === "completed",
+      ).length,
+      ...(plan.current_stage_id === undefined
+        ? {}
+        : { current_stage_id: plan.current_stage_id }),
+      state_basis: "registered_plan_and_work_lifecycle",
+      stages: clone(plan.stages),
+    };
+  }
+
+  #stage(
+    work: ComposedWork,
+    registered: RegisteredStagePlan["stages"][number],
+  ): ProjectWorkStageV11 {
+    const status = work.workUnit.status;
+    const succeeded =
+      status.state === "completed" && status.terminal_outcome === "succeeded";
+    const failed =
+      status.state === "completed" && status.terminal_outcome !== "succeeded";
+    const cancelled = status.state === "cancelled";
+    const hasInputStage = work.stagePlan?.stages.some(
+      (stage) => stage.boundary === "required_input",
+    );
+    const inputResolved = hasInputStage !== true || work.answeredInputCount > 0;
+    let state: ProjectWorkStageV11["state"];
+    if (succeeded) {
+      state = "completed";
+    } else if (cancelled) {
+      state =
+        registered.boundary === "required_input" && work.answeredInputCount > 0
+          ? "completed"
+          : "skipped";
+    } else if (failed) {
+      state =
+        registered.boundary === "required_input"
+          ? work.answeredInputCount > 0
+            ? "completed"
+            : "skipped"
+          : registered.boundary === "execution"
+            ? "failed"
+            : "skipped";
+    } else if (registered.boundary === "required_input") {
+      state =
+        work.pendingInputCount > 0
+          ? "awaiting_input"
+          : work.answeredInputCount > 0
+            ? "completed"
+            : "ready";
+    } else if (registered.boundary === "execution") {
+      state = !inputResolved
+        ? "not_started"
+        : status.state === "running" || status.state === "checkpointed"
+          ? "running"
+          : "ready";
+    } else {
+      state = "not_started";
+    }
+    const labels: Record<ProjectWorkStageV11["state"], string> = {
+      not_started: "Not started",
+      ready: "Ready",
+      running: "Running",
+      awaiting_input: "Awaiting input",
+      completed: "Completed",
+      failed: "Failed",
+      skipped: cancelled ? "Not completed · Work cancelled" : "Not completed",
+    };
+    const terminalAt =
+      "completed_at" in status
+        ? status.completed_at
+        : "cancelled_at" in status
+          ? status.cancelled_at
+          : undefined;
+    let activity: string[] = [];
+    if (state === "awaiting_input" && work.inputRegisteredAt !== undefined) {
+      activity = [`${work.inputRegisteredAt} · Required input registered.`];
+    } else if (
+      registered.boundary === "required_input" &&
+      state === "completed" &&
+      work.inputAnsweredAt !== undefined
+    ) {
+      activity = [`${work.inputAnsweredAt} · Required input answered.`];
+    } else if (state === "running" && "started_at" in status) {
+      activity = [`${status.started_at} · Canonical Work execution started.`];
+    } else if (state === "ready") {
+      const readyAt =
+        "queued_at" in status && status.queued_at !== undefined
+          ? status.queued_at
+          : status.requested_at;
+      activity = [
+        `${readyAt} · Registered stage is ready at the current Work boundary.`,
+      ];
+    } else if (state === "completed" && terminalAt !== undefined) {
+      activity = [
+        `${terminalAt} · Canonical successful Work outcome satisfied this registered stage.`,
+      ];
+    } else if (state === "failed" && terminalAt !== undefined) {
+      activity = [
+        `${terminalAt} · Canonical Work failure ended the registered execution boundary.`,
+      ];
+    } else if (state === "skipped" && terminalAt !== undefined) {
+      activity = [
+        `${terminalAt} · This registered stage was not completed before the terminal Work outcome.`,
+      ];
+    }
+    return {
+      stage_id: registered.stage_id,
+      label: registered.label,
+      purpose: registered.purpose,
+      state,
+      state_label: labels[state],
+      prerequisite_stage_ids: [
+        ...registered.prerequisite_stage_ids,
+      ] as unknown as ProjectWorkStageV11["prerequisite_stage_ids"],
+      accountable_role: registered.accountable_role,
+      input: registered.input,
+      output: registered.output,
+      activity: activity as unknown as ProjectWorkStageV11["activity"],
     };
   }
 
@@ -576,7 +978,7 @@ export class PostgresProjectWorkViewReader implements ProjectWorkViewReader {
     work: ComposedWork,
     definition: PetraProjectDefinition,
     readAt: string,
-  ): ProjectWorkTaskSummary {
+  ): ProjectWorkTaskSummaryV11 {
     const outputCount =
       work.output?.content.outcome.produced_outputs.length ?? 0;
     const taskLabel =
@@ -600,10 +1002,7 @@ export class PostgresProjectWorkViewReader implements ProjectWorkViewReader {
       elapsed: this.#elapsed(work.workUnit, readAt),
       resource_coverage: work.output === undefined ? "limits_only" : "measured",
       reported_output_count: outputCount,
-      stage_plan: {
-        state: "unavailable",
-        reason: "No registered workflow stage plan is available for this task.",
-      },
+      stage_plan: this.#stagePlanSummary(work),
       destination: {
         role: "work",
         target_ref: clone(work.workUnitRef),
@@ -941,18 +1340,18 @@ export class PostgresProjectWorkViewReader implements ProjectWorkViewReader {
 
   #view(
     projectId: string,
-    content: PetraProjectWorkView["content"],
+    content: PetraProjectWorkViewV11["content"],
     readAt: string,
-  ): PetraProjectWorkView {
-    const view: PetraProjectWorkView = {
+  ): PetraProjectWorkViewV11 {
+    const view: PetraProjectWorkViewV11 = {
       schema_name: "petra.project-work-view",
-      schema_version: "1.0.0",
+      schema_version: "1.1.0",
       project_id: projectId,
       content,
       content_hash: canonicalHash(content),
       read_at: readAt,
     };
-    this.#contracts.assertValid("project-work-view", "1.0.0", view);
+    this.#contracts.assertValid("project-work-view", "1.1.0", view);
     return view;
   }
 

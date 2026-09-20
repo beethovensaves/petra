@@ -140,6 +140,50 @@ describePostgres("PostgreSQL bounded WorkUnit authority", () => {
   const successfulOutput = (): PetraWorkerOutputManifest =>
     readFixture<PetraWorkerOutputManifest>("worker-output-manifest");
 
+  const registerParsingStagePlan = (
+    workUnit: PetraWorkUnit,
+    stagePlanId = "work_stage_plan_01K6P000000000000000000700",
+  ) =>
+    workOperations.registerStagePlan({
+      stagePlanId,
+      projectId: workUnit.project_id,
+      workUnitId: workUnit.work_unit_id,
+      expectedWorkUnitSpecHash: workUnit.spec_hash,
+      stages: [
+        {
+          stageId: "choose-parsing-mode",
+          label: "Choose parsing mode",
+          purpose: "Resolve the bounded parsing mode before execution.",
+          boundary: "required_input",
+          prerequisiteStageIds: [],
+          accountableRole: "Project author",
+          input: "The exact registered PDF and parsing choice.",
+          output: "One registered parsing mode.",
+        },
+        {
+          stageId: "parse-registered-pdf",
+          label: "Parse the registered PDF",
+          purpose: "Run the registered worker against the exact PDF.",
+          boundary: "execution",
+          prerequisiteStageIds: ["choose-parsing-mode"],
+          accountableRole: "Scientific document processor",
+          input: "The exact PDF and selected parsing mode.",
+          output: "A staged ParsedDocument candidate.",
+        },
+        {
+          stageId: "validate-parsed-coverage",
+          label: "Validate parsed coverage",
+          purpose: "Check the output contract and processing limitations.",
+          boundary: "completion",
+          prerequisiteStageIds: ["parse-registered-pdf"],
+          accountableRole: "Coverage validator",
+          input: "The staged ParsedDocument candidate.",
+          output: "An explicit coverage result.",
+        },
+      ],
+      registeredAt: "2026-09-19T12:00:00.500Z",
+    });
+
   const cancellationCommand = (
     workUnit: PetraWorkUnit,
   ): WorkUnitCancellationCommand => ({
@@ -168,6 +212,10 @@ describePostgres("PostgreSQL bounded WorkUnit authority", () => {
   it("persists exact registration, lifecycle history, and a bounded successful output", async () => {
     const input = registration();
     expect(await workUnits.register(input)).toEqual(input.workUnit);
+    await registerParsingStagePlan(input.workUnit);
+    await expect(
+      registerParsingStagePlan(input.workUnit),
+    ).resolves.toBeUndefined();
 
     const queued = await workUnits.queue(
       input.workUnit.work_unit_id,
@@ -280,7 +328,20 @@ describePostgres("PostgreSQL bounded WorkUnit authority", () => {
     expect(detail.content.outputs[0]?.availability.state).toBe(
       "staged_handle_only",
     );
-    expect(detail.content.stage_plan.state).toBe("unavailable");
+    expect(detail.content.stage_plan).toMatchObject({
+      state: "available",
+      state_basis: "registered_plan_and_work_lifecycle",
+      stages: [
+        { stage_id: "choose-parsing-mode", state: "completed" },
+        { stage_id: "parse-registered-pdf", state: "completed" },
+        { stage_id: "validate-parsed-coverage", state: "completed" },
+      ],
+    });
+    expect(collectionTask.stage_plan).toMatchObject({
+      state: "available",
+      stage_count: 3,
+      completed_stage_count: 3,
+    });
     expect(
       detail.content.controls.every(
         (control) => control.operation_state === "unavailable",
@@ -661,6 +722,27 @@ describePostgres("PostgreSQL bounded WorkUnit authority", () => {
       consequence: "The chosen mode constrains the next worker execution.",
       registeredAt: "2026-09-19T12:00:00.000Z",
     });
+    await registerParsingStagePlan(
+      first.workUnit,
+      "work_stage_plan_01K6P000000000000000000701",
+    );
+    const pendingStages = await workViews.getProjectWorkView(
+      first.workUnit.project_id,
+      first.workUnit.work_unit_id,
+    );
+    expect(
+      pendingStages?.content.view_kind === "detail"
+        ? pendingStages.content.stage_plan
+        : undefined,
+    ).toMatchObject({
+      state: "available",
+      current_stage_id: "choose-parsing-mode",
+      stages: [
+        { state: "awaiting_input" },
+        { state: "not_started" },
+        { state: "not_started" },
+      ],
+    });
     const pending = await workOperations.getProjectWorkOperationsView(
       first.workUnit.project_id,
       first.workUnit.work_unit_id,
@@ -699,6 +781,23 @@ describePostgres("PostgreSQL bounded WorkUnit authority", () => {
         principal,
       ),
     ).resolves.toEqual(expect.objectContaining({ outcome: "input_answered" }));
+    const answeredStages = await workViews.getProjectWorkView(
+      first.workUnit.project_id,
+      first.workUnit.work_unit_id,
+    );
+    expect(
+      answeredStages?.content.view_kind === "detail"
+        ? answeredStages.content.stage_plan
+        : undefined,
+    ).toMatchObject({
+      state: "available",
+      current_stage_id: "parse-registered-pdf",
+      stages: [
+        { state: "completed" },
+        { state: "ready" },
+        { state: "not_started" },
+      ],
+    });
     const prioritized = operation("prioritize", first.workUnit, "03", {
       expected_plan_revision: 0,
       priority: "user_visible",
@@ -735,6 +834,23 @@ describePostgres("PostgreSQL bounded WorkUnit authority", () => {
       principal,
     );
     expect(started).toMatchObject({ outcome: "started" });
+    const runningStages = await workViews.getProjectWorkView(
+      first.workUnit.project_id,
+      first.workUnit.work_unit_id,
+    );
+    expect(
+      runningStages?.content.view_kind === "detail"
+        ? runningStages.content.stage_plan
+        : undefined,
+    ).toMatchObject({
+      state: "available",
+      current_stage_id: "parse-registered-pdf",
+      stages: [
+        { state: "completed" },
+        { state: "running" },
+        { state: "not_started" },
+      ],
+    });
     await expect(
       workOperations.executeProjectWorkOperation(
         first.workUnit.project_id,
@@ -766,6 +882,22 @@ describePostgres("PostgreSQL bounded WorkUnit authority", () => {
       cancelled?.controls.find((control) => control.operation === "start_again")
         ?.state,
     ).toBe("unavailable");
+    const cancelledStages = await workViews.getProjectWorkView(
+      first.workUnit.project_id,
+      first.workUnit.work_unit_id,
+    );
+    expect(
+      cancelledStages?.content.view_kind === "detail"
+        ? cancelledStages.content.stage_plan
+        : undefined,
+    ).toMatchObject({
+      state: "available",
+      stages: [
+        { state: "completed" },
+        { state: "skipped" },
+        { state: "skipped" },
+      ],
+    });
 
     const second = registration();
     second.workUnit.work_unit_id = "work_unit_01K6P000000000000000000702";

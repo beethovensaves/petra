@@ -52,6 +52,9 @@ import type {
   PetraProjectWorkOperationRequest,
   PetraProjectWorkOperationsView,
   PetraProjectWorkView,
+  PetraProjectWorkViewV11,
+  ProjectWorkStagePlanSummaryV11,
+  ProjectWorkStagePlanV11,
   PetraWorkingCandidate,
   PetraWorkingRelationship,
 } from "@petra/contracts";
@@ -4331,6 +4334,93 @@ describe("Project shell workbench adapter", () => {
     );
     expect(detail.results[0]?.limitation).toContain("does not infer");
     expect(workDetailView).toEqual(detailBefore);
+  });
+
+  it("maps only server-registered Work stages from collection and detail reads", () => {
+    const stages = [
+      {
+        stage_id: "bind-project-context",
+        label: "Bind exact Project context",
+        purpose: "Bind the registered source before grounded synthesis.",
+        state: "completed",
+        state_label: "Completed",
+        prerequisite_stage_ids: [],
+        accountable_role: "Grounded synthesis coordinator",
+        input: "The exact registered Project source.",
+        output: "A content-bound synthesis input manifest.",
+        activity: [
+          "2026-08-29T14:04:01.000Z · Canonical successful Work outcome satisfied this registered stage.",
+        ],
+      },
+      {
+        stage_id: "compose-grounded-response",
+        label: "Compose the grounded response",
+        purpose: "Produce the bounded response with its authority limits.",
+        state: "completed",
+        state_label: "Completed",
+        prerequisite_stage_ids: ["bind-project-context"],
+        accountable_role: "Certified synthesist",
+        input: "The content-bound synthesis input manifest.",
+        output: "A grounded response presentation.",
+        activity: [
+          "2026-08-29T14:04:01.000Z · Canonical successful Work outcome satisfied this registered stage.",
+        ],
+      },
+    ];
+    const stagePlanRef = {
+      stage_plan_id: "work_stage_plan_01K6P000000000000000000700",
+      revision: 1,
+      content_hash: `sha256:${"a".repeat(64)}`,
+      registered_at: "2026-08-29T14:00:00.000Z",
+    };
+    const collectionV11 = structuredClone(
+      workCollectionView,
+    ) as unknown as PetraProjectWorkViewV11;
+    collectionV11.schema_version = "1.1.0";
+    if (collectionV11.content.view_kind !== "collection") {
+      throw new Error("Expected the Work collection fixture.");
+    }
+    const stagePlanSummary = {
+      state: "available",
+      stage_plan_ref: stagePlanRef,
+      stage_count: 2,
+      completed_stage_count: 2,
+      state_basis: "registered_plan_and_work_lifecycle",
+      stages,
+    } as unknown as ProjectWorkStagePlanSummaryV11;
+    collectionV11.content.tasks[0]!.stage_plan = stagePlanSummary;
+
+    const detailV11 = structuredClone(
+      workDetailView,
+    ) as unknown as PetraProjectWorkViewV11;
+    detailV11.schema_version = "1.1.0";
+    if (detailV11.content.view_kind !== "detail") {
+      throw new Error("Expected the Work detail fixture.");
+    }
+    detailV11.content.summary.stage_plan = stagePlanSummary;
+    detailV11.content.stage_plan = {
+      state: "available",
+      stage_plan_ref: stagePlanRef,
+      state_basis: "registered_plan_and_work_lifecycle",
+      stages,
+    } as unknown as ProjectWorkStagePlanV11;
+
+    expect(workProjectFromView(collectionV11).units[0]?.stages).toEqual([
+      expect.objectContaining({
+        id: "bind-project-context",
+        label: "Bind exact Project context",
+        state: "completed",
+      }),
+      expect.objectContaining({
+        id: "compose-grounded-response",
+        prerequisites: ["Bind exact Project context"],
+        accountableRole: "Certified synthesist",
+      }),
+    ]);
+    const detail = workUnitFromView(detailV11);
+    expect(detail.stagePlanLimitation).toBeUndefined();
+    expect(detail.stages).toHaveLength(2);
+    expect(detail.stages[1]?.activity).toEqual(stages[1]?.activity);
   });
 
   it("composes exact inquiry links into Work without deriving inquiry resolution", () => {

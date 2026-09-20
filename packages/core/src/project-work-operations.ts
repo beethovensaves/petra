@@ -40,6 +40,29 @@ export interface RegisterProjectWorkRequiredInput {
   readonly registeredAt: string;
 }
 
+export type ProjectWorkStageBoundary =
+  "required_input" | "execution" | "completion";
+
+export interface RegisterProjectWorkStage {
+  readonly stageId: string;
+  readonly label: string;
+  readonly purpose: string;
+  readonly boundary: ProjectWorkStageBoundary;
+  readonly prerequisiteStageIds: readonly string[];
+  readonly accountableRole: string;
+  readonly input: string;
+  readonly output: string;
+}
+
+export interface RegisterProjectWorkStagePlan {
+  readonly stagePlanId: string;
+  readonly projectId: string;
+  readonly workUnitId: string;
+  readonly expectedWorkUnitSpecHash: string;
+  readonly stages: readonly RegisterProjectWorkStage[];
+  readonly registeredAt: string;
+}
+
 /** Server-owned command and trusted worker-input boundary for exact Project Work. */
 export interface ProjectWorkOperationAuthority {
   executeProjectWorkOperation(
@@ -48,6 +71,7 @@ export interface ProjectWorkOperationAuthority {
     principal: ProjectWorkCommandPrincipal,
   ): Promise<PetraProjectWorkOperationReceipt>;
   registerRequiredInput(input: RegisterProjectWorkRequiredInput): Promise<void>;
+  registerStagePlan(input: RegisterProjectWorkStagePlan): Promise<void>;
 }
 
 /** Snapshot-consistent Work controls, delivery, required input, and result composition. */

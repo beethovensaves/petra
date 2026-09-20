@@ -1,0 +1,347 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-work-view/1.1.0/schema.json",
+  "title": "PetraProjectWorkViewV110",
+  "description": "An additive Project Work read with an exact registered stage plan and lifecycle-derived stage posture.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "project_id",
+    "content",
+    "content_hash",
+    "read_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.project-work-view" },
+    "schema_version": { "const": "1.1.0" },
+    "project_id": { "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId" },
+    "content": {
+      "oneOf": [
+        { "$ref": "#/$defs/CollectionContent" },
+        { "$ref": "#/$defs/DetailContent" }
+      ]
+    },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "read_at": { "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp" }
+  },
+  "$defs": {
+    "StagePlanRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "stage_plan_id",
+        "revision",
+        "content_hash",
+        "registered_at"
+      ],
+      "properties": {
+        "stage_plan_id": {
+          "type": "string",
+          "pattern": "^work_stage_plan_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "revision": { "const": 1 },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "registered_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        }
+      }
+    },
+    "UnavailableStagePlan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "reason"],
+      "properties": {
+        "state": { "const": "unavailable" },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 1000 }
+      }
+    },
+    "AvailableStagePlanSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "stage_plan_ref",
+        "stage_count",
+        "completed_stage_count",
+        "state_basis",
+        "stages"
+      ],
+      "properties": {
+        "state": { "const": "available" },
+        "stage_plan_ref": { "$ref": "#/$defs/StagePlanRef" },
+        "stage_count": { "type": "integer", "minimum": 2, "maximum": 20 },
+        "completed_stage_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 20
+        },
+        "current_stage_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_-]{0,79}$"
+        },
+        "state_basis": { "const": "registered_plan_and_work_lifecycle" },
+        "stages": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 20,
+          "items": { "$ref": "#/$defs/Stage" }
+        }
+      }
+    },
+    "StagePlanSummary": {
+      "oneOf": [
+        { "$ref": "#/$defs/UnavailableStagePlan" },
+        { "$ref": "#/$defs/AvailableStagePlanSummary" }
+      ]
+    },
+    "Stage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "stage_id",
+        "label",
+        "purpose",
+        "state",
+        "state_label",
+        "prerequisite_stage_ids",
+        "accountable_role",
+        "input",
+        "output",
+        "activity"
+      ],
+      "properties": {
+        "stage_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_-]{0,79}$"
+        },
+        "label": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "purpose": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "state": {
+          "enum": [
+            "not_started",
+            "ready",
+            "running",
+            "awaiting_input",
+            "completed",
+            "failed",
+            "skipped"
+          ]
+        },
+        "state_label": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "prerequisite_stage_ids": {
+          "type": "array",
+          "maxItems": 20,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_-]{0,79}$"
+          }
+        },
+        "accountable_role": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "input": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "output": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "activity": {
+          "type": "array",
+          "maxItems": 20,
+          "items": { "type": "string", "minLength": 1, "maxLength": 1000 }
+        }
+      }
+    },
+    "AvailableStagePlan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "stage_plan_ref", "state_basis", "stages"],
+      "properties": {
+        "state": { "const": "available" },
+        "stage_plan_ref": { "$ref": "#/$defs/StagePlanRef" },
+        "current_stage_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_-]{0,79}$"
+        },
+        "state_basis": { "const": "registered_plan_and_work_lifecycle" },
+        "stages": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 20,
+          "items": { "$ref": "#/$defs/Stage" }
+        }
+      }
+    },
+    "StagePlan": {
+      "oneOf": [
+        { "$ref": "#/$defs/UnavailableStagePlan" },
+        { "$ref": "#/$defs/AvailableStagePlan" }
+      ]
+    },
+    "TaskSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "work_unit_ref",
+        "task_label",
+        "objective",
+        "work_mode",
+        "priority",
+        "workflow",
+        "execution",
+        "attention",
+        "elapsed",
+        "resource_coverage",
+        "reported_output_count",
+        "stage_plan",
+        "destination"
+      ],
+      "properties": {
+        "work_unit_ref": {
+          "$ref": "../1.0.0/schema.json#/$defs/WorkUnitRef"
+        },
+        "task_label": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "objective": { "type": "string", "minLength": 1, "maxLength": 4000 },
+        "work_mode": {
+          "enum": ["interactive", "foreground", "background", "batch"]
+        },
+        "priority": {
+          "enum": ["user_blocking", "user_visible", "normal", "opportunistic"]
+        },
+        "workflow": {
+          "$ref": "../1.0.0/schema.json#/$defs/WorkflowSummary"
+        },
+        "execution": {
+          "$ref": "../1.0.0/schema.json#/$defs/ExecutionSummary"
+        },
+        "attention": {
+          "$ref": "../1.0.0/schema.json#/$defs/AttentionSummary"
+        },
+        "elapsed": {
+          "$ref": "../1.0.0/schema.json#/$defs/ElapsedSummary"
+        },
+        "resource_coverage": { "enum": ["limits_only", "measured"] },
+        "reported_output_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "stage_plan": { "$ref": "#/$defs/StagePlanSummary" },
+        "destination": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["role", "target_ref"],
+          "properties": {
+            "role": { "const": "work" },
+            "target_ref": {
+              "$ref": "../1.0.0/schema.json#/$defs/WorkUnitRef"
+            }
+          }
+        }
+      }
+    },
+    "CollectionContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "view_kind",
+        "project_definition_ref",
+        "query",
+        "tasks",
+        "page",
+        "authority"
+      ],
+      "properties": {
+        "view_kind": { "const": "collection" },
+        "project_definition_ref": {
+          "$ref": "../1.0.0/schema.json#/$defs/DefinitionRef"
+        },
+        "query": { "$ref": "../1.0.0/schema.json#/$defs/CollectionQuery" },
+        "tasks": {
+          "type": "array",
+          "maxItems": 100,
+          "items": { "$ref": "#/$defs/TaskSummary" }
+        },
+        "page": { "$ref": "../1.0.0/schema.json#/$defs/Page" },
+        "authority": {
+          "$ref": "../1.0.0/schema.json#/$defs/AuthorityPosition"
+        }
+      }
+    },
+    "DetailContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "view_kind",
+        "project_definition_ref",
+        "summary",
+        "specification",
+        "dependencies",
+        "stage_plan",
+        "resources",
+        "outputs",
+        "controls",
+        "inquiry_linkage",
+        "review",
+        "semantic_location",
+        "coverage",
+        "authority"
+      ],
+      "properties": {
+        "view_kind": { "const": "detail" },
+        "project_definition_ref": {
+          "$ref": "../1.0.0/schema.json#/$defs/DefinitionRef"
+        },
+        "summary": { "$ref": "#/$defs/TaskSummary" },
+        "specification": {
+          "$ref": "../1.0.0/schema.json#/$defs/SpecificationSummary"
+        },
+        "dependencies": {
+          "type": "array",
+          "maxItems": 10000,
+          "items": {
+            "$ref": "../1.0.0/schema.json#/$defs/DependencySummary"
+          }
+        },
+        "stage_plan": { "$ref": "#/$defs/StagePlan" },
+        "resources": {
+          "$ref": "../1.0.0/schema.json#/$defs/ResourceSummary"
+        },
+        "outputs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1000,
+          "items": { "$ref": "../1.0.0/schema.json#/$defs/OutputSummary" }
+        },
+        "controls": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "uniqueItems": true,
+          "items": { "$ref": "../1.0.0/schema.json#/$defs/ControlSummary" }
+        },
+        "inquiry_linkage": {
+          "$ref": "../1.0.0/schema.json#/$defs/UnavailableLinkage"
+        },
+        "review": { "$ref": "../1.0.0/schema.json#/$defs/UnavailableLinkage" },
+        "semantic_location": {
+          "$ref": "../../project-object-location-view/1.0.0/schema.json#/$defs/LocationContent"
+        },
+        "coverage": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 11,
+          "items": { "$ref": "../1.0.0/schema.json#/$defs/CoverageItem" }
+        },
+        "authority": {
+          "$ref": "../1.0.0/schema.json#/$defs/AuthorityPosition"
+        }
+      }
+    }
+  }
+}
