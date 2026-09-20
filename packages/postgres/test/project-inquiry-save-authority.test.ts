@@ -32,6 +32,7 @@ import { PostgresCapabilityGrantCommandAuthorizer } from "../src/capability-gran
 import { PostgresProjectDefinitionAuthorityRepository } from "../src/project-definition-authority-repository.js";
 import { PostgresProjectInquiryAuthorityRepository } from "../src/project-inquiry-authority-repository.js";
 import { PostgresProjectInquirySaveAuthority } from "../src/project-inquiry-save-authority.js";
+import { PostgresProjectShellViewReader } from "../src/project-shell-view-reader.js";
 import { PostgresResearchScopeRepository } from "../src/research-scope-repository.js";
 
 const { Pool } = pg;
@@ -321,8 +322,15 @@ describePostgres("PostgreSQL ProjectInquiry save authority", () => {
   };
 
   it("atomically saves, replays, recovers, and protects one exact Graph question", async () => {
-    const { actor, project, grant, request, authority, queryFocusedGraph } =
-      await setup();
+    const {
+      actor,
+      project,
+      definition,
+      grant,
+      request,
+      authority,
+      queryFocusedGraph,
+    } = await setup();
     const principal = {
       actor: { actor_id: actor.actor_id, actor_kind: "human" as const },
       capabilityGrantId: grant.capability_grant_id,
@@ -361,6 +369,38 @@ describePostgres("PostgreSQL ProjectInquiry save authority", () => {
       graph_authority_changed: false,
       selection_granted_authority: false,
     });
+
+    const shellReader = new PostgresProjectShellViewReader(pool, contracts);
+    const shell = await shellReader.getProjectShellView(project.project_id);
+    if (shell === undefined) throw new Error("Expected a Project shell view.");
+    expect(shell.schema_version).toBe("1.2.0");
+    expect(shell.content.resume).toStrictEqual({
+      state: "available",
+      retained_task: {
+        task_kind: "focused_graph",
+        objective_ref: created.receipt.objective_ref,
+        label: request.graph_request.question,
+        request: request.graph_request,
+        expected_graph: request.expected_graph,
+        selection: created.receipt.graph_binding.selection,
+        origin: created.receipt.graph_binding.origin,
+        focus_refs: created.receipt.graph_binding.focus_refs,
+        return_destination: created.receipt.graph_binding.return_destination,
+        retained_at: created.receipt.recorded_at,
+      },
+      recovery: {
+        action: "open_retained_task",
+        destination: {
+          role: "graph",
+          purpose: "Resume the exact retained relationship question.",
+        },
+        reason:
+          "The server verified the retained task, origin, focus, definition, and active ProjectInquiry revision in one Project snapshot.",
+      },
+    });
+    const listedShells = await shellReader.listProjectShellViews();
+    expect(listedShells).toHaveLength(1);
+    expect(listedShells[0]?.content.resume).toStrictEqual(shell.content.resume);
 
     const confirmed = await authority.assessProjectInquirySaveRecovery(
       project.project_id,
@@ -408,6 +448,30 @@ describePostgres("PostgreSQL ProjectInquiry save authority", () => {
         [request.command_id],
       ),
     ).rejects.toMatchObject({ code: "55000" });
+
+    const revisedDefinition = structuredClone(definition);
+    revisedDefinition.revision = 2;
+    revisedDefinition.content.label = "Revised scientific inquiry";
+    revisedDefinition.content_hash = hash(revisedDefinition.content);
+    revisedDefinition.created_at = "2026-09-20T00:00:00.000Z";
+    await definitions.registerDefinitionRevision(revisedDefinition);
+    const staleShell = await shellReader.getProjectShellView(
+      project.project_id,
+    );
+    if (staleShell === undefined) {
+      throw new Error("Expected a stale Project resume result.");
+    }
+    expect(staleShell.content.resume.state).toBe("stale");
+    expect(staleShell.content.resume.retained_task).toStrictEqual(
+      shell.content.resume.retained_task,
+    );
+    expect(staleShell.content.resume.failure).toStrictEqual({
+      code: "PROJECT_RESUME_DEFINITION_STALE",
+      message:
+        "The ProjectDefinition has changed since this task was retained.",
+    });
+    expect(staleShell.content.resume.recovery.action).toBe("open_brief");
+    expect(staleShell.content.resume.recovery.destination.role).toBe("brief");
 
     const conflict = structuredClone(request);
     conflict.graph_request.question = "A different exact question.";

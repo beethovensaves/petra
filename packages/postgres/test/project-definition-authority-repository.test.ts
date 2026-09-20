@@ -419,7 +419,7 @@ describePostgres("PostgreSQL ProjectDefinition authority repository", () => {
     const view = await reader.getProjectShellView(project.project_id);
     if (view === undefined) throw new Error("Expected a Project shell view.");
     expect(view.schema_name).toBe("petra.project-shell-view");
-    expect(view.schema_version).toBe("1.1.0");
+    expect(view.schema_version).toBe("1.2.0");
     expect(view.project_id).toBe(project.project_id);
     expect(view.content.project.revision).toBe(project.revision);
     expect(view.content.definition.project_definition_id).toBe(
@@ -436,9 +436,22 @@ describePostgres("PostgreSQL ProjectDefinition authority repository", () => {
     );
     expect(view.content.authority.isolation).toBe("repeatable_read");
     expect(view.content.projection.state).toBe("unavailable");
-    if (view.schema_version !== "1.1.0") {
-      throw new Error("Expected the Project shell 1.1 view.");
-    }
+    expect(view.content.resume).toEqual({
+      state: "not_found",
+      failure: {
+        code: "PROJECT_RESUME_TASK_NOT_FOUND",
+        message: "This Project has no retained task to resume.",
+      },
+      recovery: {
+        action: "open_brief",
+        destination: {
+          role: "brief",
+          purpose: "Open the current Project Brief.",
+        },
+        reason:
+          "Brief is the safe Project entry when no more specific retained task exists.",
+      },
+    });
     expect(view.content.place_summaries).toEqual(
       expect.arrayContaining([
         expect.objectContaining({

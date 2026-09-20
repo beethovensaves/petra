@@ -56,6 +56,7 @@ import type {
   PetraReviewSessionV110,
   PetraProjectShellView,
   PetraProjectShellViewV11,
+  PetraProjectShellViewV12,
   PetraSuggestedActionView,
   PetraProjectSourceView,
   PetraProjectSourceLifecycleReceipt,
@@ -559,13 +560,16 @@ const historyOperationalGroupIsValid = (
   });
 };
 
-type ProjectShellView = PetraProjectShellView | PetraProjectShellViewV11;
+type ProjectShellView =
+  PetraProjectShellView | PetraProjectShellViewV11 | PetraProjectShellViewV12;
 
 const shellView = (value: unknown): ProjectShellView => {
   if (
     !isRecord(value) ||
     value.schema_name !== "petra.project-shell-view" ||
-    (value.schema_version !== "1.0.0" && value.schema_version !== "1.1.0") ||
+    (value.schema_version !== "1.0.0" &&
+      value.schema_version !== "1.1.0" &&
+      value.schema_version !== "1.2.0") ||
     typeof value.project_id !== "string" ||
     !isRecord(value.content) ||
     typeof value.content_hash !== "string" ||
@@ -2713,6 +2717,9 @@ export const projectRecordFromShellView = (
                   destination: view.content.selection.primary_destination.role,
                 },
               }),
+          ...(view.schema_version === "1.2.0"
+            ? { resume: structuredClone(view.content.resume) }
+            : {}),
         }),
   };
 };

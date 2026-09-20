@@ -3,10 +3,14 @@ import { createHash } from "node:crypto";
 import type {
   PetraProject,
   PetraProjectDefinition,
+  PetraProjectInquirySaveReceipt,
+  PetraProjectInquirySaveRequest,
   PetraProjectObjective,
   PetraProjectShellViewV11,
+  PetraProjectShellViewV12,
   PetraProjectionCheckpoint,
   ProjectShellContentV11,
+  ProjectShellContentV12,
   ProjectShellPlaceSummary,
   ProjectShellProjectionSummary,
 } from "@petra/contracts";
@@ -50,6 +54,14 @@ interface PayloadRow {
   payload: unknown;
 }
 
+interface ResumeRow {
+  request_hash: string;
+  request_payload: unknown;
+  receipt_record_hash: string;
+  receipt_payload: unknown;
+  objective_payload: unknown;
+}
+
 interface PlaceCountRow {
   source_count: string;
   review_count: string;
@@ -85,12 +97,12 @@ export class PostgresProjectShellViewReader implements ProjectShellViewReader {
     this.#objectLocations = objectLocations;
   }
 
-  async listProjectShellViews(): Promise<PetraProjectShellViewV11[]> {
+  async listProjectShellViews(): Promise<PetraProjectShellViewV12[]> {
     return this.#readTransaction(async (client, readAt) => {
       const rows = await this.#selectShellRows(client);
-      const views: PetraProjectShellViewV11[] = [];
+      const views: PetraProjectShellViewV12[] = [];
       for (const row of rows) {
-        views.push(await this.#compose(client, row, readAt));
+        views.push(await this.#compose(client, row, readAt, undefined, true));
       }
       return views;
     });
@@ -99,10 +111,14 @@ export class PostgresProjectShellViewReader implements ProjectShellViewReader {
   async getProjectShellView(
     projectId: string,
     selection?: ProjectShellSelectionRequest,
-  ): Promise<PetraProjectShellViewV11 | undefined> {
-    return this.#readTransaction((client, readAt) =>
-      this.readShellInSnapshot(client, readAt, projectId, selection),
-    );
+  ): Promise<PetraProjectShellViewV12 | undefined> {
+    return this.#readTransaction(async (client, readAt) => {
+      const rows = await this.#selectShellRows(client, projectId);
+      const row = rows[0];
+      return row === undefined
+        ? undefined
+        : await this.#compose(client, row, readAt, selection, true);
+    });
   }
 
   /** Internal composition seam; caller owns a REPEATABLE READ READ ONLY transaction. */
@@ -116,7 +132,7 @@ export class PostgresProjectShellViewReader implements ProjectShellViewReader {
     const row = rows[0];
     return row === undefined
       ? undefined
-      : await this.#compose(client, row, readAt, selection);
+      : await this.#compose(client, row, readAt, selection, false);
   }
 
   async #selectShellRows(
@@ -156,8 +172,23 @@ export class PostgresProjectShellViewReader implements ProjectShellViewReader {
     client: PoolClient,
     row: ShellRow,
     readAt: string,
+    selection: ProjectShellSelectionRequest | undefined,
+    includeResume: true,
+  ): Promise<PetraProjectShellViewV12>;
+  async #compose(
+    client: PoolClient,
+    row: ShellRow,
+    readAt: string,
+    selection: ProjectShellSelectionRequest | undefined,
+    includeResume: false,
+  ): Promise<PetraProjectShellViewV11>;
+  async #compose(
+    client: PoolClient,
+    row: ShellRow,
+    readAt: string,
     selection?: ProjectShellSelectionRequest,
-  ): Promise<PetraProjectShellViewV11> {
+    includeResume = true,
+  ): Promise<PetraProjectShellViewV11 | PetraProjectShellViewV12> {
     const project = this.#project(row.project_payload);
     if (row.definition_payload === null) {
       throw new PostgresProjectShellViewError(
@@ -250,16 +281,230 @@ export class PostgresProjectShellViewReader implements ProjectShellViewReader {
       place_summaries: placeSummaries,
       ...(selected === undefined ? {} : { selection: selected.content }),
     };
-    const view: PetraProjectShellViewV11 = {
+    if (!includeResume) {
+      const view: PetraProjectShellViewV11 = {
+        schema_name: "petra.project-shell-view",
+        schema_version: "1.1.0",
+        project_id: project.project_id,
+        content,
+        content_hash: canonicalHash(content),
+        read_at: readAt,
+      };
+      this.#contracts.assertValid("project-shell-view", "1.1.0", view);
+      return view;
+    }
+    const resume = await this.#resumeContext(client, project, definition);
+    const contentWithResume: ProjectShellContentV12 = { ...content, resume };
+    const view: PetraProjectShellViewV12 = {
       schema_name: "petra.project-shell-view",
-      schema_version: "1.1.0",
+      schema_version: "1.2.0",
       project_id: project.project_id,
-      content,
-      content_hash: canonicalHash(content),
+      content: contentWithResume,
+      content_hash: canonicalHash(contentWithResume),
       read_at: readAt,
     };
-    this.#contracts.assertValid("project-shell-view", "1.1.0", view);
+    this.#contracts.assertValid("project-shell-view", "1.2.0", view);
     return view;
+  }
+
+  async #resumeContext(
+    client: PoolClient,
+    project: PetraProject,
+    definition: PetraProjectDefinition,
+  ): Promise<ProjectShellContentV12["resume"]> {
+    const result = await client.query<ResumeRow>(
+      `SELECT receipt.request_hash,
+              receipt.request_payload,
+              receipt.receipt_record_hash,
+              receipt.receipt_payload,
+              objective_revision.payload AS objective_payload
+         FROM petra.project_inquiry_save_receipts AS receipt
+         LEFT JOIN petra.project_objectives AS objective
+           ON objective.project_id = receipt.project_id
+          AND objective.objective_id = receipt.objective_id
+         LEFT JOIN petra.project_objective_revisions AS objective_revision
+           ON objective_revision.project_id = objective.project_id
+          AND objective_revision.objective_id = objective.objective_id
+          AND objective_revision.revision = objective.current_revision
+        WHERE receipt.project_id = $1
+        ORDER BY receipt.recorded_at DESC, receipt.command_id DESC
+        LIMIT 1`,
+      [project.project_id],
+    );
+    const row = result.rows[0];
+    if (row === undefined) {
+      return {
+        state: "not_found",
+        failure: {
+          code: "PROJECT_RESUME_TASK_NOT_FOUND",
+          message: "This Project has no retained task to resume.",
+        },
+        recovery: {
+          action: "open_brief",
+          destination: {
+            role: "brief",
+            purpose: "Open the current Project Brief.",
+          },
+          reason:
+            "Brief is the safe Project entry when no more specific retained task exists.",
+        },
+      };
+    }
+
+    let request: PetraProjectInquirySaveRequest;
+    let receipt: PetraProjectInquirySaveReceipt;
+    let objective: PetraProjectObjective;
+    try {
+      this.#contracts.assertValid(
+        "project-inquiry-save-request",
+        "1.0.0",
+        row.request_payload,
+      );
+      this.#contracts.assertValid(
+        "project-inquiry-save-receipt",
+        "1.0.0",
+        row.receipt_payload,
+      );
+      this.#contracts.assertValid(
+        "project-objective",
+        "1.0.0",
+        row.objective_payload,
+      );
+      request = clone(row.request_payload as PetraProjectInquirySaveRequest);
+      receipt = clone(row.receipt_payload as PetraProjectInquirySaveReceipt);
+      objective = this.#objective(row.objective_payload);
+      const receiptBase = clone(receipt) as unknown as Record<string, unknown>;
+      delete receiptBase.record_hash;
+      const exactFocusRetained = receipt.graph_binding.focus_refs.some(
+        (focus) =>
+          canonicalize(focus) === canonicalize(request.graph_request.focus_ref),
+      );
+      if (
+        row.request_hash !== canonicalHash(request) ||
+        receipt.request_hash !== row.request_hash ||
+        row.receipt_record_hash !== receipt.record_hash ||
+        receipt.record_hash !== canonicalHash(receiptBase) ||
+        receipt.project_id !== project.project_id ||
+        receipt.graph_binding.graph_request_hash !==
+          canonicalHash(request.graph_request) ||
+        receipt.graph_binding.task_request_id !==
+          request.graph_request.request_id ||
+        canonicalize(receipt.graph_binding.focused_graph_ref) !==
+          canonicalize(request.expected_graph) ||
+        canonicalize(receipt.graph_binding.selection) !==
+          canonicalize(request.selection) ||
+        canonicalize(receipt.graph_binding.origin) !==
+          canonicalize(request.graph_request.origin) ||
+        canonicalize(receipt.graph_binding.return_destination) !==
+          canonicalize(request.graph_request.return_destination) ||
+        canonicalize(receipt.graph_binding.project_definition_ref) !==
+          canonicalize(request.graph_request.project_definition_ref) ||
+        !exactFocusRetained ||
+        objective.project_id !== project.project_id ||
+        objective.objective_id !== receipt.objective_ref.objective_id ||
+        objective.content_hash !== canonicalHash(objective.content)
+      ) {
+        throw new Error("Retained Project task bindings failed verification.");
+      }
+    } catch {
+      return {
+        state: "unavailable",
+        failure: {
+          code: "PROJECT_RESUME_TASK_UNAVAILABLE",
+          message:
+            "The retained task could not be verified from its immutable Project records.",
+        },
+        recovery: {
+          action: "retry_read",
+          destination: {
+            role: "brief",
+            purpose: "Keep the current Project Brief available while retrying.",
+          },
+          reason:
+            "Retry the authorized Project read; do not reconstruct task identity in the client.",
+        },
+      };
+    }
+
+    const retainedTask: ProjectShellContentV12["resume"]["retained_task"] = {
+      task_kind: "focused_graph",
+      objective_ref: clone(receipt.objective_ref),
+      label: request.graph_request.question,
+      request: clone(request.graph_request),
+      expected_graph: clone(request.expected_graph),
+      selection: clone(receipt.graph_binding.selection),
+      origin: clone(receipt.graph_binding.origin),
+      focus_refs: clone(receipt.graph_binding.focus_refs),
+      return_destination: clone(receipt.graph_binding.return_destination),
+      retained_at: receipt.recorded_at,
+    };
+    const stale = (
+      code:
+        | "PROJECT_RESUME_DEFINITION_STALE"
+        | "PROJECT_RESUME_TASK_STALE"
+        | "PROJECT_RESUME_PROJECT_ARCHIVED",
+      message: string,
+    ): ProjectShellContentV12["resume"] => ({
+      state: "stale",
+      retained_task: retainedTask,
+      failure: { code, message },
+      recovery: {
+        action: "open_brief",
+        destination: {
+          role: "brief",
+          purpose: "Open the current Project Brief before starting a new task.",
+        },
+        reason:
+          "The retained task remains inspectable context but is not a safe current destination.",
+      },
+    });
+
+    if (project.status === "archived") {
+      return stale(
+        "PROJECT_RESUME_PROJECT_ARCHIVED",
+        "The retained task belongs to an archived Project.",
+      );
+    }
+    const currentDefinitionRef = {
+      project_definition_id: definition.project_definition_id,
+      revision: definition.revision,
+      content_hash: definition.content_hash,
+      record_hash: canonicalHash(definition),
+      definition_family: definition.definition_family,
+    };
+    if (
+      canonicalize(currentDefinitionRef) !==
+      canonicalize(receipt.graph_binding.project_definition_ref)
+    ) {
+      return stale(
+        "PROJECT_RESUME_DEFINITION_STALE",
+        "The ProjectDefinition has changed since this task was retained.",
+      );
+    }
+    if (
+      objective.revision !== receipt.objective_ref.revision ||
+      objective.content_hash !== receipt.objective_ref.content_hash ||
+      canonicalHash(objective) !== receipt.objective_ref.record_hash ||
+      objective.content.status !== "active"
+    ) {
+      return stale(
+        "PROJECT_RESUME_TASK_STALE",
+        "The retained task is no longer the active exact ProjectInquiry revision.",
+      );
+    }
+    return {
+      state: "available",
+      retained_task: retainedTask,
+      recovery: {
+        action: "open_retained_task",
+        destination: {
+          role: "graph",
+          purpose: "Resume the exact retained relationship question.",
+        },
+        reason:
+          "The server verified the retained task, origin, focus, definition, and active ProjectInquiry revision in one Project snapshot.",
+      },
+    };
   }
 
   async #placeSummaries(

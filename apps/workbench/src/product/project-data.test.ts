@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 
 import type {
@@ -36,6 +37,7 @@ import type {
   PetraReviewSessionV110,
   PetraProjectShellView,
   PetraProjectShellViewV11,
+  PetraProjectShellViewV12,
   PetraSuggestedActionView,
   PetraProjectSource,
   PetraProjectSourceLifecycleView,
@@ -59,6 +61,7 @@ import type {
   PetraWorkingCandidate,
   PetraWorkingRelationship,
 } from "@petra/contracts";
+import { canonicalize } from "json-canonicalize";
 import { RouterContextProvider, type LoaderFunctionArgs } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -217,6 +220,34 @@ const registeredScientificTaxonomy: PetraProjectProfileTaxonomyView = {
     taxonomy: registeredScientificProfile.content.taxonomy,
   },
   read_at: "2026-09-19T12:00:00.000Z",
+};
+
+const shellV12Content: PetraProjectShellViewV12["content"] = {
+  ...structuredClone(shellV11View.content),
+  resume: {
+    state: "not_found",
+    failure: {
+      code: "PROJECT_RESUME_TASK_NOT_FOUND",
+      message: "This Project has no retained task to resume.",
+    },
+    recovery: {
+      action: "open_brief",
+      destination: {
+        role: "brief",
+        purpose: "Open the current Project Brief.",
+      },
+      reason:
+        "Brief is the safe Project entry when no more specific retained task exists.",
+    },
+  },
+};
+const shellV12View: PetraProjectShellViewV12 = {
+  ...structuredClone(shellV11View),
+  schema_version: "1.2.0",
+  content: shellV12Content,
+  content_hash: `sha256:${createHash("sha256")
+    .update(canonicalize(shellV12Content))
+    .digest("hex")}`,
 };
 
 const controlledWritingProject = JSON.parse(
@@ -1724,6 +1755,16 @@ describe("Project shell workbench adapter", () => {
       }),
     );
     expect(shellV11View).toEqual(before);
+  });
+
+  it("retains the exact server-owned resume result from shell 1.2", () => {
+    const before = structuredClone(shellV12View);
+    const project = projectRecordFromShellView(shellV12View);
+
+    expect(project.resume).toStrictEqual(shellV12View.content.resume);
+    expect(project.resume?.state).toBe("not_found");
+    expect(project.resume?.recovery.destination.role).toBe("brief");
+    expect(shellV12View).toEqual(before);
   });
 
   it("requests and verifies an exact route selection in the shell snapshot", async () => {

@@ -17,12 +17,12 @@
       "persistence": "PostgreSQL Project, ProjectDefinition, Objective, authority, projection, and task summary records under one composed read.",
       "recovery": "Returns explicit unauthorized, not-found, invalid-selection, unavailable, or failed-read states; it never mutates or substitutes fixture data."
     },
-    "project-resume-partial": {
-      "kind": "partial",
-      "production_owner": "GET /api/queries/projects -> ProjectShellViewReader -> PostgresProjectShellViewReader",
-      "authorization": "Bearer-authenticated Project collection read.",
-      "persistence": "PostgreSQL retains Project identity and current shell facts, but not a canonical last task, origin, and focus tuple.",
-      "recovery": "The collection can reopen the Project; exact retained-task recovery is unavailable."
+    "project-resume-read": {
+      "kind": "query",
+      "production_owner": "GET /api/queries/projects and GET /api/queries/projects/:projectId/shell -> ProjectShellViewReader -> PostgresProjectShellViewReader",
+      "authorization": "Bearer-authenticated collection and Project-scoped shell reads; clients cannot provide or replace retained task, origin, focus, Objective, definition, or destination identity.",
+      "persistence": "PostgreSQL V048 immutable ProjectInquiry save receipts retain the latest server-verified Graph request, ProjectInquiry Objective, exact definition and snapshot, origin, focus references, selection, and return destination. Both routes compose the same retained tuple under one repeatable-read Project snapshot.",
+      "recovery": "Returns an exact available task only when its immutable hashes, active ProjectInquiry revision, Project status, and current ProjectDefinition still agree. Missing tasks open Brief; archived, changed-definition, and changed-task states retain inspectable context but fall back to Brief; unverifiable records expose retry without client reconstruction."
     },
     "project-profile-command": {
       "kind": "command",
@@ -355,9 +355,9 @@
     },
     {
       "operation_id": "project.resume",
-      "owner": "project-resume-partial",
-      "owner_status": "partial",
-      "missing_owner": "A retained last-task/origin/focus read shared by Projects and the shell."
+      "owner": "project-resume-read",
+      "owner_status": "owned",
+      "missing_owner": ""
     },
     {
       "operation_id": "project.create",

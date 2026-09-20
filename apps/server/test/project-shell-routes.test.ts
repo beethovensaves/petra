@@ -25,6 +25,7 @@ import type {
   PetraProjectWorkingStateSnapshot,
   PetraProjectShellView,
   PetraProjectShellViewV11,
+  PetraProjectShellViewV12,
   PetraProjectSourceLifecycleView,
   PetraProjectSourceView,
   PetraProjectThreadView,
@@ -82,6 +83,34 @@ const shellV11Fixture = JSON.parse(
     "utf8",
   ),
 ) as PetraProjectShellViewV11;
+
+const shellV12Content: PetraProjectShellViewV12["content"] = {
+  ...structuredClone(shellV11Fixture.content),
+  resume: {
+    state: "not_found",
+    failure: {
+      code: "PROJECT_RESUME_TASK_NOT_FOUND",
+      message: "This Project has no retained task to resume.",
+    },
+    recovery: {
+      action: "open_brief",
+      destination: {
+        role: "brief",
+        purpose: "Open the current Project Brief.",
+      },
+      reason:
+        "Brief is the safe Project entry when no more specific retained task exists.",
+    },
+  },
+};
+const shellV12Fixture: PetraProjectShellViewV12 = {
+  ...structuredClone(shellV11Fixture),
+  schema_version: "1.2.0",
+  content: shellV12Content,
+  content_hash: `sha256:${createHash("sha256")
+    .update(canonicalize(shellV12Content))
+    .digest("hex")}`,
+};
 
 const sourceFixture = JSON.parse(
   readFileSync(
@@ -1018,6 +1047,36 @@ describe("authorized Project shell query routes", () => {
     );
     expect(detail.status).toBe(200);
     await expect(detail.json()).resolves.toEqual(fixture);
+  });
+
+  it("shares the server-owned resume result across collection and shell reads", async () => {
+    const resumeReader: ProjectShellViewReader = {
+      listProjectShellViews: () =>
+        Promise.resolve([structuredClone(shellV12Fixture)]),
+      getProjectShellView: (projectId) =>
+        Promise.resolve(
+          projectId === shellV12Fixture.project_id
+            ? structuredClone(shellV12Fixture)
+            : undefined,
+        ),
+    };
+    const petra = createPetraApp({
+      authToken: TOKEN,
+      projectShellViews: resumeReader,
+    });
+    const collection = await petra.app.request(
+      authorized("/api/queries/projects"),
+    );
+    expect(collection.status).toBe(200);
+    await expect(collection.json()).resolves.toEqual({
+      projects: [shellV12Fixture],
+    });
+
+    const detail = await petra.app.request(
+      authorized(`/api/queries/projects/${shellV12Fixture.project_id}/shell`),
+    );
+    expect(detail.status).toBe(200);
+    await expect(detail.json()).resolves.toEqual(shellV12Fixture);
   });
 
   it("composes an exact optional selection into the 1.1 shell view", async () => {
