@@ -355,6 +355,34 @@ export function resolveCompatibleIntegrationConflicts(root) {
   return true;
 }
 
+export function retainDesignIntegrationConflict(
+  claimedState,
+  backendCommit,
+  conflictedPaths,
+  automaticResolutionError = "",
+) {
+  if (!Array.isArray(conflictedPaths) || conflictedPaths.length === 0) {
+    throw new Error(
+      "A design integration conflict cannot be retained without exact conflicted paths.",
+    );
+  }
+  const conflicts = conflictedPaths.map((path) => `- ${path}`).join("\n");
+  const automaticResolution = automaticResolutionError
+    ? `\nThe bounded automatic resolver declined the conflict: ${automaticResolutionError}\n`
+    : "";
+  return {
+    ...claimedState,
+    handoff_prompt:
+      `DESIGN INTEGRATION RECOVERY\n` +
+      `The controller retained the in-progress merge of backend ${backendCommit} so the visible design worker can resolve it instead of stopping the wave.\n` +
+      `Conflicted paths:\n${conflicts}\n` +
+      automaticResolution +
+      `Inspect all three merge stages for every conflicted path. Preserve compatible backend and design behavior, reject any unresolved semantic ambiguity with needs_user, and do not discard either branch wholesale. ` +
+      `Resolve and stage every conflict, complete the merge commit, then continue the originally assigned bounded design slice. Run the required checks and push the clean design branch before returning.\n\n` +
+      claimedState.handoff_prompt,
+  };
+}
+
 function gitIsAncestor(root, ancestor, descendant) {
   const result = spawnSync(
     "git",
@@ -1250,12 +1278,44 @@ async function integrateBackendForDesign(wave, claimedState) {
             "[design] Resolved compatible shared-ledger additions with strict three-way merges.\n",
           );
         } else {
-          throw new Error(
-            "The merge includes conflicts outside the supported shared-ledger boundary.",
-            { cause: error },
+          const conflicted = git(
+            roles.design.root,
+            "diff",
+            "--name-only",
+            "--diff-filter=U",
+          )
+            .split("\n")
+            .filter(Boolean);
+          process.stdout.write(
+            `[design] Retaining ${conflicted.length} source conflict(s) for the visible design worker: ${conflicted.join(", ")}\n`,
+          );
+          return retainDesignIntegrationConflict(
+            claimedState,
+            backend.head,
+            conflicted,
+            "The conflict is outside the deterministic shared-ledger resolver.",
           );
         }
       } catch (resolutionError) {
+        const conflicted = git(
+          roles.design.root,
+          "diff",
+          "--name-only",
+          "--diff-filter=U",
+        )
+          .split("\n")
+          .filter(Boolean);
+        if (conflicted.length > 0) {
+          process.stdout.write(
+            `[design] Retaining ${conflicted.length} unresolved source conflict(s) for the visible design worker after automatic resolution declined them.\n`,
+          );
+          return retainDesignIntegrationConflict(
+            claimedState,
+            backend.head,
+            conflicted,
+            resolutionError.message,
+          );
+        }
         git(roles.design.root, "merge", "--abort");
         throw new Error(
           `Design synchronization with backend ${backend.head} failed: ${error.message}\nAutomatic shared-ledger resolution was unavailable: ${resolutionError.message}`,
