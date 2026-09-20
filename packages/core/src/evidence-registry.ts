@@ -163,7 +163,8 @@ export interface CommandAuthorizationRequest {
     | "SeparateReviewSessionMember"
     | "ManageProjectWork"
     | "SaveProjectInquiry"
-    | "FrameProjectObjective";
+    | "FrameProjectObjective"
+    | "RegisterProjectSource";
   readonly projectId: string;
 }
 

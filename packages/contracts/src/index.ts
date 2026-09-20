@@ -47,6 +47,10 @@ export type {
   PetraCapabilityGrantV1100,
 } from "./generated/capability-grant-v1-10.js";
 export type {
+  GrantContent as CapabilityGrantContentV1110,
+  PetraCapabilityGrantV1110,
+} from "./generated/capability-grant-v1-11.js";
+export type {
   GrantRef as CapabilityGrantRevocationGrantRef,
   HumanActorRef as CapabilityGrantRevokerRef,
   PetraCapabilityGrantRevocation,
@@ -548,6 +552,35 @@ export type {
   WorkRef as ProjectSourceWorkRef,
   WorkVersionRef as ProjectSourceWorkVersionRef,
 } from "./generated/project-source.js";
+export type {
+  Author as ProjectSourceRegistrationAuthor,
+  DefinitionRef as ProjectSourceRegistrationExpectedDefinitionRef,
+  Expected as ProjectSourceRegistrationExpected,
+  Material as ProjectSourceRegistrationMaterial,
+  PetraProjectSourceRegistrationRequest,
+  ProjectMembership as ProjectSourceRegistrationProjectMembership,
+  ProjectRef as ProjectSourceRegistrationExpectedProjectRef,
+  Rights as ProjectSourceRegistrationRights,
+  SourceIdentity as ProjectSourceRegistrationIdentity,
+} from "./generated/project-source-registration-request.js";
+export type {
+  ArtifactRef as ProjectSourceRegistrationArtifactRef,
+  ExactRecordRef as ProjectSourceRegistrationExactRecordRef,
+  HumanActorRef as ProjectSourceRegistrationHumanActorRef,
+  Material as ProjectSourceRegistrationMaterialOutcome,
+  Membership as ProjectSourceRegistrationMembershipOutcome,
+  PetraProjectSourceRegistrationReceipt,
+  ProjectSourceRef as ProjectSourceRegistrationProjectSourceRef,
+  Recovery as ProjectSourceRegistrationRecovery,
+  SourceDestination as ProjectSourceRegistrationDestination,
+  SourceIdentity as ProjectSourceRegistrationIdentityOutcome,
+} from "./generated/project-source-registration-receipt.js";
+export type {
+  Effect as ProjectSourceRegistrationRecoveryEffect,
+  PetraProjectSourceRegistrationRecoveryView,
+  Return as ProjectSourceRegistrationRecoveryReturn,
+  Subject as ProjectSourceRegistrationRecoverySubject,
+} from "./generated/project-source-registration-recovery-view.js";
 export type {
   ActiveSourceRef as ProjectSourceReplacementActiveSourceRef,
   ExcludedSourceRef as ProjectSourceReplacementExcludedSourceRef,
@@ -1421,6 +1454,7 @@ import type { PetraCapabilityGrantV170 } from "./generated/capability-grant-v1-7
 import type { PetraCapabilityGrantV180 } from "./generated/capability-grant-v1-8.js";
 import type { PetraCapabilityGrantV190 } from "./generated/capability-grant-v1-9.js";
 import type { PetraCapabilityGrantV1100 } from "./generated/capability-grant-v1-10.js";
+import type { PetraCapabilityGrantV1110 } from "./generated/capability-grant-v1-11.js";
 import type { PetraCommandEnvelope } from "./generated/command-envelope.js";
 import type { PetraCommandEnvelopeV110 } from "./generated/command-envelope-v1-1.js";
 import type { PetraDomainEvent } from "./generated/domain-event.js";
@@ -1452,7 +1486,8 @@ export type PetraCapabilityGrantRecord =
   | PetraCapabilityGrantV170
   | PetraCapabilityGrantV180
   | PetraCapabilityGrantV190
-  | PetraCapabilityGrantV1100;
+  | PetraCapabilityGrantV1100
+  | PetraCapabilityGrantV1110;
 export type PetraCommandEnvelopeRecord =
   PetraCommandEnvelope | PetraCommandEnvelopeV110;
 export type PetraDomainEventRecord =
