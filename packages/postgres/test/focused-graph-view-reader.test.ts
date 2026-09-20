@@ -5,9 +5,11 @@ import type {
   PetraAssertion,
   PetraClaim,
   PetraProjectDefinition,
+  PetraProjectReviewViewV120,
   PetraProjectionCheckpoint,
   PetraRegisteredProjectProfile,
   PetraSourceSpan,
+  PetraWorkVersion,
   PetraWorkingCandidate,
   PetraWorkingRelationship,
 } from "@petra/contracts";
@@ -78,6 +80,11 @@ const definition = (): PetraProjectDefinition => {
       registration_kind: "relationship_schema",
       semantic_key: "scientific.assertion",
       contract: contract("assertion"),
+    },
+    {
+      registration_kind: "source_role",
+      semantic_key: "scientific.literature",
+      contract: contract("rights-decision"),
     },
     {
       registration_kind: "extension",
@@ -1066,5 +1073,317 @@ describe("PostgreSQL focused graph query reader", () => {
       incomplete_paths: { state: "unknown" },
     });
     expect(cappedExpansion.content.relationships).toHaveLength(2);
+  });
+
+  it("composes the exact open Review WorkVersion relationship for working inspection and preview", async () => {
+    const projectDefinition = definition();
+    const claim = fixture<PetraClaim>("claim");
+    const assertion = fixture<PetraAssertion>("assertion");
+    const workVersion = fixture<PetraWorkVersion>("work-version");
+    const candidate = fixture<PetraWorkingCandidate>("working-candidate");
+    candidate.project_id = projectDefinition.project_id;
+    candidate.project_definition_ref = {
+      project_definition_id: projectDefinition.project_definition_id,
+      revision: projectDefinition.revision,
+      content_hash: projectDefinition.content_hash,
+      definition_family: projectDefinition.definition_family,
+    };
+    candidate.profile_object.registration = {
+      registration_kind: "object_schema",
+      semantic_key: "scientific.claim",
+      contract: contract("claim"),
+    };
+    candidate.profile_object.object_record_ref = {
+      schema_name: "petra.claim",
+      schema_version: "1.0.0",
+      record_id: claim.claim_id,
+      revision: claim.revision,
+      record_hash: hash(claim),
+    };
+    candidate.validation.target_record_hash = hash(claim);
+    const candidateProjection = structuredClone(candidate) as Record<
+      string,
+      unknown
+    >;
+    delete candidateProjection.content_hash;
+    candidate.content_hash = hash(candidateProjection);
+
+    assertion.subject_id = workVersion.work_version_id;
+    assertion.object = { object_kind: "entity", entity_id: claim.claim_id };
+    assertion.predicate = "ASSERTS";
+    const relationship = fixture<PetraWorkingRelationship>(
+      "working-relationship",
+    );
+    relationship.project_id = projectDefinition.project_id;
+    relationship.project_definition_ref = structuredClone(
+      candidate.project_definition_ref,
+    );
+    relationship.profile_relationship.registration = {
+      registration_kind: "relationship_schema",
+      semantic_key: "scientific.assertion",
+      contract: contract("assertion"),
+    };
+    relationship.profile_relationship.predicate = "ASSERTS";
+    relationship.profile_relationship.relationship_record_ref = {
+      schema_name: "petra.assertion",
+      schema_version: "1.0.0",
+      record_id: assertion.assertion_id,
+      revision: assertion.revision,
+      record_hash: hash(assertion),
+    };
+    relationship.endpoints = {
+      subject: {
+        endpoint_kind: "profile_record",
+        record_ref: {
+          schema_name: "petra.work-version",
+          schema_version: "1.0.0",
+          record_id: workVersion.work_version_id,
+          revision: workVersion.revision,
+          record_hash: hash(workVersion),
+        },
+      },
+      object: {
+        endpoint_kind: "working_candidate",
+        candidate_ref: {
+          working_candidate_id: candidate.working_candidate_id,
+          revision: candidate.revision,
+          content_hash: candidate.content_hash,
+        },
+      },
+    };
+    relationship.validation.target_record_hash = hash(assertion);
+    const relationshipProjection = structuredClone(relationship) as Record<
+      string,
+      unknown
+    >;
+    delete relationshipProjection.content_hash;
+    relationship.content_hash = hash(relationshipProjection);
+
+    const reviewMemberId = "review_member_01ARZ3NDEKTSV4RRFFQ69G5FBD";
+    const reviewFocus = {
+      review: {
+        review_session_id: "review_session_01K4D000000000000000000004",
+        content: {
+          session: { lifecycle: "open" },
+          members: [
+            {
+              review_member_id: reviewMemberId,
+              working_state: {
+                candidate,
+                relationships: [relationship],
+                selection_basis: "exact_review_session_working_bindings",
+                authority_effect: "none",
+              },
+            },
+          ],
+        },
+      } as unknown as PetraProjectReviewViewV120,
+      review_member_id: reviewMemberId,
+    };
+    const checkpoint = fixture<PetraProjectionCheckpoint>(
+      "projection-checkpoint-current",
+    );
+    const queries: string[] = [];
+    const client = {
+      query: async <Row extends Record<string, unknown>>(
+        text: string,
+        values: readonly unknown[] = [],
+      ): Promise<QueryResult<Row>> => {
+        await Promise.resolve();
+        queries.push(text);
+        if (
+          text.startsWith("BEGIN") ||
+          text === "COMMIT" ||
+          text === "ROLLBACK"
+        )
+          return result([]);
+        if (text.includes("transaction_timestamp()"))
+          return result([
+            { read_at: new Date("2026-09-20T10:00:00.000Z") } as unknown as Row,
+          ]);
+        if (text.includes("FROM petra.projects AS project"))
+          return result([
+            {
+              project_id: projectDefinition.project_id,
+              definition_payload: structuredClone(projectDefinition),
+              definition_record_hash: hash(projectDefinition),
+            } as unknown as Row,
+          ]);
+        if (text.includes("FROM petra.projection_checkpoints AS head"))
+          return result([
+            {
+              payload: structuredClone(checkpoint),
+              record_hash: hash(checkpoint),
+            } as unknown as Row,
+          ]);
+        if (text.includes("FROM petra.authority_positions AS authority"))
+          return result([
+            { event_position: "3", stream_revision: "3" } as unknown as Row,
+          ]);
+        if (text.includes("FROM petra.outbox_target_heads AS head"))
+          return result([
+            {
+              target_sequence: "1",
+              event_position: "3",
+              stream_revision: "3",
+            } as unknown as Row,
+          ]);
+        if (text.includes("FROM petra.evidence_entity_revisions")) {
+          const record =
+            values[0] === claim.claim_id
+              ? claim
+              : values[0] === assertion.assertion_id
+                ? assertion
+                : undefined;
+          return record === undefined
+            ? result([])
+            : result([
+                {
+                  evidence_kind:
+                    record.schema_name === "petra.claim"
+                      ? "claim"
+                      : "assertion",
+                  payload: structuredClone(record),
+                  record_hash: hash(record),
+                } as unknown as Row,
+              ]);
+        }
+        if (text.includes("FROM petra.canonical_entity_revisions"))
+          return result([
+            {
+              payload: structuredClone(workVersion),
+              record_hash: hash(workVersion),
+            } as unknown as Row,
+          ]);
+        if (text.includes("FROM petra.project_sources AS source"))
+          return result([
+            {
+              project_source_id: "project_source_01K4D000000000000000000001",
+              revision: "1",
+              record_hash:
+                "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              status: "active",
+            } as unknown as Row,
+          ]);
+        throw new Error(`Unexpected query: ${text}`);
+      },
+      release: vi.fn(),
+    };
+    const pool = {
+      connect: () => Promise.resolve(client),
+    } as unknown as Pool;
+    const getObject = vi.fn(() => Promise.resolve(undefined));
+    const graph = {
+      getFreshness: vi.fn(() =>
+        Promise.resolve({
+          projectId: projectDefinition.project_id,
+          projection: checkpoint.projection,
+          projectedTargetSequence: 1,
+          projectedEventId: checkpoint.content.observed_head.event_id,
+          projectedStreamRevision: 3,
+          observedTargetSequence: 1,
+          pendingRecords: 0,
+          state: "current" as const,
+        }),
+      ),
+      getObject,
+      getEvidenceRelations: vi.fn(() => Promise.resolve([])),
+    } as unknown as AuthorityGraphStore;
+    const openReviews = {
+      readOpenReviewFocusInSnapshot: vi.fn(() => Promise.resolve(reviewFocus)),
+    };
+    const reader = new PostgresFocusedGraphViewReader(
+      pool,
+      graph,
+      contracts,
+      openReviews,
+    );
+    const focusRef = {
+      record_id: candidate.profile_object.object_record_ref.record_id,
+      revision: candidate.profile_object.object_record_ref.revision,
+      record_hash: candidate.profile_object.object_record_ref.record_hash,
+    };
+    const request: FocusedGraphViewRequest = {
+      request_id: "focused_graph_request_01ARZ3NDEKTSV4RRFFQ69G5FAA",
+      task_kind: "neighborhood",
+      task_semantic_key: "scientific.research-question",
+      question: "Which exact relationship is bound to this open Review?",
+      focus_ref: structuredClone(focusRef),
+      origin: {
+        origin_kind: "review",
+        origin_ref: structuredClone(focusRef),
+      },
+      project_definition_ref: {
+        project_definition_id: projectDefinition.project_definition_id,
+        revision: projectDefinition.revision,
+        content_hash: projectDefinition.content_hash,
+        record_hash: hash(projectDefinition),
+        definition_family: projectDefinition.definition_family,
+      },
+      semantic_layer: "working",
+      temporal_position: {
+        position_kind: "current",
+        dimension: "project_snapshot",
+      },
+      object_semantic_key: "scientific.claim",
+      relationship_semantic_key: "scientific.assertion",
+      return_action_semantic_key: "scientific.graph.return",
+      return_destination: {
+        destination_key: "destination:review:exact-member",
+        destination_kind: "review",
+        state: "available",
+        owner: "project_review_view",
+        label: "Review",
+        target_ref: structuredClone(focusRef),
+      },
+      limits: {
+        maximum_depth: 1,
+        maximum_nodes: 25,
+        maximum_relationships: 24,
+        maximum_paths: 24,
+      },
+    };
+
+    const view = await reader.queryFocusedGraph(
+      projectDefinition.project_id,
+      request,
+    );
+
+    expect(view?.content.nodes).toHaveLength(2);
+    expect(view?.content.nodes[0]).toMatchObject({
+      semantic_key: "scientific.literature",
+      record_ref: { record_id: workVersion.work_version_id },
+    });
+    expect(view?.content.nodes[1]).toMatchObject({
+      semantic_key: "scientific.claim",
+      record_ref: request.focus_ref,
+      layer: "working",
+    });
+    expect(view?.content.relationships).toEqual([
+      expect.objectContaining({
+        relationship_ref: {
+          element_id: relationship.working_relationship_id,
+          revision: relationship.revision,
+          record_hash: hash(relationship),
+        },
+        predicate: "ASSERTS",
+        layer: "working",
+        origin: "working_candidate",
+      }),
+    ]);
+    expect(view?.content.paths[0]?.steps[0]).toEqual(
+      expect.objectContaining({
+        relationship_key: view?.content.relationships[0]?.relationship_key,
+        traversal_direction: "outgoing",
+      }),
+    );
+    expect(openReviews.readOpenReviewFocusInSnapshot).toHaveBeenCalledWith(
+      client,
+      "2026-09-20T10:00:00.000Z",
+      projectDefinition.project_id,
+      request.focus_ref,
+    );
+    expect(getObject).not.toHaveBeenCalled();
+    expect(queries.at(-1)).toBe("COMMIT");
   });
 });

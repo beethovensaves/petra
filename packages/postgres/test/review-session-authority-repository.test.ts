@@ -2402,6 +2402,41 @@ describePostgres("PostgreSQL ReviewSession authority and Project view", () => {
       project_source_status: "active",
       detail: "The study reports a measurable improvement.",
     });
+    const profileRef = candidate.profile_object.object_record_ref;
+    const focused = await views.getOpenReviewFocus(project.project_id, {
+      record_id: profileRef.record_id,
+      revision: profileRef.revision,
+      record_hash: profileRef.record_hash,
+    });
+    expect(focused?.review_member_id).toBe(
+      session.content.members[0]?.review_member_id,
+    );
+    expect(focused?.review.content_hash).toBe(view.content_hash);
+    expect(focused?.review.content).toEqual(view.content);
+    expect(focused?.review.content.members[0]?.working_state).toMatchObject({
+      candidate: {
+        working_candidate_id: candidate.working_candidate_id,
+        revision: candidate.revision,
+        content_hash: candidate.content_hash,
+      },
+      relationships: [
+        {
+          working_relationship_id: relationship.working_relationship_id,
+          revision: relationship.revision,
+          content_hash: relationship.content_hash,
+        },
+      ],
+      selection_basis: "exact_review_session_working_bindings",
+      authority_effect: "none",
+    });
+    await expect(
+      views.getOpenReviewFocus(project.project_id, {
+        record_id: profileRef.record_id,
+        revision: profileRef.revision,
+        record_hash:
+          "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      }),
+    ).resolves.toBeUndefined();
 
     const counts = await pool.query<{
       sessions: string;
