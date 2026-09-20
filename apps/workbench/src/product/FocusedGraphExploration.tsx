@@ -462,7 +462,7 @@ const initialFocusedGraphRepresentation = (): FocusedGraphRepresentation =>
     ? "text"
     : "graph";
 
-interface SavedExactQuestion {
+interface BookmarkedExactView {
   readonly key: string;
   readonly label: string;
   readonly snapshotId: string;
@@ -529,7 +529,9 @@ export const FocusedGraphExploration = ({
   const [pendingRequestId, setPendingRequestId] = useState<string>();
   const [message, setMessage] = useState<string>();
   const [retryAvailable, setRetryAvailable] = useState(false);
-  const [saved, setSaved] = useState<readonly SavedExactQuestion[]>([]);
+  const [bookmarks, setBookmarks] = useState<readonly BookmarkedExactView[]>(
+    [],
+  );
   const active = useRef<FocusedGraphActiveExploration | undefined>(undefined);
 
   const invalidatePending = (): void => {
@@ -681,9 +683,9 @@ export const FocusedGraphExploration = ({
     }
   };
 
-  const saveExactQuestion = (): void => {
-    const key = `saved-question:${saved.length + 1}:${state.stateId}`;
-    setSaved((current) => [
+  const bookmarkExactView = (): void => {
+    const key = `bookmarked-view:${bookmarks.length + 1}:${state.stateId}`;
+    setBookmarks((current) => [
       ...current,
       {
         key,
@@ -693,7 +695,7 @@ export const FocusedGraphExploration = ({
       },
     ]);
     setMessage(
-      "Saved this exact question and snapshot as local presentation state.",
+      "Bookmarked this exact question, snapshot, selection, and presentation for this tab. No Project record was created.",
     );
   };
 
@@ -1017,18 +1019,36 @@ export const FocusedGraphExploration = ({
         aria-labelledby="focused-graph-saved-questions-title"
       >
         <header>
-          <h3 id="focused-graph-saved-questions-title">
-            Saved exact questions
-          </h3>
-          <PetraButton density="compact" onClick={saveExactQuestion}>
-            Save exact question
+          <div>
+            <h3 id="focused-graph-saved-questions-title">
+              Views bookmarked in this tab
+            </h3>
+            <p>
+              A bookmark restores this local view. It does not save a Project
+              question.
+            </p>
+          </div>
+          <PetraButton density="compact" onClick={bookmarkExactView}>
+            Bookmark this view
           </PetraButton>
         </header>
-        {saved.length === 0 ? (
-          <p>No exact question is saved in this local view.</p>
+        <PetraButton
+          density="compact"
+          variant="quiet"
+          unavailable={{
+            reason:
+              "Petra does not yet provide an authenticated command that saves this exact Graph question to the Project.",
+            prerequisite:
+              "A server-owned ProjectInquiry save command with authorization, persistence, idempotency, and recovery.",
+          }}
+        >
+          Save exact question to Project
+        </PetraButton>
+        {bookmarks.length === 0 ? (
+          <p>No view is bookmarked in this tab.</p>
         ) : (
           <ol>
-            {saved.map((question) => (
+            {bookmarks.map((question) => (
               <li key={question.key}>
                 <PetraButton
                   density="compact"

@@ -624,10 +624,10 @@ export const startWave5CumulativeBrowser = async ({
       ),
       selectionBeforeExpansion,
     );
-    await activate(button("Save exact question"));
+    await activate(button("Bookmark this view"));
     await until(
       'document.querySelector(".focused-graph-saved-questions ol") !== null',
-      "saved exact question",
+      "bookmarked exact view",
     );
     await activate(button("Radial"));
     await activate(button("Back"));

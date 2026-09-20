@@ -638,7 +638,11 @@ describe("focused graph exploration state", () => {
       "Direction",
       "Recorded origin",
       "Finite depth",
-      "Save exact question",
+      "Views bookmarked in this tab",
+      "Bookmark this view",
+      "Save exact question to Project",
+      "does not yet provide an authenticated command",
+      "server-owned ProjectInquiry save command",
       "10-state limit",
       "grant no Project authority",
       "Inspect selected Details",
@@ -650,6 +654,7 @@ describe("focused graph exploration state", () => {
     expect(markup).toContain('aria-label="Exploration history"');
     expect(markup).toContain('aria-label="Selected object presentation"');
     expect(markup).toContain('aria-controls="focused-graph-details-region"');
+    expect(markup).toContain('aria-disabled="true"');
     expect(markup).not.toContain("Prepare correction");
     expect(markup).not.toContain("Start new Work");
   });
