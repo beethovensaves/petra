@@ -32,6 +32,7 @@ import { PostgresProjectDefinitionAuthorityRepository } from "../src/project-def
 import { PostgresProjectObjectLocationViewReader } from "../src/project-object-location-view-reader.js";
 import { PostgresProjectWorkOperations } from "../src/project-work-operations.js";
 import { PostgresProjectWorkViewReader } from "../src/project-work-view-reader.js";
+import { PostgresProjectWorkerOutputManifestReader } from "../src/project-worker-output-manifest-reader.js";
 import { PostgresResearchScopeRepository } from "../src/research-scope-repository.js";
 import { PostgresScholarlyIdentityRepository } from "../src/scholarly-identity-repository.js";
 import { PostgresWorkUnitAuthorityRepository } from "../src/work-unit-authority-repository.js";
@@ -76,6 +77,9 @@ describePostgres("PostgreSQL bounded WorkUnit authority", () => {
   const definitions = new PostgresProjectDefinitionAuthorityRepository(pool);
   const objectLocations = new PostgresProjectObjectLocationViewReader(pool);
   const workViews = new PostgresProjectWorkViewReader(pool);
+  const workerOutputManifests = new PostgresProjectWorkerOutputManifestReader(
+    pool,
+  );
   const capabilities = new PostgresCapabilityGrantAuthorityRepository(pool);
   const workOperations = new PostgresProjectWorkOperations(
     pool,
@@ -286,6 +290,30 @@ describePostgres("PostgreSQL bounded WorkUnit authority", () => {
         successfulOutput().worker_output_manifest_id,
       ),
     ).toEqual(successfulOutput());
+    const output = successfulOutput();
+    const outputRecordHash = canonicalHash(output);
+    await expect(
+      workerOutputManifests.getProjectWorkerOutputManifest(
+        output.project_id,
+        output.worker_output_manifest_id,
+        {
+          revision: output.revision,
+          content_hash: output.content_hash,
+          record_hash: outputRecordHash,
+        },
+      ),
+    ).resolves.toStrictEqual(output);
+    await expect(
+      workerOutputManifests.getProjectWorkerOutputManifest(
+        "project_01ARZ3NDEKTSV4RRFFQ69G5FZZ",
+        output.worker_output_manifest_id,
+        {
+          revision: output.revision,
+          content_hash: output.content_hash,
+          record_hash: outputRecordHash,
+        },
+      ),
+    ).resolves.toBeUndefined();
 
     const collection = await workViews.listProjectWorkView(
       completed.project_id,

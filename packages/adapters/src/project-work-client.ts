@@ -2,8 +2,10 @@ import type {
   PetraProjectWorkOperationReceipt,
   PetraProjectWorkOperationRequest,
   PetraProjectWorkOperationsView,
+  PetraWorkerOutputManifest,
 } from "@petra/contracts";
 import { PetraContractRegistry } from "@petra/contracts/validator";
+import { canonicalize } from "json-canonicalize";
 
 export class ProjectWorkClientError extends Error {
   readonly status: number;
@@ -26,6 +28,24 @@ export interface ProjectWorkClientOptions {
 
 const PROJECT_ID = /^project_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const WORK_UNIT_ID = /^work_unit_[0-9A-HJKMNP-TV-Z]{26}$/u;
+const WORKER_OUTPUT_MANIFEST_ID =
+  /^worker_output_manifest_[0-9A-HJKMNP-TV-Z]{26}$/u;
+const HASH = /^sha256:[0-9a-f]{64}$/u;
+
+const canonicalHash = async (value: unknown): Promise<string> => {
+  const digest = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(canonicalize(value)),
+  );
+  return `sha256:${Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("")}`;
+};
+
+export interface ProjectWorkerOutputManifestBinding {
+  readonly producing_work_unit_id: string;
+  readonly revision: number;
+  readonly content_hash: string;
+  readonly record_hash: string;
+}
 
 /** Renderer-neutral client for the server-owned Work operation assessment and command. */
 export class ProjectWorkClient {
@@ -107,6 +127,54 @@ export class ProjectWorkClient {
       );
     }
     return structuredClone(receipt);
+  }
+
+  async readWorkerOutputManifest(
+    projectId: string,
+    workerOutputManifestId: string,
+    binding: ProjectWorkerOutputManifestBinding,
+  ): Promise<PetraWorkerOutputManifest> {
+    if (
+      !PROJECT_ID.test(projectId) ||
+      !WORKER_OUTPUT_MANIFEST_ID.test(workerOutputManifestId) ||
+      !WORK_UNIT_ID.test(binding.producing_work_unit_id) ||
+      !Number.isSafeInteger(binding.revision) ||
+      binding.revision < 1 ||
+      !HASH.test(binding.content_hash) ||
+      !HASH.test(binding.record_hash)
+    ) {
+      throw new TypeError(
+        "An exact WorkerOutputManifest read requires canonical result and producing-Work identities.",
+      );
+    }
+    const query = new URLSearchParams({
+      revision: String(binding.revision),
+      content_hash: binding.content_hash,
+      record_hash: binding.record_hash,
+    });
+    const response = await this.#request(
+      `/api/queries/projects/${projectId}/worker-output-manifests/${workerOutputManifestId}?${query}`,
+      { method: "GET" },
+    );
+    const body: unknown = await response.json();
+    this.#contracts.assertValid("worker-output-manifest", "1.0.0", body);
+    const manifest = body as PetraWorkerOutputManifest;
+    if (
+      manifest.project_id !== projectId ||
+      manifest.worker_output_manifest_id !== workerOutputManifestId ||
+      manifest.work_unit_id !== binding.producing_work_unit_id ||
+      manifest.revision !== binding.revision ||
+      manifest.content_hash !== binding.content_hash ||
+      (await canonicalHash(manifest.content)) !== binding.content_hash ||
+      (await canonicalHash(manifest)) !== binding.record_hash
+    ) {
+      throw new ProjectWorkClientError(
+        503,
+        "PROJECT_WORK_RESPONSE_INVALID",
+        "The WorkerOutputManifest response crossed its exact Project, result, or producing-Work identity.",
+      );
+    }
+    return structuredClone(manifest);
   }
 
   #assertTarget(projectId: string, workUnitId: string): void {

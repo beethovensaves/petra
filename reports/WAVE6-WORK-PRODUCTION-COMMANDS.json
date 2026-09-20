@@ -2,9 +2,9 @@
   "evidence_id": "UX1.6-WORK",
   "scenario_id": "start-input-steer-cancel-retry",
   "status": "passed",
-  "executed_at": "2026-09-19T21:53:48.643Z",
+  "executed_at": "2026-09-20T02:12:39.830Z",
   "command": "npm run test:wave6:work",
-  "database": "fresh disposable PostgreSQL 18.6 with Flyway V001-V046",
+  "database": "fresh disposable PostgreSQL 18.6 with Flyway V001-V047",
   "production_boundary": {
     "server": "startPetraServer over an ephemeral TCP port",
     "client": "ProjectWorkClient",

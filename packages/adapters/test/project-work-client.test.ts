@@ -1,10 +1,13 @@
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 
 import type {
   PetraProjectWorkOperationReceipt,
   PetraProjectWorkOperationRequest,
   PetraProjectWorkOperationsView,
+  PetraWorkerOutputManifest,
 } from "@petra/contracts";
+import { canonicalize } from "json-canonicalize";
 import { describe, expect, it, vi } from "vitest";
 
 import {
@@ -32,6 +35,10 @@ const receipt = readFixture<PetraProjectWorkOperationReceipt>(
 const view = readFixture<PetraProjectWorkOperationsView>(
   "project-work-operations-view",
 );
+const output = readFixture<PetraWorkerOutputManifest>("worker-output-manifest");
+const outputRecordHash = `sha256:${createHash("sha256")
+  .update(canonicalize(output))
+  .digest("hex")}`;
 
 describe("ProjectWorkClient", () => {
   it("authenticates and validates the exact composed Work read", async () => {
@@ -131,5 +138,65 @@ describe("ProjectWorkClient", () => {
         request,
       ),
     ).rejects.toThrow("exact route WorkUnit");
+  });
+
+  it("reads diagnostics from the exact manifest identity without treating it as a WorkUnit", async () => {
+    const fetch = vi.fn((input: URL | RequestInfo, init?: RequestInit) => {
+      const url =
+        input instanceof Request
+          ? input.url
+          : input instanceof URL
+            ? input.href
+            : input;
+      expect(url).toBe(
+        `http://petra.local/api/queries/projects/${output.project_id}/worker-output-manifests/${output.worker_output_manifest_id}?${new URLSearchParams(
+          {
+            revision: String(output.revision),
+            content_hash: output.content_hash,
+            record_hash: outputRecordHash,
+          },
+        )}`,
+      );
+      expect(new Headers(init?.headers).get("authorization")).toBe(
+        "Bearer work-token",
+      );
+      return Promise.resolve(Response.json(output));
+    });
+    const client = new ProjectWorkClient({
+      baseUrl: "http://petra.local",
+      token: "work-token",
+      fetch,
+    });
+
+    await expect(
+      client.readWorkerOutputManifest(
+        output.project_id,
+        output.worker_output_manifest_id,
+        {
+          producing_work_unit_id: output.work_unit_id,
+          revision: output.revision,
+          content_hash: output.content_hash,
+          record_hash: outputRecordHash,
+        },
+      ),
+    ).resolves.toStrictEqual(output);
+    expect(output.content.diagnostics).toBeDefined();
+
+    await expect(
+      client.readWorkerOutputManifest(
+        output.project_id,
+        output.worker_output_manifest_id,
+        {
+          producing_work_unit_id: "work_unit_01K6P000000000000000000799",
+          revision: output.revision,
+          content_hash: output.content_hash,
+          record_hash: outputRecordHash,
+        },
+      ),
+    ).rejects.toEqual(
+      expect.objectContaining<Partial<ProjectWorkClientError>>({
+        code: "PROJECT_WORK_RESPONSE_INVALID",
+      }),
+    );
   });
 });

@@ -489,6 +489,16 @@ export const startPetraServer = async (
         : options.projectShellPersistence === undefined
           ? {}
           : { projectWorkViews: options.projectShellPersistence.workViews }),
+      ...(options.projectWorkerOutputManifests !== undefined
+        ? {
+            projectWorkerOutputManifests: options.projectWorkerOutputManifests,
+          }
+        : options.projectShellPersistence === undefined
+          ? {}
+          : {
+              projectWorkerOutputManifests:
+                options.projectShellPersistence.workerOutputManifests,
+            }),
       ...(options.projectWorkOperations !== undefined
         ? { projectWorkOperations: options.projectWorkOperations }
         : options.projectShellPersistence === undefined

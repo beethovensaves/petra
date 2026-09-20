@@ -1,4 +1,7 @@
-import type { PetraProjectWorkReadView } from "@petra/contracts";
+import type {
+  PetraProjectWorkReadView,
+  PetraWorkerOutputManifest,
+} from "@petra/contracts";
 
 export type ProjectWorkStateFilter =
   | "requested"
@@ -24,4 +27,19 @@ export interface ProjectWorkViewReader {
     projectId: string,
     workUnitId: string,
   ): Promise<PetraProjectWorkReadView | undefined>;
+}
+
+export interface ProjectWorkerOutputManifestRequest {
+  readonly revision: number;
+  readonly content_hash: string;
+  readonly record_hash: string;
+}
+
+/** Exact, Project-scoped read of a retained worker report; the manifest remains non-authoritative. */
+export interface ProjectWorkerOutputManifestReader {
+  getProjectWorkerOutputManifest(
+    projectId: string,
+    workerOutputManifestId: string,
+    request: ProjectWorkerOutputManifestRequest,
+  ): Promise<PetraWorkerOutputManifest | undefined>;
 }
