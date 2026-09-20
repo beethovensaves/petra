@@ -1,5 +1,5 @@
 {
-  "registry_version": "1.108.0",
+  "registry_version": "1.112.0",
   "schemas": [
     {
       "name": "contract-smoke",
@@ -164,6 +164,17 @@
       "canonical_sha256": "sha256:f979b00aa3bb7ec1249dbf35e1c0beebdbedfcaebac216a7709f623b136bd6ba",
       "generate_typescript": true,
       "typescript_path": "src/generated/capability-grant-v1-11.ts"
+    },
+    {
+      "name": "capability-grant",
+      "version": "1.12.0",
+      "$id": "https://petra.local/schemas/capability-grant/1.12.0/schema.json",
+      "path": "schemas/capability-grant/1.12.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-project-source-reuse-command",
+      "canonical_sha256": "sha256:288e457062f0a477c3f853288dbf2f4fe755f04cb829b91d6246a52f587c8886",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/capability-grant-v1-12.ts"
     },
     {
       "name": "capability-grant-revocation",
@@ -835,6 +846,39 @@
       "canonical_sha256": "sha256:af195b8e201dae246dfee82e82c0d2069b5b3828db646a7d5908d79b48c83906",
       "generate_typescript": true,
       "typescript_path": "src/generated/project-source-registration-recovery-view.ts"
+    },
+    {
+      "name": "project-source-reuse-request",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-source-reuse-request/1.0.0/schema.json",
+      "path": "schemas/project-source-reuse-request/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-exact-existing-source-reuse-command",
+      "canonical_sha256": "sha256:9be4b4d55326dc521184f58c807895319349e8838770da5fc9746db4682a80b1",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-source-reuse-request.ts"
+    },
+    {
+      "name": "project-source-reuse-receipt",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-source-reuse-receipt/1.0.0/schema.json",
+      "path": "schemas/project-source-reuse-receipt/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-durable-source-reuse-outcome",
+      "canonical_sha256": "sha256:37dd0f699915772267d69db4247e5329ca1c9a0dcd8608a90eafe2b8a7bcec48",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-source-reuse-receipt.ts"
+    },
+    {
+      "name": "project-source-reuse-recovery-view",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-source-reuse-recovery-view/1.0.0/schema.json",
+      "path": "schemas/project-source-reuse-recovery-view/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-source-reuse-recovery-assessment",
+      "canonical_sha256": "sha256:68bc2afbb5c9cd5134b55c0ac59f978ba4e16865e1ae80c04800913d6b78df81",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-source-reuse-recovery-view.ts"
     },
     {
       "name": "project-source-replacement",

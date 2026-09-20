@@ -1,0 +1,136 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-source-reuse-request/1.0.0/schema.json",
+  "title": "PetraProjectSourceReuseRequest",
+  "description": "A reviewed request to link one exact existing source identity and permitted copy into one exact current Project role. Actor, grant, new membership identity, storage, and record timestamps are server-owned.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "command_id",
+    "idempotency_key",
+    "expected",
+    "existing_source",
+    "project_membership"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.project-source-reuse-request" },
+    "schema_version": { "const": "1.0.0" },
+    "command_id": {
+      "$ref": "../../project-source-registration-request/1.0.0/schema.json#/properties/command_id"
+    },
+    "idempotency_key": {
+      "$ref": "../../project-source-registration-request/1.0.0/schema.json#/properties/idempotency_key"
+    },
+    "expected": {
+      "$ref": "../../project-source-registration-request/1.0.0/schema.json#/$defs/Expected"
+    },
+    "existing_source": { "$ref": "#/$defs/ExistingSource" },
+    "project_membership": { "$ref": "#/$defs/ProjectMembership" }
+  },
+  "$defs": {
+    "OriginProjectSourceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_id",
+        "project_source_id",
+        "revision",
+        "content_hash",
+        "record_hash",
+        "status"
+      ],
+      "properties": {
+        "project_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+        },
+        "project_source_id": {
+          "type": "string",
+          "pattern": "^project_source_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "status": { "enum": ["active", "excluded"] }
+      }
+    },
+    "ArtifactRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact_id", "revision", "content_hash", "record_hash"],
+      "properties": {
+        "artifact_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ArtifactId"
+        },
+        "revision": { "const": 1 },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "RightsDecisionRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["record_id", "revision", "record_hash"],
+      "properties": {
+        "record_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/RightsDecisionId"
+        },
+        "revision": { "const": 1 },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "ExistingSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "origin_project_source_ref",
+        "work_ref",
+        "work_version_ref",
+        "artifact_ref",
+        "artifact_manifest_ref",
+        "rights_decision_ref"
+      ],
+      "properties": {
+        "origin_project_source_ref": {
+          "$ref": "#/$defs/OriginProjectSourceRef"
+        },
+        "work_ref": {
+          "$ref": "../../project-source/1.0.0/schema.json#/$defs/WorkRef"
+        },
+        "work_version_ref": {
+          "$ref": "../../project-source/1.0.0/schema.json#/$defs/WorkVersionRef"
+        },
+        "artifact_ref": { "$ref": "#/$defs/ArtifactRef" },
+        "artifact_manifest_ref": {
+          "$ref": "../../project-source/1.0.0/schema.json#/$defs/ArtifactManifestRef"
+        },
+        "rights_decision_ref": { "$ref": "#/$defs/RightsDecisionRef" }
+      }
+    },
+    "ProjectMembership": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["decision", "source_role"],
+      "properties": {
+        "decision": { "const": "reuse_and_link" },
+        "source_role": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9._/-]{1,199}$"
+        }
+      }
+    }
+  }
+}

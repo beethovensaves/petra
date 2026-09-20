@@ -164,7 +164,8 @@ export interface CommandAuthorizationRequest {
     | "ManageProjectWork"
     | "SaveProjectInquiry"
     | "FrameProjectObjective"
-    | "RegisterProjectSource";
+    | "RegisterProjectSource"
+    | "ReuseProjectSource";
   readonly projectId: string;
 }
 

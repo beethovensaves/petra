@@ -1,0 +1,189 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-source-reuse-receipt/1.0.0/schema.json",
+  "title": "PetraProjectSourceReuseReceipt",
+  "description": "The durable outcome of reusing one existing permitted source copy in a new exact Project membership without cloning canonical identity or bytes.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "receipt_id",
+    "command_id",
+    "idempotency_key",
+    "request_hash",
+    "project_id",
+    "actor",
+    "capability_grant_id",
+    "project_ref",
+    "project_definition_ref",
+    "existing_source",
+    "material_outcome",
+    "membership",
+    "project_source_ref",
+    "effect",
+    "destination",
+    "recovery",
+    "recorded_at",
+    "record_hash"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.project-source-reuse-receipt" },
+    "schema_version": { "const": "1.0.0" },
+    "receipt_id": {
+      "type": "string",
+      "pattern": "^source_reuse_receipt_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "command_id": {
+      "$ref": "../../project-source-reuse-request/1.0.0/schema.json#/properties/command_id"
+    },
+    "idempotency_key": {
+      "$ref": "../../project-source-reuse-request/1.0.0/schema.json#/properties/idempotency_key"
+    },
+    "request_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "actor": {
+      "$ref": "../../capability-grant/1.0.0/schema.json#/$defs/HumanActorRef"
+    },
+    "capability_grant_id": {
+      "type": "string",
+      "pattern": "^capability_grant_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "project_ref": {
+      "$ref": "../../project-source-registration-request/1.0.0/schema.json#/$defs/ProjectRef"
+    },
+    "project_definition_ref": {
+      "$ref": "../../project-source-registration-request/1.0.0/schema.json#/$defs/DefinitionRef"
+    },
+    "existing_source": {
+      "$ref": "../../project-source-reuse-request/1.0.0/schema.json#/$defs/ExistingSource"
+    },
+    "material_outcome": { "$ref": "#/$defs/MaterialOutcome" },
+    "membership": { "$ref": "#/$defs/Membership" },
+    "project_source_ref": { "$ref": "#/$defs/ProjectSourceRef" },
+    "effect": { "$ref": "#/$defs/Effect" },
+    "destination": { "$ref": "#/$defs/SourceDestination" },
+    "recovery": { "$ref": "#/$defs/Recovery" },
+    "recorded_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    },
+    "record_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    }
+  },
+  "$defs": {
+    "MaterialOutcome": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "canonical_identity_cloned",
+        "artifact_cloned",
+        "bytes_cloned",
+        "storage_unchanged",
+        "availability"
+      ],
+      "properties": {
+        "kind": { "const": "existing_permitted_copy_reused" },
+        "canonical_identity_cloned": { "const": false },
+        "artifact_cloned": { "const": false },
+        "bytes_cloned": { "const": false },
+        "storage_unchanged": { "const": true },
+        "availability": { "const": "available" }
+      }
+    },
+    "Membership": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["decision", "source_role", "linked_by", "linked_at"],
+      "properties": {
+        "decision": { "const": "reused_and_linked" },
+        "source_role": {
+          "$ref": "../../project-source-reuse-request/1.0.0/schema.json#/$defs/ProjectMembership/properties/source_role"
+        },
+        "linked_by": {
+          "$ref": "../../capability-grant/1.0.0/schema.json#/$defs/HumanActorRef"
+        },
+        "linked_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        }
+      }
+    },
+    "ProjectSourceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_source_id",
+        "revision",
+        "content_hash",
+        "record_hash",
+        "status"
+      ],
+      "properties": {
+        "project_source_id": {
+          "type": "string",
+          "pattern": "^project_source_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "revision": { "const": 1 },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "status": { "const": "active" }
+      }
+    },
+    "Effect": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "summary", "meaning_authority_unchanged"],
+      "properties": {
+        "kind": { "const": "source_reused_and_linked" },
+        "summary": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "meaning_authority_unchanged": { "const": true }
+      }
+    },
+    "SourceDestination": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["place_role", "project_id", "project_source_id"],
+      "properties": {
+        "place_role": { "const": "sources" },
+        "project_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+        },
+        "project_source_id": {
+          "type": "string",
+          "pattern": "^project_source_[0-9A-HJKMNP-TV-Z]{26}$"
+        }
+      }
+    },
+    "Recovery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "command_path",
+        "assessment_path",
+        "retry_reuses_command_identity",
+        "missing_receipt_means_unknown"
+      ],
+      "properties": {
+        "command_path": {
+          "type": "string",
+          "pattern": "^/api/commands/projects/[^/]+/sources/reuse$"
+        },
+        "assessment_path": {
+          "type": "string",
+          "pattern": "^/api/queries/projects/[^/]+/source-reuse-recovery$"
+        },
+        "retry_reuses_command_identity": { "const": true },
+        "missing_receipt_means_unknown": { "const": true }
+      }
+    }
+  }
+}
