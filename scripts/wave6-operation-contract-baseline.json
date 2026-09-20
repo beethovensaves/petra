@@ -31,12 +31,12 @@
       "persistence": "PostgreSQL V044 atomically stores an immutable command receipt with a new Project, copied Project-owned ProjectDefinition, active Objective/focus, and exact registered-profile origin. Reset archives the prior Project additively and never deletes retained or unrelated authority.",
       "recovery": "Stable command and idempotency identities return the exact retained receipt; stale reset, denied principal, unknown profile/version/hash, and conflicting identity fail without partial Project creation or profile fallback."
     },
-    "project-import-missing": {
-      "kind": "missing",
-      "production_owner": "",
-      "authorization": "No authenticated import/reuse command owns Project ancestry admission.",
-      "persistence": "Lower-level document and artifact lineage exists; no Project import root or product command persists it.",
-      "recovery": "No import receipt or retained partial-result assessment exists."
+    "project-import-command": {
+      "kind": "command",
+      "production_owner": "POST /api/commands/projects/import, POST /api/queries/project-import-command-recovery, and GET /api/queries/projects/:projectId/import-ancestry -> PostgresProjectImportAuthority",
+      "authorization": "Bearer authentication plus one server-configured registered human who must own the exact retained source Project. The request cannot carry Actor or capability identity and must bind the current Project, ProjectDefinition, focused Objective, explicit reviewed admission, and bounded copy scope.",
+      "persistence": "PostgreSQL V049 atomically creates a new derived Project with copied exact ProjectDefinition and focused Objective, plus one immutable ancestry receipt that binds source and result record hashes. Source history, sources, Work, Reviews, and authority remain unchanged in the source Project.",
+      "recovery": "Stable command and idempotency identities return the exact receipt; a read-only assessment distinguishes confirmed, unknown, and conflicting effects; the ancestry query re-exposes the owned receipt. Stale source bindings, unsupported objective dependencies, denied ownership, and conflicts fail without partial creation."
     },
     "project-profile-command-recovery": {
       "kind": "query",
@@ -367,9 +367,9 @@
     },
     {
       "operation_id": "project.import",
-      "owner": "project-import-missing",
-      "owner_status": "missing",
-      "missing_owner": "Authenticated Project import/reuse with preserved ancestry and reviewed admission."
+      "owner": "project-import-command",
+      "owner_status": "owned",
+      "missing_owner": ""
     },
     {
       "operation_id": "project.recover",

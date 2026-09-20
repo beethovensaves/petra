@@ -1,0 +1,201 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-import-command-receipt/1.0.0/schema.json",
+  "title": "PetraProjectImportCommandReceipt",
+  "description": "The immutable result and retained ancestry of one authorized retained-Project reuse command.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "receipt_id",
+    "command_id",
+    "idempotency_key",
+    "actor",
+    "source",
+    "admission",
+    "result",
+    "material",
+    "destination",
+    "recorded_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.project-import-command-receipt" },
+    "schema_version": { "const": "1.0.0" },
+    "receipt_id": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        { "type": "string", "pattern": "^project_import_receipt_" }
+      ]
+    },
+    "command_id": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        { "type": "string", "pattern": "^command_" }
+      ]
+    },
+    "idempotency_key": { "type": "string", "minLength": 1, "maxLength": 512 },
+    "actor": { "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef" },
+    "source": { "$ref": "#/$defs/SourceAncestry" },
+    "admission": { "$ref": "#/$defs/Admission" },
+    "result": { "$ref": "#/$defs/Result" },
+    "material": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["copied", "retained_only", "limitations"],
+      "properties": {
+        "copied": {
+          "const": ["project_definition", "focused_objective"]
+        },
+        "retained_only": {
+          "const": [
+            "source_project_identity",
+            "source_history",
+            "source_sources",
+            "source_work",
+            "source_reviews"
+          ]
+        },
+        "limitations": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10,
+          "items": { "type": "string", "minLength": 1, "maxLength": 1000 }
+        }
+      }
+    },
+    "destination": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["place_role", "project_id"],
+      "properties": {
+        "place_role": { "const": "brief" },
+        "project_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+        }
+      }
+    },
+    "recorded_at": { "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp" }
+  },
+  "$defs": {
+    "ExactProjectRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project_id", "revision", "record_hash"],
+      "properties": {
+        "project_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "DefinitionRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_definition_id",
+        "revision",
+        "content_hash",
+        "record_hash"
+      ],
+      "properties": {
+        "project_definition_id": {
+          "allOf": [
+            { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+            { "type": "string", "pattern": "^project_definition_" }
+          ]
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "ObjectiveRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["objective_id", "revision", "content_hash", "record_hash"],
+      "properties": {
+        "objective_id": {
+          "allOf": [
+            { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+            { "type": "string", "pattern": "^objective_" }
+          ]
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "SourceAncestry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_kind",
+        "project_ref",
+        "project_definition_ref",
+        "focused_objective_ref",
+        "project_status"
+      ],
+      "properties": {
+        "source_kind": { "const": "retained_project" },
+        "project_ref": { "$ref": "#/$defs/ExactProjectRef" },
+        "project_definition_ref": { "$ref": "#/$defs/DefinitionRef" },
+        "focused_objective_ref": { "$ref": "#/$defs/ObjectiveRef" },
+        "project_status": { "enum": ["active", "archived"] }
+      }
+    },
+    "Admission": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "decision",
+        "copy_scope",
+        "source_effect",
+        "reviewed_by",
+        "reviewed_at"
+      ],
+      "properties": {
+        "decision": { "const": "create_derived_project" },
+        "copy_scope": { "const": "definition_and_focused_objective" },
+        "source_effect": { "const": "preserve_without_modification" },
+        "reviewed_by": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef"
+        },
+        "reviewed_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        }
+      }
+    },
+    "Result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_ref",
+        "project_definition_ref",
+        "focused_objective_ref"
+      ],
+      "properties": {
+        "project_ref": { "$ref": "#/$defs/ExactProjectRef" },
+        "project_definition_ref": { "$ref": "#/$defs/DefinitionRef" },
+        "focused_objective_ref": { "$ref": "#/$defs/ObjectiveRef" }
+      }
+    }
+  }
+}

@@ -1,0 +1,241 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-import-command-recovery-view/1.0.0/schema.json",
+  "title": "PetraProjectImportCommandRecoveryView",
+  "description": "A read-only reconciliation of one exact retained-Project reuse request against its immutable ancestry receipt.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "assessment_id",
+    "content",
+    "content_hash",
+    "read_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.project-import-command-recovery-view" },
+    "schema_version": { "const": "1.0.0" },
+    "assessment_id": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        { "type": "string", "pattern": "^project_import_recovery_" }
+      ]
+    },
+    "content": { "$ref": "#/$defs/Content" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "read_at": { "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp" }
+  },
+  "$defs": {
+    "Subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "command_id",
+        "idempotency_key",
+        "request_hash",
+        "source_project_id"
+      ],
+      "properties": {
+        "command_id": {
+          "allOf": [
+            { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+            { "type": "string", "pattern": "^command_" }
+          ]
+        },
+        "idempotency_key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "request_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "source_project_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+        }
+      }
+    },
+    "Effect": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "meaning", "receipt"],
+          "properties": {
+            "state": { "const": "effect_confirmed" },
+            "meaning": {
+              "const": "The exact Project import receipt and ancestry are retained. Repeating the same request returns this receipt without another derived Project."
+            },
+            "receipt": {
+              "$ref": "../../project-import-command-receipt/1.0.0/schema.json"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "reason", "meaning"],
+          "properties": {
+            "state": { "const": "outcome_unknown" },
+            "reason": { "const": "receipt_not_observed_at_cutoff" },
+            "meaning": {
+              "const": "No exact import receipt was visible at the observation cutoff. Absence does not prove that no derived Project was created later."
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "reason", "meaning"],
+          "properties": {
+            "state": { "const": "unavailable_to_verify" },
+            "reason": {
+              "enum": [
+                "command_identity_conflict",
+                "command_not_owned_by_authenticated_actor"
+              ]
+            },
+            "meaning": {
+              "const": "The command or idempotency identity cannot be reconciled to this exact authenticated import request. Petra will not expose another request or retry with conflicting identity."
+            }
+          }
+        }
+      ]
+    },
+    "PreservedItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["item", "identity", "durability", "state"],
+      "properties": {
+        "item": {
+          "enum": [
+            "exact_request",
+            "import_receipt",
+            "source_project",
+            "source_definition",
+            "source_objective",
+            "derived_project"
+          ]
+        },
+        "identity": { "type": "string", "minLength": 1, "maxLength": 512 },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "durability": { "enum": ["client_session", "postgresql"] },
+        "state": { "enum": ["client_copy_required", "retained", "derived"] }
+      }
+    },
+    "Destination": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["place_role"],
+          "properties": {
+            "place_role": { "const": "projects" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["place_role", "project_id"],
+          "properties": {
+            "place_role": { "const": "brief" },
+            "project_id": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+            }
+          }
+        }
+      ]
+    },
+    "Action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation",
+        "owner",
+        "method",
+        "path",
+        "input_behavior",
+        "identity_behavior",
+        "reason",
+        "success_destination",
+        "failure_destination",
+        "execution_recheck"
+      ],
+      "properties": {
+        "operation": {
+          "enum": ["retry_exact_command", "open_derived_project"]
+        },
+        "owner": { "enum": ["project_import_command", "browser_navigation"] },
+        "method": { "enum": ["GET", "POST"] },
+        "path": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "input_behavior": { "enum": ["reuse_exact_request", "none"] },
+        "identity_behavior": {
+          "enum": [
+            "reuse_command_and_idempotency",
+            "navigate_to_receipt_project"
+          ]
+        },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 2000 },
+        "success_destination": { "$ref": "#/$defs/Destination" },
+        "failure_destination": { "$ref": "#/$defs/Destination" },
+        "execution_recheck": { "const": true }
+      }
+    },
+    "Return": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "destination", "reason"],
+      "properties": {
+        "state": { "enum": ["exact", "safe_fallback"] },
+        "destination": { "$ref": "#/$defs/Destination" },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 2000 }
+      }
+    },
+    "Content": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "subject",
+        "effect",
+        "preservation",
+        "eligible_actions",
+        "return",
+        "observation_cutoff",
+        "limitations"
+      ],
+      "properties": {
+        "subject": { "$ref": "#/$defs/Subject" },
+        "effect": { "$ref": "#/$defs/Effect" },
+        "preservation": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10,
+          "items": { "$ref": "#/$defs/PreservedItem" }
+        },
+        "eligible_actions": {
+          "type": "array",
+          "maxItems": 1,
+          "items": { "$ref": "#/$defs/Action" }
+        },
+        "return": { "$ref": "#/$defs/Return" },
+        "observation_cutoff": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "limitations": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10,
+          "items": { "type": "string", "minLength": 1, "maxLength": 2000 }
+        }
+      }
+    }
+  }
+}
