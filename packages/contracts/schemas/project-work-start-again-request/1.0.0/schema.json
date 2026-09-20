@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-work-start-again-request/1.0.0/schema.json",
+  "title": "PetraProjectWorkStartAgainRequest",
+  "description": "An exact idempotent request to begin a separately registered fresh-input Work attempt linked to retained prior Work. Actor, capability, replacement Work, and input choice are server-owned.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "command_id",
+    "idempotency_key",
+    "expected_prior_work_unit_ref",
+    "start_again_registration_ref",
+    "submitted_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.project-work-start-again-request" },
+    "schema_version": { "const": "1.0.0" },
+    "command_id": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        { "type": "string", "pattern": "^command_" }
+      ]
+    },
+    "idempotency_key": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,511}$"
+    },
+    "expected_prior_work_unit_ref": {
+      "$ref": "../../project-work-operation-request/1.0.0/schema.json#/$defs/WorkUnitRef"
+    },
+    "start_again_registration_ref": {
+      "$ref": "#/$defs/StartAgainRegistrationRef"
+    },
+    "submitted_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "StartAgainRegistrationRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["start_again_registration_id", "content_hash"],
+      "properties": {
+        "start_again_registration_id": {
+          "allOf": [
+            { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+            {
+              "type": "string",
+              "pattern": "^work_start_again_registration_"
+            }
+          ]
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    }
+  }
+}

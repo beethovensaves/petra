@@ -804,13 +804,35 @@
       "typescript_path": "src/generated/project-work-resume-receipt.ts"
     },
     {
+      "name": "project-work-start-again-request",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-work-start-again-request/1.0.0/schema.json",
+      "path": "schemas/project-work-start-again-request/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-exact-registered-fresh-input-start-again-request",
+      "canonical_sha256": "sha256:09caaf1a07141acb319dd628ec0d929df1c730dcfaf4c98c2bd6497772a9ed00",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-work-start-again-request.ts"
+    },
+    {
+      "name": "project-work-start-again-receipt",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-work-start-again-receipt/1.0.0/schema.json",
+      "path": "schemas/project-work-start-again-receipt/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-registered-fresh-input-start-again-result",
+      "canonical_sha256": "sha256:056fec8e90396d2a7eb8a8c8e5fbfaf1942c3e89e09b28e3fcd39f0c92331a84",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-work-start-again-receipt.ts"
+    },
+    {
       "name": "project-work-operations-view",
       "version": "1.0.0",
       "$id": "https://petra.local/schemas/project-work-operations-view/1.0.0/schema.json",
       "path": "schemas/project-work-operations-view/1.0.0/schema.json",
       "status": "accepted",
-      "compatibility": "backward-compatible-optional-exact-checkpoint-resume-binding",
-      "canonical_sha256": "sha256:9139b85d533ee635650b55c7b11b0cc1e2cb11e12416e2e6a33311127d4cef2e",
+      "compatibility": "backward-compatible-optional-exact-checkpoint-resume-and-fresh-input-start-again-bindings",
+      "canonical_sha256": "sha256:481e2a20c81951957dc95e8bca8869cff3a81354a41a1d4d6efdf0caba9a91b5",
       "generate_typescript": true,
       "typescript_path": "src/generated/project-work-operations-view.ts"
     },

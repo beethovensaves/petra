@@ -242,12 +242,11 @@
       "recovery": "Snapshot reads compose required input, plan, delivery, controls, retry eligibility, results, and exact destinations. Pending command reservations reconcile disconnects and unknown effects; exact command/idempotency replays return one receipt, while stale, conflicting, unauthorized, unavailable, and missing targets fail without duplicate execution."
     },
     "work-restart-assessment": {
-      "kind": "partial",
-      "production_owner": "GET /api/queries/projects/:projectId/work/:workUnitId/operations -> PostgresProjectWorkOperations",
-      "authorization": "Bearer-authenticated Project/Work read; no start-again mutation is admitted without a registered workflow-specific fresh-input transition.",
-      "persistence": "Current Work/input facts remain canonical. The read records no invented cloned Work.",
-      "recovery": "Returns an explicit unavailable reason for start-again while no workflow-specific input-rebinding command exists.",
-      "missing_owner": "A registered workflow-specific fresh-execution command with exact retained-attempt linkage is still required before start-again is executable."
+      "kind": "command",
+      "production_owner": "GET /api/queries/projects/:projectId/work/:workUnitId/operations and POST /api/commands/projects/:projectId/work/:workUnitId/start-again -> PostgresProjectWorkOperations registered fresh-input transition -> distinct canonical WorkUnit attempt",
+      "authorization": "A trusted owning service must first register exact terminal prior Work, distinct requested fresh Work, genuinely different immutable input, same workflow/task/worker/service/capability boundary, and no implicit output reuse. Mutation then requires bearer authentication and a server-resolved human with the exact active ManageProjectWork grant; client or model prose cannot create or select replacement Work.",
+      "persistence": "PostgreSQL V058 retains immutable workflow registrations, pending/completed authenticated receipts, and exact prior-Work to fresh-Work attempt lineage. The fresh Work enters attempt 1 under its own immutable specification and input manifest; prior Work, attempts, outputs, usage, and domain authority remain unchanged.",
+      "recovery": "Before every prerequisite is registered, Start again remains explicitly unavailable. Pending commands reconcile requested, queued, or running fresh Work after delivery loss; completed command/idempotency replay returns the same receipt after restart. Stale prior Work, changed replacement Work, same-content input, mismatched workflow/service/capability, pending required input, and conflicting identities fail without implicit cloning or duplicate execution."
     },
     "work-resume": {
       "kind": "command",
@@ -762,8 +761,8 @@
     {
       "operation_id": "work.start-again",
       "owner": "work-restart-assessment",
-      "owner_status": "partial",
-      "missing_owner": "Registered workflow-specific fresh-execution command with retained-attempt linkage."
+      "owner_status": "owned",
+      "missing_owner": ""
     },
     {
       "operation_id": "work.open-result",

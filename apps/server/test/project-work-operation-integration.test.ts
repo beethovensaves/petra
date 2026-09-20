@@ -14,6 +14,7 @@ import type {
   PetraProjectWorkOperationReceipt,
   PetraProjectWorkOperationRequest,
   PetraProjectWorkResumeRequest,
+  PetraProjectWorkStartAgainRequest,
   PetraRightsDecision,
   PetraWorkerInputManifest,
   PetraWorkerOutputManifest,
@@ -162,6 +163,7 @@ describePostgres("Wave 6 Work production commands", () => {
       projectWorkOperations: workOperations,
       projectWorkOperationAuthority: workOperations,
       projectWorkResumeAuthority: workOperations,
+      projectWorkStartAgainAuthority: workOperations,
     });
   };
 
@@ -360,6 +362,193 @@ describePostgres("Wave 6 Work production commands", () => {
     );
     expect(resumeAssessment).not.toHaveProperty("command_path");
     expect(startAgainAssessment).not.toHaveProperty("command_path");
+
+    const cancelledWork = await workUnits.getWorkUnit(
+      first.workUnit.work_unit_id,
+    );
+    if (cancelledWork === undefined) {
+      throw new Error("Expected retained cancelled Work.");
+    }
+    const unchangedFresh = registration();
+    unchangedFresh.workUnit.work_unit_id =
+      "work_unit_01K6P000000000000000000805";
+    unchangedFresh.inputManifest.worker_input_manifest_id =
+      "worker_input_manifest_01K6P000000000000000000805";
+    unchangedFresh.inputManifest.work_unit_id =
+      unchangedFresh.workUnit.work_unit_id;
+    unchangedFresh.workUnit.spec.input_manifest_ref.worker_input_manifest_id =
+      unchangedFresh.inputManifest.worker_input_manifest_id;
+    unchangedFresh.workUnit.spec.idempotency_key =
+      "wave6:evidence:start-again-unchanged-input";
+    unchangedFresh.workUnit.spec.cache = {
+      cache_mode: "refresh",
+      cache_key: "wave6:evidence:start-again-unchanged-input",
+    };
+    unchangedFresh.workUnit.spec_hash = canonicalHash(
+      unchangedFresh.workUnit.spec,
+    );
+    unchangedFresh.workUnit.trace_id = "trace_01K6P000000000000000000805";
+    await workUnits.register(unchangedFresh);
+    await expect(
+      workOperations.registerStartAgain({
+        startAgainRegistrationId:
+          "work_start_again_registration_01K6P000000000000000000805",
+        projectId: first.workUnit.project_id,
+        priorWorkUnitRef: {
+          work_unit_id: cancelledWork.work_unit_id,
+          revision: cancelledWork.revision,
+          spec_hash: cancelledWork.spec_hash,
+        },
+        freshWorkUnitRef: {
+          work_unit_id: unchangedFresh.workUnit.work_unit_id,
+          revision: unchangedFresh.workUnit.revision,
+          spec_hash: unchangedFresh.workUnit.spec_hash,
+        },
+        inputTransition: {
+          strategy: "fresh_input",
+          retainedOutputReuse: "none",
+          summary: "This must fail because its input content is unchanged.",
+        },
+        registeredBy: {
+          actor_id: serviceActor().actor_id,
+          actor_kind: "service",
+        },
+        registeredAt: "2026-09-19T16:00:05.500Z",
+      }),
+    ).rejects.toEqual(
+      expect.objectContaining({ code: "PROJECT_WORK_OPERATION_STALE" }),
+    );
+    const fresh = registration();
+    fresh.workUnit.work_unit_id = "work_unit_01K6P000000000000000000804";
+    fresh.inputManifest.worker_input_manifest_id =
+      "worker_input_manifest_01K6P000000000000000000804";
+    fresh.inputManifest.work_unit_id = fresh.workUnit.work_unit_id;
+    fresh.inputManifest.content.resource_limits.max_wall_time_ms = 700000;
+    fresh.inputManifest.content_hash = canonicalHash(
+      fresh.inputManifest.content,
+    );
+    fresh.workUnit.spec.input_manifest_ref = {
+      worker_input_manifest_id: fresh.inputManifest.worker_input_manifest_id,
+      content_hash: fresh.inputManifest.content_hash,
+    };
+    fresh.workUnit.spec.idempotency_key =
+      "wave6:evidence:start-again-fresh-work";
+    fresh.workUnit.spec.cache = {
+      cache_mode: "refresh",
+      cache_key: "wave6:evidence:start-again-fresh-work",
+    };
+    fresh.workUnit.spec_hash = canonicalHash(fresh.workUnit.spec);
+    fresh.workUnit.trace_id = "trace_01K6P000000000000000000804";
+    await workUnits.register(fresh);
+    await workOperations.registerStartAgain({
+      startAgainRegistrationId:
+        "work_start_again_registration_01K6P000000000000000000804",
+      projectId: first.workUnit.project_id,
+      priorWorkUnitRef: {
+        work_unit_id: cancelledWork.work_unit_id,
+        revision: cancelledWork.revision,
+        spec_hash: cancelledWork.spec_hash,
+      },
+      freshWorkUnitRef: {
+        work_unit_id: fresh.workUnit.work_unit_id,
+        revision: fresh.workUnit.revision,
+        spec_hash: fresh.workUnit.spec_hash,
+      },
+      inputTransition: {
+        strategy: "fresh_input",
+        retainedOutputReuse: "none",
+        summary:
+          "Use the newly registered parsing limits and do not reuse output from the cancelled attempt.",
+      },
+      registeredBy: {
+        actor_id: serviceActor().actor_id,
+        actor_kind: "service",
+      },
+      registeredAt: "2026-09-19T16:00:06.000Z",
+    });
+    const registeredStartAgain = await client().readOperations(
+      first.workUnit.project_id,
+      first.workUnit.work_unit_id,
+    );
+    expect(
+      registeredStartAgain.controls.find(
+        (control) => control.operation === "start_again",
+      ),
+    ).toEqual(
+      expect.objectContaining({
+        state: "available",
+        command_path: `/api/commands/projects/${first.workUnit.project_id}/work/${first.workUnit.work_unit_id}/start-again`,
+      }),
+    );
+    const startAgainBinding = registeredStartAgain.start_again_binding;
+    if (startAgainBinding === undefined) {
+      throw new Error("Expected an exact fresh-input Start again binding.");
+    }
+    expect(startAgainBinding).toMatchObject({
+      expected_prior_work_unit_ref: {
+        work_unit_id: first.workUnit.work_unit_id,
+        revision: cancelledWork.revision,
+      },
+      fresh_work_unit_ref: {
+        work_unit_id: fresh.workUnit.work_unit_id,
+        revision: 1,
+      },
+      prior_work_attempt: 1,
+      prior_lineage_attempt: 1,
+      new_lineage_attempt: 2,
+      input_transition: {
+        strategy: "fresh_input",
+        retained_output_reuse: "none",
+      },
+    });
+    const startAgainRequest: PetraProjectWorkStartAgainRequest = {
+      schema_name: "petra.project-work-start-again-request",
+      schema_version: "1.0.0",
+      command_id: "command_01K6P000000000000000000809",
+      idempotency_key: "wave6:evidence:work:start-again:09",
+      expected_prior_work_unit_ref:
+        startAgainBinding.expected_prior_work_unit_ref,
+      start_again_registration_ref:
+        startAgainBinding.start_again_registration_ref,
+      submitted_at: "2026-09-19T16:00:07.000Z",
+    };
+    const startedAgain = await client().startAgain(
+      first.workUnit.project_id,
+      first.workUnit.work_unit_id,
+      startAgainRequest,
+    );
+    expect(startedAgain).toMatchObject({
+      outcome: "started_again",
+      prior_attempt: {
+        work_unit_ref: {
+          work_unit_id: first.workUnit.work_unit_id,
+          revision: cancelledWork.revision,
+        },
+        work_attempt: 1,
+        lineage_attempt: 1,
+      },
+      fresh_input: {
+        strategy: "fresh_input",
+        retained_output_reuse: "none",
+      },
+      new_attempt: {
+        lineage_attempt: 2,
+        work_attempt: 1,
+        work_unit_ref: {
+          work_unit_id: fresh.workUnit.work_unit_id,
+          revision: 3,
+        },
+      },
+      effect: {
+        prior_work_preserved: true,
+        prior_attempts_preserved: true,
+        fresh_work_identity: true,
+        domain_authority_changed: false,
+      },
+    });
+    await expect(
+      workUnits.getWorkUnit(first.workUnit.work_unit_id),
+    ).resolves.toStrictEqual(cancelledWork);
 
     const second = registration();
     second.workUnit.work_unit_id = "work_unit_01K6P000000000000000000802";
@@ -608,6 +797,12 @@ describePostgres("Wave 6 Work production commands", () => {
     expect(cancelReplay).toStrictEqual(cancel);
     expect(retryReplay).toStrictEqual(retry);
     expect(resumeReplay).toStrictEqual(resume);
+    const startAgainReplay = await client().startAgain(
+      first.workUnit.project_id,
+      first.workUnit.work_unit_id,
+      startAgainRequest,
+    );
+    expect(startAgainReplay).toStrictEqual(startedAgain);
 
     const completed = await client().readOperations(
       second.workUnit.project_id,
@@ -644,6 +839,10 @@ describePostgres("Wave 6 Work production commands", () => {
         resume_receipts: number;
         resume_transitions: number;
         resumed_work_revisions: number;
+        start_again_registrations: number;
+        start_again_receipts: number;
+        start_again_transitions: number;
+        fresh_work_revisions: number;
       }>(
         `SELECT
            (SELECT count(*)::integer
@@ -668,11 +867,22 @@ describePostgres("Wave 6 Work production commands", () => {
               FROM petra.project_work_resume_transitions) AS resume_transitions,
            (SELECT count(*)::integer
               FROM petra.work_unit_revisions
-             WHERE work_unit_id = $3) AS resumed_work_revisions`,
+             WHERE work_unit_id = $3) AS resumed_work_revisions,
+           (SELECT count(*)::integer
+              FROM petra.project_work_start_again_registrations) AS start_again_registrations,
+           (SELECT count(*)::integer
+              FROM petra.project_work_start_again_receipts
+             WHERE state = 'completed') AS start_again_receipts,
+           (SELECT count(*)::integer
+              FROM petra.project_work_start_again_transitions) AS start_again_transitions,
+           (SELECT count(*)::integer
+              FROM petra.work_unit_revisions
+             WHERE work_unit_id = $4) AS fresh_work_revisions`,
         [
           first.workUnit.work_unit_id,
           second.workUnit.work_unit_id,
           third.workUnit.work_unit_id,
+          fresh.workUnit.work_unit_id,
         ],
       )
     ).rows[0];
@@ -686,6 +896,10 @@ describePostgres("Wave 6 Work production commands", () => {
       resume_receipts: 1,
       resume_transitions: 1,
       resumed_work_revisions: 5,
+      start_again_registrations: 1,
+      start_again_receipts: 1,
+      start_again_transitions: 1,
+      fresh_work_revisions: 3,
     });
 
     const commandReceipts: PetraProjectWorkOperationReceipt[] = [
@@ -702,13 +916,17 @@ describePostgres("Wave 6 Work production commands", () => {
       status: "passed",
       executed_at: new Date().toISOString(),
       command: "npm run test:wave6:work",
-      database: "fresh disposable PostgreSQL 18.6 with Flyway V001-V057",
+      database: "fresh disposable PostgreSQL 18.6 with Flyway V001-V058",
       production_boundary: {
         server: "startPetraServer over an ephemeral TCP port",
         client: "ProjectWorkClient",
         query:
           "GET /api/queries/projects/:projectId/work/:workUnitId/operations",
         command: "POST /api/commands/projects/:projectId/work/:workUnitId",
+        resume_command:
+          "POST /api/commands/projects/:projectId/work/:workUnitId/resume",
+        start_again_command:
+          "POST /api/commands/projects/:projectId/work/:workUnitId/start-again",
         authority:
           "Bearer authentication plus server-resolved human ManageProjectWork grant",
       },
@@ -758,8 +976,27 @@ describePostgres("Wave 6 Work production commands", () => {
             receipt_count: durable?.resume_receipts,
             transition_count: durable?.resume_transitions,
           },
-          start_again: "unavailable",
-          invented_command_path: false,
+          start_again_before_registration: "unavailable",
+          start_again_registered: {
+            initial: "unavailable",
+            same_content_registration_rejected: true,
+            registered: "available",
+            assessment_binding: startAgainBinding,
+            outcome: startedAgain.outcome,
+            prior_work_preserved: startedAgain.effect.prior_work_preserved,
+            new_work_unit_id:
+              startedAgain.new_attempt.work_unit_ref.work_unit_id,
+            fresh_input_manifest_ref:
+              startedAgain.fresh_input.fresh_input_manifest_ref,
+            prior_lineage_attempt: startedAgain.prior_attempt.lineage_attempt,
+            new_lineage_attempt: startedAgain.new_attempt.lineage_attempt,
+            registration_count: durable?.start_again_registrations,
+            receipt_count: durable?.start_again_receipts,
+            transition_count: durable?.start_again_transitions,
+            fresh_work_revisions: durable?.fresh_work_revisions,
+            exact_replay_after_restart: true,
+          },
+          unregistered_invented_command_path: false,
         },
         exact_result: {
           result_kind: completed.results[0]?.result_kind,
@@ -773,7 +1010,7 @@ describePostgres("Wave 6 Work production commands", () => {
         },
       },
       boundary:
-        "Executes authenticated production Work reads and commands against a fresh real PostgreSQL store, including one trusted exact-checkpoint compatibility registration, authenticated same-Work resume, immutable transition lineage, and restart-visible exact replay. Worker registration, checkpoint creation, failure injection, and output completion are trusted worker-side setup; no React/browser usability claim is made, and start-again remains explicitly unavailable because no workflow-specific fresh-input transition is registered.",
+        "Executes authenticated production Work reads and commands against a fresh real PostgreSQL store, including one trusted exact-checkpoint compatibility registration, same-Work resume, one workflow-specific fresh-input registration, authenticated Start again into distinct Work attempt 1, immutable prior-attempt lineage, and restart-visible exact replay. Worker registration, fresh-input Work preparation, checkpoint creation, failure injection, and output completion are trusted worker-side setup; no React/browser usability claim is made.",
     };
     if (evidenceOutput === undefined) {
       throw new Error("The Work evidence output path is not configured.");

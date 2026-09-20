@@ -44,6 +44,7 @@
     },
     "delivery": { "$ref": "#/$defs/Delivery" },
     "resume_binding": { "$ref": "#/$defs/ResumeBinding" },
+    "start_again_binding": { "$ref": "#/$defs/StartAgainBinding" },
     "controls": {
       "type": "array",
       "minItems": 11,
@@ -79,6 +80,49 @@
         },
         "expected_checkpoint": {
           "$ref": "../../work-unit/1.0.0/schema.json#/$defs/CheckpointRef"
+        }
+      }
+    },
+    "StartAgainBinding": {
+      "description": "The exact server-owned fresh-input registration a client may copy into a Start again request. It is present only while all source, replacement Work, input, workflow, and authority prerequisites remain exact.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_id",
+        "expected_prior_work_unit_ref",
+        "start_again_registration_ref",
+        "fresh_work_unit_ref",
+        "prior_work_attempt",
+        "prior_lineage_attempt",
+        "new_lineage_attempt",
+        "input_transition"
+      ],
+      "properties": {
+        "project_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+        },
+        "expected_prior_work_unit_ref": {
+          "$ref": "../../project-work-operation-request/1.0.0/schema.json#/$defs/WorkUnitRef"
+        },
+        "start_again_registration_ref": {
+          "$ref": "../../project-work-start-again-request/1.0.0/schema.json#/$defs/StartAgainRegistrationRef"
+        },
+        "fresh_work_unit_ref": {
+          "$ref": "../../project-work-operation-request/1.0.0/schema.json#/$defs/WorkUnitRef"
+        },
+        "prior_work_attempt": {
+          "$ref": "../../worker-input-manifest/1.0.0/schema.json#/$defs/Attempt"
+        },
+        "prior_lineage_attempt": {
+          "$ref": "../../worker-input-manifest/1.0.0/schema.json#/$defs/Attempt"
+        },
+        "new_lineage_attempt": {
+          "type": "integer",
+          "minimum": 2,
+          "maximum": 100
+        },
+        "input_transition": {
+          "$ref": "../../project-work-start-again-receipt/1.0.0/schema.json#/$defs/FreshInput"
         }
       }
     },

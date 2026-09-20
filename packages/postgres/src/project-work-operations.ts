@@ -6,6 +6,8 @@ import type {
   PetraProjectWorkOperationsView,
   PetraProjectWorkResumeReceipt,
   PetraProjectWorkResumeRequest,
+  PetraProjectWorkStartAgainReceipt,
+  PetraProjectWorkStartAgainRequest,
   PetraWorkerInputManifest,
   PetraWorkUnit,
 } from "@petra/contracts";
@@ -18,9 +20,12 @@ import {
   type ProjectWorkOperationAuthority,
   type ProjectWorkOperationsViewReader,
   type ProjectWorkResumeAuthority,
+  type ProjectWorkStartAgainAuthority,
+  type ProjectWorkStartAgainRegistry,
   type RegisterProjectWorkCheckpointResume,
   type RegisterProjectWorkRequiredInput,
   type RegisterProjectWorkStagePlan,
+  type RegisterProjectWorkStartAgain,
 } from "@petra/core";
 import { canonicalize } from "json-canonicalize";
 import type { Pool, PoolClient } from "pg";
@@ -134,6 +139,63 @@ interface StoredResumeTransitionRow {
   readonly transition_payload: unknown;
 }
 
+interface StoredStartAgainRegistrationRow {
+  readonly start_again_registration_id: string;
+  readonly content_hash: string;
+  readonly payload: unknown;
+}
+
+interface StoredStartAgainReceiptRow extends StoredReceiptRow {
+  readonly start_again_registration_id: string;
+}
+
+interface StoredStartAgainRegistration {
+  readonly start_again_registration_id: string;
+  readonly project_id: string;
+  readonly prior_work_unit_ref: {
+    readonly work_unit_id: string;
+    readonly revision: number;
+    readonly spec_hash: string;
+  };
+  readonly prior_input_manifest_ref: PetraWorkUnit["spec"]["input_manifest_ref"];
+  readonly prior_work_attempt: number;
+  readonly prior_lineage_attempt: number;
+  readonly fresh_work_unit_ref: {
+    readonly work_unit_id: string;
+    readonly revision: number;
+    readonly spec_hash: string;
+  };
+  readonly fresh_input_manifest_ref: PetraWorkUnit["spec"]["input_manifest_ref"];
+  readonly new_lineage_attempt: number;
+  readonly workflow: {
+    readonly workflow_name: string;
+    readonly workflow_version: string;
+    readonly task_family: string;
+    readonly task_name: string;
+    readonly task_version: string;
+  };
+  readonly input_transition: {
+    readonly strategy: "fresh_input";
+    readonly retained_output_reuse: "none";
+    readonly summary: string;
+  };
+  readonly registered_by: {
+    readonly actor_id: string;
+    readonly actor_kind: "service";
+  };
+  readonly registered_at: string;
+}
+
+interface ResolvedStartAgainRegistration {
+  readonly payload: StoredStartAgainRegistration;
+  readonly contentHash: string;
+}
+
+interface StoredStartAgainTransitionRow {
+  readonly record_hash: string;
+  readonly transition_payload: unknown;
+}
+
 interface StoredStagePlan {
   readonly stage_plan_id: string;
   readonly revision: 1;
@@ -168,6 +230,8 @@ const clone = <Value>(value: Value): Value => structuredClone(value);
 const STAGE_PLAN_ID = /^work_stage_plan_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const RESUME_REGISTRATION_ID =
   /^work_resume_registration_[0-9A-HJKMNP-TV-Z]{26}$/u;
+const START_AGAIN_REGISTRATION_ID =
+  /^work_start_again_registration_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const STAGE_ID = /^[a-z][a-z0-9_-]{0,79}$/u;
 const CONTENT_HASH = /^sha256:[0-9a-f]{64}$/u;
 
@@ -266,7 +330,9 @@ export class PostgresProjectWorkOperations
     ProjectWorkOperationAuthority,
     ProjectWorkOperationsViewReader,
     ProjectWorkResumeAuthority,
-    ProjectWorkCheckpointResumeRegistry
+    ProjectWorkCheckpointResumeRegistry,
+    ProjectWorkStartAgainAuthority,
+    ProjectWorkStartAgainRegistry
 {
   readonly #pool: Pool;
   readonly #contracts: PetraContractRegistry;
@@ -610,6 +676,329 @@ export class PostgresProjectWorkOperations
     });
   }
 
+  async executeProjectWorkStartAgain(
+    projectId: string,
+    request: PetraProjectWorkStartAgainRequest,
+    principal: ProjectWorkCommandPrincipal,
+  ): Promise<PetraProjectWorkStartAgainReceipt> {
+    this.#contracts.assertValid(
+      "project-work-start-again-request",
+      "1.0.0",
+      request,
+    );
+    const reservation = await this.#reserveStartAgain(
+      projectId,
+      request,
+      principal,
+    );
+    if ("schema_name" in reservation) return reservation;
+
+    let resultingWork: PetraWorkUnit;
+    try {
+      resultingWork = await this.#startAgain(request, reservation.payload);
+    } catch (error) {
+      await this.#releaseUnappliedStartAgainReservation(request).catch(
+        () => undefined,
+      );
+      throw error;
+    }
+    if (
+      resultingWork.status.state !== "running" ||
+      resultingWork.status.attempt !== 1
+    ) {
+      throw new ProjectWorkOperationError(
+        "PROJECT_WORK_OPERATION_STORED_RECORD_CORRUPT",
+        "A registered Start again transition did not produce the first running attempt of fresh Work.",
+      );
+    }
+    const base = {
+      schema_name: "petra.project-work-start-again-receipt" as const,
+      schema_version: "1.0.0" as const,
+      receipt_id: derivePetraId(
+        "project_work_start_again_receipt",
+        request.command_id,
+      ),
+      command_id: request.command_id,
+      idempotency_key: request.idempotency_key,
+      project_id: projectId,
+      outcome: "started_again" as const,
+      actor: clone(principal.actor),
+      capability_grant_id: principal.capabilityGrantId,
+      requested_prior_work_unit_ref: clone(
+        request.expected_prior_work_unit_ref,
+      ),
+      start_again_registration: clone(request.start_again_registration_ref),
+      prior_attempt: {
+        work_unit_ref: clone(reservation.payload.prior_work_unit_ref),
+        work_attempt: reservation.payload.prior_work_attempt,
+        lineage_attempt: reservation.payload.prior_lineage_attempt,
+        input_manifest_ref: clone(reservation.payload.prior_input_manifest_ref),
+      },
+      fresh_input: {
+        strategy: "fresh_input" as const,
+        prior_input_manifest_ref: clone(
+          reservation.payload.prior_input_manifest_ref,
+        ),
+        fresh_input_manifest_ref: clone(
+          reservation.payload.fresh_input_manifest_ref,
+        ),
+        retained_output_reuse: "none" as const,
+        summary: reservation.payload.input_transition.summary,
+      },
+      new_attempt: {
+        lineage_attempt: reservation.payload.new_lineage_attempt,
+        work_attempt: 1 as const,
+        work_unit_ref: exactWorkRef(resultingWork),
+      },
+      effect: {
+        kind: "operational_only" as const,
+        summary:
+          "A distinct linked Work task began with registered fresh input; prior Work, attempts, outputs, and cost remain retained.",
+        prior_work_preserved: true as const,
+        prior_attempts_preserved: true as const,
+        fresh_work_identity: true as const,
+        domain_authority_changed: false as const,
+      },
+      destination: {
+        place_role: "work" as const,
+        work_unit_ref: exactWorkRef(resultingWork),
+      },
+      recorded_at: request.submitted_at,
+    };
+    const receipt: PetraProjectWorkStartAgainReceipt = {
+      ...base,
+      record_hash: canonicalHash(base),
+    };
+    this.#contracts.assertValid(
+      "project-work-start-again-receipt",
+      "1.0.0",
+      receipt,
+    );
+    return this.#completeStartAgainReceipt(
+      request,
+      receipt,
+      reservation.payload,
+      reservation.contentHash,
+    );
+  }
+
+  async registerStartAgain(
+    input: RegisterProjectWorkStartAgain,
+  ): Promise<void> {
+    if (
+      !START_AGAIN_REGISTRATION_ID.test(input.startAgainRegistrationId) ||
+      !CONTENT_HASH.test(input.priorWorkUnitRef.spec_hash) ||
+      !CONTENT_HASH.test(input.freshWorkUnitRef.spec_hash) ||
+      input.priorWorkUnitRef.work_unit_id ===
+        input.freshWorkUnitRef.work_unit_id ||
+      input.inputTransition.strategy !== "fresh_input" ||
+      input.inputTransition.retainedOutputReuse !== "none" ||
+      !validText(input.inputTransition.summary, 1000) ||
+      !validDateTime(input.registeredAt)
+    ) {
+      throw new ProjectWorkOperationError(
+        "PROJECT_WORK_OPERATION_UNAVAILABLE",
+        "Start again registration requires distinct exact Work identities, a bounded fresh-input explanation, no implicit output reuse, and a canonical registration time.",
+      );
+    }
+    await this.#transaction("SERIALIZABLE", async (client) => {
+      const prior = await this.#work(
+        client,
+        input.projectId,
+        input.priorWorkUnitRef.work_unit_id,
+        true,
+      );
+      const fresh = await this.#work(
+        client,
+        input.projectId,
+        input.freshWorkUnitRef.work_unit_id,
+        true,
+      );
+      if (prior === undefined || fresh === undefined) {
+        throw new ProjectWorkOperationError(
+          "PROJECT_WORK_OPERATION_NOT_FOUND",
+          "Start again requires both exact prior and fresh Work to be registered in this Project.",
+        );
+      }
+      const priorInput = await this.#inputManifest(client, prior);
+      const freshInput = await this.#inputManifest(client, fresh);
+      const sameTask =
+        canonicalize(priorInput.content.task) ===
+        canonicalize(freshInput.content.task);
+      const sameWorker =
+        canonicalize(priorInput.content.worker) ===
+        canonicalize(freshInput.content.worker);
+      if (
+        prior.revision !== input.priorWorkUnitRef.revision ||
+        prior.spec_hash !== input.priorWorkUnitRef.spec_hash ||
+        (prior.status.state !== "completed" &&
+          prior.status.state !== "cancelled") ||
+        fresh.revision !== input.freshWorkUnitRef.revision ||
+        fresh.spec_hash !== input.freshWorkUnitRef.spec_hash ||
+        fresh.status.state !== "requested" ||
+        prior.project_id !== fresh.project_id ||
+        prior.spec.workflow_name !== fresh.spec.workflow_name ||
+        prior.spec.workflow_version !== fresh.spec.workflow_version ||
+        !sameTask ||
+        !sameWorker ||
+        prior.capability_grant_id !== fresh.capability_grant_id ||
+        prior.created_by.actor_kind !== "service" ||
+        fresh.created_by.actor_kind !== "service" ||
+        prior.created_by.actor_id !== input.registeredBy.actor_id ||
+        fresh.created_by.actor_id !== input.registeredBy.actor_id ||
+        priorInput.issued_by.actor_id !== input.registeredBy.actor_id ||
+        freshInput.issued_by.actor_id !== input.registeredBy.actor_id ||
+        priorInput.worker_input_manifest_id ===
+          freshInput.worker_input_manifest_id ||
+        priorInput.content_hash === freshInput.content_hash ||
+        Date.parse(input.registeredAt) < Date.parse(prior.updated_at) ||
+        Date.parse(input.registeredAt) < Date.parse(fresh.updated_at)
+      ) {
+        throw new ProjectWorkOperationError(
+          "PROJECT_WORK_OPERATION_STALE",
+          "The owning workflow may register Start again only from exact terminal prior Work to distinct requested Work with a genuinely fresh immutable input manifest under the same task, worker, workflow, service, and capability boundary.",
+        );
+      }
+      const lineage = await client.query<{
+        start_again_registration_id: string;
+        new_lineage_attempt: string | null;
+      }>(
+        `SELECT registration.start_again_registration_id,
+                transition.new_lineage_attempt::text
+           FROM petra.project_work_start_again_registrations AS registration
+           LEFT JOIN petra.project_work_start_again_transitions AS transition
+             USING (start_again_registration_id)
+          WHERE registration.fresh_work_unit_id = $1`,
+        [prior.work_unit_id],
+      );
+      if (
+        lineage.rows[0] !== undefined &&
+        lineage.rows[0].new_lineage_attempt === null
+      ) {
+        throw new ProjectWorkOperationError(
+          "PROJECT_WORK_OPERATION_CONFLICT",
+          "The prior Work is itself a fresh execution whose Start again effect must be reconciled before another linked attempt is registered.",
+        );
+      }
+      const priorLineageAttempt = Number(
+        lineage.rows[0]?.new_lineage_attempt ?? prior.status.attempt,
+      );
+      if (
+        !Number.isSafeInteger(priorLineageAttempt) ||
+        priorLineageAttempt < 1 ||
+        priorLineageAttempt >= 100
+      ) {
+        throw new ProjectWorkOperationError(
+          "PROJECT_WORK_OPERATION_UNAVAILABLE",
+          "The retained Work lineage cannot admit another bounded attempt.",
+        );
+      }
+      const payload: StoredStartAgainRegistration = {
+        start_again_registration_id: input.startAgainRegistrationId,
+        project_id: input.projectId,
+        prior_work_unit_ref: clone(input.priorWorkUnitRef),
+        prior_input_manifest_ref: clone(prior.spec.input_manifest_ref),
+        prior_work_attempt: prior.status.attempt,
+        prior_lineage_attempt: priorLineageAttempt,
+        fresh_work_unit_ref: clone(input.freshWorkUnitRef),
+        fresh_input_manifest_ref: clone(fresh.spec.input_manifest_ref),
+        new_lineage_attempt: priorLineageAttempt + 1,
+        workflow: {
+          workflow_name: prior.spec.workflow_name,
+          workflow_version: prior.spec.workflow_version,
+          task_family: priorInput.content.task.task_family,
+          task_name: priorInput.content.task.task_name,
+          task_version: priorInput.content.task.task_version,
+        },
+        input_transition: {
+          strategy: "fresh_input",
+          retained_output_reuse: "none",
+          summary: input.inputTransition.summary,
+        },
+        registered_by: clone(input.registeredBy),
+        registered_at: input.registeredAt,
+      };
+      const contentHash = canonicalHash(payload);
+      const existing = await client.query<StoredStartAgainRegistrationRow>(
+        `SELECT start_again_registration_id, content_hash, payload
+           FROM petra.project_work_start_again_registrations
+          WHERE start_again_registration_id = $1
+             OR (prior_work_unit_id = $2 AND prior_work_unit_revision = $3)
+             OR fresh_work_unit_id = $4
+          ORDER BY start_again_registration_id
+          FOR UPDATE`,
+        [
+          input.startAgainRegistrationId,
+          prior.work_unit_id,
+          prior.revision,
+          fresh.work_unit_id,
+        ],
+      );
+      if (existing.rows.length > 0) {
+        const row = existing.rows[0];
+        if (
+          existing.rows.length === 1 &&
+          row !== undefined &&
+          row.start_again_registration_id === input.startAgainRegistrationId &&
+          row.content_hash === contentHash &&
+          canonicalize(row.payload) === canonicalize(payload)
+        ) {
+          return;
+        }
+        throw new ProjectWorkOperationError(
+          "PROJECT_WORK_OPERATION_CONFLICT",
+          "The Start again registration, prior Work, or fresh Work identity is already bound to a different transition.",
+        );
+      }
+      await client.query(
+        `INSERT INTO petra.project_work_start_again_registrations (
+           start_again_registration_id, project_id, prior_work_unit_id,
+           prior_work_unit_revision, prior_work_unit_spec_hash,
+           prior_input_manifest_id, prior_input_manifest_hash,
+           prior_work_attempt, prior_lineage_attempt, fresh_work_unit_id,
+           fresh_work_unit_revision, fresh_work_unit_spec_hash,
+           fresh_input_manifest_id, fresh_input_manifest_hash,
+           new_lineage_attempt, workflow_name, workflow_version, task_family,
+           task_name, task_version, transition_summary,
+           registered_by_actor_id, registered_by_actor_kind, registered_at,
+           content_hash, payload
+         ) VALUES (
+           $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13,
+           $14, $15, $16, $17, $18, $19, $20, $21, $22, $23,
+           $24::timestamptz, $25, $26::jsonb
+         )`,
+        [
+          payload.start_again_registration_id,
+          payload.project_id,
+          payload.prior_work_unit_ref.work_unit_id,
+          payload.prior_work_unit_ref.revision,
+          payload.prior_work_unit_ref.spec_hash,
+          payload.prior_input_manifest_ref.worker_input_manifest_id,
+          payload.prior_input_manifest_ref.content_hash,
+          payload.prior_work_attempt,
+          payload.prior_lineage_attempt,
+          payload.fresh_work_unit_ref.work_unit_id,
+          payload.fresh_work_unit_ref.revision,
+          payload.fresh_work_unit_ref.spec_hash,
+          payload.fresh_input_manifest_ref.worker_input_manifest_id,
+          payload.fresh_input_manifest_ref.content_hash,
+          payload.new_lineage_attempt,
+          payload.workflow.workflow_name,
+          payload.workflow.workflow_version,
+          payload.workflow.task_family,
+          payload.workflow.task_name,
+          payload.workflow.task_version,
+          payload.input_transition.summary,
+          payload.registered_by.actor_id,
+          payload.registered_by.actor_kind,
+          payload.registered_at,
+          contentHash,
+          JSON.stringify(payload),
+        ],
+      );
+    });
+  }
+
   async registerRequiredInput(
     input: RegisterProjectWorkRequiredInput,
   ): Promise<void> {
@@ -826,6 +1215,10 @@ export class PostgresProjectWorkOperations
       const delivery = await this.#delivery(client, projectId, workUnitId);
       const results = await this.#results(client, projectId, workUnitId);
       const resumeRegistration = await this.#resumeRegistration(client, work);
+      const startAgainRegistration = await this.#startAgainRegistration(
+        client,
+        work,
+      );
       const commandPath = `/api/commands/projects/${projectId}/work/${workUnitId}`;
       const active = [
         "requested",
@@ -850,6 +1243,7 @@ export class PostgresProjectWorkOperations
         work.status.state === "checkpointed" &&
         resumeRegistration !== undefined &&
         pendingInputs.length === 0;
+      const startAgainAvailable = startAgainRegistration !== undefined;
       const workUnitRef = exactWorkRef(work);
       const resumeBinding =
         resumable && work.status.state === "checkpointed"
@@ -859,6 +1253,39 @@ export class PostgresProjectWorkOperations
               expected_checkpoint: clone(work.status.checkpoint),
             }
           : undefined;
+      const startAgainBinding =
+        startAgainRegistration === undefined
+          ? undefined
+          : {
+              project_id: projectId,
+              expected_prior_work_unit_ref: workUnitRef,
+              start_again_registration_ref: {
+                start_again_registration_id:
+                  startAgainRegistration.payload.start_again_registration_id,
+                content_hash: startAgainRegistration.contentHash,
+              },
+              fresh_work_unit_ref: clone(
+                startAgainRegistration.payload.fresh_work_unit_ref,
+              ),
+              prior_work_attempt:
+                startAgainRegistration.payload.prior_work_attempt,
+              prior_lineage_attempt:
+                startAgainRegistration.payload.prior_lineage_attempt,
+              new_lineage_attempt:
+                startAgainRegistration.payload.new_lineage_attempt,
+              input_transition: {
+                strategy: "fresh_input" as const,
+                prior_input_manifest_ref: clone(
+                  startAgainRegistration.payload.prior_input_manifest_ref,
+                ),
+                fresh_input_manifest_ref: clone(
+                  startAgainRegistration.payload.fresh_input_manifest_ref,
+                ),
+                retained_output_reuse: "none" as const,
+                summary:
+                  startAgainRegistration.payload.input_transition.summary,
+              },
+            };
       const controls: PetraProjectWorkOperationsView["controls"] = [
         {
           operation: "start",
@@ -959,9 +1386,13 @@ export class PostgresProjectWorkOperations
         },
         {
           operation: "start_again",
-          state: "unavailable",
-          reason:
-            "Fresh execution requires a registered workflow-specific input-rebinding command; Petra does not clone Work implicitly.",
+          state: startAgainAvailable ? "available" : "unavailable",
+          reason: startAgainAvailable
+            ? "The owning workflow registered distinct requested Work with fresh immutable input and retained prior-attempt lineage."
+            : "Fresh execution requires distinct requested Work and a registered workflow-specific fresh-input transition; Petra does not clone Work implicitly.",
+          ...(startAgainAvailable
+            ? { command_path: `${commandPath}/start-again` }
+            : {}),
         },
       ];
       const content = {
@@ -974,6 +1405,9 @@ export class PostgresProjectWorkOperations
         ...(resumeBinding === undefined
           ? {}
           : { resume_binding: resumeBinding }),
+        ...(startAgainBinding === undefined
+          ? {}
+          : { start_again_binding: startAgainBinding }),
         controls,
         results,
         read_at: readAt,
@@ -1053,7 +1487,14 @@ export class PostgresProjectWorkOperations
       }
 
       const crossingIdentity = await client.query(
-        `SELECT 1 FROM petra.project_work_operation_receipts
+        `SELECT 1
+           FROM (
+             SELECT command_id, idempotency_key
+               FROM petra.project_work_operation_receipts
+             UNION ALL
+             SELECT command_id, idempotency_key
+               FROM petra.project_work_start_again_receipts
+           ) AS existing_command
           WHERE command_id = $1 OR idempotency_key = $2
           LIMIT 1`,
         [request.command_id, request.idempotency_key],
@@ -1072,6 +1513,11 @@ export class PostgresProjectWorkOperations
              UNION ALL
              SELECT command_id FROM petra.project_work_resume_receipts
               WHERE project_id = $1 AND work_unit_id = $2 AND state = 'pending'
+             UNION ALL
+             SELECT command_id FROM petra.project_work_start_again_receipts
+              WHERE project_id = $1
+                AND (prior_work_unit_id = $2 OR fresh_work_unit_id = $2)
+                AND state = 'pending'
            ) AS pending_work_operation
           LIMIT 1`,
         [projectId, request.expected_work_unit_ref.work_unit_id],
@@ -1347,6 +1793,518 @@ export class PostgresProjectWorkOperations
     });
   }
 
+  async #reserveStartAgain(
+    projectId: string,
+    request: PetraProjectWorkStartAgainRequest,
+    principal: ProjectWorkCommandPrincipal,
+  ): Promise<
+    PetraProjectWorkStartAgainReceipt | ResolvedStartAgainRegistration
+  > {
+    return this.#transaction("SERIALIZABLE", async (client) => {
+      const requestHash = canonicalHash(request);
+      const existing = await client.query<StoredStartAgainReceiptRow>(
+        `SELECT state, request_hash, request_payload, actor_id, actor_kind,
+                capability_grant_id, receipt_payload,
+                start_again_registration_id
+           FROM petra.project_work_start_again_receipts
+          WHERE command_id = $1 OR idempotency_key = $2
+          ORDER BY command_id
+          FOR UPDATE`,
+        [request.command_id, request.idempotency_key],
+      );
+      if (existing.rows.length > 0) {
+        if (existing.rows.length !== 1) {
+          throw new ProjectWorkOperationError(
+            "PROJECT_WORK_OPERATION_CONFLICT",
+            "The Start again command identity and idempotency key identify different operations.",
+          );
+        }
+        const row = existing.rows[0]!;
+        if (
+          row.request_hash !== requestHash ||
+          canonicalize(row.request_payload) !== canonicalize(request) ||
+          !sameActor(
+            { actor_id: row.actor_id, actor_kind: row.actor_kind },
+            principal.actor,
+          ) ||
+          row.capability_grant_id !== principal.capabilityGrantId
+        ) {
+          throw new ProjectWorkOperationError(
+            "PROJECT_WORK_OPERATION_CONFLICT",
+            "The Start again command identity or idempotency key is bound to different input or authority.",
+          );
+        }
+        if (row.state === "completed") {
+          this.#contracts.assertValid(
+            "project-work-start-again-receipt",
+            "1.0.0",
+            row.receipt_payload,
+          );
+          return clone(
+            row.receipt_payload,
+          ) as PetraProjectWorkStartAgainReceipt;
+        }
+        const registration = await this.#startAgainRegistrationById(
+          client,
+          row.start_again_registration_id,
+        );
+        if (registration === undefined) {
+          throw new ProjectWorkOperationError(
+            "PROJECT_WORK_OPERATION_STORED_RECORD_CORRUPT",
+            "The pending Start again command lost its fresh-input registration.",
+          );
+        }
+        return registration;
+      }
+
+      const crossingIdentity = await client.query(
+        `SELECT 1
+           FROM (
+             SELECT command_id, idempotency_key
+               FROM petra.project_work_operation_receipts
+             UNION ALL
+             SELECT command_id, idempotency_key
+               FROM petra.project_work_resume_receipts
+           ) AS existing_command
+          WHERE command_id = $1 OR idempotency_key = $2
+          LIMIT 1`,
+        [request.command_id, request.idempotency_key],
+      );
+      if ((crossingIdentity.rowCount ?? 0) > 0) {
+        throw new ProjectWorkOperationError(
+          "PROJECT_WORK_OPERATION_CONFLICT",
+          "The Start again command identity or idempotency key already names another Work operation.",
+        );
+      }
+      const prior = await this.#work(
+        client,
+        projectId,
+        request.expected_prior_work_unit_ref.work_unit_id,
+        true,
+      );
+      if (prior === undefined) {
+        throw new ProjectWorkOperationError(
+          "PROJECT_WORK_OPERATION_NOT_FOUND",
+          "The prior WorkUnit is not bound to this Project.",
+        );
+      }
+      if (
+        prior.revision !== request.expected_prior_work_unit_ref.revision ||
+        prior.spec_hash !== request.expected_prior_work_unit_ref.spec_hash ||
+        (prior.status.state !== "completed" &&
+          prior.status.state !== "cancelled")
+      ) {
+        throw new ProjectWorkOperationError(
+          "PROJECT_WORK_OPERATION_STALE",
+          "Start again must name the exact current terminal prior Work revision and specification.",
+        );
+      }
+      if (
+        !(await this.#authorizer.authorize(
+          {
+            actor: principal.actor,
+            capabilityGrantId: principal.capabilityGrantId,
+            commandName: "ManageProjectWork",
+            projectId,
+          },
+          client,
+        ))
+      ) {
+        throw new ProjectWorkOperationError(
+          "PROJECT_WORK_OPERATION_NOT_AUTHORIZED",
+          "The authenticated actor has no active exact Project Work grant.",
+        );
+      }
+      const registration = await this.#startAgainRegistration(client, prior);
+      if (
+        registration === undefined ||
+        registration.payload.start_again_registration_id !==
+          request.start_again_registration_ref.start_again_registration_id ||
+        registration.contentHash !==
+          request.start_again_registration_ref.content_hash
+      ) {
+        throw new ProjectWorkOperationError(
+          "PROJECT_WORK_OPERATION_UNAVAILABLE",
+          "No trusted registered fresh-input transition matches this exact terminal Work and request.",
+        );
+      }
+      if (
+        Date.parse(request.submitted_at) <
+        Date.parse(registration.payload.registered_at)
+      ) {
+        throw new ProjectWorkOperationError(
+          "PROJECT_WORK_OPERATION_STALE",
+          "Start again cannot precede its trusted fresh-input registration.",
+        );
+      }
+      const pending = await client.query(
+        `SELECT 1
+           FROM (
+             SELECT work_unit_id
+               FROM petra.project_work_operation_receipts
+              WHERE state = 'pending'
+             UNION ALL
+             SELECT work_unit_id
+               FROM petra.project_work_resume_receipts
+              WHERE state = 'pending'
+             UNION ALL
+             SELECT prior_work_unit_id AS work_unit_id
+               FROM petra.project_work_start_again_receipts
+              WHERE state = 'pending'
+             UNION ALL
+             SELECT fresh_work_unit_id AS work_unit_id
+               FROM petra.project_work_start_again_receipts
+              WHERE state = 'pending'
+           ) AS pending_work_operation
+          WHERE work_unit_id = ANY($1::text[])
+          LIMIT 1`,
+        [
+          [
+            prior.work_unit_id,
+            registration.payload.fresh_work_unit_ref.work_unit_id,
+          ],
+        ],
+      );
+      if ((pending.rowCount ?? 0) > 0) {
+        throw new ProjectWorkOperationError(
+          "PROJECT_WORK_OPERATION_CONFLICT",
+          "Prior or fresh Work has an unresolved delivery effect; reconcile it before starting again.",
+        );
+      }
+      await client.query(
+        `INSERT INTO petra.project_work_start_again_receipts (
+           receipt_id, command_id, idempotency_key, project_id,
+           prior_work_unit_id, prior_work_unit_revision,
+           start_again_registration_id, fresh_work_unit_id, request_hash,
+           request_payload, actor_id, actor_kind, capability_grant_id, state,
+           recorded_at
+         ) VALUES (
+           $1, $2, $3, $4, $5, $6, $7, $8, $9, $10::jsonb, $11, $12,
+           $13, 'pending', $14::timestamptz
+         )`,
+        [
+          derivePetraId("project_work_start_again_receipt", request.command_id),
+          request.command_id,
+          request.idempotency_key,
+          projectId,
+          prior.work_unit_id,
+          prior.revision,
+          registration.payload.start_again_registration_id,
+          registration.payload.fresh_work_unit_ref.work_unit_id,
+          requestHash,
+          JSON.stringify(request),
+          principal.actor.actor_id,
+          principal.actor.actor_kind,
+          principal.capabilityGrantId,
+          request.submitted_at,
+        ],
+      );
+      return registration;
+    });
+  }
+
+  async #startAgain(
+    request: PetraProjectWorkStartAgainRequest,
+    registration: StoredStartAgainRegistration,
+  ): Promise<PetraWorkUnit> {
+    const fresh = registration.fresh_work_unit_ref;
+    let current = await this.#workUnits.getWorkUnit(fresh.work_unit_id);
+    if (
+      current?.revision === fresh.revision &&
+      current.status.state === "requested"
+    ) {
+      current = await this.#workUnits.queue(
+        fresh.work_unit_id,
+        fresh.revision,
+        request.submitted_at,
+      );
+    }
+    if (
+      current?.revision === fresh.revision + 1 &&
+      current.status.state === "queued" &&
+      current.status.queued_at === request.submitted_at
+    ) {
+      current = await this.#workUnits.start(
+        fresh.work_unit_id,
+        fresh.revision + 1,
+        1,
+        request.submitted_at,
+      );
+    }
+    const started =
+      current?.revision === fresh.revision + 2
+        ? current
+        : await this.#workUnits.getWorkUnitRevision(
+            fresh.work_unit_id,
+            fresh.revision + 2,
+          );
+    if (
+      started?.spec_hash !== fresh.spec_hash ||
+      started.status.state !== "running" ||
+      started.status.attempt !== 1 ||
+      started.status.queued_at !== request.submitted_at ||
+      started.status.started_at !== request.submitted_at
+    ) {
+      throw new ProjectWorkOperationError(
+        "PROJECT_WORK_OPERATION_STALE",
+        "The reserved Start again command could not reconcile its exact fresh Work attempt.",
+      );
+    }
+    return started;
+  }
+
+  async #releaseUnappliedStartAgainReservation(
+    request: PetraProjectWorkStartAgainRequest,
+  ): Promise<void> {
+    const row = await this.#pool.query<{ fresh_work_unit_id: string }>(
+      `SELECT fresh_work_unit_id
+         FROM petra.project_work_start_again_receipts
+        WHERE command_id = $1 AND state = 'pending'`,
+      [request.command_id],
+    );
+    const freshWorkUnitId = row.rows[0]?.fresh_work_unit_id;
+    if (freshWorkUnitId === undefined) return;
+    const current = await this.#workUnits.getWorkUnit(freshWorkUnitId);
+    if (current?.revision !== 1 || current.status.state !== "requested") return;
+    await this.#pool.query(
+      `DELETE FROM petra.project_work_start_again_receipts
+        WHERE command_id = $1 AND state = 'pending'`,
+      [request.command_id],
+    );
+  }
+
+  async #completeStartAgainReceipt(
+    request: PetraProjectWorkStartAgainRequest,
+    receipt: PetraProjectWorkStartAgainReceipt,
+    registration: StoredStartAgainRegistration,
+    registrationContentHash: string,
+  ): Promise<PetraProjectWorkStartAgainReceipt> {
+    return this.#transaction("SERIALIZABLE", async (client) => {
+      const row = await client.query<StoredStartAgainReceiptRow>(
+        `SELECT state, request_hash, request_payload, actor_id, actor_kind,
+                capability_grant_id, receipt_payload,
+                start_again_registration_id
+           FROM petra.project_work_start_again_receipts
+          WHERE command_id = $1 FOR UPDATE`,
+        [request.command_id],
+      );
+      const existingReceipt = row.rows[0];
+      if (existingReceipt === undefined) {
+        throw new ProjectWorkOperationError(
+          "PROJECT_WORK_OPERATION_STORED_RECORD_CORRUPT",
+          "The Start again command lost its reservation.",
+        );
+      }
+      if (existingReceipt.state === "completed") {
+        this.#contracts.assertValid(
+          "project-work-start-again-receipt",
+          "1.0.0",
+          existingReceipt.receipt_payload,
+        );
+        return clone(
+          existingReceipt.receipt_payload,
+        ) as PetraProjectWorkStartAgainReceipt;
+      }
+      const transitionPayload = {
+        command_id: request.command_id,
+        idempotency_key: request.idempotency_key,
+        registration_ref: {
+          start_again_registration_id: registration.start_again_registration_id,
+          content_hash: registrationContentHash,
+        },
+        project_id: receipt.project_id,
+        prior_attempt: clone(receipt.prior_attempt),
+        fresh_input: clone(receipt.fresh_input),
+        new_attempt: clone(receipt.new_attempt),
+        started_at: request.submitted_at,
+        requested_by: clone(receipt.actor),
+        capability_grant_id: receipt.capability_grant_id,
+        authority_boundary: {
+          effect_kind: "operational_only" as const,
+          prior_work_preserved: true as const,
+          fresh_work_identity: true as const,
+          domain_authority_changed: false as const,
+        },
+      };
+      const transitionHash = canonicalHash(transitionPayload);
+      const existingTransition =
+        await client.query<StoredStartAgainTransitionRow>(
+          `SELECT record_hash, transition_payload
+             FROM petra.project_work_start_again_transitions
+            WHERE command_id = $1 OR idempotency_key = $2
+               OR start_again_registration_id = $3
+               OR fresh_work_unit_id = $4
+            ORDER BY command_id
+            FOR UPDATE`,
+          [
+            request.command_id,
+            request.idempotency_key,
+            registration.start_again_registration_id,
+            registration.fresh_work_unit_ref.work_unit_id,
+          ],
+        );
+      if (existingTransition.rows.length > 0) {
+        const transition = existingTransition.rows[0];
+        if (
+          existingTransition.rows.length !== 1 ||
+          transition === undefined ||
+          transition.record_hash !== transitionHash ||
+          canonicalize(transition.transition_payload) !==
+            canonicalize(transitionPayload)
+        ) {
+          throw new ProjectWorkOperationError(
+            "PROJECT_WORK_OPERATION_CONFLICT",
+            "The Start again transition identity is already bound to different retained-attempt lineage.",
+          );
+        }
+      } else {
+        await client.query(
+          `INSERT INTO petra.project_work_start_again_transitions (
+             command_id, idempotency_key, start_again_registration_id,
+             project_id, prior_work_unit_id, prior_work_unit_revision,
+             prior_work_attempt, prior_lineage_attempt, fresh_work_unit_id,
+             fresh_registered_revision, fresh_resulting_revision,
+             fresh_work_attempt, new_lineage_attempt, started_at, actor_id,
+             actor_kind, capability_grant_id, record_hash,
+             transition_payload
+           ) VALUES (
+             $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13,
+             $14::timestamptz, $15, $16, $17, $18, $19::jsonb
+           )`,
+          [
+            request.command_id,
+            request.idempotency_key,
+            registration.start_again_registration_id,
+            receipt.project_id,
+            registration.prior_work_unit_ref.work_unit_id,
+            registration.prior_work_unit_ref.revision,
+            registration.prior_work_attempt,
+            registration.prior_lineage_attempt,
+            registration.fresh_work_unit_ref.work_unit_id,
+            registration.fresh_work_unit_ref.revision,
+            receipt.new_attempt.work_unit_ref.revision,
+            receipt.new_attempt.work_attempt,
+            receipt.new_attempt.lineage_attempt,
+            request.submitted_at,
+            receipt.actor.actor_id,
+            receipt.actor.actor_kind,
+            receipt.capability_grant_id,
+            transitionHash,
+            JSON.stringify(transitionPayload),
+          ],
+        );
+      }
+      await client.query(
+        `UPDATE petra.project_work_start_again_receipts
+            SET state = 'completed', receipt_payload = $2::jsonb,
+                completed_at = $3::timestamptz
+          WHERE command_id = $1 AND state = 'pending'`,
+        [request.command_id, JSON.stringify(receipt), request.submitted_at],
+      );
+      return clone(receipt);
+    });
+  }
+
+  async #startAgainRegistration(
+    client: PoolClient,
+    prior: PetraWorkUnit,
+  ): Promise<ResolvedStartAgainRegistration | undefined> {
+    if (
+      prior.status.state !== "completed" &&
+      prior.status.state !== "cancelled"
+    ) {
+      return undefined;
+    }
+    const result = await client.query<StoredStartAgainRegistrationRow>(
+      `SELECT start_again_registration_id, content_hash, payload
+         FROM petra.project_work_start_again_registrations
+        WHERE project_id = $1 AND prior_work_unit_id = $2
+          AND prior_work_unit_revision = $3
+          AND prior_work_unit_spec_hash = $4`,
+      [prior.project_id, prior.work_unit_id, prior.revision, prior.spec_hash],
+    );
+    const row = result.rows[0];
+    if (row === undefined) return undefined;
+    const registration = this.#readStartAgainRegistration(row);
+    const fresh = await this.#work(
+      client,
+      prior.project_id,
+      registration.payload.fresh_work_unit_ref.work_unit_id,
+      false,
+    );
+    if (
+      fresh === undefined ||
+      fresh.revision !== registration.payload.fresh_work_unit_ref.revision ||
+      fresh.status.state !== "requested"
+    ) {
+      return undefined;
+    }
+    if (
+      registration.payload.project_id !== prior.project_id ||
+      canonicalize(registration.payload.prior_work_unit_ref) !==
+        canonicalize(exactWorkRef(prior)) ||
+      canonicalize(registration.payload.prior_input_manifest_ref) !==
+        canonicalize(prior.spec.input_manifest_ref) ||
+      registration.payload.prior_work_attempt !== prior.status.attempt ||
+      fresh.spec_hash !== registration.payload.fresh_work_unit_ref.spec_hash ||
+      canonicalize(registration.payload.fresh_input_manifest_ref) !==
+        canonicalize(fresh.spec.input_manifest_ref) ||
+      registration.payload.registered_by.actor_id !==
+        prior.created_by.actor_id ||
+      fresh.created_by.actor_id !== prior.created_by.actor_id ||
+      fresh.capability_grant_id !== prior.capability_grant_id
+    ) {
+      throw new ProjectWorkOperationError(
+        "PROJECT_WORK_OPERATION_STORED_RECORD_CORRUPT",
+        "The retained Start again registration crossed its exact prior/fresh Work boundary.",
+      );
+    }
+    const pendingInputs = await client.query(
+      `SELECT 1 FROM petra.project_work_input_requests
+        WHERE project_id = $1 AND work_unit_id = $2 AND state = 'pending'
+        LIMIT 1`,
+      [prior.project_id, fresh.work_unit_id],
+    );
+    return (pendingInputs.rowCount ?? 0) > 0 ? undefined : registration;
+  }
+
+  async #startAgainRegistrationById(
+    client: PoolClient,
+    registrationId: string,
+  ): Promise<ResolvedStartAgainRegistration | undefined> {
+    const result = await client.query<StoredStartAgainRegistrationRow>(
+      `SELECT start_again_registration_id, content_hash, payload
+         FROM petra.project_work_start_again_registrations
+        WHERE start_again_registration_id = $1`,
+      [registrationId],
+    );
+    const row = result.rows[0];
+    return row === undefined
+      ? undefined
+      : this.#readStartAgainRegistration(row);
+  }
+
+  #readStartAgainRegistration(
+    row: StoredStartAgainRegistrationRow,
+  ): ResolvedStartAgainRegistration {
+    const payload = row.payload as Partial<StoredStartAgainRegistration>;
+    if (
+      typeof payload !== "object" ||
+      payload === null ||
+      payload.start_again_registration_id !== row.start_again_registration_id ||
+      canonicalHash(row.payload) !== row.content_hash
+    ) {
+      throw new ProjectWorkOperationError(
+        "PROJECT_WORK_OPERATION_STORED_RECORD_CORRUPT",
+        "A retained Start again registration failed its exact content identity.",
+      );
+    }
+    return {
+      payload: clone(row.payload) as StoredStartAgainRegistration,
+      contentHash: row.content_hash,
+    };
+  }
+
   async #resumeRegistration(
     client: PoolClient,
     work: PetraWorkUnit,
@@ -1480,7 +2438,14 @@ export class PostgresProjectWorkOperations
       }
 
       const crossingResumeIdentity = await client.query(
-        `SELECT 1 FROM petra.project_work_resume_receipts
+        `SELECT 1
+           FROM (
+             SELECT command_id, idempotency_key
+               FROM petra.project_work_resume_receipts
+             UNION ALL
+             SELECT command_id, idempotency_key
+               FROM petra.project_work_start_again_receipts
+           ) AS existing_command
           WHERE command_id = $1 OR idempotency_key = $2
           LIMIT 1`,
         [request.command_id, request.idempotency_key],
@@ -1514,6 +2479,20 @@ export class PostgresProjectWorkOperations
         throw new ProjectWorkOperationError(
           "PROJECT_WORK_OPERATION_CONFLICT",
           "A checkpoint resume has an unresolved delivery effect; reconcile it before a new Work command.",
+        );
+      }
+      const pendingStartAgain = await client.query(
+        `SELECT 1 FROM petra.project_work_start_again_receipts
+          WHERE project_id = $1
+            AND (prior_work_unit_id = $2 OR fresh_work_unit_id = $2)
+            AND state = 'pending'
+          LIMIT 1`,
+        [projectId, request.expected_work_unit_ref.work_unit_id],
+      );
+      if ((pendingStartAgain.rowCount ?? 0) > 0) {
+        throw new ProjectWorkOperationError(
+          "PROJECT_WORK_OPERATION_CONFLICT",
+          "Start again has an unresolved delivery effect; reconcile it before a new Work command.",
         );
       }
       const work = await this.#work(

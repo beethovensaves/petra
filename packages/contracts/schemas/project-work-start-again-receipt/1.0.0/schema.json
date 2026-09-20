@@ -1,0 +1,170 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-work-start-again-receipt/1.0.0/schema.json",
+  "title": "PetraProjectWorkStartAgainReceipt",
+  "description": "The immutable exact result of one authorized registered fresh-input transition. It starts linked Work without overwriting prior attempts or applying domain authority.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "receipt_id",
+    "command_id",
+    "idempotency_key",
+    "project_id",
+    "outcome",
+    "actor",
+    "capability_grant_id",
+    "requested_prior_work_unit_ref",
+    "start_again_registration",
+    "prior_attempt",
+    "fresh_input",
+    "new_attempt",
+    "effect",
+    "destination",
+    "recorded_at",
+    "record_hash"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.project-work-start-again-receipt" },
+    "schema_version": { "const": "1.0.0" },
+    "receipt_id": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        {
+          "type": "string",
+          "pattern": "^project_work_start_again_receipt_"
+        }
+      ]
+    },
+    "command_id": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        { "type": "string", "pattern": "^command_" }
+      ]
+    },
+    "idempotency_key": { "type": "string", "minLength": 1, "maxLength": 512 },
+    "project_id": { "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId" },
+    "outcome": { "const": "started_again" },
+    "actor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["actor_id", "actor_kind"],
+      "properties": {
+        "actor_id": { "$ref": "../../common/1.0.0/schema.json#/$defs/ActorId" },
+        "actor_kind": { "const": "human" }
+      }
+    },
+    "capability_grant_id": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        { "type": "string", "pattern": "^capability_grant_" }
+      ]
+    },
+    "requested_prior_work_unit_ref": {
+      "$ref": "../../project-work-operation-request/1.0.0/schema.json#/$defs/WorkUnitRef"
+    },
+    "start_again_registration": {
+      "$ref": "../../project-work-start-again-request/1.0.0/schema.json#/$defs/StartAgainRegistrationRef"
+    },
+    "prior_attempt": { "$ref": "#/$defs/PriorAttempt" },
+    "fresh_input": { "$ref": "#/$defs/FreshInput" },
+    "new_attempt": { "$ref": "#/$defs/NewAttempt" },
+    "effect": { "$ref": "#/$defs/Effect" },
+    "destination": { "$ref": "#/$defs/Destination" },
+    "recorded_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    },
+    "record_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    }
+  },
+  "$defs": {
+    "InputManifestRef": {
+      "$ref": "../../work-unit/1.0.0/schema.json#/$defs/InputManifestRef"
+    },
+    "PriorAttempt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "work_unit_ref",
+        "work_attempt",
+        "lineage_attempt",
+        "input_manifest_ref"
+      ],
+      "properties": {
+        "work_unit_ref": {
+          "$ref": "../../project-work-operation-request/1.0.0/schema.json#/$defs/WorkUnitRef"
+        },
+        "work_attempt": {
+          "$ref": "../../worker-input-manifest/1.0.0/schema.json#/$defs/Attempt"
+        },
+        "lineage_attempt": {
+          "$ref": "../../worker-input-manifest/1.0.0/schema.json#/$defs/Attempt"
+        },
+        "input_manifest_ref": { "$ref": "#/$defs/InputManifestRef" }
+      }
+    },
+    "FreshInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "strategy",
+        "prior_input_manifest_ref",
+        "fresh_input_manifest_ref",
+        "retained_output_reuse",
+        "summary"
+      ],
+      "properties": {
+        "strategy": { "const": "fresh_input" },
+        "prior_input_manifest_ref": { "$ref": "#/$defs/InputManifestRef" },
+        "fresh_input_manifest_ref": { "$ref": "#/$defs/InputManifestRef" },
+        "retained_output_reuse": { "const": "none" },
+        "summary": { "type": "string", "minLength": 1, "maxLength": 1000 }
+      }
+    },
+    "NewAttempt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["lineage_attempt", "work_attempt", "work_unit_ref"],
+      "properties": {
+        "lineage_attempt": { "type": "integer", "minimum": 2, "maximum": 100 },
+        "work_attempt": { "const": 1 },
+        "work_unit_ref": {
+          "$ref": "../../project-work-operation-request/1.0.0/schema.json#/$defs/WorkUnitRef"
+        }
+      }
+    },
+    "Effect": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "summary",
+        "prior_work_preserved",
+        "prior_attempts_preserved",
+        "fresh_work_identity",
+        "domain_authority_changed"
+      ],
+      "properties": {
+        "kind": { "const": "operational_only" },
+        "summary": { "type": "string", "minLength": 1, "maxLength": 4000 },
+        "prior_work_preserved": { "const": true },
+        "prior_attempts_preserved": { "const": true },
+        "fresh_work_identity": { "const": true },
+        "domain_authority_changed": { "const": false }
+      }
+    },
+    "Destination": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["place_role", "work_unit_ref"],
+      "properties": {
+        "place_role": { "const": "work" },
+        "work_unit_ref": {
+          "$ref": "../../project-work-operation-request/1.0.0/schema.json#/$defs/WorkUnitRef"
+        }
+      }
+    }
+  }
+}

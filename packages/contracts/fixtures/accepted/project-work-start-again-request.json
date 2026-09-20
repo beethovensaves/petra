@@ -1,0 +1,16 @@
+{
+  "schema_name": "petra.project-work-start-again-request",
+  "schema_version": "1.0.0",
+  "command_id": "command_01K6P000000000000000000911",
+  "idempotency_key": "wave6:work:start-again:001",
+  "expected_prior_work_unit_ref": {
+    "work_unit_id": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+    "revision": 4,
+    "spec_hash": "sha256:2e6c6536312fead0c9abc2d902035ba1c41b9e4a5fb6835f7666101940a6a737"
+  },
+  "start_again_registration_ref": {
+    "start_again_registration_id": "work_start_again_registration_01K6P000000000000000000910",
+    "content_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  },
+  "submitted_at": "2026-09-20T16:10:04.000Z"
+}

@@ -78,6 +78,7 @@ import type {
   PetraProjectProfileCommandRequest,
   PetraProjectWorkOperationRequest,
   PetraProjectWorkResumeRequest,
+  PetraProjectWorkStartAgainRequest,
   PetraWorkingCandidate,
   PetraSuggestedActionInvocationRequest,
   PetraProjectHistoryCompensationExecutionRequest,
@@ -172,6 +173,7 @@ import {
   type ProjectWorkOperationAuthority,
   type ProjectWorkOperationsViewReader,
   type ProjectWorkResumeAuthority,
+  type ProjectWorkStartAgainAuthority,
   type ProjectWorkerOutputManifestReader,
   type ProjectWorkViewReader,
   type ProjectWorkingStateSnapshotReader,
@@ -247,6 +249,7 @@ export interface PetraAppOptions {
   projectWorkOperations?: ProjectWorkOperationsViewReader;
   projectWorkOperationAuthority?: ProjectWorkOperationAuthority;
   projectWorkResumeAuthority?: ProjectWorkResumeAuthority;
+  projectWorkStartAgainAuthority?: ProjectWorkStartAgainAuthority;
   projectThreadViews?: ProjectThreadViewReader;
   projectInquiryViews?: ProjectInquiryViewReader;
   projectInquirySaveAuthority?: ProjectInquirySaveAuthority;
@@ -5531,14 +5534,25 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
           (control) =>
             control.operation === "resume" && control.state === "available",
         );
+        const startAgainAvailable = view.controls.some(
+          (control) =>
+            control.operation === "start_again" &&
+            control.state === "available",
+        );
         if (
           view.project_id !== projectId ||
           view.work_unit_ref.work_unit_id !== workUnitId ||
           resumeAvailable !== (view.resume_binding !== undefined) ||
+          startAgainAvailable !== (view.start_again_binding !== undefined) ||
           (view.resume_binding !== undefined &&
             (view.resume_binding.project_id !== projectId ||
               canonicalize(view.resume_binding.expected_work_unit_ref) !==
-                canonicalize(view.work_unit_ref)))
+                canonicalize(view.work_unit_ref))) ||
+          (view.start_again_binding !== undefined &&
+            (view.start_again_binding.project_id !== projectId ||
+              canonicalize(
+                view.start_again_binding.expected_prior_work_unit_ref,
+              ) !== canonicalize(view.work_unit_ref)))
         ) {
           throw new Error(
             "The Work operation assessment crossed its exact Project, WorkUnit, or checkpoint-resume boundary.",
@@ -5558,6 +5572,132 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
           error instanceof Error
             ? error.message
             : "The Project Work operation assessment is unavailable.",
+          error instanceof InteractionInputError ? error.issues : undefined,
+        );
+      }
+    },
+  );
+
+  app.post(
+    "/api/commands/projects/:projectId/work/:workUnitId/start-again",
+    async (context) => {
+      if (
+        options.projectWorkStartAgainAuthority === undefined ||
+        options.commandPrincipalResolver === undefined
+      ) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_WORK_OPERATION_UNAVAILABLE",
+          "The authenticated Start again boundary is not configured.",
+        );
+      }
+      try {
+        const parameters = new URL(context.req.url).searchParams;
+        if ([...parameters.keys()].length > 0) {
+          throw new InteractionInputError(
+            "Project Work Start again commands do not accept query parameters.",
+            [...new Set(parameters.keys())],
+          );
+        }
+        const projectId = context.req.param("projectId");
+        const workUnitId = context.req.param("workUnitId");
+        if (
+          !PROJECT_ID_PATTERN.test(projectId) ||
+          !WORK_UNIT_ID_PATTERN.test(workUnitId)
+        ) {
+          throw new InteractionInputError(
+            "Start again requires canonical Project and prior WorkUnit identities.",
+          );
+        }
+        const body = (await readBoundedJson(
+          context,
+          maxBodyBytes,
+        )) as PetraProjectWorkStartAgainRequest;
+        contracts.assertValid(
+          "project-work-start-again-request",
+          "1.0.0",
+          body,
+        );
+        if (body.expected_prior_work_unit_ref.work_unit_id !== workUnitId) {
+          throw new InteractionInputError(
+            "The Start again route and expected prior WorkUnit must identify the same retained task.",
+          );
+        }
+        const principal =
+          await options.commandPrincipalResolver.resolveCommandPrincipal({
+            projectId,
+            commandName: "ManageProjectWork",
+          });
+        if (
+          principal.state !== "resolved" ||
+          principal.actor.actor_kind !== "human"
+        ) {
+          throw new ProjectWorkOperationError(
+            "PROJECT_WORK_OPERATION_NOT_AUTHORIZED",
+            `The authenticated Start again principal was denied: ${principal.state === "resolved" ? "actor_not_human" : principal.reason}.`,
+          );
+        }
+        const receipt =
+          await options.projectWorkStartAgainAuthority.executeProjectWorkStartAgain(
+            projectId,
+            body,
+            {
+              actor: {
+                actor_id: principal.actor.actor_id,
+                actor_kind: "human",
+              },
+              capabilityGrantId: principal.capabilityGrantId,
+            },
+          );
+        contracts.assertValid(
+          "project-work-start-again-receipt",
+          "1.0.0",
+          receipt,
+        );
+        if (
+          receipt.project_id !== projectId ||
+          receipt.command_id !== body.command_id ||
+          receipt.idempotency_key !== body.idempotency_key ||
+          receipt.requested_prior_work_unit_ref.work_unit_id !== workUnitId ||
+          canonicalize(receipt.start_again_registration) !==
+            canonicalize(body.start_again_registration_ref)
+        ) {
+          throw new Error(
+            "The Start again receipt crossed its exact command, registration, or prior Work boundary.",
+          );
+        }
+        return context.json(receipt);
+      } catch (error) {
+        const invalid =
+          error instanceof InteractionInputError ||
+          error instanceof ContractRegistryError ||
+          error instanceof SyntaxError;
+        const status = invalid
+          ? 422
+          : error instanceof ProjectWorkOperationError
+            ? error.code === "PROJECT_WORK_OPERATION_NOT_FOUND"
+              ? 404
+              : error.code === "PROJECT_WORK_OPERATION_NOT_AUTHORIZED"
+                ? 403
+                : error.code === "PROJECT_WORK_OPERATION_STALE" ||
+                    error.code === "PROJECT_WORK_OPERATION_CONFLICT"
+                  ? 409
+                  : error.code === "PROJECT_WORK_OPERATION_UNAVAILABLE"
+                    ? 422
+                    : 503
+            : 503;
+        return jsonError(
+          context,
+          status,
+          invalid
+            ? "PROJECT_WORK_START_AGAIN_REQUEST_INVALID"
+            : error instanceof ProjectWorkOperationError
+              ? error.code
+              : "PROJECT_WORK_START_AGAIN_FAILED",
+          error instanceof Error
+            ? error.message
+            : "The Start again command failed.",
           error instanceof InteractionInputError ? error.issues : undefined,
         );
       }
