@@ -116,6 +116,28 @@ try {
     );
     process.stdout.write(workEvidence.stdout);
   }
+  if (process.env.PETRA_WAVE6_PROJECT_OPEN_EVIDENCE_OUTPUT !== undefined) {
+    const projectOpenEvidence = await requireRun(
+      "npm",
+      [
+        "test",
+        "--workspace",
+        "@petra/server",
+        "--",
+        "project-shell-open-integration.test.ts",
+      ],
+      {
+        env: {
+          PETRA_TEST_POSTGRES_URL: `postgresql://petra:petra-m12-integration-only@127.0.0.1:${port}/petra`,
+          PETRA_WAVE6_PROJECT_OPEN_EVIDENCE_OUTPUT: resolve(
+            root,
+            process.env.PETRA_WAVE6_PROJECT_OPEN_EVIDENCE_OUTPUT,
+          ),
+        },
+      },
+    );
+    process.stdout.write(projectOpenEvidence.stdout);
+  }
   const postgresTestArgs = ["test", "--workspace", "@petra/postgres"];
   if (process.env.PETRA_WAVE6_ACTIONS_ONLY === "1") {
     postgresTestArgs.push(

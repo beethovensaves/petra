@@ -1,4 +1,9 @@
-import type { PetraProjectShellCollectionView } from "@petra/contracts";
+import type {
+  PetraProjectShellCollectionView,
+  PetraProjectShellView,
+  PetraProjectShellViewV11,
+  PetraProjectShellViewV12,
+} from "@petra/contracts";
 import { PetraContractRegistry } from "@petra/contracts/validator";
 import type { ProjectShellCollectionRequest } from "@petra/core";
 import { canonicalize } from "json-canonicalize";
@@ -20,6 +25,9 @@ export class ProjectShellClientError extends Error {
     this.name = "ProjectShellClientError";
   }
 }
+
+export type ProjectShellReadView =
+  PetraProjectShellView | PetraProjectShellViewV11 | PetraProjectShellViewV12;
 
 const digest = async (value: unknown): Promise<string> => {
   const bytes = await crypto.subtle.digest(
@@ -82,9 +90,12 @@ const expectedQuery = (
   };
 };
 
-const responseFailure = async (response: Response): Promise<never> => {
+const responseFailure = async (
+  response: Response,
+  fallbackMessage: string,
+): Promise<never> => {
   let code = "PROJECT_SHELL_READ_FAILED";
-  let message = `Project search failed (${response.status}).`;
+  let message = `${fallbackMessage} (${response.status}).`;
   try {
     const body: unknown = await response.json();
     if (
@@ -130,7 +141,7 @@ export class ProjectShellClient {
       method: "GET",
       headers: { authorization: `Bearer ${this.options.token}` },
     });
-    if (!response.ok) return responseFailure(response);
+    if (!response.ok) return responseFailure(response, "Project search failed");
     const body: unknown = await response.json();
     const contracts = this.options.contracts ?? new PetraContractRegistry();
     contracts.assertValid("project-shell-collection-view", "1.0.0", body);
@@ -144,6 +155,58 @@ export class ProjectShellClient {
         "PROJECT_COLLECTION_RESPONSE_INVALID",
         502,
         "Petra returned a Project collection for a different query or with an invalid result identity.",
+      );
+    }
+    return view;
+  }
+
+  /**
+   * Resolves one exact Project through the authenticated shell read used by a
+   * Project destination. The caller may choose a browser route, but it cannot
+   * substitute Project identity or shell content.
+   */
+  async open(projectId: string): Promise<ProjectShellReadView> {
+    if (!/^project_[0-9A-HJKMNP-TV-Z]{26}$/u.test(projectId)) {
+      throw new TypeError("Project open requires one exact Petra Project ID.");
+    }
+    const url = new URL(
+      `/api/queries/projects/${encodeURIComponent(projectId)}/shell`,
+      this.options.baseUrl,
+    );
+    const response = await (this.options.fetch ?? fetch)(url, {
+      method: "GET",
+      headers: { authorization: `Bearer ${this.options.token}` },
+    });
+    if (!response.ok) return responseFailure(response, "Project open failed");
+    const body: unknown = await response.json();
+    if (
+      typeof body !== "object" ||
+      body === null ||
+      !("schema_name" in body) ||
+      body.schema_name !== "petra.project-shell-view" ||
+      !("schema_version" in body) ||
+      (body.schema_version !== "1.0.0" &&
+        body.schema_version !== "1.1.0" &&
+        body.schema_version !== "1.2.0")
+    ) {
+      throw new ProjectShellClientError(
+        "PROJECT_SHELL_RESPONSE_INVALID",
+        502,
+        "Petra returned an invalid Project shell response.",
+      );
+    }
+    const contracts = this.options.contracts ?? new PetraContractRegistry();
+    contracts.assertValid("project-shell-view", body.schema_version, body);
+    const view = body as ProjectShellReadView;
+    if (
+      view.project_id !== projectId ||
+      view.content.project.project_id !== projectId ||
+      view.content_hash !== (await digest(view.content))
+    ) {
+      throw new ProjectShellClientError(
+        "PROJECT_SHELL_RESPONSE_INVALID",
+        502,
+        "Petra returned a Project shell for another Project or with an invalid result identity.",
       );
     }
     return view;
