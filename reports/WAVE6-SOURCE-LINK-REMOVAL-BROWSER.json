@@ -1,7 +1,7 @@
 {
   "schema_name": "petra.wave6-source-link-removal-browser-observation",
   "schema_version": 1,
-  "observed_at": "2026-09-20T13:46:14.011Z",
+  "observed_at": "2026-09-20T14:46:56.336Z",
   "operations": ["source.remove-project-link"],
   "production_boundary": "Production Source Details SourceLinkRemovalActions with the renderer-neutral ProjectSourceLinkRemovalClient boundary and deterministic typed transport.",
   "exercised": [
@@ -10,7 +10,7 @@
     "retained global identity, immutable revisions, copy manifest, local copy, parsed representation, and provenance",
     "required human reason and exact command/idempotency retry",
     "applied, replayed, conflict, permission, rejected, and unknown-effect recovery outcomes",
-    "distinct unavailable local-copy deletion control",
+    "distinct local-copy deletion control without invoking its separate production owner",
     "exact originating source-task selection and trigger-focus return",
     "narrow viewport, 200% text, reduced motion, keyboard focus, touch target, and browser semantics"
   ],

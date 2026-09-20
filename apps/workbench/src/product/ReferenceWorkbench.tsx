@@ -35,6 +35,7 @@ import {
   SourceLinkRemovalActions,
   type SourceLinkRemovalClient,
 } from "./SourceLinkRemoval.js";
+import type { SourceLocalCopyDeletionClient } from "./SourceLocalCopyDeletion.js";
 import { SourceRevisionPanel } from "./SourceRevision.js";
 import { SourceReusePanel, type SourceReuseCompletion } from "./SourceReuse.js";
 import type {
@@ -1458,14 +1459,18 @@ export const SourceDetails = ({
   taskReturnPath,
   linkRemovalAvailable = true,
   linkRemovalClient,
+  localCopyDeletionClient,
   onLinkRemoved,
+  onLocalCopyDeleted,
 }: {
   projectId: string;
   source: SourceRecord;
   taskReturnPath: string;
   linkRemovalAvailable?: boolean;
   linkRemovalClient?: SourceLinkRemovalClient;
+  localCopyDeletionClient?: SourceLocalCopyDeletionClient;
   onLinkRemoved?: () => void | Promise<void>;
+  onLocalCopyDeleted?: () => void | Promise<void>;
 }) => (
   <aside className="reference-details" aria-labelledby="source-details-title">
     <div className="reference-details__heading">
@@ -1518,7 +1523,11 @@ export const SourceDetails = ({
       {...(linkRemovalClient === undefined
         ? {}
         : { client: linkRemovalClient })}
+      {...(localCopyDeletionClient === undefined
+        ? {}
+        : { localCopyDeletionClient })}
       {...(onLinkRemoved === undefined ? {} : { onRemoved: onLinkRemoved })}
+      {...(onLocalCopyDeleted === undefined ? {} : { onLocalCopyDeleted })}
     />
   </aside>
 );
@@ -1532,7 +1541,9 @@ export const SourceReaderSurface = ({
   revisionUnavailable,
   linkRemovalAvailable = true,
   linkRemovalClient,
+  localCopyDeletionClient,
   onLinkRemoved,
+  onLocalCopyDeleted,
 }: {
   project: ProjectRecord;
   source: SourceRecord;
@@ -1542,7 +1553,9 @@ export const SourceReaderSurface = ({
   revisionUnavailable?: string;
   linkRemovalAvailable?: boolean;
   linkRemovalClient?: SourceLinkRemovalClient;
+  localCopyDeletionClient?: SourceLocalCopyDeletionClient;
   onLinkRemoved?: () => void | Promise<void>;
+  onLocalCopyDeleted?: () => void | Promise<void>;
 }) => {
   const [addingRevision, setAddingRevision] = useState(false);
   const returnPath = returnTo?.path ?? `/projects/${project.id}/sources`;
@@ -1652,7 +1665,11 @@ export const SourceReaderSurface = ({
           taskReturnPath={exactTaskReturn}
           linkRemovalAvailable={linkRemovalAvailable}
           {...(linkRemovalClient === undefined ? {} : { linkRemovalClient })}
+          {...(localCopyDeletionClient === undefined
+            ? {}
+            : { localCopyDeletionClient })}
           {...(onLinkRemoved === undefined ? {} : { onLinkRemoved })}
+          {...(onLocalCopyDeleted === undefined ? {} : { onLocalCopyDeleted })}
         />
       </div>
 
@@ -1733,6 +1750,7 @@ export const SourceReaderRoute = (): React.JSX.Element => {
       taskReturnPath={`${location.pathname}${location.search}`}
       linkRemovalAvailable={data.linkRemovalAvailable}
       onLinkRemoved={() => revalidator.revalidate()}
+      onLocalCopyDeleted={() => revalidator.revalidate()}
       {...(data.revision === undefined ? {} : { revision: data.revision })}
       {...(data.revisionUnavailable === undefined
         ? {}

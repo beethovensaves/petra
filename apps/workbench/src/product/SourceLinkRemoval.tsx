@@ -17,6 +17,10 @@ import { Link } from "react-router";
 
 import { PetraButton, PetraTextArea } from "../design-system/primitives.js";
 import {
+  SourceLocalCopyDeletionAction,
+  type SourceLocalCopyDeletionClient,
+} from "./SourceLocalCopyDeletion.js";
+import {
   createSourceLinkRemovalRequest,
   projectSourceLinkRemovalClient,
   sourceLinkRemovalConflict,
@@ -268,7 +272,9 @@ export const SourceLinkRemovalActions = ({
   taskReturnPath,
   available = true,
   client,
+  localCopyDeletionClient,
   onRemoved,
+  onLocalCopyDeleted,
 }: {
   projectId: string;
   projectSourceId: string;
@@ -278,7 +284,9 @@ export const SourceLinkRemovalActions = ({
   taskReturnPath: string;
   available?: boolean;
   client?: SourceLinkRemovalClient;
+  localCopyDeletionClient?: SourceLocalCopyDeletionClient;
   onRemoved?: () => void | Promise<void>;
+  onLocalCopyDeleted?: () => void | Promise<void>;
 }): React.JSX.Element => {
   const removalClient = useMemo(
     () => client ?? projectSourceLinkRemovalClient(),
@@ -432,17 +440,18 @@ export const SourceLinkRemovalActions = ({
         >
           Remove from Project
         </PetraButton>
-        <PetraButton
-          variant="secondary"
-          unavailable={{
-            reason:
-              "No separate eligible local-copy deletion owner is available.",
-            prerequisite:
-              "A retention-qualified deletion preview, command, and durable receipt.",
-          }}
-        >
-          Delete local copy
-        </PetraButton>
+        <SourceLocalCopyDeletionAction
+          projectId={projectId}
+          projectSourceId={projectSourceId}
+          sourceTitle={sourceTitle}
+          taskReturnPath={taskReturnPath}
+          {...(localCopyDeletionClient === undefined
+            ? {}
+            : { client: localCopyDeletionClient })}
+          {...(onLocalCopyDeleted === undefined
+            ? {}
+            : { onDeleted: onLocalCopyDeleted })}
+        />
       </div>
 
       {open ? (

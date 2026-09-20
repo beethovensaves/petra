@@ -99,7 +99,7 @@ describe("production Project-link removal integration", () => {
     ).toBe(true);
   });
 
-  it("keeps Project-link removal and unavailable local-copy deletion visibly distinct", () => {
+  it("keeps Project-link removal and local-copy deletion visibly distinct", () => {
     const markup = renderToStaticMarkup(
       <MemoryRouter>
         <SourceLinkRemovalActions
@@ -115,7 +115,10 @@ describe("production Project-link removal integration", () => {
 
     expect(markup).toContain("Remove from Project");
     expect(markup).toContain("Delete local copy");
-    expect(markup).toContain('aria-disabled="true"');
-    expect(markup).toContain("No separate eligible local-copy deletion owner");
+    expect(markup).toContain('id="source-link-removal-trigger"');
+    expect(markup).toContain('id="source-local-copy-deletion-trigger"');
+    expect(markup).not.toContain(
+      "No separate eligible local-copy deletion owner",
+    );
   });
 });

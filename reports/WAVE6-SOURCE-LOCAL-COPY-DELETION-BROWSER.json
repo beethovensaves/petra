@@ -1,0 +1,22 @@
+{
+  "schema_name": "petra.wave6-source-local-copy-deletion-browser-observation",
+  "schema_version": 1,
+  "observed_at": "2026-09-20T14:43:05.760Z",
+  "operations": ["source.delete-local-copy"],
+  "production_boundary": "Production Source Details SourceLocalCopyDeletionAction with the renderer-neutral ProjectSourceLocalCopyDeletionClient boundary and deterministic typed transport.",
+  "exercised": [
+    "distinct Project-link removal and local-copy deletion controls",
+    "server-owned eligible and dependency-blocked preview states",
+    "exact Project, ProjectDefinition, ProjectSource, manifest, Artifact, hash, size, and media-type presentation",
+    "retained Project link, identities, rights, selectors, provenance, History, and reacquisition consequences",
+    "required human reason and exact command/idempotency retry",
+    "applied, replayed, conflict, permission, rejected, and durable unknown-effect recovery outcomes",
+    "exact originating source-task selection and trigger-focus return",
+    "narrow viewport, 200% text, reduced motion, keyboard focus, touch target, and browser semantics"
+  ],
+  "exclusions": [
+    "No PostgreSQL or S3 service was started by this focused browser run.",
+    "The representative production setup still needs an eligible stored copy and DeleteLocalSourceCopy grant before this operation can be marked live.",
+    "This is not the complete UX1.6-SOURCES register/process/inspect/replace/remove/delete/recovery workflow."
+  ]
+}

@@ -84,14 +84,12 @@ await send("Emulation.setDeviceMetricsOverride", {
 
 await navigate("unknown");
 assert.equal(
-  await evaluate(
-    `${button("Delete local copy")}.getAttribute("aria-disabled")`,
-  ),
-  "true",
+  await evaluate(`${button("Delete local copy")} !== undefined`),
+  true,
 );
 assert.equal(
   await evaluate(
-    'document.body.innerText.includes("No separate eligible local-copy deletion owner is available")',
+    'document.querySelector("#source-link-removal-trigger") !== null && document.querySelector("#source-local-copy-deletion-trigger") !== null',
   ),
   true,
 );
@@ -285,7 +283,7 @@ await writeFile(
         "retained global identity, immutable revisions, copy manifest, local copy, parsed representation, and provenance",
         "required human reason and exact command/idempotency retry",
         "applied, replayed, conflict, permission, rejected, and unknown-effect recovery outcomes",
-        "distinct unavailable local-copy deletion control",
+        "distinct local-copy deletion control without invoking its separate production owner",
         "exact originating source-task selection and trigger-focus return",
         "narrow viewport, 200% text, reduced motion, keyboard focus, touch target, and browser semantics",
       ],

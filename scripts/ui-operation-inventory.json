@@ -472,7 +472,7 @@
         {
           "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH PETRA_WAVE6_SOURCE_LINK_REMOVAL_BROWSER_OUTPUT=reports/WAVE6-SOURCE-LINK-REMOVAL-BROWSER.json npm run test:wave6:source-link-removal-ui",
           "artifact": "reports/WAVE6-SOURCE-LINK-REMOVAL-BROWSER.json",
-          "boundary": "Isolated Chrome executed the production Source Details SourceLinkRemovalActions and renderer-neutral ProjectSourceLinkRemovalClient boundary with deterministic typed transport. It verified authenticated preview invocation, exact Project/definition/source/role freshness, registered dependency impact, retained global identity and immutable revisions, required reason, applied and replayed results, conflicts, permission and rejected failures, exact-request unknown-effect recovery, distinct unavailable local-copy deletion, exact task/selection and focus return, and responsive keyboard/browser semantics. The exact backend counterpart separately proves the live server and PostgreSQL owners; this artifact does not claim the complete named UX1.6-SOURCES scenario."
+          "boundary": "Isolated Chrome executed the production Source Details SourceLinkRemovalActions and renderer-neutral ProjectSourceLinkRemovalClient boundary with deterministic typed transport. It verified authenticated preview invocation, exact Project/definition/source/role freshness, registered dependency impact, retained global identity and immutable revisions, required reason, applied and replayed results, conflicts, permission and rejected failures, exact-request unknown-effect recovery, a visibly distinct local-copy deletion control without invoking its separate owner, exact task/selection and focus return, and responsive keyboard/browser semantics. The exact backend counterpart separately proves the live server and PostgreSQL owners; this artifact does not claim the complete named UX1.6-SOURCES scenario."
         }
       ],
       "runtime_owner": "GET /api/queries/projects/:projectId/sources/:projectSourceId/link-removal + POST /api/commands/projects/:projectId/sources/:projectSourceId/link-removal + POST /api/queries/projects/:projectId/sources/:projectSourceId/link-removal-recovery -> PostgresProjectSourceLifecycleViewReader + PostgresProjectSourceLifecycleAuthorityRepository",
@@ -489,7 +489,13 @@
       "route": "/projects/:projectId/sources/:sourceId",
       "control": "Delete local copy",
       "interaction": "command",
-      "evidence": [],
+      "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH PETRA_WAVE6_SOURCE_LOCAL_COPY_DELETION_BROWSER_OUTPUT=reports/WAVE6-SOURCE-LOCAL-COPY-DELETION-BROWSER.json npm run test:wave6:source-local-copy-deletion-ui",
+          "artifact": "reports/WAVE6-SOURCE-LOCAL-COPY-DELETION-BROWSER.json",
+          "boundary": "Isolated Chrome executed the production Source Details SourceLocalCopyDeletionAction and renderer-neutral ProjectSourceLocalCopyDeletionClient boundary with deterministic typed transport. It verified distinct Project-link removal and local-copy deletion controls; server-owned eligible and dependency-blocked previews; exact copy identity; retained identity, rights, selectors, provenance, and History; reacquisition consequences; required confirmation; applied, replayed, conflict, permission, rejected, and durable unknown-effect outcomes; stable exact retry; task and focus return; and responsive keyboard/browser semantics. The representative production setup still lacks an eligible stored copy and DeleteLocalSourceCopy grant, so the operation remains partial and this artifact does not claim the complete named UX1.6-SOURCES scenario."
+        }
+      ],
       "runtime_owner": "GET /api/queries/projects/:projectId/sources/:projectSourceId/local-copy-deletion + POST /api/commands/projects/:projectId/sources/:projectSourceId/local-copy-deletion + POST /api/queries/projects/:projectId/sources/:projectSourceId/local-copy-deletion-recovery -> PostgresProjectSourceLocalCopyDeletionAuthority + S3ArtifactStore.deleteByHash",
       "paths": ["UX-PATH-04"]
     },
