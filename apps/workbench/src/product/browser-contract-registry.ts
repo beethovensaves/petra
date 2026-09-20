@@ -50,6 +50,9 @@ import projectSourceSchema from "../../../../packages/contracts/schemas/project-
 import projectSourceRegistrationRequestSchema from "../../../../packages/contracts/schemas/project-source-registration-request/1.0.0/schema.json";
 import projectSourceRegistrationReceiptSchema from "../../../../packages/contracts/schemas/project-source-registration-receipt/1.0.0/schema.json";
 import projectSourceRegistrationRecoveryViewSchema from "../../../../packages/contracts/schemas/project-source-registration-recovery-view/1.0.0/schema.json";
+import projectSourceRevisionRequestSchema from "../../../../packages/contracts/schemas/project-source-revision-request/1.0.0/schema.json";
+import projectSourceRevisionReceiptSchema from "../../../../packages/contracts/schemas/project-source-revision-receipt/1.0.0/schema.json";
+import projectSourceRevisionRecoveryViewSchema from "../../../../packages/contracts/schemas/project-source-revision-recovery-view/1.0.0/schema.json";
 import projectSourceProcessingRequestSchema from "../../../../packages/contracts/schemas/project-source-processing-request/1.0.0/schema.json";
 import projectSourceProcessingReceiptSchema from "../../../../packages/contracts/schemas/project-source-processing-receipt/1.0.0/schema.json";
 import projectSourceProcessingRecoveryViewSchema from "../../../../packages/contracts/schemas/project-source-processing-recovery-view/1.0.0/schema.json";
@@ -155,6 +158,9 @@ type BrowserContractName =
   | "project-source-registration-request@1.0.0"
   | "project-source-registration-receipt@1.0.0"
   | "project-source-registration-recovery-view@1.0.0"
+  | "project-source-revision-request@1.0.0"
+  | "project-source-revision-receipt@1.0.0"
+  | "project-source-revision-recovery-view@1.0.0"
   | "project-source-processing-request@1.0.0"
   | "project-source-processing-receipt@1.0.0"
   | "project-source-processing-recovery-view@1.0.0"
@@ -249,6 +255,9 @@ const schemas = [
   projectSourceRegistrationRequestSchema,
   projectSourceRegistrationReceiptSchema,
   projectSourceRegistrationRecoveryViewSchema,
+  projectSourceRevisionRequestSchema,
+  projectSourceRevisionReceiptSchema,
+  projectSourceRevisionRecoveryViewSchema,
   projectSourceProcessingRequestSchema,
   projectSourceProcessingReceiptSchema,
   projectSourceProcessingRecoveryViewSchema,
@@ -349,6 +358,12 @@ const contractIds: Record<BrowserContractName, string> = {
     projectSourceRegistrationReceiptSchema.$id,
   "project-source-registration-recovery-view@1.0.0":
     projectSourceRegistrationRecoveryViewSchema.$id,
+  "project-source-revision-request@1.0.0":
+    projectSourceRevisionRequestSchema.$id,
+  "project-source-revision-receipt@1.0.0":
+    projectSourceRevisionReceiptSchema.$id,
+  "project-source-revision-recovery-view@1.0.0":
+    projectSourceRevisionRecoveryViewSchema.$id,
   "project-source-processing-request@1.0.0":
     projectSourceProcessingRequestSchema.$id,
   "project-source-processing-receipt@1.0.0":
@@ -543,6 +558,24 @@ export class PetraContractRegistry {
       version: "1.0.0",
       canonical_sha256:
         "sha256:af195b8e201dae246dfee82e82c0d2069b5b3828db646a7d5908d79b48c83906",
+    },
+    {
+      name: "project-source-revision-request",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:2ff6f4c45a028501667a03766c026a9832e96ab522b4f7c745c55203afb9811a",
+    },
+    {
+      name: "project-source-revision-receipt",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:ee6a08640c1e27cffa4b11133ce31016427c34a1b53fe8597ce647c9ff1cc65a",
+    },
+    {
+      name: "project-source-revision-recovery-view",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:483a6fbfa97bec988e20d460ddd50a6044d0586eda909ddfc3d138ebc4fb20d7",
     },
     {
       name: "project-source-processing-request",

@@ -108,6 +108,7 @@ import {
   loadProjectPetraThread,
   loadProjectRecord,
   loadProjectSettings,
+  loadProjectSourceRecord,
   loadProjectSuggestedActionHistory,
   loadProjectWorkCollection,
   loadProjectWorkDetail,
@@ -2728,6 +2729,58 @@ describe("Project shell workbench adapter", () => {
       }),
     );
     expect(sourceView).toEqual(before);
+  });
+
+  it("binds source-version intake to the exact current Project, definition, and active predecessor", async () => {
+    const fetch = vi.fn((input: RequestInfo | URL) => {
+      const path =
+        typeof input === "string"
+          ? input
+          : input instanceof URL
+            ? input.toString()
+            : input.url;
+      if (path.endsWith(`/sources/${sourceView.project_source_id}`)) {
+        return Promise.resolve(Response.json(sourceView));
+      }
+      if (path.endsWith("/shell")) {
+        return Promise.resolve(Response.json(shellV11View));
+      }
+      if (path.endsWith("/effective-controls")) {
+        return Promise.resolve(Response.json(controlsView));
+      }
+      if (path.includes("/lifecycle?requested_action=exclude_project_source")) {
+        return Promise.resolve(Response.json(sourceLifecycleView));
+      }
+      return Promise.resolve(Response.json({}, { status: 404 }));
+    });
+    vi.stubGlobal("fetch", fetch);
+    const url = new URL(
+      `http://petra.test/projects/${sourceView.project_id}/sources/${sourceView.project_source_id}`,
+    );
+    const data = await loadProjectSourceRecord({
+      request: new Request(url),
+      url,
+      pattern: "/projects/:projectId/sources/:sourceId",
+      params: {
+        projectId: sourceView.project_id,
+        sourceId: sourceView.project_source_id,
+      },
+      context: new RouterContextProvider(),
+    });
+
+    expect(data.source.id).toBe(sourceView.project_source_id);
+    expect(data.revision).toEqual({
+      projectId: sourceView.project_id,
+      projectRef: {
+        project_id: sourceView.project_id,
+        revision: controlsView.content.project_ref.revision,
+        record_hash: controlsView.content.project_ref.record_hash,
+      },
+      projectDefinitionRef: controlsView.content.project_definition_ref,
+      currentSourceRef: sourceLifecycleView.content.source_ref,
+    });
+    expect(data.revisionUnavailable).toBeUndefined();
+    expect(fetch).toHaveBeenCalledTimes(4);
   });
 
   it("sends only exact lifecycle command input and verifies the resulting authority", async () => {

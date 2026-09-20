@@ -14,3 +14,5 @@ export * from "../../../packages/adapters/src/communication-plan-client.js";
 export * from "../../../packages/adapters/src/project-working-state-client.js";
 export * from "../../../packages/adapters/src/project-source-reuse-client.js";
 export * from "../../../packages/adapters/src/project-source-processing-client.js";
+export * from "../../../packages/adapters/src/project-source-revision-client.js";
+export * from "../../../packages/adapters/src/project-source-registration-client.js";

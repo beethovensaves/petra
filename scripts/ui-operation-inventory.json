@@ -443,11 +443,17 @@
       "surfaces": ["SP04", "SP10", "SP14"],
       "flows": ["UX-FLOW-18"],
       "requests": ["UX-REQ-005", "UX-REQ-010", "UX-REQ-023"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/sources/:sourceId",
       "control": "Add new version",
       "interaction": "command",
-      "evidence": [],
+      "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH PETRA_WAVE6_SOURCE_REVISION_BROWSER_OUTPUT=reports/WAVE6-SOURCE-REVISION-BROWSER.json npm run test:wave6:source-revision-ui",
+          "artifact": "reports/WAVE6-SOURCE-REVISION-BROWSER.json",
+          "boundary": "Isolated Chrome executed the production SourceRevisionPanel and renderer-neutral ProjectSourceRevisionClient boundary with deterministic typed transport. It verified exact Project, ProjectDefinition, and active predecessor binding; immutable bytes, metadata, copy-rights, and replacement review; pending, applied, replayed, conflict, authorization, rejected, and unknown-effect recovery states; stable exact retry; preserved input and task return; distinct receipt-bound exclusion and replacement controls; keyboard semantics; and responsive reflow. The exact backend counterpart separately proves live server and PostgreSQL ownership; this artifact does not claim the complete named UX1.6-SOURCES scenario."
+        }
+      ],
       "runtime_owner": "POST /api/commands/projects/:projectId/sources/:projectSourceId/revisions + POST /api/queries/projects/:projectId/source-revision-recovery -> PostgresProjectSourceRevisionAuthority; receipt hands off exact ExcludeProjectSource and CreateProjectSourceReplacement owners",
       "paths": ["UX-PATH-04"]
     },

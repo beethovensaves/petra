@@ -31,12 +31,15 @@ import {
 } from "./ProjectImportSurface.js";
 import { SourceRegistrationPanel } from "./SourceRegistration.js";
 import { SourceProcessingPanel } from "./SourceProcessing.js";
+import { SourceRevisionPanel } from "./SourceRevision.js";
 import { SourceReusePanel, type SourceReuseCompletion } from "./SourceReuse.js";
 import type {
   ProjectBriefData,
   ProjectCollectionData,
   ProjectSourceCollectionData,
+  ProjectSourceRecordData,
 } from "./project-data.js";
+import type { SourceRevisionContext } from "./source-revision.js";
 import { SuggestedWorkAction } from "./SuggestedAction.js";
 import type {
   EngineState,
@@ -1494,15 +1497,23 @@ export const SourceReaderSurface = ({
   source,
   returnTo,
   taskReturnPath,
+  revision,
+  revisionUnavailable,
 }: {
   project: ProjectRecord;
   source: SourceRecord;
   returnTo?: { path: string; label: string } | undefined;
   taskReturnPath?: string;
+  revision?: SourceRevisionContext;
+  revisionUnavailable?: string;
 }) => {
+  const [addingRevision, setAddingRevision] = useState(false);
   const returnPath = returnTo?.path ?? `/projects/${project.id}/sources`;
   const returnLabel =
     returnTo?.label ?? `Return to ${project.profile.terms.referencePlural}`;
+  const exactTaskReturn =
+    taskReturnPath ??
+    `/projects/${encodeURIComponent(project.id)}/sources/${encodeURIComponent(source.id)}`;
 
   return (
     <main className="reference-reader" id="reference-main">
@@ -1518,8 +1529,35 @@ export const SourceReaderSurface = ({
         <div className="reference-reader-heading__state">
           <SourceExtentLabel source={source} />
           <span>{source.location}</span>
+          <PetraButton
+            variant="secondary"
+            onClick={() => setAddingRevision(true)}
+            {...(revision === undefined
+              ? {
+                  unavailable: {
+                    reason:
+                      revisionUnavailable ??
+                      "The exact active predecessor is unavailable.",
+                    prerequisite:
+                      "A current Project, ProjectDefinition, and active Project source reference.",
+                  },
+                }
+              : {})}
+          >
+            Add new version
+          </PetraButton>
         </div>
       </header>
+
+      {addingRevision && revision !== undefined ? (
+        <SourceRevisionPanel
+          context={revision}
+          sourceTitle={source.title}
+          sourceRevision={source.revision}
+          taskReturnPath={exactTaskReturn}
+          onCancel={() => setAddingRevision(false)}
+        />
+      ) : null}
 
       <div className="reference-reader-layout">
         <article
@@ -1577,10 +1615,7 @@ export const SourceReaderSurface = ({
       <SourceProcessingPanel
         projectId={project.id}
         projectSourceId={source.id}
-        taskReturnPath={
-          taskReturnPath ??
-          `/projects/${encodeURIComponent(project.id)}/sources/${encodeURIComponent(source.id)}`
-        }
+        taskReturnPath={exactTaskReturn}
       />
 
       <footer className="reference-reader-return">
@@ -1598,7 +1633,8 @@ export const SourceReaderSurface = ({
 
 export const SourceReaderRoute = (): React.JSX.Element => {
   const project = useProjectRecord();
-  const source = useLoaderData<SourceRecord>();
+  const data = useLoaderData<ProjectSourceRecordData>();
+  const source = data.source;
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const returnOrigin = searchParams.get("from");
@@ -1650,6 +1686,10 @@ export const SourceReaderRoute = (): React.JSX.Element => {
       source={source}
       returnTo={returnTo}
       taskReturnPath={`${location.pathname}${location.search}`}
+      {...(data.revision === undefined ? {} : { revision: data.revision })}
+      {...(data.revisionUnavailable === undefined
+        ? {}
+        : { revisionUnavailable: data.revisionUnavailable })}
     />
   );
 };

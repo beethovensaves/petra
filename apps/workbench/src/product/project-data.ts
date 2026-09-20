@@ -63,6 +63,7 @@ import type {
   PetraProjectSourceReplacement,
   PetraProjectSourceReplacementReceipt,
   PetraProjectSourceReplacementRetraction,
+  PetraProjectSourceRevisionRequest,
   PetraSuggestedActionInvocationRequest,
   PetraSuggestedActionInvocationView,
   PetraSuggestedActionViewV11,
@@ -107,6 +108,7 @@ import {
   type ProjectObjectiveCommandContext,
 } from "./project-objective-command.js";
 import type { SourceRegistrationContext } from "./source-registration.js";
+import type { SourceRevisionContext } from "./source-revision.js";
 
 import type {
   AttentionItem,
@@ -5529,9 +5531,48 @@ export const getRetainedProjectHistory = async (
   return view;
 };
 
+export interface ProjectSourceRecordData {
+  readonly source: SourceRecord;
+  readonly revision?: SourceRevisionContext;
+  readonly revisionUnavailable?: string;
+}
+
+const sourceRevisionPredecessorRef = (
+  value: unknown,
+  projectId: string,
+  sourceId: string,
+): PetraProjectSourceRevisionRequest["expected"]["current_source_ref"] => {
+  if (
+    !isRecord(value) ||
+    value.schema_name !== "petra.project-source-lifecycle-view" ||
+    value.schema_version !== "1.0.0" ||
+    value.project_id !== projectId ||
+    value.project_source_id !== sourceId ||
+    !isRecord(value.content) ||
+    value.content.requested_action !== "exclude_project_source" ||
+    !isRecord(value.content.source_ref) ||
+    value.content.source_ref.project_source_id !== sourceId ||
+    !Number.isSafeInteger(value.content.source_ref.revision) ||
+    Number(value.content.source_ref.revision) < 1 ||
+    typeof value.content.source_ref.content_hash !== "string" ||
+    !CONTENT_HASH.test(value.content.source_ref.content_hash) ||
+    typeof value.content.source_ref.record_hash !== "string" ||
+    !CONTENT_HASH.test(value.content.source_ref.record_hash) ||
+    value.content.source_ref.status !== "active"
+  ) {
+    throw new ProjectDataError(
+      "Petra did not return the exact active predecessor required for a new source version.",
+      502,
+    );
+  }
+  return structuredClone(
+    value.content.source_ref,
+  ) as unknown as PetraProjectSourceRevisionRequest["expected"]["current_source_ref"];
+};
+
 export const loadProjectSourceRecord = async ({
   params,
-}: LoaderFunctionArgs): Promise<SourceRecord> => {
+}: LoaderFunctionArgs): Promise<ProjectSourceRecordData> => {
   const projectId = requiredRouteIdentity(params.projectId, "A Project ID");
   const sourceId = requiredRouteIdentity(params.sourceId, "A ProjectSource ID");
   const value = await requestJson(
@@ -5544,7 +5585,77 @@ export const loadProjectSourceRecord = async ({
       502,
     );
   }
-  return sourceRecordFromView(view);
+  const source = sourceRecordFromView(view);
+  if (view.content.binding.status !== "active") {
+    return {
+      source,
+      revisionUnavailable:
+        "Only an active Project source can receive a new immutable version.",
+    };
+  }
+  try {
+    const encodedProject = encodeURIComponent(projectId);
+    const encodedSource = encodeURIComponent(sourceId);
+    const [shellValue, controlsValue, predecessorValue] = await Promise.all([
+      requestJson(`/api/queries/projects/${encodedProject}/shell`),
+      requestJson(`/api/queries/projects/${encodedProject}/effective-controls`),
+      requestJson(
+        `/api/queries/projects/${encodedProject}/sources/${encodedSource}/lifecycle?requested_action=exclude_project_source`,
+      ),
+    ]);
+    const shell = shellView(shellValue);
+    const controls = effectiveControlsView(controlsValue);
+    const predecessor = sourceRevisionPredecessorRef(
+      predecessorValue,
+      projectId,
+      sourceId,
+    );
+    const definitionRef = controls.content.project_definition_ref;
+    if (
+      shell.project_id !== projectId ||
+      shell.content.project.project_id !== projectId ||
+      controls.project_id !== projectId ||
+      controls.content.project_ref.record_id !== projectId ||
+      controls.content.project_ref.revision !==
+        shell.content.project.revision ||
+      definitionRef.project_definition_id !==
+        shell.content.definition.project_definition_id ||
+      definitionRef.revision !== shell.content.definition.revision ||
+      definitionRef.content_hash !== shell.content.definition.content_hash ||
+      view.content.binding.project_definition_ref.record_id !==
+        definitionRef.project_definition_id ||
+      view.content.binding.project_definition_ref.revision !==
+        definitionRef.revision ||
+      view.content.binding.project_definition_ref.content_hash !==
+        definitionRef.content_hash ||
+      predecessor.revision !== view.content.binding.revision ||
+      predecessor.content_hash !== view.content.binding.content_hash
+    ) {
+      throw new ProjectDataError(
+        "Petra could not bind one exact current Project, ProjectDefinition, and active predecessor.",
+        409,
+      );
+    }
+    return {
+      source,
+      revision: {
+        projectId,
+        projectRef: {
+          project_id: projectId,
+          revision: controls.content.project_ref.revision,
+          record_hash: controls.content.project_ref.record_hash,
+        },
+        projectDefinitionRef: structuredClone(definitionRef),
+        currentSourceRef: predecessor,
+      },
+    };
+  } catch {
+    return {
+      source,
+      revisionUnavailable:
+        "Petra could not bind the current Project, profile definition, and active predecessor. Re-read this exact source before adding a version.",
+    };
+  }
 };
 
 export const executeProjectSourceLifecycleCommand = async (

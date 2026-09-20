@@ -1243,6 +1243,42 @@
   font-size: var(--petra-font-size-caption);
 }
 
+.source-revision-panel,
+.source-revision-receipt {
+  margin-top: var(--petra-space-5);
+}
+
+.source-revision-boundary,
+.source-revision-governed-step {
+  display: grid;
+  gap: var(--petra-space-2);
+  padding: var(--petra-space-4);
+  border: var(--petra-rule-thin) solid var(--petra-border-subtle);
+  border-radius: var(--petra-radius-small);
+  background: var(--petra-surface-subtle);
+}
+
+.source-revision-boundary {
+  border-color: var(--petra-tone-caution);
+  background: var(--petra-tone-caution-soft);
+}
+
+.source-revision-boundary p,
+.source-revision-governed-step p {
+  max-width: 52rem;
+  margin-bottom: 0;
+  color: var(--petra-text-secondary);
+}
+
+.source-revision-governed-step[data-state="applied"],
+.source-revision-governed-step[data-state="replayed"] {
+  border-color: var(--petra-tone-success);
+}
+
+.source-revision-governed-step[data-state="waiting"] {
+  opacity: 0.82;
+}
+
 .source-reuse-profile,
 .source-reuse-availability,
 .source-reuse-review {
