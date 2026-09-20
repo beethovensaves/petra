@@ -19,6 +19,10 @@ import { PetraLockup, PetraMark } from "../design-system/brand.js";
 import { PetraButton, PetraTextField } from "../design-system/primitives.js";
 import { REFERENCE_PROJECTS, getProjectProfileTool } from "./fixtures.js";
 import { ProjectCreationPanel } from "./ProjectProfileSurface.js";
+import {
+  ProjectImportPanel,
+  projectImportAvailability,
+} from "./ProjectImportSurface.js";
 import type {
   ProjectBriefData,
   ProjectCollectionData,
@@ -154,6 +158,8 @@ export const ProjectsSurface = ({
 }): React.JSX.Element => {
   const [query, setQuery] = useState("");
   const [creating, setCreating] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const importUnavailable = projectImportAvailability(projects);
   const normalizedQuery = query.trim().toLocaleLowerCase();
   const visibleProjects = useMemo(
     () =>
@@ -179,26 +185,50 @@ export const ProjectsSurface = ({
             state. Petra stores this workspace locally.
           </p>
         </div>
-        <PetraButton
-          variant="primary"
-          onClick={() => setCreating(true)}
-          {...(profiles.length === 0
-            ? {
-                unavailable: {
-                  reason: "No registered Project profile is available.",
-                  prerequisite: "A registered profile from Petra services.",
-                },
-              }
-            : {})}
-        >
-          New Project
-        </PetraButton>
+        <div className="reference-page-heading__actions">
+          <PetraButton
+            variant="secondary"
+            onClick={() => {
+              setCreating(false);
+              setImporting(true);
+            }}
+            {...(importUnavailable === undefined
+              ? {}
+              : { unavailable: importUnavailable })}
+          >
+            Import Project
+          </PetraButton>
+          <PetraButton
+            variant="primary"
+            onClick={() => {
+              setImporting(false);
+              setCreating(true);
+            }}
+            {...(profiles.length === 0
+              ? {
+                  unavailable: {
+                    reason: "No registered Project profile is available.",
+                    prerequisite: "A registered profile from Petra services.",
+                  },
+                }
+              : {})}
+          >
+            New Project
+          </PetraButton>
+        </div>
       </section>
 
       {creating ? (
         <ProjectCreationPanel
           profiles={[...profiles]}
           onCancel={() => setCreating(false)}
+        />
+      ) : null}
+
+      {importing ? (
+        <ProjectImportPanel
+          projects={projects}
+          onCancel={() => setImporting(false)}
         />
       ) : null}
 

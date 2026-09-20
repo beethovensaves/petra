@@ -59,6 +59,21 @@ export type AttentionItem = {
 export type ProjectRecord = {
   id: string;
   revision?: number;
+  importBinding?: {
+    sourceKind: "retained_project";
+    projectId: string;
+    projectRevision: number;
+    projectDefinitionRef: {
+      projectDefinitionId: string;
+      revision: number;
+      contentHash: string;
+    };
+    focusedObjectiveRef: {
+      objectiveId: string;
+      revision: number;
+      contentHash: string;
+    };
+  };
   title: string;
   objective: string;
   updatedAt: string;

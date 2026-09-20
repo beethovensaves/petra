@@ -189,6 +189,14 @@
   min-width: 0;
 }
 
+.reference-page-heading__actions {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--petra-space-2);
+}
+
 .reference-eyebrow,
 .reference-panel-kicker,
 .reference-nav-label {
@@ -1402,6 +1410,11 @@
 
   .reference-project-card {
     min-height: 0;
+  }
+
+  .reference-page-heading__actions {
+    width: 100%;
+    justify-content: flex-start;
   }
 
   .reference-context-bar__identity,

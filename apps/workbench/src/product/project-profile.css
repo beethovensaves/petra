@@ -127,6 +127,153 @@
   margin-top: var(--petra-space-4);
 }
 
+.project-import-source-choice {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.project-import-source-choice > legend {
+  padding: 0;
+  font-size: var(--petra-font-size-section);
+  font-weight: var(--petra-weight-semibold);
+}
+
+.project-import-source-choice > p,
+.project-import-admission > header > p,
+.project-import-result > header > p {
+  max-width: 52rem;
+  color: var(--petra-text-secondary);
+}
+
+.project-import-source-choice > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--petra-space-3);
+  margin-top: var(--petra-space-3);
+}
+
+.project-import-source-choice label {
+  display: grid;
+  min-height: var(--petra-target-min);
+  grid-template-columns: auto 1fr;
+  align-items: flex-start;
+  gap: var(--petra-space-2);
+  padding: var(--petra-space-4);
+  border: var(--petra-rule-thin) solid var(--petra-border-default);
+  border-radius: var(--petra-radius-medium);
+  background: var(--petra-surface-canvas);
+  cursor: pointer;
+}
+
+.project-import-source-choice label[data-selected="true"] {
+  border-color: var(--petra-action-primary);
+  outline: var(--petra-rule-thin) solid var(--petra-action-primary);
+}
+
+.project-import-source-choice input {
+  width: 1.15rem;
+  height: 1.15rem;
+  margin-top: 0.15rem;
+  accent-color: var(--petra-action-primary);
+}
+
+.project-import-source-choice label > span {
+  display: grid;
+  gap: var(--petra-space-1);
+}
+
+.project-import-source-choice label > span > span {
+  color: var(--petra-text-secondary);
+  font-size: var(--petra-font-size-caption);
+}
+
+.project-import-admission,
+.project-import-result,
+.project-import-recovery__assessment {
+  display: grid;
+  gap: var(--petra-space-4);
+  margin-top: var(--petra-space-5);
+  padding: var(--petra-space-4);
+  border: var(--petra-rule-thin) solid var(--petra-border-default);
+  border-radius: var(--petra-radius-medium);
+  background: var(--petra-surface-canvas);
+}
+
+.project-import-result {
+  border-inline-start: 0.25rem solid var(--petra-tone-positive);
+}
+
+.project-import-recovery__assessment[data-state="outcome_unknown"] {
+  border-inline-start: 0.25rem solid var(--petra-tone-caution);
+}
+
+.project-import-recovery__assessment[data-state="unavailable_to_verify"] {
+  border-inline-start: 0.25rem solid var(--petra-tone-danger);
+}
+
+.project-import-material {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--petra-space-3);
+}
+
+.project-import-material > section {
+  padding: var(--petra-space-3);
+  border: var(--petra-rule-thin) solid var(--petra-border-subtle);
+  border-radius: var(--petra-radius-small);
+  background: var(--petra-surface-panel);
+}
+
+.project-import-material ul,
+.project-import-result ul,
+.project-import-recovery__assessment ul {
+  margin-bottom: 0;
+}
+
+.project-import-identities {
+  display: grid;
+  gap: var(--petra-space-2);
+  margin-bottom: 0;
+  padding: var(--petra-space-3);
+  background: var(--petra-surface-inset);
+}
+
+.project-import-identities > div {
+  display: grid;
+  grid-template-columns: minmax(8rem, 0.25fr) 1fr;
+  gap: var(--petra-space-2);
+}
+
+.project-import-identities dt {
+  font-weight: var(--petra-weight-semibold);
+}
+
+.project-import-identities dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: var(--petra-text-secondary);
+}
+
+.project-import-identities code {
+  font-size: var(--petra-font-size-caption);
+}
+
+.project-import-admission summary,
+.project-import-result summary {
+  min-height: var(--petra-target-min);
+  cursor: pointer;
+  color: var(--petra-text-link);
+  font-weight: var(--petra-weight-medium);
+}
+
+.project-import-recovery {
+  display: grid;
+  gap: var(--petra-space-3);
+  margin-top: var(--petra-space-4);
+}
+
 .project-profile-command__error,
 .profile-resolution__unsupported,
 .profile-resolution__notice {
@@ -389,7 +536,9 @@
   .profile-choice__grid,
   .profile-taxonomy__grid,
   .profile-taxonomy__terms dl,
-  .project-recovery__preservation {
+  .project-recovery__preservation,
+  .project-import-source-choice > div,
+  .project-import-material {
     grid-template-columns: 1fr;
   }
 }
@@ -409,6 +558,10 @@
   }
 
   .project-recovery__details > div {
+    grid-template-columns: 1fr;
+  }
+
+  .project-import-identities > div {
     grid-template-columns: 1fr;
   }
 

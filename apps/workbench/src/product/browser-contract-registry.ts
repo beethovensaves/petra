@@ -51,6 +51,9 @@ import projectModelReadinessViewSchema from "../../../../packages/contracts/sche
 import projectProfileCommandRequestSchema from "../../../../packages/contracts/schemas/project-profile-command-request/1.0.0/schema.json";
 import projectProfileCommandReceiptSchema from "../../../../packages/contracts/schemas/project-profile-command-receipt/1.0.0/schema.json";
 import projectProfileCommandRecoveryViewSchema from "../../../../packages/contracts/schemas/project-profile-command-recovery-view/1.0.0/schema.json";
+import projectImportCommandRequestSchema from "../../../../packages/contracts/schemas/project-import-command-request/1.0.0/schema.json";
+import projectImportCommandReceiptSchema from "../../../../packages/contracts/schemas/project-import-command-receipt/1.0.0/schema.json";
+import projectImportCommandRecoveryViewSchema from "../../../../packages/contracts/schemas/project-import-command-recovery-view/1.0.0/schema.json";
 import projectWorkOperationRequestSchema from "../../../../packages/contracts/schemas/project-work-operation-request/1.0.0/schema.json";
 import projectWorkOperationReceiptSchema from "../../../../packages/contracts/schemas/project-work-operation-receipt/1.0.0/schema.json";
 import projectWorkOperationsViewSchema from "../../../../packages/contracts/schemas/project-work-operations-view/1.0.0/schema.json";
@@ -124,6 +127,9 @@ type BrowserContractName =
   | "project-profile-command-request@1.0.0"
   | "project-profile-command-receipt@1.0.0"
   | "project-profile-command-recovery-view@1.0.0"
+  | "project-import-command-request@1.0.0"
+  | "project-import-command-receipt@1.0.0"
+  | "project-import-command-recovery-view@1.0.0"
   | "project-work-operation-request@1.0.0"
   | "project-work-operation-receipt@1.0.0"
   | "project-work-operations-view@1.0.0"
@@ -201,6 +207,9 @@ const schemas = [
   projectProfileCommandRequestSchema,
   projectProfileCommandReceiptSchema,
   projectProfileCommandRecoveryViewSchema,
+  projectImportCommandRequestSchema,
+  projectImportCommandReceiptSchema,
+  projectImportCommandRecoveryViewSchema,
   projectWorkOperationRequestSchema,
   projectWorkOperationReceiptSchema,
   projectWorkOperationsViewSchema,
@@ -275,6 +284,10 @@ const contractIds: Record<BrowserContractName, string> = {
     projectProfileCommandReceiptSchema.$id,
   "project-profile-command-recovery-view@1.0.0":
     projectProfileCommandRecoveryViewSchema.$id,
+  "project-import-command-request@1.0.0": projectImportCommandRequestSchema.$id,
+  "project-import-command-receipt@1.0.0": projectImportCommandReceiptSchema.$id,
+  "project-import-command-recovery-view@1.0.0":
+    projectImportCommandRecoveryViewSchema.$id,
   "project-work-operation-request@1.0.0": projectWorkOperationRequestSchema.$id,
   "project-work-operation-receipt@1.0.0": projectWorkOperationReceiptSchema.$id,
   "project-work-operations-view@1.0.0": projectWorkOperationsViewSchema.$id,
@@ -387,6 +400,24 @@ export class PetraContractRegistry {
       version: "1.0.0",
       canonical_sha256:
         "sha256:77534795a71219fd9974160e547455966389f642f85c0e26fa3b44e2295c195e",
+    },
+    {
+      name: "project-import-command-request",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:e4ea1c2594c0c92ae0ccf17bd2cf1e2365753a04dac0022091dd77df40a4e4c2",
+    },
+    {
+      name: "project-import-command-receipt",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:76ce2aa5258d10be647ca47d782b124dfff8d611f5c51705ce0907bfae8b2bd6",
+    },
+    {
+      name: "project-import-command-recovery-view",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:1ba7b7d77a05f49014b08bb154f9511eed96cff7de08972d73ba7dfda9734930",
     },
     {
       name: "project-work-operation-request",

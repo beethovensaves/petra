@@ -2624,6 +2624,26 @@ export const projectRecordFromShellView = (
   return {
     id: view.project_id,
     revision: view.content.project.revision,
+    ...(objective === undefined
+      ? {}
+      : {
+          importBinding: {
+            sourceKind: "retained_project" as const,
+            projectId: view.project_id,
+            projectRevision: view.content.project.revision,
+            projectDefinitionRef: {
+              projectDefinitionId:
+                view.content.definition.project_definition_id,
+              revision: view.content.definition.revision,
+              contentHash: view.content.definition.content_hash,
+            },
+            focusedObjectiveRef: {
+              objectiveId: objective.objective_id,
+              revision: objective.revision,
+              contentHash: objective.content_hash,
+            },
+          },
+        }),
     title: view.content.project.name,
     objective:
       objective?.statement ?? "No current Project focus has been selected.",

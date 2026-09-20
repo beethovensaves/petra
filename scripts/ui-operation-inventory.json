@@ -98,11 +98,17 @@
       "surfaces": ["SP01"],
       "flows": ["UX-FLOW-01"],
       "requests": ["UX-REQ-004", "UX-REQ-005"],
-      "current_state": "unavailable",
+      "current_state": "live",
       "route": "/",
       "control": "Import Project",
       "interaction": "command",
-      "evidence": [],
+      "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:project-import-ui",
+          "artifact": "reports/WAVE6-PROJECT-IMPORT-BROWSER.json",
+          "boundary": "Isolated Chrome executed the production Project collection and retained-Project import controls with deterministic schema-valid HTTP. It verified exact Project, definition, and focused-objective binding; explicit reviewed admission; command and ancestry reads; copied and retained-only outcomes; exact Brief return; idempotent unknown-effect recovery; and conflict fail-closed behavior. Backend PostgreSQL command ownership remains proven by the exact counterpart; this operation record does not claim a named Wave 6 evidence-plan scenario."
+        }
+      ],
       "runtime_owner": "POST /api/commands/projects/import, POST /api/queries/project-import-command-recovery, and GET /api/queries/projects/:projectId/import-ancestry -> PostgresProjectImportAuthority",
       "paths": ["UX-PATH-03"]
     },
