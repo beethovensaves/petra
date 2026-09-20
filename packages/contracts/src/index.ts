@@ -224,6 +224,15 @@ export type {
   UnavailablePlaceSummary as ProjectShellUnavailablePlaceSummary,
 } from "./generated/project-shell-view-v1-1.js";
 export type {
+  PetraProjectShellViewV12,
+  ResumeContext as ProjectShellResumeContext,
+  ResumeDestination as ProjectShellResumeDestination,
+  ResumeFailure as ProjectShellResumeFailure,
+  ResumeRecovery as ProjectShellResumeRecovery,
+  RetainedTask as ProjectShellRetainedTask,
+  ShellContent as ProjectShellContentV12,
+} from "./generated/project-shell-view-v1-2.js";
+export type {
   AuthorityPosition as ProjectHistoryAuthorityPosition,
   CommandRef as ProjectHistoryCommandRef,
   EligibleRecovery as ProjectHistoryEligibleRecovery,

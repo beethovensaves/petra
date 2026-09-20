@@ -67,7 +67,7 @@
       "control": "Resume Project",
       "interaction": "navigation",
       "evidence": [],
-      "runtime_owner": "",
+      "runtime_owner": "GET /api/queries/projects and GET /api/queries/projects/:projectId/shell -> PostgresProjectShellViewReader",
       "paths": ["UX-PATH-03"]
     },
     {

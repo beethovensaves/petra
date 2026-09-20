@@ -1,3 +1,5 @@
+import type { ProjectShellResumeContext } from "@petra/contracts";
+
 export type ProjectProfile = {
   id: string;
   version: string;
@@ -107,6 +109,7 @@ export type ProjectRecord = {
     summary?: string;
     destination: ProjectPlace;
   };
+  resume?: ProjectShellResumeContext;
 };
 
 export type EngineState = {

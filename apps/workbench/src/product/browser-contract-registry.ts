@@ -6,6 +6,7 @@ import briefResearchBriefPayloadV110Schema from "../../../../packages/contracts/
 import briefResearchBriefPayloadV100Schema from "../../../../packages/contracts/schemas/research-brief-payload/1.0.0/schema.json";
 import briefProjectWorkViewV100Schema from "../../../../packages/contracts/schemas/project-work-view/1.0.0/schema.json";
 import briefProjectSourceViewV100Schema from "../../../../packages/contracts/schemas/project-source-view/1.0.0/schema.json";
+import briefProjectShellViewV120Schema from "../../../../packages/contracts/schemas/project-shell-view/1.2.0/schema.json";
 import briefProjectShellViewV110Schema from "../../../../packages/contracts/schemas/project-shell-view/1.1.0/schema.json";
 import briefProjectShellViewV100Schema from "../../../../packages/contracts/schemas/project-shell-view/1.0.0/schema.json";
 import briefProjectObjectiveV100Schema from "../../../../packages/contracts/schemas/project-objective/1.0.0/schema.json";
@@ -143,6 +144,7 @@ const schemas = [
   briefProjectObjectiveV100Schema,
   briefProjectShellViewV100Schema,
   briefProjectShellViewV110Schema,
+  briefProjectShellViewV120Schema,
   briefProjectSourceViewV100Schema,
   briefProjectWorkViewV100Schema,
   briefResearchBriefPayloadV100Schema,

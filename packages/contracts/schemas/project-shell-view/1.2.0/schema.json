@@ -1,0 +1,283 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-shell-view/1.2.0/schema.json",
+  "title": "PetraProjectShellViewV12",
+  "description": "A read-only, snapshot-consistent Project shell composition with an exact PostgreSQL-retained Project resume context and explicit stale, not-found, and unavailable recovery.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "project_id",
+    "content",
+    "content_hash",
+    "read_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.project-shell-view" },
+    "schema_version": { "const": "1.2.0" },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "content": { "$ref": "#/$defs/ShellContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "read_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "ResumeDestination": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["role", "purpose"],
+      "properties": {
+        "role": { "enum": ["brief", "graph"] },
+        "purpose": { "type": "string", "minLength": 1, "maxLength": 1000 }
+      }
+    },
+    "ResumeRecovery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["action", "destination", "reason"],
+      "properties": {
+        "action": {
+          "enum": ["open_retained_task", "open_brief", "retry_read"]
+        },
+        "destination": { "$ref": "#/$defs/ResumeDestination" },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 2000 }
+      }
+    },
+    "ResumeFailure": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "message"],
+      "properties": {
+        "code": {
+          "enum": [
+            "PROJECT_RESUME_DEFINITION_STALE",
+            "PROJECT_RESUME_TASK_STALE",
+            "PROJECT_RESUME_PROJECT_ARCHIVED",
+            "PROJECT_RESUME_TASK_NOT_FOUND",
+            "PROJECT_RESUME_TASK_UNAVAILABLE"
+          ]
+        },
+        "message": { "type": "string", "minLength": 1, "maxLength": 2000 }
+      }
+    },
+    "RetainedTask": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "task_kind",
+        "objective_ref",
+        "label",
+        "request",
+        "expected_graph",
+        "selection",
+        "origin",
+        "focus_refs",
+        "return_destination",
+        "retained_at"
+      ],
+      "properties": {
+        "task_kind": { "const": "focused_graph" },
+        "objective_ref": {
+          "$ref": "../../project-inquiry-save-receipt/1.0.0/schema.json#/$defs/ObjectiveRef"
+        },
+        "label": { "type": "string", "minLength": 1, "maxLength": 8000 },
+        "request": {
+          "$ref": "../../project-inquiry-save-request/1.0.0/schema.json#/$defs/GraphRequest"
+        },
+        "expected_graph": {
+          "$ref": "../../project-inquiry-save-request/1.0.0/schema.json#/$defs/FocusedGraphRef"
+        },
+        "selection": {
+          "$ref": "../../project-inquiry-save-request/1.0.0/schema.json#/$defs/Selection"
+        },
+        "origin": {
+          "$ref": "../../focused-graph-view/1.0.0/schema.json#/$defs/Origin"
+        },
+        "focus_refs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": {
+            "$ref": "../../focused-graph-view/1.0.0/schema.json#/$defs/ExactRef"
+          }
+        },
+        "return_destination": {
+          "$ref": "../../focused-graph-view/1.0.0/schema.json#/$defs/SemanticDestination"
+        },
+        "retained_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        }
+      }
+    },
+    "ResumeContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "recovery"],
+      "properties": {
+        "state": {
+          "enum": ["available", "stale", "not_found", "unavailable"]
+        },
+        "retained_task": { "$ref": "#/$defs/RetainedTask" },
+        "failure": { "$ref": "#/$defs/ResumeFailure" },
+        "recovery": { "$ref": "#/$defs/ResumeRecovery" }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "state": { "const": "available" } },
+            "required": ["state"]
+          },
+          "then": {
+            "required": ["retained_task"],
+            "properties": {
+              "retained_task": {},
+              "failure": false,
+              "recovery": {
+                "type": "object",
+                "properties": {
+                  "action": { "const": "open_retained_task" },
+                  "destination": {
+                    "type": "object",
+                    "properties": { "role": { "const": "graph" } }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "state": { "const": "stale" } },
+            "required": ["state"]
+          },
+          "then": {
+            "required": ["retained_task", "failure"],
+            "properties": {
+              "retained_task": {},
+              "failure": {},
+              "recovery": {
+                "type": "object",
+                "properties": {
+                  "action": { "const": "open_brief" },
+                  "destination": {
+                    "type": "object",
+                    "properties": { "role": { "const": "brief" } }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "state": { "const": "not_found" } },
+            "required": ["state"]
+          },
+          "then": {
+            "required": ["failure"],
+            "properties": {
+              "retained_task": false,
+              "failure": {
+                "type": "object",
+                "properties": {
+                  "code": { "const": "PROJECT_RESUME_TASK_NOT_FOUND" }
+                }
+              },
+              "recovery": {
+                "type": "object",
+                "properties": {
+                  "action": { "const": "open_brief" },
+                  "destination": {
+                    "type": "object",
+                    "properties": { "role": { "const": "brief" } }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "state": { "const": "unavailable" } },
+            "required": ["state"]
+          },
+          "then": {
+            "required": ["failure"],
+            "properties": {
+              "retained_task": false,
+              "failure": {
+                "type": "object",
+                "properties": {
+                  "code": { "const": "PROJECT_RESUME_TASK_UNAVAILABLE" }
+                }
+              },
+              "recovery": {
+                "type": "object",
+                "properties": {
+                  "action": { "const": "retry_read" },
+                  "destination": {
+                    "type": "object",
+                    "properties": { "role": { "const": "brief" } }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "ShellContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project",
+        "definition",
+        "authority",
+        "projection",
+        "attention",
+        "place_summaries",
+        "resume"
+      ],
+      "properties": {
+        "project": {
+          "$ref": "../1.0.0/schema.json#/$defs/ProjectSummary"
+        },
+        "definition": {
+          "$ref": "../1.0.0/schema.json#/$defs/DefinitionSummary"
+        },
+        "current_objective": {
+          "$ref": "../1.0.0/schema.json#/$defs/ObjectiveSummary"
+        },
+        "authority": {
+          "$ref": "../1.0.0/schema.json#/$defs/AuthorityPosition"
+        },
+        "projection": {
+          "$ref": "../1.0.0/schema.json#/$defs/ProjectionSummary"
+        },
+        "attention": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "$ref": "../1.0.0/schema.json#/$defs/AttentionItem"
+          }
+        },
+        "place_summaries": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10,
+          "items": { "$ref": "../1.1.0/schema.json#/$defs/PlaceSummary" }
+        },
+        "selection": {
+          "$ref": "../../project-object-location-view/1.0.0/schema.json#/$defs/LocationContent"
+        },
+        "resume": { "$ref": "#/$defs/ResumeContext" }
+      }
+    }
+  }
+}
