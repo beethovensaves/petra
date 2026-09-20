@@ -278,7 +278,7 @@ export class PostgresProjectBriefViewReader implements ProjectBriefViewReader {
         }
       }
       for (const id of workIds) {
-        const view = await workReader.readWorkInSnapshot(
+        const view = await workReader.readLegacyWorkInSnapshot(
           client,
           readAt,
           projectId,

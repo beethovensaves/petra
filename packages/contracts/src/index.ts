@@ -438,6 +438,21 @@ export type {
   WorkUnitRef as ProjectWorkUnitRef,
 } from "./generated/project-work-view.js";
 export type {
+  AvailableStagePlan as ProjectWorkAvailableStagePlanV11,
+  AvailableStagePlanSummary as ProjectWorkAvailableStagePlanSummaryV11,
+  CollectionContent as ProjectWorkCollectionContentV11,
+  DetailContent as ProjectWorkDetailContentV11,
+  PetraProjectWorkViewV110 as PetraProjectWorkViewV11,
+  Stage as ProjectWorkStageV11,
+  StagePlan as ProjectWorkStagePlanV11,
+  StagePlanRef as ProjectWorkStagePlanRefV11,
+  StagePlanSummary as ProjectWorkStagePlanSummaryV11,
+  TaskSummary as ProjectWorkTaskSummaryV11,
+} from "./generated/project-work-view-v1-1.js";
+import type { PetraProjectWorkView as WorkViewV10 } from "./generated/project-work-view.js";
+import type { PetraProjectWorkViewV110 as WorkViewV11 } from "./generated/project-work-view-v1-1.js";
+export type PetraProjectWorkReadView = WorkViewV10 | WorkViewV11;
+export type {
   InputRequestRef as ProjectWorkOperationInputRequestRef,
   PetraProjectWorkOperationRequest,
   WorkUnitRef as ProjectWorkOperationUnitRef,

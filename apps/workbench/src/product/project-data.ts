@@ -53,7 +53,7 @@ import type {
   PetraSuggestedActionInvocationView,
   PetraSuggestedActionViewV11,
   PetraProjectThreadView,
-  PetraProjectWorkView,
+  PetraProjectWorkReadView,
   FocusedGraphProjectSnapshotRef,
   ProjectDefinitionTerm,
   CommandReviewSessionRef,
@@ -66,7 +66,9 @@ import type {
   ProjectHistoryRetainedContinuationFailureSubcode,
   ProjectHistoryRetainedContinuationRestart,
   ProjectWorkDetailContent,
+  ProjectWorkDetailContentV11,
   ProjectWorkTaskSummary,
+  ProjectWorkTaskSummaryV11,
 } from "@petra/contracts";
 import type {
   FocusedGraphAnalysisViewRequest,
@@ -1605,11 +1607,11 @@ const objectLocationView = (value: unknown): PetraProjectObjectLocationView => {
   return value as unknown as PetraProjectObjectLocationView;
 };
 
-const projectWorkView = (value: unknown): PetraProjectWorkView => {
+const projectWorkView = (value: unknown): PetraProjectWorkReadView => {
   if (
     !isRecord(value) ||
     value.schema_name !== "petra.project-work-view" ||
-    value.schema_version !== "1.0.0" ||
+    (value.schema_version !== "1.0.0" && value.schema_version !== "1.1.0") ||
     typeof value.project_id !== "string" ||
     !isRecord(value.content) ||
     (value.content.view_kind !== "collection" &&
@@ -1622,7 +1624,7 @@ const projectWorkView = (value: unknown): PetraProjectWorkView => {
       502,
     );
   }
-  return value as unknown as PetraProjectWorkView;
+  return value as unknown as PetraProjectWorkReadView;
 };
 
 const projectInquiryView = (value: unknown): PetraProjectInquiryView => {
@@ -2746,7 +2748,7 @@ const bytesLabel = (bytes: number): string => {
 };
 
 const executionFrom = (
-  summary: ProjectWorkTaskSummary,
+  summary: ProjectWorkTaskSummary | ProjectWorkTaskSummaryV11,
 ): { state: WorkExecutionState; label: string } => {
   const { execution } = summary;
   if (execution.state === "requested") {
@@ -2777,15 +2779,17 @@ const executionFrom = (
 };
 
 const exactInputLabel = (
-  input: ProjectWorkDetailContent["specification"]["inputs"][number],
+  input: (
+    ProjectWorkDetailContent | ProjectWorkDetailContentV11
+  )["specification"]["inputs"][number],
 ): string =>
   input.binding_kind === "artifact"
     ? `${input.name}: ${input.artifact_id} · ${input.content_hash.slice(0, 18)}… · ${bytesLabel(input.byte_size)}`
     : `${input.name}: ${input.record_id} r${input.record_revision} · ${input.snapshot_hash.slice(0, 18)}…`;
 
 export const workUnitFromView = (
-  view: PetraProjectWorkView,
-  collectionSummary?: ProjectWorkTaskSummary,
+  view: PetraProjectWorkReadView,
+  collectionSummary?: ProjectWorkTaskSummary | ProjectWorkTaskSummaryV11,
 ): WorkUnit => {
   const detail = view.content.view_kind === "detail" ? view.content : undefined;
   const summary =
@@ -2827,6 +2831,27 @@ export const workUnitFromView = (
       validation: "Project usability unavailable",
       limitation: output.availability.limitation,
     })) ?? [];
+  const stagePlan = detail?.stage_plan ?? summary.stage_plan;
+  const stages =
+    stagePlan.state === "available"
+      ? stagePlan.stages.map((stage) => ({
+          id: stage.stage_id,
+          label: stage.label,
+          purpose: stage.purpose,
+          state: stage.state,
+          stateLabel: stage.state_label,
+          prerequisites: stage.prerequisite_stage_ids.map(
+            (stageId) =>
+              stagePlan.stages.find(
+                (candidate) => candidate.stage_id === stageId,
+              )?.label ?? stageId,
+          ),
+          accountableRole: stage.accountable_role,
+          input: stage.input,
+          output: stage.output,
+          activity: [...stage.activity],
+        }))
+      : [];
   return {
     id: summary.work_unit_ref.work_unit_id,
     projectId: view.project_id,
@@ -2855,7 +2880,11 @@ export const workUnitFromView = (
       cancellation === undefined
         ? "Cancellation policy is available only in exact Work detail."
         : `${cancellation.reason} ${cancellation.consequence}`,
-    stages: [],
+    ...(stagePlan.state === "available" &&
+    stagePlan.current_stage_id !== undefined
+      ? { currentStageId: stagePlan.current_stage_id }
+      : {}),
+    stages,
     ...(detail === undefined
       ? {}
       : {
@@ -2864,7 +2893,9 @@ export const workUnitFromView = (
             (dependency) =>
               `${dependency.work_unit_ref.work_unit_id} r${dependency.work_unit_ref.revision} · ${dependency.state}${dependency.terminal_outcome === undefined ? "" : ` · ${dependency.terminal_outcome}`}`,
           ),
-          stagePlanLimitation: detail.stage_plan.reason,
+          ...(detail.stage_plan.state === "unavailable"
+            ? { stagePlanLimitation: detail.stage_plan.reason }
+            : {}),
           inquiryLimitation: detail.inquiry_linkage.reason,
         }),
     results: outputs,
@@ -2935,7 +2966,7 @@ export const inquiryBranchesFromViews = (
 };
 
 export const workProjectFromView = (
-  view: PetraProjectWorkView,
+  view: PetraProjectWorkReadView,
   inquiryViews: readonly PetraProjectInquiryView[] = [],
 ): WorkProjectView => {
   const content = view.content;

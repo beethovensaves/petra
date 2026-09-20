@@ -3495,7 +3495,7 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
           "The requested Project does not exist in the local authority store.",
         );
       }
-      contracts.assertValid("project-work-view", "1.0.0", view);
+      contracts.assertValid("project-work-view", view.schema_version, view);
       if (
         view.project_id !== projectId ||
         view.content.view_kind !== "collection" ||
@@ -3561,7 +3561,7 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
             "The requested WorkUnit is not bound to this Project.",
           );
         }
-        contracts.assertValid("project-work-view", "1.0.0", view);
+        contracts.assertValid("project-work-view", view.schema_version, view);
         if (
           view.project_id !== projectId ||
           view.content.view_kind !== "detail" ||

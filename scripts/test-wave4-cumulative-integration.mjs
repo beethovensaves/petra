@@ -1030,6 +1030,65 @@ const seedScientific = async (pool, neo4jUri) => {
         "The selected mode constrains the first parsing attempt without changing source or Project authority.",
       registeredAt: "2026-09-19T00:00:01.000Z",
     });
+  await workOperations.registerStagePlan({
+    stagePlanId: derivePetraId(
+      "work_stage_plan",
+      `scientific:${workUnit.work_unit_id}:petra.ingestion.parse:1.0.0`,
+    ),
+    projectId: scientificProjectId,
+    workUnitId: workUnit.work_unit_id,
+    expectedWorkUnitSpecHash: workUnit.spec_hash,
+    stages: [
+      {
+        stageId: "choose-parsing-mode",
+        label: "Choose parsing mode",
+        purpose:
+          "Resolve the bounded table-and-text or text-only parsing scope before execution.",
+        boundary: "required_input",
+        prerequisiteStageIds: [],
+        accountableRole: "Project author",
+        input: "The registered PDF and the pending parsing-mode choice.",
+        output: "One exact parsing mode for the first attempt.",
+      },
+      {
+        stageId: "parse-registered-pdf",
+        label: "Parse the registered PDF",
+        purpose:
+          "Run the registered science worker against the exact authorized PDF input.",
+        boundary: "execution",
+        prerequisiteStageIds: ["choose-parsing-mode"],
+        accountableRole: "Scientific document processor",
+        input: "Exact source PDF plus the selected parsing mode.",
+        output:
+          "A staged ParsedDocument candidate and bounded worker diagnostics.",
+      },
+      {
+        stageId: "validate-parsed-coverage",
+        label: "Validate parsed coverage",
+        purpose:
+          "Check the declared output contract, page coverage, and processing limitations.",
+        boundary: "completion",
+        prerequisiteStageIds: ["parse-registered-pdf"],
+        accountableRole: "Coverage validator",
+        input: "The staged ParsedDocument candidate and worker diagnostics.",
+        output:
+          "An explicit coverage result without promotion to Project authority.",
+      },
+      {
+        stageId: "retain-worker-results",
+        label: "Retain worker results",
+        purpose:
+          "Retain exact output handles and measured resource use for inspection and recovery.",
+        boundary: "completion",
+        prerequisiteStageIds: ["validate-parsed-coverage"],
+        accountableRole: "Work control plane",
+        input: "Validated worker output handles and resource measurements.",
+        output:
+          "Durable Work results with Project-usability limits kept explicit.",
+      },
+    ],
+    registeredAt: "2026-09-19T00:00:01.500Z",
+  });
   const graphPairs = [];
   if (wave5Mode) {
     const currentBaselineClaim = await evidence.getClaim(
@@ -2673,7 +2732,11 @@ const item49ProjectThread = async ({
   ).registerProjectThreadRevision(thread);
 };
 
-const seedItem53WorkAndInteraction = async ({ persistence, scientific }) => {
+const seedItem53WorkAndInteraction = async ({
+  persistence,
+  scientific,
+  pool,
+}) => {
   const artifacts = persistence.artifacts;
   const workUnits = persistence.workUnits;
   const interactions = persistence.interactions;
@@ -2833,6 +2896,56 @@ const seedItem53WorkAndInteraction = async ({ persistence, scientific }) => {
     work.work_unit_id === item49Published.workUnitId && work.revision === 4,
     "The item 49 Work continuation lost its published stable identity or terminal revision.",
   );
+  await new PostgresProjectWorkOperations(
+    pool,
+    new PostgresCapabilityGrantCommandAuthorizer(),
+  ).registerStagePlan({
+    stagePlanId: derivePetraId(
+      "work_stage_plan",
+      `scientific:${work.work_unit_id}:petra.synthesis.grounded:1.0.0`,
+    ),
+    projectId: scientificProjectId,
+    workUnitId: work.work_unit_id,
+    expectedWorkUnitSpecHash: work.spec_hash,
+    stages: [
+      {
+        stageId: "bind-project-context",
+        label: "Bind exact Project context",
+        purpose:
+          "Bind the registered source and retained Project context before grounded synthesis.",
+        boundary: "execution",
+        prerequisiteStageIds: [],
+        accountableRole: "Grounded synthesis coordinator",
+        input:
+          "The exact registered Project source and retained context bindings.",
+        output: "A content-bound synthesis input manifest.",
+      },
+      {
+        stageId: "compose-grounded-response",
+        label: "Compose the grounded response",
+        purpose:
+          "Produce the bounded response while preserving model origin and authority limits.",
+        boundary: "completion",
+        prerequisiteStageIds: ["bind-project-context"],
+        accountableRole: "Certified synthesist",
+        input: "The content-bound synthesis input manifest.",
+        output:
+          "A grounded response presentation with no domain-authority effect.",
+      },
+      {
+        stageId: "retain-delivery-records",
+        label: "Retain delivery records",
+        purpose:
+          "Persist the response output and exact interaction events for reconnect and replay.",
+        boundary: "completion",
+        prerequisiteStageIds: ["compose-grounded-response"],
+        accountableRole: "Interaction delivery service",
+        input: "The completed grounded response presentation.",
+        output: "Durable output, RUN_STARTED, and RUN_FINISHED records.",
+      },
+    ],
+    registeredAt: "2026-09-15T04:00:03.500Z",
+  });
 
   const feature = readAccepted("interaction-feature-manifest");
   feature.compiled_by = { actor_id: serviceActorId, actor_kind: "service" };
@@ -2949,11 +3062,15 @@ const seedItem53WorkAndInteraction = async ({ persistence, scientific }) => {
   };
 };
 
-const item53WorkAndInteraction = async ({ environment, scientific }) => {
+const item53WorkAndInteraction = async ({ environment, scientific, pool }) => {
   const persistence =
     await createGroundedSynthesisPersistenceFromEnvironment(environment);
   try {
-    return await seedItem53WorkAndInteraction({ persistence, scientific });
+    return await seedItem53WorkAndInteraction({
+      persistence,
+      scientific,
+      pool,
+    });
   } finally {
     await persistence.close?.();
   }
@@ -5812,6 +5929,7 @@ try {
           const workAndInteraction = await item53WorkAndInteraction({
             environment,
             scientific,
+            pool,
           });
           const grounded = await item53GroundedPresentation({
             pool,

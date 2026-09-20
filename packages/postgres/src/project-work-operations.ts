@@ -15,6 +15,7 @@ import {
   type ProjectWorkOperationAuthority,
   type ProjectWorkOperationsViewReader,
   type RegisterProjectWorkRequiredInput,
+  type RegisterProjectWorkStagePlan,
 } from "@petra/core";
 import { canonicalize } from "json-canonicalize";
 import type { Pool, PoolClient } from "pg";
@@ -69,10 +70,108 @@ interface ResultRow {
   readonly record_hash: string;
 }
 
+interface StagePlanRow {
+  readonly content_hash: string;
+  readonly plan_payload: unknown;
+}
+
+interface StoredStagePlan {
+  readonly stage_plan_id: string;
+  readonly revision: 1;
+  readonly project_id: string;
+  readonly work_unit_id: string;
+  readonly work_unit_spec_hash: string;
+  readonly workflow: {
+    readonly workflow_name: string;
+    readonly workflow_version: string;
+    readonly task_family: string;
+    readonly task_name: string;
+    readonly task_version: string;
+  };
+  readonly stages: readonly {
+    readonly stage_id: string;
+    readonly label: string;
+    readonly purpose: string;
+    readonly boundary: "required_input" | "execution" | "completion";
+    readonly prerequisite_stage_ids: readonly string[];
+    readonly accountable_role: string;
+    readonly input: string;
+    readonly output: string;
+  }[];
+  readonly registered_at: string;
+}
+
 const canonicalHash = (value: unknown): string =>
   `sha256:${createHash("sha256").update(canonicalize(value)).digest("hex")}`;
 
 const clone = <Value>(value: Value): Value => structuredClone(value);
+
+const STAGE_PLAN_ID = /^work_stage_plan_[0-9A-HJKMNP-TV-Z]{26}$/u;
+const STAGE_ID = /^[a-z][a-z0-9_-]{0,79}$/u;
+const CONTENT_HASH = /^sha256:[0-9a-f]{64}$/u;
+
+const validDateTime = (value: string): boolean => {
+  const timestamp = Date.parse(value);
+  return (
+    Number.isFinite(timestamp) && new Date(timestamp).toISOString() === value
+  );
+};
+
+const validText = (value: string, maximum: number): boolean =>
+  value.length >= 1 && value.length <= maximum;
+
+const assertStagePlanRegistration = (
+  input: RegisterProjectWorkStagePlan,
+): void => {
+  if (
+    !STAGE_PLAN_ID.test(input.stagePlanId) ||
+    !CONTENT_HASH.test(input.expectedWorkUnitSpecHash) ||
+    !validDateTime(input.registeredAt) ||
+    input.stages.length < 2 ||
+    input.stages.length > 20
+  ) {
+    throw new ProjectWorkOperationError(
+      "PROJECT_WORK_OPERATION_UNAVAILABLE",
+      "A Work stage plan requires an exact plan identity, Work specification, registration time, and two through twenty stages.",
+    );
+  }
+  const seen = new Set<string>();
+  const boundaryOrder = { required_input: 0, execution: 1, completion: 2 };
+  let priorBoundary = 0;
+  let executionStages = 0;
+  let requiredInputStages = 0;
+  for (const stage of input.stages) {
+    const prerequisites = new Set(stage.prerequisiteStageIds);
+    if (
+      !STAGE_ID.test(stage.stageId) ||
+      seen.has(stage.stageId) ||
+      !validText(stage.label, 120) ||
+      !validText(stage.purpose, 1000) ||
+      !validText(stage.accountableRole, 120) ||
+      !validText(stage.input, 1000) ||
+      !validText(stage.output, 1000) ||
+      stage.prerequisiteStageIds.length > 20 ||
+      prerequisites.size !== stage.prerequisiteStageIds.length ||
+      stage.prerequisiteStageIds.some((stageId) => !seen.has(stageId)) ||
+      boundaryOrder[stage.boundary] < priorBoundary
+    ) {
+      throw new ProjectWorkOperationError(
+        "PROJECT_WORK_OPERATION_UNAVAILABLE",
+        "Work stages require unique stable identities, bounded meaningful text, prior-stage prerequisites, and ordered input, execution, then completion boundaries.",
+      );
+    }
+    seen.add(stage.stageId);
+    priorBoundary = boundaryOrder[stage.boundary];
+    if (stage.boundary === "execution") executionStages += 1;
+    if (stage.boundary === "required_input") requiredInputStages += 1;
+  }
+  if (executionStages !== 1 || requiredInputStages > 1) {
+    throw new ProjectWorkOperationError(
+      "PROJECT_WORK_OPERATION_UNAVAILABLE",
+      "A Work stage plan requires exactly one canonical execution boundary and at most one required-input boundary.",
+    );
+  }
+};
 
 const exactWorkRef = (work: PetraWorkUnit) => ({
   work_unit_id: work.work_unit_id,
@@ -313,6 +412,105 @@ export class PostgresProjectWorkOperations
           JSON.stringify(input.responseOptions),
           input.consequence,
           input.registeredAt,
+        ],
+      );
+    });
+  }
+
+  async registerStagePlan(input: RegisterProjectWorkStagePlan): Promise<void> {
+    assertStagePlanRegistration(input);
+    await this.#transaction("SERIALIZABLE", async (client) => {
+      const work = await this.#work(
+        client,
+        input.projectId,
+        input.workUnitId,
+        true,
+      );
+      if (work === undefined) {
+        throw new ProjectWorkOperationError(
+          "PROJECT_WORK_OPERATION_NOT_FOUND",
+          "The stage-plan target is not bound to this Project.",
+        );
+      }
+      if (work.spec_hash !== input.expectedWorkUnitSpecHash) {
+        throw new ProjectWorkOperationError(
+          "PROJECT_WORK_OPERATION_STALE",
+          "The stage plan must bind the exact immutable Work specification.",
+        );
+      }
+      const manifest = await this.#inputManifest(client, work);
+      const payload: StoredStagePlan = {
+        stage_plan_id: input.stagePlanId,
+        revision: 1,
+        project_id: input.projectId,
+        work_unit_id: input.workUnitId,
+        work_unit_spec_hash: input.expectedWorkUnitSpecHash,
+        workflow: {
+          workflow_name: work.spec.workflow_name,
+          workflow_version: work.spec.workflow_version,
+          task_family: manifest.content.task.task_family,
+          task_name: manifest.content.task.task_name,
+          task_version: manifest.content.task.task_version,
+        },
+        stages: input.stages.map((stage) => ({
+          stage_id: stage.stageId,
+          label: stage.label,
+          purpose: stage.purpose,
+          boundary: stage.boundary,
+          prerequisite_stage_ids: [...stage.prerequisiteStageIds],
+          accountable_role: stage.accountableRole,
+          input: stage.input,
+          output: stage.output,
+        })),
+        registered_at: input.registeredAt,
+      };
+      const contentHash = canonicalHash(payload);
+      const existing = await client.query<StagePlanRow>(
+        `SELECT content_hash, plan_payload
+           FROM petra.project_work_stage_plans
+          WHERE stage_plan_id = $1 OR work_unit_id = $2
+          FOR UPDATE`,
+        [input.stagePlanId, input.workUnitId],
+      );
+      if (existing.rows.length > 0) {
+        const row = existing.rows[0];
+        if (
+          existing.rows.length === 1 &&
+          row !== undefined &&
+          row.content_hash === contentHash &&
+          canonicalize(row.plan_payload) === canonicalize(payload)
+        ) {
+          return;
+        }
+        throw new ProjectWorkOperationError(
+          "PROJECT_WORK_OPERATION_CONFLICT",
+          "The stage-plan or Work identity is already bound to different content.",
+        );
+      }
+      await client.query(
+        `INSERT INTO petra.project_work_stage_plans (
+           stage_plan_id, revision, project_id, work_unit_id,
+           work_unit_spec_hash, workflow_name, workflow_version, task_family,
+           task_name, task_version, stages, content_hash, plan_payload,
+           registered_at
+         ) VALUES (
+           $1, 1, $2, $3, $4, $5, $6, $7, $8, $9, $10::jsonb, $11,
+           $12::jsonb, $13::timestamptz
+         )`,
+        [
+          payload.stage_plan_id,
+          payload.project_id,
+          payload.work_unit_id,
+          payload.work_unit_spec_hash,
+          payload.workflow.workflow_name,
+          payload.workflow.workflow_version,
+          payload.workflow.task_family,
+          payload.workflow.task_name,
+          payload.workflow.task_version,
+          JSON.stringify(payload.stages),
+          contentHash,
+          JSON.stringify(payload),
+          payload.registered_at,
         ],
       );
     });

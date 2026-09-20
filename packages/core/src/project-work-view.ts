@@ -1,4 +1,4 @@
-import type { PetraProjectWorkView } from "@petra/contracts";
+import type { PetraProjectWorkReadView } from "@petra/contracts";
 
 export type ProjectWorkStateFilter =
   | "requested"
@@ -19,9 +19,9 @@ export interface ProjectWorkViewReader {
   listProjectWorkView(
     projectId: string,
     request?: ProjectWorkCollectionRequest,
-  ): Promise<PetraProjectWorkView | undefined>;
+  ): Promise<PetraProjectWorkReadView | undefined>;
   getProjectWorkView(
     projectId: string,
     workUnitId: string,
-  ): Promise<PetraProjectWorkView | undefined>;
+  ): Promise<PetraProjectWorkReadView | undefined>;
 }
