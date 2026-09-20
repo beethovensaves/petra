@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-work-resume-receipt/1.0.0/schema.json",
+  "title": "PetraProjectWorkResumeReceipt",
+  "description": "The immutable exact result of one authorized registered checkpoint-resume transition. Continuing operational Work never implies domain authority.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "receipt_id",
+    "command_id",
+    "idempotency_key",
+    "project_id",
+    "outcome",
+    "actor",
+    "capability_grant_id",
+    "requested_work_unit_ref",
+    "checkpoint",
+    "resume_registration",
+    "resumed_attempt",
+    "resulting_work_unit_ref",
+    "effect",
+    "destination",
+    "recorded_at",
+    "record_hash"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.project-work-resume-receipt" },
+    "schema_version": { "const": "1.0.0" },
+    "receipt_id": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        { "type": "string", "pattern": "^project_work_resume_receipt_" }
+      ]
+    },
+    "command_id": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        { "type": "string", "pattern": "^command_" }
+      ]
+    },
+    "idempotency_key": { "type": "string", "minLength": 1, "maxLength": 512 },
+    "project_id": { "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId" },
+    "outcome": { "const": "resumed" },
+    "actor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["actor_id", "actor_kind"],
+      "properties": {
+        "actor_id": { "$ref": "../../common/1.0.0/schema.json#/$defs/ActorId" },
+        "actor_kind": { "const": "human" }
+      }
+    },
+    "capability_grant_id": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        { "type": "string", "pattern": "^capability_grant_" }
+      ]
+    },
+    "requested_work_unit_ref": {
+      "$ref": "../../project-work-operation-request/1.0.0/schema.json#/$defs/WorkUnitRef"
+    },
+    "checkpoint": {
+      "$ref": "../../work-unit/1.0.0/schema.json#/$defs/CheckpointRef"
+    },
+    "resume_registration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resume_registration_id", "content_hash"],
+      "properties": {
+        "resume_registration_id": {
+          "allOf": [
+            { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+            { "type": "string", "pattern": "^work_resume_registration_" }
+          ]
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "resumed_attempt": {
+      "$ref": "../../worker-input-manifest/1.0.0/schema.json#/$defs/Attempt"
+    },
+    "resulting_work_unit_ref": {
+      "$ref": "../../project-work-operation-request/1.0.0/schema.json#/$defs/WorkUnitRef"
+    },
+    "effect": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "summary",
+        "prior_attempts_preserved",
+        "checkpoint_preserved",
+        "domain_authority_changed"
+      ],
+      "properties": {
+        "kind": { "const": "operational_only" },
+        "summary": { "type": "string", "minLength": 1, "maxLength": 4000 },
+        "prior_attempts_preserved": { "const": true },
+        "checkpoint_preserved": { "const": true },
+        "domain_authority_changed": { "const": false }
+      }
+    },
+    "destination": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["place_role", "work_unit_ref"],
+      "properties": {
+        "place_role": { "const": "work" },
+        "work_unit_ref": {
+          "$ref": "../../project-work-operation-request/1.0.0/schema.json#/$defs/WorkUnitRef"
+        }
+      }
+    },
+    "recorded_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    },
+    "record_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    }
+  }
+}

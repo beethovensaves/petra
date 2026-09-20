@@ -46,6 +46,21 @@ export interface WorkUnitAuthorityRepository {
     attempt: number,
     startedAt: string,
   ): Promise<PetraWorkUnit>;
+  checkpoint(
+    workUnitId: string,
+    expectedRevision: number,
+    attempt: number,
+    checkpoint: Extract<
+      PetraWorkUnit["status"],
+      { state: "checkpointed" }
+    >["checkpoint"],
+    recordedAt: string,
+  ): Promise<PetraWorkUnit>;
+  resume(
+    workUnitId: string,
+    expectedRevision: number,
+    resumedAt: string,
+  ): Promise<PetraWorkUnit>;
   complete(
     manifest: PetraWorkerOutputManifest,
     expectedRevision: number,

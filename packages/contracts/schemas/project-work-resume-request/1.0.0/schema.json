@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-work-resume-request/1.0.0/schema.json",
+  "title": "PetraProjectWorkResumeRequest",
+  "description": "An exact idempotent request to continue one checkpointed WorkUnit through a server-registered compatible transition. Actor and capability authority are resolved by the authenticated server.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "command_id",
+    "idempotency_key",
+    "expected_work_unit_ref",
+    "expected_checkpoint",
+    "submitted_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.project-work-resume-request" },
+    "schema_version": { "const": "1.0.0" },
+    "command_id": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        { "type": "string", "pattern": "^command_" }
+      ]
+    },
+    "idempotency_key": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,511}$"
+    },
+    "expected_work_unit_ref": {
+      "$ref": "../../project-work-operation-request/1.0.0/schema.json#/$defs/WorkUnitRef"
+    },
+    "expected_checkpoint": {
+      "$ref": "../../work-unit/1.0.0/schema.json#/$defs/CheckpointRef"
+    },
+    "submitted_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  }
+}

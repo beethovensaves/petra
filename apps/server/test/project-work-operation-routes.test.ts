@@ -4,11 +4,14 @@ import type {
   PetraProjectWorkOperationReceipt,
   PetraProjectWorkOperationRequest,
   PetraProjectWorkOperationsView,
+  PetraProjectWorkResumeReceipt,
+  PetraProjectWorkResumeRequest,
 } from "@petra/contracts";
 import type {
   AuthenticatedCommandPrincipalResolver,
   ProjectWorkOperationAuthority,
   ProjectWorkOperationsViewReader,
+  ProjectWorkResumeAuthority,
 } from "@petra/core";
 import { describe, expect, it, vi } from "vitest";
 
@@ -35,8 +38,15 @@ const receipt = readFixture<PetraProjectWorkOperationReceipt>(
 const view = readFixture<PetraProjectWorkOperationsView>(
   "project-work-operations-view",
 );
+const resumeRequest = readFixture<PetraProjectWorkResumeRequest>(
+  "project-work-resume-request",
+);
+const resumeReceipt = readFixture<PetraProjectWorkResumeReceipt>(
+  "project-work-resume-receipt",
+);
 const commandPath = `/api/commands/projects/${view.project_id}/work/${view.work_unit_ref.work_unit_id}`;
 const queryPath = `/api/queries/projects/${view.project_id}/work/${view.work_unit_ref.work_unit_id}/operations`;
+const resumePath = `/api/commands/projects/${resumeReceipt.project_id}/work/${resumeRequest.expected_work_unit_ref.work_unit_id}/resume`;
 
 const authorized = (path: string, init: RequestInit = {}): Request =>
   new Request(`http://petra.local${path}`, {
@@ -192,5 +202,51 @@ describe("Project Work operation routes", () => {
     );
     expect(serviceDenied.status).toBe(403);
     expect(execute).not.toHaveBeenCalled();
+  });
+
+  it("resolves server-owned authority for an exact checkpoint resume", async () => {
+    let execution:
+      | {
+          projectId: string;
+          body: PetraProjectWorkResumeRequest;
+          principal: {
+            actor: typeof resumeReceipt.actor;
+            capabilityGrantId: string;
+          };
+        }
+      | undefined;
+    const authority: ProjectWorkResumeAuthority = {
+      executeProjectWorkResume: (projectId, body, principal) => {
+        execution = {
+          projectId,
+          body: structuredClone(body),
+          principal: structuredClone(principal),
+        };
+        return Promise.resolve(structuredClone(resumeReceipt));
+      },
+    };
+    const petra = createPetraApp({
+      authToken: TOKEN,
+      commandPrincipalResolver: resolvedPrincipal,
+      projectWorkResumeAuthority: authority,
+    });
+
+    const response = await petra.app.fetch(
+      authorized(resumePath, {
+        method: "POST",
+        body: JSON.stringify(resumeRequest),
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toStrictEqual(resumeReceipt);
+    expect(execution).toStrictEqual({
+      projectId: resumeReceipt.project_id,
+      body: resumeRequest,
+      principal: {
+        actor: resumeReceipt.actor,
+        capabilityGrantId: resumeReceipt.capability_grant_id,
+      },
+    });
   });
 });

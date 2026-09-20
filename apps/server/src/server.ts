@@ -656,6 +656,14 @@ export const startPetraServer = async (
               projectWorkOperationAuthority:
                 options.projectShellPersistence.workOperationAuthority,
             }),
+      ...(options.projectWorkResumeAuthority !== undefined
+        ? { projectWorkResumeAuthority: options.projectWorkResumeAuthority }
+        : options.projectShellPersistence === undefined
+          ? {}
+          : {
+              projectWorkResumeAuthority:
+                options.projectShellPersistence.workResumeAuthority,
+            }),
       ...(options.projectThreadViews !== undefined
         ? { projectThreadViews: options.projectThreadViews }
         : options.projectShellPersistence === undefined

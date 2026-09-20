@@ -4,6 +4,8 @@ import type {
   PetraProjectWorkOperationReceipt,
   PetraProjectWorkOperationRequest,
   PetraProjectWorkOperationsView,
+  PetraProjectWorkResumeReceipt,
+  PetraProjectWorkResumeRequest,
   PetraWorkerInputManifest,
   PetraWorkUnit,
 } from "@petra/contracts";
@@ -12,8 +14,11 @@ import {
   derivePetraId,
   ProjectWorkOperationError,
   type ProjectWorkCommandPrincipal,
+  type ProjectWorkCheckpointResumeRegistry,
   type ProjectWorkOperationAuthority,
   type ProjectWorkOperationsViewReader,
+  type ProjectWorkResumeAuthority,
+  type RegisterProjectWorkCheckpointResume,
   type RegisterProjectWorkRequiredInput,
   type RegisterProjectWorkStagePlan,
 } from "@petra/core";
@@ -75,6 +80,60 @@ interface StagePlanRow {
   readonly plan_payload: unknown;
 }
 
+interface StoredResumeRegistrationRow {
+  readonly resume_registration_id: string;
+  readonly content_hash: string;
+  readonly payload: unknown;
+}
+
+interface StoredResumeReceiptRow extends StoredReceiptRow {
+  readonly resume_registration_id: string;
+}
+
+interface StoredResumeRegistration {
+  readonly resume_registration_id: string;
+  readonly project_id: string;
+  readonly work_unit_ref: {
+    readonly work_unit_id: string;
+    readonly revision: number;
+    readonly spec_hash: string;
+  };
+  readonly input_manifest_ref: {
+    readonly worker_input_manifest_id: string;
+    readonly content_hash: string;
+  };
+  readonly checkpoint: Extract<
+    PetraWorkUnit["status"],
+    { state: "checkpointed" }
+  >["checkpoint"];
+  readonly workflow: {
+    readonly workflow_name: string;
+    readonly workflow_version: string;
+  };
+  readonly attempt: number;
+  readonly compatibility: {
+    readonly boundary: "same_work_spec_input_workflow_and_capability";
+    readonly preserves_work_identity: true;
+    readonly preserves_attempt: true;
+    readonly domain_authority_changed: false;
+  };
+  readonly registered_by: {
+    readonly actor_id: string;
+    readonly actor_kind: "service";
+  };
+  readonly registered_at: string;
+}
+
+interface ResolvedResumeRegistration {
+  readonly payload: StoredResumeRegistration;
+  readonly contentHash: string;
+}
+
+interface StoredResumeTransitionRow {
+  readonly record_hash: string;
+  readonly transition_payload: unknown;
+}
+
 interface StoredStagePlan {
   readonly stage_plan_id: string;
   readonly revision: 1;
@@ -107,6 +166,8 @@ const canonicalHash = (value: unknown): string =>
 const clone = <Value>(value: Value): Value => structuredClone(value);
 
 const STAGE_PLAN_ID = /^work_stage_plan_[0-9A-HJKMNP-TV-Z]{26}$/u;
+const RESUME_REGISTRATION_ID =
+  /^work_resume_registration_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const STAGE_ID = /^[a-z][a-z0-9_-]{0,79}$/u;
 const CONTENT_HASH = /^sha256:[0-9a-f]{64}$/u;
 
@@ -201,7 +262,11 @@ const required = <Value>(value: Value | undefined, label: string): Value => {
  * recovery idempotent without treating delivery loss as a second instruction.
  */
 export class PostgresProjectWorkOperations
-  implements ProjectWorkOperationAuthority, ProjectWorkOperationsViewReader
+  implements
+    ProjectWorkOperationAuthority,
+    ProjectWorkOperationsViewReader,
+    ProjectWorkResumeAuthority,
+    ProjectWorkCheckpointResumeRegistry
 {
   readonly #pool: Pool;
   readonly #contracts: PetraContractRegistry;
@@ -318,6 +383,231 @@ export class PostgresProjectWorkOperations
       receipt,
     );
     return this.#completeReceipt(request, receipt);
+  }
+
+  async executeProjectWorkResume(
+    projectId: string,
+    request: PetraProjectWorkResumeRequest,
+    principal: ProjectWorkCommandPrincipal,
+  ): Promise<PetraProjectWorkResumeReceipt> {
+    this.#contracts.assertValid(
+      "project-work-resume-request",
+      "1.0.0",
+      request,
+    );
+    const reservation = await this.#reserveResume(
+      projectId,
+      request,
+      principal,
+    );
+    if ("schema_name" in reservation) return reservation;
+
+    let resultingWork: PetraWorkUnit;
+    try {
+      resultingWork = await this.#resume(request);
+    } catch (error) {
+      await this.#releaseUnappliedResumeReservation(request).catch(
+        () => undefined,
+      );
+      throw error;
+    }
+    if (resultingWork.status.state !== "running") {
+      throw new ProjectWorkOperationError(
+        "PROJECT_WORK_OPERATION_STORED_RECORD_CORRUPT",
+        "A registered checkpoint resume did not produce running Work.",
+      );
+    }
+    const base = {
+      schema_name: "petra.project-work-resume-receipt" as const,
+      schema_version: "1.0.0" as const,
+      receipt_id: derivePetraId(
+        "project_work_resume_receipt",
+        request.command_id,
+      ),
+      command_id: request.command_id,
+      idempotency_key: request.idempotency_key,
+      project_id: projectId,
+      outcome: "resumed" as const,
+      actor: clone(principal.actor),
+      capability_grant_id: principal.capabilityGrantId,
+      requested_work_unit_ref: clone(request.expected_work_unit_ref),
+      checkpoint: clone(request.expected_checkpoint),
+      resume_registration: {
+        resume_registration_id: reservation.payload.resume_registration_id,
+        content_hash: reservation.contentHash,
+      },
+      resumed_attempt: resultingWork.status.attempt,
+      resulting_work_unit_ref: exactWorkRef(resultingWork),
+      effect: {
+        kind: "operational_only" as const,
+        summary:
+          "The exact checkpointed Work continued through its registered compatible transition.",
+        prior_attempts_preserved: true as const,
+        checkpoint_preserved: true as const,
+        domain_authority_changed: false as const,
+      },
+      destination: {
+        place_role: "work" as const,
+        work_unit_ref: exactWorkRef(resultingWork),
+      },
+      recorded_at: request.submitted_at,
+    };
+    const receipt: PetraProjectWorkResumeReceipt = {
+      ...base,
+      record_hash: canonicalHash(base),
+    };
+    this.#contracts.assertValid(
+      "project-work-resume-receipt",
+      "1.0.0",
+      receipt,
+    );
+    return this.#completeResumeReceipt(
+      request,
+      receipt,
+      reservation.payload,
+      reservation.contentHash,
+    );
+  }
+
+  async registerCheckpointResume(
+    input: RegisterProjectWorkCheckpointResume,
+  ): Promise<void> {
+    if (
+      !RESUME_REGISTRATION_ID.test(input.resumeRegistrationId) ||
+      !CONTENT_HASH.test(input.workUnitRef.spec_hash) ||
+      !CONTENT_HASH.test(input.checkpoint.content_hash) ||
+      !validDateTime(input.checkpoint.recorded_at) ||
+      !validDateTime(input.registeredAt) ||
+      Date.parse(input.registeredAt) < Date.parse(input.checkpoint.recorded_at)
+    ) {
+      throw new ProjectWorkOperationError(
+        "PROJECT_WORK_OPERATION_UNAVAILABLE",
+        "Checkpoint resume registration requires exact canonical Work, checkpoint, and registration identities and ordered times.",
+      );
+    }
+    await this.#transaction("SERIALIZABLE", async (client) => {
+      const work = await this.#work(
+        client,
+        input.projectId,
+        input.workUnitRef.work_unit_id,
+        true,
+      );
+      if (work === undefined) {
+        throw new ProjectWorkOperationError(
+          "PROJECT_WORK_OPERATION_NOT_FOUND",
+          "The checkpoint resume target is not bound to this Project.",
+        );
+      }
+      if (
+        work.revision !== input.workUnitRef.revision ||
+        work.spec_hash !== input.workUnitRef.spec_hash ||
+        work.status.state !== "checkpointed" ||
+        canonicalize(work.status.checkpoint) !==
+          canonicalize(input.checkpoint) ||
+        work.spec.checkpoint_policy === "disabled" ||
+        work.created_by.actor_kind !== "service" ||
+        work.created_by.actor_id !== input.registeredBy.actor_id
+      ) {
+        throw new ProjectWorkOperationError(
+          "PROJECT_WORK_OPERATION_STALE",
+          "Resume compatibility must be registered by the owning service for the exact current retained checkpoint and immutable Work specification.",
+        );
+      }
+      const artifact = await client.query(
+        `SELECT 1 FROM petra.artifacts
+          WHERE artifact_id = $1 AND content_hash = $2`,
+        [input.checkpoint.artifact_id, input.checkpoint.content_hash],
+      );
+      if ((artifact.rowCount ?? 0) !== 1) {
+        throw new ProjectWorkOperationError(
+          "PROJECT_WORK_OPERATION_UNAVAILABLE",
+          "The checkpoint bytes are not retained under the exact registered Artifact identity.",
+        );
+      }
+      const payload: StoredResumeRegistration = {
+        resume_registration_id: input.resumeRegistrationId,
+        project_id: input.projectId,
+        work_unit_ref: clone(input.workUnitRef),
+        input_manifest_ref: clone(work.spec.input_manifest_ref),
+        checkpoint: clone(input.checkpoint),
+        workflow: {
+          workflow_name: work.spec.workflow_name,
+          workflow_version: work.spec.workflow_version,
+        },
+        attempt: work.status.attempt,
+        compatibility: {
+          boundary: "same_work_spec_input_workflow_and_capability",
+          preserves_work_identity: true,
+          preserves_attempt: true,
+          domain_authority_changed: false,
+        },
+        registered_by: clone(input.registeredBy),
+        registered_at: input.registeredAt,
+      };
+      const contentHash = canonicalHash(payload);
+      const existing = await client.query<StoredResumeRegistrationRow>(
+        `SELECT resume_registration_id, content_hash, payload
+           FROM petra.project_work_resume_registrations
+          WHERE resume_registration_id = $1
+             OR (work_unit_id = $2 AND source_work_unit_revision = $3)
+          ORDER BY resume_registration_id
+          FOR UPDATE`,
+        [
+          input.resumeRegistrationId,
+          input.workUnitRef.work_unit_id,
+          input.workUnitRef.revision,
+        ],
+      );
+      if (existing.rows.length > 0) {
+        const row = existing.rows[0];
+        if (
+          existing.rows.length === 1 &&
+          row !== undefined &&
+          row.resume_registration_id === input.resumeRegistrationId &&
+          row.content_hash === contentHash &&
+          canonicalize(row.payload) === canonicalize(payload)
+        ) {
+          return;
+        }
+        throw new ProjectWorkOperationError(
+          "PROJECT_WORK_OPERATION_CONFLICT",
+          "The resume registration identity or checkpoint revision is already bound to different compatibility input.",
+        );
+      }
+      await client.query(
+        `INSERT INTO petra.project_work_resume_registrations (
+           resume_registration_id, project_id, work_unit_id,
+           source_work_unit_revision, work_unit_spec_hash, input_manifest_id,
+           input_manifest_hash, checkpoint_artifact_id,
+           checkpoint_content_hash, checkpoint_recorded_at, workflow_name,
+           workflow_version, attempt, registered_by_actor_id,
+           registered_by_actor_kind, registered_at, content_hash, payload
+         ) VALUES (
+           $1, $2, $3, $4, $5, $6, $7, $8, $9, $10::timestamptz,
+           $11, $12, $13, $14, $15, $16::timestamptz, $17, $18::jsonb
+         )`,
+        [
+          payload.resume_registration_id,
+          payload.project_id,
+          payload.work_unit_ref.work_unit_id,
+          payload.work_unit_ref.revision,
+          payload.work_unit_ref.spec_hash,
+          payload.input_manifest_ref.worker_input_manifest_id,
+          payload.input_manifest_ref.content_hash,
+          payload.checkpoint.artifact_id,
+          payload.checkpoint.content_hash,
+          payload.checkpoint.recorded_at,
+          payload.workflow.workflow_name,
+          payload.workflow.workflow_version,
+          payload.attempt,
+          payload.registered_by.actor_id,
+          payload.registered_by.actor_kind,
+          payload.registered_at,
+          contentHash,
+          JSON.stringify(payload),
+        ],
+      );
+    });
   }
 
   async registerRequiredInput(
@@ -535,6 +825,7 @@ export class PostgresProjectWorkOperations
       const plan = await this.#plan(client, work);
       const delivery = await this.#delivery(client, projectId, workUnitId);
       const results = await this.#results(client, projectId, workUnitId);
+      const resumeRegistration = await this.#resumeRegistration(client, work);
       const commandPath = `/api/commands/projects/${projectId}/work/${workUnitId}`;
       const active = [
         "requested",
@@ -555,6 +846,10 @@ export class PostgresProjectWorkOperations
         work.status.failure.retryable &&
         work.status.attempt <
           inputManifest.content.resource_limits.max_attempts;
+      const resumable =
+        work.status.state === "checkpointed" &&
+        resumeRegistration !== undefined &&
+        pendingInputs.length === 0;
       const controls: PetraProjectWorkOperationsView["controls"] = [
         {
           operation: "start",
@@ -643,11 +938,15 @@ export class PostgresProjectWorkOperations
         },
         {
           operation: "resume",
-          state: "unavailable",
-          reason:
-            work.status.state === "checkpointed"
-              ? "The checkpoint is visible, but no registered resume transition validates compatibility."
-              : "No exact compatible checkpoint is available for a registered resume transition.",
+          state: resumable ? "available" : "unavailable",
+          reason: resumable
+            ? "The owning workflow registered this exact retained checkpoint as compatible with the immutable Work boundary."
+            : pendingInputs.length > 0
+              ? "Required input must be resolved before checkpointed Work resumes."
+              : work.status.state === "checkpointed"
+                ? "The checkpoint is visible, but no trusted registered transition validates its compatibility."
+                : "Resume requires exact checkpointed Work and a trusted compatible-transition registration.",
+          ...(resumable ? { command_path: `${commandPath}/resume` } : {}),
         },
         {
           operation: "start_again",
@@ -680,6 +979,443 @@ export class PostgresProjectWorkOperations
       );
       return view;
     });
+  }
+
+  async #reserveResume(
+    projectId: string,
+    request: PetraProjectWorkResumeRequest,
+    principal: ProjectWorkCommandPrincipal,
+  ): Promise<PetraProjectWorkResumeReceipt | ResolvedResumeRegistration> {
+    return this.#transaction("SERIALIZABLE", async (client) => {
+      const requestHash = canonicalHash(request);
+      const existing = await client.query<StoredResumeReceiptRow>(
+        `SELECT state, request_hash, request_payload, actor_id, actor_kind,
+                capability_grant_id, receipt_payload, resume_registration_id
+           FROM petra.project_work_resume_receipts
+          WHERE command_id = $1 OR idempotency_key = $2
+          ORDER BY command_id
+          FOR UPDATE`,
+        [request.command_id, request.idempotency_key],
+      );
+      if (existing.rows.length > 0) {
+        if (existing.rows.length !== 1) {
+          throw new ProjectWorkOperationError(
+            "PROJECT_WORK_OPERATION_CONFLICT",
+            "The resume command identity and idempotency key identify different operations.",
+          );
+        }
+        const row = existing.rows[0]!;
+        if (
+          row.request_hash !== requestHash ||
+          canonicalize(row.request_payload) !== canonicalize(request) ||
+          !sameActor(
+            { actor_id: row.actor_id, actor_kind: row.actor_kind },
+            principal.actor,
+          ) ||
+          row.capability_grant_id !== principal.capabilityGrantId
+        ) {
+          throw new ProjectWorkOperationError(
+            "PROJECT_WORK_OPERATION_CONFLICT",
+            "The resume command identity or idempotency key is bound to different input or authority.",
+          );
+        }
+        if (row.state === "completed") {
+          this.#contracts.assertValid(
+            "project-work-resume-receipt",
+            "1.0.0",
+            row.receipt_payload,
+          );
+          return clone(row.receipt_payload) as PetraProjectWorkResumeReceipt;
+        }
+        const registration = await this.#resumeRegistrationById(
+          client,
+          row.resume_registration_id,
+        );
+        if (registration === undefined) {
+          throw new ProjectWorkOperationError(
+            "PROJECT_WORK_OPERATION_STORED_RECORD_CORRUPT",
+            "The pending resume command lost its compatibility registration.",
+          );
+        }
+        return registration;
+      }
+
+      const crossingIdentity = await client.query(
+        `SELECT 1 FROM petra.project_work_operation_receipts
+          WHERE command_id = $1 OR idempotency_key = $2
+          LIMIT 1`,
+        [request.command_id, request.idempotency_key],
+      );
+      if ((crossingIdentity.rowCount ?? 0) > 0) {
+        throw new ProjectWorkOperationError(
+          "PROJECT_WORK_OPERATION_CONFLICT",
+          "The resume command identity or idempotency key already names another Work operation.",
+        );
+      }
+      const pending = await client.query(
+        `SELECT 1
+           FROM (
+             SELECT command_id FROM petra.project_work_operation_receipts
+              WHERE project_id = $1 AND work_unit_id = $2 AND state = 'pending'
+             UNION ALL
+             SELECT command_id FROM petra.project_work_resume_receipts
+              WHERE project_id = $1 AND work_unit_id = $2 AND state = 'pending'
+           ) AS pending_work_operation
+          LIMIT 1`,
+        [projectId, request.expected_work_unit_ref.work_unit_id],
+      );
+      if ((pending.rowCount ?? 0) > 0) {
+        throw new ProjectWorkOperationError(
+          "PROJECT_WORK_OPERATION_CONFLICT",
+          "Another Work operation has an unresolved delivery effect; reconcile it before resuming.",
+        );
+      }
+      const work = await this.#work(
+        client,
+        projectId,
+        request.expected_work_unit_ref.work_unit_id,
+        true,
+      );
+      if (work === undefined) {
+        throw new ProjectWorkOperationError(
+          "PROJECT_WORK_OPERATION_NOT_FOUND",
+          "The checkpointed WorkUnit is not bound to this Project.",
+        );
+      }
+      if (
+        work.revision !== request.expected_work_unit_ref.revision ||
+        work.spec_hash !== request.expected_work_unit_ref.spec_hash ||
+        work.status.state !== "checkpointed" ||
+        canonicalize(work.status.checkpoint) !==
+          canonicalize(request.expected_checkpoint)
+      ) {
+        throw new ProjectWorkOperationError(
+          "PROJECT_WORK_OPERATION_STALE",
+          "Resume must name the exact current checkpointed Work revision, specification, and retained checkpoint.",
+        );
+      }
+      if (
+        !(await this.#authorizer.authorize(
+          {
+            actor: principal.actor,
+            capabilityGrantId: principal.capabilityGrantId,
+            commandName: "ManageProjectWork",
+            projectId,
+          },
+          client,
+        ))
+      ) {
+        throw new ProjectWorkOperationError(
+          "PROJECT_WORK_OPERATION_NOT_AUTHORIZED",
+          "The authenticated actor has no active exact Project Work grant.",
+        );
+      }
+      const pendingInputs = await client.query(
+        `SELECT 1 FROM petra.project_work_input_requests
+          WHERE project_id = $1 AND work_unit_id = $2 AND state = 'pending'
+          LIMIT 1`,
+        [projectId, work.work_unit_id],
+      );
+      if ((pendingInputs.rowCount ?? 0) > 0) {
+        throw new ProjectWorkOperationError(
+          "PROJECT_WORK_OPERATION_UNAVAILABLE",
+          "Required input must be resolved before checkpointed Work resumes.",
+        );
+      }
+      const registration = await this.#resumeRegistration(client, work);
+      if (registration === undefined) {
+        throw new ProjectWorkOperationError(
+          "PROJECT_WORK_OPERATION_UNAVAILABLE",
+          "No trusted registered transition validates this exact checkpoint within the immutable Work boundary.",
+        );
+      }
+      await client.query(
+        `INSERT INTO petra.project_work_resume_receipts (
+           receipt_id, command_id, idempotency_key, project_id, work_unit_id,
+           source_work_unit_revision, resume_registration_id, request_hash,
+           request_payload, actor_id, actor_kind, capability_grant_id, state,
+           recorded_at
+         ) VALUES (
+           $1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb, $10, $11, $12,
+           'pending', $13::timestamptz
+         )`,
+        [
+          derivePetraId("project_work_resume_receipt", request.command_id),
+          request.command_id,
+          request.idempotency_key,
+          projectId,
+          work.work_unit_id,
+          work.revision,
+          registration.payload.resume_registration_id,
+          requestHash,
+          JSON.stringify(request),
+          principal.actor.actor_id,
+          principal.actor.actor_kind,
+          principal.capabilityGrantId,
+          request.submitted_at,
+        ],
+      );
+      return registration;
+    });
+  }
+
+  async #resume(
+    request: PetraProjectWorkResumeRequest,
+  ): Promise<PetraWorkUnit> {
+    const expected = request.expected_work_unit_ref;
+    let current = await this.#workUnits.getWorkUnit(expected.work_unit_id);
+    if (current?.revision === expected.revision) {
+      current = await this.#workUnits.resume(
+        expected.work_unit_id,
+        expected.revision,
+        request.submitted_at,
+      );
+    }
+    const source = await this.#workUnits.getWorkUnitRevision(
+      expected.work_unit_id,
+      expected.revision,
+    );
+    if (
+      source?.status.state !== "checkpointed" ||
+      current?.revision !== expected.revision + 1 ||
+      current.status.state !== "running" ||
+      current.status.attempt !== source.status.attempt ||
+      current.updated_at !== request.submitted_at
+    ) {
+      throw new ProjectWorkOperationError(
+        "PROJECT_WORK_OPERATION_STALE",
+        "The reserved checkpoint resume could not reconcile its exact Work effect.",
+      );
+    }
+    return current;
+  }
+
+  async #releaseUnappliedResumeReservation(
+    request: PetraProjectWorkResumeRequest,
+  ): Promise<void> {
+    const current = await this.#workUnits.getWorkUnit(
+      request.expected_work_unit_ref.work_unit_id,
+    );
+    if (
+      current?.revision !== request.expected_work_unit_ref.revision ||
+      current.spec_hash !== request.expected_work_unit_ref.spec_hash
+    ) {
+      return;
+    }
+    await this.#pool.query(
+      `DELETE FROM petra.project_work_resume_receipts
+        WHERE command_id = $1 AND state = 'pending'`,
+      [request.command_id],
+    );
+  }
+
+  async #completeResumeReceipt(
+    request: PetraProjectWorkResumeRequest,
+    receipt: PetraProjectWorkResumeReceipt,
+    registration: StoredResumeRegistration,
+    registrationContentHash: string,
+  ): Promise<PetraProjectWorkResumeReceipt> {
+    return this.#transaction("SERIALIZABLE", async (client) => {
+      const row = await client.query<StoredResumeReceiptRow>(
+        `SELECT state, request_hash, request_payload, actor_id, actor_kind,
+                capability_grant_id, receipt_payload, resume_registration_id
+           FROM petra.project_work_resume_receipts
+          WHERE command_id = $1 FOR UPDATE`,
+        [request.command_id],
+      );
+      const existingReceipt = row.rows[0];
+      if (existingReceipt === undefined) {
+        throw new ProjectWorkOperationError(
+          "PROJECT_WORK_OPERATION_STORED_RECORD_CORRUPT",
+          "The checkpoint resume lost its command reservation.",
+        );
+      }
+      if (existingReceipt.state === "completed") {
+        this.#contracts.assertValid(
+          "project-work-resume-receipt",
+          "1.0.0",
+          existingReceipt.receipt_payload,
+        );
+        return clone(
+          existingReceipt.receipt_payload,
+        ) as PetraProjectWorkResumeReceipt;
+      }
+      const transitionPayload = {
+        command_id: request.command_id,
+        idempotency_key: request.idempotency_key,
+        registration_ref: {
+          resume_registration_id: registration.resume_registration_id,
+          content_hash: registrationContentHash,
+        },
+        project_id: receipt.project_id,
+        source_work_unit_ref: clone(receipt.requested_work_unit_ref),
+        checkpoint: clone(receipt.checkpoint),
+        resulting_work_unit_ref: clone(receipt.resulting_work_unit_ref),
+        attempt: receipt.resumed_attempt,
+        resumed_at: request.submitted_at,
+        requested_by: clone(receipt.actor),
+        capability_grant_id: receipt.capability_grant_id,
+        authority_boundary: {
+          effect_kind: "operational_only" as const,
+          work_identity_preserved: true as const,
+          attempt_preserved: true as const,
+          domain_authority_changed: false as const,
+        },
+      };
+      const transitionHash = canonicalHash(transitionPayload);
+      const existingTransition = await client.query<StoredResumeTransitionRow>(
+        `SELECT record_hash, transition_payload
+           FROM petra.project_work_resume_transitions
+          WHERE command_id = $1 OR idempotency_key = $2
+             OR resume_registration_id = $3
+          ORDER BY command_id
+          FOR UPDATE`,
+        [
+          request.command_id,
+          request.idempotency_key,
+          registration.resume_registration_id,
+        ],
+      );
+      if (existingTransition.rows.length > 0) {
+        const transition = existingTransition.rows[0];
+        if (
+          existingTransition.rows.length !== 1 ||
+          transition === undefined ||
+          transition.record_hash !== transitionHash ||
+          canonicalize(transition.transition_payload) !==
+            canonicalize(transitionPayload)
+        ) {
+          throw new ProjectWorkOperationError(
+            "PROJECT_WORK_OPERATION_CONFLICT",
+            "The resume transition identity is already bound to different checkpoint lineage.",
+          );
+        }
+      } else {
+        await client.query(
+          `INSERT INTO petra.project_work_resume_transitions (
+             command_id, idempotency_key, resume_registration_id, project_id,
+             work_unit_id, source_work_unit_revision,
+             resulting_work_unit_revision, work_unit_spec_hash,
+             checkpoint_artifact_id, checkpoint_content_hash, attempt,
+             resumed_at, actor_id, actor_kind, capability_grant_id,
+             record_hash, transition_payload
+           ) VALUES (
+             $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11,
+             $12::timestamptz, $13, $14, $15, $16, $17::jsonb
+           )`,
+          [
+            request.command_id,
+            request.idempotency_key,
+            registration.resume_registration_id,
+            receipt.project_id,
+            receipt.requested_work_unit_ref.work_unit_id,
+            receipt.requested_work_unit_ref.revision,
+            receipt.resulting_work_unit_ref.revision,
+            receipt.requested_work_unit_ref.spec_hash,
+            receipt.checkpoint.artifact_id,
+            receipt.checkpoint.content_hash,
+            receipt.resumed_attempt,
+            request.submitted_at,
+            receipt.actor.actor_id,
+            receipt.actor.actor_kind,
+            receipt.capability_grant_id,
+            transitionHash,
+            JSON.stringify(transitionPayload),
+          ],
+        );
+      }
+      await client.query(
+        `UPDATE petra.project_work_resume_receipts
+            SET state = 'completed', receipt_payload = $2::jsonb,
+                completed_at = $3::timestamptz
+          WHERE command_id = $1 AND state = 'pending'`,
+        [request.command_id, JSON.stringify(receipt), request.submitted_at],
+      );
+      return clone(receipt);
+    });
+  }
+
+  async #resumeRegistration(
+    client: PoolClient,
+    work: PetraWorkUnit,
+  ): Promise<ResolvedResumeRegistration | undefined> {
+    if (work.status.state !== "checkpointed") return undefined;
+    const result = await client.query<StoredResumeRegistrationRow>(
+      `SELECT resume_registration_id, content_hash, payload
+         FROM petra.project_work_resume_registrations
+        WHERE project_id = $1 AND work_unit_id = $2
+          AND source_work_unit_revision = $3
+          AND work_unit_spec_hash = $4
+          AND checkpoint_artifact_id = $5
+          AND checkpoint_content_hash = $6`,
+      [
+        work.project_id,
+        work.work_unit_id,
+        work.revision,
+        work.spec_hash,
+        work.status.checkpoint.artifact_id,
+        work.status.checkpoint.content_hash,
+      ],
+    );
+    const row = result.rows[0];
+    if (row === undefined) return undefined;
+    const registration = this.#readResumeRegistration(row);
+    if (
+      registration.payload.project_id !== work.project_id ||
+      registration.payload.work_unit_ref.work_unit_id !== work.work_unit_id ||
+      registration.payload.work_unit_ref.revision !== work.revision ||
+      registration.payload.work_unit_ref.spec_hash !== work.spec_hash ||
+      canonicalize(registration.payload.input_manifest_ref) !==
+        canonicalize(work.spec.input_manifest_ref) ||
+      canonicalize(registration.payload.checkpoint) !==
+        canonicalize(work.status.checkpoint) ||
+      registration.payload.workflow.workflow_name !== work.spec.workflow_name ||
+      registration.payload.workflow.workflow_version !==
+        work.spec.workflow_version ||
+      registration.payload.attempt !== work.status.attempt ||
+      registration.payload.registered_by.actor_id !== work.created_by.actor_id
+    ) {
+      throw new ProjectWorkOperationError(
+        "PROJECT_WORK_OPERATION_STORED_RECORD_CORRUPT",
+        "The retained resume registration crossed its immutable Work boundary.",
+      );
+    }
+    return registration;
+  }
+
+  async #resumeRegistrationById(
+    client: PoolClient,
+    registrationId: string,
+  ): Promise<ResolvedResumeRegistration | undefined> {
+    const result = await client.query<StoredResumeRegistrationRow>(
+      `SELECT resume_registration_id, content_hash, payload
+         FROM petra.project_work_resume_registrations
+        WHERE resume_registration_id = $1`,
+      [registrationId],
+    );
+    const row = result.rows[0];
+    return row === undefined ? undefined : this.#readResumeRegistration(row);
+  }
+
+  #readResumeRegistration(
+    row: StoredResumeRegistrationRow,
+  ): ResolvedResumeRegistration {
+    const payload = row.payload as Partial<StoredResumeRegistration>;
+    if (
+      typeof payload !== "object" ||
+      payload === null ||
+      payload.resume_registration_id !== row.resume_registration_id ||
+      canonicalHash(row.payload) !== row.content_hash
+    ) {
+      throw new ProjectWorkOperationError(
+        "PROJECT_WORK_OPERATION_STORED_RECORD_CORRUPT",
+        "A retained resume registration failed its exact content identity.",
+      );
+    }
+    return {
+      payload: clone(row.payload) as StoredResumeRegistration,
+      contentHash: row.content_hash,
+    };
   }
 
   async #reserve(
@@ -731,6 +1467,19 @@ export class PostgresProjectWorkOperations
         return undefined;
       }
 
+      const crossingResumeIdentity = await client.query(
+        `SELECT 1 FROM petra.project_work_resume_receipts
+          WHERE command_id = $1 OR idempotency_key = $2
+          LIMIT 1`,
+        [request.command_id, request.idempotency_key],
+      );
+      if ((crossingResumeIdentity.rowCount ?? 0) > 0) {
+        throw new ProjectWorkOperationError(
+          "PROJECT_WORK_OPERATION_CONFLICT",
+          "The Work command identity or idempotency key already names a checkpoint resume.",
+        );
+      }
+
       const pending = await client.query(
         `SELECT 1 FROM petra.project_work_operation_receipts
           WHERE project_id = $1 AND work_unit_id = $2 AND state = 'pending'
@@ -741,6 +1490,18 @@ export class PostgresProjectWorkOperations
         throw new ProjectWorkOperationError(
           "PROJECT_WORK_OPERATION_CONFLICT",
           "Another Work operation has an unresolved delivery effect; reconcile it before a new command.",
+        );
+      }
+      const pendingResume = await client.query(
+        `SELECT 1 FROM petra.project_work_resume_receipts
+          WHERE project_id = $1 AND work_unit_id = $2 AND state = 'pending'
+          LIMIT 1`,
+        [projectId, request.expected_work_unit_ref.work_unit_id],
+      );
+      if ((pendingResume.rowCount ?? 0) > 0) {
+        throw new ProjectWorkOperationError(
+          "PROJECT_WORK_OPERATION_CONFLICT",
+          "A checkpoint resume has an unresolved delivery effect; reconcile it before a new Work command.",
         );
       }
       const work = await this.#work(

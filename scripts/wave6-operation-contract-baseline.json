@@ -244,10 +244,17 @@
     "work-restart-assessment": {
       "kind": "partial",
       "production_owner": "GET /api/queries/projects/:projectId/work/:workUnitId/operations -> PostgresProjectWorkOperations",
-      "authorization": "Bearer-authenticated Project/Work read; no resume or start-again mutation is admitted without a registered compatible transition.",
-      "persistence": "Current Work/checkpoint/input facts remain canonical. The read records no invented continuation or cloned Work.",
-      "recovery": "Returns explicit unavailable reasons for resume when no compatible registered checkpoint transition exists and for start-again when no workflow-specific input-rebinding command exists.",
-      "missing_owner": "A registered workflow-specific resume or fresh-execution command, with compatibility validation and exact retained-attempt linkage, is still required before either operation is executable."
+      "authorization": "Bearer-authenticated Project/Work read; no start-again mutation is admitted without a registered workflow-specific fresh-input transition.",
+      "persistence": "Current Work/input facts remain canonical. The read records no invented cloned Work.",
+      "recovery": "Returns an explicit unavailable reason for start-again while no workflow-specific input-rebinding command exists.",
+      "missing_owner": "A registered workflow-specific fresh-execution command with exact retained-attempt linkage is still required before start-again is executable."
+    },
+    "work-resume": {
+      "kind": "command",
+      "production_owner": "GET /api/queries/projects/:projectId/work/:workUnitId/operations and POST /api/commands/projects/:projectId/work/:workUnitId/resume -> PostgresProjectWorkOperations -> canonical WorkUnit checkpoint/resume transitions",
+      "authorization": "A trusted owning service must first register compatibility for the exact current retained checkpoint, immutable Work specification, input manifest, workflow, Actor, and capability boundary. The mutation then requires bearer authentication and a server-resolved human with the exact active ManageProjectWork grant; neither the client nor model prose can register compatibility or select a different checkpoint.",
+      "persistence": "PostgreSQL V057 admits canonical checkpointed Work revisions and retains immutable compatibility registrations, exact checkpoint-to-running transition lineage, idempotent command receipts, and every prior Work revision. Resume preserves Work identity and attempt and changes no domain authority.",
+      "recovery": "Before trusted registration, the operation is explicitly unavailable. Pending commands reconcile an already-applied exact transition; completed command/idempotency replay returns the same receipt after server restart. Stale Work/checkpoint/specification, changed authority, conflicting identity, unresolved input, missing bytes, and unregistered transitions fail without duplicate execution."
     },
     "interaction-delivery": {
       "kind": "query",
@@ -748,9 +755,9 @@
     },
     {
       "operation_id": "work.resume",
-      "owner": "work-restart-assessment",
-      "owner_status": "partial",
-      "missing_owner": "Registered compatible-checkpoint resume command and exact transition result."
+      "owner": "work-resume",
+      "owner_status": "owned",
+      "missing_owner": ""
     },
     {
       "operation_id": "work.start-again",

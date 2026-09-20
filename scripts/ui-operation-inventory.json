@@ -1079,8 +1079,14 @@
       "route": "/projects/:projectId/work/:workId",
       "control": "Resume work",
       "interaction": "command",
-      "evidence": [],
-      "runtime_owner": "GET /api/queries/projects/:projectId/work/:workUnitId/operations eligibility assessment; mutation remains explicitly unavailable without a registered compatible checkpoint transition",
+      "evidence": [
+        {
+          "command": "npm run test:wave6:work",
+          "artifact": "reports/WAVE6-WORK-PRODUCTION-COMMANDS.json",
+          "boundary": "Fresh PostgreSQL 18.6 executes the production assessment and authenticated resume route after a trusted workflow registers one exact retained checkpoint; the trace proves same-Work/same-attempt continuation, immutable transition lineage, restart replay, and no duplicate effect. The frozen React control remains unavailable, so visible browser invocation is still design-owned."
+        }
+      ],
+      "runtime_owner": "GET /api/queries/projects/:projectId/work/:workUnitId/operations plus POST /api/commands/projects/:projectId/work/:workUnitId/resume -> PostgresProjectWorkOperations registered checkpoint compatibility and canonical same-attempt Work transition",
       "paths": ["UX-PATH-01", "UX-PATH-03", "UX-PATH-04"]
     },
     {

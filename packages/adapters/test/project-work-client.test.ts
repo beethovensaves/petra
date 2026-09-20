@@ -5,6 +5,8 @@ import type {
   PetraProjectWorkOperationReceipt,
   PetraProjectWorkOperationRequest,
   PetraProjectWorkOperationsView,
+  PetraProjectWorkResumeReceipt,
+  PetraProjectWorkResumeRequest,
   PetraWorkerOutputManifest,
 } from "@petra/contracts";
 import { canonicalize } from "json-canonicalize";
@@ -34,6 +36,12 @@ const receipt = readFixture<PetraProjectWorkOperationReceipt>(
 );
 const view = readFixture<PetraProjectWorkOperationsView>(
   "project-work-operations-view",
+);
+const resumeRequest = readFixture<PetraProjectWorkResumeRequest>(
+  "project-work-resume-request",
+);
+const resumeReceipt = readFixture<PetraProjectWorkResumeReceipt>(
+  "project-work-resume-receipt",
 );
 const output = readFixture<PetraWorkerOutputManifest>("worker-output-manifest");
 const outputRecordHash = `sha256:${createHash("sha256")
@@ -138,6 +146,60 @@ describe("ProjectWorkClient", () => {
         request,
       ),
     ).rejects.toThrow("exact route WorkUnit");
+  });
+
+  it("submits a checkpoint resume only to the exact retained Work identity", async () => {
+    let capturedUrl: string | undefined;
+    let call = 0;
+    const fetch = vi.fn((input: URL | RequestInfo) => {
+      capturedUrl =
+        input instanceof Request
+          ? input.url
+          : input instanceof URL
+            ? input.href
+            : input;
+      call += 1;
+      return Promise.resolve(
+        Response.json(
+          call === 1
+            ? resumeReceipt
+            : {
+                ...resumeReceipt,
+                resulting_work_unit_ref: {
+                  ...resumeReceipt.resulting_work_unit_ref,
+                  work_unit_id: "work_unit_01K6P000000000000000000799",
+                },
+              },
+        ),
+      );
+    });
+    const client = new ProjectWorkClient({
+      baseUrl: "http://petra.local",
+      token: "work-token",
+      fetch,
+    });
+
+    await expect(
+      client.resume(
+        resumeReceipt.project_id,
+        resumeRequest.expected_work_unit_ref.work_unit_id,
+        resumeRequest,
+      ),
+    ).resolves.toStrictEqual(resumeReceipt);
+    expect(capturedUrl).toBe(
+      `http://petra.local/api/commands/projects/${resumeReceipt.project_id}/work/${resumeRequest.expected_work_unit_ref.work_unit_id}/resume`,
+    );
+    await expect(
+      client.resume(
+        resumeReceipt.project_id,
+        resumeRequest.expected_work_unit_ref.work_unit_id,
+        resumeRequest,
+      ),
+    ).rejects.toEqual(
+      expect.objectContaining<Partial<ProjectWorkClientError>>({
+        code: "PROJECT_WORK_RESPONSE_INVALID",
+      }),
+    );
   });
 
   it("reads diagnostics from the exact manifest identity without treating it as a WorkUnit", async () => {

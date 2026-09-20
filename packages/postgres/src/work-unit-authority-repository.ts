@@ -240,6 +240,39 @@ export class PostgresWorkUnitAuthorityRepository implements WorkUnitAuthorityRep
     );
   }
 
+  checkpoint(
+    workUnitId: string,
+    expectedRevision: number,
+    attempt: number,
+    checkpoint: Extract<
+      PetraWorkUnit["status"],
+      { state: "checkpointed" }
+    >["checkpoint"],
+    recordedAt: string,
+  ): Promise<PetraWorkUnit> {
+    return this.#transition(workUnitId, (registry) =>
+      mutableWorkUnit(
+        registry.checkpoint(
+          workUnitId,
+          expectedRevision,
+          attempt,
+          clone(checkpoint),
+          recordedAt,
+        ),
+      ),
+    );
+  }
+
+  resume(
+    workUnitId: string,
+    expectedRevision: number,
+    resumedAt: string,
+  ): Promise<PetraWorkUnit> {
+    return this.#transition(workUnitId, (registry) =>
+      mutableWorkUnit(registry.resume(workUnitId, expectedRevision, resumedAt)),
+    );
+  }
+
   async complete(
     manifest: PetraWorkerOutputManifest,
     expectedRevision: number,
@@ -577,12 +610,19 @@ export class PostgresWorkUnitAuthorityRepository implements WorkUnitAuthorityRep
             );
             break;
           case "running":
-            actual = registry.start(
-              workUnitId,
-              priorRevision,
-              status.attempt,
-              status.started_at,
-            );
+            actual =
+              history[expected.revision - 2]?.status.state === "checkpointed"
+                ? registry.resume(
+                    workUnitId,
+                    priorRevision,
+                    expected.updated_at,
+                  )
+                : registry.start(
+                    workUnitId,
+                    priorRevision,
+                    status.attempt,
+                    status.started_at,
+                  );
             break;
           case "completed": {
             if (status.output_manifest_ref !== undefined) {
@@ -632,9 +672,14 @@ export class PostgresWorkUnitAuthorityRepository implements WorkUnitAuthorityRep
             break;
           }
           case "checkpointed":
-            throw new Error(
-              "Checkpoint transitions are closed until a checkpoint command is defined.",
+            actual = registry.checkpoint(
+              workUnitId,
+              priorRevision,
+              status.attempt,
+              clone(status.checkpoint),
+              status.checkpoint.recorded_at,
             );
+            break;
           case "requested":
             throw new Error("A WorkUnit cannot return to requested state.");
         }

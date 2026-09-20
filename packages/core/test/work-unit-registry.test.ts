@@ -455,4 +455,63 @@ describe("bounded WorkUnit control", () => {
       }),
     );
   });
+
+  it("checkpoints and resumes the same exact attempt without changing Work identity", () => {
+    const registration = makeRegistration();
+    registration.workUnit.spec.checkpoint_policy = "latest_valid";
+    rehashSpec(registration.workUnit);
+    const registry = new InMemoryWorkUnitRegistry();
+    registry.register(registration);
+    registry.queue(
+      registration.workUnit.work_unit_id,
+      1,
+      "2026-08-29T14:00:01.000Z",
+    );
+    registry.start(
+      registration.workUnit.work_unit_id,
+      2,
+      1,
+      "2026-08-29T14:00:02.000Z",
+    );
+    const checkpoint = {
+      artifact_id: "artifact_01ARZ3NDEKTSV4RRFFQ69G5FB1",
+      content_hash:
+        "sha256:76313fbb039e79b42da7b3ee67b26123f2b7e7157c80f019e688682337a0f09e",
+      recorded_at: "2026-08-29T14:00:03.000Z",
+    };
+    const checkpointed = registry.checkpoint(
+      registration.workUnit.work_unit_id,
+      3,
+      1,
+      checkpoint,
+      checkpoint.recorded_at,
+    );
+
+    expect(checkpointed.status).toEqual({
+      state: "checkpointed",
+      requested_at: "2026-08-29T14:00:00.000Z",
+      queued_at: "2026-08-29T14:00:01.000Z",
+      started_at: "2026-08-29T14:00:02.000Z",
+      attempt: 1,
+      checkpoint,
+    });
+    const resumed = registry.resume(
+      registration.workUnit.work_unit_id,
+      4,
+      "2026-08-29T14:00:04.000Z",
+    );
+    expect(resumed).toMatchObject({
+      work_unit_id: registration.workUnit.work_unit_id,
+      revision: 5,
+      spec_hash: registration.workUnit.spec_hash,
+      status: {
+        state: "running",
+        requested_at: "2026-08-29T14:00:00.000Z",
+        queued_at: "2026-08-29T14:00:01.000Z",
+        started_at: "2026-08-29T14:00:02.000Z",
+        attempt: 1,
+      },
+      updated_at: "2026-08-29T14:00:04.000Z",
+    });
+  });
 });

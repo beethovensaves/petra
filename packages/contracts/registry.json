@@ -1,5 +1,5 @@
 {
-  "registry_version": "1.118.0",
+  "registry_version": "1.119.0",
   "schemas": [
     {
       "name": "contract-smoke",
@@ -780,6 +780,28 @@
       "canonical_sha256": "sha256:80a46aa22cee93ddd1d7542dfb67dec75db34f44f555ba4bff15a935a70e615b",
       "generate_typescript": true,
       "typescript_path": "src/generated/project-work-operation-receipt.ts"
+    },
+    {
+      "name": "project-work-resume-request",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-work-resume-request/1.0.0/schema.json",
+      "path": "schemas/project-work-resume-request/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-exact-registered-checkpoint-resume-request",
+      "canonical_sha256": "sha256:6688eeb22907a81055240c80ab1aedd94751b37fa5433078002aef042e2120f9",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-work-resume-request.ts"
+    },
+    {
+      "name": "project-work-resume-receipt",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-work-resume-receipt/1.0.0/schema.json",
+      "path": "schemas/project-work-resume-receipt/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-registered-checkpoint-resume-result",
+      "canonical_sha256": "sha256:41ab775c6d9c0773574fd458ab09d146d99c0fb7e634741a777ad01476a57215",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-work-resume-receipt.ts"
     },
     {
       "name": "project-work-operations-view",
