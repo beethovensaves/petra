@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 
 import type {
   PetraActor,
@@ -532,7 +532,7 @@ describePostgres("PostgreSQL ProjectDefinition authority repository", () => {
     ).toBe(project.name);
   });
 
-  it("interprets scientific and controlled-writing Projects through their own project-authored definitions", async () => {
+  it("executes bounded server-owned Project search across paired project-authored definitions", async () => {
     const { actor, project: scientificProject } = await registerScope();
     const scientificDefinition = readFixture<PetraProjectDefinition>(
       "project-definition-scientific",
@@ -627,6 +627,112 @@ describePostgres("PostgreSQL ProjectDefinition authority repository", () => {
         (place) => place.role === "sources",
       )?.label,
     ).toBe("Authority sources");
+
+    const firstPage = await shellReader.searchProjectShellViews({ limit: 1 });
+    expect(firstPage.content.query).toEqual({ limit: 1 });
+    expect(firstPage.content.projects.map((view) => view.project_id)).toEqual([
+      scientificProject.project_id,
+    ]);
+    expect(firstPage.content.page).toEqual({
+      returned_count: 1,
+      total_count: 2,
+      has_more: true,
+      next_cursor: "offset:1",
+    });
+    const nextCursor = firstPage.content.page.next_cursor;
+    if (nextCursor === undefined) {
+      throw new Error("Expected a Project collection continuation cursor.");
+    }
+    const secondPage = await shellReader.searchProjectShellViews({
+      limit: 1,
+      cursor: nextCursor,
+    });
+    expect(secondPage.content.projects.map((view) => view.project_id)).toEqual([
+      writingProject.project_id,
+    ]);
+    expect(secondPage.content.page).toEqual({
+      returned_count: 1,
+      total_count: 2,
+      has_more: false,
+    });
+
+    const objectiveMatch = await shellReader.searchProjectShellViews({
+      search: "inspectable passages",
+    });
+    expect(
+      objectiveMatch.content.projects.map((view) => view.project_id),
+    ).toEqual([scientificProject.project_id]);
+    const profileLabelMatch = await shellReader.searchProjectShellViews({
+      search: "controlled writing",
+    });
+    expect(
+      profileLabelMatch.content.projects.map((view) => view.project_id),
+    ).toEqual([writingProject.project_id]);
+    const profileFilter = await shellReader.searchProjectShellViews({
+      profile: "petra.scientific-evidence",
+      status: "active",
+    });
+    expect(
+      profileFilter.content.projects.map((view) => view.project_id),
+    ).toEqual([scientificProject.project_id]);
+    const archived = await shellReader.searchProjectShellViews({
+      status: "archived",
+    });
+    expect(archived.content.projects).toEqual([]);
+    expect(archived.content.page.total_count).toBe(0);
+    await expect(
+      shellReader.searchProjectShellViews({ cursor: "offset:-1" }),
+    ).rejects.toEqual(
+      expect.objectContaining<Partial<PostgresProjectShellViewError>>({
+        code: "PROJECT_SHELL_COLLECTION_REQUEST_INVALID",
+      }),
+    );
+
+    const evidenceOutput =
+      process.env.PETRA_WAVE6_PROJECT_SEARCH_EVIDENCE_OUTPUT;
+    if (evidenceOutput !== undefined) {
+      writeFileSync(
+        evidenceOutput,
+        `${JSON.stringify(
+          {
+            schema_name: "petra.wave6-project-search-authority-evidence",
+            schema_version: "1.0.0",
+            status: "passed",
+            operation_id: "project.search",
+            executed_at: new Date().toISOString(),
+            runtime_owner:
+              "GET /api/queries/projects -> ProjectShellViewReader.searchProjectShellViews -> PostgresProjectShellViewReader",
+            authority: {
+              authentication: "Bearer middleware at /api/*",
+              persistence:
+                "Current Project, ProjectDefinition, and Objective authority in one PostgreSQL REPEATABLE READ READ ONLY transaction",
+              result_membership:
+                "Server SQL over current Project name, current Objective statement, and current registered profile label",
+            },
+            verified: {
+              bounded_limit: [1, 100],
+              filters: ["search", "status", "profile"],
+              pagination: "validated offset continuation with exact query echo",
+              failures: [
+                "unauthenticated route rejected",
+                "unknown, repeated, or invalid controls rejected",
+                "reader failure returned without client fallback",
+              ],
+              paired_profiles: [
+                scientificDefinition.definition_family,
+                writingDefinition.definition_family,
+              ],
+              first_page: firstPage.content.page,
+              second_page: secondPage.content.page,
+            },
+            boundary:
+              "Real disposable PostgreSQL proves server-owned filtering and pagination over retained current authority. Focused route and typed-client tests separately prove bearer enforcement, parameter rejection, exact query/result binding, and surfaced failures. The frozen React Find control still filters its loaded page locally and requires design-owned binding to this query before browser evidence can claim end-to-end server search.",
+          },
+          null,
+          2,
+        )}\n`,
+      );
+    }
 
     const controlsReader = new PostgresProjectEffectiveControlsViewReader(pool);
     const scientificControls =

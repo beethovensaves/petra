@@ -45,7 +45,7 @@ import {
   ReviewRecoveryAssessmentError,
   type ReviewRecoveryAssessmentReader,
 } from "@petra/core";
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { extname, resolve, sep } from "node:path";
 
@@ -3001,21 +3001,114 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
       );
     }
     try {
-      const projects = await options.projectShellViews.listProjectShellViews();
-      for (const project of projects) {
+      const parameters = new URL(context.req.url).searchParams;
+      const allowed = new Set([
+        "search",
+        "status",
+        "profile",
+        "limit",
+        "cursor",
+      ]);
+      const unknown = [...parameters.keys()].filter((key) => !allowed.has(key));
+      if (unknown.length > 0) {
+        throw new InteractionInputError(
+          "Project collection contains unregistered query parameters.",
+          [...new Set(unknown)],
+        );
+      }
+      for (const key of allowed) {
+        if (parameters.getAll(key).length > 1) {
+          throw new InteractionInputError(
+            `Project collection parameter ${key} must appear once.`,
+          );
+        }
+      }
+      const searchValue = parameters.get("search");
+      const search = searchValue === null ? undefined : searchValue;
+      if (
+        search !== undefined &&
+        (search.length < 1 || search.length > 240 || search !== search.trim())
+      ) {
+        throw new InteractionInputError(
+          "Project collection search must be a trimmed string from 1 through 240 characters.",
+        );
+      }
+      const statusValue = parameters.get("status");
+      let status: "active" | "archived" | undefined;
+      if (statusValue === "active" || statusValue === "archived") {
+        status = statusValue;
+      } else if (statusValue !== null) {
+        throw new InteractionInputError(
+          "Project collection status must be active or archived.",
+        );
+      }
+      const profileValue = parameters.get("profile");
+      const profile = profileValue === null ? undefined : profileValue;
+      if (profile !== undefined && !/^[a-z][a-z0-9.-]{2,127}$/u.test(profile)) {
+        throw new InteractionInputError(
+          "Project collection profile must be a registered definition family.",
+        );
+      }
+      const limitValue = parameters.get("limit");
+      const limit = limitValue === null ? undefined : Number(limitValue);
+      if (
+        limit !== undefined &&
+        (!Number.isSafeInteger(limit) || limit < 1 || limit > 100)
+      ) {
+        throw new InteractionInputError(
+          "Project collection limit must be an integer from 1 through 100.",
+        );
+      }
+      const cursorValue = parameters.get("cursor");
+      const cursor = cursorValue === null ? undefined : cursorValue;
+      if (cursor !== undefined && !/^offset:[0-9]{1,9}$/u.test(cursor)) {
+        throw new InteractionInputError(
+          "Project collection cursor is invalid.",
+        );
+      }
+      const query = {
+        ...(search === undefined ? {} : { search }),
+        ...(status === undefined ? {} : { status }),
+        ...(profile === undefined ? {} : { profile }),
+        limit: limit ?? 50,
+        ...(cursor === undefined ? {} : { cursor }),
+      } as const;
+      const collection =
+        await options.projectShellViews.searchProjectShellViews(query);
+      contracts.assertValid(
+        "project-shell-collection-view",
+        "1.0.0",
+        collection,
+      );
+      if (
+        canonicalize(collection.content.query) !== canonicalize(query) ||
+        collection.content.page.returned_count !==
+          collection.content.projects.length ||
+        collection.content_hash !==
+          `sha256:${createHash("sha256")
+            .update(canonicalize(collection.content))
+            .digest("hex")}`
+      ) {
+        throw new Error(
+          "The Project collection reader returned a different query or invalid result identity.",
+        );
+      }
+      for (const project of collection.content.projects) {
         assertProjectShellView(project);
       }
-      return context.json({
-        projects,
-      });
+      context.header("Cache-Control", "no-store");
+      return context.json(collection);
     } catch (error) {
       return jsonError(
         context,
-        503,
-        "PROJECT_SHELL_READ_FAILED",
+        error instanceof InteractionInputError ? 422 : 503,
+        error instanceof InteractionInputError
+          ? "PROJECT_COLLECTION_QUERY_INVALID"
+          : "PROJECT_SHELL_READ_FAILED",
         error instanceof Error
           ? error.message
           : "The Project shell collection is unavailable.",
+        error instanceof InteractionInputError ? error.issues : undefined,
       );
     }
   });

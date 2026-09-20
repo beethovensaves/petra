@@ -1,4 +1,5 @@
 import type {
+  PetraProjectShellCollectionView,
   PetraProjectShellView,
   PetraProjectShellViewV11,
   PetraProjectShellViewV12,
@@ -8,6 +9,16 @@ import type { ProjectObjectLocationRequest } from "./project-object-location-vie
 
 export type ProjectShellView =
   PetraProjectShellView | PetraProjectShellViewV11 | PetraProjectShellViewV12;
+
+export type ProjectShellStatusFilter = "active" | "archived";
+
+export interface ProjectShellCollectionRequest {
+  readonly search?: string;
+  readonly status?: ProjectShellStatusFilter;
+  readonly profile?: string;
+  readonly limit?: number;
+  readonly cursor?: string;
+}
 
 export type ProjectShellSelectionRequest = Omit<
   ProjectObjectLocationRequest,
@@ -20,6 +31,9 @@ export type ProjectShellSelectionRequest = Omit<
  * snapshot; clients must not join independent records into Project meaning.
  */
 export interface ProjectShellViewReader {
+  searchProjectShellViews(
+    request?: ProjectShellCollectionRequest,
+  ): Promise<PetraProjectShellCollectionView>;
   listProjectShellViews(): Promise<ProjectShellView[]>;
   getProjectShellView(
     projectId: string,

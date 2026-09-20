@@ -17,12 +17,18 @@
       "surfaces": ["SP01"],
       "flows": ["UX-FLOW-01"],
       "requests": ["UX-REQ-004"],
-      "current_state": "live",
+      "current_state": "partial",
       "route": "/",
       "control": "Find a Project",
       "interaction": "query",
-      "evidence": [],
-      "runtime_owner": "",
+      "evidence": [
+        {
+          "command": "npm run test:wave6:project-search",
+          "artifact": "reports/WAVE6-PROJECT-SEARCH-AUTHORITY.json",
+          "boundary": "Real disposable PostgreSQL plus focused authenticated route and renderer-neutral typed-client tests prove bounded server-owned Project search across current name, Objective statement, and registered profile label; status/profile filters; validated pagination; exact query/result binding; and visible failure semantics. The frozen React Find control still filters its loaded page locally, so design-owned binding and browser execution remain outstanding."
+        }
+      ],
+      "runtime_owner": "GET /api/queries/projects -> ProjectShellViewReader.searchProjectShellViews -> PostgresProjectShellViewReader (REPEATABLE READ current Project/ProjectDefinition/Objective authority)",
       "paths": ["UX-PATH-03"]
     },
     {

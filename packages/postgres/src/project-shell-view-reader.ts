@@ -6,6 +6,7 @@ import type {
   PetraProjectInquirySaveReceipt,
   PetraProjectInquirySaveRequest,
   PetraProjectObjective,
+  PetraProjectShellCollectionView,
   PetraProjectShellViewV11,
   PetraProjectShellViewV12,
   PetraProjectionCheckpoint,
@@ -17,7 +18,9 @@ import type {
 import { PetraContractRegistry } from "@petra/contracts/validator";
 import {
   derivePetraId,
+  type ProjectShellCollectionRequest,
   type ProjectShellSelectionRequest,
+  type ProjectShellStatusFilter,
   type ProjectShellViewReader,
 } from "@petra/core";
 import { canonicalize } from "json-canonicalize";
@@ -26,7 +29,9 @@ import type { Pool, PoolClient } from "pg";
 import { PostgresProjectObjectLocationViewReader } from "./project-object-location-view-reader.js";
 
 export type PostgresProjectShellViewErrorCode =
-  "PROJECT_SHELL_DEFINITION_MISSING" | "PROJECT_SHELL_STORED_RECORD_CORRUPT";
+  | "PROJECT_SHELL_COLLECTION_REQUEST_INVALID"
+  | "PROJECT_SHELL_DEFINITION_MISSING"
+  | "PROJECT_SHELL_STORED_RECORD_CORRUPT";
 
 export class PostgresProjectShellViewError extends Error {
   readonly code: PostgresProjectShellViewErrorCode;
@@ -43,6 +48,10 @@ interface ShellRow {
   project_payload: unknown;
   definition_payload: unknown;
   objective_payload: unknown;
+}
+
+interface CountRow {
+  total_count: string;
 }
 
 interface AuthorityRow {
@@ -78,6 +87,12 @@ const canonicalHash = (value: unknown): string =>
   `sha256:${createHash("sha256").update(canonicalize(value)).digest("hex")}`;
 
 const clone = <Value>(value: Value): Value => structuredClone(value);
+const COLLECTION_CURSOR = /^offset:([0-9]{1,9})$/u;
+const COLLECTION_STATUSES: readonly ProjectShellStatusFilter[] = [
+  "active",
+  "archived",
+];
+const PROFILE_FAMILY = /^[a-z][a-z0-9.-]{2,127}$/u;
 
 export class PostgresProjectShellViewReader implements ProjectShellViewReader {
   readonly #pool: Pool;
@@ -95,6 +110,44 @@ export class PostgresProjectShellViewReader implements ProjectShellViewReader {
     this.#pool = pool;
     this.#contracts = contracts;
     this.#objectLocations = objectLocations;
+  }
+
+  async searchProjectShellViews(
+    request: ProjectShellCollectionRequest = {},
+  ): Promise<PetraProjectShellCollectionView> {
+    const query = this.#collectionQuery(request);
+    const offset = this.#collectionOffset(query.cursor);
+    return this.#readTransaction(async (client, readAt) => {
+      const rows = await this.#selectCollectionShellRows(client, query, offset);
+      const hasMore = rows.length > query.limit;
+      const selected = rows.slice(0, query.limit);
+      const projects: PetraProjectShellViewV12[] = [];
+      for (const row of selected) {
+        projects.push(
+          await this.#compose(client, row, readAt, undefined, true),
+        );
+      }
+      const totalCount = await this.#collectionTotalCount(client, query);
+      const content: PetraProjectShellCollectionView["content"] = {
+        query,
+        projects,
+        page: {
+          returned_count: projects.length,
+          total_count: totalCount,
+          has_more: hasMore,
+          ...(hasMore
+            ? { next_cursor: `offset:${offset + projects.length}` }
+            : {}),
+        },
+      };
+      return {
+        schema_name: "petra.project-shell-collection-view",
+        schema_version: "1.0.0",
+        content,
+        content_hash: canonicalHash(content),
+        read_at: readAt,
+      };
+    });
   }
 
   async listProjectShellViews(): Promise<PetraProjectShellViewV12[]> {
@@ -133,6 +186,174 @@ export class PostgresProjectShellViewReader implements ProjectShellViewReader {
     return row === undefined
       ? undefined
       : await this.#compose(client, row, readAt, selection, false);
+  }
+
+  #collectionQuery(
+    request: ProjectShellCollectionRequest,
+  ): PetraProjectShellCollectionView["content"]["query"] {
+    const allowed = new Set(["search", "status", "profile", "limit", "cursor"]);
+    if (Object.keys(request).some((key) => !allowed.has(key))) {
+      throw new PostgresProjectShellViewError(
+        "PROJECT_SHELL_COLLECTION_REQUEST_INVALID",
+        "Project collection search contains unregistered controls.",
+      );
+    }
+    if (
+      request.search !== undefined &&
+      (request.search.length < 1 ||
+        request.search.length > 240 ||
+        request.search !== request.search.trim())
+    ) {
+      throw new PostgresProjectShellViewError(
+        "PROJECT_SHELL_COLLECTION_REQUEST_INVALID",
+        "Project collection search must be a trimmed string from 1 through 240 characters.",
+      );
+    }
+    if (
+      request.status !== undefined &&
+      !COLLECTION_STATUSES.includes(request.status)
+    ) {
+      throw new PostgresProjectShellViewError(
+        "PROJECT_SHELL_COLLECTION_REQUEST_INVALID",
+        "Project collection status is unsupported.",
+      );
+    }
+    if (
+      request.profile !== undefined &&
+      !PROFILE_FAMILY.test(request.profile)
+    ) {
+      throw new PostgresProjectShellViewError(
+        "PROJECT_SHELL_COLLECTION_REQUEST_INVALID",
+        "Project collection profile must be a registered definition family.",
+      );
+    }
+    const limit = request.limit ?? 50;
+    if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100) {
+      throw new PostgresProjectShellViewError(
+        "PROJECT_SHELL_COLLECTION_REQUEST_INVALID",
+        "Project collection limit must be an integer from 1 through 100.",
+      );
+    }
+    if (
+      request.cursor !== undefined &&
+      !COLLECTION_CURSOR.test(request.cursor)
+    ) {
+      throw new PostgresProjectShellViewError(
+        "PROJECT_SHELL_COLLECTION_REQUEST_INVALID",
+        "Project collection cursor is invalid.",
+      );
+    }
+    return {
+      ...(request.search === undefined ? {} : { search: request.search }),
+      ...(request.status === undefined ? {} : { status: request.status }),
+      ...(request.profile === undefined ? {} : { profile: request.profile }),
+      limit,
+      ...(request.cursor === undefined ? {} : { cursor: request.cursor }),
+    };
+  }
+
+  #collectionOffset(cursor: string | undefined): number {
+    if (cursor === undefined) return 0;
+    const match = COLLECTION_CURSOR.exec(cursor);
+    if (match === null) {
+      throw new PostgresProjectShellViewError(
+        "PROJECT_SHELL_COLLECTION_REQUEST_INVALID",
+        "Project collection cursor is invalid.",
+      );
+    }
+    return Number(match[1]);
+  }
+
+  async #selectCollectionShellRows(
+    client: PoolClient,
+    query: PetraProjectShellCollectionView["content"]["query"],
+    offset: number,
+  ): Promise<ShellRow[]> {
+    const result = await client.query<ShellRow>(
+      `SELECT project.project_id,
+              project_revision.payload AS project_payload,
+              definition_revision.payload AS definition_payload,
+              objective_revision.payload AS objective_payload
+         FROM petra.projects AS project
+         JOIN petra.project_revisions AS project_revision
+           ON project_revision.project_id = project.project_id
+          AND project_revision.revision = project.current_revision
+         LEFT JOIN petra.project_definitions AS definition
+           ON definition.project_id = project.project_id
+         LEFT JOIN petra.project_definition_revisions AS definition_revision
+           ON definition_revision.project_definition_id =
+                definition.project_definition_id
+          AND definition_revision.revision = definition.current_revision
+         LEFT JOIN petra.project_objective_focus AS focus
+           ON focus.project_id = project.project_id
+         LEFT JOIN petra.project_objective_revisions AS objective_revision
+           ON objective_revision.project_id = focus.project_id
+          AND objective_revision.objective_id = focus.objective_id
+          AND objective_revision.revision = focus.objective_revision
+          AND objective_revision.content_hash = focus.objective_content_hash
+        WHERE ($1::text IS NULL OR
+               strpos(lower(project_revision.name), lower($1)) > 0 OR
+               strpos(
+                 lower(COALESCE(objective_revision.payload -> 'content' ->> 'statement', '')),
+                 lower($1)
+               ) > 0 OR
+               strpos(
+                 lower(COALESCE(definition_revision.payload -> 'content' ->> 'label', '')),
+                 lower($1)
+               ) > 0)
+          AND ($2::text IS NULL OR project_revision.status = $2)
+          AND ($3::text IS NULL OR definition.definition_family = $3)
+        ORDER BY lower(project_revision.name), project.project_id
+        LIMIT $4 OFFSET $5`,
+      [
+        query.search ?? null,
+        query.status ?? null,
+        query.profile ?? null,
+        query.limit + 1,
+        offset,
+      ],
+    );
+    return result.rows;
+  }
+
+  async #collectionTotalCount(
+    client: PoolClient,
+    query: PetraProjectShellCollectionView["content"]["query"],
+  ): Promise<number> {
+    const result = await client.query<CountRow>(
+      `SELECT count(*)::text AS total_count
+         FROM petra.projects AS project
+         JOIN petra.project_revisions AS project_revision
+           ON project_revision.project_id = project.project_id
+          AND project_revision.revision = project.current_revision
+         LEFT JOIN petra.project_definitions AS definition
+           ON definition.project_id = project.project_id
+         LEFT JOIN petra.project_definition_revisions AS definition_revision
+           ON definition_revision.project_definition_id =
+                definition.project_definition_id
+          AND definition_revision.revision = definition.current_revision
+         LEFT JOIN petra.project_objective_focus AS focus
+           ON focus.project_id = project.project_id
+         LEFT JOIN petra.project_objective_revisions AS objective_revision
+           ON objective_revision.project_id = focus.project_id
+          AND objective_revision.objective_id = focus.objective_id
+          AND objective_revision.revision = focus.objective_revision
+          AND objective_revision.content_hash = focus.objective_content_hash
+        WHERE ($1::text IS NULL OR
+               strpos(lower(project_revision.name), lower($1)) > 0 OR
+               strpos(
+                 lower(COALESCE(objective_revision.payload -> 'content' ->> 'statement', '')),
+                 lower($1)
+               ) > 0 OR
+               strpos(
+                 lower(COALESCE(definition_revision.payload -> 'content' ->> 'label', '')),
+                 lower($1)
+               ) > 0)
+          AND ($2::text IS NULL OR project_revision.status = $2)
+          AND ($3::text IS NULL OR definition.definition_family = $3)`,
+      [query.search ?? null, query.status ?? null, query.profile ?? null],
+    );
+    return Number(result.rows[0]?.total_count ?? 0);
   }
 
   async #selectShellRows(

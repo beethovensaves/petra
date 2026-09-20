@@ -12,10 +12,10 @@
   "owners": {
     "project-shell-read": {
       "kind": "query",
-      "production_owner": "GET /api/queries/projects and GET /api/queries/projects/:projectId/shell -> ProjectShellViewReader -> PostgresProjectShellViewReader",
-      "authorization": "Bearer-authenticated API; the reader binds the requested Project and exact ProjectDefinition, Objective, snapshot, projection, and optional semantic selection.",
-      "persistence": "PostgreSQL Project, ProjectDefinition, Objective, authority, projection, and task summary records under one composed read.",
-      "recovery": "Returns explicit unauthorized, not-found, invalid-selection, unavailable, or failed-read states; it never mutates or substitutes fixture data."
+      "production_owner": "GET /api/queries/projects -> ProjectShellViewReader.searchProjectShellViews -> PostgresProjectShellViewReader; GET /api/queries/projects/:projectId/shell -> ProjectShellViewReader.getProjectShellView -> PostgresProjectShellViewReader",
+      "authorization": "Bearer-authenticated API; the collection reader owns bounded search across current Project name, Objective statement, and registered profile label plus status/profile filters and pagination, while detail binds the requested Project and optional semantic selection.",
+      "persistence": "PostgreSQL Project, ProjectDefinition, Objective, authority, projection, and task summary records composed under one REPEATABLE READ READ ONLY transaction.",
+      "recovery": "Returns explicit unauthorized, invalid-query, invalid-cursor, not-found, unavailable, or failed-read states; exact query/result hashes prevent client substitution, and the owner never mutates or falls back to fixture data."
     },
     "project-resume-read": {
       "kind": "query",
