@@ -119,6 +119,7 @@ type BrowserContractName =
   | "project-work-operation-request@1.0.0"
   | "project-work-operation-receipt@1.0.0"
   | "project-work-operations-view@1.0.0"
+  | "worker-output-manifest@1.0.0"
   | "working-candidate@1.0.0"
   | "working-relationship@1.0.0";
 
@@ -260,6 +261,7 @@ const contractIds: Record<BrowserContractName, string> = {
   "project-work-operation-request@1.0.0": projectWorkOperationRequestSchema.$id,
   "project-work-operation-receipt@1.0.0": projectWorkOperationReceiptSchema.$id,
   "project-work-operations-view@1.0.0": projectWorkOperationsViewSchema.$id,
+  "worker-output-manifest@1.0.0": briefWorkerOutputManifestV100Schema.$id,
   "working-candidate@1.0.0": workingCandidateSchema.$id,
   "working-relationship@1.0.0": workingRelationshipSchema.$id,
 };
@@ -386,6 +388,12 @@ export class PetraContractRegistry {
       version: "1.0.0",
       canonical_sha256:
         "sha256:cc61cba0158681b3f8417a6e52c0feb356bb1c4838cf952facaaf4c37cbb5010",
+    },
+    {
+      name: "worker-output-manifest",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:ed12de26da2bd491c573f44d2cd9ad3af6c6d3601c6bd41941ac179861f4845a",
     },
   ] as const;
 

@@ -53,6 +53,7 @@ import type {
   PetraProjectWorkOperationsView,
   PetraProjectWorkView,
   PetraProjectWorkViewV11,
+  PetraWorkerOutputManifest,
   ProjectWorkStagePlanSummaryV11,
   ProjectWorkStagePlanV11,
   PetraWorkingCandidate,
@@ -1121,6 +1122,16 @@ const workOperationsView = JSON.parse(
   ),
 ) as PetraProjectWorkOperationsView;
 
+const workerOutputManifest = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/worker-output-manifest.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraWorkerOutputManifest;
+
 const completedWorkOperationsView = (): PetraProjectWorkOperationsView => {
   if (workDetailView.content.view_kind !== "detail") {
     throw new TypeError("Expected exact Work detail.");
@@ -1535,6 +1546,13 @@ describe("Project shell workbench adapter", () => {
         "project-work-operation-receipt",
         "1.0.0",
         workOperationReceipt,
+      ),
+    ).not.toThrow();
+    expect(() =>
+      contracts.assertValid(
+        "worker-output-manifest",
+        "1.0.0",
+        workerOutputManifest,
       ),
     ).not.toThrow();
     expect(() =>
@@ -4846,6 +4864,9 @@ describe("Project shell workbench adapter", () => {
       if (path.includes("/operations")) {
         return Promise.resolve(Response.json(operations));
       }
+      if (path.includes("/worker-output-manifests/")) {
+        return Promise.resolve(Response.json(workerOutputManifest));
+      }
       return Promise.resolve(Response.json(workDetailView));
     });
     vi.stubGlobal("fetch", fetch);
@@ -4876,17 +4897,14 @@ describe("Project shell workbench adapter", () => {
       revision: parent.revision,
       recordHash: parent.record_hash,
     });
-    expect(detail.selectedResult?.diagnostics.state).toBe("unavailable");
+    expect(detail.selectedResult?.diagnostics).toEqual(
+      workerOutputManifest.content.diagnostics,
+    );
     expect(detail.selectedResult?.outputs[0]?.name).toBe("parsed_document");
     expect(detail.selectedResult?.outputs[0]?.handle).toBe(
       "output:parsed-document-json",
     );
     expect(detail.selectedResult?.resourceUsage.outputBytes).toBe(40218);
-    expect(
-      detail.selectedResult?.limitations.some((limitation) =>
-        limitation.includes("exact diagnostics array"),
-      ),
-    ).toBe(true);
     expect(
       fetch.mock.calls.some(([input]) => {
         const path =
@@ -4895,9 +4913,20 @@ describe("Project shell workbench adapter", () => {
             : input instanceof URL
               ? input.href
               : input.url;
-        return path.includes("result_id=");
+        return (
+          path.includes(
+            `/worker-output-manifests/${manifest.record_ref.record_id}`,
+          ) &&
+          path.includes(`revision=${manifest.record_ref.revision}`) &&
+          path.includes(
+            `content_hash=${encodeURIComponent(manifest.record_ref.content_hash)}`,
+          ) &&
+          path.includes(
+            `record_hash=${encodeURIComponent(manifest.record_ref.record_hash)}`,
+          )
+        );
       }),
-    ).toBe(false);
+    ).toBe(true);
   });
 
   it("previews, invokes, and rereads one exact Work-starting SuggestedAction", async () => {

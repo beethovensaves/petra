@@ -114,11 +114,7 @@ const selectedWorkerOutput: ProjectWorkerOutputSelection = {
         "The worker reported an immutable staged handle; Project usability is not inferred.",
     },
   ],
-  diagnostics: {
-    state: "unavailable",
-    reason:
-      "Exact manifest diagnostics are not projected by the registered Project Work detail read.",
-  },
+  diagnostics: [],
   resourceUsage: {
     wallTimeMs: 3000,
     cpuTimeMs: 5100,
@@ -129,7 +125,6 @@ const selectedWorkerOutput: ProjectWorkerOutputSelection = {
   },
   limitations: [
     "Worker output handles are reported, but Project-level usability is not inferred.",
-    "The Project Work read does not expose the manifest's exact diagnostics array.",
   ],
 };
 
@@ -307,7 +302,7 @@ describe("reference Work and Petra packets", () => {
     expect(replayButton).not.toContain("aria-disabled");
   });
 
-  it("renders a selected manifest under its producing Work with exact outcome and honest diagnostics coverage", () => {
+  it("renders a selected manifest under its producing Work with its exact empty diagnostics array", () => {
     const liveUnit = {
       ...runningTask,
       id: selectedWorkerOutput.producingWorkRef.workUnitId,
@@ -330,10 +325,40 @@ describe("reference Work and Petra packets", () => {
     expect(markup).toContain("output:parsed-document-json");
     expect(markup).toContain("Measured resources");
     expect(markup).toContain("40,218 bytes");
-    expect(markup).toContain("Exact diagnostics unavailable");
+    expect(markup).toContain("No diagnostics reported");
     expect(markup).toContain(
-      "Petra does not reconstruct diagnostics from status or output handles",
+      "exact WorkerOutputManifest contains an empty diagnostics array",
     );
+  });
+
+  it("renders every exact manifest diagnostic with non-color severity text", () => {
+    const liveUnit = {
+      ...runningTask,
+      id: selectedWorkerOutput.producingWorkRef.workUnitId,
+    };
+    const markup = render(
+      <WorkDetailSurface
+        project={project}
+        unit={liveUnit}
+        work={{ ...work, units: [liveUnit] }}
+        operations={workOperations}
+        selectedResult={{
+          ...selectedWorkerOutput,
+          diagnostics: [
+            {
+              code: "WORKER_OUTPUT_PARTIAL",
+              severity: "warning",
+              message: "One optional output was not reported.",
+            },
+          ],
+        }}
+      />,
+    );
+
+    expect(markup).toContain("WORKER_OUTPUT_PARTIAL");
+    expect(markup).toContain("Warning");
+    expect(markup).toContain("One optional output was not reported.");
+    expect(markup).toContain('data-severity="warning"');
   });
 
   it("discloses Petra's exact context, omissions, and message force", () => {
@@ -389,6 +414,21 @@ describe("reference Work and Petra packets", () => {
     expect(markup.indexOf("Petra assessment")).toBeLessThan(
       markup.indexOf("Inference"),
     );
+  });
+
+  it("returns an exact communication read to its producing Work task", () => {
+    const path =
+      "/projects/inlet-cycle/work/work-process-maintenance#work-destinations-title";
+    const markup = render(
+      <PetraSurface
+        project={project}
+        communicationPlan={communicationPlan}
+        returnContext={{ path, label: "producing Work task" }}
+      />,
+    );
+
+    expect(markup).toContain("Return to producing Work task");
+    expect(markup).toContain(`href="${path}"`);
   });
 
   it("keeps the linked command outcome separate from Work, result, and delivery", () => {

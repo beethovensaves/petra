@@ -198,6 +198,43 @@
   margin: 0;
 }
 
+.selected-worker-output__diagnostics {
+  display: grid;
+  gap: var(--petra-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.selected-worker-output__diagnostics > li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--petra-space-1) var(--petra-space-3);
+  padding: var(--petra-space-3);
+  border-left: 3px solid var(--petra-tone-information);
+  background: var(--petra-surface-panel);
+}
+
+.selected-worker-output__diagnostics > li[data-severity="warning"] {
+  border-left-color: var(--petra-tone-caution);
+}
+
+.selected-worker-output__diagnostics > li[data-severity="error"] {
+  border-left-color: var(--petra-tone-danger);
+}
+
+.selected-worker-output__diagnostics span {
+  color: var(--petra-text-tertiary);
+  font-size: var(--petra-font-size-caption);
+  font-weight: var(--petra-weight-semibold);
+}
+
+.selected-worker-output__diagnostics p {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--petra-text-secondary);
+}
+
 .selected-worker-output > details {
   margin-top: var(--petra-space-4);
 }

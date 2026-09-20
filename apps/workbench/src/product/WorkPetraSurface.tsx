@@ -995,15 +995,29 @@ const SelectedWorkerOutput = ({
     <div className="selected-worker-output__detail-grid">
       <section aria-labelledby="selected-work-diagnostics-title">
         <h3 id="selected-work-diagnostics-title">Diagnostics</h3>
-        <StateNotice
-          notice={{
-            tone: "caution",
-            title: "Exact diagnostics unavailable",
-            message: result.diagnostics.reason,
-            recovery:
-              "Use the manifest identity above when a registered diagnostics read becomes available. Petra does not reconstruct diagnostics from status or output handles.",
-          }}
-        />
+        {result.diagnostics.length === 0 ? (
+          <StateNotice
+            notice={{
+              tone: "positive",
+              title: "No diagnostics reported",
+              message:
+                "The exact WorkerOutputManifest contains an empty diagnostics array for this attempt.",
+            }}
+          />
+        ) : (
+          <ul className="selected-worker-output__diagnostics">
+            {result.diagnostics.map((diagnostic, index) => (
+              <li
+                data-severity={diagnostic.severity}
+                key={`${diagnostic.code}:${index}`}
+              >
+                <strong>{diagnostic.code}</strong>
+                <span>{words(diagnostic.severity)}</span>
+                <p>{diagnostic.message}</p>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
       <section aria-labelledby="selected-work-resources-title">
         <h3 id="selected-work-resources-title">Measured resources</h3>
@@ -2078,11 +2092,27 @@ export const PetraSurface = ({
     );
   const focusedSnapshot =
     communicationPlan?.content.evidence_packet.snapshot_ref;
+  const communicationReturn =
+    communicationPlan === undefined
+      ? undefined
+      : (returnContext ?? {
+          path: `/projects/${encodeURIComponent(project.id)}/brief`,
+          label: "Brief",
+        });
 
   return (
     <main className="reference-surface petra-focus" id="reference-main">
       <header className="reference-surface-heading">
         <div>
+          {communicationReturn === undefined ? null : (
+            <Link
+              className="reference-context-back"
+              to={communicationReturn.path}
+            >
+              <span aria-hidden="true">←</span> Return to{" "}
+              {communicationReturn.label}
+            </Link>
+          )}
           <p className="reference-eyebrow">Petra · current Project</p>
           <h1>
             {thread?.title ??

@@ -70,6 +70,7 @@ import type {
   PetraProjectWorkOperationReceipt,
   PetraProjectWorkOperationRequest,
   PetraProjectWorkOperationsView,
+  PetraWorkerOutputManifest,
   FocusedGraphProjectSnapshotRef,
   ProjectDefinitionTerm,
   CommandReviewSessionRef,
@@ -5589,10 +5590,11 @@ export interface ProjectWorkerOutputSelection {
     readonly mediaType: string;
     readonly limitation: string;
   }>;
-  readonly diagnostics: {
-    readonly state: "unavailable";
-    readonly reason: string;
-  };
+  readonly diagnostics: ReadonlyArray<{
+    readonly code: string;
+    readonly severity: "info" | "warning" | "error";
+    readonly message: string;
+  }>;
   readonly resourceUsage: {
     readonly wallTimeMs: number;
     readonly cpuTimeMs: number;
@@ -6875,8 +6877,17 @@ const selectedWorkerOutput = (
   view: PetraProjectWorkReadView,
   operations: PetraProjectWorkOperationsView,
   selection: WorkerOutputRouteSelection | undefined,
+  manifest: PetraWorkerOutputManifest | undefined,
 ): ProjectWorkerOutputSelection | undefined => {
-  if (selection === undefined) return undefined;
+  if (selection === undefined) {
+    if (manifest !== undefined) {
+      throw new ProjectDataError(
+        "Petra returned an unselected WorkerOutputManifest.",
+        502,
+      );
+    }
+    return undefined;
+  }
   if (view.content.view_kind !== "detail") {
     throw new ProjectDataError(
       "An exact worker result requires Project Work detail.",
@@ -6895,6 +6906,9 @@ const selectedWorkerOutput = (
       candidate.record_ref.record_hash === selection.recordHash,
   );
   const usage = resources.usage;
+  const reportedOutputs = outputs.filter(
+    (output) => output.report_state === "reported",
+  );
   if (
     parent.revision !== selection.parentRevision ||
     parent.record_hash !== selection.parentRecordHash ||
@@ -6910,14 +6924,40 @@ const selectedWorkerOutput = (
     usage.output_manifest_ref.record_id !== selection.recordId ||
     usage.output_manifest_ref.revision !== selection.revision ||
     usage.output_manifest_ref.content_hash !== selection.contentHash ||
-    usage.output_manifest_ref.record_hash !== selection.recordHash
+    usage.output_manifest_ref.record_hash !== selection.recordHash ||
+    manifest === undefined ||
+    manifest.project_id !== view.project_id ||
+    manifest.worker_output_manifest_id !== selection.recordId ||
+    manifest.revision !== selection.revision ||
+    manifest.content_hash !== selection.contentHash ||
+    manifest.work_unit_id !== parent.work_unit_id ||
+    manifest.attempt !== summary.execution.attempt ||
+    manifest.content.outcome.outcome_kind !==
+      summary.execution.terminal_outcome ||
+    canonicalize(manifest.content.worker) !==
+      canonicalize(specification.worker) ||
+    canonicalize(manifest.content.resource_usage) !==
+      canonicalize(usage.resource_usage) ||
+    manifest.content.outcome.produced_outputs.length !==
+      reportedOutputs.length ||
+    manifest.content.outcome.produced_outputs.some((output) => {
+      const projected = reportedOutputs.find(
+        (candidate) =>
+          candidate.produced_output.output_name === output.output_name &&
+          candidate.produced_output.output_role === output.output_role,
+      );
+      return (
+        projected === undefined ||
+        canonicalize(projected.produced_output) !== canonicalize(output)
+      );
+    })
   ) {
     throw new ProjectDataError(
       "The selected worker result no longer matches its exact producing Work and current manifest read.",
       409,
     );
   }
-  const measured = usage.resource_usage;
+  const measured = manifest.content.resource_usage;
   const limitations = [
     ...outputs.map((output) => output.availability.limitation),
     ...coverage.flatMap((item) =>
@@ -6925,7 +6965,6 @@ const selectedWorkerOutput = (
         ? []
         : [item.limitation],
     ),
-    "The Project Work read does not expose the manifest's exact diagnostics array. Diagnostics cannot be inferred from output handles or execution state.",
   ];
   return {
     resultRef: {
@@ -6941,39 +6980,42 @@ const selectedWorkerOutput = (
       recordHash: parent.record_hash,
     },
     worker: {
-      name: specification.worker.worker_name,
-      version: specification.worker.worker_version,
-      runtime: `${specification.worker.runtime_name} ${specification.worker.runtime_version}`,
-      entrypoint: specification.worker.entrypoint,
+      name: manifest.content.worker.worker_name,
+      version: manifest.content.worker.worker_version,
+      runtime: `${manifest.content.worker.runtime_name} ${manifest.content.worker.runtime_version}`,
+      entrypoint: manifest.content.worker.entrypoint,
     },
-    outcome: summary.execution.terminal_outcome ?? summary.execution.state,
-    attempt: summary.execution.attempt,
-    reportedAt: summary.execution.updated_at,
-    outputs: outputs.map((output) =>
-      output.report_state === "reported"
-        ? {
-            name: output.produced_output.output_name,
-            role: output.produced_output.output_role,
-            state: "reported",
-            handle: output.produced_output.output_handle,
-            contentHash: output.produced_output.content_hash,
-            byteSize: output.produced_output.byte_size,
-            mediaType: output.produced_output.media_type,
-            limitation: output.availability.limitation,
-          }
-        : {
-            name: output.declaration.output_name,
-            role: output.declaration.output_role,
-            state: "not reported",
-            mediaType: output.declaration.media_type,
-            limitation: output.availability.limitation,
-          },
-    ),
-    diagnostics: {
-      state: "unavailable",
-      reason:
-        "Exact manifest diagnostics are not projected by the registered Project Work detail read.",
-    },
+    outcome: manifest.content.outcome.outcome_kind,
+    attempt: manifest.attempt,
+    reportedAt: manifest.reported_at,
+    outputs: manifest.content.outcome.produced_outputs.map((output) => {
+      const projected = reportedOutputs.find(
+        (candidate) =>
+          candidate.produced_output.output_name === output.output_name &&
+          candidate.produced_output.output_role === output.output_role,
+      );
+      if (projected === undefined) {
+        throw new ProjectDataError(
+          "The exact WorkerOutputManifest output is absent from its producing Work read.",
+          502,
+        );
+      }
+      return {
+        name: output.output_name,
+        role: output.output_role,
+        state: "reported",
+        handle: output.output_handle,
+        contentHash: output.content_hash,
+        byteSize: output.byte_size,
+        mediaType: output.media_type,
+        limitation: projected.availability.limitation,
+      };
+    }),
+    diagnostics: manifest.content.diagnostics.map((diagnostic) => ({
+      code: diagnostic.code,
+      severity: diagnostic.severity,
+      message: diagnostic.message,
+    })),
     resourceUsage: {
       wallTimeMs: measured.wall_time_ms,
       cpuTimeMs: measured.cpu_time_ms,
@@ -7053,7 +7095,25 @@ export const loadProjectWorkDetail = async ({
   if (unit === undefined) {
     throw new ProjectDataError("Petra returned no exact Work task.", 502);
   }
-  const selectedResult = selectedWorkerOutput(view, operations, selection);
+  const manifest =
+    selection === undefined
+      ? undefined
+      : await projectWorkClient().readWorkerOutputManifest(
+          projectId,
+          selection.recordId,
+          {
+            producing_work_unit_id: workUnitId,
+            revision: selection.revision,
+            content_hash: selection.contentHash,
+            record_hash: selection.recordHash,
+          },
+        );
+  const selectedResult = selectedWorkerOutput(
+    view,
+    operations,
+    selection,
+    manifest,
+  );
   return {
     work,
     unit,

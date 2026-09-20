@@ -302,6 +302,30 @@ export const createWave4EvidenceObserver = async ({ root }) => {
     const workerText = await cdp.evaluate(
       'document.querySelector("#selected-work-result")?.innerText',
     );
+    const manifestCall = calls.findLast(
+      (call) =>
+        call.method === "GET" &&
+        call.path.includes(
+          `/worker-output-manifests/${encodeURIComponent(workerResult.id)}`,
+        ),
+    );
+    assert.equal(
+      manifestCall?.status,
+      200,
+      "The selected result did not perform its exact production manifest read.",
+    );
+    const exactDiagnostics = manifestCall?.json?.content?.diagnostics;
+    assert.ok(
+      Array.isArray(exactDiagnostics),
+      "The production manifest response omitted its exact diagnostics array.",
+    );
+    const renderedDiagnostics = await cdp.evaluate(`
+      [...document.querySelectorAll(".selected-worker-output__diagnostics > li")].map((item) => ({
+        code: item.querySelector("strong")?.textContent.trim(),
+        severity: item.querySelector("span")?.textContent.trim().toLocaleLowerCase(),
+        message: item.querySelector("p")?.textContent.trim(),
+      }))
+    `);
     assert.ok(
       workerUrl.includes(`/work/${completedWorkUnitId}?`),
       "The manifest was treated as a WorkUnit route identity.",
@@ -312,18 +336,32 @@ export const createWave4EvidenceObserver = async ({ root }) => {
       completedWorkUnitId,
       "Reported outputs",
       "Measured resources",
-      "Exact diagnostics unavailable",
       "Identity hashes and limitations",
     ]) {
       assert.ok(workerText.includes(value), `Worker result omitted ${value}.`);
     }
+    assert.equal(renderedDiagnostics.length, exactDiagnostics.length);
+    if (exactDiagnostics.length === 0) {
+      assert.ok(workerText.includes("No diagnostics reported"));
+    } else {
+      assert.deepEqual(
+        renderedDiagnostics,
+        exactDiagnostics.map((diagnostic) => ({
+          code: diagnostic.code,
+          severity: diagnostic.severity,
+          message: diagnostic.message,
+        })),
+      );
+    }
+    assert.ok(!workerText.includes("Exact diagnostics unavailable"));
     execution.worker_output_manifest = {
       id: workerResult.id,
       producing_work_unit_id: completedWorkUnitId,
       destination: workerUrl,
       exact_outputs_rendered: true,
       measured_resources_rendered: true,
-      exact_diagnostics_rendered: false,
+      exact_diagnostics_rendered: true,
+      diagnostics_count: exactDiagnostics.length,
     };
     execution.completed_checks.push(
       "manifest opened through producing Work with selected manifest identity retained",
@@ -340,7 +378,6 @@ export const createWave4EvidenceObserver = async ({ root }) => {
       "grounded-response destination",
     );
     const groundedUrl = await cdp.evaluate("window.location.href");
-    const groundedText = await cdp.evaluate("document.body.innerText");
     assert.ok(
       await cdp.evaluate(
         'document.querySelector(".communication-plan") !== null',
@@ -349,12 +386,47 @@ export const createWave4EvidenceObserver = async ({ root }) => {
     );
     assert.ok(groundedUrl.includes(`/projects/${scientificProjectId}/petra?`));
     assert.ok(groundedUrl.includes(encodeURIComponent(groundedResult.id)));
+    const communicationCall = calls.findLast(
+      (call) =>
+        call.method === "GET" &&
+        call.path.includes("/communication?response_id="),
+    );
+    assert.equal(
+      communicationCall?.status,
+      200,
+      "The exact production communication read did not return 200.",
+    );
+    const communication = communicationCall?.json;
+    assert.equal(
+      communication?.content?.source_response?.grounded_response_id,
+      groundedResult.id,
+    );
+    assert.ok(communication?.content?.context_packet?.context_packet_id);
+    assert.ok(communication?.content?.evidence_packet?.evidence_packet_id);
+    assert.ok(
+      communication?.content?.segments?.some(
+        (segment) => segment.original_statement?.evidence_refs?.length > 0,
+      ),
+      "The exact communication response omitted its references.",
+    );
+    assert.ok(
+      Array.isArray(communication?.content?.limitations) &&
+        communication.content.limitations.length > 0,
+      "The exact communication response omitted its authority limits.",
+    );
+    assert.equal(communication?.content?.authority?.effect, "none");
+    await cdp.evaluate(`(() => {
+      const details = [...document.querySelectorAll(".communication-plan__details")].find(
+        (candidate) => candidate.querySelector("summary")?.textContent.trim() === "Exact record and version bindings",
+      );
+      details?.querySelector("summary")?.click();
+    })()`);
+    const groundedText = await cdp.evaluate("document.body.innerText");
     for (const value of [
       "Exact response, preservation, and limits",
       "Context packet",
       "Evidence packet",
       "Exact references",
-      "Communication boundary",
       "Return to producing Work task",
     ]) {
       assert.ok(
@@ -362,7 +434,13 @@ export const createWave4EvidenceObserver = async ({ root }) => {
         `Grounded response omitted ${value}.`,
       );
     }
-    await activate(link("Return to producing Work task"));
+    assert.ok(
+      groundedText.toLocaleLowerCase().includes("communication boundary"),
+      "Grounded response omitted its visible communication boundary.",
+    );
+    await activate(
+      `[...document.querySelectorAll('a')].find((element) => element.textContent.includes("Return to producing Work task"))`,
+    );
     await cdp.until(
       `window.location.pathname === ${JSON.stringify(`/projects/${scientificProjectId}/work/${completedWorkUnitId}`)}`,
       "exact Work return",
@@ -380,7 +458,7 @@ export const createWave4EvidenceObserver = async ({ root }) => {
     assert.deepEqual(consoleErrors, []);
     observation = {
       scenario: "UX1.6-WORK/usable-work-ui",
-      status: "incomplete",
+      status: "passed",
       stable_url: workbench.url,
       project_id: scientificProjectId,
       registered_inquiry_visible: true,
@@ -394,6 +472,13 @@ export const createWave4EvidenceObserver = async ({ root }) => {
         id: groundedResult.id,
         destination: groundedUrl,
         exact_response_rendered: true,
+        context_packet_id:
+          communication.content.context_packet.context_packet_id,
+        evidence_packet_id:
+          communication.content.evidence_packet.evidence_packet_id,
+        exact_references_rendered: true,
+        authority_limits_rendered: true,
+        producing_work_return_rendered: true,
       },
       worker_output_manifest: {
         id: workerResult.id,
@@ -401,10 +486,11 @@ export const createWave4EvidenceObserver = async ({ root }) => {
         destination: workerUrl,
         exact_outputs_rendered: true,
         measured_resources_rendered: true,
-        exact_diagnostics_rendered: false,
+        exact_diagnostics_rendered: true,
+        diagnostics_count: exactDiagnostics.length,
       },
-      blocking_boundary:
-        "The registered Project Work detail read does not expose the WorkerOutputManifest diagnostics array, so the frozen scenario cannot pass.",
+      boundary:
+        "Executed the complete production Work browser path through registered controls and exact result reads. Worker registration and representative setup occur through the cumulative disposable-store harness; no browser response or Work result is mocked.",
       operation_call_count: operationCalls.length,
       console_errors: consoleErrors,
     };
@@ -454,6 +540,7 @@ export const createWave4EvidenceObserver = async ({ root }) => {
         writeObservation();
         throw error;
       }
+      return undefined;
     }
     if (stage === "stale_before_refresh" || stage === "restart_complete") {
       return undefined;
