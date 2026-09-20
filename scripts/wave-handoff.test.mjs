@@ -25,6 +25,7 @@ import {
   enforceCompletionDisposition,
   enforceProgressDisposition,
   evidenceOwnerCanSatisfy,
+  extendStoppedState,
   initialHandoff,
   inventoryAuditOverdue,
   isCompatiblePackageJsonConflictSet,
@@ -110,6 +111,63 @@ test("parses explicit user acceptance without treating it as worker authority", 
   assert.equal(evidenceOwnerCanSatisfy("user", "backend"), false);
   assert.equal(evidenceOwnerCanSatisfy("user", "design"), false);
   assert.equal(evidenceOwnerCanSatisfy("user", "user"), true);
+});
+
+test("extends only a wave stopped exactly at its protected slice ceiling", () => {
+  const extended = extendStoppedState(
+    {
+      wave: "6",
+      status: "stopped",
+      next_role: "backend",
+      slice_count: 64,
+      max_slices: 64,
+      plan_digest: "sha256:old",
+      evidence_plan_digest: "sha256:evidence",
+      evidence: [],
+      commits: { backend: "a".repeat(40), design: "b".repeat(40) },
+      handoff_prompt: "Finish the next exact operation.",
+      active: null,
+      history: [{ role: "design" }],
+      retry_attempts: { "65:backend": 3, "20:design": 1 },
+      stop_reason: "Maximum slice count 64 reached.",
+    },
+    {
+      wave: "6",
+      maxSlices: 96,
+      planDigest: "sha256:new",
+      evidencePlanDigest: "sha256:evidence",
+      commits: { backend: "c".repeat(40), design: "b".repeat(40) },
+      now: "2026-09-20T18:00:00.000Z",
+    },
+  );
+  assert.equal(extended.status, "waiting");
+  assert.equal(extended.next_role, "backend");
+  assert.equal(extended.max_slices, 96);
+  assert.deepEqual(extended.retry_attempts, { "20:design": 1 });
+  assert.match(extended.handoff_prompt, /grouped completion reserve/);
+  assert.deepEqual(extended.commits, {
+    backend: "c".repeat(40),
+    design: "b".repeat(40),
+  });
+  assert.throws(
+    () =>
+      extendStoppedState(
+        {
+          ...extended,
+          status: "blocked",
+          stop_reason: "External service unavailable.",
+        },
+        {
+          wave: "6",
+          maxSlices: 100,
+          planDigest: "sha256:later",
+          evidencePlanDigest: "sha256:evidence",
+          commits: extended.commits,
+          now: "2026-09-20T19:00:00.000Z",
+        },
+      ),
+    /stopped exactly at its slice ceiling/,
+  );
 });
 
 test("normalizes only an exact concatenated frozen evidence key", () => {
@@ -917,6 +975,21 @@ test("Wave 6 backend launcher identifies its role and extended remediation budge
   assert.match(launcher, /--role backend --wave 6 --max-slices 64/);
   assert.match(launcher, /doctor --wave 6 --max-slices 64/);
   assert.notEqual(statSync(path).mode & 0o111, 0);
+});
+
+test("Wave 6 reserves grouped completion through its final slice 96 boundary", () => {
+  const packet = readFileSync(
+    new URL("./wave-handoff-wave-6.md", import.meta.url),
+    "utf8",
+  );
+  assert.match(packet, /Slices 65–96: grouped completion reserve/);
+  assert.match(
+    packet,
+    /65\. \*\*Backend — Work lifecycle and owner reconciliation/,
+  );
+  assert.match(packet, /76\. \*\*Design — final stable-URL recording/);
+  assert.match(packet, /Slice 96 is the final safety boundary/);
+  assert.match(packet, /may not select a single\nledger row/);
 });
 
 test("Wave 5 packet fixes 32 alternating slices and the closure reserve", () => {

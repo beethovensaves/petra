@@ -835,6 +835,71 @@ export function initialHandoff(wave, backendCommit, designCommit) {
   return `Resume after backend ${backendCommit} and design ${designCommit}. Review the Wave ${wave} packet and implement exactly the smallest coherent backend-owned slice from the first incomplete item in its default implementation order. Preserve the packet's dependency order, authority boundaries, and role ownership; do not pull later work into this slice. If repository evidence exposes a prerequisite or consequential unresolved architecture choice, stop with needs_user rather than inventing it.`;
 }
 
+export function extendStoppedState(
+  state,
+  {
+    wave,
+    maxSlices,
+    planDigest: nextPlanDigest,
+    evidencePlanDigest,
+    commits,
+    now,
+  },
+) {
+  if (
+    !state ||
+    state.wave !== wave ||
+    state.status !== "stopped" ||
+    state.active !== null ||
+    !String(state.stop_reason ?? "").startsWith("Maximum slice count ") ||
+    state.slice_count < state.max_slices
+  ) {
+    throw new Error(
+      `Wave ${wave} must be stopped exactly at its slice ceiling before extension.`,
+    );
+  }
+  if (!Number.isSafeInteger(maxSlices) || maxSlices <= state.max_slices) {
+    throw new Error(
+      `The extended slice ceiling must exceed ${state.max_slices}.`,
+    );
+  }
+  const previousMaximum = state.max_slices;
+  const previousPlanDigest = state.plan_digest;
+  const previousHandoff = state.handoff_prompt;
+  const lastRole = state.history.at(-1)?.role;
+  const nextRole = lastRole === "backend" ? "design" : "backend";
+  const retryAttempts = { ...(state.retry_attempts ?? {}) };
+  delete retryAttempts[`${state.slice_count + 1}:${nextRole}`];
+  return {
+    ...state,
+    status: "waiting",
+    next_role: nextRole,
+    max_slices: maxSlices,
+    plan_digest: nextPlanDigest,
+    evidence_plan_digest: evidencePlanDigest,
+    commits: { ...commits },
+    handoff_prompt:
+      `Continue Wave ${wave} after the first safety checkpoint. The protected ceiling is now ${maxSlices} slices. ` +
+      `Follow the grouped completion reserve in the current packet: close coherent production workflows and attach only executed evidence, rather than spending a slice on each ledger row. ` +
+      `Preserve every accepted result and begin with the first incomplete grouped bundle.\n\n` +
+      `PRIOR HANDOFF\n${previousHandoff}`,
+    active: null,
+    retry_attempts: retryAttempts,
+    updated_at: now,
+    stop_reason: "",
+    extensions: [
+      ...(state.extensions ?? []),
+      {
+        previous_max_slices: previousMaximum,
+        max_slices: maxSlices,
+        previous_plan_digest: previousPlanDigest,
+        plan_digest: nextPlanDigest,
+        extended_at: now,
+      },
+    ],
+  };
+}
+
 export function validatePriorWaveState(wave, priorState) {
   const waveNumber = Number.parseInt(wave, 10);
   if (waveNumber <= 3) return;
@@ -2072,6 +2137,51 @@ async function resumeBlockedWave(wave, role) {
   process.stdout.write(`Wave ${wave}: resumed blocked ${role} slice.\n`);
 }
 
+async function extendStoppedWave(wave, maxSlices) {
+  const snapshots = {
+    backend: repositorySnapshot("backend"),
+    design: repositorySnapshot("design"),
+  };
+  requireCleanAndPushed("backend", snapshots.backend);
+  requireCleanAndPushed("design", snapshots.design);
+  const plan = readFileSync(wavePlanPath(wave), "utf8");
+  const evidencePlan = readEvidencePlan(wave, maxSlices);
+  await withStateLock(wave, () => {
+    const state = readState(wave);
+    if (!state) throw new Error(`Wave ${wave} is not initialized.`);
+    for (const role of Object.keys(roles)) {
+      if (
+        !gitIsAncestor(
+          roles[role].root,
+          state.commits[role],
+          snapshots[role].head,
+        )
+      ) {
+        throw new Error(
+          `${role} HEAD does not descend from the controller's recorded commit.`,
+        );
+      }
+    }
+    const extended = extendStoppedState(state, {
+      wave,
+      maxSlices,
+      planDigest: planDigest(plan),
+      evidencePlanDigest: evidencePlan
+        ? planDigest(JSON.stringify(evidencePlan))
+        : null,
+      commits: {
+        backend: snapshots.backend.head,
+        design: snapshots.design.head,
+      },
+      now: new Date().toISOString(),
+    });
+    writeJsonAtomic(statePath(wave), extended);
+  });
+  process.stdout.write(
+    `Wave ${wave}: extended to ${maxSlices} grouped-remediation slices.\n`,
+  );
+}
+
 function printHelp() {
   process.stdout.write(`Usage:
   node scripts/wave-handoff.mjs worker --role backend|design [--wave 4] [--max-slices 64]
@@ -2079,6 +2189,7 @@ function printHelp() {
   node scripts/wave-handoff.mjs status [--wave 4]
   node scripts/wave-handoff.mjs stop [--wave 4]
   node scripts/wave-handoff.mjs resume --wave N --role backend|design
+  node scripts/wave-handoff.mjs extend --wave N --max-slices N
   node scripts/wave-handoff.mjs accept --wave N --evidence-id ID --scenario-id ID
 
 The backend worker initializes missing state. Start one worker in each worktree.
@@ -2098,6 +2209,8 @@ async function main() {
     await stop(options.wave);
   } else if (options.command === "resume") {
     await resumeBlockedWave(options.wave, options.role);
+  } else if (options.command === "extend") {
+    await extendStoppedWave(options.wave, options.maxSlices);
   } else if (options.command === "accept") {
     await acceptUserEvidence(
       options.wave,

@@ -161,7 +161,7 @@ must not need repository reports or opaque identifiers to understand the task.
     Run Felicity and product-design review. Reserve the remaining slices for
     actual remediation.
 
-## Slices 21–64: integration, remediation, and acceptance reserve
+## Slices 21–64: integration, remediation, and first safety checkpoint
 
 21. **Backend — first inventory remediation.** Fix the highest-severity
     contract, taxonomy, model, Work, or operation gap from item 20.
@@ -195,9 +195,65 @@ must not need repository reports or opaque identifiers to understand the task.
 
 Slices 33–63 repeat the backend/design remediation, clean-start, guided-browser,
 critic, and cumulative-gate cycle in severity order. The controller may reach
-the user checkpoint as soon as all automated evidence passes; the extra budget
-is a guard against stopping on an anticipated conflict or failed first pass, not
-a target. Slice 64 is the final safety boundary. If evidence still remains, the
+the user checkpoint as soon as all automated evidence passes. Slice 64 is the
+first safety checkpoint: stop and inspect the complete operation and evidence
+inventory before consuming the protected continuation below.
+
+## Slices 65–96: grouped completion reserve
+
+The continuation closes coherent workflows and their evidence rather than
+spending one slice on each ledger row. A bundle may update every operation that
+the same executed production scenario actually proves. It must not mark an
+operation live merely because another row shares a route or backend owner.
+
+65. **Backend — Work lifecycle and owner reconciliation.** Complete the
+    registered checkpoint-resume and fresh-attempt transitions together, then
+    reconcile runtime owners for already-live operations from the accepted
+    backend operation baseline. Do not attach evidence that was not executed.
+66. **Design — Work, Petra, and model bundle.** Execute one production workflow
+    covering the visible Work controls, Petra context/references, certified
+    model use, reconnect/replay, exact results, and contextual return. Fix all
+    design-owned defects exposed by that same workflow and attach its evidence
+    to every operation it actually exercises.
+67. **Backend — Project, shell, Brief, and taxonomy bundle.** Close remaining
+    server-owned attention, change, map, profile-binding, reset, and recovery
+    composition needed by the guided entry and return path.
+68. **Design — guided entry and orientation bundle.** Execute create/reset,
+    Project navigation, shell context, Brief orientation, attention, changes,
+    taxonomy inspection, guide, and exact return as one stable-URL workflow.
+69. **Backend — action and feedback completion.** Close remaining registered
+    action preview/invocation, confirmation, retry, result, and recovery
+    descriptors across the direct and Petra-mediated paths.
+70. **Design — Details, feedback, and personal-settings bundle.** Finish exact
+    Details return, transient feedback, and retained personal preference
+    controls, then execute their responsive and keyboard behavior together.
+71. **Backend — source, Review, Graph, and History evidence preparation.**
+    Reconcile existing production owners and fixtures for the complete source,
+    Review, Graph, History, recovery, and governed-Revert scenarios without
+    duplicating command authority.
+72. **Design — source, Review, Graph, and History workflow.** Execute the
+    complete scenario through visible controls and attach evidence to each
+    operation actually covered by the trace.
+73. **Backend — clean-start adverse and authority audit.** Run fresh stores,
+    actual certified-model interaction, restart/replay, permission loss,
+    unknown-effect recovery, direct/Petra parity, and the adversarial product
+    engineering audit; remediate backend-owned findings as one gate bundle.
+74. **Design — final guided experience audit.** Execute the full guided path at
+    supported widths and text scales; finish product-design, Felicity, keyboard,
+    focus, semantics, non-color, reduced-motion, and touch-target dispositions.
+75. **Backend — exit reconciliation.** Run the complete repository,
+    fresh-store, operation, evidence, authority, model, and replay gates against
+    clean pushed branches. Hand back exact defects; do not claim user approval.
+76. **Design — final stable-URL recording.** Record the complete integrated
+    workflow, starting state, reset, outcomes, return, and known limits. Return
+    `needs_user` only when the explicit user acceptance record is the sole
+    outstanding requirement.
+
+Slices 77–95 repeat these grouped backend/design workflows in dependency and
+severity order for concrete defects found by the cumulative gates. Every slice
+must reduce a named operation or evidence bundle; it may not select a single
+ledger row when the same production scenario can honestly close the group.
+Slice 96 is the final safety boundary. If automated evidence still remains, the
 wave stops as incomplete and cannot claim acceptance.
 
 ## Stop rules
