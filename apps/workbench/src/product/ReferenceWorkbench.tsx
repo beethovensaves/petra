@@ -61,6 +61,30 @@ const ProjectionLabel = ({ project }: { project: ProjectRecord }) => (
   </span>
 );
 
+const ProjectResumeState = ({ project }: { project: ProjectRecord }) => {
+  const resume = project.resume;
+  if (resume === undefined) return null;
+  const label =
+    resume.state === "available"
+      ? (resume.retained_task?.label ?? resume.recovery.destination.purpose)
+      : (resume.failure?.message ?? resume.recovery.reason);
+  return (
+    <div
+      className="reference-project-resume-state"
+      data-resume-state={resume.state}
+    >
+      <strong>
+        {resume.state === "available"
+          ? "Retained task ready"
+          : resume.state === "unavailable"
+            ? "Resume read unavailable"
+            : "Brief recovery"}
+      </strong>
+      <span>{label}</span>
+    </div>
+  );
+};
+
 const extentSymbol: Record<SourceExtent, string> = {
   identity_only: "○",
   preview: "◔",
@@ -215,6 +239,7 @@ export const ProjectsSurface = ({
                   </Link>
                 </h2>
                 <p>{project.objective}</p>
+                <ProjectResumeState project={project} />
                 <dl className="reference-compact-facts">
                   <div>
                     <dt>Current</dt>
@@ -227,12 +252,27 @@ export const ProjectsSurface = ({
                 </dl>
                 <div className="reference-project-card__footer">
                   <ProjectionLabel project={project} />
-                  <Link
-                    className="reference-text-link"
-                    to={`/projects/${project.id}/brief`}
-                  >
-                    Open Brief <span aria-hidden="true">→</span>
-                  </Link>
+                  <div className="reference-project-card__actions">
+                    <Link
+                      className="reference-text-link"
+                      to={`/projects/${project.id}/brief`}
+                    >
+                      Open Brief
+                    </Link>
+                    {project.resume === undefined ? null : (
+                      <Link
+                        className="reference-primary-link"
+                        to={`/projects/${project.id}/resume`}
+                      >
+                        {project.resume.state === "available"
+                          ? "Resume Project"
+                          : project.resume.state === "unavailable"
+                            ? "Retry Resume"
+                            : "Open Brief recovery"}
+                        <span aria-hidden="true">→</span>
+                      </Link>
+                    )}
+                  </div>
                 </div>
               </article>
             </li>
@@ -278,23 +318,25 @@ export const useProjectRecord = (): ProjectRecord => {
 const placeFromPath = (pathname: string): ProjectPlace =>
   pathname.includes("/profile")
     ? "profile_tool"
-    : pathname.includes("/sources")
-      ? "sources"
-      : pathname.includes("/review")
-        ? "review"
-        : pathname.includes("/graph")
-          ? "graph"
-          : pathname.includes("/work")
-            ? "work"
-            : pathname.includes("/composition")
-              ? "composition"
-              : pathname.includes("/history")
-                ? "history"
-                : pathname.includes("/tools/")
-                  ? "profile_tool"
-                  : pathname.includes("/petra")
-                    ? "petra"
-                    : "brief";
+    : pathname.includes("/resume")
+      ? "graph"
+      : pathname.includes("/sources")
+        ? "sources"
+        : pathname.includes("/review")
+          ? "review"
+          : pathname.includes("/graph")
+            ? "graph"
+            : pathname.includes("/work")
+              ? "work"
+              : pathname.includes("/composition")
+                ? "composition"
+                : pathname.includes("/history")
+                  ? "history"
+                  : pathname.includes("/tools/")
+                    ? "profile_tool"
+                    : pathname.includes("/petra")
+                      ? "petra"
+                      : "brief";
 
 export const hashFocusTargetId = (hash: string): string | undefined => {
   if (!hash.startsWith("#") || hash.length === 1) return undefined;
@@ -1012,13 +1054,125 @@ export const BriefSurface = ({
   );
 };
 
+export const ProjectResumeOutcome = ({
+  project,
+  outcome,
+}: {
+  project: ProjectRecord;
+  outcome: string;
+}): React.JSX.Element => {
+  const resume = project.resume;
+  const readFailure = ["read-failed", "read-stale", "selection-stale"].includes(
+    outcome,
+  );
+  const returnUnavailable = outcome === "return-unavailable";
+  if (resume === undefined) {
+    return (
+      <section
+        className="project-resume-outcome"
+        id="project-resume-outcome"
+        data-resume-state="unavailable"
+        tabIndex={-1}
+        aria-labelledby="project-resume-outcome-title"
+      >
+        <p className="reference-panel-kicker">Project resume</p>
+        <h2 id="project-resume-outcome-title">Resume is not installed</h2>
+        <p>
+          This Project read does not include a server-owned resume assessment.
+          The current Brief remains available.
+        </p>
+      </section>
+    );
+  }
+  const retry = resume.state === "unavailable" || readFailure;
+  const title = returnUnavailable
+    ? "The exact return is unavailable"
+    : readFailure
+      ? "The retained task needs a fresh read"
+      : resume.state === "available"
+        ? "The retained task is ready now"
+        : resume.state === "stale"
+          ? "Review the current Brief before continuing"
+          : resume.state === "not_found"
+            ? "No retained task is available"
+            : "Resume is temporarily unavailable";
+  const message = returnUnavailable
+    ? resume.retained_task?.return_destination.state === "unavailable"
+      ? resume.retained_task.return_destination.reason
+      : "The retained task no longer has an exact available return destination."
+    : readFailure
+      ? "Petra did not open a Graph result that still matched the retained task, expected result, and selection. No identity was rebuilt in the browser."
+      : resume.state === "available"
+        ? resume.recovery.reason
+        : (resume.failure?.message ?? resume.recovery.reason);
+  return (
+    <section
+      className="project-resume-outcome"
+      id="project-resume-outcome"
+      data-resume-state={readFailure ? "unavailable" : resume.state}
+      tabIndex={-1}
+      aria-labelledby="project-resume-outcome-title"
+      role={retry ? "alert" : "status"}
+    >
+      <p className="reference-panel-kicker">Project resume</p>
+      <h2 id="project-resume-outcome-title">{title}</h2>
+      <p>{message}</p>
+      <p>{resume.recovery.reason}</p>
+      {resume.retained_task === undefined ? null : (
+        <details>
+          <summary>Retained context</summary>
+          <dl className="reference-detail-list">
+            <div>
+              <dt>Task</dt>
+              <dd>{resume.retained_task.label}</dd>
+            </div>
+            <div>
+              <dt>Origin</dt>
+              <dd>{resume.retained_task.origin.origin_kind}</dd>
+            </div>
+            <div>
+              <dt>Retained</dt>
+              <dd>{resume.retained_task.retained_at}</dd>
+            </div>
+          </dl>
+        </details>
+      )}
+      <div className="project-resume-outcome__actions">
+        {retry || (resume.state === "available" && !returnUnavailable) ? (
+          <Link
+            className="reference-primary-link"
+            to={`/projects/${project.id}/resume`}
+          >
+            {retry ? "Retry Project resume" : "Resume Project"}
+          </Link>
+        ) : (
+          <a className="reference-primary-link" href="#brief-focus">
+            Continue in current Brief
+          </a>
+        )}
+        <span>{resume.recovery.destination.purpose}</span>
+      </div>
+    </section>
+  );
+};
+
 export const BriefRoute = (): React.JSX.Element => {
   const data = useLoaderData<ProjectBriefData>();
+  const project = useProjectRecord();
+  const [searchParams] = useSearchParams();
+  const resumeOutcome = searchParams.get("projectResume");
   if (data.briefView === undefined)
     throw new Error("The Project Brief read is unavailable.");
   return (
     <ProjectBriefSurface
       view={data.briefView}
+      {...(resumeOutcome === null
+        ? {}
+        : {
+            resumeOutcome: (
+              <ProjectResumeOutcome project={project} outcome={resumeOutcome} />
+            ),
+          })}
       {...(data.suggestedAction === undefined
         ? {}
         : {

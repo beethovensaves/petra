@@ -62,11 +62,17 @@
       "surfaces": ["SP01", "SP02"],
       "flows": ["UX-FLOW-01"],
       "requests": ["UX-REQ-001", "UX-REQ-008"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/",
       "control": "Resume Project",
       "interaction": "navigation",
-      "evidence": [],
+      "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:project-resume-ui",
+          "artifact": "reports/WAVE6-PROJECT-RESUME-BROWSER.json",
+          "boundary": "Isolated Chrome executed the production Project collection, shell, project.resume route, exact Graph selection, Brief recovery, and retry controls with deterministic schema-shaped HTTP. The exact PostgreSQL-backed project-shell-view@1.2.0 owner is proven separately by the backend counterpart; this operation record does not claim a complete guided workflow or a named Wave 6 evidence-plan scenario."
+        }
+      ],
       "runtime_owner": "GET /api/queries/projects and GET /api/queries/projects/:projectId/shell -> PostgresProjectShellViewReader",
       "paths": ["UX-PATH-03"]
     },

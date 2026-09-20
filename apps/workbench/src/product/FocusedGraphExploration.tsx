@@ -8,6 +8,7 @@ import type {
   PetraProjectInquirySaveReceipt,
   PetraProjectInquirySaveRecoveryView,
   PetraProjectInquirySaveRequest,
+  ProjectInquirySaveSelection,
 } from "@petra/contracts";
 import type {
   FocusedGraphExplorationViewRequest,
@@ -397,7 +398,37 @@ export const moveFocusedGraphPresentationHistory = (
 const selectedKeyForView = (
   view: PetraFocusedGraphReadView,
   focusRef: FocusedGraphExactRef,
+  retainedSelection?: ProjectInquirySaveSelection,
 ): string => {
+  if (retainedSelection?.state === "selected") {
+    const retainedKeys = retainedSelection.selected_keys;
+    const hasExactKind = retainedKeys.every((key) =>
+      retainedSelection.selection_kind === "node"
+        ? view.content.nodes.some((node) => node.node_key === key)
+        : retainedSelection.selection_kind === "relationship"
+          ? view.content.relationships.some(
+              (relationship) => relationship.relationship_key === key,
+            )
+          : view.content.paths.some((path) => path.path_key === key),
+    );
+    if (!hasExactKind) {
+      throw new FocusedGraphExplorationError(
+        "The retained Project selection is absent from its exact Graph result.",
+      );
+    }
+    return retainedKeys[0];
+  }
+  if (retainedSelection?.state === "none") {
+    const retainedFocus = view.content.nodes.find((node) =>
+      sameRef(node.record_ref, focusRef),
+    );
+    if (retainedFocus === undefined) {
+      throw new FocusedGraphExplorationError(
+        "The retained Project focus is absent from its exact Graph result.",
+      );
+    }
+    return retainedFocus.node_key;
+  }
   if (view.content.selection.state === "selected") {
     const selected = view.content.selection.selected_keys[0];
     if (selected !== undefined) return selected;
@@ -541,6 +572,7 @@ export const FocusedGraphExploration = ({
   definition,
   initialRequest,
   initialView,
+  initialSelection,
   read = readExpansion,
   actionPreviewRead,
   saveInquiry = executeProjectInquirySave,
@@ -551,13 +583,18 @@ export const FocusedGraphExploration = ({
   definition: PetraProjectDefinition;
   initialRequest: FocusedGraphReadRequest;
   initialView: PetraFocusedGraphReadView;
+  initialSelection?: ProjectInquirySaveSelection;
   read?: FocusedGraphExplorationRead;
   actionPreviewRead?: FocusedGraphActionPreviewRead | undefined;
   saveInquiry?: ProjectInquirySaveCommand | undefined;
   assessInquirySave?: ProjectInquirySaveRecoveryRead | undefined;
   rendererFactory?: FocusedGraphRendererFactory | undefined;
 }): React.JSX.Element => {
-  const initialSelectedKey = selectedKeyForView(initialView, entry.focus_ref);
+  const initialSelectedKey = selectedKeyForView(
+    initialView,
+    entry.focus_ref,
+    initialSelection,
+  );
   const stateSequence = useRef(1);
   const baseline = useMemo<FocusedGraphPresentationState>(
     () => ({

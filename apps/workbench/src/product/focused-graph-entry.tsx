@@ -8,6 +8,9 @@ import type {
   PetraFocusedGraphView,
   PetraFocusedGraphViewV11,
   PetraProjectDefinition,
+  ProjectInquirySaveSelection,
+  ProjectShellRetainedTask,
+  ProjectShellResumeRecovery,
 } from "@petra/contracts";
 import type {
   FocusedGraphActionPreviewViewRequest,
@@ -71,7 +74,13 @@ export { createFocusedGraphRequestId } from "./focused-graph-identities.js";
 export { createFocusedGraphAnalysisRequestId } from "./focused-graph-identities.js";
 
 export type FocusedGraphEntryOriginKind =
-  "brief" | "review" | "petra" | "history" | "saved_question" | "direct";
+  | "brief"
+  | "evidence"
+  | "review"
+  | "petra"
+  | "history"
+  | "saved_question"
+  | "direct";
 
 export interface FocusedGraphEntryDefinitionRef {
   readonly project_definition_id: string;
@@ -153,9 +162,7 @@ export interface FocusedGraphEntry {
   readonly object_semantic_key: string;
   readonly relationship_semantic_key: string;
   readonly return_action_semantic_key: string;
-  readonly return_destination: FocusedGraphSemanticDestination & {
-    readonly state: "available";
-  };
+  readonly return_destination: FocusedGraphSemanticDestination;
   readonly limits: FocusedGraphLimits;
   readonly semantic_layer: "current" | "working" | "historical";
   readonly presentation: FocusedGraphPresentation;
@@ -183,6 +190,14 @@ export interface FocusedGraphRouteData {
   readonly request: FocusedGraphReadRequest;
   readonly view: PetraFocusedGraphView | PetraFocusedGraphViewV11;
   readonly analysis?: PetraFocusedGraphAnalysisView;
+  readonly resume?: {
+    readonly label: string;
+    readonly retainedAt: string;
+    readonly selection: ProjectInquirySaveSelection;
+    readonly origin: ProjectShellRetainedTask["origin"];
+    readonly focusRefs: ProjectShellRetainedTask["focus_refs"];
+    readonly recovery: ProjectShellResumeRecovery;
+  };
 }
 
 export class FocusedGraphEntryError extends Error {
@@ -353,6 +368,13 @@ const validActionPreviewTarget = (
       HASH.test(target.inquiry_result_link_ref.record_hash);
 
 const assertEntry = (entry: FocusedGraphEntry): FocusedGraphEntry => {
+  const returnDestinationValid =
+    entry.return_destination.state === "available"
+      ? PETRA_ID.test(entry.return_destination.target_ref.record_id) &&
+        Number.isSafeInteger(entry.return_destination.target_ref.revision) &&
+        entry.return_destination.target_ref.revision > 0 &&
+        HASH.test(entry.return_destination.target_ref.record_hash)
+      : entry.return_destination.reason.trim().length > 0;
   if (
     !PROJECT_ID.test(entry.project_id) ||
     !REQUEST_ID.test(entry.request_id) ||
@@ -374,7 +396,7 @@ const assertEntry = (entry: FocusedGraphEntry): FocusedGraphEntry => {
     !STABLE_KEY.test(entry.return_destination.destination_key) ||
     !DESTINATION_KINDS.has(entry.return_destination.destination_kind) ||
     !DESTINATION_OWNERS.has(entry.return_destination.owner) ||
-    entry.return_destination.state !== "available" ||
+    !returnDestinationValid ||
     !["current", "working", "historical"].includes(entry.semantic_layer) ||
     !["position", "current_working_comparison", "impact", "time"].includes(
       entry.presentation,
@@ -418,20 +440,8 @@ const assertEntry = (entry: FocusedGraphEntry): FocusedGraphEntry => {
     );
   }
   if (
-    entry.origin.origin_ref !== undefined &&
-    !sameRef(entry.origin.origin_ref, entry.focus_ref)
-  ) {
-    throw new FocusedGraphEntryError(
-      "This bounded entry requires the selected object to remain its exact origin.",
-    );
-  }
-  if (!sameRef(entry.return_destination.target_ref, entry.focus_ref)) {
-    throw new FocusedGraphEntryError(
-      "The focused graph return destination must preserve the selected object.",
-    );
-  }
-  if (
-    entry.limits.maximum_depth !== 1 ||
+    entry.limits.maximum_depth < 1 ||
+    entry.limits.maximum_depth > 4 ||
     entry.limits.maximum_nodes < 1 ||
     entry.limits.maximum_nodes > 100 ||
     entry.limits.maximum_relationships < 1 ||
@@ -476,6 +486,7 @@ export const focusedGraphEntryPath = (entry: FocusedGraphEntry): string => {
     returnDestinationKind: entry.return_destination.destination_kind,
     returnDestinationOwner: entry.return_destination.owner,
     returnDestinationLabel: entry.return_destination.label,
+    returnDestinationState: entry.return_destination.state,
     semanticLayer: entry.semantic_layer,
     presentation: entry.presentation,
     maximumDepth: String(entry.limits.maximum_depth),
@@ -486,7 +497,11 @@ export const focusedGraphEntryPath = (entry: FocusedGraphEntry): string => {
     returnLabel: entry.return_context.label,
   });
   appendRef(params, "focus", entry.focus_ref);
-  appendRef(params, "returnTarget", entry.return_destination.target_ref);
+  if (entry.return_destination.state === "available") {
+    appendRef(params, "returnTarget", entry.return_destination.target_ref);
+  } else {
+    params.set("returnDestinationReason", entry.return_destination.reason);
+  }
   if (entry.origin.origin_ref !== undefined) {
     appendRef(params, "originRef", entry.origin.origin_ref);
   }
@@ -585,11 +600,9 @@ const requiredKeys = new Set([
   "returnDestinationKind",
   "returnDestinationOwner",
   "returnDestinationLabel",
+  "returnDestinationState",
   "semanticLayer",
   "presentation",
-  "returnTargetId",
-  "returnTargetRevision",
-  "returnTargetHash",
   "maximumDepth",
   "maximumNodes",
   "maximumRelationships",
@@ -604,6 +617,10 @@ const optionalKeys = new Set([
   "originRefHash",
   "definitionRecordHash",
   "returnFocus",
+  "returnDestinationReason",
+  "returnTargetId",
+  "returnTargetRevision",
+  "returnTargetHash",
   "snapshotId",
   "snapshotRevision",
   "snapshotEventPosition",
@@ -651,6 +668,7 @@ export const focusedGraphEntryFromSearch = (
   if (
     ![
       "brief",
+      "evidence",
       "review",
       "petra",
       "history",
@@ -709,6 +727,53 @@ export const focusedGraphEntryFromSearch = (
     originRefFields[0] === undefined
       ? undefined
       : exactRef(params, "originRef");
+  const returnDestinationState = requiredParam(
+    params,
+    "returnDestinationState",
+  );
+  const returnTargetFields = [
+    optionalParam(params, "returnTargetId"),
+    optionalParam(params, "returnTargetRevision"),
+    optionalParam(params, "returnTargetHash"),
+  ];
+  const returnDestinationReason = optionalParam(
+    params,
+    "returnDestinationReason",
+  );
+  if (
+    (returnDestinationState === "available" &&
+      (returnDestinationReason !== undefined ||
+        returnTargetFields.some((value) => value === undefined))) ||
+    (returnDestinationState === "unavailable" &&
+      (returnDestinationReason === undefined ||
+        returnTargetFields.some((value) => value !== undefined))) ||
+    !["available", "unavailable"].includes(returnDestinationState)
+  ) {
+    throw new FocusedGraphEntryError(
+      "The focused graph return destination is incomplete or incompatible.",
+    );
+  }
+  const returnDestination = {
+    destination_key: requiredParam(params, "returnDestinationKey"),
+    destination_kind: requiredParam(
+      params,
+      "returnDestinationKind",
+    ) as FocusedGraphSemanticDestination["destination_kind"],
+    owner: requiredParam(
+      params,
+      "returnDestinationOwner",
+    ) as FocusedGraphSemanticDestination["owner"],
+    label: requiredParam(params, "returnDestinationLabel"),
+    ...(returnDestinationState === "available"
+      ? {
+          state: "available" as const,
+          target_ref: exactRef(params, "returnTarget"),
+        }
+      : {
+          state: "unavailable" as const,
+          reason: returnDestinationReason!,
+        }),
+  } satisfies FocusedGraphSemanticDestination;
   const snapshotId = snapshotFields[0];
   const expectedSnapshot =
     snapshotId === undefined
@@ -920,25 +985,12 @@ export const focusedGraphEntryFromSearch = (
       params,
       "returnActionSemanticKey",
     ),
-    return_destination: {
-      destination_key: requiredParam(params, "returnDestinationKey"),
-      destination_kind: requiredParam(
-        params,
-        "returnDestinationKind",
-      ) as FocusedGraphSemanticDestination["destination_kind"],
-      state: "available",
-      owner: requiredParam(
-        params,
-        "returnDestinationOwner",
-      ) as FocusedGraphSemanticDestination["owner"],
-      label: requiredParam(params, "returnDestinationLabel"),
-      target_ref: exactRef(params, "returnTarget"),
-    },
+    return_destination: returnDestination,
     limits: {
       maximum_depth: positiveInteger(
         requiredParam(params, "maximumDepth"),
         "maximumDepth",
-        1,
+        4,
       ),
       maximum_nodes: positiveInteger(
         requiredParam(params, "maximumNodes"),
@@ -1146,6 +1198,7 @@ export const FocusedGraphEntryLink = ({
 
 const originLabel: Record<FocusedGraphEntryOriginKind, string> = {
   brief: "Brief",
+  evidence: "evidence",
   review: "Review",
   petra: "Petra",
   history: "History",
@@ -1289,6 +1342,56 @@ export const FocusedGraphOrientationSurface = ({
         analysisActive={analysisKind !== undefined}
         paths={positionPaths}
       />
+
+      {data.resume === undefined ? null : (
+        <section
+          className="reference-notice focused-graph-resume"
+          aria-labelledby="focused-graph-resume-title"
+          data-resume-state="available"
+        >
+          <span className="reference-notice__symbol" aria-hidden="true">
+            ↳
+          </span>
+          <div>
+            <p className="reference-panel-kicker">Project resume</p>
+            <h2 id="focused-graph-resume-title">Resumed exact task</h2>
+            <p>{data.resume.recovery.reason}</p>
+            <p>
+              Opened from {originLabel[data.resume.origin.origin_kind]} ·
+              retained {data.resume.retainedAt} ·{" "}
+              {data.resume.selection.state === "selected"
+                ? `${data.resume.selection.selected_keys.length} retained ${data.resume.selection.selection_kind} selection${data.resume.selection.selected_keys.length === 1 ? "" : "s"}`
+                : "no retained selection"}
+              .
+            </p>
+            <details>
+              <summary>Exact retained context</summary>
+              <dl className="history-facts">
+                <div>
+                  <dt>Task</dt>
+                  <dd>{data.resume.label}</dd>
+                </div>
+                <div>
+                  <dt>Focus</dt>
+                  <dd>
+                    {data.resume.focusRefs
+                      .map((ref) => ref.record_id)
+                      .join(", ")}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Selection</dt>
+                  <dd>
+                    {data.resume.selection.state === "selected"
+                      ? data.resume.selection.selected_keys.join(", ")
+                      : "None"}
+                  </dd>
+                </div>
+              </dl>
+            </details>
+          </div>
+        </section>
+      )}
 
       {activeLayer === "historical" ? (
         <section
@@ -1444,6 +1547,9 @@ export const FocusedGraphOrientationSurface = ({
           definition={data.definition}
           initialRequest={data.request}
           initialView={data.view}
+          {...(data.resume === undefined
+            ? {}
+            : { initialSelection: data.resume.selection })}
           {...(explorationRead === undefined ? {} : { read: explorationRead })}
           {...(actionPreviewRead === undefined ? {} : { actionPreviewRead })}
           {...(saveInquiry === undefined ? {} : { saveInquiry })}
@@ -1459,15 +1565,28 @@ export const FocusedGraphOrientationSurface = ({
           This entry is read-only. Selection, layout, and this return link grant
           no Project authority.
         </p>
-        <Link
-          className="reference-primary-link"
-          to={data.entry.return_context.path}
-          {...(data.entry.return_context.focus_id === undefined
-            ? {}
-            : { "data-return-focus": data.entry.return_context.focus_id })}
-        >
-          Return to {data.entry.return_context.label}
-        </Link>
+        {data.entry.return_destination.state === "available" ? (
+          <Link
+            className="reference-primary-link"
+            to={data.entry.return_context.path}
+            {...(data.entry.return_context.focus_id === undefined
+              ? {}
+              : { "data-return-focus": data.entry.return_context.focus_id })}
+          >
+            Return to {data.entry.return_context.label}
+          </Link>
+        ) : (
+          <div className="reference-unavailable" role="status">
+            <strong>Exact return unavailable</strong>
+            <p>{data.entry.return_destination.reason}</p>
+            <Link
+              className="reference-text-link"
+              to={data.entry.return_context.path}
+            >
+              Open current Brief
+            </Link>
+          </div>
+        )}
       </footer>
     </main>
   );

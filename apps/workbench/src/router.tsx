@@ -42,6 +42,7 @@ import {
   loadProjectPetra,
   loadProjectGraph,
   loadProjectRecord,
+  loadProjectResume,
   loadProjectTaxonomy,
   loadProjectReviewCollection,
   loadProjectReviewSession,
@@ -86,6 +87,11 @@ export const router = createBrowserRouter([
         element: <ProjectShell />,
         children: [
           { index: true, element: <Navigate to="brief" replace /> },
+          {
+            path: "resume",
+            loader: loadProjectResume,
+            element: <GraphRoute />,
+          },
           {
             path: "brief",
             loader: loadProjectBrief,

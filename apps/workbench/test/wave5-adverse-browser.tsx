@@ -524,10 +524,7 @@ const entryFor = (
   object_semantic_key: objectTerm.semantic_key,
   relationship_semantic_key: relationshipTerm.semantic_key,
   return_action_semantic_key: "scientific.graph.return",
-  return_destination: view.content.destinations[0] as Extract<
-    PetraFocusedGraphViewV11["content"]["destinations"][number],
-    { state: "available" }
-  >,
+  return_destination: view.content.destinations[0],
   limits: {
     ...structuredClone(view.content.scope.limits),
     maximum_depth: 1,

@@ -42,9 +42,11 @@ const originLabels = {
 /** Read-only DB07 mapping. All ordering and scientific statements come from the validated view. */
 export const ProjectBriefSurface = ({
   view,
+  resumeOutcome,
   selectedAction,
 }: {
   view: PetraProjectBriefReadView;
+  resumeOutcome?: ReactNode;
   selectedAction?: ReactNode;
 }) => {
   const c = view.content;
@@ -79,6 +81,7 @@ export const ProjectBriefSurface = ({
           {c.shell.content.projection.label}
         </span>
       </div>
+      {resumeOutcome}
       <section
         className="brief-section brief-focus"
         aria-labelledby="brief-focus"

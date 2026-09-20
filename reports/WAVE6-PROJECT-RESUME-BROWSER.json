@@ -1,0 +1,241 @@
+{
+  "schema_name": "petra.wave6-project-resume-browser-observation",
+  "schema_version": "1.0.0",
+  "status": "passed",
+  "recorded_at": "2026-09-20T06:53:12.173Z",
+  "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:project-resume-ui",
+  "browser": {
+    "product": "Chrome/153.0.8010.48",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+    "protocol_version": "1.3"
+  },
+  "route_transport": "Production React Router loaders and controls with deterministic typed HTTP responses in isolated Chrome.",
+  "checks": [
+    "Project collection renders the server-owned resume state and visible Resume Project control",
+    "keyboard activation opens the exact retained task through project-shell-view@1.2.0",
+    "retained task, origin, focus, selection, destination, and request reach the Graph unchanged",
+    "stale archived state follows the server-returned Brief recovery while preserving retained context",
+    "not-found state follows the server-returned Brief recovery without inventing a task",
+    "unavailable state preserves Project context and exposes the returned retry",
+    "retry repeats the authorized read and opens the exact retained task without client-generated identity"
+  ],
+  "observations": {
+    "available_calls": [
+      {
+        "method": "GET",
+        "path": "/api/queries/projects"
+      },
+      {
+        "method": "GET",
+        "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/shell"
+      },
+      {
+        "method": "GET",
+        "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/shell"
+      },
+      {
+        "method": "GET",
+        "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/brief"
+      },
+      {
+        "method": "POST",
+        "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/focused-graph",
+        "body": {
+          "request_id": "focused_graph_request_01ARZ3NDEKTSV4RRFFQ69G5FAA",
+          "task_kind": "neighborhood",
+          "task_semantic_key": "scientific.research-question",
+          "question": "Which retained relationship should I inspect next?",
+          "focus_ref": {
+            "record_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FAB",
+            "revision": 1,
+            "record_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "origin": {
+            "origin_kind": "brief",
+            "origin_ref": {
+              "record_id": "objective_01K4C000000000000000000005",
+              "revision": 1,
+              "record_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            }
+          },
+          "project_definition_ref": {
+            "project_definition_id": "project_definition_01K4C000000000000000000001",
+            "revision": 1,
+            "content_hash": "sha256:0574f491dbf0d3893bbe80b7b47ffc540471430878416aabef51a9a7703627c9",
+            "record_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "definition_family": "petra.scientific-evidence"
+          },
+          "semantic_layer": "current",
+          "temporal_position": {
+            "position_kind": "current",
+            "dimension": "project_snapshot"
+          },
+          "object_semantic_key": "scientific.claim",
+          "relationship_semantic_key": "scientific.assertion",
+          "return_action_semantic_key": "scientific.graph.trace-sources",
+          "return_destination": {
+            "destination_key": "destination:brief",
+            "destination_kind": "brief",
+            "state": "available",
+            "owner": "project_brief_view",
+            "label": "Return to Brief",
+            "target_ref": {
+              "record_id": "objective_01K4C000000000000000000005",
+              "revision": 1,
+              "record_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            }
+          },
+          "limits": {
+            "maximum_depth": 1,
+            "maximum_nodes": 20,
+            "maximum_relationships": 20,
+            "maximum_paths": 10
+          },
+          "expected_snapshot": {
+            "snapshot_id": "snapshot_01ARZ3NDEKTSV4RRFFQ69G5FAD",
+            "revision": 1,
+            "event_position": 12,
+            "content_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          }
+        }
+      }
+    ],
+    "stale_calls": [
+      {
+        "method": "GET",
+        "path": "/api/queries/projects"
+      },
+      {
+        "method": "GET",
+        "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/shell"
+      },
+      {
+        "method": "GET",
+        "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/shell"
+      },
+      {
+        "method": "GET",
+        "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/shell"
+      }
+    ],
+    "not_found_calls": [
+      {
+        "method": "GET",
+        "path": "/api/queries/projects"
+      },
+      {
+        "method": "GET",
+        "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/shell"
+      },
+      {
+        "method": "GET",
+        "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/shell"
+      },
+      {
+        "method": "GET",
+        "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/shell"
+      }
+    ],
+    "unavailable_calls": [
+      {
+        "method": "GET",
+        "path": "/api/queries/projects"
+      },
+      {
+        "method": "GET",
+        "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/shell"
+      },
+      {
+        "method": "GET",
+        "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/shell"
+      },
+      {
+        "method": "GET",
+        "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/shell"
+      }
+    ],
+    "retry_calls": [
+      {
+        "method": "GET",
+        "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/shell"
+      },
+      {
+        "method": "GET",
+        "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/shell"
+      },
+      {
+        "method": "GET",
+        "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/brief"
+      },
+      {
+        "method": "POST",
+        "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/focused-graph",
+        "body": {
+          "request_id": "focused_graph_request_01ARZ3NDEKTSV4RRFFQ69G5FAA",
+          "task_kind": "neighborhood",
+          "task_semantic_key": "scientific.research-question",
+          "question": "Which retained relationship should I inspect next?",
+          "focus_ref": {
+            "record_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FAB",
+            "revision": 1,
+            "record_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "origin": {
+            "origin_kind": "brief",
+            "origin_ref": {
+              "record_id": "objective_01K4C000000000000000000005",
+              "revision": 1,
+              "record_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            }
+          },
+          "project_definition_ref": {
+            "project_definition_id": "project_definition_01K4C000000000000000000001",
+            "revision": 1,
+            "content_hash": "sha256:0574f491dbf0d3893bbe80b7b47ffc540471430878416aabef51a9a7703627c9",
+            "record_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "definition_family": "petra.scientific-evidence"
+          },
+          "semantic_layer": "current",
+          "temporal_position": {
+            "position_kind": "current",
+            "dimension": "project_snapshot"
+          },
+          "object_semantic_key": "scientific.claim",
+          "relationship_semantic_key": "scientific.assertion",
+          "return_action_semantic_key": "scientific.graph.trace-sources",
+          "return_destination": {
+            "destination_key": "destination:brief",
+            "destination_kind": "brief",
+            "state": "available",
+            "owner": "project_brief_view",
+            "label": "Return to Brief",
+            "target_ref": {
+              "record_id": "objective_01K4C000000000000000000005",
+              "revision": 1,
+              "record_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            }
+          },
+          "limits": {
+            "maximum_depth": 1,
+            "maximum_nodes": 20,
+            "maximum_relationships": 20,
+            "maximum_paths": 10
+          },
+          "expected_snapshot": {
+            "snapshot_id": "snapshot_01ARZ3NDEKTSV4RRFFQ69G5FAD",
+            "revision": 1,
+            "event_position": 12,
+            "content_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          }
+        }
+      }
+    ],
+    "retained_selection": "relationship:assertion-a"
+  },
+  "boundary": {
+    "browser": "Isolated headless Chrome executed the production Project collection, shell, resume, Graph, Brief recovery, and retry controls.",
+    "transport": "The harness supplied deterministic schema-shaped HTTP responses around production loaders; it did not claim a live server or PostgreSQL trace.",
+    "authority": "The UI reused project-shell-view@1.2.0 identities and recovery and never derived a replacement request from labels or model prose.",
+    "scope": "This operation record covers project.resume only; it does not claim a complete guided workflow or a named Wave 6 evidence-plan scenario."
+  }
+}

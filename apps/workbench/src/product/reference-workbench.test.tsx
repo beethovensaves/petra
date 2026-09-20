@@ -6,6 +6,7 @@ import type {
   PetraSuggestedActionInvocationView,
   PetraSuggestedActionView,
   PetraSuggestedActionViewV11,
+  ProjectShellResumeContext,
 } from "@petra/contracts";
 import { renderToStaticMarkup } from "react-dom/server";
 import { MemoryRouter } from "react-router";
@@ -18,6 +19,7 @@ import {
 } from "./fixtures.js";
 import {
   BriefSurface,
+  ProjectResumeOutcome,
   ProjectsSurface,
   SuggestedActionPreview,
   SourceReaderSurface,
@@ -108,6 +110,122 @@ describe("neutral Petra reference workbench", () => {
       "Profiles supply compatible domain terms and tasks",
     );
     expect(markup).not.toContain("projects/demo");
+  });
+
+  it("exposes the server-assessed Project resume control and honest retry state", () => {
+    const noTask: ProjectShellResumeContext = {
+      state: "not_found",
+      failure: {
+        code: "PROJECT_RESUME_TASK_NOT_FOUND",
+        message: "This Project has no retained task to resume.",
+      },
+      recovery: {
+        action: "open_brief",
+        destination: {
+          role: "brief",
+          purpose: "Open the current Project Brief.",
+        },
+        reason: "Brief is the safe Project entry.",
+      },
+    };
+    const unavailable: ProjectShellResumeContext = {
+      state: "unavailable",
+      failure: {
+        code: "PROJECT_RESUME_TASK_UNAVAILABLE",
+        message: "The retained task could not be verified.",
+      },
+      recovery: {
+        action: "retry_read",
+        destination: {
+          role: "brief",
+          purpose: "Keep the current Project Brief available while retrying.",
+        },
+        reason: "Retry the authorized Project read.",
+      },
+    };
+    const markup = render(
+      <ProjectsSurface
+        projects={[
+          { ...inletProject, resume: noTask },
+          {
+            ...inletProject,
+            id: "retry-project",
+            title: "Retry Project",
+            resume: unavailable,
+          },
+        ]}
+      />,
+    );
+
+    expect(markup).toContain("Open Brief recovery");
+    expect(markup).toContain("Retry Resume");
+    expect(markup).toContain(`/projects/${inletProject.id}/resume`);
+    expect(markup).toContain("Brief recovery");
+    expect(markup).toContain("Resume read unavailable");
+  });
+
+  it("renders stale, missing, and unavailable Project resume recovery in Brief", () => {
+    const states: ProjectShellResumeContext[] = [
+      {
+        state: "stale",
+        failure: {
+          code: "PROJECT_RESUME_PROJECT_ARCHIVED",
+          message: "The retained task belongs to an archived Project.",
+        },
+        recovery: {
+          action: "open_brief",
+          destination: {
+            role: "brief",
+            purpose:
+              "Open the current Project Brief before starting a new task.",
+          },
+          reason: "The retained task is not a safe current destination.",
+        },
+      },
+      {
+        state: "not_found",
+        failure: {
+          code: "PROJECT_RESUME_TASK_NOT_FOUND",
+          message: "This Project has no retained task to resume.",
+        },
+        recovery: {
+          action: "open_brief",
+          destination: { role: "brief", purpose: "Open the current Brief." },
+          reason: "Brief is the safe Project entry.",
+        },
+      },
+      {
+        state: "unavailable",
+        failure: {
+          code: "PROJECT_RESUME_TASK_UNAVAILABLE",
+          message: "The retained task could not be verified.",
+        },
+        recovery: {
+          action: "retry_read",
+          destination: {
+            role: "brief",
+            purpose: "Keep the current Brief while retrying.",
+          },
+          reason: "Retry the authorized Project read.",
+        },
+      },
+    ];
+    const markup = states
+      .map((resume) =>
+        render(
+          <ProjectResumeOutcome
+            project={{ ...inletProject, resume }}
+            outcome={resume.state}
+          />,
+        ),
+      )
+      .join("\n");
+
+    expect(markup).toContain("Review the current Brief before continuing");
+    expect(markup).toContain("No retained task is available");
+    expect(markup).toContain("Resume is temporarily unavailable");
+    expect(markup).toContain("Retry Project resume");
+    expect(markup).toContain("Continue in current Brief");
   });
 
   it("keeps Petra's recommendation contextual and preserves valid alternatives", () => {

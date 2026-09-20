@@ -92,6 +92,7 @@ import type {
   FocusedGraphAnalysisViewRequest,
   FocusedGraphReadRequest,
 } from "@petra/core";
+import { parseFocusedGraphViewRequest } from "@petra/core";
 import { canonicalize } from "json-canonicalize";
 import { redirect, type LoaderFunctionArgs } from "react-router";
 
@@ -3846,6 +3847,189 @@ export const loadProjectCollection = async (): Promise<ProjectRecord[]> => {
   );
 };
 
+const projectResumeBriefPath = (projectId: string, state: string): string => {
+  const query = new URLSearchParams({ projectResume: state });
+  return `/projects/${encodeURIComponent(projectId)}/brief?${query}#project-resume-outcome`;
+};
+
+const projectResumeReturnPath = (
+  projectId: string,
+  request: FocusedGraphReadRequest,
+): string => {
+  const root = `/projects/${encodeURIComponent(projectId)}`;
+  const destination = request.return_destination;
+  if (destination.state === "unavailable") {
+    return projectResumeBriefPath(projectId, "return-unavailable");
+  }
+  const targetId = encodeURIComponent(destination.target_ref.record_id);
+  if (destination.destination_kind === "brief") return `${root}/brief`;
+  if (destination.destination_kind === "source_inspection") {
+    return `${root}/sources/${targetId}`;
+  }
+  if (destination.destination_kind === "review") {
+    return `${root}/review/${targetId}`;
+  }
+  if (destination.destination_kind === "history") {
+    return `${root}/history/${targetId}`;
+  }
+  if (destination.destination_kind === "work") {
+    return `${root}/work/${targetId}`;
+  }
+  const query = new URLSearchParams({
+    semanticKey: request.object_semantic_key,
+    objectId: destination.target_ref.record_id,
+    revision: String(destination.target_ref.revision),
+    taskIntent: "inspect",
+    recordHash: destination.target_ref.record_hash,
+  });
+  return `${root}/locate?${query}`;
+};
+
+export const projectResumeEntry = (
+  projectId: string,
+  retained: NonNullable<ProjectRecord["resume"]>["retained_task"],
+): FocusedGraphEntry => {
+  if (retained === undefined) {
+    throw new ProjectDataError(
+      "Petra marked Project resume available without an exact retained task.",
+      502,
+    );
+  }
+  const request = parseFocusedGraphViewRequest(retained.request);
+  if (
+    retained.task_kind !== "focused_graph" ||
+    retained.label !== request.question ||
+    canonicalize(retained.origin) !== canonicalize(request.origin) ||
+    canonicalize(retained.return_destination) !==
+      canonicalize(request.return_destination) ||
+    !retained.focus_refs.some(
+      (focus) => canonicalize(focus) === canonicalize(request.focus_ref),
+    ) ||
+    request.temporal_position.position_kind !== "current"
+  ) {
+    throw new ProjectDataError(
+      "Petra returned an incompatible retained Project task. No client identity was reconstructed.",
+      502,
+    );
+  }
+  return {
+    project_id: projectId,
+    request_id: request.request_id,
+    question: request.question,
+    focus_ref: structuredClone(request.focus_ref),
+    origin: structuredClone(retained.origin),
+    project_definition_ref: structuredClone(request.project_definition_ref),
+    task_semantic_key: request.task_semantic_key,
+    object_semantic_key: request.object_semantic_key,
+    relationship_semantic_key: request.relationship_semantic_key,
+    return_action_semantic_key: request.return_action_semantic_key,
+    return_destination: structuredClone(retained.return_destination),
+    limits: structuredClone(request.limits),
+    semantic_layer: request.semantic_layer,
+    presentation: "position",
+    ...(request.expected_snapshot === undefined
+      ? {}
+      : { expected_snapshot: structuredClone(request.expected_snapshot) }),
+    return_context: {
+      path: projectResumeReturnPath(projectId, request),
+      label:
+        retained.return_destination.state === "available"
+          ? retained.return_destination.label
+          : "current Brief",
+    },
+  };
+};
+
+export const loadProjectResume = async (
+  args: LoaderFunctionArgs,
+): Promise<FocusedGraphRouteData | Response> => {
+  const projectId = requiredRouteIdentity(
+    args.params.projectId,
+    "A Project ID",
+  );
+  const value = await requestJson(
+    `/api/queries/projects/${encodeURIComponent(projectId)}/shell`,
+  );
+  const view = shellView(value);
+  if (view.project_id !== projectId || view.schema_version !== "1.2.0") {
+    throw new ProjectDataError(
+      "Project resume requires the exact project-shell-view@1.2.0 read.",
+      502,
+    );
+  }
+  const resume = view.content.resume;
+  if (resume.state !== "available") {
+    return redirect(projectResumeBriefPath(projectId, resume.state));
+  }
+  const retained = resume.retained_task;
+  if (retained === undefined) {
+    throw new ProjectDataError(
+      "Petra marked Project resume available without an exact retained task.",
+      502,
+    );
+  }
+  const request = parseFocusedGraphViewRequest(retained.request);
+  const entry = projectResumeEntry(projectId, retained);
+  const brief = await readProjectBrief({
+    projectId,
+    baseUrl: apiBaseUrl(),
+    token: apiToken(),
+    signal: args.request.signal,
+  });
+  const definition = brief.content.definition;
+  let graph;
+  try {
+    graph = await new FocusedGraphClient({
+      baseUrl: apiBaseUrl(),
+      token: apiToken(),
+      projectDefinition: definition,
+    }).read(projectId, structuredClone(request));
+  } catch (error) {
+    if (error instanceof FocusedGraphClientError) {
+      return redirect(projectResumeBriefPath(projectId, "read-failed"));
+    }
+    throw error;
+  }
+  if (
+    graph.schema_name !== retained.expected_graph.schema_name ||
+    graph.schema_version !== retained.expected_graph.schema_version ||
+    graph.content_hash !== retained.expected_graph.content_hash
+  ) {
+    return redirect(projectResumeBriefPath(projectId, "read-stale"));
+  }
+  if (retained.selection.state === "selected") {
+    const selectionMatches = retained.selection.selected_keys.every((key) =>
+      retained.selection.state !== "selected"
+        ? false
+        : retained.selection.selection_kind === "node"
+          ? graph.content.nodes.some((node) => node.node_key === key)
+          : retained.selection.selection_kind === "relationship"
+            ? graph.content.relationships.some(
+                (relationship) => relationship.relationship_key === key,
+              )
+            : graph.content.paths.some((path) => path.path_key === key),
+    );
+    if (!selectionMatches) {
+      return redirect(projectResumeBriefPath(projectId, "selection-stale"));
+    }
+  }
+  return {
+    kind: "focused_graph",
+    entry,
+    definition,
+    request: structuredClone(request),
+    view: graph,
+    resume: {
+      label: retained.label,
+      retainedAt: retained.retained_at,
+      selection: structuredClone(retained.selection),
+      origin: structuredClone(retained.origin),
+      focusRefs: structuredClone(retained.focus_refs),
+      recovery: structuredClone(resume.recovery),
+    },
+  };
+};
+
 const projectProfileClient = (): ProjectProfileClient =>
   new ProjectProfileClient({
     baseUrl: apiBaseUrl(),
@@ -4169,10 +4353,23 @@ export const loadProjectBrief = async (
     "A Project ID",
   );
   const query = new URL(args.request.url).searchParams;
+  const projectResume = query.get("projectResume");
   if (
     [...query.keys()].some(
-      (key) => !["inquiry_result_link_id", "invoke"].includes(key),
-    )
+      (key) =>
+        !["inquiry_result_link_id", "invoke", "projectResume"].includes(key),
+    ) ||
+    query.getAll("projectResume").length > 1 ||
+    (projectResume !== null &&
+      ![
+        "stale",
+        "not_found",
+        "unavailable",
+        "read-failed",
+        "read-stale",
+        "selection-stale",
+        "return-unavailable",
+      ].includes(projectResume))
   ) {
     throw new ProjectDataError(
       "This Brief route supports current observations and exact action selection only; comparison controls are unavailable here.",
