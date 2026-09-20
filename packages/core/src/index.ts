@@ -39,6 +39,7 @@ export * from "./model-evidence-extraction.js";
 export * from "./model-execution-repository.js";
 export * from "./model-gateway.js";
 export * from "./project-definition-authority-repository.js";
+export * from "./project-objective-command.js";
 export * from "./project-profile-runtime.js";
 export * from "./project-import.js";
 export * from "./project-model-readiness.js";

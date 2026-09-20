@@ -273,6 +273,14 @@ export const startPetraServer = async (
               projectImportAncestry:
                 options.projectShellPersistence.importAncestry,
             }),
+      ...(options.projectObjectiveCommands !== undefined
+        ? { projectObjectiveCommands: options.projectObjectiveCommands }
+        : options.projectShellPersistence === undefined
+          ? {}
+          : {
+              projectObjectiveCommands:
+                options.projectShellPersistence.objectiveCommands,
+            }),
       ...(options.projectShellViews !== undefined
         ? { projectShellViews: options.projectShellViews }
         : options.projectShellPersistence === undefined

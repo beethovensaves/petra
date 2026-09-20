@@ -16,6 +16,7 @@ import {
   PostgresProjectEffectiveControlsViewReader,
   PostgresProjectModelReadinessReader,
   PostgresProjectImportAuthority,
+  PostgresProjectObjectiveCommandAuthority,
   PostgresProjectProfileRuntime,
   PostgresProjectHistoryViewReader,
   PostgresProjectInquirySaveAuthority,
@@ -57,6 +58,7 @@ import type {
   ProjectImportAncestryReader,
   ProjectImportCommandAuthority,
   ProjectImportCommandRecoveryReader,
+  ProjectObjectiveCommandAuthority,
   ProjectInquiryViewReader,
   ProjectInquirySaveAuthority,
   ProjectObjectLocationViewReader,
@@ -130,6 +132,7 @@ export interface ProjectShellPersistence {
   readonly importCommands: ProjectImportCommandAuthority;
   readonly importRecovery: ProjectImportCommandRecoveryReader;
   readonly importAncestry: ProjectImportAncestryReader;
+  readonly objectiveCommands: ProjectObjectiveCommandAuthority;
   readonly communicationPlans?: CommunicationPlanReader;
   readonly briefViews: ProjectBriefViewReader;
   readonly views: ProjectShellViewReader;
@@ -289,6 +292,11 @@ export const createProjectShellPersistenceFromEnvironment = async (
       : { actor_id: configuredActorId, actor_kind: "human" },
     contracts,
   );
+  const objectiveCommands = new PostgresProjectObjectiveCommandAuthority(
+    pool,
+    new PostgresCapabilityGrantCommandAuthorizer(contracts),
+    contracts,
+  );
   const historyViews = new PostgresProjectHistoryViewReader(pool, contracts, {
     cursorSecret: historyCursorSecret(environment),
     ...(configuredActorId === undefined || configuredActorId === ""
@@ -360,6 +368,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
           AND to_regclass('petra.project_work_operation_receipts') IS NOT NULL
           AND to_regclass('petra.project_inquiry_save_receipts') IS NOT NULL
           AND to_regclass('petra.project_import_command_receipts') IS NOT NULL
+          AND to_regclass('petra.project_objective_command_receipts') IS NOT NULL
           AND EXISTS (
             SELECT 1
             FROM information_schema.columns
@@ -383,7 +392,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
     );
     if (schema.rows[0]?.ready !== true) {
       throw new ProjectShellPersistenceConfigurationError(
-        "PostgreSQL is reachable, but the V049 Project import runtime is unavailable.",
+        "PostgreSQL is reachable, but the V050 Objective command runtime is unavailable.",
       );
     }
     for (const profile of await readBuiltInProfiles()) {
@@ -452,6 +461,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
         importCommands: importRuntime,
         importRecovery: importRuntime,
         importAncestry: importRuntime,
+        objectiveCommands,
         views: new PostgresProjectShellViewReader(pool),
         briefViews: new PostgresProjectBriefViewReader(pool, contracts),
         communicationPlans: new PostgresCommunicationPlanReader(
@@ -550,6 +560,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
     importCommands: importRuntime,
     importRecovery: importRuntime,
     importAncestry: importRuntime,
+    objectiveCommands,
     views: new PostgresProjectShellViewReader(pool),
     briefViews: new PostgresProjectBriefViewReader(pool, contracts),
     communicationPlans: new PostgresCommunicationPlanReader(pool, contracts),

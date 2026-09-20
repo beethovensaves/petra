@@ -68,6 +68,7 @@ import type {
   PetraClaim,
   PetraProjectImportCommandRequest,
   PetraProjectInquirySaveRequest,
+  PetraProjectObjectiveCommandRequest,
   PetraProjectProfileCommandRequest,
   PetraProjectWorkOperationRequest,
   PetraWorkingCandidate,
@@ -91,6 +92,7 @@ import {
   ProjectHistoryViewRequestError,
   ProjectInquirySaveError,
   ProjectImportError,
+  ProjectObjectiveCommandError,
   ProjectProfileRuntimeError,
   ProjectModelReadinessError,
   ProjectWorkOperationError,
@@ -113,6 +115,7 @@ import {
   type ProjectImportCommandRecoveryReader,
   type ProjectInquiryAuthoredStatus,
   type ProjectInquirySaveAuthority,
+  type ProjectObjectiveCommandAuthority,
   type ProjectProfileCommandAuthority,
   type ProjectProfileCommandRecoveryReader,
   type ProjectProfileRuntimeReader,
@@ -177,6 +180,7 @@ export interface PetraAppOptions {
   projectImportCommands?: ProjectImportCommandAuthority;
   projectImportRecovery?: ProjectImportCommandRecoveryReader;
   projectImportAncestry?: ProjectImportAncestryReader;
+  projectObjectiveCommands?: ProjectObjectiveCommandAuthority;
   projectModelReadiness?: ProjectModelReadinessReader;
   projectShellViews?: ProjectShellViewReader;
   projectEffectiveControls?: ProjectEffectiveControlsViewReader;
@@ -1670,6 +1674,208 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
         return context.json(receipt);
       } catch (error) {
         return projectImportError(context, error);
+      }
+    },
+  );
+
+  const projectObjectiveCommandResponse = (
+    context: Context<{ Variables: Variables }>,
+    error: unknown,
+  ) => {
+    const invalid =
+      error instanceof InteractionInputError ||
+      error instanceof ContractRegistryError ||
+      error instanceof SyntaxError ||
+      error instanceof TypeError;
+    const status = invalid
+      ? 422
+      : error instanceof ProjectObjectiveCommandError
+        ? error.code === "PROJECT_OBJECTIVE_COMMAND_NOT_AUTHORIZED"
+          ? 403
+          : error.code === "PROJECT_OBJECTIVE_COMMAND_PROJECT_NOT_FOUND"
+            ? 404
+            : error.code === "PROJECT_OBJECTIVE_COMMAND_KIND_UNREGISTERED" ||
+                error.code === "PROJECT_OBJECTIVE_COMMAND_DEPENDENCY_INVALID" ||
+                error.code === "PROJECT_OBJECTIVE_COMMAND_REVIEW_INVALID"
+              ? 422
+              : error.code === "PROJECT_OBJECTIVE_COMMAND_STORED_RECORD_CORRUPT"
+                ? 503
+                : 409
+        : 503;
+    return jsonError(
+      context,
+      status,
+      invalid
+        ? "PROJECT_OBJECTIVE_COMMAND_REQUEST_INVALID"
+        : error instanceof ProjectObjectiveCommandError
+          ? error.code
+          : "PROJECT_OBJECTIVE_COMMAND_FAILED",
+      error instanceof Error
+        ? error.message
+        : "The reviewed Objective command is unavailable.",
+      error instanceof InteractionInputError ? error.issues : undefined,
+    );
+  };
+
+  const objectivePrincipal = async (projectId: string) => {
+    if (options.commandPrincipalResolver === undefined) {
+      throw new ProjectObjectiveCommandError(
+        "PROJECT_OBJECTIVE_COMMAND_NOT_AUTHORIZED",
+        "Authenticated Objective command authority is unavailable.",
+      );
+    }
+    const principal =
+      await options.commandPrincipalResolver.resolveCommandPrincipal({
+        projectId,
+        commandName: "FrameProjectObjective",
+      });
+    if (
+      principal.state !== "resolved" ||
+      principal.actor.actor_kind !== "human"
+    ) {
+      throw new ProjectObjectiveCommandError(
+        "PROJECT_OBJECTIVE_COMMAND_NOT_AUTHORIZED",
+        `The authenticated Objective command principal was denied: ${principal.state === "resolved" ? "actor_not_human" : principal.reason}.`,
+      );
+    }
+    return {
+      actor: {
+        actor_id: principal.actor.actor_id,
+        actor_kind: "human" as const,
+      },
+      capabilityGrantId: principal.capabilityGrantId,
+    };
+  };
+
+  app.post("/api/commands/projects/:projectId/objective", async (context) => {
+    if (options.projectObjectiveCommands === undefined) {
+      return jsonError(
+        context,
+        503,
+        "PROJECT_OBJECTIVE_COMMAND_UNAVAILABLE",
+        "The reviewed Objective framing boundary is not configured.",
+      );
+    }
+    try {
+      const projectId = context.req.param("projectId");
+      if (
+        !PROJECT_ID_PATTERN.test(projectId) ||
+        new URL(context.req.url).searchParams.size !== 0
+      ) {
+        throw new InteractionInputError(
+          "Objective commands require one canonical Project and accept no query overrides.",
+        );
+      }
+      const request = (await readBoundedJson(
+        context,
+        maxBodyBytes,
+      )) as PetraProjectObjectiveCommandRequest;
+      contracts.assertValid(
+        "project-objective-command-request",
+        "1.0.0",
+        request,
+      );
+      if (request.expected.project_ref.project_id !== projectId) {
+        throw new ProjectObjectiveCommandError(
+          "PROJECT_OBJECTIVE_COMMAND_PROJECT_STALE",
+          "The Objective command route and exact expected Project must match.",
+        );
+      }
+      const result =
+        await options.projectObjectiveCommands.executeProjectObjectiveCommand(
+          projectId,
+          request,
+          await objectivePrincipal(projectId),
+        );
+      contracts.assertValid(
+        "project-objective-command-receipt",
+        "1.0.0",
+        result.receipt,
+      );
+      contracts.assertValid("project-objective", "1.0.0", result.objective);
+      if (
+        result.receipt.project_id !== projectId ||
+        result.receipt.command_id !== request.command_id ||
+        result.receipt.idempotency_key !== request.idempotency_key ||
+        result.receipt.objective_ref.objective_id !==
+          result.objective.objective_id ||
+        result.receipt.objective_ref.revision !== result.objective.revision ||
+        result.receipt.destination.project_id !== projectId ||
+        result.receipt.destination.objective_ref.record_hash !==
+          result.receipt.objective_ref.record_hash
+      ) {
+        throw new Error(
+          "The Objective command authority returned a different command, Project, Objective, or Brief destination.",
+        );
+      }
+      context.header("Cache-Control", "no-store");
+      return context.json(result, result.applied ? 201 : 200);
+    } catch (error) {
+      return projectObjectiveCommandResponse(context, error);
+    }
+  });
+
+  app.post(
+    "/api/queries/projects/:projectId/objective-command-recovery",
+    async (context) => {
+      if (options.projectObjectiveCommands === undefined) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_OBJECTIVE_COMMAND_RECOVERY_UNAVAILABLE",
+          "The Objective command recovery boundary is not configured.",
+        );
+      }
+      try {
+        const projectId = context.req.param("projectId");
+        if (
+          !PROJECT_ID_PATTERN.test(projectId) ||
+          new URL(context.req.url).searchParams.size !== 0
+        ) {
+          throw new InteractionInputError(
+            "Objective command recovery requires one canonical Project and accepts no query overrides.",
+          );
+        }
+        const request = (await readBoundedJson(
+          context,
+          maxBodyBytes,
+        )) as PetraProjectObjectiveCommandRequest;
+        contracts.assertValid(
+          "project-objective-command-request",
+          "1.0.0",
+          request,
+        );
+        if (request.expected.project_ref.project_id !== projectId) {
+          throw new ProjectObjectiveCommandError(
+            "PROJECT_OBJECTIVE_COMMAND_PROJECT_STALE",
+            "The Objective recovery route and exact expected Project must match.",
+          );
+        }
+        const assessment =
+          await options.projectObjectiveCommands.assessProjectObjectiveCommandRecovery(
+            projectId,
+            request,
+            await objectivePrincipal(projectId),
+          );
+        contracts.assertValid(
+          "project-objective-command-recovery-view",
+          "1.0.0",
+          assessment,
+        );
+        if (
+          assessment.project_id !== projectId ||
+          assessment.subject.command_id !== request.command_id ||
+          assessment.subject.idempotency_key !== request.idempotency_key ||
+          assessment.return.destination.project_id !== projectId
+        ) {
+          throw new Error(
+            "The Objective recovery assessment crossed its exact command or Brief return boundary.",
+          );
+        }
+        context.header("Cache-Control", "no-store");
+        return context.json(assessment);
+      } catch (error) {
+        return projectObjectiveCommandResponse(context, error);
       }
     },
   );

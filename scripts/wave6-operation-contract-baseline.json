@@ -66,12 +66,12 @@
       "persistence": "PostgreSQL composes ProjectDefinition, Objective, attention, changes, recent decisions, and suggested-action references.",
       "recovery": "Distinguishes invalid, stale, corrupt, unavailable, not-found, and successful reads without mutation."
     },
-    "objective-command-missing": {
-      "kind": "missing",
-      "production_owner": "",
-      "authorization": "No authenticated reviewed command resolves authority to frame or revise a Project Objective.",
-      "persistence": "ProjectDefinition authority can store objective focus changes, but no public product command composes review and persistence.",
-      "recovery": "No preview, idempotent receipt, conflict result, member outcome, or return owner exists."
+    "project-objective-command": {
+      "kind": "command",
+      "production_owner": "POST /api/commands/projects/:projectId/objective and POST /api/queries/projects/:projectId/objective-command-recovery -> PostgresProjectObjectiveCommandAuthority",
+      "authorization": "Bearer authentication plus a server-resolved human principal and exact active FrameProjectObjective capability grant. The request cannot carry Actor, grant, Objective identity, revision, or timestamps and must bind the exact current Project, ProjectDefinition, and focused Objective or its reviewed absence.",
+      "persistence": "PostgreSQL V050 atomically appends the reviewed ProjectObjective revision, advances the exact focus and focus history, and retains one immutable receipt binding rough and proposed wording, Project/definition/prior/result record hashes, capability grant, and exact Brief destination.",
+      "recovery": "Stable command and idempotency identities replay the exact receipt. A read-only assessment distinguishes confirmed, unknown, conflicting, and differently owned outcomes; confirmed effects return to the exact resulting Objective in Brief, while uncertain outcomes return safely to a fresh Brief read."
     },
     "suggested-action-read": {
       "kind": "query",
@@ -415,9 +415,9 @@
     },
     {
       "operation_id": "brief.frame-objective",
-      "owner": "objective-command-missing",
-      "owner_status": "missing",
-      "missing_owner": "Reviewed Objective framing/revision command with exact outcomes."
+      "owner": "project-objective-command",
+      "owner_status": "owned",
+      "missing_owner": ""
     },
     {
       "operation_id": "brief.attention",
