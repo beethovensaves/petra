@@ -1,22 +1,51 @@
 {
-  "schema_name": "petra.wave6-source-local-copy-deletion-browser-observation",
+  "schema_name": "petra.wave6-source-local-copy-deletion-production-browser-observation",
   "schema_version": 1,
-  "observed_at": "2026-09-20T14:43:05.760Z",
-  "operations": ["source.delete-local-copy"],
-  "production_boundary": "Production Source Details SourceLocalCopyDeletionAction with the renderer-neutral ProjectSourceLocalCopyDeletionClient boundary and deterministic typed transport.",
-  "exercised": [
-    "distinct Project-link removal and local-copy deletion controls",
-    "server-owned eligible and dependency-blocked preview states",
-    "exact Project, ProjectDefinition, ProjectSource, manifest, Artifact, hash, size, and media-type presentation",
-    "retained Project link, identities, rights, selectors, provenance, History, and reacquisition consequences",
-    "required human reason and exact command/idempotency retry",
-    "applied, replayed, conflict, permission, rejected, and durable unknown-effect recovery outcomes",
-    "exact originating source-task selection and trigger-focus return",
-    "narrow viewport, 200% text, reduced motion, keyboard focus, touch target, and browser semantics"
-  ],
+  "status": "passed",
+  "observed_at": "2026-09-20T15:47:40.935Z",
+  "operation": "source.delete-local-copy",
+  "stable_url": "http://127.0.0.1:4311/guide",
+  "documented_reset_path": "/settings?project=project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "project_source_id": "project_source_5VB3A0N3SC8GGQ7VH6D9T3N6NA",
+  "source_title": "Local-copy deletion walkthrough",
+  "copy_identity": {
+    "store_name": "petra-artifacts",
+    "object_key": "sha256/ff/e088f8f2f1b28824f327efb288dbad3f5efc8e1d1927da819022785f2d2d22",
+    "artifact_manifest_id": "artifact_manifest_6K653ZN3YCT9WEPCH2KZCMSFBX",
+    "content_hash": "sha256:ffe088f8f2f1b28824f327efb288dbad3f5efc8e1d1927da819022785f2d2d22",
+    "byte_size": 32,
+    "media_type": "application/pdf"
+  },
+  "command": {
+    "command_id": "command_01M2ZR0RQJX4JPZJ10MSFQNN74",
+    "idempotency_key": "source.delete-local-copy:01M2ZR0RQJX4JPZJ10MSFQNN74",
+    "first_applied": true,
+    "browser_delivery_interrupted_after_server_terminal": true,
+    "recovered_effect": "effect_confirmed",
+    "replay_applied": false
+  },
+  "preservation": {
+    "project_link": "retained",
+    "canonical_identity": "retained",
+    "artifact_manifest": "retained_as_tombstoned_copy_identity",
+    "rights_history": "retained",
+    "selectors": "retained",
+    "provenance": "retained",
+    "history": "retained"
+  },
+  "retained_counts": {
+    "project_links": 1,
+    "deletion_attempts": 1,
+    "deletion_receipts": 1
+  },
+  "source_authority_unchanged": true,
+  "canonical_history_unchanged": true,
+  "exact_return": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/sources/project_source_5VB3A0N3SC8GGQ7VH6D9T3N6NA?from=sources",
+  "backend_artifact": "reports/WAVE6-SOURCE-LOCAL-COPY-DELETION-PRODUCTION.json",
+  "boundary": "Isolated Chrome used the stable production workbench URL and production React Router source route over authenticated live server routes backed by disposable PostgreSQL and S3 services. The proxy interrupted only the first successful command response so the product's durable recovery control could reconcile the exact server-owned effect; the same browser session replayed the exact request and received the retained receipt.",
   "exclusions": [
-    "No PostgreSQL or S3 service was started by this focused browser run.",
-    "The representative production setup still needs an eligible stored copy and DeleteLocalSourceCopy grant before this operation can be marked live.",
-    "This is not the complete UX1.6-SOURCES register/process/inspect/replace/remove/delete/recovery workflow."
+    "This bounded trace does not claim the complete UX1.6-SOURCES register/process/inspect/replace/remove/delete/recovery lifecycle.",
+    "The documented reset control was inspected but not invoked because reset archives the exact Project and creates an additive replacement."
   ]
 }

@@ -7,6 +7,7 @@ import { describe, expect, it } from "vitest";
 import { SourceLocalCopyDeletionAction } from "./SourceLocalCopyDeletion.js";
 import {
   createSourceLocalCopyDeletionRequest,
+  projectSourceLocalCopyDeletionClient,
   sourceLocalCopyDeletionConflict,
   sourceLocalCopyDeletionOutcomeUnknown,
   sourceLocalCopyDeletionPermissionLost,
@@ -59,6 +60,24 @@ const preview = {
 } as PetraProjectSourceLocalCopyDeletionPreview;
 
 describe("production source local-copy deletion integration", () => {
+  it("calls browser fetch without an adapter-instance receiver", async () => {
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = function (this: unknown): Promise<Response> {
+      expect(this).toBeUndefined();
+      return Promise.reject(new TypeError("Expected regression stop."));
+    };
+    try {
+      await expect(
+        projectSourceLocalCopyDeletionClient().preview(
+          projectId,
+          projectSourceId,
+        ),
+      ).rejects.toThrow("Expected regression stop.");
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
   it("builds one exact reviewed request without client-selected authority", () => {
     const request = createSourceLocalCopyDeletionRequest({
       preview,

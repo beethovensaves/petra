@@ -558,6 +558,23 @@ export const SourceLocalCopyDeletionAction = ({
                     </dd>
                   </div>
                 </dl>
+                <details>
+                  <summary>Inspect exact storage identity</summary>
+                  <dl>
+                    <div>
+                      <dt>Store</dt>
+                      <dd>
+                        <code>{preview.expected.copy_ref.store_name}</code>
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>Object key</dt>
+                      <dd>
+                        <code>{preview.expected.copy_ref.object_key}</code>
+                      </dd>
+                    </div>
+                  </dl>
+                </details>
               </section>
 
               <section

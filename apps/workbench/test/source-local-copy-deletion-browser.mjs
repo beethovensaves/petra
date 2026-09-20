@@ -116,10 +116,15 @@ assert.equal(
 
 await navigate("unknown");
 await openPreview();
+await evaluate(
+  '[...document.querySelectorAll("summary")].find((element)=>element.textContent.includes("Inspect exact storage identity")).click()',
+);
 for (const copy of [
   "Exact copy is eligible",
   "application/pdf",
   "21 bytes",
+  "petra-local",
+  "sha256/",
   "Copy manifest and tombstone",
   "Canonical source identity",
   "Rights history",

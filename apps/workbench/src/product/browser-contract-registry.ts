@@ -61,6 +61,10 @@ import projectSourceReuseRequestSchema from "../../../../packages/contracts/sche
 import projectSourceReuseOptionsViewSchema from "../../../../packages/contracts/schemas/project-source-reuse-options-view/1.0.0/schema.json";
 import projectSourceReuseReceiptSchema from "../../../../packages/contracts/schemas/project-source-reuse-receipt/1.0.0/schema.json";
 import projectSourceReuseRecoveryViewSchema from "../../../../packages/contracts/schemas/project-source-reuse-recovery-view/1.0.0/schema.json";
+import projectSourceLocalCopyDeletionRequestSchema from "../../../../packages/contracts/schemas/project-source-local-copy-deletion-request/1.0.0/schema.json";
+import projectSourceLocalCopyDeletionPreviewSchema from "../../../../packages/contracts/schemas/project-source-local-copy-deletion-preview/1.0.0/schema.json";
+import projectSourceLocalCopyDeletionReceiptSchema from "../../../../packages/contracts/schemas/project-source-local-copy-deletion-receipt/1.0.0/schema.json";
+import projectSourceLocalCopyDeletionRecoveryViewSchema from "../../../../packages/contracts/schemas/project-source-local-copy-deletion-recovery-view/1.0.0/schema.json";
 import capabilityGrantSchema from "../../../../packages/contracts/schemas/capability-grant/1.0.0/schema.json";
 import rightsDecisionSchema from "../../../../packages/contracts/schemas/rights-decision/1.0.0/schema.json";
 import projectDefinitionSchema from "../../../../packages/contracts/schemas/project-definition/1.0.0/schema.json";
@@ -169,6 +173,10 @@ type BrowserContractName =
   | "project-source-reuse-options-view@1.0.0"
   | "project-source-reuse-receipt@1.0.0"
   | "project-source-reuse-recovery-view@1.0.0"
+  | "project-source-local-copy-deletion-request@1.0.0"
+  | "project-source-local-copy-deletion-preview@1.0.0"
+  | "project-source-local-copy-deletion-receipt@1.0.0"
+  | "project-source-local-copy-deletion-recovery-view@1.0.0"
   | "worker-output-manifest@1.0.0"
   | "working-candidate@1.0.0"
   | "working-relationship@1.0.0";
@@ -266,6 +274,10 @@ const schemas = [
   projectSourceReuseOptionsViewSchema,
   projectSourceReuseReceiptSchema,
   projectSourceReuseRecoveryViewSchema,
+  projectSourceLocalCopyDeletionRequestSchema,
+  projectSourceLocalCopyDeletionPreviewSchema,
+  projectSourceLocalCopyDeletionReceiptSchema,
+  projectSourceLocalCopyDeletionRecoveryViewSchema,
   capabilityGrantSchema,
   projectSourceSchema,
   rightsDecisionSchema,
@@ -377,6 +389,14 @@ const contractIds: Record<BrowserContractName, string> = {
   "project-source-reuse-receipt@1.0.0": projectSourceReuseReceiptSchema.$id,
   "project-source-reuse-recovery-view@1.0.0":
     projectSourceReuseRecoveryViewSchema.$id,
+  "project-source-local-copy-deletion-request@1.0.0":
+    projectSourceLocalCopyDeletionRequestSchema.$id,
+  "project-source-local-copy-deletion-preview@1.0.0":
+    projectSourceLocalCopyDeletionPreviewSchema.$id,
+  "project-source-local-copy-deletion-receipt@1.0.0":
+    projectSourceLocalCopyDeletionReceiptSchema.$id,
+  "project-source-local-copy-deletion-recovery-view@1.0.0":
+    projectSourceLocalCopyDeletionRecoveryViewSchema.$id,
   "worker-output-manifest@1.0.0": briefWorkerOutputManifestV100Schema.$id,
   "working-candidate@1.0.0": workingCandidateSchema.$id,
   "working-relationship@1.0.0": workingRelationshipSchema.$id,
@@ -624,6 +644,30 @@ export class PetraContractRegistry {
       version: "1.0.0",
       canonical_sha256:
         "sha256:68bc2afbb5c9cd5134b55c0ac59f978ba4e16865e1ae80c04800913d6b78df81",
+    },
+    {
+      name: "project-source-local-copy-deletion-request",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:e00f0f94fbde05f903935576d6489d2c06757a88fc50f5c560dc3b339fc55451",
+    },
+    {
+      name: "project-source-local-copy-deletion-preview",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:3dcc16dcab6e5a770d7497d1ea8aa87eddcf1d20d0d59c26af49bd314520d8de",
+    },
+    {
+      name: "project-source-local-copy-deletion-receipt",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:6495a67536c7ec2dcd0f740b43170f10b629c74e79218bf527310e8856daf85a",
+    },
+    {
+      name: "project-source-local-copy-deletion-recovery-view",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:2aa1e357697f59c2751e189101ef7a963e7247d3a2be04531a2b98516cbb5639",
     },
     {
       name: "worker-output-manifest",

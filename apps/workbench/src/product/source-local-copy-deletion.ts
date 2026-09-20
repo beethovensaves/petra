@@ -85,6 +85,7 @@ export const projectSourceLocalCopyDeletionClient =
     new ProjectSourceLocalCopyDeletionClient({
       baseUrl: apiBaseUrl(),
       token: apiToken(),
+      fetch: (input, init) => fetch(input, init),
     });
 
 export const sourceLocalCopyDeletionOutcomeUnknown = (
