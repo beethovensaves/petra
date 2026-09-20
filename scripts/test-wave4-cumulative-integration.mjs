@@ -41,6 +41,7 @@ import {
   PostgresGroundedResponseAuthorityRepository,
   PostgresModelExecutionRepository,
   PostgresProjectDefinitionAuthorityRepository,
+  PostgresProjectInquiryAuthorityRepository,
   PostgresProjectSourceAuthorityRepository,
   PostgresProjectThreadAuthorityRepository,
   PostgresResearchScopeRepository,
@@ -50,6 +51,7 @@ import {
   PostgresProjectWorkOperations,
   PostgresWorkingStateAuthorityRepository,
   PostgresWorkUnitAuthorityRepository,
+  projectInquiryRoleRef,
 } from "@petra/postgres";
 import {
   M1_GROUNDED_SYNTHESIS_QUESTION,
@@ -664,6 +666,7 @@ const seedScientific = async (pool, neo4jUri) => {
   const documents = new PostgresDocumentAuthorityRepository(pool);
   const evidence = new PostgresEvidenceAuthorityRepository(pool);
   const definitions = new PostgresProjectDefinitionAuthorityRepository(pool);
+  const inquiries = new PostgresProjectInquiryAuthorityRepository(pool);
   const sources = new PostgresProjectSourceAuthorityRepository(pool);
   const workUnits = new PostgresWorkUnitAuthorityRepository(pool);
   const workOperations = new PostgresProjectWorkOperations(
@@ -809,6 +812,33 @@ const seedScientific = async (pool, neo4jUri) => {
     changed_by: { actor_id: humanActorId, actor_kind: "human" },
     changed_at: "2026-09-13T12:01:00.000Z",
   });
+  const inquiryRole = wave5Mode
+    ? await (async () => {
+        const role = readAccepted("project-inquiry-role");
+        const objectiveRegistration = definition.content.registrations.find(
+          (entry) =>
+            entry.registration_kind === "objective_schema" &&
+            entry.semantic_key === objective.content.objective_kind,
+        );
+        assert(
+          objectiveRegistration !== undefined,
+          "The checkpoint scientific definition has no registered Objective inquiry role.",
+        );
+        role.content.project_definition_ref = {
+          project_definition_id: definition.project_definition_id,
+          revision: definition.revision,
+          content_hash: definition.content_hash,
+        };
+        role.content.role_semantic_key = objective.content.objective_kind;
+        role.content.representation.objective_kind =
+          objective.content.objective_kind;
+        role.content.representation.contract = clone(
+          objectiveRegistration.contract,
+        );
+        role.content_hash = hash(role.content);
+        return inquiries.registerProjectInquiryRoleRevision(role);
+      })()
+    : undefined;
 
   const projectSource = readAccepted("project-source");
   projectSource.content.project_definition_ref = {
@@ -1017,6 +1047,41 @@ const seedScientific = async (pool, neo4jUri) => {
     workUnit: requested,
     inputManifest,
   });
+  if (inquiryRole !== undefined) {
+    const workLink = readAccepted("project-inquiry-work-link");
+    workLink.project_inquiry_link_id = derivePetraId(
+      "project_inquiry_link",
+      `wave6-checkpoint|${workUnit.work_unit_id}`,
+    );
+    workLink.content.project_definition_ref = {
+      project_definition_id: definition.project_definition_id,
+      revision: definition.revision,
+      content_hash: definition.content_hash,
+    };
+    workLink.content.inquiry_role_ref = projectInquiryRoleRef(inquiryRole);
+    workLink.content.inquiry_anchor = {
+      anchor_kind: "project_objective",
+      semantic_key: objective.content.objective_kind,
+      objective_ref: {
+        objective_id: objective.objective_id,
+        revision: objective.revision,
+        content_hash: objective.content_hash,
+        record_hash: hash(objective),
+      },
+    };
+    assert(
+      workLink.content.target.target_kind === "work",
+      "Expected the checkpoint inquiry Work-link fixture.",
+    );
+    workLink.content.target.work_unit_ref = {
+      work_unit_id: workUnit.work_unit_id,
+      revision: workUnit.revision,
+      spec_hash: workUnit.spec_hash,
+      record_hash: hash(workUnit),
+    };
+    workLink.content_hash = hash(workLink.content);
+    await inquiries.registerProjectInquiryLink(workLink);
+  }
   if (wave5Mode)
     await workOperations.registerRequiredInput({
       inputRequestId: "work_input_request_01K6P000000000000000000810",
@@ -1245,6 +1310,8 @@ const seedScientific = async (pool, neo4jUri) => {
     project,
     definition,
     objective,
+    inquiryRole,
+    workUnit,
     projectSource,
     applyGrant,
     lifecycleGrant,
@@ -2896,6 +2963,46 @@ const seedItem53WorkAndInteraction = async ({
     work.work_unit_id === item49Published.workUnitId && work.revision === 4,
     "The item 49 Work continuation lost its published stable identity or terminal revision.",
   );
+  if (scientific.inquiryRole !== undefined) {
+    const inquiryLink = readAccepted("project-inquiry-work-link");
+    inquiryLink.project_inquiry_link_id = derivePetraId(
+      "project_inquiry_link",
+      `wave6-checkpoint|${work.work_unit_id}`,
+    );
+    inquiryLink.content.project_definition_ref = {
+      project_definition_id: scientific.definition.project_definition_id,
+      revision: scientific.definition.revision,
+      content_hash: scientific.definition.content_hash,
+    };
+    inquiryLink.content.inquiry_role_ref = projectInquiryRoleRef(
+      scientific.inquiryRole,
+    );
+    inquiryLink.content.inquiry_anchor = {
+      anchor_kind: "project_objective",
+      semantic_key: scientific.objective.content.objective_kind,
+      objective_ref: {
+        objective_id: scientific.objective.objective_id,
+        revision: scientific.objective.revision,
+        content_hash: scientific.objective.content_hash,
+        record_hash: hash(scientific.objective),
+      },
+    };
+    assert(
+      inquiryLink.content.target.target_kind === "work",
+      "Expected the completed checkpoint inquiry Work-link fixture.",
+    );
+    inquiryLink.content.target.work_unit_ref = {
+      work_unit_id: work.work_unit_id,
+      revision: work.revision,
+      spec_hash: work.spec_hash,
+      record_hash: hash(work),
+    };
+    inquiryLink.content_hash = hash(inquiryLink.content);
+    inquiryLink.created_at = "2026-09-15T04:00:03.250Z";
+    await new PostgresProjectInquiryAuthorityRepository(
+      pool,
+    ).registerProjectInquiryLink(inquiryLink);
+  }
   await new PostgresProjectWorkOperations(
     pool,
     new PostgresCapabilityGrantCommandAuthorizer(),

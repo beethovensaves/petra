@@ -1254,6 +1254,65 @@ describePostgres("PostgreSQL grounded-response authority", () => {
       await restarted.getReusableByCacheKey(stored.content.cache.cache_key),
     ).toEqual(stored);
 
+    const groundedLocation = await objectLocations.locateProjectObject({
+      project_id: stored.project_id,
+      object_ref: {
+        semantic_key: "petra.grounded-response",
+        object_id: stored.grounded_response_id,
+        revision: stored.revision,
+      },
+      task_intent: "inspect",
+    });
+    expect(groundedLocation?.content.resolution).toMatchObject({
+      state: "current",
+      resolved_ref: {
+        semantic_key: "petra.grounded-response",
+        object_id: stored.grounded_response_id,
+        revision: stored.revision,
+        record_hash: canonicalHash(stored),
+      },
+      parent_ref: {
+        semantic_key: "petra.work-unit",
+        object_id: terminal.input.workUnit.work_unit_id,
+        revision: terminal.input.workUnit.revision,
+        record_hash: canonicalHash(terminal.input.workUnit),
+      },
+    });
+    expect(groundedLocation?.content.primary_destination.role).toBe("petra");
+
+    const output = readFixture<PetraWorkerOutputManifest>(
+      "worker-output-manifest",
+    );
+    output.content.started_at = "2026-09-03T18:31:01.000Z";
+    output.content.completed_at = "2026-09-03T18:31:04.000Z";
+    output.reported_at = output.content.completed_at;
+    output.content_hash = canonicalHash(output.content);
+    const outputLocation = await objectLocations.locateProjectObject({
+      project_id: output.project_id,
+      object_ref: {
+        semantic_key: "petra.worker-output-manifest",
+        object_id: output.worker_output_manifest_id,
+        revision: output.revision,
+      },
+      task_intent: "inspect",
+    });
+    expect(outputLocation?.content.resolution).toMatchObject({
+      state: "current",
+      resolved_ref: {
+        semantic_key: "petra.worker-output-manifest",
+        object_id: output.worker_output_manifest_id,
+        revision: output.revision,
+        record_hash: canonicalHash(output),
+      },
+      parent_ref: {
+        semantic_key: "petra.work-unit",
+        object_id: terminal.input.workUnit.work_unit_id,
+        revision: terminal.input.workUnit.revision,
+        record_hash: canonicalHash(terminal.input.workUnit),
+      },
+    });
+    expect(outputLocation?.content.primary_destination.role).toBe("work");
+
     const typed = await pool.query<{
       current_revision: string;
       dependency_count: string;
