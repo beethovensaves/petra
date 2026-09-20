@@ -30,6 +30,7 @@ import {
   PostgresProjectThreadViewReader,
   PostgresProjectWorkOperations,
   PostgresProjectWorkViewReader,
+  PostgresProjectWorkerOutputManifestReader,
   PostgresProjectWorkingStateSnapshotReader,
   PostgresSuggestedActionViewReader,
   PostgresSuggestedActionInvocationAuthorityRepository,
@@ -72,6 +73,7 @@ import type {
   ProjectThreadViewReader,
   ProjectWorkOperationAuthority,
   ProjectWorkOperationsViewReader,
+  ProjectWorkerOutputManifestReader,
   ProjectWorkViewReader,
   ProjectWorkingStateSnapshotReader,
   SuggestedActionViewReader,
@@ -140,6 +142,7 @@ export interface ProjectShellPersistence {
   readonly relationshipOverlayViews?: ProjectRelationshipOverlayViewReader;
   readonly objectLocations: ProjectObjectLocationViewReader;
   readonly workViews: ProjectWorkViewReader;
+  readonly workerOutputManifests: ProjectWorkerOutputManifestReader;
   readonly workOperations: ProjectWorkOperationsViewReader;
   readonly workOperationAuthority: ProjectWorkOperationAuthority;
   readonly threadViews: ProjectThreadViewReader;
@@ -449,6 +452,10 @@ export const createProjectShellPersistenceFromEnvironment = async (
         ),
         objectLocations: new PostgresProjectObjectLocationViewReader(pool),
         workViews: new PostgresProjectWorkViewReader(pool),
+        workerOutputManifests: new PostgresProjectWorkerOutputManifestReader(
+          pool,
+          contracts,
+        ),
         workOperations,
         workOperationAuthority: workOperations,
         threadViews: new PostgresProjectThreadViewReader(pool),
@@ -534,6 +541,10 @@ export const createProjectShellPersistenceFromEnvironment = async (
     ),
     objectLocations: new PostgresProjectObjectLocationViewReader(pool),
     workViews: new PostgresProjectWorkViewReader(pool),
+    workerOutputManifests: new PostgresProjectWorkerOutputManifestReader(
+      pool,
+      contracts,
+    ),
     workOperations,
     workOperationAuthority: workOperations,
     threadViews: new PostgresProjectThreadViewReader(pool),

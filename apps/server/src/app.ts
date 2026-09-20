@@ -1,5 +1,6 @@
 import {
   CommunicationPlanError,
+  communicationHash,
   validateCommunicationRequest,
   type CommunicationPlanReader,
   type CommunicationPlanRequest,
@@ -136,6 +137,7 @@ import {
   type ProjectWorkStateFilter,
   type ProjectWorkOperationAuthority,
   type ProjectWorkOperationsViewReader,
+  type ProjectWorkerOutputManifestReader,
   type ProjectWorkViewReader,
   type ProjectWorkingStateSnapshotReader,
   type SuggestedActionViewReader,
@@ -191,6 +193,7 @@ export interface PetraAppOptions {
   projectRelationshipOverlayViews?: ProjectRelationshipOverlayViewReader;
   projectObjectLocations?: ProjectObjectLocationViewReader;
   projectWorkViews?: ProjectWorkViewReader;
+  projectWorkerOutputManifests?: ProjectWorkerOutputManifestReader;
   projectWorkOperations?: ProjectWorkOperationsViewReader;
   projectWorkOperationAuthority?: ProjectWorkOperationAuthority;
   projectThreadViews?: ProjectThreadViewReader;
@@ -222,6 +225,8 @@ const WORKING_CANDIDATE_ID_PATTERN =
   /^working_candidate_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const WORKING_RELATIONSHIP_ID_PATTERN =
   /^working_relationship_[0-9A-HJKMNP-TV-Z]{26}$/u;
+const WORKER_OUTPUT_MANIFEST_ID_PATTERN =
+  /^worker_output_manifest_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const PROJECT_SOURCE_LIFECYCLE_RECEIPT_ID_PATTERN =
   /^project_source_lifecycle_receipt_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const COMMAND_ID_PATTERN = /^command_[0-9A-HJKMNP-TV-Z]{26}$/u;
@@ -3582,6 +3587,96 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
           error instanceof Error
             ? error.message
             : "The Project Work detail is unavailable.",
+          error instanceof InteractionInputError ? error.issues : undefined,
+        );
+      }
+    },
+  );
+
+  app.get(
+    "/api/queries/projects/:projectId/worker-output-manifests/:workerOutputManifestId",
+    async (context) => {
+      if (options.projectWorkerOutputManifests === undefined) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_WORKER_OUTPUT_UNAVAILABLE",
+          "The exact WorkerOutputManifest read boundary is not configured.",
+        );
+      }
+      try {
+        const projectId = context.req.param("projectId");
+        const manifestId = context.req.param("workerOutputManifestId");
+        const parameters = new URL(context.req.url).searchParams;
+        const allowed = ["revision", "content_hash", "record_hash"];
+        if (
+          !PROJECT_ID_PATTERN.test(projectId) ||
+          !WORKER_OUTPUT_MANIFEST_ID_PATTERN.test(manifestId) ||
+          [...parameters.keys()].some(
+            (key) =>
+              !allowed.includes(key) || parameters.getAll(key).length !== 1,
+          ) ||
+          allowed.some((key) => parameters.get(key) === null)
+        ) {
+          throw new InteractionInputError(
+            "An exact WorkerOutputManifest read requires one canonical Project, manifest, revision, content hash, and record hash.",
+          );
+        }
+        const revision = Number(parameters.get("revision"));
+        const contentHash = parameters.get("content_hash")!;
+        const recordHash = parameters.get("record_hash")!;
+        if (
+          !Number.isSafeInteger(revision) ||
+          revision < 1 ||
+          !CONTENT_HASH_PATTERN.test(contentHash) ||
+          !CONTENT_HASH_PATTERN.test(recordHash)
+        ) {
+          throw new InteractionInputError(
+            "The exact WorkerOutputManifest revision or hashes are invalid.",
+          );
+        }
+        const manifest =
+          await options.projectWorkerOutputManifests.getProjectWorkerOutputManifest(
+            projectId,
+            manifestId,
+            {
+              revision,
+              content_hash: contentHash,
+              record_hash: recordHash,
+            },
+          );
+        if (manifest === undefined) {
+          return jsonError(
+            context,
+            404,
+            "PROJECT_WORKER_OUTPUT_NOT_FOUND",
+            "The exact WorkerOutputManifest is not retained in this Project.",
+          );
+        }
+        contracts.assertValid("worker-output-manifest", "1.0.0", manifest);
+        if (
+          manifest.project_id !== projectId ||
+          manifest.worker_output_manifest_id !== manifestId ||
+          manifest.revision !== revision ||
+          manifest.content_hash !== contentHash ||
+          communicationHash(manifest) !== recordHash
+        ) {
+          throw new Error(
+            "The WorkerOutputManifest reader returned a different exact record.",
+          );
+        }
+        context.header("Cache-Control", "no-store");
+        return context.json(manifest);
+      } catch (error) {
+        return jsonError(
+          context,
+          error instanceof InteractionInputError ? 422 : 503,
+          error instanceof InteractionInputError
+            ? "PROJECT_WORKER_OUTPUT_TARGET_INVALID"
+            : "PROJECT_WORKER_OUTPUT_READ_FAILED",
+          error instanceof Error
+            ? error.message
+            : "The exact WorkerOutputManifest is unavailable.",
           error instanceof InteractionInputError ? error.issues : undefined,
         );
       }

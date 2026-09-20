@@ -4,6 +4,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import {
+  CommunicationPlanClient,
   FocusedGraphClient,
   PetraInteractionClient,
   ProjectModelClient,
@@ -27,6 +28,7 @@ import {
   derivePetraId,
   extractorRoutingPolicyHash,
   groundedResponseCacheKey,
+  ProfileCommunicationResolver,
   runExtractorRoleCertificationFixture,
 } from "@petra/core";
 import { Neo4jAuthorityGraphStore } from "@petra/neo4j";
@@ -793,6 +795,24 @@ const seedScientific = async (pool, neo4jUri) => {
       content_hash: briefEntry.canonical_sha256,
     },
   });
+  if (wave5Mode || wave6ActualModelUiMode) {
+    for (const required of new ProfileCommunicationResolver(
+      contracts,
+    ).requiredRegistrations()) {
+      const existing = definition.content.registrations.find(
+        (entry) => entry.semantic_key === required.semantic_key,
+      );
+      if (existing === undefined) {
+        definition.content.registrations.push(required);
+        continue;
+      }
+      assert(
+        existing.registration_kind === required.registration_kind,
+        `The Wave 6 scientific communication registration ${required.semantic_key} is incompatible.`,
+      );
+      existing.contract = clone(required.contract);
+    }
+  }
   definition.content_hash = hash(definition.content);
   await definitions.registerDefinitionRevision(definition);
   const objective = readAccepted(
@@ -4825,6 +4845,62 @@ const exerciseItem53Trace = async ({
       () => refreshClient.refresh(scientificProjectId, staleRefreshRequest),
       "stale item 49 refresh",
     );
+    if (wave5Mode) {
+      const workClient = new ProjectWorkClient({
+        baseUrl: active.url,
+        token,
+      });
+      const operations = await workClient.readOperations(
+        scientificProjectId,
+        continuation.workAndInteraction.work.work_unit_id,
+      );
+      const manifestResult = operations.results.find(
+        (result) => result.result_kind === "worker_output_manifest",
+      );
+      const responseResult = operations.results.find(
+        (result) => result.result_kind === "grounded_response",
+      );
+      assert(
+        manifestResult !== undefined && responseResult !== undefined,
+        "The completed Work result assessment lost an exact retained result.",
+      );
+      const manifest = await workClient.readWorkerOutputManifest(
+        scientificProjectId,
+        manifestResult.record_ref.record_id,
+        {
+          producing_work_unit_id:
+            continuation.workAndInteraction.work.work_unit_id,
+          revision: manifestResult.record_ref.revision,
+          content_hash: manifestResult.record_ref.content_hash,
+          record_hash: manifestResult.record_ref.record_hash,
+        },
+      );
+      assert(
+        manifest.content.outcome.produced_outputs.length > 0 &&
+          Array.isArray(manifest.content.diagnostics) &&
+          manifest.content.resource_usage.wall_time_ms >= 0,
+        "The exact WorkerOutputManifest read omitted outcome, outputs, diagnostics, or measured resources.",
+      );
+      const response = continuation.grounded.response;
+      const communication = await new CommunicationPlanClient({
+        baseUrl: active.url,
+        token,
+      }).read(scientificProjectId, {
+        response_id: response.grounded_response_id,
+        response_revision: response.revision,
+        response_content_hash: response.content_hash,
+        response_record_hash: responseResult.record_ref.record_hash,
+        locale: "en",
+      });
+      assert(
+        communication.content.source_response.grounded_response_id ===
+          response.grounded_response_id &&
+          communication.content.source_response.content.interaction_ref
+            .work_unit_ref.work_unit_id ===
+            continuation.workAndInteraction.work.work_unit_id,
+        "The exact communication read lost its retained response or producing-Work binding.",
+      );
+    }
     await record("refreshed_paired_profile", {
       refreshedRevision: refreshed.review_session.revision,
     });

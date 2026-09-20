@@ -4,7 +4,7 @@
   "wave": 5,
   "slice": 21,
   "status": "passed",
-  "executed_at": "2026-09-16T14:27:00.895Z",
+  "executed_at": "2026-09-20T02:19:26.990Z",
   "command": "npm run test:wave5:cumulative",
   "runtime": {
     "node": "24.20.0",
@@ -59,11 +59,11 @@
             "source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7"
           ]
         },
-        "brief_content_hash": "sha256:a4e8322d43a1286dafe39154d0d0b06dbfea4d1fcefd9d87a95742282ad59ec9",
-        "focused_graph_content_hash": "sha256:45e88d3f1b4e13ef1105d70ce9828c416d155e3b0c32369c22c669797aa80fee",
-        "details_content_hash": "sha256:7919eec71b9808120b5731e52623621415d0a6a65b61821943a295dfba82faa7",
-        "evidence_view_content_hash": "sha256:dd9df1a82c8517a4247ab5885c5ae22795ca064072b5fc1b27b23602d0e9f07f",
-        "source_inspection_content_hash": "sha256:cfe4a28412343a110698ff8e23197495dd700ad8fcf607a659e3cdc93f5ce785"
+        "brief_content_hash": "sha256:f1a07c76aa6482075c30db956bf58a929d4ec5b45782853345d56f84f9bb9e92",
+        "focused_graph_content_hash": "sha256:f3ff65da4c6d691d77043af08176b6a35112e8741062d028d3c65098fdeff47c",
+        "details_content_hash": "sha256:ececf6fec23617aa048416114ee418e847b73cbf99b9b19ad54c37462c5631f2",
+        "evidence_view_content_hash": "sha256:83b7c36da92654f610c95d7f9056e847a5f372659e714b20fb4520ef2b043f52",
+        "source_inspection_content_hash": "sha256:87bb2bbbcaa7945fa6b0416f2eb3413b7d578610b14706f571aa826925692736"
       },
       "boundary": "Fresh-store authenticated production Brief, Evidence-owner relationship overlay, Work, Focused Graph, Details, and exact ProjectSource inspection reads; no browser claim."
     },
@@ -112,11 +112,11 @@
       "observation": {
         "inspected_review_session_id": "review_session_01K4D000000000000000000004",
         "corrected_candidate_revision": 2,
-        "applied_change_set_id": "change_set_1K5X97EFQER08CGRR0Q83V5T9B",
-        "applied_event_id": "event_01M2N9PZT1KJF8G1E6P76FEEZW",
-        "compensation_plan_content_hash": "sha256:6ebd33e9025a501fc68d40947ec45f1ba5d94abd0fd0b341b959fefef7eaa810",
-        "compensation_change_set_id": "change_set_7657YBTAQ0NZ9ZYFK21F6T5PC3",
-        "replay_compensation_change_set_id": "change_set_7657YBTAQ0NZ9ZYFK21F6T5PC3"
+        "applied_change_set_id": "change_set_2TGGJ5HJEP3V9DK36PPAZ9FC31",
+        "applied_event_id": "event_01M2Y9N91FEFKKPTEDJ77T5RPT",
+        "compensation_plan_content_hash": "sha256:4f38558c64b927204ff1390032906442b706ab0c09279a1d18f6b0f194c99da3",
+        "compensation_change_set_id": "change_set_24X68RVNGZEKW2WRK2M36REK6Z",
+        "replay_compensation_change_set_id": "change_set_24X68RVNGZEKW2WRK2M36REK6Z"
       },
       "boundary": "Existing Review correction and Apply clients plus the existing History compensation controller; no graph-specific mutation owner."
     },
@@ -126,11 +126,11 @@
       "status": "passed",
       "observation": {
         "restart": {
-          "working_content_hash_before": "sha256:68a42f0de76b109da2c230da934ae07dd6f3d23476529e6230e33e49053673ed",
-          "working_content_hash_after": "sha256:68a42f0de76b109da2c230da934ae07dd6f3d23476529e6230e33e49053673ed",
-          "focused_graph_content_hash_before": "sha256:fce7137e5055d1009984e76d7aa8bd4fb035df0324808ed2740ba5fa31fbf497",
-          "focused_graph_content_hash_after": "sha256:fce7137e5055d1009984e76d7aa8bd4fb035df0324808ed2740ba5fa31fbf497",
-          "review_content_hash_after": "sha256:50e34a8761208253a03cd34760a9b506f7fd003ecda82ff2aa49ab93841e42ab",
+          "working_content_hash_before": "sha256:c98bfb53a1dfe95f71c5d27ad00bb32d7710921ca59c0249c2026113eac5cd0f",
+          "working_content_hash_after": "sha256:c98bfb53a1dfe95f71c5d27ad00bb32d7710921ca59c0249c2026113eac5cd0f",
+          "focused_graph_content_hash_before": "sha256:fa0b33ebcd0da31c290140295913daf004449c05324888f888eebd8f9dd9472c",
+          "focused_graph_content_hash_after": "sha256:fa0b33ebcd0da31c290140295913daf004449c05324888f888eebd8f9dd9472c",
+          "review_content_hash_after": "sha256:37424e5adf03cd5c5a5be0316959ea876b61c8532ce71865ccea33a0463587db",
           "durable_counts_before": {
             "work_units": 2,
             "worker_output_manifests": 1,
@@ -226,7 +226,7 @@
           "authority_effect": "none"
         },
         "applied": {
-          "change_set_id": "change_set_1K5X97EFQER08CGRR0Q83V5T9B",
+          "change_set_id": "change_set_2TGGJ5HJEP3V9DK36PPAZ9FC31",
           "outcome": "applied",
           "authority_effect": "canonical_change_set"
         },

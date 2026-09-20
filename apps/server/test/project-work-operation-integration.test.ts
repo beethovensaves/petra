@@ -524,7 +524,7 @@ describePostgres("Wave 6 Work production commands", () => {
       status: "passed",
       executed_at: new Date().toISOString(),
       command: "npm run test:wave6:work",
-      database: "fresh disposable PostgreSQL 18.6 with Flyway V001-V046",
+      database: "fresh disposable PostgreSQL 18.6 with Flyway V001-V047",
       production_boundary: {
         server: "startPetraServer over an ephemeral TCP port",
         client: "ProjectWorkClient",
