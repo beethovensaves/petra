@@ -43,6 +43,8 @@ describe("Wave 6 in-product checkpoint guide", () => {
         <CheckpointGuideSurface
           projects={[productionScientific]}
           profiles={[registeredScientificProfile]}
+          query={{ limit: 12 }}
+          page={{ returned_count: 1, total_count: 1, has_more: false }}
         />
       </MemoryRouter>,
     );
@@ -69,7 +71,12 @@ describe("Wave 6 in-product checkpoint guide", () => {
   it("fails closed on a clean empty Project store", () => {
     const markup = renderToStaticMarkup(
       <MemoryRouter>
-        <CheckpointGuideSurface projects={[]} profiles={[]} />
+        <CheckpointGuideSurface
+          projects={[]}
+          profiles={[]}
+          query={{ limit: 12 }}
+          page={{ returned_count: 0, total_count: 0, has_more: false }}
+        />
       </MemoryRouter>,
     );
 

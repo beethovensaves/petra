@@ -100,7 +100,17 @@ describe("neutral Petra reference workbench", () => {
   }
 
   it("renders three compatible taxonomies through one Projects surface", () => {
-    const markup = render(<ProjectsSurface />);
+    const markup = render(
+      <ProjectsSurface
+        projects={REFERENCE_PROJECTS}
+        query={{ limit: 12 }}
+        page={{
+          returned_count: REFERENCE_PROJECTS.length,
+          total_count: REFERENCE_PROJECTS.length,
+          has_more: false,
+        }}
+      />,
+    );
 
     expect(markup).toContain("Evidence inquiry");
     expect(markup).toContain("Controlled publication");
@@ -109,6 +119,11 @@ describe("neutral Petra reference workbench", () => {
     expect(markup).toContain(
       "Profiles supply compatible domain terms and tasks",
     );
+    expect(markup).toContain(
+      "Petra searches the current Project name, Objective statement, and registered profile label.",
+    );
+    expect(markup).toContain("Any status");
+    expect(markup).toContain("Any registered profile");
     expect(markup).not.toContain("projects/demo");
   });
 

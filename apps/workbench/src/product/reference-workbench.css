@@ -215,8 +215,49 @@
   font-size: var(--petra-font-size-body-large);
 }
 
-.reference-projects > .petra-field {
-  max-width: 34rem;
+.reference-project-search {
+  display: grid;
+  grid-template-columns:
+    minmax(18rem, 2fr) minmax(9rem, 0.7fr) minmax(14rem, 1fr)
+    auto;
+  gap: var(--petra-space-3);
+  align-items: end;
+  padding: var(--petra-space-4);
+  border: var(--petra-rule-thin) solid var(--petra-border-default);
+  border-radius: var(--petra-radius-medium);
+  background: var(--petra-surface-inset);
+}
+
+.reference-project-search__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--petra-space-2);
+  align-items: center;
+}
+
+.reference-project-search__failure {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--petra-space-4);
+  margin-top: var(--petra-space-4);
+  padding: var(--petra-space-4);
+  border: var(--petra-rule-thin) solid var(--petra-tone-danger);
+  border-radius: var(--petra-radius-medium);
+  background: var(--petra-surface-panel);
+}
+
+.reference-project-search__failure h2 {
+  font-size: var(--petra-font-size-heading);
+}
+
+.reference-project-search__failure p:last-child {
+  margin-bottom: 0;
+  color: var(--petra-text-secondary);
+}
+
+.reference-project-results[aria-busy="true"] {
+  opacity: 0.64;
 }
 
 .reference-result-count {
@@ -242,6 +283,19 @@
 
 .reference-project-grid > li {
   min-width: 0;
+}
+
+.reference-project-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--petra-space-3);
+  margin-top: var(--petra-space-5);
+}
+
+.reference-project-pagination > span {
+  color: var(--petra-text-secondary);
+  font-size: var(--petra-font-size-label);
 }
 
 .reference-project-card {
@@ -1967,6 +2021,14 @@
 }
 
 @media (max-width: 68rem) {
+  .reference-project-search {
+    grid-template-columns: minmax(16rem, 2fr) repeat(2, minmax(10rem, 1fr));
+  }
+
+  .reference-project-search__actions {
+    grid-column: 1 / -1;
+  }
+
   .reference-project-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -2107,6 +2169,20 @@
   .reference-page-heading__actions {
     width: 100%;
     justify-content: flex-start;
+  }
+
+  .reference-project-search {
+    grid-template-columns: 1fr;
+  }
+
+  .reference-project-search__actions {
+    grid-column: auto;
+  }
+
+  .reference-project-search__failure,
+  .reference-project-pagination {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .reference-context-bar__identity,

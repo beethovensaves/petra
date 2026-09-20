@@ -17,7 +17,7 @@
       "surfaces": ["SP01"],
       "flows": ["UX-FLOW-01"],
       "requests": ["UX-REQ-004"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/",
       "control": "Find a Project",
       "interaction": "query",
@@ -25,7 +25,12 @@
         {
           "command": "npm run test:wave6:project-search",
           "artifact": "reports/WAVE6-PROJECT-SEARCH-AUTHORITY.json",
-          "boundary": "Real disposable PostgreSQL plus focused authenticated route and renderer-neutral typed-client tests prove bounded server-owned Project search across current name, Objective statement, and registered profile label; status/profile filters; validated pagination; exact query/result binding; and visible failure semantics. The frozen React Find control still filters its loaded page locally, so design-owned binding and browser execution remain outstanding."
+          "boundary": "Real disposable PostgreSQL plus focused authenticated route and renderer-neutral typed-client tests prove bounded server-owned Project search across current name, Objective statement, and registered profile label; status/profile filters; validated pagination; exact query/result binding; and propagated read failures."
+        },
+        {
+          "command": "npm run test:wave6:project-search-ui",
+          "artifact": "reports/WAVE6-PROJECT-SEARCH-BROWSER.json",
+          "boundary": "Isolated Chromium executes the visible Find, status, profile, next/previous page, invalid-query, empty, unavailable, and retry controls through production ProjectShellClient.search with authenticated schema-valid deterministic HTTP. Real PostgreSQL authority is established by the paired backend artifact; this browser record does not claim a named Wave 6 evidence-plan scenario or the complete guided workflow."
         }
       ],
       "runtime_owner": "GET /api/queries/projects -> ProjectShellViewReader.searchProjectShellViews -> PostgresProjectShellViewReader (REPEATABLE READ current Project/ProjectDefinition/Objective authority)",

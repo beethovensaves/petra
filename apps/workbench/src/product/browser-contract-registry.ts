@@ -9,6 +9,7 @@ import briefProjectSourceViewV100Schema from "../../../../packages/contracts/sch
 import briefProjectShellViewV120Schema from "../../../../packages/contracts/schemas/project-shell-view/1.2.0/schema.json";
 import briefProjectShellViewV110Schema from "../../../../packages/contracts/schemas/project-shell-view/1.1.0/schema.json";
 import briefProjectShellViewV100Schema from "../../../../packages/contracts/schemas/project-shell-view/1.0.0/schema.json";
+import projectShellCollectionViewV100Schema from "../../../../packages/contracts/schemas/project-shell-collection-view/1.0.0/schema.json";
 import briefProjectObjectiveV100Schema from "../../../../packages/contracts/schemas/project-objective/1.0.0/schema.json";
 import briefProjectObjectLocationViewV100Schema from "../../../../packages/contracts/schemas/project-object-location-view/1.0.0/schema.json";
 import briefProjectInquiryLinkV100Schema from "../../../../packages/contracts/schemas/project-inquiry-link/1.0.0/schema.json";
@@ -128,6 +129,7 @@ type BrowserContractName =
   | "research-brief-payload@1.0.0"
   | "project-brief-view@1.1.0"
   | "project-brief-view@1.0.0"
+  | "project-shell-collection-view@1.0.0"
   | "review-session-apply-checkpoint@1.0.0"
   | "review-session-apply-request@1.0.0"
   | "review-session-apply-result@1.0.0"
@@ -233,6 +235,7 @@ const schemas = [
   briefProjectShellViewV100Schema,
   briefProjectShellViewV110Schema,
   briefProjectShellViewV120Schema,
+  projectShellCollectionViewV100Schema,
   briefProjectSourceViewV100Schema,
   briefProjectWorkViewV100Schema,
   briefResearchBriefPayloadV100Schema,
@@ -324,6 +327,8 @@ const contractIds: Record<BrowserContractName, string> = {
   "research-brief-payload@1.0.0": briefResearchBriefPayloadV100Schema.$id,
   "project-brief-view@1.1.0": briefProjectBriefViewV110Schema.$id,
   "project-brief-view@1.0.0": briefProjectBriefViewV100Schema.$id,
+  "project-shell-collection-view@1.0.0":
+    projectShellCollectionViewV100Schema.$id,
   "review-session-apply-checkpoint@1.0.0": applyCheckpointSchema.$id,
   "review-session-apply-request@1.0.0": applyRequestSchema.$id,
   "review-session-apply-result@1.0.0": applyResultSchema.$id,
@@ -488,6 +493,12 @@ export class PetraContractRegistry {
       version: "1.0.0",
       canonical_sha256:
         "sha256:6a9cacc35e9df3b73a4eaed2db936f8c2452cf07ebd0256523388c743eb2b22e",
+    },
+    {
+      name: "project-shell-collection-view",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:bac8053554ca391baaba96cd0e84c65b9813e7e542ca49bf35704450fe798bff",
     },
     {
       name: "project-objective-command-request",

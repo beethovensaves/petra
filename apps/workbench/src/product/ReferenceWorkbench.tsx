@@ -23,7 +23,7 @@ import {
 
 import { PetraLockup, PetraMark } from "../design-system/brand.js";
 import { PetraButton, PetraTextField } from "../design-system/primitives.js";
-import { REFERENCE_PROJECTS, getProjectProfileTool } from "./fixtures.js";
+import { getProjectProfileTool } from "./fixtures.js";
 import { ProjectCreationPanel } from "./ProjectProfileSurface.js";
 import {
   ProjectImportPanel,
@@ -41,9 +41,12 @@ import { SourceReusePanel, type SourceReuseCompletion } from "./SourceReuse.js";
 import type {
   ProjectBriefData,
   ProjectCollectionData,
+  ProjectCollectionPage,
   ProjectSourceCollectionData,
   ProjectSourceRecordData,
 } from "./project-data.js";
+import { searchProjectCollection } from "./project-data.js";
+import type { ProjectShellCollectionRequest } from "@petra/core";
 import type { SourceRevisionContext } from "./source-revision.js";
 import { SuggestedWorkAction } from "./SuggestedAction.js";
 import type {
@@ -168,26 +171,159 @@ export const ProductFrame = (): React.JSX.Element => {
 };
 
 export const ProjectsSurface = ({
-  projects = REFERENCE_PROJECTS,
+  projects = [],
   profiles = [],
+  query: initialQuery = { limit: 12 },
+  page: initialPage = {
+    returned_count: projects.length,
+    total_count: projects.length,
+    has_more: false,
+  },
+  searchProjects = searchProjectCollection,
 }: {
   projects?: ProjectRecord[];
   profiles?: ProjectCollectionData["profiles"];
+  query?: ProjectCollectionData["query"];
+  page?: ProjectCollectionData["page"];
+  searchProjects?: (
+    request: ProjectShellCollectionRequest,
+  ) => Promise<ProjectCollectionPage>;
 }): React.JSX.Element => {
-  const [query, setQuery] = useState("");
+  const [searchText, setSearchText] = useState(initialQuery.search ?? "");
+  const [status, setStatus] = useState<"" | "active" | "archived">(
+    initialQuery.status ?? "",
+  );
+  const [profile, setProfile] = useState(initialQuery.profile ?? "");
+  const [results, setResults] = useState<ProjectCollectionPage>({
+    projects,
+    query: initialQuery,
+    page: initialPage,
+  });
+  const [cursorTrail, setCursorTrail] = useState<Array<string | undefined>>([]);
+  const [lastRequest, setLastRequest] =
+    useState<ProjectShellCollectionRequest>(initialQuery);
+  const [busy, setBusy] = useState(false);
+  const [failure, setFailure] = useState<
+    | { readonly kind: "invalid" | "unavailable"; readonly message: string }
+    | undefined
+  >();
   const [creating, setCreating] = useState(false);
   const [importing, setImporting] = useState(false);
-  const importUnavailable = projectImportAvailability(projects);
-  const normalizedQuery = query.trim().toLocaleLowerCase();
-  const visibleProjects = useMemo(
+  const requestSequence = useRef(0);
+  const importUnavailable = projectImportAvailability(results.projects);
+  const hasFilters =
+    results.query.search !== undefined ||
+    results.query.status !== undefined ||
+    results.query.profile !== undefined;
+  const profileOptions = useMemo(
     () =>
-      projects.filter((project) =>
-        `${project.title} ${project.objective} ${project.profile.label}`
-          .toLocaleLowerCase()
-          .includes(normalizedQuery),
+      Array.from(
+        new Map(
+          profiles.map((registered) => [
+            registered.definition_family,
+            registered,
+          ]),
+        ).values(),
       ),
-    [normalizedQuery, projects],
+    [profiles],
   );
+  const profileSummaries = useMemo(
+    () =>
+      profileOptions.length > 0
+        ? profileOptions.map((registered) => ({
+            id: registered.definition_family,
+            label: registered.content.label,
+            detail: registered.content.purpose,
+          }))
+        : Array.from(
+            new Map(
+              results.projects.map((project) => [
+                project.profile.definitionFamily,
+                {
+                  id: project.profile.definitionFamily,
+                  label: project.profile.label,
+                  detail: `${project.profile.terms.focusPlural}, ${project.profile.terms.findingPlural}, and ${project.profile.terms.referencePlural}`,
+                },
+              ]),
+            ).values(),
+          ),
+    [profileOptions, results.projects],
+  );
+
+  useEffect(() => {
+    setResults({ projects, query: initialQuery, page: initialPage });
+    setSearchText(initialQuery.search ?? "");
+    setStatus(initialQuery.status ?? "");
+    setProfile(initialQuery.profile ?? "");
+    setCursorTrail([]);
+    setLastRequest(initialQuery);
+    setFailure(undefined);
+  }, [initialPage, initialQuery, projects]);
+
+  const runSearch = async (
+    request: ProjectShellCollectionRequest,
+    history: "reset" | "next" | "previous" | "retry",
+  ): Promise<void> => {
+    if (busy) return;
+    const sequence = requestSequence.current + 1;
+    requestSequence.current = sequence;
+    setBusy(true);
+    setFailure(undefined);
+    setLastRequest(request);
+    try {
+      const next = await searchProjects(request);
+      if (requestSequence.current !== sequence) return;
+      setResults(next);
+      if (history === "reset") setCursorTrail([]);
+      if (history === "next") {
+        setCursorTrail((trail) => [...trail, results.query.cursor]);
+      }
+      if (history === "previous") {
+        setCursorTrail((trail) => trail.slice(0, -1));
+      }
+    } catch (error) {
+      if (requestSequence.current !== sequence) return;
+      const invalid = error instanceof TypeError;
+      setFailure({
+        kind: invalid ? "invalid" : "unavailable",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Petra could not search Projects right now.",
+      });
+    } finally {
+      if (requestSequence.current === sequence) setBusy(false);
+    }
+  };
+
+  const submitSearch = (): void => {
+    const trimmed = searchText.trim();
+    if (searchText.length > 240 || (searchText.length > 0 && trimmed === "")) {
+      setFailure({
+        kind: "invalid",
+        message:
+          "Enter up to 240 characters, or leave Find a Project empty to show all Projects.",
+      });
+      return;
+    }
+    setSearchText(trimmed);
+    void runSearch(
+      {
+        ...(trimmed === "" ? {} : { search: trimmed }),
+        ...(status === "" ? {} : { status }),
+        ...(profile === "" ? {} : { profile }),
+        limit: results.query.limit,
+      },
+      "reset",
+    );
+  };
+
+  const clearSearch = (): void => {
+    setSearchText("");
+    setStatus("");
+    setProfile("");
+    void runSearch({ limit: results.query.limit }, "reset");
+  };
 
   return (
     <main className="reference-projects" id="reference-main">
@@ -245,88 +381,243 @@ export const ProjectsSurface = ({
 
       {importing ? (
         <ProjectImportPanel
-          projects={projects}
+          projects={results.projects}
           onCancel={() => setImporting(false)}
         />
       ) : null}
 
-      <PetraTextField
-        label="Find a Project"
-        placeholder="Name, objective, or profile"
-        type="search"
-        value={query}
-        onChange={(event) => setQuery(event.currentTarget.value)}
-      />
+      <form
+        className="reference-project-search"
+        aria-label="Find a Project"
+        onSubmit={(event) => {
+          event.preventDefault();
+          submitSearch();
+        }}
+      >
+        <PetraTextField
+          label="Find a Project"
+          hint="Petra searches the current Project name, Objective statement, and registered profile label."
+          placeholder="Name, Objective, or registered profile"
+          type="search"
+          maxLength={241}
+          value={searchText}
+          {...(failure?.kind === "invalid" ? { error: failure.message } : {})}
+          onChange={(event) => setSearchText(event.currentTarget.value)}
+        />
+        <label className="petra-field">
+          <span className="petra-field__label">Status</span>
+          <select
+            className="petra-field__control"
+            name="status"
+            value={status}
+            onChange={(event) =>
+              setStatus(event.currentTarget.value as "" | "active" | "archived")
+            }
+          >
+            <option value="">Any status</option>
+            <option value="active">Active</option>
+            <option value="archived">Archived</option>
+          </select>
+        </label>
+        <label className="petra-field">
+          <span className="petra-field__label">Profile</span>
+          <select
+            className="petra-field__control"
+            name="profile"
+            value={profile}
+            onChange={(event) => setProfile(event.currentTarget.value)}
+          >
+            <option value="">Any registered profile</option>
+            {profileOptions.map((registered) => (
+              <option
+                key={registered.definition_family}
+                value={registered.definition_family}
+              >
+                {registered.content.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <div className="reference-project-search__actions">
+          <PetraButton
+            variant="primary"
+            type="submit"
+            busy={busy}
+            busyLabel="Searching Projects"
+          >
+            Find Projects
+          </PetraButton>
+          {hasFilters ||
+          searchText !== "" ||
+          status !== "" ||
+          profile !== "" ? (
+            <PetraButton variant="quiet" onClick={clearSearch}>
+              Clear search
+            </PetraButton>
+          ) : null}
+        </div>
+      </form>
+
+      {failure?.kind === "unavailable" ? (
+        <section
+          className="reference-project-search__failure"
+          role="alert"
+          aria-labelledby="project-search-failure-title"
+        >
+          <div>
+            <h2 id="project-search-failure-title">
+              Project search is temporarily unavailable
+            </h2>
+            <p>{failure.message}</p>
+            <p>
+              Your last server results remain below. No local substitute was
+              used.
+            </p>
+          </div>
+          <PetraButton
+            variant="secondary"
+            busy={busy}
+            busyLabel="Retrying search"
+            onClick={() => void runSearch(lastRequest, "retry")}
+          >
+            Retry search
+          </PetraButton>
+        </section>
+      ) : null}
 
       <p className="reference-result-count" role="status" aria-live="polite">
-        {visibleProjects.length}{" "}
-        {visibleProjects.length === 1 ? "Project" : "Projects"}
+        {busy
+          ? "Searching Projects…"
+          : `Showing ${results.page.returned_count} of ${results.page.total_count} ${results.page.total_count === 1 ? "Project" : "Projects"}`}
       </p>
 
-      {visibleProjects.length === 0 ? (
-        <section
-          className="reference-empty"
-          aria-labelledby="no-projects-title"
-        >
-          <PetraMark />
-          <h2 id="no-projects-title">No Projects match this search</h2>
-          <p>Clear the search to return to the available local Projects.</p>
-        </section>
-      ) : (
-        <ul className="reference-project-grid">
-          {visibleProjects.map((project) => (
-            <li key={project.id}>
-              <article className="reference-project-card">
-                <div className="reference-project-card__topline">
-                  <span>{project.profile.label}</span>
-                  <ProjectStateLabel project={project} />
-                </div>
-                <h2>
-                  <Link to={`/projects/${project.id}/brief`}>
-                    {project.title}
-                  </Link>
-                </h2>
-                <p>{project.objective}</p>
-                <ProjectResumeState project={project} />
-                <dl className="reference-compact-facts">
-                  <div>
-                    <dt>Current</dt>
-                    <dd>{project.snapshot.label}</dd>
+      <div className="reference-project-results" aria-busy={busy || undefined}>
+        {results.projects.length === 0 ? (
+          <section
+            className="reference-empty"
+            aria-labelledby="no-projects-title"
+          >
+            <PetraMark />
+            <h2 id="no-projects-title">
+              {hasFilters ? "No Projects match this search" : "No Projects yet"}
+            </h2>
+            <p>
+              {hasFilters
+                ? "Change or clear the search to ask Petra for another bounded Project list."
+                : "Create a Project with a registered profile to begin."}
+            </p>
+            {hasFilters ? (
+              <PetraButton variant="secondary" onClick={clearSearch}>
+                Show all Projects
+              </PetraButton>
+            ) : null}
+          </section>
+        ) : (
+          <ul className="reference-project-grid">
+            {results.projects.map((project) => (
+              <li key={project.id}>
+                <article className="reference-project-card">
+                  <div className="reference-project-card__topline">
+                    <span>{project.profile.label}</span>
+                    <ProjectStateLabel project={project} />
                   </div>
-                  <div>
-                    <dt>Updated</dt>
-                    <dd>{project.updatedAt}</dd>
-                  </div>
-                </dl>
-                <div className="reference-project-card__footer">
-                  <ProjectionLabel project={project} />
-                  <div className="reference-project-card__actions">
-                    <Link
-                      className="reference-text-link"
-                      to={`/projects/${project.id}/brief`}
-                    >
-                      Open Brief
+                  <h2>
+                    <Link to={`/projects/${project.id}/brief`}>
+                      {project.title}
                     </Link>
-                    {project.resume === undefined ? null : (
+                  </h2>
+                  <p>{project.objective}</p>
+                  <ProjectResumeState project={project} />
+                  <dl className="reference-compact-facts">
+                    <div>
+                      <dt>Current</dt>
+                      <dd>{project.snapshot.label}</dd>
+                    </div>
+                    <div>
+                      <dt>Updated</dt>
+                      <dd>{project.updatedAt}</dd>
+                    </div>
+                  </dl>
+                  <div className="reference-project-card__footer">
+                    <ProjectionLabel project={project} />
+                    <div className="reference-project-card__actions">
                       <Link
-                        className="reference-primary-link"
-                        to={`/projects/${project.id}/resume`}
+                        className="reference-text-link"
+                        to={`/projects/${project.id}/brief`}
                       >
-                        {project.resume.state === "available"
-                          ? "Resume Project"
-                          : project.resume.state === "unavailable"
-                            ? "Retry Resume"
-                            : "Open Brief recovery"}
-                        <span aria-hidden="true">→</span>
+                        Open Brief
                       </Link>
-                    )}
+                      {project.resume === undefined ? null : (
+                        <Link
+                          className="reference-primary-link"
+                          to={`/projects/${project.id}/resume`}
+                        >
+                          {project.resume.state === "available"
+                            ? "Resume Project"
+                            : project.resume.state === "unavailable"
+                              ? "Retry Resume"
+                              : "Open Brief recovery"}
+                          <span aria-hidden="true">→</span>
+                        </Link>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </article>
-            </li>
-          ))}
-        </ul>
-      )}
+                </article>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {cursorTrail.length > 0 || results.page.has_more ? (
+        <nav
+          className="reference-project-pagination"
+          aria-label="Project pages"
+        >
+          <PetraButton
+            variant="secondary"
+            {...(cursorTrail.length === 0
+              ? {
+                  unavailable: {
+                    reason: "This is the first Project page.",
+                  },
+                }
+              : {})}
+            onClick={() => {
+              const previousCursor = cursorTrail.at(-1);
+              const { cursor: currentCursor, ...baseRequest } = results.query;
+              void currentCursor;
+              const request =
+                previousCursor === undefined
+                  ? baseRequest
+                  : { ...baseRequest, cursor: previousCursor };
+              void runSearch(request, "previous");
+            }}
+          >
+            Previous page
+          </PetraButton>
+          <span>Server page {cursorTrail.length + 1}</span>
+          <PetraButton
+            variant="secondary"
+            {...(results.page.has_more
+              ? {}
+              : {
+                  unavailable: {
+                    reason: "There are no more matching Projects.",
+                  },
+                })}
+            onClick={() => {
+              if (results.page.next_cursor === undefined) return;
+              void runSearch(
+                { ...results.query, cursor: results.page.next_cursor },
+                "next",
+              );
+            }}
+          >
+            Next page
+          </PetraButton>
+        </nav>
+      ) : null}
 
       <aside
         className="reference-disclosure"
@@ -338,12 +629,9 @@ export const ProjectsSurface = ({
           own navigation, authority, provenance, status, recovery, and history.
         </p>
         <ul>
-          {projects.map((project) => (
-            <li key={project.profile.id}>
-              <strong>{project.profile.label}</strong>:{" "}
-              {project.profile.terms.focusPlural},{" "}
-              {project.profile.terms.findingPlural}, and{" "}
-              {project.profile.terms.referencePlural}
+          {profileSummaries.map((registered) => (
+            <li key={registered.id}>
+              <strong>{registered.label}</strong>: {registered.detail}
             </li>
           ))}
         </ul>

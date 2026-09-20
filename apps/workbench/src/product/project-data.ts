@@ -93,6 +93,7 @@ import type {
 import type {
   FocusedGraphAnalysisViewRequest,
   FocusedGraphReadRequest,
+  ProjectShellCollectionRequest,
 } from "@petra/core";
 import { parseFocusedGraphViewRequest } from "@petra/core";
 import { canonicalize } from "json-canonicalize";
@@ -3863,8 +3864,9 @@ export const graphQuestionFromOverlayView = (
   };
 };
 
-export const loadProjectCollection = async (): Promise<ProjectRecord[]> => {
-  const value = await requestJson("/api/queries/projects");
+const projectCollectionPageFromView = (
+  value: unknown,
+): ProjectCollectionPage => {
   if (
     !isRecord(value) ||
     value.schema_name !== "petra.project-shell-collection-view" ||
@@ -3880,9 +3882,36 @@ export const loadProjectCollection = async (): Promise<ProjectRecord[]> => {
     );
   }
   const collection = value as unknown as PetraProjectShellCollectionView;
-  return collection.content.projects.map((project) =>
-    projectRecordFromShellView(shellView(project)),
-  );
+  return {
+    projects: collection.content.projects.map((project) =>
+      projectRecordFromShellView(shellView(project)),
+    ),
+    query: structuredClone(collection.content.query),
+    page: structuredClone(collection.content.page),
+  };
+};
+
+export interface ProjectCollectionPage {
+  readonly projects: ProjectRecord[];
+  readonly query: PetraProjectShellCollectionView["content"]["query"];
+  readonly page: PetraProjectShellCollectionView["content"]["page"];
+}
+
+export const searchProjectCollection = async (
+  request: ProjectShellCollectionRequest = {},
+): Promise<ProjectCollectionPage> => {
+  const { ProjectShellClient } = await import("@petra/adapters");
+  const collection = await new ProjectShellClient({
+    baseUrl: apiBaseUrl(),
+    token: apiToken(),
+    fetch: (input, init) => fetch(input, init),
+  }).search(request);
+  return projectCollectionPageFromView(collection);
+};
+
+export const loadProjectCollection = async (): Promise<ProjectRecord[]> => {
+  const value = await requestJson("/api/queries/projects");
+  return projectCollectionPageFromView(value).projects;
 };
 
 const projectResumeBriefPath = (projectId: string, state: string): string => {
@@ -4075,8 +4104,7 @@ const projectProfileClient = (): ProjectProfileClient =>
     fetch: (input, init) => fetch(input, init),
   });
 
-export interface ProjectCollectionData {
-  readonly projects: ProjectRecord[];
+export interface ProjectCollectionData extends ProjectCollectionPage {
   readonly profiles: PetraRegisteredProjectProfile[];
 }
 
@@ -4085,11 +4113,11 @@ export const loadProjectProfiles = async (): Promise<
 > => projectProfileClient().listProfiles();
 
 export const loadProjectsHome = async (): Promise<ProjectCollectionData> => {
-  const [projects, profiles] = await Promise.all([
-    loadProjectCollection(),
+  const [collection, profiles] = await Promise.all([
+    searchProjectCollection({ limit: 12 }),
     loadProjectProfiles(),
   ]);
-  return { projects, profiles };
+  return { ...collection, profiles };
 };
 
 export const loadProjectTaxonomy = async ({

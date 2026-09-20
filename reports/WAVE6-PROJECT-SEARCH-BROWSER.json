@@ -1,0 +1,69 @@
+{
+  "schema_name": "petra.wave6-project-search-browser-evidence",
+  "schema_version": "1.0.0",
+  "status": "passed",
+  "operation_id": "project.search",
+  "executed_at": "2026-09-20T17:28:59.978Z",
+  "verified": {
+    "production_client": "ProjectShellClient.search",
+    "authenticated_requests": true,
+    "membership_surfaces": [
+      "current Project name",
+      "current Objective statement",
+      "registered profile label"
+    ],
+    "bounded_filters": ["status", "profile"],
+    "pagination": ["next server cursor", "previous server page"],
+    "visible_states": [
+      "loading",
+      "empty",
+      "invalid query",
+      "unavailable with retained last result",
+      "retry success"
+    ],
+    "request_count": 10
+  },
+  "calls": [
+    {
+      "path": "/api/queries/projects?limit=2&cursor=offset%3A2",
+      "authorization": "Bearer browser-project-search-token"
+    },
+    {
+      "path": "/api/queries/projects?limit=2",
+      "authorization": "Bearer browser-project-search-token"
+    },
+    {
+      "path": "/api/queries/projects?search=winter+inlet&limit=2",
+      "authorization": "Bearer browser-project-search-token"
+    },
+    {
+      "path": "/api/queries/projects?search=Controlled+writing&limit=2",
+      "authorization": "Bearer browser-project-search-token"
+    },
+    {
+      "path": "/api/queries/projects?status=archived&profile=petra.scientific-evidence&limit=2",
+      "authorization": "Bearer browser-project-search-token"
+    },
+    {
+      "path": "/api/queries/projects?search=no+matching+authority&limit=2",
+      "authorization": "Bearer browser-project-search-token"
+    },
+    {
+      "path": "/api/queries/projects?limit=2",
+      "authorization": "Bearer browser-project-search-token"
+    },
+    {
+      "path": "/api/queries/projects?search=Arctic&limit=2",
+      "authorization": "Bearer browser-project-search-token"
+    },
+    {
+      "path": "/api/queries/projects?search=Arctic&limit=2",
+      "authorization": "Bearer browser-project-search-token"
+    },
+    {
+      "path": "/api/queries/projects?search=safety+evidence&limit=2",
+      "authorization": "Bearer browser-project-search-token"
+    }
+  ],
+  "boundary": "Isolated Chromium executed the visible Projects controls through the production renderer-neutral ProjectShellClient and schema-valid authenticated GET /api/queries/projects responses. Transport was deterministic browser-local HTTP; the retained backend authority artifact separately proves real PostgreSQL membership, filtering, and pagination."
+}
