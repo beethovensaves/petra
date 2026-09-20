@@ -120,7 +120,13 @@
       "route": "/",
       "control": "New Project",
       "interaction": "command",
-      "evidence": [],
+      "evidence": [
+        {
+          "command": "npm run test:wave6:project-create",
+          "artifact": "reports/WAVE6-PROJECT-CREATE-AUTHORITY.json",
+          "boundary": "Real disposable PostgreSQL, the production HTTP server, bearer authentication, ProjectProfileClient, and ProjectShellClient prove exact registered-profile selection and Project/definition/objective/focus creation, canonical receipt persistence, Brief destination, idempotent replay, unknown-effect assessment, confirmed recovery, and preservation of an unrelated Project. This backend trace does not invoke the visible New Project control; the design-owned browser execution remains outstanding."
+        }
+      ],
       "runtime_owner": "POST /api/commands/projects -> PostgresProjectProfileRuntime",
       "paths": ["UX-PATH-03"]
     },
@@ -156,7 +162,13 @@
       "route": "/",
       "control": "Recover Project",
       "interaction": "command",
-      "evidence": [],
+      "evidence": [
+        {
+          "command": "npm run test:wave6:project-create",
+          "artifact": "reports/WAVE6-PROJECT-CREATE-AUTHORITY.json",
+          "boundary": "The same authenticated production trace assesses the exact create request before submission as outcome_unknown with only the server-registered idempotent retry and safe Projects fallback, then reassesses its retained receipt as effect_confirmed with exact Project and Brief return without a second mutation. This backend trace does not invoke the visible Recover Project control or cover the complete adverse-state scenario."
+        }
+      ],
       "runtime_owner": "POST /api/queries/project-profile-command-recovery -> PostgresProjectProfileRuntime; eligible retry delegates to the existing idempotent create/reset command owner",
       "paths": ["UX-PATH-03", "UX-PATH-04"]
     },

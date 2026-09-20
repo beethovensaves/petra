@@ -1,0 +1,137 @@
+{
+  "schema_name": "petra.wave6-project-create-authority-evidence",
+  "schema_version": "1.0.0",
+  "status": "passed",
+  "operation_ids": ["project.create", "project.recover"],
+  "executed_at": "2026-09-20T23:44:57.584Z",
+  "command": "npm run test:wave6:project-create",
+  "database": "fresh disposable PostgreSQL 18.6 with Flyway V001-V058",
+  "runtime_owner": "POST /api/commands/projects and POST /api/queries/project-profile-command-recovery -> PostgresProjectProfileRuntime",
+  "production_boundary": {
+    "server": "startPetraServer over an ephemeral TCP port",
+    "clients": "ProjectProfileClient list/create/recovery and ProjectShellClient open",
+    "authentication": "Bearer middleware at /api/*",
+    "persistence": "Atomic Project, ProjectDefinition, Objective/focus, and immutable command receipt authority in PostgreSQL"
+  },
+  "observations": {
+    "selected_profile_ref": {
+      "profile_id": "project_template_01K6P000000000000000000001",
+      "profile_version": "1.3.0",
+      "content_hash": "sha256:f496bdb7f859bdd4a9746b812142ef4334f331bcc4f9d15598e2f71c7cdc4322"
+    },
+    "unresolved_effect": {
+      "state": "outcome_unknown",
+      "safe_return": {
+        "state": "safe_fallback",
+        "destination": {
+          "place_role": "projects"
+        },
+        "reason": "No retained receipt supplies an exact resulting Project yet. Return to Projects without implying command success."
+      },
+      "eligible_action": {
+        "operation": "retry_exact_command",
+        "eligibility": "eligible",
+        "owner": "project_profile_command",
+        "method": "POST",
+        "path": "/api/commands/projects",
+        "input_behavior": "reuse_exact_request",
+        "identity_behavior": "reuse_command_and_idempotency",
+        "authority_effect": "The owning command may create one Project after rechecking the exact profile and authenticated actor.",
+        "history_effect": "The owning Project-profile receipt remains the only durable command result; this assessment creates no recovery event or second ledger.",
+        "reason": "Exact idempotent redelivery is safe because no conflicting command identity was observed; execution rechecks current authority.",
+        "success_destination": {
+          "place_role": "brief",
+          "project_id": "project_4PFAYWH8XGJN4RM0KK6Z5EGFN9"
+        },
+        "failure_destination": {
+          "place_role": "projects"
+        },
+        "execution_recheck": true
+      }
+    },
+    "receipt": {
+      "receipt_id": "project_profile_receipt_7ZMYBZNC5R0F62S15HXMADMNMN",
+      "command_id": "command_01K6P000000000000000000501",
+      "idempotency_key": "wave6:project-create:production-trace",
+      "record_hash": "sha256:7660106d27fe99140bc1630f7a30bea8c09fe543235c02bd959d721b4b23011c",
+      "request_hash": "sha256:4641ad5a1ceb43484f0b40e6b86ae40da39c8a4cb6a02f123e2737a46cbd05c3",
+      "project_ref": {
+        "project_id": "project_4PFAYWH8XGJN4RM0KK6Z5EGFN9",
+        "revision": 1
+      },
+      "project_definition_ref": {
+        "project_definition_id": "project_definition_7W7598303819QDB5HTVWY4S7R5",
+        "revision": 1,
+        "content_hash": "sha256:7a2c54d032f91255001ed31835c634ea14cd7b7f495ee7b9031bf764a365a22d"
+      },
+      "objective_ref": {
+        "objective_id": "objective_4MK3B9KA1528RXYB0TK39E4DPR",
+        "revision": 1,
+        "content_hash": "sha256:4f59b753680d6b35a848b371275e4d132c59e62c4348b84406d17eaa2b141634"
+      },
+      "destination": {
+        "place_role": "brief",
+        "project_id": "project_4PFAYWH8XGJN4RM0KK6Z5EGFN9"
+      }
+    },
+    "exact_binding": {
+      "project_name": "Wave 6 registered-profile Project",
+      "definition_family": "petra.scientific-evidence",
+      "definition_origin": {
+        "origin_kind": "template_seed",
+        "template_id": "project_template_01K6P000000000000000000001",
+        "template_hash": "sha256:f496bdb7f859bdd4a9746b812142ef4334f331bcc4f9d15598e2f71c7cdc4322",
+        "template_version": "1.3.0"
+      },
+      "objective_kind": "scientific.research-question",
+      "objective_statement": "Determine which retained evidence most strongly separates the candidate explanations.",
+      "current_focus_objective_id": "objective_4MK3B9KA1528RXYB0TK39E4DPR",
+      "brief_destination": "/projects/project_4PFAYWH8XGJN4RM0KK6Z5EGFN9/brief"
+    },
+    "replay": {
+      "receipt_equal": true,
+      "resulting_project_count": 1,
+      "retained_receipt_count": 1,
+      "confirmed_effect": "effect_confirmed"
+    },
+    "unrelated_project": {
+      "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+      "preserved_exactly": true,
+      "total_project_count": 2
+    },
+    "unauthorized_status": 401,
+    "calls": [
+      {
+        "method": "GET",
+        "path": "/api/queries/project-profiles",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/queries/project-profile-command-recovery",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/commands/projects",
+        "status": 201
+      },
+      {
+        "method": "POST",
+        "path": "/api/commands/projects",
+        "status": 201
+      },
+      {
+        "method": "POST",
+        "path": "/api/queries/project-profile-command-recovery",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/queries/projects/project_4PFAYWH8XGJN4RM0KK6Z5EGFN9/shell",
+        "status": 200
+      }
+    ]
+  },
+  "boundary": "Real disposable PostgreSQL, the production HTTP server, bearer authentication, and renderer-neutral typed clients prove exact registered-profile Project creation, Project/definition/objective/focus binding, canonical receipt persistence, Brief destination, idempotent replay, unknown-effect assessment, confirmed recovery, and preservation of an unrelated Project. This backend trace does not invoke the visible New Project or Recover Project controls and does not claim a named Wave 6 evidence-plan scenario."
+}
