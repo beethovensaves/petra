@@ -25,6 +25,7 @@ export type WorkUnitErrorCode =
   | "WORK_UNIT_ATTEMPT_LIMIT_EXCEEDED"
   | "WORK_UNIT_DEPENDENCY_NOT_READY"
   | "WORK_UNIT_NOT_CANCELLABLE"
+  | "WORK_UNIT_NOT_CHECKPOINTABLE"
   | "WORK_UNIT_CANCELLATION_COMMAND_CONFLICT"
   | "WORK_UNIT_CANCELLATION_NOT_AUTHORIZED"
   | "WORK_UNIT_CANCELLATION_REFERENCE_MISMATCH"
@@ -326,6 +327,87 @@ export class InMemoryWorkUnitRegistry {
         attempt,
       },
       startedAt,
+    );
+  }
+
+  checkpoint(
+    workUnitId: string,
+    expectedRevision: number,
+    attempt: number,
+    checkpoint: Extract<
+      PetraWorkUnit["status"],
+      { state: "checkpointed" }
+    >["checkpoint"],
+    recordedAt: string,
+  ): DeepReadonly<PetraWorkUnit> {
+    const current = this.#requireCurrent(workUnitId, expectedRevision);
+    if (
+      current.status.state !== "running" ||
+      current.spec.checkpoint_policy === "disabled"
+    ) {
+      throw new WorkUnitError(
+        "WORK_UNIT_NOT_CHECKPOINTABLE",
+        `WorkUnit ${workUnitId} is not running with checkpoint retention enabled.`,
+      );
+    }
+    if (attempt !== current.status.attempt) {
+      throw new WorkUnitError(
+        "WORK_UNIT_ATTEMPT_INVALID",
+        `Checkpoint belongs to attempt ${attempt}, not ${current.status.attempt}.`,
+      );
+    }
+    if (checkpoint.recorded_at !== recordedAt) {
+      throw new WorkUnitError(
+        "WORK_UNIT_TIMESTAMP_INVALID",
+        "Checkpoint identity and transition time must match exactly.",
+      );
+    }
+    assertTimestampOrder(
+      current.status.started_at,
+      recordedAt,
+      "Checkpoint time",
+    );
+    return this.#advance(
+      current,
+      {
+        state: "checkpointed",
+        requested_at: current.status.requested_at,
+        queued_at: current.status.queued_at,
+        started_at: current.status.started_at,
+        attempt,
+        checkpoint: structuredClone(checkpoint),
+      },
+      recordedAt,
+    );
+  }
+
+  resume(
+    workUnitId: string,
+    expectedRevision: number,
+    resumedAt: string,
+  ): DeepReadonly<PetraWorkUnit> {
+    const current = this.#requireCurrent(workUnitId, expectedRevision);
+    if (current.status.state !== "checkpointed") {
+      throw new WorkUnitError(
+        "WORK_UNIT_STATE_INVALID",
+        `WorkUnit ${workUnitId} must be checkpointed before it resumes.`,
+      );
+    }
+    assertTimestampOrder(
+      current.status.checkpoint.recorded_at,
+      resumedAt,
+      "Resume time",
+    );
+    return this.#advance(
+      current,
+      {
+        state: "running",
+        requested_at: current.status.requested_at,
+        queued_at: current.status.queued_at,
+        started_at: current.status.started_at,
+        attempt: current.status.attempt,
+      },
+      resumedAt,
     );
   }
 

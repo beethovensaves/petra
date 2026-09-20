@@ -2,6 +2,8 @@ import type {
   PetraProjectWorkOperationReceipt,
   PetraProjectWorkOperationRequest,
   PetraProjectWorkOperationsView,
+  PetraProjectWorkResumeReceipt,
+  PetraProjectWorkResumeRequest,
   PetraWorkerOutputManifest,
 } from "@petra/contracts";
 import { PetraContractRegistry } from "@petra/contracts/validator";
@@ -124,6 +126,51 @@ export class ProjectWorkClient {
         503,
         "PROJECT_WORK_RESPONSE_INVALID",
         "The Work operation receipt does not match the exact command request.",
+      );
+    }
+    return structuredClone(receipt);
+  }
+
+  async resume(
+    projectId: string,
+    workUnitId: string,
+    request: PetraProjectWorkResumeRequest,
+  ): Promise<PetraProjectWorkResumeReceipt> {
+    this.#assertTarget(projectId, workUnitId);
+    this.#contracts.assertValid(
+      "project-work-resume-request",
+      "1.0.0",
+      request,
+    );
+    if (request.expected_work_unit_ref.work_unit_id !== workUnitId) {
+      throw new TypeError(
+        "The checkpoint resume request must bind the exact route WorkUnit.",
+      );
+    }
+    const response = await this.#request(
+      `/api/commands/projects/${projectId}/work/${workUnitId}/resume`,
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(request),
+      },
+    );
+    const body: unknown = await response.json();
+    this.#contracts.assertValid("project-work-resume-receipt", "1.0.0", body);
+    const receipt = body as PetraProjectWorkResumeReceipt;
+    if (
+      receipt.project_id !== projectId ||
+      receipt.requested_work_unit_ref.work_unit_id !== workUnitId ||
+      receipt.resulting_work_unit_ref.work_unit_id !== workUnitId ||
+      receipt.command_id !== request.command_id ||
+      receipt.idempotency_key !== request.idempotency_key ||
+      canonicalize(receipt.checkpoint) !==
+        canonicalize(request.expected_checkpoint)
+    ) {
+      throw new ProjectWorkClientError(
+        503,
+        "PROJECT_WORK_RESPONSE_INVALID",
+        "The checkpoint resume receipt does not match the exact command, checkpoint, or retained Work identity.",
       );
     }
     return structuredClone(receipt);

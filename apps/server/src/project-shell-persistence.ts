@@ -99,6 +99,7 @@ import type {
   ProjectThreadViewReader,
   ProjectWorkOperationAuthority,
   ProjectWorkOperationsViewReader,
+  ProjectWorkResumeAuthority,
   ProjectWorkerOutputManifestReader,
   ProjectWorkViewReader,
   ProjectWorkingStateSnapshotReader,
@@ -128,6 +129,10 @@ const BUILT_IN_PROFILE_URLS = [
   ),
   new URL(
     "../../../packages/contracts/fixtures/accepted/registered-project-profile-scientific-v1-2.json",
+    import.meta.url,
+  ),
+  new URL(
+    "../../../packages/contracts/fixtures/accepted/registered-project-profile-scientific-v1-3.json",
     import.meta.url,
   ),
   new URL(
@@ -188,6 +193,7 @@ export interface ProjectShellPersistence {
   readonly workerOutputManifests: ProjectWorkerOutputManifestReader;
   readonly workOperations: ProjectWorkOperationsViewReader;
   readonly workOperationAuthority: ProjectWorkOperationAuthority;
+  readonly workResumeAuthority: ProjectWorkResumeAuthority;
   readonly threadViews: ProjectThreadViewReader;
   readonly inquiryViews: ProjectInquiryViewReader;
   readonly inquirySaveAuthority?: ProjectInquirySaveAuthority;
@@ -728,6 +734,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
         ),
         workOperations,
         workOperationAuthority: workOperations,
+        workResumeAuthority: workOperations,
         threadViews,
         inquiryViews: new PostgresProjectInquiryViewReader(pool),
         inquirySaveAuthority,
@@ -830,6 +837,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
     ),
     workOperations,
     workOperationAuthority: workOperations,
+    workResumeAuthority: workOperations,
     threadViews,
     inquiryViews: new PostgresProjectInquiryViewReader(pool),
     suggestedActionViews,

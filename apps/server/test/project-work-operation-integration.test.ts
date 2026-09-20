@@ -13,6 +13,7 @@ import type {
   PetraProjectDefinition,
   PetraProjectWorkOperationReceipt,
   PetraProjectWorkOperationRequest,
+  PetraProjectWorkResumeRequest,
   PetraRightsDecision,
   PetraWorkerInputManifest,
   PetraWorkerOutputManifest,
@@ -160,6 +161,7 @@ describePostgres("Wave 6 Work production commands", () => {
       ),
       projectWorkOperations: workOperations,
       projectWorkOperationAuthority: workOperations,
+      projectWorkResumeAuthority: workOperations,
     });
   };
 
@@ -437,6 +439,144 @@ describePostgres("Wave 6 Work production commands", () => {
     output.content_hash = canonicalHash(output.content);
     await workUnits.complete(output, retryRunning.revision);
 
+    const third = registration();
+    third.workUnit.work_unit_id = "work_unit_01K6P000000000000000000803";
+    third.inputManifest.worker_input_manifest_id =
+      "worker_input_manifest_01K6P000000000000000000803";
+    third.inputManifest.work_unit_id = third.workUnit.work_unit_id;
+    third.workUnit.spec.input_manifest_ref.worker_input_manifest_id =
+      third.inputManifest.worker_input_manifest_id;
+    third.workUnit.spec.idempotency_key = "wave6:evidence:resume-work";
+    third.workUnit.spec.cache = {
+      cache_mode: "reuse_exact",
+      cache_key: "wave6:evidence:resume-work",
+    };
+    third.workUnit.spec.checkpoint_policy = "latest_valid";
+    third.workUnit.spec_hash = canonicalHash(third.workUnit.spec);
+    third.workUnit.trace_id = "trace_01K6P000000000000000000803";
+    await workUnits.register(third);
+    await workUnits.queue(
+      third.workUnit.work_unit_id,
+      1,
+      "2026-09-19T16:02:01.000Z",
+    );
+    await workUnits.start(
+      third.workUnit.work_unit_id,
+      2,
+      1,
+      "2026-09-19T16:02:02.000Z",
+    );
+    const checkpoint = {
+      artifact_id: "artifact_01ARZ3NDEKTSV4RRFFQ69G5FB1",
+      content_hash:
+        "sha256:76313fbb039e79b42da7b3ee67b26123f2b7e7157c80f019e688682337a0f09e",
+      recorded_at: "2026-09-19T16:02:03.000Z",
+    };
+    const checkpointed = await workUnits.checkpoint(
+      third.workUnit.work_unit_id,
+      3,
+      1,
+      checkpoint,
+      checkpoint.recorded_at,
+    );
+    const unregisteredResume = await client().readOperations(
+      third.workUnit.project_id,
+      third.workUnit.work_unit_id,
+    );
+    expect(
+      unregisteredResume.controls.find(
+        (control) => control.operation === "resume",
+      ),
+    ).toEqual(expect.objectContaining({ state: "unavailable" }));
+    await expect(
+      client().resume(third.workUnit.project_id, third.workUnit.work_unit_id, {
+        schema_name: "petra.project-work-resume-request",
+        schema_version: "1.0.0",
+        command_id: "command_01K6P000000000000000000807",
+        idempotency_key: "wave6:evidence:work:resume:unregistered",
+        expected_work_unit_ref: {
+          work_unit_id: checkpointed.work_unit_id,
+          revision: checkpointed.revision,
+          spec_hash: checkpointed.spec_hash,
+        },
+        expected_checkpoint: checkpoint,
+        submitted_at: "2026-09-19T16:02:03.250Z",
+      }),
+    ).rejects.toEqual(
+      expect.objectContaining({
+        code: "PROJECT_WORK_OPERATION_UNAVAILABLE",
+      }),
+    );
+    await workOperations.registerCheckpointResume({
+      resumeRegistrationId:
+        "work_resume_registration_01K6P000000000000000000803",
+      projectId: third.workUnit.project_id,
+      workUnitRef: {
+        work_unit_id: checkpointed.work_unit_id,
+        revision: checkpointed.revision,
+        spec_hash: checkpointed.spec_hash,
+      },
+      checkpoint,
+      registeredBy: {
+        actor_id: serviceActor().actor_id,
+        actor_kind: "service",
+      },
+      registeredAt: "2026-09-19T16:02:03.500Z",
+    });
+    const registeredResume = await client().readOperations(
+      third.workUnit.project_id,
+      third.workUnit.work_unit_id,
+    );
+    expect(
+      registeredResume.controls.find(
+        (control) => control.operation === "resume",
+      ),
+    ).toEqual(
+      expect.objectContaining({
+        state: "available",
+        command_path: `/api/commands/projects/${third.workUnit.project_id}/work/${third.workUnit.work_unit_id}/resume`,
+      }),
+    );
+    const resumeRequest: PetraProjectWorkResumeRequest = {
+      schema_name: "petra.project-work-resume-request",
+      schema_version: "1.0.0",
+      command_id: "command_01K6P000000000000000000808",
+      idempotency_key: "wave6:evidence:work:resume:08",
+      expected_work_unit_ref: {
+        work_unit_id: checkpointed.work_unit_id,
+        revision: checkpointed.revision,
+        spec_hash: checkpointed.spec_hash,
+      },
+      expected_checkpoint: checkpoint,
+      submitted_at: "2026-09-19T16:02:04.000Z",
+    };
+    const resume = await client().resume(
+      third.workUnit.project_id,
+      third.workUnit.work_unit_id,
+      resumeRequest,
+    );
+    expect(resume).toMatchObject({
+      outcome: "resumed",
+      resumed_attempt: 1,
+      checkpoint,
+      resulting_work_unit_ref: {
+        work_unit_id: third.workUnit.work_unit_id,
+        revision: checkpointed.revision + 1,
+        spec_hash: third.workUnit.spec_hash,
+      },
+      effect: {
+        prior_attempts_preserved: true,
+        checkpoint_preserved: true,
+        domain_authority_changed: false,
+      },
+    });
+    const resumedWork = await workUnits.getWorkUnit(
+      third.workUnit.work_unit_id,
+    );
+    expect(resumedWork).toMatchObject({
+      status: { state: "running", attempt: 1 },
+    });
+
     await server?.shutdown();
     server = undefined;
     await launch();
@@ -450,8 +590,14 @@ describePostgres("Wave 6 Work production commands", () => {
       second.workUnit.work_unit_id,
       retryRequest,
     );
+    const resumeReplay = await client().resume(
+      third.workUnit.project_id,
+      third.workUnit.work_unit_id,
+      resumeRequest,
+    );
     expect(cancelReplay).toStrictEqual(cancel);
     expect(retryReplay).toStrictEqual(retry);
+    expect(resumeReplay).toStrictEqual(resume);
 
     const completed = await client().readOperations(
       second.workUnit.project_id,
@@ -484,6 +630,10 @@ describePostgres("Wave 6 Work production commands", () => {
         plan_revisions: number;
         cancelled_work_revisions: number;
         retried_work_revisions: number;
+        resume_registrations: number;
+        resume_receipts: number;
+        resume_transitions: number;
+        resumed_work_revisions: number;
       }>(
         `SELECT
            (SELECT count(*)::integer
@@ -498,8 +648,22 @@ describePostgres("Wave 6 Work production commands", () => {
              WHERE work_unit_id = $1) AS cancelled_work_revisions,
            (SELECT count(*)::integer
               FROM petra.work_unit_revisions
-             WHERE work_unit_id = $2) AS retried_work_revisions`,
-        [first.workUnit.work_unit_id, second.workUnit.work_unit_id],
+             WHERE work_unit_id = $2) AS retried_work_revisions,
+           (SELECT count(*)::integer
+              FROM petra.project_work_resume_registrations) AS resume_registrations,
+           (SELECT count(*)::integer
+              FROM petra.project_work_resume_receipts
+             WHERE state = 'completed') AS resume_receipts,
+           (SELECT count(*)::integer
+              FROM petra.project_work_resume_transitions) AS resume_transitions,
+           (SELECT count(*)::integer
+              FROM petra.work_unit_revisions
+             WHERE work_unit_id = $3) AS resumed_work_revisions`,
+        [
+          first.workUnit.work_unit_id,
+          second.workUnit.work_unit_id,
+          third.workUnit.work_unit_id,
+        ],
       )
     ).rows[0];
     expect(durable).toEqual({
@@ -508,6 +672,10 @@ describePostgres("Wave 6 Work production commands", () => {
       plan_revisions: 2,
       cancelled_work_revisions: 4,
       retried_work_revisions: 7,
+      resume_registrations: 1,
+      resume_receipts: 1,
+      resume_transitions: 1,
+      resumed_work_revisions: 5,
     });
 
     const commandReceipts: PetraProjectWorkOperationReceipt[] = [
@@ -524,7 +692,7 @@ describePostgres("Wave 6 Work production commands", () => {
       status: "passed",
       executed_at: new Date().toISOString(),
       command: "npm run test:wave6:work",
-      database: "fresh disposable PostgreSQL 18.6 with Flyway V001-V047",
+      database: "fresh disposable PostgreSQL 18.6 with Flyway V001-V057",
       production_boundary: {
         server: "startPetraServer over an ephemeral TCP port",
         client: "ProjectWorkClient",
@@ -559,13 +727,24 @@ describePostgres("Wave 6 Work production commands", () => {
           exact_start_replay_matched: true,
           exact_cancel_replay_after_restart_matched: true,
           exact_retry_replay_after_restart_matched: true,
+          exact_resume_replay_after_restart_matched: true,
           completed_receipts: durable?.completed_receipts,
           cancelled_work_revisions: durable?.cancelled_work_revisions,
           retried_work_revisions: durable?.retried_work_revisions,
+          resumed_work_revisions: durable?.resumed_work_revisions,
           duplicate_effects: false,
         },
         restart_assessment: {
-          resume: "unavailable",
+          resume: {
+            unregistered: "unavailable",
+            registered: "available",
+            outcome: resume.outcome,
+            checkpoint: resume.checkpoint,
+            attempt_preserved: resume.resumed_attempt === 1,
+            registration_count: durable?.resume_registrations,
+            receipt_count: durable?.resume_receipts,
+            transition_count: durable?.resume_transitions,
+          },
           start_again: "unavailable",
           invented_command_path: false,
         },
@@ -581,7 +760,7 @@ describePostgres("Wave 6 Work production commands", () => {
         },
       },
       boundary:
-        "Executes authenticated production Work reads and commands against a fresh real PostgreSQL store, including restart-visible exact replay. Worker registration, failure injection, and output completion are trusted worker-side setup; no React/browser usability claim is made, and checkpoint resume/start-again remain explicitly unavailable because no compatible workflow transition is registered.",
+        "Executes authenticated production Work reads and commands against a fresh real PostgreSQL store, including one trusted exact-checkpoint compatibility registration, authenticated same-Work resume, immutable transition lineage, and restart-visible exact replay. Worker registration, checkpoint creation, failure injection, and output completion are trusted worker-side setup; no React/browser usability claim is made, and start-again remains explicitly unavailable because no workflow-specific fresh-input transition is registered.",
     };
     if (evidenceOutput === undefined) {
       throw new Error("The Work evidence output path is not configured.");

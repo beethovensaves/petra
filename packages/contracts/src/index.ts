@@ -535,6 +535,8 @@ export type {
   WorkUnitRef as ProjectWorkOperationUnitRef,
 } from "./generated/project-work-operation-request.js";
 export type { PetraProjectWorkOperationReceipt } from "./generated/project-work-operation-receipt.js";
+export type { PetraProjectWorkResumeRequest } from "./generated/project-work-resume-request.js";
+export type { PetraProjectWorkResumeReceipt } from "./generated/project-work-resume-receipt.js";
 export type {
   Control as ProjectWorkOperationControl,
   PetraProjectWorkOperationsView,

@@ -1,0 +1,51 @@
+{
+  "schema_name": "petra.project-work-resume-receipt",
+  "schema_version": "1.0.0",
+  "receipt_id": "project_work_resume_receipt_01K6P000000000000000000901",
+  "command_id": "command_01K6P000000000000000000901",
+  "idempotency_key": "wave6:work:resume:001",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "outcome": "resumed",
+  "actor": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "human"
+  },
+  "capability_grant_id": "capability_grant_01ARZ3NDEKTSV4RRFFQ69G5FBJ",
+  "requested_work_unit_ref": {
+    "work_unit_id": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+    "revision": 4,
+    "spec_hash": "sha256:2e6c6536312fead0c9abc2d902035ba1c41b9e4a5fb6835f7666101940a6a737"
+  },
+  "checkpoint": {
+    "artifact_id": "artifact_01ARZ3NDEKTSV4RRFFQ69G5FB1",
+    "content_hash": "sha256:76313fbb039e79b42da7b3ee67b26123f2b7e7157c80f019e688682337a0f09e",
+    "recorded_at": "2026-09-20T16:00:03.000Z"
+  },
+  "resume_registration": {
+    "resume_registration_id": "work_resume_registration_01K6P000000000000000000900",
+    "content_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  },
+  "resumed_attempt": 1,
+  "resulting_work_unit_ref": {
+    "work_unit_id": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+    "revision": 5,
+    "spec_hash": "sha256:2e6c6536312fead0c9abc2d902035ba1c41b9e4a5fb6835f7666101940a6a737"
+  },
+  "effect": {
+    "kind": "operational_only",
+    "summary": "The exact checkpointed Work continued through its registered compatible transition.",
+    "prior_attempts_preserved": true,
+    "checkpoint_preserved": true,
+    "domain_authority_changed": false
+  },
+  "destination": {
+    "place_role": "work",
+    "work_unit_ref": {
+      "work_unit_id": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+      "revision": 5,
+      "spec_hash": "sha256:2e6c6536312fead0c9abc2d902035ba1c41b9e4a5fb6835f7666101940a6a737"
+    }
+  },
+  "recorded_at": "2026-09-20T16:00:04.000Z",
+  "record_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+}

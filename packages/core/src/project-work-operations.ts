@@ -2,6 +2,9 @@ import type {
   PetraProjectWorkOperationReceipt,
   PetraProjectWorkOperationRequest,
   PetraProjectWorkOperationsView,
+  PetraProjectWorkResumeReceipt,
+  PetraProjectWorkResumeRequest,
+  PetraWorkUnit,
 } from "@petra/contracts";
 
 export type ProjectWorkOperationErrorCode =
@@ -63,6 +66,25 @@ export interface RegisterProjectWorkStagePlan {
   readonly registeredAt: string;
 }
 
+export interface RegisterProjectWorkCheckpointResume {
+  readonly resumeRegistrationId: string;
+  readonly projectId: string;
+  readonly workUnitRef: {
+    readonly work_unit_id: string;
+    readonly revision: number;
+    readonly spec_hash: string;
+  };
+  readonly checkpoint: Extract<
+    PetraWorkUnit["status"],
+    { state: "checkpointed" }
+  >["checkpoint"];
+  readonly registeredBy: {
+    readonly actor_id: string;
+    readonly actor_kind: "service";
+  };
+  readonly registeredAt: string;
+}
+
 /** Server-owned command and trusted worker-input boundary for exact Project Work. */
 export interface ProjectWorkOperationAuthority {
   executeProjectWorkOperation(
@@ -80,4 +102,20 @@ export interface ProjectWorkOperationsViewReader {
     projectId: string,
     workUnitId: string,
   ): Promise<PetraProjectWorkOperationsView | undefined>;
+}
+
+/** Authenticated human command over a trusted exact-checkpoint registration. */
+export interface ProjectWorkResumeAuthority {
+  executeProjectWorkResume(
+    projectId: string,
+    request: PetraProjectWorkResumeRequest,
+    principal: ProjectWorkCommandPrincipal,
+  ): Promise<PetraProjectWorkResumeReceipt>;
+}
+
+/** Trusted workflow boundary that attests exact checkpoint compatibility. */
+export interface ProjectWorkCheckpointResumeRegistry {
+  registerCheckpointResume(
+    input: RegisterProjectWorkCheckpointResume,
+  ): Promise<void>;
 }

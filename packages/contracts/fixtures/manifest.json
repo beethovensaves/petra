@@ -85,6 +85,10 @@
     },
     {
       "schema": "registered-project-profile",
+      "path": "fixtures/accepted/registered-project-profile-scientific-v1-3.json"
+    },
+    {
+      "schema": "registered-project-profile",
       "path": "fixtures/accepted/registered-project-profile-controlled-writing.json"
     },
     {

@@ -77,6 +77,7 @@ import type {
   PetraProjectSourceReuseRequest,
   PetraProjectProfileCommandRequest,
   PetraProjectWorkOperationRequest,
+  PetraProjectWorkResumeRequest,
   PetraWorkingCandidate,
   PetraSuggestedActionInvocationRequest,
   PetraProjectHistoryCompensationExecutionRequest,
@@ -170,6 +171,7 @@ import {
   type ProjectWorkStateFilter,
   type ProjectWorkOperationAuthority,
   type ProjectWorkOperationsViewReader,
+  type ProjectWorkResumeAuthority,
   type ProjectWorkerOutputManifestReader,
   type ProjectWorkViewReader,
   type ProjectWorkingStateSnapshotReader,
@@ -244,6 +246,7 @@ export interface PetraAppOptions {
   projectWorkerOutputManifests?: ProjectWorkerOutputManifestReader;
   projectWorkOperations?: ProjectWorkOperationsViewReader;
   projectWorkOperationAuthority?: ProjectWorkOperationAuthority;
+  projectWorkResumeAuthority?: ProjectWorkResumeAuthority;
   projectThreadViews?: ProjectThreadViewReader;
   projectInquiryViews?: ProjectInquiryViewReader;
   projectInquirySaveAuthority?: ProjectInquirySaveAuthority;
@@ -5546,6 +5549,124 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
           error instanceof Error
             ? error.message
             : "The Project Work operation assessment is unavailable.",
+          error instanceof InteractionInputError ? error.issues : undefined,
+        );
+      }
+    },
+  );
+
+  app.post(
+    "/api/commands/projects/:projectId/work/:workUnitId/resume",
+    async (context) => {
+      if (
+        options.projectWorkResumeAuthority === undefined ||
+        options.commandPrincipalResolver === undefined
+      ) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_WORK_OPERATION_UNAVAILABLE",
+          "The authenticated checkpoint-resume boundary is not configured.",
+        );
+      }
+      try {
+        const parameters = new URL(context.req.url).searchParams;
+        if ([...parameters.keys()].length > 0) {
+          throw new InteractionInputError(
+            "Project Work resume commands do not accept query parameters.",
+            [...new Set(parameters.keys())],
+          );
+        }
+        const projectId = context.req.param("projectId");
+        const workUnitId = context.req.param("workUnitId");
+        if (
+          !PROJECT_ID_PATTERN.test(projectId) ||
+          !WORK_UNIT_ID_PATTERN.test(workUnitId)
+        ) {
+          throw new InteractionInputError(
+            "Checkpoint resume requires canonical Project and WorkUnit identities.",
+          );
+        }
+        const body = (await readBoundedJson(
+          context,
+          maxBodyBytes,
+        )) as PetraProjectWorkResumeRequest;
+        contracts.assertValid("project-work-resume-request", "1.0.0", body);
+        if (body.expected_work_unit_ref.work_unit_id !== workUnitId) {
+          throw new InteractionInputError(
+            "The resume route and expected WorkUnit must identify the same task.",
+          );
+        }
+        const principal =
+          await options.commandPrincipalResolver.resolveCommandPrincipal({
+            projectId,
+            commandName: "ManageProjectWork",
+          });
+        if (
+          principal.state !== "resolved" ||
+          principal.actor.actor_kind !== "human"
+        ) {
+          throw new ProjectWorkOperationError(
+            "PROJECT_WORK_OPERATION_NOT_AUTHORIZED",
+            `The authenticated resume principal was denied: ${principal.state === "resolved" ? "actor_not_human" : principal.reason}.`,
+          );
+        }
+        const receipt =
+          await options.projectWorkResumeAuthority.executeProjectWorkResume(
+            projectId,
+            body,
+            {
+              actor: {
+                actor_id: principal.actor.actor_id,
+                actor_kind: "human",
+              },
+              capabilityGrantId: principal.capabilityGrantId,
+            },
+          );
+        contracts.assertValid("project-work-resume-receipt", "1.0.0", receipt);
+        if (
+          receipt.project_id !== projectId ||
+          receipt.command_id !== body.command_id ||
+          receipt.idempotency_key !== body.idempotency_key ||
+          receipt.requested_work_unit_ref.work_unit_id !== workUnitId ||
+          canonicalize(receipt.checkpoint) !==
+            canonicalize(body.expected_checkpoint)
+        ) {
+          throw new Error(
+            "The checkpoint-resume receipt crossed its exact command boundary.",
+          );
+        }
+        return context.json(receipt);
+      } catch (error) {
+        const invalid =
+          error instanceof InteractionInputError ||
+          error instanceof ContractRegistryError ||
+          error instanceof SyntaxError;
+        const status = invalid
+          ? 422
+          : error instanceof ProjectWorkOperationError
+            ? error.code === "PROJECT_WORK_OPERATION_NOT_FOUND"
+              ? 404
+              : error.code === "PROJECT_WORK_OPERATION_NOT_AUTHORIZED"
+                ? 403
+                : error.code === "PROJECT_WORK_OPERATION_STALE" ||
+                    error.code === "PROJECT_WORK_OPERATION_CONFLICT"
+                  ? 409
+                  : error.code === "PROJECT_WORK_OPERATION_UNAVAILABLE"
+                    ? 422
+                    : 503
+            : 503;
+        return jsonError(
+          context,
+          status,
+          invalid
+            ? "PROJECT_WORK_RESUME_REQUEST_INVALID"
+            : error instanceof ProjectWorkOperationError
+              ? error.code
+              : "PROJECT_WORK_RESUME_FAILED",
+          error instanceof Error
+            ? error.message
+            : "The checkpoint resume command failed.",
           error instanceof InteractionInputError ? error.issues : undefined,
         );
       }
