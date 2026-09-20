@@ -1,0 +1,21 @@
+{
+  "schema_name": "petra.wave6-source-processing-browser-observation",
+  "schema_version": 1,
+  "observed_at": "2026-09-20T12:02:52.695Z",
+  "operations": ["source.start-processing", "source.inspect-processing"],
+  "production_boundary": "Production SourceProcessingPanel with the renderer-neutral ProjectSourceProcessingClient boundary and deterministic typed transport.",
+  "exercised": [
+    "server-composed ready request",
+    "stable command and idempotency retry",
+    "unknown-effect recovery assessment",
+    "durable receipt and exact Work destination",
+    "ready, unavailable, active, and terminal states",
+    "exact profile, source, representation, and limitation inspection",
+    "same-Project task and focus return",
+    "narrow viewport, 200% text, reduced motion, keyboard focus, and browser semantics"
+  ],
+  "exclusions": [
+    "No PostgreSQL service was started by this focused browser run.",
+    "This is not the complete UX1.6-SOURCES register/process/inspect/replace/remove/delete/recovery workflow."
+  ]
+}

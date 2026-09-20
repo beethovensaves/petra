@@ -1475,6 +1475,132 @@
   color: var(--petra-text-secondary);
 }
 
+.source-processing {
+  margin-top: var(--petra-space-4);
+  padding: var(--petra-space-5);
+  border: var(--petra-rule-thin) solid var(--petra-border-default);
+  border-radius: var(--petra-radius-medium);
+  background: var(--petra-surface-panel);
+}
+
+.source-processing:focus {
+  outline: 3px solid var(--petra-focus-ring);
+  outline-offset: 3px;
+}
+
+.source-processing > header,
+.source-processing-actions {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--petra-space-4);
+}
+
+.source-processing > header p:last-child,
+.source-processing-state > p,
+.source-processing-error > p,
+.source-processing-recovery > p,
+.source-processing-receipt > p {
+  color: var(--petra-text-secondary);
+}
+
+.source-processing-bindings,
+.source-processing-representation dl,
+.source-processing-receipt > dl,
+.source-processing-receipt details dl,
+.source-processing-exact dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--petra-space-3);
+  margin: var(--petra-space-4) 0 0;
+}
+
+.source-processing-bindings > div,
+.source-processing-representation dl > div,
+.source-processing-receipt dl > div,
+.source-processing-exact dl > div {
+  min-width: 0;
+  padding-top: var(--petra-space-3);
+  border-top: var(--petra-rule-thin) solid var(--petra-border-subtle);
+}
+
+.source-processing-bindings dd,
+.source-processing-representation dd,
+.source-processing-receipt dd,
+.source-processing-exact dd {
+  margin-inline-start: 0;
+  overflow-wrap: anywhere;
+}
+
+.source-processing-representation,
+.source-processing-state,
+.source-processing-error,
+.source-processing-recovery,
+.source-processing-receipt,
+.source-processing-limitations,
+.source-processing-exact {
+  margin-top: var(--petra-space-5);
+  padding-top: var(--petra-space-4);
+  border-top: var(--petra-rule-thin) solid var(--petra-border-subtle);
+}
+
+.source-processing-state,
+.source-processing-error,
+.source-processing-recovery,
+.source-processing-receipt {
+  padding: var(--petra-space-4);
+  border: var(--petra-rule-thin) solid var(--petra-tone-information);
+  background: var(--petra-tone-information-soft);
+}
+
+.source-processing-state--unavailable,
+.source-processing-error,
+.source-processing-recovery {
+  border-color: var(--petra-tone-caution);
+  background: var(--petra-tone-caution-soft);
+}
+
+.source-processing-receipt {
+  border-color: var(--petra-tone-positive);
+  background: var(--petra-tone-positive-soft);
+}
+
+.source-processing-state > :last-child,
+.source-processing-error > :last-child,
+.source-processing-recovery > :last-child,
+.source-processing-receipt > :last-child,
+.source-processing-limitations > :last-child {
+  margin-bottom: 0;
+}
+
+.source-processing-actions {
+  justify-content: flex-start;
+  margin-top: var(--petra-space-3);
+  flex-wrap: wrap;
+}
+
+.source-processing-recovery__error {
+  font-weight: var(--petra-weight-semibold);
+}
+
+.source-processing-limitations ul {
+  margin-bottom: 0;
+  padding-inline-start: var(--petra-space-5);
+}
+
+.source-processing-exact summary,
+.source-processing-receipt summary {
+  min-height: var(--petra-target-min);
+  cursor: pointer;
+  color: var(--petra-text-link);
+  font-weight: var(--petra-weight-medium);
+}
+
+.source-processing code {
+  font-family: var(--petra-font-mono);
+  font-size: var(--petra-font-size-caption);
+}
+
 .reference-reader-return {
   display: flex;
   align-items: center;
@@ -1670,7 +1796,12 @@
   .source-registration-checks,
   .source-reuse-candidates,
   .source-registration-receipt > dl,
-  .source-registration-receipt details dl {
+  .source-registration-receipt details dl,
+  .source-processing-bindings,
+  .source-processing-representation dl,
+  .source-processing-receipt > dl,
+  .source-processing-receipt details dl,
+  .source-processing-exact dl {
     grid-template-columns: 1fr;
   }
 
@@ -1691,7 +1822,9 @@
   .reference-suggested-action__actions,
   .reference-suggested-work-action > header,
   .reference-suggested-action__invocation > header,
-  .reference-reader-heading__state {
+  .reference-reader-heading__state,
+  .source-processing > header,
+  .source-processing-actions {
     align-items: stretch;
     flex-direction: column;
   }
@@ -1703,7 +1836,8 @@
   .reference-panel,
   .reference-attention,
   .reference-document,
-  .reference-details {
+  .reference-details,
+  .source-processing {
     padding: var(--petra-space-4);
   }
 

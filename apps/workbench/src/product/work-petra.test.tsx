@@ -24,6 +24,7 @@ import {
   PetraSurface,
   WorkCollectionSurface,
   WorkDetailSurface,
+  workDetailReturnContext,
 } from "./WorkPetraSurface.js";
 import {
   petraThreadFromView,
@@ -34,6 +35,48 @@ import {
 
 const render = (node: React.ReactNode): string =>
   renderToStaticMarkup(<MemoryRouter>{node}</MemoryRouter>);
+
+describe("Work task contextual return", () => {
+  const projectId = "project_01ARZ3NDEKTSV4RRFFQ69G5FAW";
+
+  it("preserves one exact same-Project source task and focus", () => {
+    const sourcePath = `/projects/${projectId}/sources/project_source_01K6T000000000000000000009?from=sources`;
+    const context = workDetailReturnContext(
+      projectId,
+      new URLSearchParams({
+        return_to: sourcePath,
+        return_label: "source processing",
+        return_focus: "source-processing",
+      }),
+    );
+
+    expect(context).toStrictEqual({
+      path: `${sourcePath}#source-processing`,
+      label: "source processing",
+    });
+  });
+
+  it("rejects cross-Project and external returns", () => {
+    expect(
+      workDetailReturnContext(
+        projectId,
+        new URLSearchParams({
+          return_to: "https://example.test/projects/other/sources/source",
+          return_label: "source processing",
+        }),
+      ),
+    ).toBeUndefined();
+    expect(
+      workDetailReturnContext(
+        projectId,
+        new URLSearchParams({
+          return_to: "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAX/brief",
+          return_label: "another Project",
+        }),
+      ),
+    ).toBeUndefined();
+  });
+});
 
 const suggestedWorkActionView = JSON.parse(
   readFileSync(

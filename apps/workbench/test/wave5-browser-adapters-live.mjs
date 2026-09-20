@@ -13,3 +13,4 @@ export * from "../../../packages/adapters/src/review-session-separation-client.j
 export * from "../../../packages/adapters/src/communication-plan-client.js";
 export * from "../../../packages/adapters/src/project-working-state-client.js";
 export * from "../../../packages/adapters/src/project-source-reuse-client.js";
+export * from "../../../packages/adapters/src/project-source-processing-client.js";

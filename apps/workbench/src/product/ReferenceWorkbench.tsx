@@ -30,6 +30,7 @@ import {
   projectImportAvailability,
 } from "./ProjectImportSurface.js";
 import { SourceRegistrationPanel } from "./SourceRegistration.js";
+import { SourceProcessingPanel } from "./SourceProcessing.js";
 import { SourceReusePanel, type SourceReuseCompletion } from "./SourceReuse.js";
 import type {
   ProjectBriefData,
@@ -1492,10 +1493,12 @@ export const SourceReaderSurface = ({
   project,
   source,
   returnTo,
+  taskReturnPath,
 }: {
   project: ProjectRecord;
   source: SourceRecord;
   returnTo?: { path: string; label: string } | undefined;
+  taskReturnPath?: string;
 }) => {
   const returnPath = returnTo?.path ?? `/projects/${project.id}/sources`;
   const returnLabel =
@@ -1544,17 +1547,6 @@ export const SourceReaderSurface = ({
                   Only identity is available
                 </h3>
                 <p>{source.limitation}</p>
-                <PetraButton
-                  variant="primary"
-                  unavailable={{
-                    reason:
-                      "Processing eligibility and permission are unresolved.",
-                    prerequisite:
-                      "A permitted copy and source processing capability.",
-                  }}
-                >
-                  Process source
-                </PetraButton>
               </div>
             </section>
           ) : (
@@ -1582,6 +1574,15 @@ export const SourceReaderSurface = ({
         <SourceDetails source={source} />
       </div>
 
+      <SourceProcessingPanel
+        projectId={project.id}
+        projectSourceId={source.id}
+        taskReturnPath={
+          taskReturnPath ??
+          `/projects/${encodeURIComponent(project.id)}/sources/${encodeURIComponent(source.id)}`
+        }
+      />
+
       <footer className="reference-reader-return">
         <p>
           Returning preserves the current Project, snapshot, and source
@@ -1598,6 +1599,7 @@ export const SourceReaderSurface = ({
 export const SourceReaderRoute = (): React.JSX.Element => {
   const project = useProjectRecord();
   const source = useLoaderData<SourceRecord>();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const returnOrigin = searchParams.get("from");
   const returnSourceQuery = searchParams.get("sourceQuery");
@@ -1647,6 +1649,7 @@ export const SourceReaderRoute = (): React.JSX.Element => {
       project={project}
       source={source}
       returnTo={returnTo}
+      taskReturnPath={`${location.pathname}${location.search}`}
     />
   );
 };

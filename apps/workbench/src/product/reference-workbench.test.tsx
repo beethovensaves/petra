@@ -940,9 +940,8 @@ describe("neutral Petra reference workbench", () => {
     expect(markup).toContain(
       "cannot inspect or cite content until a permitted copy is processed",
     );
-    expect(markup).toContain(
-      "Processing eligibility and permission are unresolved",
-    );
+    expect(markup).toContain("Processing details");
+    expect(markup).toContain("Reading processing details");
     expect(markup).toContain(
       "/projects/inlet-cycle/brief#attention-source-depth",
     );

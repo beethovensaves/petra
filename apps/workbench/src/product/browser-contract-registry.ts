@@ -50,6 +50,10 @@ import projectSourceSchema from "../../../../packages/contracts/schemas/project-
 import projectSourceRegistrationRequestSchema from "../../../../packages/contracts/schemas/project-source-registration-request/1.0.0/schema.json";
 import projectSourceRegistrationReceiptSchema from "../../../../packages/contracts/schemas/project-source-registration-receipt/1.0.0/schema.json";
 import projectSourceRegistrationRecoveryViewSchema from "../../../../packages/contracts/schemas/project-source-registration-recovery-view/1.0.0/schema.json";
+import projectSourceProcessingRequestSchema from "../../../../packages/contracts/schemas/project-source-processing-request/1.0.0/schema.json";
+import projectSourceProcessingReceiptSchema from "../../../../packages/contracts/schemas/project-source-processing-receipt/1.0.0/schema.json";
+import projectSourceProcessingRecoveryViewSchema from "../../../../packages/contracts/schemas/project-source-processing-recovery-view/1.0.0/schema.json";
+import projectSourceProcessingViewSchema from "../../../../packages/contracts/schemas/project-source-processing-view/1.0.0/schema.json";
 import projectSourceReuseRequestSchema from "../../../../packages/contracts/schemas/project-source-reuse-request/1.0.0/schema.json";
 import projectSourceReuseOptionsViewSchema from "../../../../packages/contracts/schemas/project-source-reuse-options-view/1.0.0/schema.json";
 import projectSourceReuseReceiptSchema from "../../../../packages/contracts/schemas/project-source-reuse-receipt/1.0.0/schema.json";
@@ -151,6 +155,10 @@ type BrowserContractName =
   | "project-source-registration-request@1.0.0"
   | "project-source-registration-receipt@1.0.0"
   | "project-source-registration-recovery-view@1.0.0"
+  | "project-source-processing-request@1.0.0"
+  | "project-source-processing-receipt@1.0.0"
+  | "project-source-processing-recovery-view@1.0.0"
+  | "project-source-processing-view@1.0.0"
   | "project-source-reuse-request@1.0.0"
   | "project-source-reuse-options-view@1.0.0"
   | "project-source-reuse-receipt@1.0.0"
@@ -241,6 +249,10 @@ const schemas = [
   projectSourceRegistrationRequestSchema,
   projectSourceRegistrationReceiptSchema,
   projectSourceRegistrationRecoveryViewSchema,
+  projectSourceProcessingRequestSchema,
+  projectSourceProcessingReceiptSchema,
+  projectSourceProcessingRecoveryViewSchema,
+  projectSourceProcessingViewSchema,
   projectSourceReuseRequestSchema,
   projectSourceReuseOptionsViewSchema,
   projectSourceReuseReceiptSchema,
@@ -337,6 +349,13 @@ const contractIds: Record<BrowserContractName, string> = {
     projectSourceRegistrationReceiptSchema.$id,
   "project-source-registration-recovery-view@1.0.0":
     projectSourceRegistrationRecoveryViewSchema.$id,
+  "project-source-processing-request@1.0.0":
+    projectSourceProcessingRequestSchema.$id,
+  "project-source-processing-receipt@1.0.0":
+    projectSourceProcessingReceiptSchema.$id,
+  "project-source-processing-recovery-view@1.0.0":
+    projectSourceProcessingRecoveryViewSchema.$id,
+  "project-source-processing-view@1.0.0": projectSourceProcessingViewSchema.$id,
   "project-source-reuse-request@1.0.0": projectSourceReuseRequestSchema.$id,
   "project-source-reuse-options-view@1.0.0":
     projectSourceReuseOptionsViewSchema.$id,
@@ -524,6 +543,30 @@ export class PetraContractRegistry {
       version: "1.0.0",
       canonical_sha256:
         "sha256:af195b8e201dae246dfee82e82c0d2069b5b3828db646a7d5908d79b48c83906",
+    },
+    {
+      name: "project-source-processing-request",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:ed7e1f54b15d247485a47a502fb49fe474d0e5291c48be2cb313997d7be396ee",
+    },
+    {
+      name: "project-source-processing-receipt",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:9f0272e553ef770c1b530738699c3edfa0ea688ce5b317e8c9dd3a75e6e44b56",
+    },
+    {
+      name: "project-source-processing-recovery-view",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:ee2671041b39eefbfae79c7dd34fb509f1056ac4a4a8ff5c35284462dcc612f8",
+    },
+    {
+      name: "project-source-processing-view",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:dd61aaf9dbaf8e11e19d710d240fd0bf49c109c74d5dec48008ed60537b91ab9",
     },
     {
       name: "project-source-reuse-request",

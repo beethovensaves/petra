@@ -120,9 +120,8 @@ describe("M1.9 interface recovery assertions", () => {
     expect(markup).toContain(
       "verified the exact copy and its rights, but no parsed representation is registered",
     );
-    expect(markup).toContain(
-      "Processing eligibility and permission are unresolved",
-    );
+    expect(markup).toContain("Processing details");
+    expect(markup).toContain("Reading processing details");
     expect(markup).toContain("Return to Graph");
     expect(markup).toContain("selected=claim_01ARZ3NDEKTSV4RRFFQ69G5FBB");
   });

@@ -386,11 +386,17 @@
       "surfaces": ["SP04", "SP07"],
       "flows": ["UX-FLOW-05"],
       "requests": ["UX-REQ-010", "UX-REQ-014"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/sources/:sourceId",
       "control": "Process source",
       "interaction": "command",
-      "evidence": [],
+      "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH PETRA_WAVE6_SOURCE_PROCESSING_BROWSER_OUTPUT=reports/WAVE6-SOURCE-PROCESSING-BROWSER.json npm run test:wave6:source-processing-ui",
+          "artifact": "reports/WAVE6-SOURCE-PROCESSING-BROWSER.json",
+          "boundary": "Isolated Chrome executed the production Source Details processing component and renderer-neutral ProjectSourceProcessingClient boundary with deterministic typed transport. It verified server-composed exact requests, stable retry identity, recovery assessment, durable receipt, ready/unavailable/active/terminal states, bindings, representation, limitations, Work destination, exact task/focus return, keyboard semantics, and responsive reflow. The exact backend counterpart separately proves live server and PostgreSQL ownership; this artifact does not claim the complete named UX1.6-SOURCES scenario."
+        }
+      ],
       "runtime_owner": "GET /api/queries/projects/:projectId/sources/:projectSourceId/processing + POST /api/commands/projects/:projectId/sources/:projectSourceId/processing + POST /api/queries/projects/:projectId/sources/:projectSourceId/processing-recovery",
       "paths": ["UX-PATH-02", "UX-PATH-03"]
     },
@@ -401,11 +407,17 @@
       "surfaces": ["SP04", "SP07"],
       "flows": ["UX-FLOW-05"],
       "requests": ["UX-REQ-010", "UX-REQ-014"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/sources/:sourceId",
       "control": "Processing details",
       "interaction": "query",
-      "evidence": [],
+      "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH PETRA_WAVE6_SOURCE_PROCESSING_BROWSER_OUTPUT=reports/WAVE6-SOURCE-PROCESSING-BROWSER.json npm run test:wave6:source-processing-ui",
+          "artifact": "reports/WAVE6-SOURCE-PROCESSING-BROWSER.json",
+          "boundary": "Isolated Chrome executed the production Source Details processing component and renderer-neutral ProjectSourceProcessingClient boundary with deterministic typed transport. It verified server-composed exact requests, stable retry identity, recovery assessment, durable receipt, ready/unavailable/active/terminal states, bindings, representation, limitations, Work destination, exact task/focus return, keyboard semantics, and responsive reflow. The exact backend counterpart separately proves live server and PostgreSQL ownership; this artifact does not claim the complete named UX1.6-SOURCES scenario."
+        }
+      ],
       "runtime_owner": "GET /api/queries/projects/:projectId/sources/:projectSourceId/processing -> PostgresProjectSourceProcessingAuthority",
       "paths": ["UX-PATH-02", "UX-PATH-03"]
     },

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { Link, useLoaderData } from "react-router";
+import { Link, useLoaderData, useSearchParams } from "react-router";
 
 import { PetraMark } from "../design-system/brand.js";
 import { StateNotice } from "../design-system/state.js";
@@ -1097,12 +1097,14 @@ export const WorkDetailSurface = ({
   work,
   operations,
   selectedResult,
+  returnTo,
 }: {
   project: ProjectRecord;
   unit: WorkUnit;
   work: WorkProjectView;
   operations?: PetraProjectWorkOperationsView;
   selectedResult?: ProjectWorkerOutputSelection;
+  returnTo?: { path: string; label: string };
 }): React.JSX.Element => {
   const branches = work.branches.filter((branch) =>
     unit.branchIds.includes(branch.id),
@@ -1113,9 +1115,10 @@ export const WorkDetailSurface = ({
       <header className="work-detail__heading">
         <Link
           className="reference-context-back"
-          to={`/projects/${project.id}/work`}
+          to={returnTo?.path ?? `/projects/${project.id}/work`}
         >
-          <span aria-hidden="true">←</span> Return to Work
+          <span aria-hidden="true">←</span> Return to{" "}
+          {returnTo?.label ?? "Work"}
         </Link>
         <div className="work-detail__orientation">
           <div>
@@ -1443,10 +1446,50 @@ export const WorkDetailSurface = ({
   );
 };
 
+export const workDetailReturnContext = (
+  projectId: string,
+  search: URLSearchParams,
+): { path: string; label: string } | undefined => {
+  const paths = search.getAll("return_to");
+  const labels = search.getAll("return_label");
+  const focusIds = search.getAll("return_focus");
+  if (paths.length === 0 && labels.length === 0 && focusIds.length === 0) {
+    return undefined;
+  }
+  if (paths.length !== 1 || labels.length !== 1 || focusIds.length > 1) {
+    return undefined;
+  }
+  const suppliedPath = paths[0]!;
+  const label = labels[0]!.trim();
+  const focusId = focusIds[0]?.trim();
+  const parsed = new URL(suppliedPath, "http://petra.local");
+  const projectRoot = `/projects/${encodeURIComponent(projectId)}/`;
+  if (
+    parsed.origin !== "http://petra.local" ||
+    !parsed.pathname.startsWith(projectRoot) ||
+    label.length === 0 ||
+    label.length > 100 ||
+    (focusId !== undefined &&
+      (focusId.length === 0 ||
+        focusId.length > 100 ||
+        !/^[A-Za-z][A-Za-z0-9_.:-]*$/u.test(focusId)))
+  ) {
+    return undefined;
+  }
+  const hash =
+    focusId === undefined ? parsed.hash : `#${encodeURIComponent(focusId)}`;
+  return {
+    path: `${parsed.pathname}${parsed.search}${hash}`,
+    label,
+  };
+};
+
 export const WorkDetailRoute = (): React.JSX.Element => {
   const project = useProjectRecord();
   const { work, unit, operations, selectedResult } =
     useLoaderData<ProjectWorkDetailData>();
+  const [searchParams] = useSearchParams();
+  const returnTo = workDetailReturnContext(project.id, searchParams);
   return (
     <WorkDetailSurface
       project={project}
@@ -1454,6 +1497,7 @@ export const WorkDetailRoute = (): React.JSX.Element => {
       work={work}
       operations={operations}
       {...(selectedResult === undefined ? {} : { selectedResult })}
+      {...(returnTo === undefined ? {} : { returnTo })}
     />
   );
 };
