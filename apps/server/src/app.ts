@@ -70,6 +70,7 @@ import type {
   PetraProjectInquirySaveRequest,
   PetraProjectObjectiveCommandRequest,
   PetraProjectSourceRegistrationRequest,
+  PetraProjectSourceProcessingRequest,
   PetraProjectSourceReuseRequest,
   PetraProjectProfileCommandRequest,
   PetraProjectWorkOperationRequest,
@@ -96,6 +97,7 @@ import {
   ProjectImportError,
   ProjectObjectiveCommandError,
   ProjectSourceRegistrationError,
+  ProjectSourceProcessingError,
   ProjectSourceReuseError,
   ProjectProfileRuntimeError,
   ProjectModelReadinessError,
@@ -121,6 +123,8 @@ import {
   type ProjectInquirySaveAuthority,
   type ProjectObjectiveCommandAuthority,
   type ProjectSourceRegistrationAuthority,
+  type ProjectSourceProcessingAuthority,
+  type ProjectSourceProcessingViewReader,
   type ProjectSourceReuseAuthority,
   type ProjectSourceReuseOptionsReader,
   type ProjectProfileCommandAuthority,
@@ -190,6 +194,8 @@ export interface PetraAppOptions {
   projectImportAncestry?: ProjectImportAncestryReader;
   projectObjectiveCommands?: ProjectObjectiveCommandAuthority;
   projectSourceRegistrationAuthority?: ProjectSourceRegistrationAuthority;
+  projectSourceProcessingAuthority?: ProjectSourceProcessingAuthority;
+  projectSourceProcessingViews?: ProjectSourceProcessingViewReader;
   projectSourceReuseAuthority?: ProjectSourceReuseAuthority;
   projectSourceReuseOptions?: ProjectSourceReuseOptionsReader;
   projectModelReadiness?: ProjectModelReadinessReader;
@@ -2032,6 +2038,77 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
     };
   };
 
+  const projectSourceProcessingResponse = (
+    context: Context<{ Variables: Variables }>,
+    error: unknown,
+  ) => {
+    const invalid =
+      error instanceof InteractionInputError ||
+      error instanceof ContractRegistryError ||
+      error instanceof SyntaxError ||
+      error instanceof TypeError;
+    const status = invalid
+      ? 422
+      : error instanceof ProjectSourceProcessingError
+        ? error.code === "PROJECT_SOURCE_PROCESSING_NOT_AUTHORIZED" ||
+          error.code === "PROJECT_SOURCE_PROCESSING_PARSE_NOT_AUTHORIZED"
+          ? 403
+          : error.code === "PROJECT_SOURCE_PROCESSING_PROJECT_NOT_FOUND" ||
+              error.code === "PROJECT_SOURCE_PROCESSING_SOURCE_NOT_FOUND"
+            ? 404
+            : error.code === "PROJECT_SOURCE_PROCESSING_COPY_UNAVAILABLE" ||
+                error.code === "PROJECT_SOURCE_PROCESSING_ROLE_UNREGISTERED" ||
+                error.code === "PROJECT_SOURCE_PROCESSING_SOURCE_UNAVAILABLE"
+              ? 422
+              : error.code === "PROJECT_SOURCE_PROCESSING_STORED_RECORD_CORRUPT"
+                ? 503
+                : 409
+        : 503;
+    return jsonError(
+      context,
+      status,
+      invalid
+        ? "PROJECT_SOURCE_PROCESSING_REQUEST_INVALID"
+        : error instanceof ProjectSourceProcessingError
+          ? error.code
+          : "PROJECT_SOURCE_PROCESSING_FAILED",
+      error instanceof Error
+        ? error.message
+        : "The source-processing boundary is unavailable.",
+      error instanceof InteractionInputError ? error.issues : undefined,
+    );
+  };
+
+  const sourceProcessingPrincipal = async (projectId: string) => {
+    if (options.commandPrincipalResolver === undefined) {
+      throw new ProjectSourceProcessingError(
+        "PROJECT_SOURCE_PROCESSING_NOT_AUTHORIZED",
+        "Authenticated source-processing authority is unavailable.",
+      );
+    }
+    const principal =
+      await options.commandPrincipalResolver.resolveCommandPrincipal({
+        projectId,
+        commandName: "StartProjectSourceProcessing",
+      });
+    if (
+      principal.state !== "resolved" ||
+      principal.actor.actor_kind !== "human"
+    ) {
+      throw new ProjectSourceProcessingError(
+        "PROJECT_SOURCE_PROCESSING_NOT_AUTHORIZED",
+        `The authenticated source-processing principal was denied: ${principal.state === "resolved" ? "actor_not_human" : principal.reason}.`,
+      );
+    }
+    return {
+      actor: {
+        actor_id: principal.actor.actor_id,
+        actor_kind: "human" as const,
+      },
+      capabilityGrantId: principal.capabilityGrantId,
+    };
+  };
+
   app.get(
     "/api/queries/projects/:projectId/source-reuse-options",
     async (context) => {
@@ -2341,6 +2418,205 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
         return context.json(assessment);
       } catch (error) {
         return projectSourceReuseResponse(context, error);
+      }
+    },
+  );
+
+  app.get(
+    "/api/queries/projects/:projectId/sources/:projectSourceId/processing",
+    async (context) => {
+      if (options.projectSourceProcessingViews === undefined) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_SOURCE_PROCESSING_VIEW_UNAVAILABLE",
+          "The composed source-processing Details read is not configured.",
+        );
+      }
+      try {
+        const projectId = context.req.param("projectId");
+        const projectSourceId = context.req.param("projectSourceId");
+        if (
+          !PROJECT_ID_PATTERN.test(projectId) ||
+          !PROJECT_SOURCE_ID_PATTERN.test(projectSourceId) ||
+          new URL(context.req.url).searchParams.size !== 0
+        ) {
+          throw new InteractionInputError(
+            "Source-processing Details requires canonical Project and ProjectSource identities and accepts no query overrides.",
+          );
+        }
+        const view =
+          await options.projectSourceProcessingViews.getProjectSourceProcessingView(
+            projectId,
+            projectSourceId,
+          );
+        if (view === undefined) {
+          return jsonError(
+            context,
+            404,
+            "PROJECT_SOURCE_PROCESSING_SOURCE_NOT_FOUND",
+            "The ProjectSource is not retained in this Project.",
+          );
+        }
+        contracts.assertValid("project-source-processing-view", "1.0.0", view);
+        if (
+          view.project_id !== projectId ||
+          view.project_source_id !== projectSourceId ||
+          view.source.project_id !== projectId ||
+          view.source.project_source_id !== projectSourceId ||
+          view.return.project_id !== projectId ||
+          view.return.project_source_id !== projectSourceId
+        ) {
+          throw new Error(
+            "The source-processing Details read crossed its exact source or return boundary.",
+          );
+        }
+        context.header("Cache-Control", "no-store");
+        return context.json(view);
+      } catch (error) {
+        return projectSourceProcessingResponse(context, error);
+      }
+    },
+  );
+
+  app.post(
+    "/api/commands/projects/:projectId/sources/:projectSourceId/processing",
+    async (context) => {
+      if (options.projectSourceProcessingAuthority === undefined) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_SOURCE_PROCESSING_UNAVAILABLE",
+          "The bounded source-processing command is not configured.",
+        );
+      }
+      try {
+        const projectId = context.req.param("projectId");
+        const projectSourceId = context.req.param("projectSourceId");
+        if (
+          !PROJECT_ID_PATTERN.test(projectId) ||
+          !PROJECT_SOURCE_ID_PATTERN.test(projectSourceId) ||
+          new URL(context.req.url).searchParams.size !== 0
+        ) {
+          throw new InteractionInputError(
+            "Source processing requires canonical Project and ProjectSource identities and accepts no query overrides.",
+          );
+        }
+        const request = (await readBoundedJson(
+          context,
+          maxBodyBytes,
+        )) as PetraProjectSourceProcessingRequest;
+        contracts.assertValid(
+          "project-source-processing-request",
+          "1.0.0",
+          request,
+        );
+        const result =
+          await options.projectSourceProcessingAuthority.executeProjectSourceProcessing(
+            projectId,
+            projectSourceId,
+            request,
+            await sourceProcessingPrincipal(projectId),
+          );
+        contracts.assertValid(
+          "project-source-processing-receipt",
+          "1.0.0",
+          result.receipt,
+        );
+        contracts.assertValid("work-unit", "1.0.0", result.workUnit);
+        contracts.assertValid(
+          "worker-input-manifest",
+          "1.0.0",
+          result.inputManifest,
+        );
+        contracts.assertValid(
+          "project-source-processing-view",
+          "1.0.0",
+          result.processing,
+        );
+        if (
+          result.receipt.project_id !== projectId ||
+          result.receipt.command_id !== request.command_id ||
+          result.receipt.idempotency_key !== request.idempotency_key ||
+          result.receipt.destination.project_source_id !== projectSourceId ||
+          result.receipt.work_unit_ref.work_unit_id !==
+            result.workUnit.work_unit_id ||
+          result.receipt.input_manifest_ref.worker_input_manifest_id !==
+            result.inputManifest.worker_input_manifest_id ||
+          result.processing.project_source_id !== projectSourceId
+        ) {
+          throw new Error(
+            "The source-processing command crossed its exact command, source, Work, or Details boundary.",
+          );
+        }
+        context.header("Cache-Control", "no-store");
+        return context.json(result, result.applied ? 201 : 200);
+      } catch (error) {
+        return projectSourceProcessingResponse(context, error);
+      }
+    },
+  );
+
+  app.post(
+    "/api/queries/projects/:projectId/sources/:projectSourceId/processing-recovery",
+    async (context) => {
+      if (options.projectSourceProcessingAuthority === undefined) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_SOURCE_PROCESSING_RECOVERY_UNAVAILABLE",
+          "The source-processing recovery boundary is not configured.",
+        );
+      }
+      try {
+        const projectId = context.req.param("projectId");
+        const projectSourceId = context.req.param("projectSourceId");
+        if (
+          !PROJECT_ID_PATTERN.test(projectId) ||
+          !PROJECT_SOURCE_ID_PATTERN.test(projectSourceId) ||
+          new URL(context.req.url).searchParams.size !== 0
+        ) {
+          throw new InteractionInputError(
+            "Source-processing recovery requires canonical Project and ProjectSource identities and accepts no query overrides.",
+          );
+        }
+        const request = (await readBoundedJson(
+          context,
+          maxBodyBytes,
+        )) as PetraProjectSourceProcessingRequest;
+        contracts.assertValid(
+          "project-source-processing-request",
+          "1.0.0",
+          request,
+        );
+        const assessment =
+          await options.projectSourceProcessingAuthority.assessProjectSourceProcessingRecovery(
+            projectId,
+            projectSourceId,
+            request,
+            await sourceProcessingPrincipal(projectId),
+          );
+        contracts.assertValid(
+          "project-source-processing-recovery-view",
+          "1.0.0",
+          assessment,
+        );
+        if (
+          assessment.project_id !== projectId ||
+          assessment.project_source_id !== projectSourceId ||
+          assessment.subject.command_id !== request.command_id ||
+          assessment.subject.idempotency_key !== request.idempotency_key ||
+          assessment.return.destination.project_id !== projectId ||
+          assessment.return.destination.project_source_id !== projectSourceId
+        ) {
+          throw new Error(
+            "The source-processing recovery assessment crossed its exact command, source, or return boundary.",
+          );
+        }
+        context.header("Cache-Control", "no-store");
+        return context.json(assessment);
+      } catch (error) {
+        return projectSourceProcessingResponse(context, error);
       }
     },
   );

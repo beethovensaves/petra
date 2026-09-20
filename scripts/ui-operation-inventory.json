@@ -373,7 +373,7 @@
       "control": "Process source",
       "interaction": "command",
       "evidence": [],
-      "runtime_owner": "",
+      "runtime_owner": "GET /api/queries/projects/:projectId/sources/:projectSourceId/processing + POST /api/commands/projects/:projectId/sources/:projectSourceId/processing + POST /api/queries/projects/:projectId/sources/:projectSourceId/processing-recovery",
       "paths": ["UX-PATH-02", "UX-PATH-03"]
     },
     {
@@ -388,7 +388,7 @@
       "control": "Processing details",
       "interaction": "query",
       "evidence": [],
-      "runtime_owner": "",
+      "runtime_owner": "GET /api/queries/projects/:projectId/sources/:projectSourceId/processing -> PostgresProjectSourceProcessingAuthority",
       "paths": ["UX-PATH-02", "UX-PATH-03"]
     },
     {

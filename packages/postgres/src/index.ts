@@ -35,6 +35,7 @@ export * from "./project-source-authority-repository.js";
 export * from "./project-source-registration-authority.js";
 export * from "./project-source-reuse-authority.js";
 export * from "./project-source-reuse-options-reader.js";
+export * from "./project-source-processing-authority.js";
 export * from "./project-source-lifecycle-authority-repository.js";
 export * from "./project-source-lifecycle-view-reader.js";
 export * from "./project-source-replacement-authority-repository.js";

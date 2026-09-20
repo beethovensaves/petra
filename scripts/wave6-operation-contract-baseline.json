@@ -108,19 +108,19 @@
       "persistence": "PostgreSQL V052 atomically appends only the target ProjectSource membership and immutable reuse receipt. Canonical Work, WorkVersion, authors, Artifact, ArtifactManifest, RightsDecision, storage, and bytes remain unchanged and are referenced exactly.",
       "recovery": "Stable command and idempotency identities replay the exact receipt. The read-only assessment distinguishes confirmed, unknown, conflicting, and differently owned outcomes and returns either the exact reused ProjectSource or the safe target Project source collection."
     },
-    "source-processing-missing": {
-      "kind": "missing",
-      "production_owner": "",
-      "authorization": "No ProjectSource-scoped production command starts a registered processing Work family.",
-      "persistence": "WorkUnit and document processing foundations exist, but no source-to-Work command binding is public.",
-      "recovery": "No start receipt, required-input result, cancel/retry assessment, or source return exists."
+    "source-processing": {
+      "kind": "command",
+      "production_owner": "GET /api/queries/projects/:projectId/sources/:projectSourceId/processing plus POST /api/commands/projects/:projectId/sources/:projectSourceId/processing and POST /api/queries/projects/:projectId/sources/:projectSourceId/processing-recovery -> PostgresProjectSourceProcessingAuthority",
+      "authorization": "Bearer authentication plus a server-resolved human principal and exact StartProjectSourceProcessing capability grant. The request binds the exact current Project, ProjectDefinition, active ProjectSource, registered source role, and Petra-owned processing family while Work identity, worker identity, limits, authority, and timestamps remain server-owned.",
+      "persistence": "PostgreSQL V053 reserves one command per exact ProjectSource, stores the server-composed WorkUnit and WorkerInputManifest before execution, starts the durable Work lifecycle, registers meaningful stages, and finalizes one immutable receipt without changing source meaning or Project authority.",
+      "recovery": "Stable command and idempotency identities replay the exact receipt. A read-only assessment distinguishes confirmed, pending or absent unknown effect, conflicting identity, and differently owned commands; the composed Details read preserves the exact source, Work paths, representation, limitations, and return."
     },
     "source-processing-read": {
-      "kind": "partial",
-      "production_owner": "GET /api/queries/projects/:projectId/sources/:projectSourceId and GET /api/queries/projects/:projectId/work/:workUnitId",
+      "kind": "query",
+      "production_owner": "GET /api/queries/projects/:projectId/sources/:projectSourceId/processing -> PostgresProjectSourceProcessingAuthority, with exact links to the existing ProjectSource and Project Work reads",
       "authorization": "Bearer-authenticated exact source and Work reads.",
-      "persistence": "PostgreSQL exposes parse coverage, source limitations, Work stages, inputs, resources, and outputs where linked.",
-      "recovery": "The two reads expose failures independently; a composed source-processing identity and exact recovery/return are incomplete."
+      "persistence": "PostgreSQL composes current Project/profile/source bindings, parse permission, retained representation, the exact processing Work identity and its Work detail/operation destinations.",
+      "recovery": "The Details read exposes explicit ready, unavailable, active, and terminal states with limitations and exact return; command reconciliation remains a distinct read-only assessment."
     },
     "source-replacement": {
       "kind": "command",
@@ -482,15 +482,15 @@
     },
     {
       "operation_id": "source.start-processing",
-      "owner": "source-processing-missing",
-      "owner_status": "missing",
-      "missing_owner": "ProjectSource-scoped registered processing Work start command."
+      "owner": "source-processing",
+      "owner_status": "owned",
+      "missing_owner": ""
     },
     {
       "operation_id": "source.inspect-processing",
       "owner": "source-processing-read",
-      "owner_status": "partial",
-      "missing_owner": "One composed source-processing read with exact Work identity, representations, limitations, outcomes, and return."
+      "owner_status": "owned",
+      "missing_owner": ""
     },
     {
       "operation_id": "source.inspect-exact",

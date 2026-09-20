@@ -177,6 +177,17 @@
       "typescript_path": "src/generated/capability-grant-v1-12.ts"
     },
     {
+      "name": "capability-grant",
+      "version": "1.13.0",
+      "$id": "https://petra.local/schemas/capability-grant/1.13.0/schema.json",
+      "path": "schemas/capability-grant/1.13.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-project-source-processing-command",
+      "canonical_sha256": "sha256:c9cb976f730d15b7dddd53e72724bfe5b0bfac62dec5865b0a779e3e4e318a80",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/capability-grant-v1-13.ts"
+    },
+    {
       "name": "capability-grant-revocation",
       "version": "1.0.0",
       "$id": "https://petra.local/schemas/capability-grant-revocation/1.0.0/schema.json",
@@ -846,6 +857,50 @@
       "canonical_sha256": "sha256:af195b8e201dae246dfee82e82c0d2069b5b3828db646a7d5908d79b48c83906",
       "generate_typescript": true,
       "typescript_path": "src/generated/project-source-registration-recovery-view.ts"
+    },
+    {
+      "name": "project-source-processing-request",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-source-processing-request/1.0.0/schema.json",
+      "path": "schemas/project-source-processing-request/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-exact-project-source-processing-command",
+      "canonical_sha256": "sha256:ed7e1f54b15d247485a47a502fb49fe474d0e5291c48be2cb313997d7be396ee",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-source-processing-request.ts"
+    },
+    {
+      "name": "project-source-processing-receipt",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-source-processing-receipt/1.0.0/schema.json",
+      "path": "schemas/project-source-processing-receipt/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-durable-project-source-processing-outcome",
+      "canonical_sha256": "sha256:9f0272e553ef770c1b530738699c3edfa0ea688ce5b317e8c9dd3a75e6e44b56",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-source-processing-receipt.ts"
+    },
+    {
+      "name": "project-source-processing-recovery-view",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-source-processing-recovery-view/1.0.0/schema.json",
+      "path": "schemas/project-source-processing-recovery-view/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-project-source-processing-reconciliation",
+      "canonical_sha256": "sha256:ee2671041b39eefbfae79c7dd34fb509f1056ac4a4a8ff5c35284462dcc612f8",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-source-processing-recovery-view.ts"
+    },
+    {
+      "name": "project-source-processing-view",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-source-processing-view/1.0.0/schema.json",
+      "path": "schemas/project-source-processing-view/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-composed-project-source-processing-details",
+      "canonical_sha256": "sha256:dd61aaf9dbaf8e11e19d710d240fd0bf49c109c74d5dec48008ed60537b91ab9",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-source-processing-view.ts"
     },
     {
       "name": "project-source-reuse-request",

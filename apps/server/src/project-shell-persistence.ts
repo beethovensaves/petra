@@ -30,6 +30,7 @@ import {
   PostgresProjectShellViewReader,
   PostgresProjectSourceLifecycleViewReader,
   PostgresProjectSourceReuseOptionsReader,
+  PostgresProjectSourceProcessingAuthority,
   PostgresProjectSourceViewReader,
   PostgresProjectThreadViewReader,
   PostgresProjectWorkOperations,
@@ -77,6 +78,8 @@ import type {
   ProjectShellViewReader,
   ProjectSourceLifecycleViewReader,
   ProjectSourceReuseOptionsReader,
+  ProjectSourceProcessingAuthority,
+  ProjectSourceProcessingViewReader,
   ProjectSourceLifecycleAuthorityRepository,
   ProjectSourceReplacementCommandAuthorityRepository,
   ProjectSourceViewReader,
@@ -143,6 +146,8 @@ export interface ProjectShellPersistence {
   readonly historyCompensationExecution: ProjectHistoryCompensationExecutionBoundary;
   readonly sourceViews: ProjectSourceViewReader;
   readonly sourceReuseOptions: ProjectSourceReuseOptionsReader;
+  readonly sourceProcessingAuthority: ProjectSourceProcessingAuthority;
+  readonly sourceProcessingViews: ProjectSourceProcessingViewReader;
   readonly sourceLifecycleViews: ProjectSourceLifecycleViewReader;
   readonly reviewViews: ProjectReviewViewReader;
   readonly reviewRecoveryAssessments: ReviewRecoveryAssessmentReader;
@@ -350,6 +355,11 @@ export const createProjectShellPersistenceFromEnvironment = async (
     new PostgresCapabilityGrantCommandAuthorizer(contracts),
     contracts,
   );
+  const sourceProcessing = new PostgresProjectSourceProcessingAuthority(
+    pool,
+    new PostgresCapabilityGrantCommandAuthorizer(contracts),
+    contracts,
+  );
   let driver: Driver | undefined;
   let closePromise: Promise<void> | undefined;
   const close = (): Promise<void> => {
@@ -372,6 +382,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
           AND to_regclass('petra.project_inquiry_save_receipts') IS NOT NULL
           AND to_regclass('petra.project_import_command_receipts') IS NOT NULL
           AND to_regclass('petra.project_objective_command_receipts') IS NOT NULL
+          AND to_regclass('petra.project_source_processing_commands') IS NOT NULL
           AND EXISTS (
             SELECT 1
             FROM information_schema.columns
@@ -480,6 +491,8 @@ export const createProjectShellPersistenceFromEnvironment = async (
           new PostgresCapabilityGrantCommandAuthorizer(contracts),
           contracts,
         ),
+        sourceProcessingAuthority: sourceProcessing,
+        sourceProcessingViews: sourceProcessing,
         sourceLifecycleViews: new PostgresProjectSourceLifecycleViewReader(
           pool,
         ),
@@ -581,6 +594,8 @@ export const createProjectShellPersistenceFromEnvironment = async (
       new PostgresCapabilityGrantCommandAuthorizer(contracts),
       contracts,
     ),
+    sourceProcessingAuthority: sourceProcessing,
+    sourceProcessingViews: sourceProcessing,
     sourceLifecycleViews: new PostgresProjectSourceLifecycleViewReader(pool),
     reviewViews,
     reviewRecoveryAssessments: new PostgresReviewRecoveryAssessmentReader(

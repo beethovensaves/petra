@@ -1,0 +1,191 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-source-processing-view/1.0.0/schema.json",
+  "title": "PetraProjectSourceProcessingView",
+  "description": "A composed exact-source Details read for processing eligibility, current bounded Work, representation, limitations, and exact return.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "project_id",
+    "project_source_id",
+    "source",
+    "profile_binding",
+    "processing",
+    "representation",
+    "limitations",
+    "return",
+    "read_at",
+    "content_hash"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.project-source-processing-view" },
+    "schema_version": { "const": "1.0.0" },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "project_source_id": {
+      "type": "string",
+      "pattern": "^project_source_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "source": { "$ref": "../../project-source-view/1.0.0/schema.json" },
+    "profile_binding": { "$ref": "#/$defs/ProfileBinding" },
+    "processing": { "$ref": "#/$defs/Processing" },
+    "representation": {
+      "$ref": "../../project-source-view/1.0.0/schema.json#/$defs/RepresentationSummary"
+    },
+    "limitations": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20,
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1, "maxLength": 1000 }
+    },
+    "return": {
+      "$ref": "../../project-source-processing-recovery-view/1.0.0/schema.json#/$defs/CollectionDestination"
+    },
+    "read_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    }
+  },
+  "$defs": {
+    "ProfileBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_ref",
+        "project_definition_ref",
+        "definition_family",
+        "profile_label",
+        "source_role",
+        "source_role_label",
+        "processing_family_ref",
+        "processing_family_label"
+      ],
+      "properties": {
+        "project_ref": {
+          "$ref": "../../project-source-registration-request/1.0.0/schema.json#/$defs/ProjectRef"
+        },
+        "project_definition_ref": {
+          "$ref": "../../project-source-registration-request/1.0.0/schema.json#/$defs/DefinitionRef"
+        },
+        "definition_family": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9.-]{2,127}$"
+        },
+        "profile_label": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "source_role": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9._/-]{1,199}$"
+        },
+        "source_role_label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "processing_family_ref": {
+          "$ref": "../../project-source-processing-request/1.0.0/schema.json#/$defs/ProcessingFamilyRef"
+        },
+        "processing_family_label": { "const": "Source processing" }
+      }
+    },
+    "WorkUnitRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["work_unit_id", "revision", "spec_hash", "state"],
+      "properties": {
+        "work_unit_id": {
+          "$ref": "../../worker-input-manifest/1.0.0/schema.json#/$defs/WorkUnitId"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "spec_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "state": {
+          "enum": [
+            "requested",
+            "queued",
+            "running",
+            "checkpointed",
+            "completed",
+            "cancelled"
+          ]
+        }
+      }
+    },
+    "Processing": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "reason", "request_template", "command"],
+          "properties": {
+            "state": { "const": "ready" },
+            "reason": { "const": "exact_copy_and_parse_permission_available" },
+            "request_template": {
+              "$ref": "../../project-source-processing-request/1.0.0/schema.json#/$defs/Expected"
+            },
+            "command": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["method", "path"],
+              "properties": {
+                "method": { "const": "POST" },
+                "path": {
+                  "type": "string",
+                  "pattern": "^/api/commands/projects/[^/]+/sources/[^/]+/processing$"
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "reason"],
+          "properties": {
+            "state": { "const": "unavailable" },
+            "reason": {
+              "enum": [
+                "source_not_active",
+                "copy_not_available",
+                "parse_not_permitted",
+                "unsupported_source_format",
+                "source_role_not_current",
+                "representation_already_available"
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "work_unit_ref",
+            "work_detail_path",
+            "operations_path"
+          ],
+          "properties": {
+            "state": { "enum": ["active", "terminal"] },
+            "work_unit_ref": { "$ref": "#/$defs/WorkUnitRef" },
+            "work_detail_path": {
+              "type": "string",
+              "pattern": "^/api/queries/projects/[^/]+/work/[^/]+$"
+            },
+            "operations_path": {
+              "type": "string",
+              "pattern": "^/api/queries/projects/[^/]+/work/[^/]+/operations$"
+            }
+          }
+        }
+      ]
+    }
+  }
+}
