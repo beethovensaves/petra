@@ -1218,8 +1218,14 @@
       "route": "/projects/:projectId/petra",
       "control": "Respond",
       "interaction": "command",
-      "evidence": [],
-      "runtime_owner": "",
+      "evidence": [
+        {
+          "command": "npm run test:wave6:actions",
+          "artifact": "reports/WAVE6-DIRECT-PETRA-COMMAND-PARITY.json",
+          "boundary": "Real disposable PostgreSQL plus verified ArtifactStore semantics prove the authenticated direct/Petra Review command identity, idempotency, restart replay, durable outcome, exact ProjectThread/Review/Work return context, and no model authority. The design-owned visible Respond control remains outstanding."
+        }
+      ],
+      "runtime_owner": "POST /api/commands/reviews/resolve -> server-resolved direct Review authority -> DurableReviewInterruptCoordinator -> DurableReviewInterruptProductBindingLoader -> Postgres Review apply/reject boundaries",
       "paths": ["UX-PATH-01", "UX-PATH-02", "UX-PATH-03", "UX-PATH-04"]
     },
     {

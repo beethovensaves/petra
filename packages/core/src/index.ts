@@ -16,6 +16,7 @@ export * from "./document-authority-repository.js";
 export * from "./document-registry.js";
 export * from "./deterministic-evidence-extraction.js";
 export * from "./durable-review-interrupt.js";
+export * from "./review-interrupt-product-binding.js";
 export * from "./draft-revision.js";
 export * from "./draft-support-assessment-registry.js";
 export * from "./felicity-revision.js";

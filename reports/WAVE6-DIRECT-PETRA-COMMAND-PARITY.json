@@ -1,0 +1,1282 @@
+{
+  "evidence_id": "UX1.6-ACTIONS",
+  "scenario_id": "direct-petra-command-parity",
+  "status": "passed",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "project_thread_ref": {
+    "project_thread_id": "project_thread_01K4C000000000000000000101",
+    "revision": 1,
+    "content_hash": "sha256:89627a7de4b1a7a071a5bc087e9fd77728b7df4018184957ab77c38a4de7b752",
+    "record_hash": "sha256:39fa9939ee299c66896f299ca2b955452317e0f3805bba01c6bcdb87080b38fd"
+  },
+  "review_session_ref": {
+    "review_session_id": "review_session_01K4D000000000000000000004",
+    "revision": 1,
+    "content_hash": "sha256:5b9e043b8ccf916d317c9e8bfadf7089b2830c414e3395455f3b480ecc7b7764"
+  },
+  "work_unit_ref": {
+    "work_unit_id": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+    "revision": 1,
+    "spec_hash": "sha256:2e6c6536312fead0c9abc2d902035ba1c41b9e4a5fb6835f7666101940a6a737",
+    "record_hash": "sha256:e476b1130d010c5949b0cf16859ba989ca6be92bf581b200c38fc804d236eca3"
+  },
+  "interaction_run_ref": {
+    "interaction_run_id": "interaction_run_01ARZ3NDEKTSV4RRFFQ69G5FD6",
+    "revision": 1,
+    "content_hash": "sha256:1c6e861f14ed1b8483da9c3049d8afa35dc20e6940b6c7d8dc5311699c555ad1"
+  },
+  "interrupt_ref": {
+    "interaction_interrupt_id": "interaction_interrupt_01ARZ3NDEKTSV4RRFFQ69G5FD8",
+    "revision": 1,
+    "content_hash": "sha256:3ca396eae8537f24530fddeaa93a17775c533a0e2ca3496f6e0d85c8b77981e5"
+  },
+  "change_set_ref": {
+    "change_set_id": "change_set_5WVHP981YYVT9AM1WS7F371GAE",
+    "revision": 1,
+    "content_hash": "sha256:40517e3066c1606dcef4b88dbc9805144832e66ae5bde657052581683cc0bcdd"
+  },
+  "direct_and_petra_command_refs": [
+    {
+      "command_id": "command_3P4AZ4HPFA2QQT8GK4W53BCT0S",
+      "idempotency_key": "review-checkpoint:sha256:b888bc06862125e925e642c4327cad34542b3b533df8538526e0c460928472c4:0",
+      "command_name": "SubmitChangeSet",
+      "actor": {
+        "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+        "actor_kind": "human"
+      },
+      "capability_grant_id": "capability_grant_01ARZ3NDEKTSV4RRFFQ69G5FBJ"
+    },
+    {
+      "command_id": "command_665AQQKSE62JWKPY4FV1KVH7Q9",
+      "idempotency_key": "review-checkpoint:sha256:b888bc06862125e925e642c4327cad34542b3b533df8538526e0c460928472c4:1",
+      "command_name": "RecordApproval",
+      "actor": {
+        "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+        "actor_kind": "human"
+      },
+      "capability_grant_id": "capability_grant_01ARZ3NDEKTSV4RRFFQ69G5FBJ"
+    },
+    {
+      "command_id": "command_5DNHXRGSJG7CEMX3W1DTHMD8C0",
+      "idempotency_key": "review-checkpoint:sha256:b888bc06862125e925e642c4327cad34542b3b533df8538526e0c460928472c4:2",
+      "command_name": "ApplyChangeSet",
+      "actor": {
+        "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+        "actor_kind": "human"
+      },
+      "capability_grant_id": "capability_grant_01ARZ3NDEKTSV4RRFFQ69G5FBJ"
+    }
+  ],
+  "first_outcome": "applied",
+  "restart_replay_outcome": "applied",
+  "restart_observations": ["replayed", "replayed", "replayed"],
+  "direct_replay_observations": ["replayed", "replayed", "replayed"],
+  "recovery": {
+    "schema_name": "petra.review-recovery-assessment",
+    "schema_version": "1.0.0",
+    "assessment_id": "review_recovery_sha256_8b3e68099bf02f9960806ebd29544ae4dc7a867d7e0d35c34ff6098169280203",
+    "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+    "content": {
+      "freshness": {
+        "expected_review_identity": "current",
+        "authority_snapshot": "stale",
+        "members": [
+          {
+            "review_member_id": "review_member_01K4D000000000000000000005",
+            "working_heads": "current"
+          }
+        ]
+      },
+      "producer": "petra.postgres.review-recovery",
+      "producer_version": "1.0.0",
+      "rule_version": "d020.scientific.v1",
+      "privacy": "authenticated_single_user_project",
+      "review_session": {
+        "content": {
+          "title": "Review the source-grounded working candidate",
+          "origin": {
+            "summary": "Opened from the exact task that retained the canonical working candidate and relationship.",
+            "origin_kind": "work_result",
+            "record_refs": ["work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2"]
+          },
+          "members": [
+            {
+              "member_role": "ordinary",
+              "working_state": {
+                "candidate_ref": {
+                  "revision": 1,
+                  "content_hash": "sha256:1edac19a555e28f2abc004ab9eda8ae703210118f0cddcef2bb1f72d4eb0189a",
+                  "working_candidate_id": "working_candidate_01K4D000000000000000000002"
+                },
+                "relationship_refs": [
+                  {
+                    "revision": 1,
+                    "content_hash": "sha256:69422aa7b6a2d1fcf3259357f0024415f0209708df1b8dd3765b7349b05bfb3e",
+                    "working_relationship_id": "working_relationship_01K4D000000000000000000003"
+                  }
+                ]
+              },
+              "review_member_id": "review_member_01K4D000000000000000000005",
+              "candidate_bindings": [
+                {
+                  "record_ref": {
+                    "revision": 1,
+                    "record_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+                    "record_hash": "sha256:9e1ca46cc89811ac8b7bfbb7262a45e4859a49a9ce575dae415360548fb57ec2"
+                  },
+                  "binding_role": "candidate",
+                  "semantic_key": "scientific.claim"
+                },
+                {
+                  "record_ref": {
+                    "revision": 1,
+                    "record_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+                    "record_hash": "sha256:0336c8c8a191f6ea771aa1f549d437f4e81366f27357926b5d3ad262cd655b57"
+                  },
+                  "binding_role": "relationship",
+                  "semantic_key": "scientific.assertion"
+                }
+              ]
+            }
+          ],
+          "snapshot": {
+            "captured_at": "2026-09-12T14:13:00.000Z",
+            "event_position": 0,
+            "stream_revision": 0
+          },
+          "lifecycle": "open",
+          "responsible": {
+            "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+            "actor_kind": "human"
+          },
+          "objective_ref": {
+            "revision": 2,
+            "content_hash": "sha256:335ccee3cdd67d50a07b0e3acef369fb57ee6b2d83b0397a4bdddd48b97358f7",
+            "objective_id": "objective_01K4C000000000000000000005"
+          },
+          "return_context": {
+            "label": "Extract supported claims",
+            "place": "work",
+            "object_ref": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2"
+          },
+          "objective_summary": "Decide whether the exact working Claim and ASSERTS relationship should enter trusted Project state."
+        },
+        "revision": 1,
+        "created_at": "2026-09-12T14:13:00.000Z",
+        "created_by": {
+          "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+          "actor_kind": "human"
+        },
+        "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+        "updated_at": "2026-09-12T14:13:00.000Z",
+        "schema_name": "petra.review-session",
+        "content_hash": "sha256:5b9e043b8ccf916d317c9e8bfadf7089b2830c414e3395455f3b480ecc7b7764",
+        "schema_version": "1.1.0",
+        "review_session_id": "review_session_01K4D000000000000000000004",
+        "project_definition_ref": {
+          "revision": 2,
+          "content_hash": "sha256:b8fc28fc562fe39b053fabf9437f97e61bce6446172e2e03a26e71e369985133",
+          "project_definition_id": "project_definition_01K4C000000000000000000001"
+        }
+      },
+      "review": {
+        "session": {
+          "revision": 1,
+          "content_hash": "sha256:5b9e043b8ccf916d317c9e8bfadf7089b2830c414e3395455f3b480ecc7b7764",
+          "title": "Review the source-grounded working candidate",
+          "objective_summary": "Decide whether the exact working Claim and ASSERTS relationship should enter trusted Project state.",
+          "objective": {
+            "objective_ref": {
+              "record_id": "objective_01K4C000000000000000000005",
+              "revision": 2,
+              "content_hash": "sha256:335ccee3cdd67d50a07b0e3acef369fb57ee6b2d83b0397a4bdddd48b97358f7"
+            },
+            "objective_kind": "scientific.research-question",
+            "statement": "Determine which claims in the selected source are supported by exact inspectable passages."
+          },
+          "status": "completed",
+          "status_label": "Completed",
+          "responsible": {
+            "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+            "display_name": "Researcher"
+          },
+          "project_definition_ref": {
+            "record_id": "project_definition_01K4C000000000000000000001",
+            "revision": 2,
+            "content_hash": "sha256:b8fc28fc562fe39b053fabf9437f97e61bce6446172e2e03a26e71e369985133"
+          },
+          "project_definition_label": "Scientific evidence inquiry with working records",
+          "snapshot": {
+            "captured_at": "2026-09-12T14:13:00.000Z",
+            "event_position": 0,
+            "stream_revision": 0
+          },
+          "snapshot_state": "stale",
+          "origin": {
+            "origin_kind": "work_result",
+            "record_refs": ["work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2"],
+            "label": "Work result",
+            "detail": "Opened from the exact task that retained the canonical working candidate and relationship."
+          },
+          "return_context": {
+            "label": "Extract supported claims",
+            "place": "work",
+            "object_ref": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2"
+          },
+          "lifecycle": "open"
+        },
+        "members": [
+          {
+            "review_member_id": "review_member_01K4D000000000000000000005",
+            "member_role": "ordinary",
+            "outcome": "applied",
+            "candidate": {
+              "candidate_id": "review_member_01K4D000000000000000000005",
+              "revision_label": "Working candidate revision 1 · 1 exact working relationship",
+              "kind_label": "Claim and evidence relationship",
+              "current": "No accepted representation",
+              "proposed": "The study reports a measurable improvement.",
+              "difference": "Adds one source-grounded Claim and its ASSERTS relationship to trusted Project state if an exact ChangeSet is approved and applied.",
+              "origin_label": "Researcher",
+              "origin_detail": "Direct Edit · The Project author retained this task-sized working candidate for Review.",
+              "profile_payload": {
+                "payload_kind": "scientific_evidence_pair",
+                "claim_ref": {
+                  "revision": 1,
+                  "record_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+                  "record_hash": "sha256:9e1ca46cc89811ac8b7bfbb7262a45e4859a49a9ce575dae415360548fb57ec2"
+                },
+                "assertion_ref": {
+                  "revision": 1,
+                  "record_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+                  "record_hash": "sha256:0336c8c8a191f6ea771aa1f549d437f4e81366f27357926b5d3ad262cd655b57"
+                },
+                "claim_kind": "descriptive",
+                "assertion_predicate": "ASSERTS",
+                "scope_dimensions": [
+                  "task",
+                  "outcome",
+                  "population",
+                  "language",
+                  "model_family",
+                  "dataset",
+                  "intervention_or_exposure",
+                  "comparator",
+                  "setting",
+                  "temporal_boundary"
+                ]
+              }
+            },
+            "basis": [
+              {
+                "basis_id": "source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7",
+                "label": "Results / Paragraph 1",
+                "relation": "Principal source basis",
+                "extent": "Full Text · exact text and geometry",
+                "detail": "The study reports a measurable improvement.",
+                "project_source_id": "project_source_01K4C000000000000000000007",
+                "project_source_status": "active",
+                "source_span_ref": {
+                  "record_id": "source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7",
+                  "revision": 1,
+                  "record_hash": "sha256:557e103aec60ca81c47ab105d663ef80bf8e75819608ec41b7e7867755f77a86"
+                }
+              }
+            ],
+            "validation": {
+              "state": "passed",
+              "label": "Applicable checks passed",
+              "detail": "3 exact working checks passed. This does not approve the candidate, grant mutation authority, or establish scientific truth."
+            },
+            "consequences": [
+              "Promote the exact Claim and ASSERTS pair into trusted Project state through one atomic ChangeSet.",
+              "The exact quarantine revisions and source provenance remain retained.",
+              "Graph projection begins only after an authoritative event commits."
+            ],
+            "change_sets": [
+              {
+                "change_set_ref": {
+                  "record_id": "change_set_5WVHP981YYVT9AM1WS7F371GAE",
+                  "revision": 1,
+                  "content_hash": "sha256:40517e3066c1606dcef4b88dbc9805144832e66ae5bde657052581683cc0bcdd"
+                },
+                "state": "applied",
+                "atomicity": "One atomic ChangeSet · 2 operations",
+                "changes": [
+                  "Promote Claim claim_01ARZ3NDEKTSV4RRFFQ69G5FBB revision 1.",
+                  "Promote Assertion assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC revision 1."
+                ],
+                "protected": [
+                  "Source bytes and ProjectSource membership remain unchanged.",
+                  "The candidate revisions and provenance remain retained."
+                ],
+                "impact_summary": "Promote the exact Claim and ASSERTS pair into trusted Project state through one atomic ChangeSet.",
+                "approval_ref": {
+                  "record_id": "approval_02SKPJ3YFVY4JE9SK2CWTYY3D2",
+                  "revision": 1,
+                  "record_hash": "sha256:509b5b0ab629c6a08dc4d79505d2785352cbd9685f3463c162a4e14af0f6a01e"
+                },
+                "commands": [
+                  {
+                    "command_id": "command_3P4AZ4HPFA2QQT8GK4W53BCT0S",
+                    "command_name": "SubmitChangeSet",
+                    "command_fingerprint": "sha256:e7678ecaedd0850e0a8575a3dd4a9618b7d9681ba7d03253b4d21e5a33897954",
+                    "outcome": "success",
+                    "submitted_at": "2026-09-20T16:00:00.000Z",
+                    "completed_at": "2026-09-20T16:21:03.934Z"
+                  },
+                  {
+                    "command_id": "command_5DNHXRGSJG7CEMX3W1DTHMD8C0",
+                    "command_name": "ApplyChangeSet",
+                    "command_fingerprint": "sha256:8f9c57fcc3069b9de4c3fe4ddc63c60d4ea1b7a389564c59e524f40f393a8f7c",
+                    "outcome": "success",
+                    "submitted_at": "2026-09-20T16:00:00.000Z",
+                    "completed_at": "2026-09-20T16:21:04.026Z"
+                  },
+                  {
+                    "command_id": "command_665AQQKSE62JWKPY4FV1KVH7Q9",
+                    "command_name": "RecordApproval",
+                    "command_fingerprint": "sha256:5fa2c78c0b8e3a694b70d0335848a571ff37c3908a8cd54ae3ee21266a9cd0ea",
+                    "outcome": "success",
+                    "submitted_at": "2026-09-20T16:00:00.000Z",
+                    "completed_at": "2026-09-20T16:21:03.984Z"
+                  }
+                ],
+                "events": [
+                  {
+                    "event_id": "event_01M2ZSY09ZECA7DGV1WPTB9JW9",
+                    "event_type": "change_set.submitted",
+                    "event_position": 1,
+                    "stream_revision": 1,
+                    "command_id": "command_3P4AZ4HPFA2QQT8GK4W53BCT0S",
+                    "record_hash": "sha256:ad3a6b0c08a4c71efc5715f05a46afa7e096a825430b238e75fa299e827b4326",
+                    "recorded_at": "2026-09-20T16:21:03.934Z"
+                  },
+                  {
+                    "event_id": "event_01M2ZSY0BHFNY8WSJKA03GQ53P",
+                    "event_type": "approval.recorded",
+                    "event_position": 2,
+                    "stream_revision": 2,
+                    "command_id": "command_665AQQKSE62JWKPY4FV1KVH7Q9",
+                    "record_hash": "sha256:8fc1f6b14a523911e19b92905d57cc6b0ec50bdb93aee0fbc7036a9e1e055113",
+                    "recorded_at": "2026-09-20T16:21:03.984Z"
+                  },
+                  {
+                    "event_id": "event_01M2ZSY0CVDBVAAA1CPDQERXKH",
+                    "event_type": "change_set.applied",
+                    "event_position": 3,
+                    "stream_revision": 3,
+                    "command_id": "command_5DNHXRGSJG7CEMX3W1DTHMD8C0",
+                    "record_hash": "sha256:f8931d1bf52ea081f851fbf90153c79d8e324a48c3989e8fe73b52800ec3e62a",
+                    "recorded_at": "2026-09-20T16:21:04.026Z"
+                  }
+                ]
+              }
+            ],
+            "working_state": {
+              "candidate": {
+                "basis": [
+                  {
+                    "summary": "The exact source span is the working basis.",
+                    "basis_role": "source",
+                    "record_ref": {
+                      "revision": 1,
+                      "record_id": "source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7",
+                      "record_hash": "sha256:557e103aec60ca81c47ab105d663ef80bf8e75819608ec41b7e7867755f77a86",
+                      "schema_name": "petra.source-span",
+                      "schema_version": "1.0.0"
+                    }
+                  }
+                ],
+                "origin": {
+                  "summary": "The Project author retained this task-sized working candidate for Review.",
+                  "origin_kind": "direct_edit",
+                  "source_record_refs": [
+                    {
+                      "revision": 1,
+                      "record_id": "source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7",
+                      "record_hash": "sha256:557e103aec60ca81c47ab105d663ef80bf8e75819608ec41b7e7867755f77a86",
+                      "schema_name": "petra.source-span",
+                      "schema_version": "1.0.0"
+                    }
+                  ]
+                },
+                "lineage": {
+                  "lineage_kind": "root"
+                },
+                "producer": {
+                  "actor": {
+                    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+                    "actor_kind": "human"
+                  },
+                  "producer_kind": "human",
+                  "contribution_kind": "direct_edit"
+                },
+                "revision": 1,
+                "created_at": "2026-09-12T14:10:00.000Z",
+                "created_by": {
+                  "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+                  "actor_kind": "human"
+                },
+                "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+                "provenance": [
+                  {
+                    "statement": "The exact source span remains input provenance.",
+                    "record_ref": {
+                      "revision": 1,
+                      "record_id": "source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7",
+                      "record_hash": "sha256:557e103aec60ca81c47ab105d663ef80bf8e75819608ec41b7e7867755f77a86",
+                      "schema_name": "petra.source-span",
+                      "schema_version": "1.0.0"
+                    },
+                    "provenance_role": "input"
+                  }
+                ],
+                "validation": {
+                  "state": "completed",
+                  "results": [
+                    {
+                      "code": "SPAN_RESOLVED",
+                      "outcome": "passed",
+                      "statement": "The cited SourceSpan resolves under the bound snapshot.",
+                      "validated_at": "2026-09-12T14:12:00.000Z",
+                      "validated_by": {
+                        "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+                        "actor_kind": "human"
+                      },
+                      "validator_ref": {
+                        "name": "petra.validator.source-span-resolution",
+                        "version": "1.0.0",
+                        "content_hash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+                      }
+                    },
+                    {
+                      "code": "SCOPE_PRESERVED",
+                      "outcome": "passed",
+                      "statement": "The candidate retains the source's stated scope and unreported dimensions.",
+                      "validated_at": "2026-09-12T14:12:00.000Z",
+                      "validated_by": {
+                        "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+                        "actor_kind": "human"
+                      },
+                      "validator_ref": {
+                        "name": "petra.validator.scope-preservation",
+                        "version": "1.0.0",
+                        "content_hash": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+                      }
+                    }
+                  ],
+                  "target_record_hash": "sha256:9e1ca46cc89811ac8b7bfbb7262a45e4859a49a9ce575dae415360548fb57ec2"
+                },
+                "disposition": "available",
+                "recorded_at": "2026-09-12T14:12:00.000Z",
+                "schema_name": "petra.working-candidate",
+                "content_hash": "sha256:1edac19a555e28f2abc004ab9eda8ae703210118f0cddcef2bb1f72d4eb0189a",
+                "task_context": {
+                  "task_kind": "work_unit",
+                  "objective_ref": {
+                    "revision": 2,
+                    "record_id": "objective_01K4C000000000000000000005",
+                    "record_hash": "sha256:679fbd4abd8025990a13ef4c3144bc07547d26c9479b9b4f03b21c214cf24ca5",
+                    "schema_name": "petra.project-objective",
+                    "schema_version": "1.0.0"
+                  },
+                  "work_unit_ref": {
+                    "revision": 1,
+                    "record_id": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+                    "record_hash": "sha256:e476b1130d010c5949b0cf16859ba989ca6be92bf581b200c38fc804d236eca3",
+                    "schema_name": "petra.work-unit",
+                    "schema_version": "1.0.0"
+                  }
+                },
+                "input_snapshot": {
+                  "snapshot_ref": {
+                    "revision": 1,
+                    "snapshot_id": "snapshot_01ARZ3NDEKTSV4RRFFQ69G5FCE",
+                    "content_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                    "event_position": 0
+                  },
+                  "input_record_refs": [
+                    {
+                      "revision": 1,
+                      "record_id": "source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7",
+                      "record_hash": "sha256:557e103aec60ca81c47ab105d663ef80bf8e75819608ec41b7e7867755f77a86",
+                      "schema_name": "petra.source-span",
+                      "schema_version": "1.0.0"
+                    }
+                  ]
+                },
+                "profile_object": {
+                  "registration": {
+                    "contract": {
+                      "name": "petra.claim",
+                      "version": "1.0.0",
+                      "content_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                    },
+                    "semantic_key": "scientific.claim",
+                    "registration_kind": "object_schema"
+                  },
+                  "object_record_ref": {
+                    "revision": 1,
+                    "record_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+                    "record_hash": "sha256:9e1ca46cc89811ac8b7bfbb7262a45e4859a49a9ce575dae415360548fb57ec2",
+                    "schema_name": "petra.claim",
+                    "schema_version": "1.0.0"
+                  },
+                  "candidate_operation": "create"
+                },
+                "qualifications": {
+                  "statements": [],
+                  "assessment_state": "none_recorded"
+                },
+                "schema_version": "1.0.0",
+                "authority_boundary": {
+                  "review_decision": false,
+                  "domain_authority": false,
+                  "mutation_authority": false,
+                  "promotion_requires_review": true,
+                  "validation_grants_authority": false
+                },
+                "working_candidate_id": "working_candidate_01K4D000000000000000000002",
+                "project_definition_ref": {
+                  "revision": 2,
+                  "content_hash": "sha256:b8fc28fc562fe39b053fabf9437f97e61bce6446172e2e03a26e71e369985133",
+                  "definition_family": "petra.scientific-evidence",
+                  "project_definition_id": "project_definition_01K4C000000000000000000001"
+                }
+              },
+              "relationships": [
+                {
+                  "basis": [
+                    {
+                      "summary": "The exact source span is the working basis.",
+                      "basis_role": "source",
+                      "record_ref": {
+                        "revision": 1,
+                        "record_id": "source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7",
+                        "record_hash": "sha256:557e103aec60ca81c47ab105d663ef80bf8e75819608ec41b7e7867755f77a86",
+                        "schema_name": "petra.source-span",
+                        "schema_version": "1.0.0"
+                      }
+                    }
+                  ],
+                  "origin": {
+                    "summary": "The Project author retained the exact task-aligned ASSERTS relationship.",
+                    "origin_kind": "direct_edit",
+                    "source_record_refs": [
+                      {
+                        "revision": 1,
+                        "record_id": "source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7",
+                        "record_hash": "sha256:557e103aec60ca81c47ab105d663ef80bf8e75819608ec41b7e7867755f77a86",
+                        "schema_name": "petra.source-span",
+                        "schema_version": "1.0.0"
+                      }
+                    ]
+                  },
+                  "lineage": {
+                    "lineage_kind": "root"
+                  },
+                  "producer": {
+                    "actor": {
+                      "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+                      "actor_kind": "human"
+                    },
+                    "producer_kind": "human",
+                    "contribution_kind": "direct_edit"
+                  },
+                  "revision": 1,
+                  "endpoints": {
+                    "object": {
+                      "candidate_ref": {
+                        "revision": 1,
+                        "content_hash": "sha256:1edac19a555e28f2abc004ab9eda8ae703210118f0cddcef2bb1f72d4eb0189a",
+                        "working_candidate_id": "working_candidate_01K4D000000000000000000002"
+                      },
+                      "endpoint_kind": "working_candidate"
+                    },
+                    "subject": {
+                      "record_ref": {
+                        "revision": 1,
+                        "record_id": "work_version_01ARZ3NDEKTSV4RRFFQ69G5FB0",
+                        "record_hash": "sha256:dba5ca5f392635236e74d317bf2b7443e70c9e991fe85d11f18e5ccaf163f965",
+                        "schema_name": "petra.work-version",
+                        "schema_version": "1.0.0"
+                      },
+                      "endpoint_kind": "profile_record"
+                    }
+                  },
+                  "created_at": "2026-09-12T14:10:00.000Z",
+                  "created_by": {
+                    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+                    "actor_kind": "human"
+                  },
+                  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+                  "provenance": [
+                    {
+                      "statement": "The exact source span remains input provenance.",
+                      "record_ref": {
+                        "revision": 1,
+                        "record_id": "source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7",
+                        "record_hash": "sha256:557e103aec60ca81c47ab105d663ef80bf8e75819608ec41b7e7867755f77a86",
+                        "schema_name": "petra.source-span",
+                        "schema_version": "1.0.0"
+                      },
+                      "provenance_role": "input"
+                    }
+                  ],
+                  "validation": {
+                    "state": "completed",
+                    "results": [
+                      {
+                        "code": "SPAN_RESOLVED",
+                        "outcome": "passed",
+                        "statement": "The relationship provenance resolves to the exact SourceSpan.",
+                        "validated_at": "2026-09-12T14:12:00.000Z",
+                        "validated_by": {
+                          "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+                          "actor_kind": "human"
+                        },
+                        "validator_ref": {
+                          "name": "petra.validator.source-span-resolution",
+                          "version": "1.0.0",
+                          "content_hash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+                        }
+                      }
+                    ],
+                    "target_record_hash": "sha256:0336c8c8a191f6ea771aa1f549d437f4e81366f27357926b5d3ad262cd655b57"
+                  },
+                  "disposition": "available",
+                  "recorded_at": "2026-09-12T14:12:00.000Z",
+                  "schema_name": "petra.working-relationship",
+                  "content_hash": "sha256:69422aa7b6a2d1fcf3259357f0024415f0209708df1b8dd3765b7349b05bfb3e",
+                  "task_context": {
+                    "task_kind": "work_unit",
+                    "objective_ref": {
+                      "revision": 2,
+                      "record_id": "objective_01K4C000000000000000000005",
+                      "record_hash": "sha256:679fbd4abd8025990a13ef4c3144bc07547d26c9479b9b4f03b21c214cf24ca5",
+                      "schema_name": "petra.project-objective",
+                      "schema_version": "1.0.0"
+                    },
+                    "work_unit_ref": {
+                      "revision": 1,
+                      "record_id": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+                      "record_hash": "sha256:e476b1130d010c5949b0cf16859ba989ca6be92bf581b200c38fc804d236eca3",
+                      "schema_name": "petra.work-unit",
+                      "schema_version": "1.0.0"
+                    }
+                  },
+                  "input_snapshot": {
+                    "snapshot_ref": {
+                      "revision": 1,
+                      "snapshot_id": "snapshot_01ARZ3NDEKTSV4RRFFQ69G5FCE",
+                      "content_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                      "event_position": 0
+                    },
+                    "input_record_refs": [
+                      {
+                        "revision": 1,
+                        "record_id": "source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7",
+                        "record_hash": "sha256:557e103aec60ca81c47ab105d663ef80bf8e75819608ec41b7e7867755f77a86",
+                        "schema_name": "petra.source-span",
+                        "schema_version": "1.0.0"
+                      }
+                    ]
+                  },
+                  "qualifications": {
+                    "statements": [],
+                    "assessment_state": "none_recorded"
+                  },
+                  "schema_version": "1.0.0",
+                  "authority_boundary": {
+                    "review_decision": false,
+                    "domain_authority": false,
+                    "mutation_authority": false,
+                    "promotion_requires_review": true,
+                    "validation_grants_authority": false
+                  },
+                  "profile_relationship": {
+                    "predicate": "ASSERTS",
+                    "registration": {
+                      "contract": {
+                        "name": "petra.assertion",
+                        "version": "1.0.0",
+                        "content_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+                      },
+                      "semantic_key": "scientific.assertion",
+                      "registration_kind": "relationship_schema"
+                    },
+                    "candidate_operation": "create",
+                    "relationship_record_ref": {
+                      "revision": 1,
+                      "record_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+                      "record_hash": "sha256:0336c8c8a191f6ea771aa1f549d437f4e81366f27357926b5d3ad262cd655b57",
+                      "schema_name": "petra.assertion",
+                      "schema_version": "1.0.0"
+                    }
+                  },
+                  "project_definition_ref": {
+                    "revision": 2,
+                    "content_hash": "sha256:b8fc28fc562fe39b053fabf9437f97e61bce6446172e2e03a26e71e369985133",
+                    "definition_family": "petra.scientific-evidence",
+                    "project_definition_id": "project_definition_01K4C000000000000000000001"
+                  },
+                  "working_relationship_id": "working_relationship_01K4D000000000000000000003"
+                }
+              ],
+              "selection_basis": "exact_review_session_working_bindings",
+              "authority_effect": "none"
+            }
+          }
+        ],
+        "authority": {
+          "isolation": "repeatable_read",
+          "event_position": 3,
+          "stream_revision": 3
+        },
+        "projection": {
+          "state": "unavailable",
+          "reason": "No authoritative graph-projection checkpoint is registered for this Project."
+        }
+      },
+      "groups": [
+        {
+          "change_set": {
+            "state": "submitted",
+            "content": {
+              "impact": {
+                "summary": "Promote the exact Claim and ASSERTS pair into trusted Project state through one atomic ChangeSet.",
+                "generated_at": "2026-09-20T16:00:00.000Z",
+                "affected_object_ids": [
+                  "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+                  "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC"
+                ],
+                "downstream_object_ids": []
+              },
+              "origin": "direct_edit",
+              "reason": "Manual Apply from ReviewSession review_session_01K4D000000000000000000004 revision 1.",
+              "risk_tier": "R2",
+              "operations": [
+                {
+                  "after": {
+                    "zone": "trusted",
+                    "review_state": "human_accepted"
+                  },
+                  "before": {
+                    "zone": "quarantine",
+                    "review_state": "machine_checked"
+                  },
+                  "target_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+                  "base_revision": 1,
+                  "operation_kind": "promote_claim"
+                },
+                {
+                  "after": {
+                    "zone": "trusted",
+                    "review_state": "human_accepted"
+                  },
+                  "before": {
+                    "zone": "quarantine",
+                    "review_state": "machine_checked"
+                  },
+                  "target_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+                  "base_revision": 1,
+                  "operation_kind": "promote_assertion"
+                }
+              ],
+              "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+              "proposed_by": {
+                "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+                "actor_kind": "human"
+              }
+            },
+            "revision": 1,
+            "proposed_at": "2026-09-20T16:00:00.000Z",
+            "schema_name": "petra.change-set",
+            "content_hash": "sha256:40517e3066c1606dcef4b88dbc9805144832e66ae5bde657052581683cc0bcdd",
+            "change_set_id": "change_set_5WVHP981YYVT9AM1WS7F371GAE",
+            "schema_version": "1.0.0"
+          },
+          "record_hash": "sha256:f6f45f656a315ac1c149d07d81ce7b98e45d7fd6ac61db70da591cccf4f72d94",
+          "state": "applied",
+          "member_ids": ["review_member_01K4D000000000000000000005"],
+          "operation_count": 2,
+          "coverage": "complete",
+          "member_outcomes": [
+            {
+              "review_member_id": "review_member_01K4D000000000000000000005",
+              "review_outcome": "applied"
+            }
+          ],
+          "effect": "applied",
+          "effect_basis": "The exact committed application event establishes the whole ChangeSet effect; current compensation facts belong to History.",
+          "next_step": "inspect",
+          "approvals": [
+            {
+              "subject": {
+                "subject_kind": "change_set",
+                "change_set_id": "change_set_5WVHP981YYVT9AM1WS7F371GAE",
+                "change_set_revision": 1,
+                "change_set_content_hash": "sha256:40517e3066c1606dcef4b88dbc9805144832e66ae5bde657052581683cc0bcdd"
+              },
+              "decision": "approved",
+              "revision": 1,
+              "rationale": "Authenticated human Apply checkpoint sha256:b888bc06862125e925e642c4327cad34542b3b533df8538526e0c460928472c4 for ReviewSession review_session_01K4D000000000000000000004 revision 1. ReviewPolicy: not applicable.",
+              "conditions": [],
+              "decided_at": "2026-09-20T16:00:00.000Z",
+              "decided_by": {
+                "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+                "actor_kind": "human"
+              },
+              "approval_id": "approval_02SKPJ3YFVY4JE9SK2CWTYY3D2",
+              "schema_name": "petra.approval",
+              "decision_scope": "exact_change_set",
+              "schema_version": "1.0.0"
+            }
+          ],
+          "commands": [
+            {
+              "trace": {
+                "command_id": "command_3P4AZ4HPFA2QQT8GK4W53BCT0S",
+                "command_name": "SubmitChangeSet",
+                "command_fingerprint": "sha256:e7678ecaedd0850e0a8575a3dd4a9618b7d9681ba7d03253b4d21e5a33897954",
+                "outcome": "success",
+                "submitted_at": "2026-09-20T16:00:00.000Z",
+                "completed_at": "2026-09-20T16:21:03.934Z"
+              },
+              "receipt_owner": "petra.command_executions",
+              "receipt_hash": "sha256:fb2ed1acf284b2852070038abd251135ef75dc3f8c64939c5305371be6846d6a",
+              "receipt_state": "success",
+              "idempotency_key": "review-checkpoint:sha256:b888bc06862125e925e642c4327cad34542b3b533df8538526e0c460928472c4:0"
+            },
+            {
+              "trace": {
+                "command_id": "command_5DNHXRGSJG7CEMX3W1DTHMD8C0",
+                "command_name": "ApplyChangeSet",
+                "command_fingerprint": "sha256:8f9c57fcc3069b9de4c3fe4ddc63c60d4ea1b7a389564c59e524f40f393a8f7c",
+                "outcome": "success",
+                "submitted_at": "2026-09-20T16:00:00.000Z",
+                "completed_at": "2026-09-20T16:21:04.026Z"
+              },
+              "receipt_owner": "petra.command_executions",
+              "receipt_hash": "sha256:afea40e806910df22f5882a981399900f6e7fe74db79444172a1b357a801c33f",
+              "receipt_state": "success",
+              "idempotency_key": "review-checkpoint:sha256:b888bc06862125e925e642c4327cad34542b3b533df8538526e0c460928472c4:2"
+            },
+            {
+              "trace": {
+                "command_id": "command_665AQQKSE62JWKPY4FV1KVH7Q9",
+                "command_name": "RecordApproval",
+                "command_fingerprint": "sha256:5fa2c78c0b8e3a694b70d0335848a571ff37c3908a8cd54ae3ee21266a9cd0ea",
+                "outcome": "success",
+                "submitted_at": "2026-09-20T16:00:00.000Z",
+                "completed_at": "2026-09-20T16:21:03.984Z"
+              },
+              "receipt_owner": "petra.command_executions",
+              "receipt_hash": "sha256:a8042b49c05b097279cb53ace0433dc5f6bedadf6f7edd323517f930ba434237",
+              "receipt_state": "success",
+              "idempotency_key": "review-checkpoint:sha256:b888bc06862125e925e642c4327cad34542b3b533df8538526e0c460928472c4:1"
+            }
+          ],
+          "events": [
+            {
+              "event_id": "event_01M2ZSY09ZECA7DGV1WPTB9JW9",
+              "event_type": "change_set.submitted",
+              "event_position": 1,
+              "stream_revision": 1,
+              "command_id": "command_3P4AZ4HPFA2QQT8GK4W53BCT0S",
+              "record_hash": "sha256:ad3a6b0c08a4c71efc5715f05a46afa7e096a825430b238e75fa299e827b4326",
+              "recorded_at": "2026-09-20T16:21:03.934Z"
+            },
+            {
+              "event_id": "event_01M2ZSY0BHFNY8WSJKA03GQ53P",
+              "event_type": "approval.recorded",
+              "event_position": 2,
+              "stream_revision": 2,
+              "command_id": "command_665AQQKSE62JWKPY4FV1KVH7Q9",
+              "record_hash": "sha256:8fc1f6b14a523911e19b92905d57cc6b0ec50bdb93aee0fbc7036a9e1e055113",
+              "recorded_at": "2026-09-20T16:21:03.984Z"
+            },
+            {
+              "event_id": "event_01M2ZSY0CVDBVAAA1CPDQERXKH",
+              "event_type": "change_set.applied",
+              "event_position": 3,
+              "stream_revision": 3,
+              "command_id": "command_5DNHXRGSJG7CEMX3W1DTHMD8C0",
+              "record_hash": "sha256:f8931d1bf52ea081f851fbf90153c79d8e324a48c3989e8fe73b52800ec3e62a",
+              "recorded_at": "2026-09-20T16:21:04.026Z"
+            }
+          ],
+          "history_assessment": {
+            "event_id": "event_01M2ZSY0CVDBVAAA1CPDQERXKH",
+            "content_hash": "sha256:0676a141b08cec7ea1dabbe677f844b6c661dc2bff9bcce3d28d4befa38bef85",
+            "content": {
+              "view_kind": "change_set_recovery_assessment",
+              "authorization_scope": "authenticated_project",
+              "selected_event": {
+                "command_ref": {
+                  "command_id": "command_5DNHXRGSJG7CEMX3W1DTHMD8C0",
+                  "schema_version": "1.0.0",
+                  "command_name": "ApplyChangeSet",
+                  "idempotency_key": "review-checkpoint:sha256:b888bc06862125e925e642c4327cad34542b3b533df8538526e0c460928472c4:2",
+                  "command_fingerprint": "sha256:8f9c57fcc3069b9de4c3fe4ddc63c60d4ea1b7a389564c59e524f40f393a8f7c",
+                  "capability_grant_id": "capability_grant_01ARZ3NDEKTSV4RRFFQ69G5FBJ",
+                  "correlation_id": "trace_7QFSBVFH0S55CMPRP6AC1BR3MP"
+                },
+                "event_ref": {
+                  "event_id": "event_01M2ZSY0CVDBVAAA1CPDQERXKH",
+                  "schema_version": "1.0.0",
+                  "event_type": "change_set.applied",
+                  "event_position": 3,
+                  "stream_revision": 3,
+                  "record_hash": "sha256:f8931d1bf52ea081f851fbf90153c79d8e324a48c3989e8fe73b52800ec3e62a"
+                },
+                "actor": {
+                  "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+                  "actor_kind": "human"
+                },
+                "occurred_at": "2026-09-20T16:00:00.000Z",
+                "recorded_at": "2026-09-20T16:21:04.026Z",
+                "family": "change_control",
+                "targets": [
+                  {
+                    "role": "primary",
+                    "semantic_key": "petra.change-set",
+                    "object_id": "change_set_5WVHP981YYVT9AM1WS7F371GAE",
+                    "revision": 1,
+                    "content_hash": "sha256:40517e3066c1606dcef4b88dbc9805144832e66ae5bde657052581683cc0bcdd",
+                    "authority_state": "applied"
+                  },
+                  {
+                    "role": "affected",
+                    "semantic_key": "scientific.claim",
+                    "object_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+                    "revision": 2
+                  },
+                  {
+                    "role": "affected",
+                    "semantic_key": "scientific.assertion",
+                    "object_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+                    "revision": 2
+                  }
+                ],
+                "observed_effect": {
+                  "effect": "authority_change_applied",
+                  "outcome": "completed",
+                  "summary": "Applied the approved ChangeSet to the exact Claim and Assertion revisions."
+                },
+                "recovery": {
+                  "eligibility": "ineligible",
+                  "reason": "ChangeSet reversal requires a separate causal assessment. Generic undo and multi-step compensation are outside this bounded History slice."
+                },
+                "semantic_destination": {
+                  "place_role": "history",
+                  "task_intent": "view_history",
+                  "object_ref": {
+                    "semantic_key": "petra.change-set",
+                    "object_id": "change_set_5WVHP981YYVT9AM1WS7F371GAE",
+                    "revision": 1
+                  }
+                }
+              },
+              "recovery_subject": {
+                "selected_event_role": "promotion",
+                "promotion_change_set": {
+                  "change_set_id": "change_set_5WVHP981YYVT9AM1WS7F371GAE",
+                  "revision": 1,
+                  "schema_version": "1.0.0",
+                  "content_hash": "sha256:40517e3066c1606dcef4b88dbc9805144832e66ae5bde657052581683cc0bcdd",
+                  "record_hash": "sha256:f6f45f656a315ac1c149d07d81ce7b98e45d7fd6ac61db70da591cccf4f72d94",
+                  "current_state": "applied"
+                },
+                "applied_approval": {
+                  "approval_id": "approval_02SKPJ3YFVY4JE9SK2CWTYY3D2",
+                  "revision": 1,
+                  "change_set_id": "change_set_5WVHP981YYVT9AM1WS7F371GAE",
+                  "change_set_revision": 1,
+                  "change_set_content_hash": "sha256:40517e3066c1606dcef4b88dbc9805144832e66ae5bde657052581683cc0bcdd",
+                  "decision": "approved",
+                  "record_hash": "sha256:509b5b0ab629c6a08dc4d79505d2785352cbd9685f3463c162a4e14af0f6a01e"
+                },
+                "current_targets": [
+                  {
+                    "semantic_key": "scientific.claim",
+                    "object_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+                    "revision": 2,
+                    "schema_name": "petra.claim",
+                    "schema_version": "1.0.0",
+                    "record_hash": "sha256:cd057d398e95b261e28912b915f402fb3f389f860aa53afb1220f9bd260ee5e2",
+                    "authority_zone": "trusted",
+                    "review_state": "human_accepted",
+                    "admission_kind": "promotion",
+                    "promotion_change_set_id": "change_set_5WVHP981YYVT9AM1WS7F371GAE"
+                  },
+                  {
+                    "semantic_key": "scientific.assertion",
+                    "object_id": "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC",
+                    "revision": 2,
+                    "schema_name": "petra.assertion",
+                    "schema_version": "1.0.0",
+                    "record_hash": "sha256:f3197bc59d71b4d8c186facc9f4c4d4c813c97316c43e20a05d2601dcd7704b8",
+                    "authority_zone": "trusted",
+                    "review_state": "human_accepted",
+                    "admission_kind": "promotion",
+                    "promotion_change_set_id": "change_set_5WVHP981YYVT9AM1WS7F371GAE"
+                  }
+                ]
+              },
+              "command_authority": {
+                "principal_source": "server_authenticated_single_user",
+                "principal_state": {
+                  "state": "unavailable",
+                  "reason": "principal_not_configured"
+                },
+                "required_commands": [
+                  {
+                    "command_name": "SubmitChangeSet",
+                    "state": "denied",
+                    "reason": "principal_not_configured"
+                  },
+                  {
+                    "command_name": "RecordApproval",
+                    "state": "denied",
+                    "reason": "principal_not_configured"
+                  },
+                  {
+                    "command_name": "ApplyChangeSet",
+                    "state": "denied",
+                    "reason": "principal_not_configured"
+                  }
+                ],
+                "execution_recheck": "required_at_each_command"
+              },
+              "causal_impact_basis": {
+                "source_event_id": "event_01M2ZSY0CVDBVAAA1CPDQERXKH",
+                "direct_dependency_summary": {
+                  "registered_group_count": 4,
+                  "total_count": 2,
+                  "coverage": "complete"
+                },
+                "semantic_dependency_summary": {
+                  "registered_adapter_count": 9,
+                  "assessed_target_count": 3,
+                  "supported_target_count": 3,
+                  "total_count": 3,
+                  "coverage": "complete"
+                },
+                "dependent_effect": "not_inferred_from_reference",
+                "unknowns": [
+                  "unregistered_profile_specific_dependencies_may_exist",
+                  "transitive_dependents_may_exist",
+                  "external_system_dependents_are_not_observable"
+                ]
+              },
+              "assessment": {
+                "state": "blocked",
+                "scope": "single_change_set_compensation",
+                "reason": "The exact single-ChangeSet compensation path cannot proceed to preview under current authority.",
+                "blockers": [
+                  {
+                    "code": "command_authority_missing",
+                    "detail": "SubmitChangeSet is not currently authorized (principal_not_configured)."
+                  },
+                  {
+                    "code": "command_authority_missing",
+                    "detail": "RecordApproval is not currently authorized (principal_not_configured)."
+                  },
+                  {
+                    "code": "command_authority_missing",
+                    "detail": "ApplyChangeSet is not currently authorized (principal_not_configured)."
+                  }
+                ]
+              },
+              "decision_boundary": {
+                "reversibility": "assessed_for_exact_change_set",
+                "compensation_preview": "not_composed",
+                "compensation_execution": "not_performed",
+                "multi_step_compensation": "not_assessed"
+              },
+              "authority": {
+                "isolation": "repeatable_read",
+                "through_event_position": 3,
+                "through_stream_revision": 3
+              },
+              "omissions": [
+                "compensation_preview_not_composed",
+                "compensation_execution_not_performed",
+                "generic_undo_not_implemented",
+                "multi_step_compensation_not_assessed",
+                "historical_project_definition_not_interpreted",
+                "dependent_effect_not_inferred_from_reference",
+                "cross_family_total_order_not_asserted"
+              ],
+              "graph_navigation_history": "client_local_separate"
+            }
+          }
+        }
+      ],
+      "unbound_member_ids": [],
+      "coverage": {
+        "state": "complete",
+        "review_members": 1,
+        "assessed_members": 1,
+        "atomic_change_sets": 1,
+        "operations": 2
+      },
+      "preservation": [
+        {
+          "kind": "review",
+          "state": "verified",
+          "record_ids": ["review_session_01K4D000000000000000000004"],
+          "record_hashes": [
+            "sha256:651ad67e659cffc29fb12f153ecf763bf5c6dbe2aaeb70116e63bf5a7a457c2b"
+          ],
+          "detail": "Exact canonical Review revision, membership, task origin, and return context are retained."
+        },
+        {
+          "kind": "working_candidate",
+          "state": "verified",
+          "record_ids": ["working_candidate_01K4D000000000000000000002"],
+          "record_hashes": [
+            "sha256:f173afd17a13f2da67460552c71366d195a358fcce1600eed90b9fcd83ff019e"
+          ],
+          "detail": "Exact working revisions, producer, task references, basis, provenance, limitations, and validation are retained in the Review composition."
+        },
+        {
+          "kind": "working_relationship",
+          "state": "verified",
+          "record_ids": ["working_relationship_01K4D000000000000000000003"],
+          "record_hashes": [
+            "sha256:3c0f26c5f91aab2789a195293ac6f3ac4acc5d4dc7dbef1af18e18b2235c474f"
+          ],
+          "detail": "Exact relationship revisions and provenance are retained."
+        },
+        {
+          "kind": "candidate",
+          "state": "verified",
+          "record_ids": [
+            "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+            "assertion_01ARZ3NDEKTSV4RRFFQ69G5FBC"
+          ],
+          "record_hashes": [
+            "sha256:9e1ca46cc89811ac8b7bfbb7262a45e4859a49a9ce575dae415360548fb57ec2",
+            "sha256:0336c8c8a191f6ea771aa1f549d437f4e81366f27357926b5d3ad262cd655b57"
+          ],
+          "detail": "Every exact profile candidate binding was resolved and its record hash checked."
+        },
+        {
+          "kind": "basis",
+          "state": "verified",
+          "record_ids": ["source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7"],
+          "record_hashes": [
+            "sha256:557e103aec60ca81c47ab105d663ef80bf8e75819608ec41b7e7867755f77a86"
+          ],
+          "detail": "Retained source-span and structural-block records were reconciled; source availability remains as reported in Review."
+        },
+        {
+          "kind": "validation",
+          "state": "verified",
+          "record_ids": ["working_candidate_01K4D000000000000000000002"],
+          "record_hashes": [
+            "sha256:d287828899f03f2d85c934a683723631e7e85f0aff9999dc95342ba93e9f12a6"
+          ],
+          "detail": "Recorded validation was read, never rerun or transferred."
+        },
+        {
+          "kind": "approval",
+          "state": "verified",
+          "record_ids": ["approval_02SKPJ3YFVY4JE9SK2CWTYY3D2"],
+          "record_hashes": [
+            "sha256:509b5b0ab629c6a08dc4d79505d2785352cbd9685f3463c162a4e14af0f6a01e"
+          ],
+          "detail": "All retained Approvals for assessed ChangeSets were reconciled; an empty inventory means none recorded."
+        },
+        {
+          "kind": "command",
+          "state": "verified",
+          "record_ids": [
+            "command_3P4AZ4HPFA2QQT8GK4W53BCT0S",
+            "command_5DNHXRGSJG7CEMX3W1DTHMD8C0",
+            "command_665AQQKSE62JWKPY4FV1KVH7Q9"
+          ],
+          "record_hashes": [
+            "sha256:e7678ecaedd0850e0a8575a3dd4a9618b7d9681ba7d03253b4d21e5a33897954",
+            "sha256:8f9c57fcc3069b9de4c3fe4ddc63c60d4ea1b7a389564c59e524f40f393a8f7c",
+            "sha256:5fa2c78c0b8e3a694b70d0335848a571ff37c3908a8cd54ae3ee21266a9cd0ea"
+          ],
+          "detail": "Exact ChangeSet command envelopes were reconciled with their events and results."
+        },
+        {
+          "kind": "receipt",
+          "state": "verified",
+          "record_ids": [
+            "command_3P4AZ4HPFA2QQT8GK4W53BCT0S",
+            "command_5DNHXRGSJG7CEMX3W1DTHMD8C0",
+            "command_665AQQKSE62JWKPY4FV1KVH7Q9"
+          ],
+          "record_hashes": [
+            "sha256:fb2ed1acf284b2852070038abd251135ef75dc3f8c64939c5305371be6846d6a",
+            "sha256:afea40e806910df22f5882a981399900f6e7fe74db79444172a1b357a801c33f",
+            "sha256:a8042b49c05b097279cb53ace0433dc5f6bedadf6f7edd323517f930ba434237"
+          ],
+          "detail": "Results and failures belong to the canonical command execution ledger; no recovery receipt is created."
+        },
+        {
+          "kind": "prior_authority",
+          "state": "unverified",
+          "record_ids": [],
+          "record_hashes": [],
+          "detail": "Candidate and History evidence is retained; this read does not certify an exhaustive inventory of all prior Project revisions."
+        },
+        {
+          "kind": "projection",
+          "state": "unavailable",
+          "record_ids": [],
+          "record_hashes": [
+            "sha256:d1ab50fa682b513261946036142f80c1e21c907e0d747a0be7e84dc84b4983f6"
+          ],
+          "detail": "Projection observation is separate from ChangeSet effect; a missing checkpoint does not establish application failure."
+        },
+        {
+          "kind": "task",
+          "state": "unverified",
+          "record_ids": ["work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2"],
+          "record_hashes": [
+            "sha256:f3d088622bd0f65029c99f3dc361a1815d441fafbcafc30efd9140dbbd2dfd42"
+          ],
+          "detail": "Exact originating task references are retained in working state; their external availability is not reassessed."
+        },
+        {
+          "kind": "return_context",
+          "state": "verified",
+          "record_ids": ["work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2"],
+          "record_hashes": [
+            "sha256:2a7040b10cb9f49534b73ca2b76a4a11a4fba832266685cb429104a3e6cb55d5"
+          ],
+          "detail": "The canonical return context is retained. Navigation, unsent edits, and other client assertions are not inventoried."
+        }
+      ],
+      "limitations": [
+        "Scientific working Review and existing atomic Claim-ASSERTS promotion pairs only; no second-profile conformance is claimed.",
+        "The command ledger records terminal outcomes only. Unobserved or pending attempts cannot be inferred from absence, timeout, or projection lag.",
+        "No action descriptors are registered in this assessment version. Applied and rejected members cannot be retried; stale or conflicted members require their existing refresh or revision owner.",
+        "A retained failed command is not a safe new attempt. No retry, identity reuse, input reuse, or execution eligibility is inferred.",
+        "Coverage counts exact Review members and complete associated ChangeSets, not all Project work. Task availability, client state, and exhaustive prior authority remain unverified.",
+        "Direct and model-mediated callers use this same read; neither presentation path supplies effect or authority."
+      ],
+      "actions": [],
+      "authority_effect": "none"
+    },
+    "content_hash": "sha256:8b3e68099bf02f9960806ebd29544ae4dc7a867d7e0d35c34ff6098169280203",
+    "read_at": "2026-09-20T16:21:04.037Z",
+    "reconciled_at": "2026-09-20T16:21:04.037Z"
+  },
+  "durable_counts": {
+    "interrupts": "2",
+    "commands": "3",
+    "approvals": "1",
+    "applied_events": "1"
+  },
+  "model_authority": "none",
+  "boundary": "Authenticated human response only; the retained prompt supplies exact direct Review checkpoints and model prose supplies no Actor, grant, command, or authority."
+}
