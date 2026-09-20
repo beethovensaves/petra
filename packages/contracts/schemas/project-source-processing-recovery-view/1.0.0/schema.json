@@ -1,0 +1,158 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-source-processing-recovery-view/1.0.0/schema.json",
+  "title": "PetraProjectSourceProcessingRecoveryView",
+  "description": "A read-only reconciliation of one exact source-processing request with an exact source/Work return or safe source fallback.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "assessment_id",
+    "project_id",
+    "project_source_id",
+    "subject",
+    "effect",
+    "return",
+    "observed_at",
+    "content_hash"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.project-source-processing-recovery-view" },
+    "schema_version": { "const": "1.0.0" },
+    "assessment_id": {
+      "type": "string",
+      "pattern": "^source_processing_recovery_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "project_source_id": {
+      "type": "string",
+      "pattern": "^project_source_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "subject": { "$ref": "#/$defs/Subject" },
+    "effect": { "$ref": "#/$defs/Effect" },
+    "return": { "$ref": "#/$defs/Return" },
+    "observed_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    }
+  },
+  "$defs": {
+    "Subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["command_id", "idempotency_key", "request_hash"],
+      "properties": {
+        "command_id": {
+          "$ref": "../../project-source-processing-request/1.0.0/schema.json#/properties/command_id"
+        },
+        "idempotency_key": {
+          "$ref": "../../project-source-processing-request/1.0.0/schema.json#/properties/idempotency_key"
+        },
+        "request_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "Effect": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "receipt"],
+          "properties": {
+            "state": { "const": "effect_confirmed" },
+            "receipt": {
+              "$ref": "../../project-source-processing-receipt/1.0.0/schema.json"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "reason", "retry"],
+          "properties": {
+            "state": { "const": "outcome_unknown" },
+            "reason": {
+              "enum": [
+                "receipt_not_observed_at_cutoff",
+                "command_still_applying"
+              ]
+            },
+            "retry": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["method", "path", "reuse_exact_request"],
+              "properties": {
+                "method": { "const": "POST" },
+                "path": {
+                  "type": "string",
+                  "pattern": "^/api/commands/projects/[^/]+/sources/[^/]+/processing$"
+                },
+                "reuse_exact_request": { "const": true }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "reason"],
+          "properties": {
+            "state": { "const": "unavailable_to_verify" },
+            "reason": {
+              "enum": [
+                "command_identity_conflict",
+                "command_not_owned_by_authenticated_actor"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "CollectionDestination": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["place_role", "project_id", "project_source_id"],
+      "properties": {
+        "place_role": { "const": "sources" },
+        "project_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+        },
+        "project_source_id": {
+          "type": "string",
+          "pattern": "^project_source_[0-9A-HJKMNP-TV-Z]{26}$"
+        }
+      }
+    },
+    "Return": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "destination"],
+          "properties": {
+            "state": { "const": "exact" },
+            "destination": {
+              "$ref": "../../project-source-processing-receipt/1.0.0/schema.json#/$defs/Destination"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "destination", "reason"],
+          "properties": {
+            "state": { "const": "safe_fallback" },
+            "destination": { "$ref": "#/$defs/CollectionDestination" },
+            "reason": { "type": "string", "minLength": 1, "maxLength": 1000 }
+          }
+        }
+      ]
+    }
+  }
+}

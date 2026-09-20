@@ -7,10 +7,13 @@ import type {
   PetraArtifactManifest,
   PetraAuthor,
   PetraCapabilityGrantV180,
+  PetraCapabilityGrantV1130,
   PetraProjectWorkOperationRequest,
   PetraProject,
   PetraProjectDefinition,
   PetraRightsDecision,
+  PetraProjectSource,
+  PetraProjectSourceProcessingRequest,
   PetraWorkerInputManifest,
   PetraWorkerOutputManifest,
   PetraWork,
@@ -30,6 +33,8 @@ import {
 } from "../src/capability-grant-authority-repository.js";
 import { PostgresProjectDefinitionAuthorityRepository } from "../src/project-definition-authority-repository.js";
 import { PostgresProjectObjectLocationViewReader } from "../src/project-object-location-view-reader.js";
+import { PostgresProjectSourceAuthorityRepository } from "../src/project-source-authority-repository.js";
+import { PostgresProjectSourceProcessingAuthority } from "../src/project-source-processing-authority.js";
 import { PostgresProjectWorkOperations } from "../src/project-work-operations.js";
 import { PostgresProjectWorkViewReader } from "../src/project-work-view-reader.js";
 import { PostgresProjectWorkerOutputManifestReader } from "../src/project-worker-output-manifest-reader.js";
@@ -85,6 +90,11 @@ describePostgres("PostgreSQL bounded WorkUnit authority", () => {
     pool,
     new PostgresCapabilityGrantCommandAuthorizer(),
   );
+  const projectSources = new PostgresProjectSourceAuthorityRepository(pool);
+  const sourceProcessing = new PostgresProjectSourceProcessingAuthority(
+    pool,
+    new PostgresCapabilityGrantCommandAuthorizer(),
+  );
 
   beforeAll(async () => {
     await pool.query("SELECT 1");
@@ -119,6 +129,11 @@ describePostgres("PostgreSQL bounded WorkUnit authority", () => {
       rightsDecision,
     };
     await artifacts.registerVerifiedAcquisition(input);
+    const projectSource = readFixture<PetraProjectSource>("project-source");
+    projectSource.content.artifact_manifest_ref.record_hash =
+      canonicalHash(manifest);
+    projectSource.content_hash = canonicalHash(projectSource.content);
+    await projectSources.registerProjectSourceRevision(projectSource);
   });
 
   afterAll(async () => {
@@ -1049,5 +1064,113 @@ describePostgres("PostgreSQL bounded WorkUnit authority", () => {
     await expect(
       pool.query("UPDATE petra.work_unit_revisions SET state = 'completed'"),
     ).rejects.toEqual(expect.objectContaining({ code: "55000" }));
+  });
+
+  it("creates, starts, replays, reads, and reconciles exact ProjectSource processing Work", async () => {
+    const actor = readFixture<PetraActor>("actor");
+    const project = readFixture<PetraProject>("project");
+    const grantId = "capability_grant_01K6T000000000000000000053";
+    const content: PetraCapabilityGrantV1130["content"] = {
+      scope_kind: "project_commands",
+      allowed_commands: ["StartProjectSourceProcessing"],
+      valid_from: "2026-09-01T00:00:00.000Z",
+      reason: "Allow bounded processing for exact current ProjectSources.",
+    };
+    const grant: PetraCapabilityGrantV1130 = {
+      schema_name: "petra.capability-grant",
+      schema_version: "1.13.0",
+      capability_grant_id: grantId,
+      revision: 1,
+      project_id: project.project_id,
+      grantee: { actor_id: actor.actor_id, actor_kind: "human" },
+      content,
+      content_hash: canonicalHash(content),
+      issued_by: { actor_id: actor.actor_id, actor_kind: "human" },
+      issued_at: "2026-09-01T00:00:00.000Z",
+    };
+    await capabilities.registerCapabilityGrant(grant);
+    const before = await sourceProcessing.getProjectSourceProcessingView(
+      project.project_id,
+      "project_source_01K4C000000000000000000007",
+    );
+    if (before?.processing.state !== "ready") {
+      throw new Error("Expected exact source processing to be ready.");
+    }
+    const request: PetraProjectSourceProcessingRequest = {
+      schema_name: "petra.project-source-processing-request",
+      schema_version: "1.0.0",
+      command_id: "command_01K6T000000000000000000053",
+      idempotency_key: "wave6:postgres:source-processing",
+      expected: before.processing.request_template,
+    };
+    const principal = {
+      actor: { actor_id: actor.actor_id, actor_kind: "human" as const },
+      capabilityGrantId: grantId,
+    };
+    const first = await sourceProcessing.executeProjectSourceProcessing(
+      project.project_id,
+      before.project_source_id,
+      request,
+      principal,
+    );
+    expect(first.applied).toBe(true);
+    expect(first.workUnit.status).toMatchObject({
+      state: "running",
+      attempt: 1,
+    });
+    expect(first.inputManifest.content).toMatchObject({
+      task: {
+        task_family: "document_processing",
+        task_name: "petra.document.parse",
+        task_version: "1.0.0",
+      },
+      network_policy: { network_mode: "blocked" },
+    });
+    expect(first.receipt.expected).toStrictEqual(request.expected);
+    expect(first.receipt.destination).toMatchObject({
+      project_id: project.project_id,
+      project_source_id: before.project_source_id,
+      work_unit_id: first.workUnit.work_unit_id,
+    });
+    expect(first.processing.processing).toMatchObject({
+      state: "active",
+      work_unit_ref: { work_unit_id: first.workUnit.work_unit_id },
+    });
+
+    const replay = await sourceProcessing.executeProjectSourceProcessing(
+      project.project_id,
+      before.project_source_id,
+      request,
+      principal,
+    );
+    expect(replay.applied).toBe(false);
+    expect(replay.receipt).toStrictEqual(first.receipt);
+    expect(replay.workUnit).toStrictEqual(first.workUnit);
+    expect(replay.inputManifest).toStrictEqual(first.inputManifest);
+    expect(replay.processing.processing).toMatchObject({
+      state: "active",
+      work_unit_ref: { work_unit_id: first.workUnit.work_unit_id },
+    });
+    const recovery =
+      await sourceProcessing.assessProjectSourceProcessingRecovery(
+        project.project_id,
+        before.project_source_id,
+        request,
+        principal,
+      );
+    expect(recovery.effect).toMatchObject({
+      state: "effect_confirmed",
+      receipt: first.receipt,
+    });
+    expect(recovery.return).toStrictEqual({
+      state: "exact",
+      destination: first.receipt.destination,
+    });
+    const retained = await pool.query<{ commands: string; works: string }>(
+      `SELECT
+         (SELECT count(*) FROM petra.project_source_processing_commands)::text AS commands,
+         (SELECT count(*) FROM petra.work_units)::text AS works`,
+    );
+    expect(retained.rows[0]).toStrictEqual({ commands: "1", works: "1" });
   });
 });
