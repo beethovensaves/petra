@@ -3720,10 +3720,72 @@ const seedItem53WorkAndInteraction = async ({
       pool,
     ).registerProjectInquiryLink(inquiryLink);
   }
-  await new PostgresProjectWorkOperations(
+  const workOperations = new PostgresProjectWorkOperations(
     pool,
     new PostgresCapabilityGrantCommandAuthorizer(),
-  ).registerStagePlan({
+  );
+  const freshInputManifest = clone(inputManifest);
+  freshInputManifest.worker_input_manifest_id = derivePetraId(
+    "worker_input_manifest",
+    "wave6-browser-start-again-fresh-input",
+  );
+  freshInputManifest.work_unit_id = derivePetraId(
+    "work_unit",
+    "wave6-browser-start-again-fresh-work",
+  );
+  freshInputManifest.content.resource_limits.max_wall_time_ms += 60_000;
+  freshInputManifest.content_hash = hash(freshInputManifest.content);
+  freshInputManifest.issued_at = "2026-09-15T04:00:03.250Z";
+  const freshRequested = clone(requested);
+  freshRequested.work_unit_id = freshInputManifest.work_unit_id;
+  freshRequested.spec.input_manifest_ref = {
+    worker_input_manifest_id: freshInputManifest.worker_input_manifest_id,
+    content_hash: freshInputManifest.content_hash,
+  };
+  freshRequested.spec.idempotency_key =
+    "wave6-browser:start-again-fresh-work:v1";
+  freshRequested.spec.cache = {
+    cache_mode: "refresh",
+    cache_key: "wave6-browser:start-again-fresh-work:v1",
+  };
+  freshRequested.spec_hash = hash(freshRequested.spec);
+  freshRequested.trace_id = derivePetraId(
+    "trace",
+    "wave6-browser-start-again-fresh-work",
+  );
+  freshRequested.status.requested_at = freshInputManifest.issued_at;
+  freshRequested.created_at = freshInputManifest.issued_at;
+  freshRequested.updated_at = freshInputManifest.issued_at;
+  const startAgainFreshWork = await workUnits.register({
+    workUnit: freshRequested,
+    inputManifest: freshInputManifest,
+  });
+  await workOperations.registerStartAgain({
+    startAgainRegistrationId: derivePetraId(
+      "work_start_again_registration",
+      "wave6-browser-start-again-fresh-work",
+    ),
+    projectId: scientificProjectId,
+    priorWorkUnitRef: {
+      work_unit_id: work.work_unit_id,
+      revision: work.revision,
+      spec_hash: work.spec_hash,
+    },
+    freshWorkUnitRef: {
+      work_unit_id: startAgainFreshWork.work_unit_id,
+      revision: startAgainFreshWork.revision,
+      spec_hash: startAgainFreshWork.spec_hash,
+    },
+    inputTransition: {
+      strategy: "fresh_input",
+      retainedOutputReuse: "none",
+      summary:
+        "Use the newly registered execution limit and do not reuse output from the retained prior attempt.",
+    },
+    registeredBy: { actor_id: serviceActorId, actor_kind: "service" },
+    registeredAt: "2026-09-15T04:00:03.750Z",
+  });
+  await workOperations.registerStagePlan({
     stagePlanId: derivePetraId(
       "work_stage_plan",
       `scientific:${work.work_unit_id}:petra.synthesis.grounded:1.0.0`,
@@ -3878,6 +3940,7 @@ const seedItem53WorkAndInteraction = async ({
   );
   return {
     work,
+    startAgainFreshWork,
     responseArtifact,
     responseBytes,
     synthesistRequestId,
@@ -5418,6 +5481,9 @@ const exerciseItem53Trace = async ({
       projectTurnId:
         continuation.grounded.projectThread.content.turns[0].project_turn_id,
       workUnitId: continuation.workAndInteraction.work.work_unit_id,
+      inputWorkUnitId: scientific.workUnit.work_unit_id,
+      startAgainWorkUnitId:
+        continuation.workAndInteraction.startAgainFreshWork.work_unit_id,
       resumableWorkUnitId: scientific.resumableWorkUnit?.work_unit_id,
       interactionRunId:
         continuation.workAndInteraction.deliveredRun.interaction_run_id,

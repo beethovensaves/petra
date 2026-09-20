@@ -55,6 +55,8 @@ import type {
   PetraProjectWorkOperationsView,
   PetraProjectWorkResumeReceipt,
   PetraProjectWorkResumeRequest,
+  PetraProjectWorkStartAgainReceipt,
+  PetraProjectWorkStartAgainRequest,
   PetraProjectWorkView,
   PetraProjectWorkViewV11,
   PetraWorkerOutputManifest,
@@ -73,6 +75,7 @@ import {
   composeProjectHistoryCompensationPlan,
   createProjectWorkOperationRequest,
   createProjectWorkResumeRequest,
+  createProjectWorkStartAgainRequest,
   createReviewCandidateBasisRevisionCommandInput,
   createReviewCandidateCorrectionCommandInput,
   createReviewSessionDeferCommandInput,
@@ -92,6 +95,7 @@ import {
   executeProjectHistoryCompensationPlan,
   executeProjectWorkOperation,
   executeProjectWorkResume,
+  executeProjectWorkStartAgain,
   getRecentProjectHistory,
   getProjectSuggestedAction,
   getProjectHistoryEpisode,
@@ -1187,6 +1191,71 @@ const projectWorkResumeReceipt = JSON.parse(
     "utf8",
   ),
 ) as PetraProjectWorkResumeReceipt;
+
+const projectWorkStartAgainRequest = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-work-start-again-request.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectWorkStartAgainRequest;
+
+const projectWorkStartAgainReceipt = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-work-start-again-receipt.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectWorkStartAgainReceipt;
+
+const startAgainWorkOperationsView = (): PetraProjectWorkOperationsView => {
+  const view = structuredClone(resumableWorkOperationsView);
+  view.work_unit_ref = structuredClone(
+    projectWorkStartAgainRequest.expected_prior_work_unit_ref,
+  );
+  view.execution_state = "cancelled";
+  delete view.resume_binding;
+  const resume = view.controls.find(
+    (control) => control.operation === "resume",
+  );
+  const startAgain = view.controls.find(
+    (control) => control.operation === "start_again",
+  );
+  if (resume === undefined || startAgain === undefined) {
+    throw new TypeError("Expected Resume and Start again controls.");
+  }
+  resume.state = "unavailable";
+  resume.reason = "No compatible registered checkpoint is available.";
+  delete resume.command_path;
+  startAgain.state = "available";
+  startAgain.reason =
+    "The owning workflow registered exact fresh input for one linked execution.";
+  startAgain.command_path = `/api/commands/projects/${view.project_id}/work/${view.work_unit_ref.work_unit_id}/start-again`;
+  view.start_again_binding = {
+    project_id: view.project_id,
+    expected_prior_work_unit_ref: structuredClone(view.work_unit_ref),
+    start_again_registration_ref: structuredClone(
+      projectWorkStartAgainRequest.start_again_registration_ref,
+    ),
+    fresh_work_unit_ref: {
+      ...structuredClone(
+        projectWorkStartAgainReceipt.new_attempt.work_unit_ref,
+      ),
+      revision: 1,
+    },
+    prior_work_attempt: projectWorkStartAgainReceipt.prior_attempt.work_attempt,
+    prior_lineage_attempt:
+      projectWorkStartAgainReceipt.prior_attempt.lineage_attempt,
+    new_lineage_attempt:
+      projectWorkStartAgainReceipt.new_attempt.lineage_attempt,
+    input_transition: structuredClone(projectWorkStartAgainReceipt.fresh_input),
+  };
+  return view;
+};
 
 const workerOutputManifest = JSON.parse(
   readFileSync(
@@ -4789,6 +4858,58 @@ describe("Project shell workbench adapter", () => {
     delete missingBinding.resume_binding;
     expect(() => createProjectWorkResumeRequest(missingBinding)).toThrow(
       "server did not register an exact checkpoint",
+    );
+  });
+
+  it("copies only the server Start again binding into a fresh command identity", async () => {
+    const view = startAgainWorkOperationsView();
+    const request = createProjectWorkStartAgainRequest(view, {
+      commandId: projectWorkStartAgainRequest.command_id,
+      idempotencyKey: projectWorkStartAgainRequest.idempotency_key,
+      submittedAt: projectWorkStartAgainRequest.submitted_at,
+    });
+    expect(request).toStrictEqual(projectWorkStartAgainRequest);
+    expect(request).not.toHaveProperty("actor");
+    expect(request).not.toHaveProperty("capability_grant_id");
+    expect(request).not.toHaveProperty("fresh_work_unit_ref");
+    expect(request).not.toHaveProperty("input_transition");
+
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValueOnce(Response.json(projectWorkStartAgainReceipt));
+    vi.stubGlobal("fetch", fetch);
+    await expect(
+      executeProjectWorkStartAgain(
+        view.project_id,
+        view.work_unit_ref.work_unit_id,
+        request,
+      ),
+    ).resolves.toStrictEqual(projectWorkStartAgainReceipt);
+    const [url, init] = fetch.mock.calls[0]!;
+    expect(
+      typeof url === "string" ? url : url instanceof URL ? url.href : url.url,
+    ).toBe(
+      `http://petra.local/api/commands/projects/${view.project_id}/work/${view.work_unit_ref.work_unit_id}/start-again`,
+    );
+    const submittedBody = init?.body;
+    if (typeof submittedBody !== "string") {
+      throw new TypeError("Expected the Start again request as a JSON body.");
+    }
+    expect(JSON.parse(submittedBody)).toStrictEqual(
+      projectWorkStartAgainRequest,
+    );
+  });
+
+  it("keeps Start again unavailable without both server control and exact fresh-input binding", () => {
+    expect(() =>
+      createProjectWorkStartAgainRequest(workOperationsView),
+    ).toThrow(
+      "Fresh execution requires a workflow-specific input-rebinding command",
+    );
+    const missingBinding = startAgainWorkOperationsView();
+    delete missingBinding.start_again_binding;
+    expect(() => createProjectWorkStartAgainRequest(missingBinding)).toThrow(
+      "server did not register an exact fresh-input transition",
     );
   });
 

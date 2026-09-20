@@ -59,7 +59,9 @@ describe("Wave 6 in-product checkpoint guide", () => {
     expect(markup).toContain("Expected outcomes");
     expect(markup).toContain("Safe optional mutations");
     expect(markup).toContain("Open the reset control");
-    expect(markup).toContain("Resume and Start again remain unavailable");
+    expect(markup).toContain(
+      "Resume and Start again appear only for exact workflow-registered",
+    );
     expect(markup).toContain("not Wave 6 acceptance");
     expect(markup).toContain("/guide");
     expect(markup).toContain("ProjectDefinition revision");

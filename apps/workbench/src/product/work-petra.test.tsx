@@ -5,6 +5,7 @@ import type {
   PetraProjectInquiryView,
   PetraProjectShellView,
   PetraProjectWorkOperationsView,
+  PetraProjectWorkStartAgainReceipt,
   PetraProjectThreadView,
   PetraProjectWorkView,
   PetraSuggestedActionInvocationView,
@@ -117,6 +118,16 @@ const workOperations = JSON.parse(
     "utf8",
   ),
 ) as PetraProjectWorkOperationsView;
+
+const startAgainReceipt = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-work-start-again-receipt.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectWorkStartAgainReceipt;
 
 const resumableWorkOperations = JSON.parse(
   readFileSync(
@@ -343,6 +354,93 @@ describe("reference Work and Petra packets", () => {
     expect(markup).toContain(
       "owning workflow registered this exact retained checkpoint",
     );
+  });
+
+  it("enables only server-bound Start again and discloses the linked fresh execution outcome", () => {
+    const startAgainOperations = structuredClone(resumableWorkOperations);
+    startAgainOperations.work_unit_ref = structuredClone(
+      startAgainReceipt.requested_prior_work_unit_ref,
+    );
+    startAgainOperations.execution_state = "completed";
+    delete startAgainOperations.resume_binding;
+    const resume = startAgainOperations.controls.find(
+      (control) => control.operation === "resume",
+    );
+    const startAgain = startAgainOperations.controls.find(
+      (control) => control.operation === "start_again",
+    );
+    if (resume === undefined || startAgain === undefined) {
+      throw new TypeError("Expected Resume and Start again controls.");
+    }
+    resume.state = "unavailable";
+    resume.reason = "No compatible registered checkpoint is available.";
+    delete resume.command_path;
+    startAgain.state = "available";
+    startAgain.reason =
+      "The owning workflow registered exact fresh input for one linked execution.";
+    startAgain.command_path = `/api/commands/projects/${startAgainOperations.project_id}/work/${startAgainOperations.work_unit_ref.work_unit_id}/start-again`;
+    startAgainOperations.start_again_binding = {
+      project_id: startAgainOperations.project_id,
+      expected_prior_work_unit_ref: structuredClone(
+        startAgainOperations.work_unit_ref,
+      ),
+      start_again_registration_ref: structuredClone(
+        startAgainReceipt.start_again_registration,
+      ),
+      fresh_work_unit_ref: {
+        ...structuredClone(startAgainReceipt.new_attempt.work_unit_ref),
+        revision: 1,
+      },
+      prior_work_attempt: startAgainReceipt.prior_attempt.work_attempt,
+      prior_lineage_attempt: startAgainReceipt.prior_attempt.lineage_attempt,
+      new_lineage_attempt: startAgainReceipt.new_attempt.lineage_attempt,
+      input_transition: structuredClone(startAgainReceipt.fresh_input),
+    };
+    const liveUnit = {
+      ...runningTask,
+      id: startAgainOperations.work_unit_ref.work_unit_id,
+    };
+    const markup = render(
+      <WorkDetailSurface
+        project={project}
+        unit={liveUnit}
+        work={{ ...work, units: [liveUnit] }}
+        operations={startAgainOperations}
+        startAgain={{
+          projectId: startAgainReceipt.project_id,
+          receiptId: startAgainReceipt.receipt_id,
+          summary: startAgainReceipt.effect.summary,
+          priorWorkUnitId:
+            startAgainReceipt.prior_attempt.work_unit_ref.work_unit_id,
+          priorWorkAttempt: startAgainReceipt.prior_attempt.work_attempt,
+          priorLineageAttempt: startAgainReceipt.prior_attempt.lineage_attempt,
+          priorInputManifestId:
+            startAgainReceipt.fresh_input.prior_input_manifest_ref
+              .worker_input_manifest_id,
+          freshInputManifestId:
+            startAgainReceipt.fresh_input.fresh_input_manifest_ref
+              .worker_input_manifest_id,
+          freshInputSummary: startAgainReceipt.fresh_input.summary,
+          newWorkUnitId:
+            startAgainReceipt.new_attempt.work_unit_ref.work_unit_id,
+          newWorkAttempt: startAgainReceipt.new_attempt.work_attempt,
+          newLineageAttempt: startAgainReceipt.new_attempt.lineage_attempt,
+        }}
+      />,
+    );
+    const startAgainLabelIndex = markup.indexOf(">Start again</span>");
+    const startAgainButton = markup.slice(
+      markup.lastIndexOf("<button", startAgainLabelIndex),
+      markup.indexOf("</button>", startAgainLabelIndex) + "</button>".length,
+    );
+
+    expect(startAgainButton).not.toContain("aria-disabled");
+    expect(markup).toContain("Started again with fresh input");
+    expect(markup).toContain("Prior attempt retained");
+    expect(markup).toContain("Fresh immutable input");
+    expect(markup).toContain("Output reuse");
+    expect(markup).toContain("New linked Work");
+    expect(markup).toContain("Prior outputs, history, and incurred use remain");
   });
 
   it("enables server-assessed query-only reconnect and replay controls", () => {

@@ -307,8 +307,9 @@ export const CheckpointGuideSurface = ({
           <h2 id="checkpoint-limits-title">Do not infer completion</h2>
           <ul>
             <li>
-              Resume and Start again remain unavailable until registered
-              workflow-specific commands exist.
+              Resume and Start again appear only for exact workflow-registered
+              checkpoint or fresh-input transitions; they are never inferred
+              from task status.
             </li>
             <li>
               A certified model path requires the selected role, exact context,

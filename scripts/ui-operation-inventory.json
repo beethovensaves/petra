@@ -1088,7 +1088,7 @@
         {
           "command": "npm run test:wave6:work-ui",
           "artifact": "reports/WAVE6-WORK-BROWSER-OBSERVATION.json",
-          "boundary": "The production React Work route consumes the server-supplied resume_binding, copies its exact Work revision and checkpoint into ProjectWorkClient.resume, renders same-Work/same-attempt progress and outcome, refreshes availability, preserves the contextual return, and keeps Start again unavailable. The disposable-store harness performs trusted representative worker registration and checkpoint setup; the browser does not select authority or infer compatibility."
+          "boundary": "The production React Work route consumes the server-supplied resume_binding, copies its exact Work revision and checkpoint into ProjectWorkClient.resume, renders same-Work/same-attempt progress and outcome, refreshes availability, preserves the contextual return, and keeps Start again unavailable on that separate checkpoint path. The disposable-store harness performs trusted representative worker registration and checkpoint setup; the browser does not select authority or infer compatibility."
         }
       ],
       "runtime_owner": "GET /api/queries/projects/:projectId/work/:workUnitId/operations plus POST /api/commands/projects/:projectId/work/:workUnitId/resume -> PostgresProjectWorkOperations registered checkpoint compatibility and canonical same-attempt Work transition",
@@ -1101,7 +1101,7 @@
       "surfaces": ["SP07", "SP14"],
       "flows": ["UX-FLOW-11", "UX-FLOW-16"],
       "requests": ["UX-REQ-014", "UX-REQ-015", "UX-REQ-023"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/work/:workId",
       "control": "Start again",
       "interaction": "command",
@@ -1109,7 +1109,12 @@
         {
           "command": "npm run test:wave6:work",
           "artifact": "reports/WAVE6-WORK-PRODUCTION-COMMANDS.json",
-          "boundary": "Fresh PostgreSQL 18.6 executes the production assessment and authenticated Start again route after a trusted workflow registers exact terminal prior Work, distinct requested Work, genuinely fresh immutable input, and no output reuse. The trace proves linked fresh Work attempt 1, retained prior Work and lineage, restart replay, and no duplicate effect. The frozen React control remains unavailable, so visible browser invocation is still design-owned."
+          "boundary": "Fresh PostgreSQL 18.6 executes the production assessment and authenticated Start again route after a trusted workflow registers exact terminal prior Work, distinct requested Work, genuinely fresh immutable input, and no output reuse. The trace proves linked fresh Work attempt 1, retained prior Work and lineage, restart replay, and no duplicate effect. This backend trace alone makes no visible browser-invocation claim; the paired production browser record owns that boundary."
+        },
+        {
+          "command": "npm run test:wave6:work-ui",
+          "artifact": "reports/WAVE6-WORK-BROWSER-OBSERVATION.json",
+          "boundary": "The production React Work route consumes only the server-supplied start_again_binding plus fresh command/idempotency identity, invokes ProjectWorkClient.startAgain, discloses the retained prior attempt, genuinely fresh immutable input, explicit no-output-reuse boundary, new Work-local and lineage attempts, opens the receipt-owned fresh Work destination, and returns to the exact prior Work. The same trace separately executes registered checkpoint Resume; the browser selects no authority, replacement Work, lineage, or reuse policy."
         }
       ],
       "runtime_owner": "GET /api/queries/projects/:projectId/work/:workUnitId/operations plus POST /api/commands/projects/:projectId/work/:workUnitId/start-again -> PostgresProjectWorkOperations registered fresh-input transition and distinct canonical WorkUnit attempt",

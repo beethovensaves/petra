@@ -75,6 +75,8 @@ import type {
   PetraProjectWorkOperationsView,
   PetraProjectWorkResumeReceipt,
   PetraProjectWorkResumeRequest,
+  PetraProjectWorkStartAgainReceipt,
+  PetraProjectWorkStartAgainRequest,
   PetraWorkerOutputManifest,
   FocusedGraphProjectSnapshotRef,
   ProjectDefinitionTerm,
@@ -6252,6 +6254,12 @@ export interface ProjectWorkResumeCommandOptions {
   readonly submittedAt?: string;
 }
 
+export interface ProjectWorkStartAgainCommandOptions {
+  readonly commandId?: string;
+  readonly idempotencyKey?: string;
+  readonly submittedAt?: string;
+}
+
 export const createProjectWorkCommandIdentity = (
   operation: ProjectWorkCommandOperation,
 ): { commandId: string; idempotencyKey: string } => {
@@ -6418,6 +6426,65 @@ export const createProjectWorkResumeRequest = (
   };
 };
 
+/**
+ * Copies the complete server-supplied fresh-input registration into one Start
+ * again request. The browser creates only the command identity and never
+ * selects replacement Work, input reuse, lineage, or authority.
+ */
+export const createProjectWorkStartAgainRequest = (
+  view: PetraProjectWorkOperationsView,
+  options: ProjectWorkStartAgainCommandOptions = {},
+): PetraProjectWorkStartAgainRequest => {
+  const control = view.controls.find(
+    (candidate) => candidate.operation === "start_again",
+  );
+  const binding = view.start_again_binding;
+  if (control?.state !== "available") {
+    throw new ProjectDataError(
+      control?.reason ?? "The server did not make Start again available.",
+      409,
+    );
+  }
+  if (binding === undefined) {
+    throw new ProjectDataError(
+      "The server did not register an exact fresh-input transition for Start again.",
+      409,
+    );
+  }
+  if (
+    binding.project_id !== view.project_id ||
+    canonicalize(binding.expected_prior_work_unit_ref) !==
+      canonicalize(view.work_unit_ref) ||
+    binding.fresh_work_unit_ref.work_unit_id ===
+      view.work_unit_ref.work_unit_id ||
+    binding.input_transition.strategy !== "fresh_input" ||
+    binding.input_transition.retained_output_reuse !== "none" ||
+    binding.input_transition.prior_input_manifest_ref.content_hash ===
+      binding.input_transition.fresh_input_manifest_ref.content_hash ||
+    binding.new_lineage_attempt !== binding.prior_lineage_attempt + 1
+  ) {
+    throw new ProjectDataError(
+      "The Start again binding does not match this exact prior Work, fresh input, and linked execution boundary.",
+      409,
+    );
+  }
+  const identity = randomUlidPayload();
+  return {
+    schema_name: "petra.project-work-start-again-request",
+    schema_version: "1.0.0",
+    command_id: options.commandId ?? `command_${identity}`,
+    idempotency_key:
+      options.idempotencyKey ?? `project-work:${identity}:start-again`,
+    expected_prior_work_unit_ref: structuredClone(
+      binding.expected_prior_work_unit_ref,
+    ),
+    start_again_registration_ref: structuredClone(
+      binding.start_again_registration_ref,
+    ),
+    submitted_at: options.submittedAt ?? new Date().toISOString(),
+  };
+};
+
 export const readProjectWorkOperations = async (
   projectId: string,
   workUnitId: string,
@@ -6437,6 +6504,13 @@ export const executeProjectWorkResume = async (
   request: PetraProjectWorkResumeRequest,
 ): Promise<PetraProjectWorkResumeReceipt> =>
   projectWorkClient().resume(projectId, workUnitId, request);
+
+export const executeProjectWorkStartAgain = async (
+  projectId: string,
+  priorWorkUnitId: string,
+  request: PetraProjectWorkStartAgainRequest,
+): Promise<PetraProjectWorkStartAgainReceipt> =>
+  projectWorkClient().startAgain(projectId, priorWorkUnitId, request);
 
 export interface ProjectWorkDeliveryObservation {
   readonly kind: "reconnected" | "replayed";

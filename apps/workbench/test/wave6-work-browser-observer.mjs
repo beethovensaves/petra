@@ -28,7 +28,9 @@ export const createWave4EvidenceObserver = async ({ root }) => {
   let scientificProjectId;
   let scientificReviewSessionId;
   let completedWorkUnitId;
+  let inputWorkUnitId;
   let resumableWorkUnitId;
+  let startAgainWorkUnitId;
   let workbench;
   let chrome;
   let cdp;
@@ -160,11 +162,17 @@ export const createWave4EvidenceObserver = async ({ root }) => {
       "The registered scientific inquiry path is not visible in Work.",
     );
     execution.completed_checks.push("registered scientific inquiry visible");
+    assert.ok(
+      inputWorkUnitId,
+      "No exact Work task requiring registered input is available.",
+    );
     const attentionPath = await cdp.evaluate(`(() => {
       const group = [...document.querySelectorAll(".work-group")].find(
         (candidate) => candidate.querySelector("h3")?.textContent.trim() === "Needs attention",
       );
-      return group?.querySelector("a")?.getAttribute("href");
+      return [...(group?.querySelectorAll("a") ?? [])].find(
+        (candidate) => candidate.getAttribute("href")?.endsWith(${JSON.stringify(`/work/${inputWorkUnitId}`)}),
+      )?.getAttribute("href");
     })()`);
     assert.ok(attentionPath, "No exact Work task requiring input is visible.");
 
@@ -274,6 +282,140 @@ export const createWave4EvidenceObserver = async ({ root }) => {
     );
     execution.completed_checks.push(
       "registered checkpoint resumed through exact visible control",
+    );
+
+    assert.ok(
+      completedWorkUnitId && startAgainWorkUnitId,
+      "No exact terminal prior Work and registered fresh Work are available for Start again.",
+    );
+    const priorWorkPath = `/projects/${scientificProjectId}/work/${completedWorkUnitId}`;
+    const freshWorkPath = `/projects/${scientificProjectId}/work/${startAgainWorkUnitId}`;
+    await navigate(
+      priorWorkPath,
+      'document.querySelector(".work-controls") !== null',
+      "terminal Work with registered fresh execution",
+    );
+    const assessedStartAgain = calls.findLast(
+      (call) =>
+        call.method === "GET" &&
+        call.path.endsWith(`/work/${completedWorkUnitId}/operations`),
+    );
+    const startAgainBinding = assessedStartAgain?.json?.start_again_binding;
+    assert.equal(
+      assessedStartAgain?.json?.controls?.find(
+        (control) => control.operation === "start_again",
+      )?.state,
+      "available",
+      "The production assessment did not make registered Start again available.",
+    );
+    assert.ok(
+      startAgainBinding,
+      "The available Start again control omitted its exact fresh-input binding.",
+    );
+    assert.equal(
+      startAgainBinding.fresh_work_unit_ref.work_unit_id,
+      startAgainWorkUnitId,
+      "The Start again assessment selected a different fresh Work identity.",
+    );
+    assert.equal(
+      await cdp.evaluate(
+        `${button("Start again")}.getAttribute("aria-disabled")`,
+      ),
+      null,
+      "The visible Start again control stayed unavailable despite its exact binding.",
+    );
+    assert.equal(
+      await cdp.evaluate(
+        `${button("Resume work")}.getAttribute("aria-disabled")`,
+      ),
+      "true",
+      "Resume became available on the separate terminal fresh-execution path.",
+    );
+    await cdp.evaluate(`${button("Start again")}.click()`);
+    await cdp.until(
+      `window.location.pathname === ${JSON.stringify(freshWorkPath)} && document.querySelector(".work-start-again-outcome") !== null`,
+      "fresh linked Work destination",
+    );
+    const startAgainCall = calls.findLast(
+      (call) =>
+        call.method === "POST" &&
+        call.path.endsWith(`/work/${completedWorkUnitId}/start-again`),
+    );
+    assert.ok(
+      startAgainCall,
+      "The visible Start again control issued no production command.",
+    );
+    assert.deepEqual(
+      startAgainCall.requestJson.expected_prior_work_unit_ref,
+      startAgainBinding.expected_prior_work_unit_ref,
+      "Start again did not copy the exact assessed prior Work revision and specification.",
+    );
+    assert.deepEqual(
+      startAgainCall.requestJson.start_again_registration_ref,
+      startAgainBinding.start_again_registration_ref,
+      "Start again did not copy the exact assessed fresh-input registration.",
+    );
+    for (const forbidden of [
+      "actor",
+      "capability_grant_id",
+      "fresh_work_unit_ref",
+      "input_transition",
+    ]) {
+      assert.equal(
+        Object.hasOwn(startAgainCall.requestJson, forbidden),
+        false,
+        `The browser selected server-owned ${forbidden}.`,
+      );
+    }
+    assert.equal(startAgainCall.status, 200);
+    assert.equal(
+      startAgainCall.json?.destination?.work_unit_ref?.work_unit_id,
+      startAgainWorkUnitId,
+      "The Start again receipt did not own the opened Work destination.",
+    );
+    const startAgainText = await cdp.evaluate(
+      'document.querySelector(".work-start-again-outcome")?.innerText',
+    );
+    for (const value of [
+      "Started again with fresh input",
+      "Prior attempt retained",
+      "Fresh immutable input",
+      "Output reuse",
+      "None. Prior outputs, history, and incurred use remain",
+      "New linked Work",
+      `lineage attempt ${startAgainCall.json.new_attempt.lineage_attempt}`,
+      startAgainBinding.input_transition.fresh_input_manifest_ref
+        .worker_input_manifest_id,
+    ]) {
+      assert.ok(
+        startAgainText.includes(value),
+        `Start again outcome omitted ${value}.`,
+      );
+    }
+    const priorReturn = await cdp.evaluate(
+      'document.querySelector(".work-detail__heading > .reference-context-back")?.getAttribute("href")',
+    );
+    assert.equal(
+      priorReturn,
+      `${priorWorkPath}#work-control-boundary`,
+      "The fresh Work destination did not preserve return to the prior Work task.",
+    );
+    await activate(
+      'document.querySelector(".work-detail__heading > .reference-context-back")',
+    );
+    await cdp.until(
+      `window.location.pathname === ${JSON.stringify(priorWorkPath)}`,
+      "prior Work contextual return",
+    );
+    assert.equal(
+      await cdp.evaluate(
+        `${button("Start again")}.getAttribute("aria-disabled")`,
+      ),
+      "true",
+      "Start again remained available after its registered fresh Work was consumed.",
+    );
+    execution.completed_checks.push(
+      "registered fresh-input Start again opened linked Work and returned to retained prior Work",
     );
 
     await navigate(
@@ -578,6 +720,7 @@ export const createWave4EvidenceObserver = async ({ root }) => {
       reconnect_exercised: true,
       replay_exercised: true,
       resume_exercised: true,
+      start_again_exercised: true,
       resumed_work: {
         work_unit_id: resumableWorkUnitId,
         requested_revision:
@@ -587,6 +730,24 @@ export const createWave4EvidenceObserver = async ({ root }) => {
         exact_checkpoint_copied: true,
         contextual_return: resumeReturn,
         start_again_unavailable: true,
+        authority_selected_by_browser: false,
+      },
+      started_again_work: {
+        prior_work_unit_id: completedWorkUnitId,
+        prior_work_attempt: startAgainCall.json.prior_attempt.work_attempt,
+        prior_lineage_attempt:
+          startAgainCall.json.prior_attempt.lineage_attempt,
+        fresh_work_unit_id: startAgainWorkUnitId,
+        fresh_work_attempt: startAgainCall.json.new_attempt.work_attempt,
+        fresh_lineage_attempt: startAgainCall.json.new_attempt.lineage_attempt,
+        fresh_input_manifest_id:
+          startAgainCall.json.fresh_input.fresh_input_manifest_ref
+            .worker_input_manifest_id,
+        retained_output_reuse:
+          startAgainCall.json.fresh_input.retained_output_reuse,
+        exact_registration_copied: true,
+        prior_work_preserved: startAgainCall.json.effect.prior_work_preserved,
+        contextual_return: priorReturn,
         authority_selected_by_browser: false,
       },
       grounded_response: {
@@ -611,7 +772,7 @@ export const createWave4EvidenceObserver = async ({ root }) => {
         diagnostics_count: exactDiagnostics.length,
       },
       boundary:
-        "Executed the complete production Work browser path through registered controls, including exact registered-checkpoint Resume, and exact result reads. Worker registration and representative setup occur through the cumulative disposable-store harness; no browser response or Work result is mocked. Start again remains honestly unavailable without a workflow-specific fresh-input transition.",
+        "Executed the complete production Work browser path through registered controls, including separate exact registered-checkpoint Resume and registered fresh-input Start again transitions, linked Work navigation and return, and exact result reads. Worker registration and representative setup occur through the cumulative disposable-store harness; no browser response or Work result is mocked, and the browser selects no authority, replacement Work, lineage, or input-reuse policy.",
       operation_call_count: operationCalls.length,
       console_errors: consoleErrors,
     };
@@ -625,7 +786,9 @@ export const createWave4EvidenceObserver = async ({ root }) => {
     scientificReviewSessionId = context.scientificReviewSessionId;
     if (stage === "corrected_blocked_limited_basis") {
       completedWorkUnitId = context.workUnitId;
+      inputWorkUnitId = context.inputWorkUnitId;
       resumableWorkUnitId = context.resumableWorkUnitId;
+      startAgainWorkUnitId = context.startAgainWorkUnitId;
       return undefined;
     }
     if (stage === "refreshed_paired_profile") {

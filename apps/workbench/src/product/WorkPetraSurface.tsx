@@ -1,5 +1,11 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { Link, useLoaderData, useSearchParams } from "react-router";
+import {
+  Link,
+  useLoaderData,
+  useLocation,
+  useNavigate,
+  useSearchParams,
+} from "react-router";
 
 import { PetraMark } from "../design-system/brand.js";
 import { StateNotice } from "../design-system/state.js";
@@ -16,6 +22,8 @@ import type {
   PetraProjectWorkOperationsView,
   PetraProjectWorkResumeReceipt,
   PetraProjectWorkResumeRequest,
+  PetraProjectWorkStartAgainReceipt,
+  PetraProjectWorkStartAgainRequest,
   PetraSuggestedActionInvocationView,
   PetraSuggestedActionViewV11,
 } from "@petra/contracts";
@@ -35,8 +43,10 @@ import type {
 import {
   createProjectWorkOperationRequest,
   createProjectWorkResumeRequest,
+  createProjectWorkStartAgainRequest,
   executeProjectWorkOperation,
   executeProjectWorkResume,
+  executeProjectWorkStartAgain,
   readProjectWorkOperations,
   reconnectProjectWorkDelivery,
   replayProjectWorkDelivery,
@@ -382,6 +392,11 @@ type RetainedWorkResumeRequest = {
   request: PetraProjectWorkResumeRequest;
 };
 
+type RetainedWorkStartAgainRequest = {
+  fingerprint: string;
+  request: PetraProjectWorkStartAgainRequest;
+};
+
 const workOperationLabel: Record<
   PetraProjectWorkOperationsView["controls"][number]["operation"],
   string
@@ -445,10 +460,123 @@ const unavailableForResume = (
   return undefined;
 };
 
+const unavailableForStartAgain = (
+  view: PetraProjectWorkOperationsView,
+): { reason: string; prerequisite?: string } | undefined => {
+  const assessed = unavailableFor(view, "start_again");
+  if (assessed !== undefined) return assessed;
+  if (view.start_again_binding === undefined) {
+    return {
+      reason:
+        "The server has not supplied the exact fresh-input registration required to start this task again.",
+    };
+  }
+  return undefined;
+};
+
 const withUnavailable = (
   unavailable: { reason: string; prerequisite?: string } | undefined,
 ): { unavailable: { reason: string; prerequisite?: string } } | object =>
   unavailable === undefined ? {} : { unavailable };
+
+export interface ProjectWorkStartAgainOutcome {
+  readonly projectId: string;
+  readonly receiptId: string;
+  readonly summary: string;
+  readonly priorWorkUnitId: string;
+  readonly priorWorkAttempt: number;
+  readonly priorLineageAttempt: number;
+  readonly priorInputManifestId: string;
+  readonly freshInputManifestId: string;
+  readonly freshInputSummary: string;
+  readonly newWorkUnitId: string;
+  readonly newWorkAttempt: number;
+  readonly newLineageAttempt: number;
+}
+
+const startAgainOutcome = (
+  receipt: PetraProjectWorkStartAgainReceipt,
+): ProjectWorkStartAgainOutcome => ({
+  projectId: receipt.project_id,
+  receiptId: receipt.receipt_id,
+  summary: receipt.effect.summary,
+  priorWorkUnitId: receipt.prior_attempt.work_unit_ref.work_unit_id,
+  priorWorkAttempt: receipt.prior_attempt.work_attempt,
+  priorLineageAttempt: receipt.prior_attempt.lineage_attempt,
+  priorInputManifestId:
+    receipt.fresh_input.prior_input_manifest_ref.worker_input_manifest_id,
+  freshInputManifestId:
+    receipt.fresh_input.fresh_input_manifest_ref.worker_input_manifest_id,
+  freshInputSummary: receipt.fresh_input.summary,
+  newWorkUnitId: receipt.new_attempt.work_unit_ref.work_unit_id,
+  newWorkAttempt: receipt.new_attempt.work_attempt,
+  newLineageAttempt: receipt.new_attempt.lineage_attempt,
+});
+
+const WorkStartAgainOutcome = ({
+  outcome,
+}: {
+  outcome: ProjectWorkStartAgainOutcome;
+}): React.JSX.Element => (
+  <section
+    className="work-start-again-outcome"
+    aria-labelledby="work-start-again-outcome-title"
+    role="status"
+  >
+    <p className="reference-panel-kicker">Registered fresh execution</p>
+    <h2 id="work-start-again-outcome-title">Started again with fresh input</h2>
+    <p>{outcome.summary}</p>
+    <dl>
+      <div>
+        <dt>Prior attempt retained</dt>
+        <dd>
+          Attempt {outcome.priorWorkAttempt} · lineage attempt{" "}
+          {outcome.priorLineageAttempt}
+          <code>{outcome.priorWorkUnitId}</code>
+        </dd>
+      </div>
+      <div>
+        <dt>Fresh immutable input</dt>
+        <dd>
+          {outcome.freshInputSummary}
+          <code>{outcome.freshInputManifestId}</code>
+        </dd>
+      </div>
+      <div>
+        <dt>Output reuse</dt>
+        <dd>
+          None. Prior outputs, history, and incurred use remain with the prior
+          Work.
+        </dd>
+      </div>
+      <div>
+        <dt>New linked Work</dt>
+        <dd>
+          Attempt {outcome.newWorkAttempt} · lineage attempt{" "}
+          {outcome.newLineageAttempt}
+          <code>{outcome.newWorkUnitId}</code>
+        </dd>
+      </div>
+    </dl>
+    <details>
+      <summary>Exact transition identities</summary>
+      <dl>
+        <div>
+          <dt>Prior input manifest</dt>
+          <dd>
+            <code>{outcome.priorInputManifestId}</code>
+          </dd>
+        </div>
+        <div>
+          <dt>Start again receipt</dt>
+          <dd>
+            <code>{outcome.receiptId}</code>
+          </dd>
+        </div>
+      </dl>
+    </details>
+  </section>
+);
 
 const WorkOperationControls = ({
   project,
@@ -457,6 +585,7 @@ const WorkOperationControls = ({
   project: ProjectRecord;
   initialView: PetraProjectWorkOperationsView;
 }): React.JSX.Element => {
+  const navigate = useNavigate();
   const [view, setView] = useState(initialView);
   const [instruction, setInstruction] = useState("");
   const [priority, setPriority] = useState<
@@ -470,6 +599,8 @@ const WorkOperationControls = ({
   const [receipt, setReceipt] = useState<PetraProjectWorkOperationReceipt>();
   const [resumeReceipt, setResumeReceipt] =
     useState<PetraProjectWorkResumeReceipt>();
+  const [startAgainReceipt, setStartAgainReceipt] =
+    useState<PetraProjectWorkStartAgainReceipt>();
   const [delivery, setDelivery] = useState<ProjectWorkDeliveryObservation>();
   const [error, setError] = useState<{
     message: string;
@@ -477,6 +608,9 @@ const WorkOperationControls = ({
   }>();
   const retained = useRef<RetainedWorkRequest | undefined>(undefined);
   const retainedResume = useRef<RetainedWorkResumeRequest | undefined>(
+    undefined,
+  );
+  const retainedStartAgain = useRef<RetainedWorkStartAgainRequest | undefined>(
     undefined,
   );
 
@@ -505,6 +639,7 @@ const WorkOperationControls = ({
     setError(undefined);
     setDelivery(undefined);
     setResumeReceipt(undefined);
+    setStartAgainReceipt(undefined);
     try {
       const nextReceipt = await executeProjectWorkOperation(
         view.project_id,
@@ -562,6 +697,7 @@ const WorkOperationControls = ({
     setError(undefined);
     setReceipt(undefined);
     setDelivery(undefined);
+    setStartAgainReceipt(undefined);
     try {
       const nextReceipt = await executeProjectWorkResume(
         view.project_id,
@@ -603,6 +739,78 @@ const WorkOperationControls = ({
     }
   };
 
+  const executeStartAgain = async (): Promise<void> => {
+    const fingerprint = JSON.stringify({
+      project: view.project_id,
+      binding: view.start_again_binding,
+    });
+    const retainedRequest = retainedStartAgain.current;
+    let request: PetraProjectWorkStartAgainRequest;
+    try {
+      request =
+        retainedRequest?.request ?? createProjectWorkStartAgainRequest(view);
+    } catch (caught) {
+      setError({
+        message:
+          caught instanceof Error
+            ? caught.message
+            : "Petra could not bind Start again to this exact fresh-input transition.",
+        recovery:
+          "Refresh this task to obtain the current server assessment. Start again stays unavailable without an exact registered fresh-input binding.",
+      });
+      return;
+    }
+    retainedStartAgain.current = { fingerprint, request };
+    setPending("start_again");
+    setError(undefined);
+    setReceipt(undefined);
+    setResumeReceipt(undefined);
+    setDelivery(undefined);
+    setStartAgainReceipt(undefined);
+    try {
+      const nextReceipt = await executeProjectWorkStartAgain(
+        view.project_id,
+        view.work_unit_ref.work_unit_id,
+        request,
+      );
+      retainedStartAgain.current = undefined;
+      setStartAgainReceipt(nextReceipt);
+      const returnPath = `/projects/${encodeURIComponent(project.id)}/work/${encodeURIComponent(nextReceipt.prior_attempt.work_unit_ref.work_unit_id)}`;
+      const destination = new URLSearchParams({
+        return_to: returnPath,
+        return_label: "prior Work task",
+        return_focus: "work-control-boundary",
+      });
+      await navigate(
+        `/projects/${encodeURIComponent(project.id)}/work/${encodeURIComponent(nextReceipt.destination.work_unit_ref.work_unit_id)}?${destination}#work-control-boundary`,
+        { state: { startAgainOutcome: startAgainOutcome(nextReceipt) } },
+      );
+    } catch (caught) {
+      try {
+        setView(
+          await readProjectWorkOperations(
+            view.project_id,
+            view.work_unit_ref.work_unit_id,
+          ),
+        );
+      } catch {
+        // Preserve the last verified assessment when refresh is unavailable.
+      }
+      const retainedExactRequest = retainedStartAgain.current !== undefined;
+      setError({
+        message:
+          caught instanceof Error
+            ? caught.message
+            : "Petra could not confirm this exact Start again transition.",
+        recovery: retainedExactRequest
+          ? "The exact command identity and fresh-input registration are retained. Retry Start again to reconcile the same command without creating a second effect."
+          : "The Start again effect was recorded, but its exact Work destination did not open. Use the new linked Work destination below; do not issue another command.",
+      });
+    } finally {
+      setPending(undefined);
+    }
+  };
+
   const inspectDelivery = async (
     operation: "reconnect" | "replay",
   ): Promise<void> => {
@@ -610,6 +818,7 @@ const WorkOperationControls = ({
     setError(undefined);
     setReceipt(undefined);
     setResumeReceipt(undefined);
+    setStartAgainReceipt(undefined);
     try {
       const observation =
         operation === "reconnect"
@@ -765,9 +974,18 @@ const WorkOperationControls = ({
               Resume work
             </PetraButton>
             <PetraButton
-              {...withUnavailable(unavailableFor(view, "start_again"))}
+              busy={pending === "start_again"}
+              busyLabel="Starting again"
+              {...withUnavailable(
+                retainedStartAgain.current === undefined
+                  ? unavailableForStartAgain(view)
+                  : undefined,
+              )}
+              onClick={() => void executeStartAgain()}
             >
-              Start again
+              {retainedStartAgain.current === undefined
+                ? "Start again"
+                : "Retry Start again"}
             </PetraButton>
           </PetraButtonGroup>
 
@@ -955,6 +1173,34 @@ const WorkOperationControls = ({
               to={`/projects/${encodeURIComponent(project.id)}/work/${encodeURIComponent(resumeReceipt.resulting_work_unit_ref.work_unit_id)}#work-control-boundary`}
             >
               Return to this Work task
+            </Link>
+          </div>
+        )}
+        {startAgainReceipt === undefined ? null : (
+          <div className="work-operation-result" role="status">
+            <strong>{startAgainReceipt.effect.summary}</strong>
+            <p>
+              The fresh Work was created as attempt{" "}
+              {startAgainReceipt.new_attempt.work_attempt} · lineage attempt{" "}
+              {startAgainReceipt.new_attempt.lineage_attempt}. Prior Work,
+              attempts, outputs, and incurred use remain retained; no prior
+              output was reused.
+            </p>
+            <code>{startAgainReceipt.receipt_id}</code>
+            <Link
+              className="reference-text-link"
+              to={`/projects/${encodeURIComponent(project.id)}/work/${encodeURIComponent(startAgainReceipt.destination.work_unit_ref.work_unit_id)}?${new URLSearchParams(
+                {
+                  return_to: `/projects/${encodeURIComponent(project.id)}/work/${encodeURIComponent(startAgainReceipt.prior_attempt.work_unit_ref.work_unit_id)}`,
+                  return_label: "prior Work task",
+                  return_focus: "work-control-boundary",
+                },
+              )}#work-control-boundary`}
+              state={{
+                startAgainOutcome: startAgainOutcome(startAgainReceipt),
+              }}
+            >
+              Open the new linked Work
             </Link>
           </div>
         )}
@@ -1228,6 +1474,7 @@ export const WorkDetailSurface = ({
   operations,
   selectedResult,
   returnTo,
+  startAgain,
 }: {
   project: ProjectRecord;
   unit: WorkUnit;
@@ -1235,6 +1482,7 @@ export const WorkDetailSurface = ({
   operations?: PetraProjectWorkOperationsView;
   selectedResult?: ProjectWorkerOutputSelection;
   returnTo?: { path: string; label: string };
+  startAgain?: ProjectWorkStartAgainOutcome;
 }): React.JSX.Element => {
   const branches = work.branches.filter((branch) =>
     unit.branchIds.includes(branch.id),
@@ -1279,6 +1527,10 @@ export const WorkDetailSurface = ({
           </div>
         </dl>
       </header>
+
+      {startAgain === undefined ? null : (
+        <WorkStartAgainOutcome outcome={startAgain} />
+      )}
 
       {selectedResult === undefined ? null : (
         <SelectedWorkerOutput result={selectedResult} />
@@ -1618,8 +1870,17 @@ export const WorkDetailRoute = (): React.JSX.Element => {
   const project = useProjectRecord();
   const { work, unit, operations, selectedResult } =
     useLoaderData<ProjectWorkDetailData>();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const returnTo = workDetailReturnContext(project.id, searchParams);
+  const state = location.state as {
+    startAgainOutcome?: ProjectWorkStartAgainOutcome;
+  } | null;
+  const startAgain =
+    state?.startAgainOutcome?.projectId === project.id &&
+    state.startAgainOutcome.newWorkUnitId === unit.id
+      ? state.startAgainOutcome
+      : undefined;
   return (
     <WorkDetailSurface
       project={project}
@@ -1628,6 +1889,7 @@ export const WorkDetailRoute = (): React.JSX.Element => {
       operations={operations}
       {...(selectedResult === undefined ? {} : { selectedResult })}
       {...(returnTo === undefined ? {} : { returnTo })}
+      {...(startAgain === undefined ? {} : { startAgain })}
     />
   );
 };
