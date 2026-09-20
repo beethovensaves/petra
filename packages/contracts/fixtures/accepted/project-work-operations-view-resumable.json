@@ -1,0 +1,98 @@
+{
+  "schema_name": "petra.project-work-operations-view",
+  "schema_version": "1.0.0",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "work_unit_ref": {
+    "work_unit_id": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+    "revision": 4,
+    "spec_hash": "sha256:2e6c6536312fead0c9abc2d902035ba1c41b9e4a5fb6835f7666101940a6a737"
+  },
+  "execution_state": "checkpointed",
+  "plan": {
+    "revision": 0,
+    "selected_priority": "normal",
+    "effect_boundary": "next_queue_or_successor_schedule"
+  },
+  "required_inputs": [],
+  "delivery": {
+    "state": "unavailable",
+    "reason": "This WorkUnit has no registered durable interaction run."
+  },
+  "resume_binding": {
+    "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+    "expected_work_unit_ref": {
+      "work_unit_id": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+      "revision": 4,
+      "spec_hash": "sha256:2e6c6536312fead0c9abc2d902035ba1c41b9e4a5fb6835f7666101940a6a737"
+    },
+    "expected_checkpoint": {
+      "artifact_id": "artifact_01ARZ3NDEKTSV4RRFFQ69G5FB1",
+      "content_hash": "sha256:76313fbb039e79b42da7b3ee67b26123f2b7e7157c80f019e688682337a0f09e",
+      "recorded_at": "2026-09-20T16:00:03.000Z"
+    }
+  },
+  "controls": [
+    {
+      "operation": "start",
+      "state": "unavailable",
+      "reason": "Only requested Work can use the direct start operation."
+    },
+    {
+      "operation": "answer_input",
+      "state": "unavailable",
+      "reason": "No exact pending Work input is available to answer."
+    },
+    {
+      "operation": "steer",
+      "state": "available",
+      "reason": "A clear instruction can update the next scheduling boundary.",
+      "command_path": "/api/commands/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/work/work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2"
+    },
+    {
+      "operation": "prioritize",
+      "state": "available",
+      "reason": "An eligible scheduling priority can be selected.",
+      "command_path": "/api/commands/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/work/work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2"
+    },
+    {
+      "operation": "detach",
+      "state": "client_owned",
+      "reason": "Leaving the presentation does not cancel durable Work."
+    },
+    {
+      "operation": "reconnect",
+      "state": "unavailable",
+      "reason": "No durable interaction run is registered."
+    },
+    {
+      "operation": "replay",
+      "state": "unavailable",
+      "reason": "No durable interaction run is registered."
+    },
+    {
+      "operation": "cancel",
+      "state": "available",
+      "reason": "The current cancellation policy permits cancellation.",
+      "command_path": "/api/commands/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/work/work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2"
+    },
+    {
+      "operation": "retry",
+      "state": "unavailable",
+      "reason": "Retry requires a retryable terminal failure."
+    },
+    {
+      "operation": "resume",
+      "state": "available",
+      "reason": "The owning workflow registered this exact retained checkpoint as compatible with the immutable Work boundary.",
+      "command_path": "/api/commands/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/work/work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2/resume"
+    },
+    {
+      "operation": "start_again",
+      "state": "unavailable",
+      "reason": "Fresh execution requires a workflow-specific input-rebinding command."
+    }
+  ],
+  "results": [],
+  "read_at": "2026-09-20T16:00:03.750Z",
+  "content_hash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+}

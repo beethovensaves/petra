@@ -541,6 +541,7 @@ export type {
   Control as ProjectWorkOperationControl,
   PetraProjectWorkOperationsView,
   RequiredInput as ProjectWorkRequiredInput,
+  ResumeBinding as ProjectWorkResumeBinding,
   Result as ProjectWorkOperationResult,
 } from "./generated/project-work-operations-view.js";
 export type {
