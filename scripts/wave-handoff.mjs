@@ -424,10 +424,36 @@ export function unexpectedChanges(entries, allowedUntracked) {
 
 export function isRetryableWorkerError(error) {
   const message = String(error?.message ?? error);
+  if (/usage limit|purchase more credits|try again at/i.test(message)) {
+    return false;
+  }
   return (
     /^Codex (backend|design) worker exited with status /.test(message) ||
     /^Codex produced no structured result: /.test(message) ||
     message === "The active worker process disappeared; inspect its run logs."
+  );
+}
+
+export function canResumeBlockedRecovery(
+  state,
+  role,
+  snapshot,
+  recordedCommitIsAncestor,
+) {
+  const recovery = state?.recovery;
+  if (
+    state?.status !== "blocked" ||
+    recovery?.role !== role ||
+    !snapshot ||
+    snapshot.unexpected.length === 0 ||
+    snapshot.worktree_digest !== recovery.worktree_digest ||
+    !recordedCommitIsAncestor
+  ) {
+    return false;
+  }
+  return (
+    matchesRecoverySnapshot(recovery, role, snapshot) ||
+    snapshot.head === snapshot.remote
   );
 }
 
@@ -1066,6 +1092,19 @@ function eventSummary(line, role) {
   return undefined;
 }
 
+export function codexEventFailure(line) {
+  try {
+    const event = JSON.parse(line);
+    if (event.type === "error") return String(event.message ?? "");
+    if (event.type === "turn.failed") {
+      return String(event.error?.message ?? event.message ?? "");
+    }
+  } catch {
+    return "";
+  }
+  return "";
+}
+
 async function runCodexWorker({ role, wave, state }) {
   const runDirectory = join(stateDirectory(wave), "runs");
   mkdirSync(runDirectory, { recursive: true });
@@ -1114,12 +1153,14 @@ async function runCodexWorker({ role, wave, state }) {
 
   child.stdin.end(prompt);
   let stdoutBuffer = "";
+  let terminalFailure = "";
   child.stdout.on("data", (chunk) => {
     eventLog.write(chunk);
     stdoutBuffer += chunk.toString("utf8");
     const lines = stdoutBuffer.split("\n");
     stdoutBuffer = lines.pop() ?? "";
     for (const line of lines) {
+      terminalFailure = codexEventFailure(line) || terminalFailure;
       const summary = eventSummary(line, role);
       if (summary) process.stdout.write(`${summary}\n`);
     }
@@ -1137,8 +1178,10 @@ async function runCodexWorker({ role, wave, state }) {
   errorLog.end();
 
   if (exitCode !== 0) {
+    terminalFailure = codexEventFailure(stdoutBuffer) || terminalFailure;
+    const detail = terminalFailure ? `: ${terminalFailure}` : "";
     throw new Error(
-      `Codex ${role} worker exited with status ${exitCode}. Logs: ${jsonlPath} and ${stderrPath}`,
+      `Codex ${role} worker exited with status ${exitCode}${detail}. Logs: ${jsonlPath} and ${stderrPath}`,
     );
   }
   if (!existsSync(outputPath)) {
@@ -1844,7 +1887,21 @@ async function doctor(wave, maxSlices) {
         role,
         snapshot,
       );
-      if (activeWorktree || recoveredWorktree) continue;
+      const resumableBlockedRecovery = canResumeBlockedRecovery(
+        current,
+        role,
+        snapshot,
+        current
+          ? gitIsAncestor(
+              roles[role].root,
+              current.commits[role],
+              snapshot.head,
+            )
+          : false,
+      );
+      if (activeWorktree || recoveredWorktree || resumableBlockedRecovery) {
+        continue;
+      }
       requireCleanAndPushed(role, snapshot);
       if (
         current?.status === "waiting" &&
@@ -1956,7 +2013,13 @@ async function resumeBlockedWave(wave, role) {
     const otherRole = role === "backend" ? "design" : "backend";
     const own = repositorySnapshot(role);
     const counterpart = repositorySnapshot(otherRole);
-    requireCleanAndPushed(role, own);
+    const resumableRecovery = canResumeBlockedRecovery(
+      state,
+      role,
+      own,
+      gitIsAncestor(roles[role].root, state.commits[role], own.head),
+    );
+    if (!resumableRecovery) requireCleanAndPushed(role, own);
     requireCleanAndPushed(otherRole, counterpart);
     if (counterpart.head !== state.commits[otherRole]) {
       throw new Error(
@@ -1977,6 +2040,16 @@ async function resumeBlockedWave(wave, role) {
     state.next_role = role;
     state.active = null;
     state.commits[role] = own.head;
+    if (resumableRecovery) {
+      state.recovery = {
+        ...state.recovery,
+        expected_head: own.head,
+        expected_remote: own.remote,
+        worktree_digest: own.worktree_digest,
+        changed_paths: own.unexpected,
+        recovered_at: timestamp,
+      };
+    }
     clearRetryAttempt(state, state.slice_count + 1, role);
     state.stop_reason = "";
     state.handoff_prompt =
