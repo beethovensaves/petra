@@ -27,6 +27,7 @@ export type SourceRecord = {
   title: string;
   kind: string;
   role: string;
+  roleId?: string;
   creator: string;
   revision: string;
   copy: string;

@@ -31,6 +31,10 @@ import {
 } from "./ProjectImportSurface.js";
 import { SourceRegistrationPanel } from "./SourceRegistration.js";
 import { SourceProcessingPanel } from "./SourceProcessing.js";
+import {
+  SourceLinkRemovalActions,
+  type SourceLinkRemovalClient,
+} from "./SourceLinkRemoval.js";
 import { SourceRevisionPanel } from "./SourceRevision.js";
 import { SourceReusePanel, type SourceReuseCompletion } from "./SourceReuse.js";
 import type {
@@ -1448,7 +1452,21 @@ export const SourcesRoute = (): React.JSX.Element => {
   );
 };
 
-const SourceDetails = ({ source }: { source: SourceRecord }) => (
+export const SourceDetails = ({
+  projectId,
+  source,
+  taskReturnPath,
+  linkRemovalAvailable = true,
+  linkRemovalClient,
+  onLinkRemoved,
+}: {
+  projectId: string;
+  source: SourceRecord;
+  taskReturnPath: string;
+  linkRemovalAvailable?: boolean;
+  linkRemovalClient?: SourceLinkRemovalClient;
+  onLinkRemoved?: () => void | Promise<void>;
+}) => (
   <aside className="reference-details" aria-labelledby="source-details-title">
     <div className="reference-details__heading">
       <div>
@@ -1489,6 +1507,19 @@ const SourceDetails = ({ source }: { source: SourceRecord }) => (
         <dd>{source.downstreamUse}</dd>
       </div>
     </dl>
+    <SourceLinkRemovalActions
+      projectId={projectId}
+      projectSourceId={source.id}
+      sourceTitle={source.title}
+      sourceRole={source.role}
+      {...(source.roleId === undefined ? {} : { sourceRoleId: source.roleId })}
+      taskReturnPath={taskReturnPath}
+      available={linkRemovalAvailable}
+      {...(linkRemovalClient === undefined
+        ? {}
+        : { client: linkRemovalClient })}
+      {...(onLinkRemoved === undefined ? {} : { onRemoved: onLinkRemoved })}
+    />
   </aside>
 );
 
@@ -1499,6 +1530,9 @@ export const SourceReaderSurface = ({
   taskReturnPath,
   revision,
   revisionUnavailable,
+  linkRemovalAvailable = true,
+  linkRemovalClient,
+  onLinkRemoved,
 }: {
   project: ProjectRecord;
   source: SourceRecord;
@@ -1506,6 +1540,9 @@ export const SourceReaderSurface = ({
   taskReturnPath?: string;
   revision?: SourceRevisionContext;
   revisionUnavailable?: string;
+  linkRemovalAvailable?: boolean;
+  linkRemovalClient?: SourceLinkRemovalClient;
+  onLinkRemoved?: () => void | Promise<void>;
 }) => {
   const [addingRevision, setAddingRevision] = useState(false);
   const returnPath = returnTo?.path ?? `/projects/${project.id}/sources`;
@@ -1609,7 +1646,14 @@ export const SourceReaderSurface = ({
             </>
           )}
         </article>
-        <SourceDetails source={source} />
+        <SourceDetails
+          projectId={project.id}
+          source={source}
+          taskReturnPath={exactTaskReturn}
+          linkRemovalAvailable={linkRemovalAvailable}
+          {...(linkRemovalClient === undefined ? {} : { linkRemovalClient })}
+          {...(onLinkRemoved === undefined ? {} : { onLinkRemoved })}
+        />
       </div>
 
       <SourceProcessingPanel
@@ -1636,6 +1680,7 @@ export const SourceReaderRoute = (): React.JSX.Element => {
   const data = useLoaderData<ProjectSourceRecordData>();
   const source = data.source;
   const location = useLocation();
+  const revalidator = useRevalidator();
   const [searchParams] = useSearchParams();
   const returnOrigin = searchParams.get("from");
   const returnSourceQuery = searchParams.get("sourceQuery");
@@ -1686,6 +1731,8 @@ export const SourceReaderRoute = (): React.JSX.Element => {
       source={source}
       returnTo={returnTo}
       taskReturnPath={`${location.pathname}${location.search}`}
+      linkRemovalAvailable={data.linkRemovalAvailable}
+      onLinkRemoved={() => revalidator.revalidate()}
       {...(data.revision === undefined ? {} : { revision: data.revision })}
       {...(data.revisionUnavailable === undefined
         ? {}

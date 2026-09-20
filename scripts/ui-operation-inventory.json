@@ -464,11 +464,17 @@
       "surfaces": ["SP04", "SP10", "SP14"],
       "flows": ["UX-FLOW-18"],
       "requests": ["UX-REQ-005", "UX-REQ-010", "UX-REQ-023"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/sources/:sourceId",
       "control": "Remove from Project",
       "interaction": "command",
-      "evidence": [],
+      "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH PETRA_WAVE6_SOURCE_LINK_REMOVAL_BROWSER_OUTPUT=reports/WAVE6-SOURCE-LINK-REMOVAL-BROWSER.json npm run test:wave6:source-link-removal-ui",
+          "artifact": "reports/WAVE6-SOURCE-LINK-REMOVAL-BROWSER.json",
+          "boundary": "Isolated Chrome executed the production Source Details SourceLinkRemovalActions and renderer-neutral ProjectSourceLinkRemovalClient boundary with deterministic typed transport. It verified authenticated preview invocation, exact Project/definition/source/role freshness, registered dependency impact, retained global identity and immutable revisions, required reason, applied and replayed results, conflicts, permission and rejected failures, exact-request unknown-effect recovery, distinct unavailable local-copy deletion, exact task/selection and focus return, and responsive keyboard/browser semantics. The exact backend counterpart separately proves the live server and PostgreSQL owners; this artifact does not claim the complete named UX1.6-SOURCES scenario."
+        }
+      ],
       "runtime_owner": "GET /api/queries/projects/:projectId/sources/:projectSourceId/link-removal + POST /api/commands/projects/:projectId/sources/:projectSourceId/link-removal + POST /api/queries/projects/:projectId/sources/:projectSourceId/link-removal-recovery -> PostgresProjectSourceLifecycleViewReader + PostgresProjectSourceLifecycleAuthorityRepository",
       "paths": ["UX-PATH-04"]
     },

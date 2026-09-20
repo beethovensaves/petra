@@ -3064,6 +3064,7 @@ export const sourceRecordFromView = (
     title: identity.title,
     kind: titleCase(identity.work_kind),
     role: `${binding.source_role_label}${binding.status === "excluded" ? " · Excluded" : ""}`,
+    roleId: binding.source_role,
     creator: identity.creators
       .map((creator) => creator.display_name)
       .join(", "),
@@ -5533,6 +5534,7 @@ export const getRetainedProjectHistory = async (
 
 export interface ProjectSourceRecordData {
   readonly source: SourceRecord;
+  readonly linkRemovalAvailable: boolean;
   readonly revision?: SourceRevisionContext;
   readonly revisionUnavailable?: string;
 }
@@ -5589,6 +5591,7 @@ export const loadProjectSourceRecord = async ({
   if (view.content.binding.status !== "active") {
     return {
       source,
+      linkRemovalAvailable: false,
       revisionUnavailable:
         "Only an active Project source can receive a new immutable version.",
     };
@@ -5638,6 +5641,7 @@ export const loadProjectSourceRecord = async ({
     }
     return {
       source,
+      linkRemovalAvailable: true,
       revision: {
         projectId,
         projectRef: {
@@ -5652,6 +5656,7 @@ export const loadProjectSourceRecord = async ({
   } catch {
     return {
       source,
+      linkRemovalAvailable: true,
       revisionUnavailable:
         "Petra could not bind the current Project, profile definition, and active predecessor. Re-read this exact source before adding a version.",
     };
