@@ -237,7 +237,30 @@ export class FocusedGraphClient {
           ? ([[request.exploration.recipe_semantic_key, "action"]] as const)
           : []),
       ] as const;
-      const semanticMismatch = expectedRoles.some(([key, role]) => {
+      const representedRoles = new Map<
+        string,
+        PetraFocusedGraphView["content"]["profile"]["resolved_semantics"][number]["role"]
+      >();
+      let representedRoleConflict = false;
+      const represent = (
+        key: string,
+        role: PetraFocusedGraphView["content"]["profile"]["resolved_semantics"][number]["role"],
+      ): void => {
+        const existing = representedRoles.get(key);
+        if (existing !== undefined && existing !== role) {
+          representedRoleConflict = true;
+          return;
+        }
+        representedRoles.set(key, role);
+      };
+      for (const [key, role] of expectedRoles) represent(key, role);
+      for (const node of view.content.nodes)
+        represent(node.semantic_key, "object");
+      for (const relationship of view.content.relationships)
+        represent(relationship.semantic_key, "relationship");
+      for (const action of view.content.actions)
+        represent(action.semantic_key, "action");
+      const semanticMismatch = [...representedRoles].some(([key, role]) => {
         const semantic = semantics.get(key);
         const registrations = definition.content.registrations.filter(
           (candidate) => candidate.semantic_key === key,
@@ -303,12 +326,11 @@ export class FocusedGraphClient {
           graphRegistration[0]?.contract,
         ) ||
         semantics.size !== returnedSemanticKeys.length ||
+        semantics.size !== representedRoles.size ||
+        representedRoleConflict ||
         !same(view.content.scope.included_relationship_semantics, [
           request.relationship_semantic_key,
         ]) ||
-        view.content.nodes.some(
-          (node) => node.semantic_key !== request.object_semantic_key,
-        ) ||
         view.content.relationships.some(
           (relationship) =>
             relationship.semantic_key !== request.relationship_semantic_key,

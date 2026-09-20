@@ -72,6 +72,11 @@ const definitionFixture = (): PetraProjectDefinition => {
       contract: contract("assertion"),
     },
     {
+      registration_kind: "source_role",
+      semantic_key: "scientific.literature",
+      contract: contract("rights-decision"),
+    },
+    {
       registration_kind: "extension",
       semantic_key: "petra.focused-graph",
       contract: contract("focused-graph-view"),
@@ -626,6 +631,46 @@ describe("FocusedGraphClient", () => {
     const sent = JSON.parse(init?.body as string) as unknown;
     expect(sent).not.toHaveProperty("layout");
     expect(sent).not.toHaveProperty("command");
+  });
+
+  it("accepts an exact registered source-role node without weakening semantic validation", async () => {
+    const { definition, view, request } = setup();
+    const sourceNode = view.content.nodes[1]!;
+    sourceNode.semantic_key = "scientific.literature";
+    sourceNode.term = exactTerm(definition, "scientific.literature");
+    view.content.profile.resolved_semantics.splice(2, 0, {
+      semantic_key: "scientific.literature",
+      role: "object",
+      registration_kind: "source_role",
+      contract: contract("rights-decision"),
+      term: exactTerm(definition, "scientific.literature"),
+    });
+    view.content_hash = hash(view.content);
+    const transport = vi
+      .fn<typeof fetch>()
+      .mockImplementation(() => Promise.resolve(Response.json(view)));
+    const client = new FocusedGraphClient({
+      baseUrl: "http://petra.local",
+      token: "focused-token",
+      projectDefinition: definition,
+      fetch: transport,
+      contracts,
+    });
+
+    await expect(client.read(definition.project_id, request)).resolves.toEqual(
+      view,
+    );
+
+    const substituted = structuredClone(view);
+    substituted.content.profile.resolved_semantics[2].contract =
+      contract("artifact");
+    substituted.content_hash = hash(substituted.content);
+    transport.mockImplementationOnce(() =>
+      Promise.resolve(Response.json(substituted)),
+    );
+    await expect(client.read(definition.project_id, request)).rejects.toEqual(
+      expect.any(FocusedGraphClientError),
+    );
   });
 
   it("keeps a disconnected delivery separate from an explicit exact read retry", async () => {
