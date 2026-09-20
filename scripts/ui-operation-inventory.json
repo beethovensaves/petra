@@ -464,12 +464,12 @@
       "surfaces": ["SP04", "SP10", "SP14"],
       "flows": ["UX-FLOW-18"],
       "requests": ["UX-REQ-005", "UX-REQ-010", "UX-REQ-023"],
-      "current_state": "unavailable",
+      "current_state": "partial",
       "route": "/projects/:projectId/sources/:sourceId",
       "control": "Remove from Project",
       "interaction": "command",
       "evidence": [],
-      "runtime_owner": "",
+      "runtime_owner": "GET /api/queries/projects/:projectId/sources/:projectSourceId/link-removal + POST /api/commands/projects/:projectId/sources/:projectSourceId/link-removal + POST /api/queries/projects/:projectId/sources/:projectSourceId/link-removal-recovery -> PostgresProjectSourceLifecycleViewReader + PostgresProjectSourceLifecycleAuthorityRepository",
       "paths": ["UX-PATH-04"]
     },
     {

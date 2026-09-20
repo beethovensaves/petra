@@ -21,6 +21,7 @@ export * from "./project-model-client.js";
 export * from "./project-work-client.js";
 export * from "./project-source-registration-client.js";
 export * from "./project-source-revision-client.js";
+export * from "./project-source-link-removal-client.js";
 export * from "./project-source-reuse-client.js";
 export * from "./project-source-processing-client.js";
 export * from "./communication-plan-client.js";

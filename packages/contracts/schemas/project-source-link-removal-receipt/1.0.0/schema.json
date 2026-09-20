@@ -1,0 +1,153 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-source-link-removal-receipt/1.0.0/schema.json",
+  "title": "PetraProjectSourceLinkRemovalReceipt",
+  "description": "An immutable receipt proving one exact ExcludeProjectSource effect and the authority retained across Project-link removal.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "receipt_id",
+    "command_id",
+    "idempotency_key",
+    "request_hash",
+    "project_id",
+    "actor",
+    "capability_grant_id",
+    "project_ref",
+    "project_definition_ref",
+    "prior_source_ref",
+    "resulting_source_ref",
+    "lifecycle_receipt",
+    "effect",
+    "destination",
+    "recovery",
+    "recorded_at",
+    "record_hash"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.project-source-link-removal-receipt" },
+    "schema_version": { "const": "1.0.0" },
+    "receipt_id": {
+      "type": "string",
+      "pattern": "^source_link_removal_receipt_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "command_id": {
+      "$ref": "../../project-source-link-removal-request/1.0.0/schema.json#/properties/command_id"
+    },
+    "idempotency_key": {
+      "$ref": "../../project-source-link-removal-request/1.0.0/schema.json#/properties/idempotency_key"
+    },
+    "request_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "actor": {
+      "$ref": "../../project-source-registration-receipt/1.0.0/schema.json#/$defs/HumanActorRef"
+    },
+    "capability_grant_id": {
+      "type": "string",
+      "pattern": "^capability_grant_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "project_ref": {
+      "$ref": "../../project-source-registration-request/1.0.0/schema.json#/$defs/ProjectRef"
+    },
+    "project_definition_ref": {
+      "$ref": "../../project-source-registration-request/1.0.0/schema.json#/$defs/DefinitionRef"
+    },
+    "prior_source_ref": {
+      "$ref": "../../project-source-link-removal-request/1.0.0/schema.json#/$defs/ActiveSourceRef"
+    },
+    "resulting_source_ref": { "$ref": "#/$defs/ExcludedSourceRef" },
+    "lifecycle_receipt": {
+      "$ref": "../../project-source-lifecycle-receipt/1.0.0/schema.json"
+    },
+    "effect": { "$ref": "#/$defs/Effect" },
+    "destination": {
+      "$ref": "../../project-source-registration-receipt/1.0.0/schema.json#/$defs/SourceDestination"
+    },
+    "recovery": { "$ref": "#/$defs/Recovery" },
+    "recorded_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    },
+    "record_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    }
+  },
+  "$defs": {
+    "ExcludedSourceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_source_id",
+        "revision",
+        "content_hash",
+        "record_hash",
+        "status"
+      ],
+      "properties": {
+        "project_source_id": {
+          "type": "string",
+          "pattern": "^project_source_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "status": { "const": "excluded" }
+      }
+    },
+    "Effect": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "summary",
+        "ordinary_new_project_use",
+        "preservation",
+        "local_copy_deleted"
+      ],
+      "properties": {
+        "kind": { "const": "project_source_link_removed" },
+        "summary": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "ordinary_new_project_use": { "const": "disabled" },
+        "preservation": {
+          "$ref": "../../project-source-lifecycle-receipt/1.0.0/schema.json#/$defs/Preservation"
+        },
+        "local_copy_deleted": { "const": false }
+      }
+    },
+    "Recovery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "command_path",
+        "assessment_path",
+        "inverse_command_name",
+        "retry_reuses_command_identity",
+        "missing_receipt_means_unknown"
+      ],
+      "properties": {
+        "command_path": {
+          "type": "string",
+          "pattern": "^/api/commands/projects/[^/]+/sources/[^/]+/link-removal$"
+        },
+        "assessment_path": {
+          "type": "string",
+          "pattern": "^/api/queries/projects/[^/]+/sources/[^/]+/link-removal-recovery$"
+        },
+        "inverse_command_name": { "const": "RestoreProjectSource" },
+        "retry_reuses_command_identity": { "const": true },
+        "missing_receipt_means_unknown": { "const": true }
+      }
+    }
+  }
+}

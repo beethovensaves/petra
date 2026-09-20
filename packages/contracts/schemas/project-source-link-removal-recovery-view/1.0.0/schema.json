@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-source-link-removal-recovery-view/1.0.0/schema.json",
+  "title": "PetraProjectSourceLinkRemovalRecoveryView",
+  "description": "A read-only reconciliation of one exact ProjectSource link-removal request with explicit unknown-effect and ownership boundaries.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "assessment_id",
+    "project_id",
+    "project_source_id",
+    "subject",
+    "effect",
+    "return",
+    "observed_at",
+    "content_hash"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.project-source-link-removal-recovery-view"
+    },
+    "schema_version": { "const": "1.0.0" },
+    "assessment_id": {
+      "type": "string",
+      "pattern": "^source_link_removal_recovery_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "project_source_id": {
+      "type": "string",
+      "pattern": "^project_source_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "subject": {
+      "$ref": "../../project-source-revision-recovery-view/1.0.0/schema.json#/$defs/Subject"
+    },
+    "effect": { "$ref": "#/$defs/Effect" },
+    "return": {
+      "$ref": "../../project-source-revision-recovery-view/1.0.0/schema.json#/$defs/Return"
+    },
+    "observed_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    }
+  },
+  "$defs": {
+    "Effect": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "receipt"],
+          "properties": {
+            "state": { "const": "effect_confirmed" },
+            "receipt": {
+              "$ref": "../../project-source-link-removal-receipt/1.0.0/schema.json"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "reason", "retry"],
+          "properties": {
+            "state": { "const": "outcome_unknown" },
+            "reason": { "const": "receipt_not_observed_at_cutoff" },
+            "retry": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["method", "path", "reuse_exact_request"],
+              "properties": {
+                "method": { "const": "POST" },
+                "path": {
+                  "type": "string",
+                  "pattern": "^/api/commands/projects/[^/]+/sources/[^/]+/link-removal$"
+                },
+                "reuse_exact_request": { "const": true }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "reason"],
+          "properties": {
+            "state": { "const": "unavailable_to_verify" },
+            "reason": {
+              "enum": [
+                "command_identity_conflict",
+                "command_not_owned_by_authenticated_actor"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  }
+}

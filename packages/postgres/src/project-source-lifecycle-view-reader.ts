@@ -2,15 +2,20 @@ import { createHash } from "node:crypto";
 
 import type {
   PetraArtifactManifest,
+  PetraProject,
+  PetraProjectDefinition,
   PetraProjectSource,
+  PetraProjectSourceLinkRemovalPreview,
   PetraProjectSourceLifecycleView,
   ProjectSourceLifecycleContent,
   ProjectSourceLifecycleDependentRef,
   ProjectSourceLifecycleImpactGroup,
 } from "@petra/contracts";
 import { PetraContractRegistry } from "@petra/contracts/validator";
+import { ProjectSourceLinkRemovalError } from "@petra/core";
 import type {
   ProjectSourceLifecycleAction,
+  ProjectSourceLinkRemovalPreviewReader,
   ProjectSourceLifecycleViewReader,
 } from "@petra/core";
 import { canonicalize } from "json-canonicalize";
@@ -78,7 +83,11 @@ const clone = <Value>(value: Value): Value => structuredClone(value);
  * Exact, repeatable-read impact preview for the ProjectSource lifecycle.
  * This reader does not authorize or execute lifecycle changes.
  */
-export class PostgresProjectSourceLifecycleViewReader implements ProjectSourceLifecycleViewReader {
+export class PostgresProjectSourceLifecycleViewReader
+  implements
+    ProjectSourceLifecycleViewReader,
+    ProjectSourceLinkRemovalPreviewReader
+{
   readonly #pool: Pool;
   readonly #contracts: PetraContractRegistry;
 
@@ -162,6 +171,161 @@ export class PostgresProjectSourceLifecycleViewReader implements ProjectSourceLi
         view,
       );
       return view;
+    });
+  }
+
+  async getProjectSourceLinkRemovalPreview(
+    projectId: string,
+    projectSourceId: string,
+  ): Promise<PetraProjectSourceLinkRemovalPreview | undefined> {
+    if (!PROJECT_SOURCE_ID.test(projectSourceId)) {
+      throw new PostgresProjectSourceLifecycleViewError(
+        "PROJECT_SOURCE_LIFECYCLE_VIEW_REQUEST_INVALID",
+        "A link-removal preview requires a canonical ProjectSource identity.",
+      );
+    }
+    return this.#readTransaction(async (client, readAt) => {
+      const stored = await this.#source(client, projectId, projectSourceId);
+      if (stored === undefined) return undefined;
+      const source = this.#record<PetraProjectSource>(
+        "project-source",
+        stored.payload,
+        stored.record_hash,
+        "project_source_id",
+        projectSourceId,
+      );
+      if (
+        source.project_id !== projectId ||
+        source.content_hash !== canonicalHash(source.content) ||
+        source.content.status !== "active"
+      ) {
+        throw new ProjectSourceLinkRemovalError(
+          "PROJECT_SOURCE_LINK_REMOVAL_SOURCE_STALE",
+          "Project-link removal requires the exact current active ProjectSource.",
+        );
+      }
+      const context = await client.query<{
+        project_payload: unknown;
+        project_record_hash: string;
+        definition_payload: unknown;
+        definition_record_hash: string;
+      }>(
+        `SELECT project_revision.payload AS project_payload,
+                project_revision.record_hash AS project_record_hash,
+                definition_revision.payload AS definition_payload,
+                definition_revision.record_hash AS definition_record_hash
+           FROM petra.projects AS project
+           JOIN petra.project_revisions AS project_revision
+             ON project_revision.project_id = project.project_id
+            AND project_revision.revision = project.current_revision
+           JOIN petra.project_definitions AS definition
+             ON definition.project_id = project.project_id
+           JOIN petra.project_definition_revisions AS definition_revision
+             ON definition_revision.project_definition_id =
+                definition.project_definition_id
+            AND definition_revision.revision = definition.current_revision
+          WHERE project.project_id = $1`,
+        [projectId],
+      );
+      const row = context.rows[0];
+      if (row === undefined) {
+        throw this.#corrupt(
+          "The Project or current ProjectDefinition is unavailable for link removal.",
+        );
+      }
+      const project = this.#record<PetraProject>(
+        "project",
+        row.project_payload,
+        row.project_record_hash,
+        "project_id",
+        projectId,
+      );
+      const definitionPayload = row.definition_payload as {
+        project_definition_id?: unknown;
+      };
+      const definitionId = definitionPayload.project_definition_id;
+      if (typeof definitionId !== "string") {
+        throw this.#corrupt(
+          "The current ProjectDefinition has no canonical identity.",
+        );
+      }
+      const definition = this.#record<PetraProjectDefinition>(
+        "project-definition",
+        row.definition_payload,
+        row.definition_record_hash,
+        "project_definition_id",
+        definitionId,
+      );
+      if (project.status !== "active" || definition.project_id !== projectId) {
+        throw new ProjectSourceLinkRemovalError(
+          "PROJECT_SOURCE_LINK_REMOVAL_PROJECT_STALE",
+          "Project-link removal requires one active Project and its current ProjectDefinition.",
+        );
+      }
+      const transition = this.#transition(
+        "exclude_project_source",
+        source.content.status,
+      );
+      if (transition.state !== "preview_available") {
+        throw this.#corrupt(
+          "An active ProjectSource did not produce an exclusion preview.",
+        );
+      }
+      const expected = {
+        project_ref: {
+          project_id: project.project_id,
+          revision: project.revision,
+          record_hash: row.project_record_hash,
+        },
+        project_definition_ref: {
+          project_definition_id: definition.project_definition_id,
+          revision: definition.revision,
+          content_hash: definition.content_hash,
+          record_hash: row.definition_record_hash,
+        },
+        current_source_ref: {
+          project_source_id: source.project_source_id,
+          revision: source.revision,
+          content_hash: source.content_hash,
+          record_hash: stored.record_hash,
+          status: "active" as const,
+        },
+      };
+      const hashed = {
+        project_id: projectId,
+        project_source_id: projectSourceId,
+        expected,
+        transition,
+        impact: {
+          scope: "registered_direct_and_scientific_downstream" as const,
+          groups: await this.#impactGroups(client, source),
+          limitations: [
+            "The preview covers registered direct and scientific downstream dependencies; unregistered profile-specific transitive dependencies are not inferred.",
+          ] as [string],
+        },
+        retention: this.#retention(),
+        operation: {
+          state: "ready" as const,
+          command_name: "ExcludeProjectSource" as const,
+          method: "POST" as const,
+          path: `/api/commands/projects/${projectId}/sources/${projectSourceId}/link-removal`,
+          recovery_path: `/api/queries/projects/${projectId}/sources/${projectSourceId}/link-removal-recovery`,
+          separate_local_copy_deletion: true as const,
+        },
+        read_at: readAt,
+      };
+      const preview: PetraProjectSourceLinkRemovalPreview = {
+        schema_name: "petra.project-source-link-removal-preview",
+        schema_version: "1.0.0",
+        ...hashed,
+        content_hash: canonicalHash(hashed),
+      };
+      this.#contracts.assertValid(
+        "project-source-link-removal-preview",
+        "1.0.0",
+        preview,
+      );
+      return clone(preview);
     });
   }
 

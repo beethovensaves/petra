@@ -143,6 +143,13 @@
       "persistence": "PostgreSQL additive ProjectSource status revisions, immutable command/event/outbox records, and lifecycle receipt; source material is retained.",
       "recovery": "Preview names blockers and retained dependents; idempotent exclude/restore receipts support reconciliation and compensating restore."
     },
+    "source-link-removal": {
+      "kind": "command",
+      "production_owner": "GET /api/queries/projects/:projectId/sources/:projectSourceId/link-removal plus POST /api/{commands,queries}/projects/:projectId/sources/:projectSourceId/link-removal[-recovery] -> PostgresProjectSourceLifecycleViewReader and PostgresProjectSourceLifecycleAuthorityRepository",
+      "authorization": "Bearer authentication plus a server-resolved human principal and the exact ExcludeProjectSource grant. The preview supplies and the command revalidates exact current Project, ProjectDefinition, and active ProjectSource revision/hash bindings; Actor, grant, authority time, event identity, and retention outcomes remain server-owned.",
+      "persistence": "PostgreSQL V055 composes the existing atomic ExcludeProjectSource status revision, command/event/outbox, and lifecycle receipt with an immutable exact-context link-removal receipt. Global Work identity, WorkVersion, ArtifactManifest, bytes, parsed representations, dependents, provenance, and history remain retained; local-copy deletion is never inferred.",
+      "recovery": "Stable command and idempotency identities replay the exact composed receipt after restart. A read-only assessment distinguishes confirmed, unknown, conflicting, and differently owned outcomes and returns either the exact excluded ProjectSource or the safe Sources collection. RestoreProjectSource remains the separately previewed compensating command."
+    },
     "source-delete-partial": {
       "kind": "partial",
       "production_owner": "GET /api/queries/projects/:projectId/sources/:projectSourceId/lifecycle -> PostgresProjectSourceLifecycleViewReader",
@@ -513,7 +520,7 @@
     },
     {
       "operation_id": "source.remove-project-link",
-      "owner": "source-lifecycle",
+      "owner": "source-link-removal",
       "owner_status": "owned",
       "missing_owner": ""
     },
