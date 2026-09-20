@@ -27,6 +27,7 @@ import type {
 } from "./model.js";
 import type {
   ProjectPetraData,
+  ProjectWorkerOutputSelection,
   ProjectWorkDetailData,
 } from "./project-data.js";
 import {
@@ -538,6 +539,8 @@ const WorkOperationControls = ({
       objectId: result.destination.target_ref.object_id,
       revision: String(result.destination.target_ref.revision),
       taskIntent: "inspect",
+      contentHash: result.record_ref.content_hash,
+      recordHash: result.record_ref.record_hash,
     });
     return `/projects/${encodeURIComponent(project.id)}/locate?${query}`;
   };
@@ -902,16 +905,189 @@ const WorkOperationControls = ({
   );
 };
 
+const measuredBytes = (value: number): string =>
+  new Intl.NumberFormat("en", { maximumFractionDigits: 1 }).format(value);
+
+const SelectedWorkerOutput = ({
+  result,
+}: {
+  result: ProjectWorkerOutputSelection;
+}): React.JSX.Element => (
+  <section
+    className="selected-worker-output"
+    id="selected-work-result"
+    tabIndex={-1}
+    aria-labelledby="selected-work-result-title"
+  >
+    <header>
+      <div>
+        <p className="reference-panel-kicker">Selected exact result</p>
+        <h2 id="selected-work-result-title">Worker output manifest</h2>
+        <p>
+          This immutable manifest belongs to the Work task shown below. Its
+          identity is retained separately from the producing WorkUnit.
+        </p>
+      </div>
+      <span data-state={result.outcome}>{words(result.outcome)}</span>
+    </header>
+
+    <dl className="selected-worker-output__identity">
+      <div>
+        <dt>Manifest</dt>
+        <dd>
+          <code>{result.resultRef.recordId}</code> · revision{" "}
+          {result.resultRef.revision}
+        </dd>
+      </div>
+      <div>
+        <dt>Producing Work</dt>
+        <dd>
+          <code>{result.producingWorkRef.workUnitId}</code> · revision{" "}
+          {result.producingWorkRef.revision}
+        </dd>
+      </div>
+      <div>
+        <dt>Outcome</dt>
+        <dd>
+          {words(result.outcome)} · attempt {result.attempt}
+        </dd>
+      </div>
+      <div>
+        <dt>Reported</dt>
+        <dd>{result.reportedAt}</dd>
+      </div>
+      <div>
+        <dt>Worker</dt>
+        <dd>
+          {result.worker.name} {result.worker.version} · {result.worker.runtime}
+        </dd>
+      </div>
+      <div>
+        <dt>Entrypoint</dt>
+        <dd>
+          <code>{result.worker.entrypoint}</code>
+        </dd>
+      </div>
+    </dl>
+
+    <section aria-labelledby="selected-work-outputs-title">
+      <h3 id="selected-work-outputs-title">Reported outputs</h3>
+      <ul className="selected-worker-output__outputs">
+        {result.outputs.map((output) => (
+          <li key={`${output.name}:${output.role}`}>
+            <strong>{words(output.name)}</strong>
+            <span>
+              {words(output.role)} · {output.state} · {output.mediaType}
+            </span>
+            {output.handle === undefined ? null : <code>{output.handle}</code>}
+            {output.contentHash === undefined ? null : (
+              <span>
+                {output.contentHash} · {measuredBytes(output.byteSize ?? 0)}
+                {" bytes"}
+              </span>
+            )}
+            <p>{output.limitation}</p>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <div className="selected-worker-output__detail-grid">
+      <section aria-labelledby="selected-work-diagnostics-title">
+        <h3 id="selected-work-diagnostics-title">Diagnostics</h3>
+        <StateNotice
+          notice={{
+            tone: "caution",
+            title: "Exact diagnostics unavailable",
+            message: result.diagnostics.reason,
+            recovery:
+              "Use the manifest identity above when a registered diagnostics read becomes available. Petra does not reconstruct diagnostics from status or output handles.",
+          }}
+        />
+      </section>
+      <section aria-labelledby="selected-work-resources-title">
+        <h3 id="selected-work-resources-title">Measured resources</h3>
+        <dl>
+          <div>
+            <dt>Wall time</dt>
+            <dd>{measuredBytes(result.resourceUsage.wallTimeMs)} ms</dd>
+          </div>
+          <div>
+            <dt>CPU time</dt>
+            <dd>{measuredBytes(result.resourceUsage.cpuTimeMs)} ms</dd>
+          </div>
+          <div>
+            <dt>Peak memory</dt>
+            <dd>{measuredBytes(result.resourceUsage.peakMemoryBytes)} bytes</dd>
+          </div>
+          <div>
+            <dt>Input / output</dt>
+            <dd>
+              {measuredBytes(result.resourceUsage.inputBytes)} /{" "}
+              {measuredBytes(result.resourceUsage.outputBytes)} bytes
+            </dd>
+          </div>
+          <div>
+            <dt>Network</dt>
+            <dd>{measuredBytes(result.resourceUsage.networkBytes)} bytes</dd>
+          </div>
+          {result.resourceUsage.inputTokens === undefined &&
+          result.resourceUsage.outputTokens === undefined ? null : (
+            <div>
+              <dt>Input / output tokens</dt>
+              <dd>
+                {result.resourceUsage.inputTokens ?? "Not measured"} /{" "}
+                {result.resourceUsage.outputTokens ?? "Not measured"}
+              </dd>
+            </div>
+          )}
+        </dl>
+      </section>
+    </div>
+
+    <details>
+      <summary>Identity hashes and limitations</summary>
+      <dl>
+        <div>
+          <dt>Manifest content hash</dt>
+          <dd>
+            <code>{result.resultRef.contentHash}</code>
+          </dd>
+        </div>
+        <div>
+          <dt>Manifest record hash</dt>
+          <dd>
+            <code>{result.resultRef.recordHash}</code>
+          </dd>
+        </div>
+        <div>
+          <dt>Producing Work record hash</dt>
+          <dd>
+            <code>{result.producingWorkRef.recordHash}</code>
+          </dd>
+        </div>
+      </dl>
+      <ul>
+        {result.limitations.map((limitation) => (
+          <li key={limitation}>{limitation}</li>
+        ))}
+      </ul>
+    </details>
+  </section>
+);
+
 export const WorkDetailSurface = ({
   project,
   unit,
   work,
   operations,
+  selectedResult,
 }: {
   project: ProjectRecord;
   unit: WorkUnit;
   work: WorkProjectView;
   operations?: PetraProjectWorkOperationsView;
+  selectedResult?: ProjectWorkerOutputSelection;
 }): React.JSX.Element => {
   const branches = work.branches.filter((branch) =>
     unit.branchIds.includes(branch.id),
@@ -955,6 +1131,10 @@ export const WorkDetailSurface = ({
           </div>
         </dl>
       </header>
+
+      {selectedResult === undefined ? null : (
+        <SelectedWorkerOutput result={selectedResult} />
+      )}
 
       {work.inquiryLimitation === undefined ? null : (
         <StateNotice
@@ -1250,13 +1430,15 @@ export const WorkDetailSurface = ({
 
 export const WorkDetailRoute = (): React.JSX.Element => {
   const project = useProjectRecord();
-  const { work, unit, operations } = useLoaderData<ProjectWorkDetailData>();
+  const { work, unit, operations, selectedResult } =
+    useLoaderData<ProjectWorkDetailData>();
   return (
     <WorkDetailSurface
       project={project}
       unit={unit}
       work={work}
       operations={operations}
+      {...(selectedResult === undefined ? {} : { selectedResult })}
     />
   );
 };

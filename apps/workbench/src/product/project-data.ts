@@ -5554,6 +5554,58 @@ export interface ProjectWorkDetailData {
   work: WorkProjectView;
   unit: WorkUnit;
   operations: PetraProjectWorkOperationsView;
+  selectedResult?: ProjectWorkerOutputSelection;
+}
+
+export interface ProjectWorkerOutputSelection {
+  readonly resultRef: {
+    readonly semanticKey: "petra.worker-output-manifest";
+    readonly recordId: string;
+    readonly revision: number;
+    readonly contentHash: string;
+    readonly recordHash: string;
+  };
+  readonly producingWorkRef: {
+    readonly workUnitId: string;
+    readonly revision: number;
+    readonly recordHash: string;
+  };
+  readonly worker: {
+    readonly name: string;
+    readonly version: string;
+    readonly runtime: string;
+    readonly entrypoint: string;
+  };
+  readonly outcome: string;
+  readonly attempt: number;
+  readonly reportedAt: string;
+  readonly outputs: ReadonlyArray<{
+    readonly name: string;
+    readonly role: string;
+    readonly state: string;
+    readonly handle?: string;
+    readonly contentHash?: string;
+    readonly byteSize?: number;
+    readonly mediaType: string;
+    readonly limitation: string;
+  }>;
+  readonly diagnostics: {
+    readonly state: "unavailable";
+    readonly reason: string;
+  };
+  readonly resourceUsage: {
+    readonly wallTimeMs: number;
+    readonly cpuTimeMs: number;
+    readonly peakMemoryBytes: number;
+    readonly inputBytes: number;
+    readonly outputBytes: number;
+    readonly networkBytes: number;
+    readonly gpuTimeMs?: number;
+    readonly inputTokens?: number;
+    readonly outputTokens?: number;
+    readonly cost?: { readonly currency: string; readonly microunits: number };
+  };
+  readonly limitations: readonly string[];
 }
 
 const CROCKFORD_BASE32 = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
@@ -6748,11 +6800,213 @@ export const cancelProjectSuggestedActionWork = async (
   return { cancellation, invocation: updated };
 };
 
+type WorkerOutputRouteSelection = {
+  readonly semanticKey: "petra.worker-output-manifest";
+  readonly recordId: string;
+  readonly revision: number;
+  readonly contentHash: string;
+  readonly recordHash: string;
+  readonly parentRevision: number;
+  readonly parentRecordHash: string;
+};
+
+const workerOutputRouteSelection = (
+  search: URLSearchParams,
+): WorkerOutputRouteSelection | undefined => {
+  const names = [
+    "result_semantic_key",
+    "result_id",
+    "result_revision",
+    "result_content_hash",
+    "result_record_hash",
+    "parent_revision",
+    "parent_record_hash",
+  ] as const;
+  const values = Object.fromEntries(
+    names.map((name) => {
+      const matches = search.getAll(name);
+      if (matches.length > 1) {
+        throw new ProjectDataError(
+          "A selected Work result must bind each exact identity once.",
+          400,
+        );
+      }
+      return [name, matches[0]];
+    }),
+  ) as Record<(typeof names)[number], string | undefined>;
+  if (names.every((name) => values[name] === undefined)) return undefined;
+  if (names.some((name) => values[name] === undefined)) {
+    throw new ProjectDataError(
+      "A selected Work result requires its exact manifest and producing-Work identities.",
+      400,
+    );
+  }
+  const revision = Number(values.result_revision);
+  const parentRevision = Number(values.parent_revision);
+  const recordId = values.result_id!;
+  if (
+    values.result_semantic_key !== "petra.worker-output-manifest" ||
+    !/^worker_output_manifest_[0-9A-HJKMNP-TV-Z]{26}$/u.test(recordId) ||
+    !Number.isSafeInteger(revision) ||
+    revision < 1 ||
+    !CONTENT_HASH.test(values.result_content_hash!) ||
+    !CONTENT_HASH.test(values.result_record_hash!) ||
+    !Number.isSafeInteger(parentRevision) ||
+    parentRevision < 1 ||
+    !CONTENT_HASH.test(values.parent_record_hash!)
+  ) {
+    throw new ProjectDataError(
+      "The selected WorkerOutputManifest binding is invalid.",
+      400,
+    );
+  }
+  return {
+    semanticKey: "petra.worker-output-manifest",
+    recordId,
+    revision,
+    contentHash: values.result_content_hash!,
+    recordHash: values.result_record_hash!,
+    parentRevision,
+    parentRecordHash: values.parent_record_hash!,
+  };
+};
+
+const selectedWorkerOutput = (
+  view: PetraProjectWorkReadView,
+  operations: PetraProjectWorkOperationsView,
+  selection: WorkerOutputRouteSelection | undefined,
+): ProjectWorkerOutputSelection | undefined => {
+  if (selection === undefined) return undefined;
+  if (view.content.view_kind !== "detail") {
+    throw new ProjectDataError(
+      "An exact worker result requires Project Work detail.",
+      502,
+    );
+  }
+  const { summary, resources, outputs, specification, coverage } = view.content;
+  const parent = summary.work_unit_ref;
+  const result = operations.results.find(
+    (candidate) =>
+      candidate.result_kind === "worker_output_manifest" &&
+      candidate.record_ref.semantic_key === selection.semanticKey &&
+      candidate.record_ref.record_id === selection.recordId &&
+      candidate.record_ref.revision === selection.revision &&
+      candidate.record_ref.content_hash === selection.contentHash &&
+      candidate.record_ref.record_hash === selection.recordHash,
+  );
+  const usage = resources.usage;
+  if (
+    parent.revision !== selection.parentRevision ||
+    parent.record_hash !== selection.parentRecordHash ||
+    operations.work_unit_ref.work_unit_id !== parent.work_unit_id ||
+    operations.work_unit_ref.revision !== parent.revision ||
+    result === undefined ||
+    result.destination.state !== "available" ||
+    result.destination.place_role !== "work" ||
+    result.destination.target_ref.semantic_key !== selection.semanticKey ||
+    result.destination.target_ref.object_id !== selection.recordId ||
+    result.destination.target_ref.revision !== selection.revision ||
+    usage.state !== "measured" ||
+    usage.output_manifest_ref.record_id !== selection.recordId ||
+    usage.output_manifest_ref.revision !== selection.revision ||
+    usage.output_manifest_ref.content_hash !== selection.contentHash ||
+    usage.output_manifest_ref.record_hash !== selection.recordHash
+  ) {
+    throw new ProjectDataError(
+      "The selected worker result no longer matches its exact producing Work and current manifest read.",
+      409,
+    );
+  }
+  const measured = usage.resource_usage;
+  const limitations = [
+    ...outputs.map((output) => output.availability.limitation),
+    ...coverage.flatMap((item) =>
+      item.state === "complete" || item.limitation === undefined
+        ? []
+        : [item.limitation],
+    ),
+    "The Project Work read does not expose the manifest's exact diagnostics array. Diagnostics cannot be inferred from output handles or execution state.",
+  ];
+  return {
+    resultRef: {
+      semanticKey: selection.semanticKey,
+      recordId: selection.recordId,
+      revision: selection.revision,
+      contentHash: selection.contentHash,
+      recordHash: selection.recordHash,
+    },
+    producingWorkRef: {
+      workUnitId: parent.work_unit_id,
+      revision: parent.revision,
+      recordHash: parent.record_hash,
+    },
+    worker: {
+      name: specification.worker.worker_name,
+      version: specification.worker.worker_version,
+      runtime: `${specification.worker.runtime_name} ${specification.worker.runtime_version}`,
+      entrypoint: specification.worker.entrypoint,
+    },
+    outcome: summary.execution.terminal_outcome ?? summary.execution.state,
+    attempt: summary.execution.attempt,
+    reportedAt: summary.execution.updated_at,
+    outputs: outputs.map((output) =>
+      output.report_state === "reported"
+        ? {
+            name: output.produced_output.output_name,
+            role: output.produced_output.output_role,
+            state: "reported",
+            handle: output.produced_output.output_handle,
+            contentHash: output.produced_output.content_hash,
+            byteSize: output.produced_output.byte_size,
+            mediaType: output.produced_output.media_type,
+            limitation: output.availability.limitation,
+          }
+        : {
+            name: output.declaration.output_name,
+            role: output.declaration.output_role,
+            state: "not reported",
+            mediaType: output.declaration.media_type,
+            limitation: output.availability.limitation,
+          },
+    ),
+    diagnostics: {
+      state: "unavailable",
+      reason:
+        "Exact manifest diagnostics are not projected by the registered Project Work detail read.",
+    },
+    resourceUsage: {
+      wallTimeMs: measured.wall_time_ms,
+      cpuTimeMs: measured.cpu_time_ms,
+      peakMemoryBytes: measured.peak_memory_bytes,
+      inputBytes: measured.input_bytes,
+      outputBytes: measured.output_bytes,
+      networkBytes: measured.network_bytes,
+      ...(measured.gpu_time_ms === undefined
+        ? {}
+        : { gpuTimeMs: measured.gpu_time_ms }),
+      ...(measured.input_tokens === undefined
+        ? {}
+        : { inputTokens: measured.input_tokens }),
+      ...(measured.output_tokens === undefined
+        ? {}
+        : { outputTokens: measured.output_tokens }),
+      ...(measured.cost === undefined
+        ? {}
+        : { cost: structuredClone(measured.cost) }),
+    },
+    limitations: [...new Set(limitations)],
+  };
+};
+
 export const loadProjectWorkDetail = async ({
   params,
+  request,
 }: LoaderFunctionArgs): Promise<ProjectWorkDetailData> => {
   const projectId = requiredRouteIdentity(params.projectId, "A Project ID");
   const workUnitId = requiredRouteIdentity(params.workId, "A WorkUnit ID");
+  const selection = workerOutputRouteSelection(
+    new URL(request.url).searchParams,
+  );
   const [value, inquiryRead, operations] = await Promise.all([
     requestJson(
       `/api/queries/projects/${encodeURIComponent(projectId)}/work/${encodeURIComponent(workUnitId)}`,
@@ -6799,7 +7053,13 @@ export const loadProjectWorkDetail = async ({
   if (unit === undefined) {
     throw new ProjectDataError("Petra returned no exact Work task.", 502);
   }
-  return { work, unit, operations };
+  const selectedResult = selectedWorkerOutput(view, operations, selection);
+  return {
+    work,
+    unit,
+    operations,
+    ...(selectedResult === undefined ? {} : { selectedResult }),
+  };
 };
 
 export const petraThreadFromView = (
@@ -7579,15 +7839,54 @@ const exactSelection = (
     recordHash: target.record_hash,
   });
 
+type SemanticResultBinding = {
+  readonly contentHash?: string;
+  readonly recordHash?: string;
+};
+
+const resolvedLocation = (
+  view: PetraProjectObjectLocationView,
+):
+  | Extract<
+      PetraProjectObjectLocationView["content"]["resolution"],
+      { state: "current" | "historical" | "superseded" }
+    >
+  | undefined => {
+  const resolution = view.content.resolution;
+  return resolution.state === "current" ||
+    resolution.state === "historical" ||
+    resolution.state === "superseded"
+    ? resolution
+    : undefined;
+};
+
+const exactResultParent = (view: PetraProjectObjectLocationView) => {
+  const parent = resolvedLocation(view)?.parent_ref;
+  if (
+    parent === undefined ||
+    parent.semantic_key !== "petra.work-unit" ||
+    !WORK_UNIT_ID.test(parent.object_id) ||
+    !Number.isSafeInteger(parent.revision) ||
+    parent.revision < 1 ||
+    !CONTENT_HASH.test(parent.record_hash)
+  ) {
+    throw new ProjectDataError(
+      "Petra returned a Work result without its exact producing-Work parent.",
+      502,
+    );
+  }
+  return parent;
+};
+
 export const semanticDestinationPath = (
   view: PetraProjectObjectLocationView,
+  binding: SemanticResultBinding = {},
 ): string => {
   const projectRoot = `/projects/${encodeURIComponent(view.project_id)}`;
   const destination = view.content.primary_destination;
   const target = destination.target_ref;
   if (destination.role === "brief") return `${projectRoot}/brief`;
   if (destination.role === "settings") return "/settings";
-  if (destination.role === "petra") return `${projectRoot}/petra`;
   if (destination.role === "profile_tool") {
     if (destination.profile_tool_key === undefined) {
       throw new ProjectDataError(
@@ -7598,11 +7897,90 @@ export const semanticDestinationPath = (
     return `${projectRoot}/tools/${encodeURIComponent(destination.profile_tool_key)}`;
   }
   if (target === undefined) {
+    if (destination.role === "petra") return `${projectRoot}/petra`;
     throw new ProjectDataError(
       `Petra returned ${destination.role} without an exact target.`,
       502,
     );
   }
+  const resolution = resolvedLocation(view);
+  if (
+    resolution !== undefined &&
+    (resolution.resolved_ref.semantic_key !== target.semantic_key ||
+      resolution.resolved_ref.object_id !== target.object_id ||
+      resolution.resolved_ref.revision !== target.revision ||
+      resolution.resolved_ref.record_hash !== target.record_hash)
+  ) {
+    throw new ProjectDataError(
+      "Petra returned a semantic destination for a different resolved identity.",
+      502,
+    );
+  }
+  if (
+    binding.recordHash !== undefined &&
+    (resolution === undefined ||
+      resolution.resolved_ref.record_hash !== binding.recordHash)
+  ) {
+    throw new ProjectDataError(
+      "The selected result changed before its semantic destination was resolved.",
+      409,
+    );
+  }
+  if (
+    target.semantic_key === "petra.grounded-response" &&
+    destination.role === "petra"
+  ) {
+    if (
+      resolution === undefined ||
+      binding.contentHash === undefined ||
+      !CONTENT_HASH.test(binding.contentHash)
+    ) {
+      throw new ProjectDataError(
+        "Opening a grounded response requires its exact retained content identity.",
+        400,
+      );
+    }
+    const parent = exactResultParent(view);
+    const returnPath = `${projectRoot}/work/${encodeURIComponent(parent.object_id)}`;
+    const response = new URLSearchParams({
+      communication_response_id: target.object_id,
+      communication_response_revision: String(target.revision),
+      communication_response_content_hash: binding.contentHash,
+      communication_response_record_hash: resolution.resolved_ref.record_hash,
+      communication_locale: "en",
+      return_to: returnPath,
+      return_label: "producing Work task",
+      return_focus: "work-destinations-title",
+    });
+    return `${projectRoot}/petra?${response}`;
+  }
+  if (
+    target.semantic_key === "petra.worker-output-manifest" &&
+    destination.role === "work"
+  ) {
+    if (
+      resolution === undefined ||
+      binding.contentHash === undefined ||
+      !CONTENT_HASH.test(binding.contentHash)
+    ) {
+      throw new ProjectDataError(
+        "Opening a worker result requires its exact retained content identity.",
+        400,
+      );
+    }
+    const parent = exactResultParent(view);
+    const result = new URLSearchParams({
+      result_semantic_key: target.semantic_key,
+      result_id: target.object_id,
+      result_revision: String(target.revision),
+      result_content_hash: binding.contentHash,
+      result_record_hash: resolution.resolved_ref.record_hash,
+      parent_revision: String(parent.revision),
+      parent_record_hash: parent.record_hash,
+    });
+    return `${projectRoot}/work/${encodeURIComponent(parent.object_id)}?${result}#selected-work-result`;
+  }
+  if (destination.role === "petra") return `${projectRoot}/petra`;
   const selection = exactSelection(target);
   if (destination.role === "sources") {
     selection.delete("selected");
@@ -7625,6 +8003,32 @@ export const loadProjectObjectLocationRedirect = async ({
 }: LoaderFunctionArgs): Promise<Response> => {
   const projectId = requiredRouteIdentity(params.projectId, "A Project ID");
   const incoming = new URL(request.url).searchParams;
+  for (const key of [
+    "semanticKey",
+    "objectId",
+    "revision",
+    "taskIntent",
+    "contentHash",
+    "recordHash",
+  ]) {
+    if (incoming.getAll(key).length > 1) {
+      throw new ProjectDataError(
+        "A semantic destination must bind each exact result control once.",
+        400,
+      );
+    }
+  }
+  const contentHash = incoming.get("contentHash") ?? undefined;
+  const recordHash = incoming.get("recordHash") ?? undefined;
+  if (
+    (contentHash !== undefined && !CONTENT_HASH.test(contentHash)) ||
+    (recordHash !== undefined && !CONTENT_HASH.test(recordHash))
+  ) {
+    throw new ProjectDataError(
+      "A semantic result destination contains an invalid exact hash.",
+      400,
+    );
+  }
   const query = new URLSearchParams();
   for (const key of ["semanticKey", "objectId", "revision", "taskIntent"]) {
     const values = incoming.getAll(key);
@@ -7651,7 +8055,12 @@ export const loadProjectObjectLocationRedirect = async ({
       502,
     );
   }
-  return redirect(semanticDestinationPath(view));
+  return redirect(
+    semanticDestinationPath(view, {
+      ...(contentHash === undefined ? {} : { contentHash }),
+      ...(recordHash === undefined ? {} : { recordHash }),
+    }),
+  );
 };
 
 /** Read the entire exact Review; member selection never narrows this assessment. */

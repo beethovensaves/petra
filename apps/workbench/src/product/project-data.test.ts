@@ -1121,6 +1121,107 @@ const workOperationsView = JSON.parse(
   ),
 ) as PetraProjectWorkOperationsView;
 
+const completedWorkOperationsView = (): PetraProjectWorkOperationsView => {
+  if (workDetailView.content.view_kind !== "detail") {
+    throw new TypeError("Expected exact Work detail.");
+  }
+  const usage = workDetailView.content.resources.usage;
+  if (usage.state !== "measured") {
+    throw new TypeError("Expected a measured WorkerOutputManifest.");
+  }
+  const operations = structuredClone(workOperationsView);
+  operations.work_unit_ref = {
+    work_unit_id: workDetailView.content.summary.work_unit_ref.work_unit_id,
+    revision: workDetailView.content.summary.work_unit_ref.revision,
+    spec_hash: workDetailView.content.summary.work_unit_ref.spec_hash,
+  };
+  operations.execution_state = "completed";
+  operations.results = [
+    {
+      result_kind: "worker_output_manifest",
+      record_ref: {
+        semantic_key: "petra.worker-output-manifest",
+        record_id: usage.output_manifest_ref.record_id,
+        revision: usage.output_manifest_ref.revision,
+        content_hash: usage.output_manifest_ref.content_hash,
+        record_hash: usage.output_manifest_ref.record_hash,
+      },
+      destination: {
+        state: "available",
+        place_role: "work",
+        target_ref: {
+          semantic_key: "petra.worker-output-manifest",
+          object_id: usage.output_manifest_ref.record_id,
+          revision: usage.output_manifest_ref.revision,
+        },
+      },
+    },
+  ];
+  return operations;
+};
+
+const resultLocationView = (
+  kind: "grounded_response" | "worker_output_manifest",
+): PetraProjectObjectLocationView => {
+  if (workDetailView.content.view_kind !== "detail") {
+    throw new TypeError("Expected exact Work detail.");
+  }
+  const grounded = kind === "grounded_response";
+  const semanticKey = grounded
+    ? "petra.grounded-response"
+    : "petra.worker-output-manifest";
+  const objectId = grounded
+    ? "grounded_response_01K4C000000000000000000062"
+    : "worker_output_manifest_01ARZ3NDEKTSV4RRFFQ69G5FC4";
+  const recordHash = grounded
+    ? `sha256:${"6".repeat(64)}`
+    : "sha256:9e3dc06cbebfeca6bbbe15a4fd22aa15668113d6ae2334e7c929d1570a6a614a";
+  const view = structuredClone(locationView);
+  const parent = workDetailView.content.summary.work_unit_ref;
+  view.content.request = {
+    object_ref: { semantic_key: semanticKey, object_id: objectId, revision: 1 },
+    task_intent: "inspect",
+  };
+  view.content.resolution = {
+    state: "current",
+    requested_ref: view.content.request.object_ref,
+    resolved_ref: {
+      semantic_key: semanticKey,
+      object_id: objectId,
+      revision: 1,
+      record_hash: recordHash,
+    },
+    current_ref: {
+      semantic_key: semanticKey,
+      object_id: objectId,
+      revision: 1,
+      record_hash: recordHash,
+    },
+    descriptor: {
+      semantic_key: semanticKey,
+      generic_family: "output",
+      label: grounded ? "Grounded response" : "Worker output",
+      summary: grounded ? "Exact grounded response." : "Exact worker output.",
+      lifecycle_state: "completed",
+    },
+    parent_ref: {
+      semantic_key: "petra.work-unit",
+      object_id: parent.work_unit_id,
+      revision: parent.revision,
+      record_hash: parent.record_hash,
+    },
+    replacement_chain: [],
+  };
+  view.content.primary_destination = {
+    role: grounded ? "petra" : "work",
+    purpose: grounded
+      ? "Inspect the exact grounded response."
+      : "Inspect the exact worker output.",
+    target_ref: view.content.resolution.resolved_ref,
+  };
+  return view;
+};
+
 const workOperationRequest = JSON.parse(
   readFileSync(
     new URL(
@@ -4706,6 +4807,99 @@ describe("Project shell workbench adapter", () => {
     expect(detail.operations).toEqual(workOperationsView);
   });
 
+  it("loads a selected WorkerOutputManifest through its producing Work without losing exact identity", async () => {
+    if (workDetailView.content.view_kind !== "detail") {
+      throw new Error("Expected the Work detail fixture.");
+    }
+    const operations = completedWorkOperationsView();
+    const manifest = operations.results[0];
+    if (
+      manifest === undefined ||
+      manifest.result_kind !== "worker_output_manifest"
+    ) {
+      throw new Error("Expected the exact worker result.");
+    }
+    const parent = workDetailView.content.summary.work_unit_ref;
+    const query = new URLSearchParams({
+      result_semantic_key: manifest.record_ref.semantic_key,
+      result_id: manifest.record_ref.record_id,
+      result_revision: String(manifest.record_ref.revision),
+      result_content_hash: manifest.record_ref.content_hash,
+      result_record_hash: manifest.record_ref.record_hash,
+      parent_revision: String(parent.revision),
+      parent_record_hash: parent.record_hash,
+    });
+    const fetch = vi.fn((input: RequestInfo | URL) => {
+      const path =
+        typeof input === "string"
+          ? input
+          : input instanceof URL
+            ? input.href
+            : input.url;
+      if (path.includes("/inquiries?")) {
+        const inquiryCollection = structuredClone(inquiryCollectionView);
+        if (inquiryCollection.content.view_kind === "collection") {
+          inquiryCollection.content.query.work_unit_id = parent.work_unit_id;
+        }
+        return Promise.resolve(Response.json(inquiryCollection));
+      }
+      if (path.includes("/operations")) {
+        return Promise.resolve(Response.json(operations));
+      }
+      return Promise.resolve(Response.json(workDetailView));
+    });
+    vi.stubGlobal("fetch", fetch);
+    const url = new URL(
+      `http://petra.test/projects/${workDetailView.project_id}/work/${parent.work_unit_id}?${query}`,
+    );
+
+    const detail = await loadProjectWorkDetail({
+      request: new Request(url),
+      url,
+      pattern: "/projects/:projectId/work/:workId",
+      params: {
+        projectId: workDetailView.project_id,
+        workId: parent.work_unit_id,
+      },
+      context: new RouterContextProvider(),
+    });
+
+    expect(detail.selectedResult?.outcome).toBe("succeeded");
+    expect(detail.selectedResult?.resultRef.recordId).toBe(
+      manifest.record_ref.record_id,
+    );
+    expect(detail.selectedResult?.resultRef.recordHash).toBe(
+      manifest.record_ref.record_hash,
+    );
+    expect(detail.selectedResult?.producingWorkRef).toEqual({
+      workUnitId: parent.work_unit_id,
+      revision: parent.revision,
+      recordHash: parent.record_hash,
+    });
+    expect(detail.selectedResult?.diagnostics.state).toBe("unavailable");
+    expect(detail.selectedResult?.outputs[0]?.name).toBe("parsed_document");
+    expect(detail.selectedResult?.outputs[0]?.handle).toBe(
+      "output:parsed-document-json",
+    );
+    expect(detail.selectedResult?.resourceUsage.outputBytes).toBe(40218);
+    expect(
+      detail.selectedResult?.limitations.some((limitation) =>
+        limitation.includes("exact diagnostics array"),
+      ),
+    ).toBe(true);
+    expect(
+      fetch.mock.calls.some(([input]) => {
+        const path =
+          typeof input === "string"
+            ? input
+            : input instanceof URL
+              ? input.href
+              : input.url;
+        return path.includes("result_id=");
+      }),
+    ).toBe(false);
+  });
+
   it("previews, invokes, and rereads one exact Work-starting SuggestedAction", async () => {
     const fetch = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
       void init;
@@ -5550,6 +5744,41 @@ describe("Project shell workbench adapter", () => {
     );
   });
 
+  it("uses the resolved producing Work parent without treating a result as a WorkUnit", () => {
+    const grounded = resultLocationView("grounded_response");
+    const worker = resultLocationView("worker_output_manifest");
+    const groundedPath = semanticDestinationPath(grounded, {
+      contentHash: `sha256:${"5".repeat(64)}`,
+      recordHash: `sha256:${"6".repeat(64)}`,
+    });
+    const workerPath = semanticDestinationPath(worker, {
+      contentHash:
+        "sha256:5f9c81ae2ed811c77a5166d2a672ddde2243501542a8be66586b63f512458abb",
+      recordHash:
+        "sha256:9e3dc06cbebfeca6bbbe15a4fd22aa15668113d6ae2334e7c929d1570a6a614a",
+    });
+    const parentId =
+      workDetailView.content.view_kind === "detail"
+        ? workDetailView.content.summary.work_unit_ref.work_unit_id
+        : "missing";
+
+    expect(groundedPath).toContain("/petra?");
+    expect(groundedPath).toContain(
+      "communication_response_id=grounded_response_01K4C000000000000000000062",
+    );
+    expect(groundedPath).toContain(
+      `return_to=%2Fprojects%2F${grounded.project_id}%2Fwork%2F${parentId}`,
+    );
+    expect(workerPath).toContain(`/work/${parentId}?`);
+    expect(workerPath).toContain(
+      "result_id=worker_output_manifest_01ARZ3NDEKTSV4RRFFQ69G5FC4",
+    );
+    expect(workerPath).not.toContain(
+      "/work/worker_output_manifest_01ARZ3NDEKTSV4RRFFQ69G5FC4",
+    );
+    expect(workerPath.endsWith("#selected-work-result")).toBe(true);
+  });
+
   it("resolves a deep link through the authorized semantic query without ambient selection", async () => {
     const fetch = vi.fn((input: RequestInfo | URL) => {
       void input;
@@ -5587,5 +5816,54 @@ describe("Project shell workbench adapter", () => {
       "/object-location?semanticKey=petra.project-source&objectId=project_source_01K4C000000000000000000007&taskIntent=inspect",
     );
     expect(requestPath).not.toContain("selected=");
+  });
+
+  it("preserves exact Work-result hashes across the semantic redirect", async () => {
+    const worker = resultLocationView("worker_output_manifest");
+    const fetch = vi.fn((input: RequestInfo | URL) => {
+      void input;
+      return Promise.resolve(Response.json(worker));
+    });
+    vi.stubGlobal("fetch", fetch);
+    const contentHash =
+      "sha256:5f9c81ae2ed811c77a5166d2a672ddde2243501542a8be66586b63f512458abb";
+    const recordHash =
+      "sha256:9e3dc06cbebfeca6bbbe15a4fd22aa15668113d6ae2334e7c929d1570a6a614a";
+    const requested = worker.content.request.object_ref;
+    const url = new URL(
+      `http://petra.test/projects/${worker.project_id}/locate?${new URLSearchParams(
+        {
+          semanticKey: requested.semantic_key,
+          objectId: requested.object_id,
+          revision: String(requested.revision),
+          taskIntent: "inspect",
+          contentHash,
+          recordHash,
+        },
+      )}`,
+    );
+
+    const response = await loadProjectObjectLocationRedirect({
+      request: new Request(url),
+      url,
+      pattern: "/projects/:projectId/locate",
+      params: { projectId: worker.project_id },
+      context: new RouterContextProvider(),
+    });
+
+    expect(response.status).toBe(302);
+    const location = response.headers.get("location");
+    expect(location).toContain("result_content_hash=sha256%3A5f9c81");
+    expect(location).toContain("result_record_hash=sha256%3A9e3dc0");
+    expect(location).toContain("parent_record_hash=sha256%3Af4b25b");
+    const fetchInput = fetch.mock.calls[0]?.[0];
+    const requestedPath =
+      typeof fetchInput === "string"
+        ? fetchInput
+        : fetchInput instanceof URL
+          ? fetchInput.href
+          : fetchInput?.url;
+    expect(requestedPath).not.toContain("contentHash=");
+    expect(requestedPath).not.toContain("recordHash=");
   });
 });

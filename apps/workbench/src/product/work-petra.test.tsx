@@ -28,6 +28,7 @@ import {
 import {
   petraThreadFromView,
   projectRecordFromShellView,
+  type ProjectWorkerOutputSelection,
   workProjectFromView,
 } from "./project-data.js";
 
@@ -73,6 +74,64 @@ const workOperations = JSON.parse(
     "utf8",
   ),
 ) as PetraProjectWorkOperationsView;
+
+const selectedWorkerOutput: ProjectWorkerOutputSelection = {
+  resultRef: {
+    semanticKey: "petra.worker-output-manifest",
+    recordId: "worker_output_manifest_01ARZ3NDEKTSV4RRFFQ69G5FC4",
+    revision: 1,
+    contentHash:
+      "sha256:5f9c81ae2ed811c77a5166d2a672ddde2243501542a8be66586b63f512458abb",
+    recordHash:
+      "sha256:9e3dc06cbebfeca6bbbe15a4fd22aa15668113d6ae2334e7c929d1570a6a614a",
+  },
+  producingWorkRef: {
+    workUnitId: "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+    revision: 4,
+    recordHash:
+      "sha256:f4b25b52df46ad74d21738f50aa2690635c5681a9f2a4df3582edb457709b2ab",
+  },
+  worker: {
+    name: "petra.science",
+    version: "0.0.0",
+    runtime: "python 3.13.7",
+    entrypoint: "petra_science.parse",
+  },
+  outcome: "succeeded",
+  attempt: 1,
+  reportedAt: "2026-08-29T14:00:05.000Z",
+  outputs: [
+    {
+      name: "parsed_document",
+      role: "proposal",
+      state: "reported",
+      handle: "output:parsed-document-json",
+      contentHash:
+        "sha256:6b2fa76c316e066aa3e3156ef026f140f4a45f4bf7f3127c766115b462ad16d8",
+      byteSize: 40218,
+      mediaType: "application/json",
+      limitation:
+        "The worker reported an immutable staged handle; Project usability is not inferred.",
+    },
+  ],
+  diagnostics: {
+    state: "unavailable",
+    reason:
+      "Exact manifest diagnostics are not projected by the registered Project Work detail read.",
+  },
+  resourceUsage: {
+    wallTimeMs: 3000,
+    cpuTimeMs: 5100,
+    peakMemoryBytes: 805306368,
+    inputBytes: 21,
+    outputBytes: 40218,
+    networkBytes: 0,
+  },
+  limitations: [
+    "Worker output handles are reported, but Project-level usability is not inferred.",
+    "The Project Work read does not expose the manifest's exact diagnostics array.",
+  ],
+};
 
 describe("reference Work and Petra packets", () => {
   const project = getReferenceProject("inlet-cycle");
@@ -246,6 +305,35 @@ describe("reference Work and Petra packets", () => {
     expect(reconnectButton).not.toContain("aria-disabled");
     expect(replayButton).toBeDefined();
     expect(replayButton).not.toContain("aria-disabled");
+  });
+
+  it("renders a selected manifest under its producing Work with exact outcome and honest diagnostics coverage", () => {
+    const liveUnit = {
+      ...runningTask,
+      id: selectedWorkerOutput.producingWorkRef.workUnitId,
+    };
+    const markup = render(
+      <WorkDetailSurface
+        project={project}
+        unit={liveUnit}
+        work={{ ...work, units: [liveUnit] }}
+        operations={workOperations}
+        selectedResult={selectedWorkerOutput}
+      />,
+    );
+
+    expect(markup).toContain('id="selected-work-result"');
+    expect(markup).toContain("Worker output manifest");
+    expect(markup).toContain(selectedWorkerOutput.resultRef.recordId);
+    expect(markup).toContain(selectedWorkerOutput.producingWorkRef.workUnitId);
+    expect(markup).toContain("Succeeded · attempt 1");
+    expect(markup).toContain("output:parsed-document-json");
+    expect(markup).toContain("Measured resources");
+    expect(markup).toContain("40,218 bytes");
+    expect(markup).toContain("Exact diagnostics unavailable");
+    expect(markup).toContain(
+      "Petra does not reconstruct diagnostics from status or output handles",
+    );
   });
 
   it("discloses Petra's exact context, omissions, and message force", () => {

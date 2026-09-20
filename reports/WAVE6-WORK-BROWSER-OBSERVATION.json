@@ -1,0 +1,70 @@
+{
+  "scenario": "UX1.6-WORK/usable-work-ui",
+  "status": "incomplete",
+  "stable_url": "http://127.0.0.1:59654",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "producing_work_unit_id": "work_unit_1M59PHH5NWTD9XKTJKGSQQ3ED0",
+  "completed_checks": [
+    "registered scientific inquiry visible",
+    "required input recorded",
+    "active Work left running and reopened",
+    "active Work cancellation confirmed",
+    "completed Work stages, resources, and result destinations rendered",
+    "durable delivery reconnected and replayed",
+    "manifest opened through producing Work with selected manifest identity retained"
+  ],
+  "worker_output_manifest": {
+    "id": "worker_output_manifest_5SH8DMNBYZA54M275HC1587G8J",
+    "producing_work_unit_id": "work_unit_1M59PHH5NWTD9XKTJKGSQQ3ED0",
+    "destination": "http://127.0.0.1:59654/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/work/work_unit_1M59PHH5NWTD9XKTJKGSQQ3ED0?result_semantic_key=petra.worker-output-manifest&result_id=worker_output_manifest_5SH8DMNBYZA54M275HC1587G8J&result_revision=1&result_content_hash=sha256%3A9e605a51f54d86c7be76ba6094f8613462d6d89bf8e65cf3068ef930bd7387b3&result_record_hash=sha256%3A7ef0325880169143cc9bb49a5a18dc9336147668c319ff544e8a48cbc098a8a6&parent_revision=4&parent_record_hash=sha256%3Aafa814d2f6f7c331591b6773ac92dafcfeb3ca0af6c63683f417cc3c86bb0a5f#selected-work-result",
+    "exact_outputs_rendered": true,
+    "measured_resources_rendered": true,
+    "exact_diagnostics_rendered": false
+  },
+  "blocking_boundary": "The exact retained grounded response did not render at http://127.0.0.1:59654/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/petra?communication_response_id=grounded_response_0R812XV7Z34417E3M3F49QNE0A&communication_response_revision=1&communication_response_content_hash=sha256%3A6a5f8bb9d144390d40d4b635955860190f84a48d3dde31cb38e0e65e80974a09&communication_response_record_hash=sha256%3A88949ae6eba2a3370294bc61936cbd51be6cd43cb202146c2148a11ac9fc1aff&communication_locale=en&return_to=%2Fprojects%2Fproject_01ARZ3NDEKTSV4RRFFQ69G5FAW%2Fwork%2Fwork_unit_1M59PHH5NWTD9XKTJKGSQQ3ED0&return_label=producing+Work+task&return_focus=work-destinations-title",
+  "final_calls": [
+    {
+      "method": "GET",
+      "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/inquiries?limit=100&work_unit_id=work_unit_1M59PHH5NWTD9XKTJKGSQQ3ED0",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/work/work_unit_1M59PHH5NWTD9XKTJKGSQQ3ED0/operations",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/health",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/object-location?semanticKey=petra.grounded-response&objectId=grounded_response_0R812XV7Z34417E3M3F49QNE0A&revision=1&taskIntent=inspect",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/health",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/shell",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/model-readiness",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/communication?response_id=grounded_response_0R812XV7Z34417E3M3F49QNE0A&response_revision=1&response_content_hash=sha256%3A6a5f8bb9d144390d40d4b635955860190f84a48d3dde31cb38e0e65e80974a09&response_record_hash=sha256%3A88949ae6eba2a3370294bc61936cbd51be6cd43cb202146c2148a11ac9fc1aff&locale=en",
+      "status": 503,
+      "error_code": "COMMUNICATION_READ_FAILED",
+      "error_message": "The exact scientific.communication registration is missing or incompatible."
+    }
+  ],
+  "console_errors": []
+}
