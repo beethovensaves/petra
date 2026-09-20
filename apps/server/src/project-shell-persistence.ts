@@ -81,6 +81,8 @@ import type {
   ProjectSourceProcessingAuthority,
   ProjectSourceProcessingViewReader,
   ProjectSourceLifecycleAuthorityRepository,
+  ProjectSourceLinkRemovalAuthority,
+  ProjectSourceLinkRemovalPreviewReader,
   ProjectSourceReplacementCommandAuthorityRepository,
   ProjectSourceViewReader,
   ProjectThreadViewReader,
@@ -149,6 +151,7 @@ export interface ProjectShellPersistence {
   readonly sourceProcessingAuthority: ProjectSourceProcessingAuthority;
   readonly sourceProcessingViews: ProjectSourceProcessingViewReader;
   readonly sourceLifecycleViews: ProjectSourceLifecycleViewReader;
+  readonly sourceLinkRemovalPreviews: ProjectSourceLinkRemovalPreviewReader;
   readonly reviewViews: ProjectReviewViewReader;
   readonly reviewRecoveryAssessments: ReviewRecoveryAssessmentReader;
   readonly reviewSessionApply: ReviewSessionApplyBoundary;
@@ -176,6 +179,7 @@ export interface ProjectShellPersistence {
   readonly suggestedActionInvocations: SuggestedActionInvocationAuthorityRepository;
   readonly commandPrincipalResolver?: AuthenticatedCommandPrincipalResolver;
   readonly sourceLifecycleAuthority: ProjectSourceLifecycleAuthorityRepository;
+  readonly sourceLinkRemovals: ProjectSourceLinkRemovalAuthority;
   readonly sourceReplacementAuthority: ProjectSourceReplacementCommandAuthorityRepository;
   readonly close: () => Promise<void>;
 }
@@ -360,6 +364,17 @@ export const createProjectShellPersistenceFromEnvironment = async (
     new PostgresCapabilityGrantCommandAuthorizer(contracts),
     contracts,
   );
+  const sourceLifecycleViews = new PostgresProjectSourceLifecycleViewReader(
+    pool,
+    contracts,
+  );
+  const sourceLifecycleAuthority =
+    new PostgresProjectSourceLifecycleAuthorityRepository(
+      pool,
+      new PostgresCapabilityGrantCommandAuthorizer(contracts),
+      undefined,
+      contracts,
+    );
   let driver: Driver | undefined;
   let closePromise: Promise<void> | undefined;
   const close = (): Promise<void> => {
@@ -378,6 +393,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
           AND to_regclass('petra.review_session_lifecycle_receipts') IS NOT NULL
           AND to_regclass('petra.registered_project_profiles') IS NOT NULL
           AND to_regclass('petra.project_profile_command_receipts') IS NOT NULL
+          AND to_regclass('petra.project_source_link_removal_receipts') IS NOT NULL
           AND to_regclass('petra.project_work_operation_receipts') IS NOT NULL
           AND to_regclass('petra.project_inquiry_save_receipts') IS NOT NULL
           AND to_regclass('petra.project_import_command_receipts') IS NOT NULL
@@ -493,9 +509,8 @@ export const createProjectShellPersistenceFromEnvironment = async (
         ),
         sourceProcessingAuthority: sourceProcessing,
         sourceProcessingViews: sourceProcessing,
-        sourceLifecycleViews: new PostgresProjectSourceLifecycleViewReader(
-          pool,
-        ),
+        sourceLifecycleViews,
+        sourceLinkRemovalPreviews: sourceLifecycleViews,
         reviewViews,
         reviewRecoveryAssessments: new PostgresReviewRecoveryAssessmentReader(
           pool,
@@ -540,11 +555,8 @@ export const createProjectShellPersistenceFromEnvironment = async (
                   actor_kind: "human",
                 }),
             }),
-        sourceLifecycleAuthority:
-          new PostgresProjectSourceLifecycleAuthorityRepository(
-            pool,
-            new PostgresCapabilityGrantCommandAuthorizer(),
-          ),
+        sourceLifecycleAuthority,
+        sourceLinkRemovals: sourceLifecycleAuthority,
         sourceReplacementAuthority:
           new PostgresProjectSourceReplacementCommandAuthorityRepository(
             pool,
@@ -596,7 +608,8 @@ export const createProjectShellPersistenceFromEnvironment = async (
     ),
     sourceProcessingAuthority: sourceProcessing,
     sourceProcessingViews: sourceProcessing,
-    sourceLifecycleViews: new PostgresProjectSourceLifecycleViewReader(pool),
+    sourceLifecycleViews,
+    sourceLinkRemovalPreviews: sourceLifecycleViews,
     reviewViews,
     reviewRecoveryAssessments: new PostgresReviewRecoveryAssessmentReader(
       pool,
@@ -640,11 +653,8 @@ export const createProjectShellPersistenceFromEnvironment = async (
               actor_kind: "human",
             }),
         }),
-    sourceLifecycleAuthority:
-      new PostgresProjectSourceLifecycleAuthorityRepository(
-        pool,
-        new PostgresCapabilityGrantCommandAuthorizer(),
-      ),
+    sourceLifecycleAuthority,
+    sourceLinkRemovals: sourceLifecycleAuthority,
     sourceReplacementAuthority:
       new PostgresProjectSourceReplacementCommandAuthorityRepository(
         pool,

@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-source-link-removal-preview/1.0.0/schema.json",
+  "title": "PetraProjectSourceLinkRemovalPreview",
+  "description": "An authenticated server-owned preview for removing one exact active ProjectSource link while retaining source authority, immutable revisions, dependents, and local bytes.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "project_id",
+    "project_source_id",
+    "expected",
+    "transition",
+    "impact",
+    "retention",
+    "operation",
+    "read_at",
+    "content_hash"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.project-source-link-removal-preview" },
+    "schema_version": { "const": "1.0.0" },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "project_source_id": {
+      "type": "string",
+      "pattern": "^project_source_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "expected": {
+      "$ref": "../../project-source-link-removal-request/1.0.0/schema.json#/$defs/Expected"
+    },
+    "transition": {
+      "$ref": "../../project-source-lifecycle-view/1.0.0/schema.json#/$defs/PreviewTransition"
+    },
+    "impact": {
+      "$ref": "../../project-source-lifecycle-view/1.0.0/schema.json#/$defs/Impact"
+    },
+    "retention": {
+      "type": "array",
+      "minItems": 7,
+      "maxItems": 7,
+      "items": {
+        "$ref": "../../project-source-lifecycle-view/1.0.0/schema.json#/$defs/RetentionItem"
+      }
+    },
+    "operation": { "$ref": "#/$defs/Operation" },
+    "read_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    }
+  },
+  "$defs": {
+    "Operation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "command_name",
+        "method",
+        "path",
+        "recovery_path",
+        "separate_local_copy_deletion"
+      ],
+      "properties": {
+        "state": { "const": "ready" },
+        "command_name": { "const": "ExcludeProjectSource" },
+        "method": { "const": "POST" },
+        "path": {
+          "type": "string",
+          "pattern": "^/api/commands/projects/[^/]+/sources/[^/]+/link-removal$"
+        },
+        "recovery_path": {
+          "type": "string",
+          "pattern": "^/api/queries/projects/[^/]+/sources/[^/]+/link-removal-recovery$"
+        },
+        "separate_local_copy_deletion": { "const": true }
+      }
+    }
+  }
+}

@@ -70,6 +70,7 @@ import type {
   PetraProjectInquirySaveRequest,
   PetraProjectObjectiveCommandRequest,
   PetraProjectSourceRegistrationRequest,
+  PetraProjectSourceLinkRemovalRequest,
   PetraProjectSourceRevisionRequest,
   PetraProjectSourceProcessingRequest,
   PetraProjectSourceReuseRequest,
@@ -105,6 +106,7 @@ import {
   ProjectModelReadinessError,
   ProjectWorkOperationError,
   ProjectSourceLifecycleAuthorityError,
+  ProjectSourceLinkRemovalError,
   ProjectSourceReplacementCommandError,
   ReviewCandidateBasisRevisionAuthorityError,
   ReviewCandidateCorrectionAuthorityError,
@@ -154,6 +156,8 @@ import {
   type ProjectSourceLifecycleAuthorityRepository,
   type ProjectSourceLifecycleCommandEnvelope,
   type ProjectSourceLifecycleViewReader,
+  type ProjectSourceLinkRemovalAuthority,
+  type ProjectSourceLinkRemovalPreviewReader,
   type ProjectSourceReplacementCommandAuthorityRepository,
   type ProjectSourceReplacementCommandEnvelope,
   type ProjectSourceViewReader,
@@ -209,6 +213,8 @@ export interface PetraAppOptions {
   projectHistoryCompensationExecution?: ProjectHistoryCompensationExecutionBoundary;
   projectSourceViews?: ProjectSourceViewReader;
   projectSourceLifecycleViews?: ProjectSourceLifecycleViewReader;
+  projectSourceLinkRemovalPreviews?: ProjectSourceLinkRemovalPreviewReader;
+  projectSourceLinkRemovals?: ProjectSourceLinkRemovalAuthority;
   commandPrincipalResolver?: AuthenticatedCommandPrincipalResolver;
   projectSourceLifecycleAuthority?: ProjectSourceLifecycleAuthorityRepository;
   projectSourceReplacementAuthority?: ProjectSourceReplacementCommandAuthorityRepository;
@@ -2032,6 +2038,72 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
       throw new ProjectSourceRevisionError(
         "PROJECT_SOURCE_REVISION_NOT_AUTHORIZED",
         `The authenticated source-version principal was denied: ${principal.state === "resolved" ? "actor_not_human" : principal.reason}.`,
+      );
+    }
+    return {
+      actor: {
+        actor_id: principal.actor.actor_id,
+        actor_kind: "human" as const,
+      },
+      capabilityGrantId: principal.capabilityGrantId,
+    };
+  };
+
+  const projectSourceLinkRemovalResponse = (
+    context: Context<{ Variables: Variables }>,
+    error: unknown,
+  ) => {
+    const invalid =
+      error instanceof InteractionInputError ||
+      error instanceof ContractRegistryError ||
+      error instanceof SyntaxError ||
+      error instanceof TypeError;
+    const status = invalid
+      ? 422
+      : error instanceof ProjectSourceLinkRemovalError
+        ? error.code === "PROJECT_SOURCE_LINK_REMOVAL_NOT_AUTHORIZED"
+          ? 403
+          : error.code === "PROJECT_SOURCE_LINK_REMOVAL_PROJECT_NOT_FOUND" ||
+              error.code === "PROJECT_SOURCE_LINK_REMOVAL_SOURCE_NOT_FOUND"
+            ? 404
+            : error.code === "PROJECT_SOURCE_LINK_REMOVAL_STORED_RECORD_CORRUPT"
+              ? 503
+              : 409
+        : 503;
+    return jsonError(
+      context,
+      status,
+      invalid
+        ? "PROJECT_SOURCE_LINK_REMOVAL_REQUEST_INVALID"
+        : error instanceof ProjectSourceLinkRemovalError
+          ? error.code
+          : "PROJECT_SOURCE_LINK_REMOVAL_FAILED",
+      error instanceof Error
+        ? error.message
+        : "The Project source link-removal boundary is unavailable.",
+      error instanceof InteractionInputError ? error.issues : undefined,
+    );
+  };
+
+  const sourceLinkRemovalPrincipal = async (projectId: string) => {
+    if (options.commandPrincipalResolver === undefined) {
+      throw new ProjectSourceLinkRemovalError(
+        "PROJECT_SOURCE_LINK_REMOVAL_NOT_AUTHORIZED",
+        "Authenticated Project source link-removal authority is unavailable.",
+      );
+    }
+    const principal =
+      await options.commandPrincipalResolver.resolveCommandPrincipal({
+        projectId,
+        commandName: "ExcludeProjectSource",
+      });
+    if (
+      principal.state !== "resolved" ||
+      principal.actor.actor_kind !== "human"
+    ) {
+      throw new ProjectSourceLinkRemovalError(
+        "PROJECT_SOURCE_LINK_REMOVAL_NOT_AUTHORIZED",
+        `The authenticated Project source link-removal principal was denied: ${principal.state === "resolved" ? "actor_not_human" : principal.reason}.`,
       );
     }
     return {
@@ -5459,6 +5531,211 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
       );
     }
   });
+
+  app.get(
+    "/api/queries/projects/:projectId/sources/:projectSourceId/link-removal",
+    async (context) => {
+      if (options.projectSourceLinkRemovalPreviews === undefined) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_SOURCE_LINK_REMOVAL_PREVIEW_UNAVAILABLE",
+          "The authenticated Project source link-removal preview is not configured.",
+        );
+      }
+      try {
+        const projectId = context.req.param("projectId");
+        const projectSourceId = context.req.param("projectSourceId");
+        if (
+          !PROJECT_ID_PATTERN.test(projectId) ||
+          !PROJECT_SOURCE_ID_PATTERN.test(projectSourceId) ||
+          new URL(context.req.url).searchParams.size !== 0
+        ) {
+          throw new InteractionInputError(
+            "Project source link-removal preview requires canonical route identities and accepts no query parameters.",
+          );
+        }
+        await sourceLinkRemovalPrincipal(projectId);
+        const preview =
+          await options.projectSourceLinkRemovalPreviews.getProjectSourceLinkRemovalPreview(
+            projectId,
+            projectSourceId,
+          );
+        if (preview === undefined) {
+          throw new ProjectSourceLinkRemovalError(
+            "PROJECT_SOURCE_LINK_REMOVAL_SOURCE_NOT_FOUND",
+            "The requested active ProjectSource is not retained in this Project.",
+          );
+        }
+        contracts.assertValid(
+          "project-source-link-removal-preview",
+          "1.0.0",
+          preview,
+        );
+        if (
+          preview.project_id !== projectId ||
+          preview.project_source_id !== projectSourceId ||
+          preview.expected.project_ref.project_id !== projectId ||
+          preview.expected.current_source_ref.project_source_id !==
+            projectSourceId ||
+          preview.operation.command_name !== "ExcludeProjectSource"
+        ) {
+          throw new Error(
+            "The link-removal preview crossed its exact Project, source, or command boundary.",
+          );
+        }
+        context.header("Cache-Control", "no-store");
+        return context.json(preview);
+      } catch (error) {
+        return projectSourceLinkRemovalResponse(context, error);
+      }
+    },
+  );
+
+  app.post(
+    "/api/commands/projects/:projectId/sources/:projectSourceId/link-removal",
+    async (context) => {
+      if (options.projectSourceLinkRemovals === undefined) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_SOURCE_LINK_REMOVAL_UNAVAILABLE",
+          "The authenticated Project source link-removal command is not configured.",
+        );
+      }
+      try {
+        const projectId = context.req.param("projectId");
+        const projectSourceId = context.req.param("projectSourceId");
+        if (
+          !PROJECT_ID_PATTERN.test(projectId) ||
+          !PROJECT_SOURCE_ID_PATTERN.test(projectSourceId) ||
+          new URL(context.req.url).searchParams.size !== 0
+        ) {
+          throw new InteractionInputError(
+            "Project source link-removal requires canonical route identities and accepts no query parameters.",
+          );
+        }
+        const request = (await readBoundedJson(
+          context,
+          maxBodyBytes,
+        )) as PetraProjectSourceLinkRemovalRequest;
+        contracts.assertValid(
+          "project-source-link-removal-request",
+          "1.0.0",
+          request,
+        );
+        if (
+          request.expected.project_ref.project_id !== projectId ||
+          request.expected.current_source_ref.project_source_id !==
+            projectSourceId
+        ) {
+          throw new ProjectSourceLinkRemovalError(
+            "PROJECT_SOURCE_LINK_REMOVAL_PROJECT_STALE",
+            "The command route must match the exact previewed Project and ProjectSource.",
+          );
+        }
+        const result =
+          await options.projectSourceLinkRemovals.executeProjectSourceLinkRemoval(
+            projectId,
+            projectSourceId,
+            request,
+            await sourceLinkRemovalPrincipal(projectId),
+          );
+        contracts.assertValid(
+          "project-source-link-removal-receipt",
+          "1.0.0",
+          result.receipt,
+        );
+        contracts.assertValid("project-source", "1.0.0", result.projectSource);
+        if (
+          result.receipt.project_id !== projectId ||
+          result.receipt.command_id !== request.command_id ||
+          result.receipt.idempotency_key !== request.idempotency_key ||
+          result.receipt.prior_source_ref.project_source_id !==
+            projectSourceId ||
+          result.receipt.resulting_source_ref.project_source_id !==
+            projectSourceId ||
+          result.receipt.resulting_source_ref.revision !==
+            result.projectSource.revision ||
+          result.receipt.resulting_source_ref.content_hash !==
+            result.projectSource.content_hash ||
+          result.projectSource.content.status !== "excluded" ||
+          result.receipt.effect.local_copy_deleted !== false
+        ) {
+          throw new Error(
+            "The link-removal authority returned a different command, source, retention effect, or result.",
+          );
+        }
+        context.header("Cache-Control", "no-store");
+        return context.json(result, result.applied ? 201 : 200);
+      } catch (error) {
+        return projectSourceLinkRemovalResponse(context, error);
+      }
+    },
+  );
+
+  app.post(
+    "/api/queries/projects/:projectId/sources/:projectSourceId/link-removal-recovery",
+    async (context) => {
+      if (options.projectSourceLinkRemovals === undefined) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_SOURCE_LINK_REMOVAL_RECOVERY_UNAVAILABLE",
+          "The Project source link-removal recovery boundary is not configured.",
+        );
+      }
+      try {
+        const projectId = context.req.param("projectId");
+        const projectSourceId = context.req.param("projectSourceId");
+        if (
+          !PROJECT_ID_PATTERN.test(projectId) ||
+          !PROJECT_SOURCE_ID_PATTERN.test(projectSourceId) ||
+          new URL(context.req.url).searchParams.size !== 0
+        ) {
+          throw new InteractionInputError(
+            "Project source link-removal recovery requires canonical route identities and accepts no query parameters.",
+          );
+        }
+        const request = (await readBoundedJson(
+          context,
+          maxBodyBytes,
+        )) as PetraProjectSourceLinkRemovalRequest;
+        contracts.assertValid(
+          "project-source-link-removal-request",
+          "1.0.0",
+          request,
+        );
+        const assessment =
+          await options.projectSourceLinkRemovals.assessProjectSourceLinkRemovalRecovery(
+            projectId,
+            projectSourceId,
+            request,
+            await sourceLinkRemovalPrincipal(projectId),
+          );
+        contracts.assertValid(
+          "project-source-link-removal-recovery-view",
+          "1.0.0",
+          assessment,
+        );
+        if (
+          assessment.project_id !== projectId ||
+          assessment.project_source_id !== projectSourceId ||
+          assessment.subject.command_id !== request.command_id ||
+          assessment.subject.idempotency_key !== request.idempotency_key ||
+          assessment.return.destination.project_id !== projectId
+        ) {
+          throw new Error(
+            "The link-removal recovery assessment crossed its exact command, source, or return boundary.",
+          );
+        }
+        context.header("Cache-Control", "no-store");
+        return context.json(assessment);
+      } catch (error) {
+        return projectSourceLinkRemovalResponse(context, error);
+      }
+    },
+  );
 
   app.get(
     "/api/queries/projects/:projectId/sources/:projectSourceId/lifecycle",

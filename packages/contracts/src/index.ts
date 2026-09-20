@@ -706,6 +706,25 @@ export type {
   Recovery as ProjectSourceLifecycleRecovery,
 } from "./generated/project-source-lifecycle-receipt.js";
 export type {
+  ActiveSourceRef as ProjectSourceLinkRemovalActiveSourceRef,
+  Expected as ProjectSourceLinkRemovalExpected,
+  PetraProjectSourceLinkRemovalRequest,
+} from "./generated/project-source-link-removal-request.js";
+export type {
+  Operation as ProjectSourceLinkRemovalOperation,
+  PetraProjectSourceLinkRemovalPreview,
+} from "./generated/project-source-link-removal-preview.js";
+export type {
+  Effect as ProjectSourceLinkRemovalEffect,
+  ExcludedSourceRef as ProjectSourceLinkRemovalExcludedSourceRef,
+  PetraProjectSourceLinkRemovalReceipt,
+  Recovery1 as ProjectSourceLinkRemovalRecovery,
+} from "./generated/project-source-link-removal-receipt.js";
+export type {
+  Effect as ProjectSourceLinkRemovalRecoveryEffect,
+  PetraProjectSourceLinkRemovalRecoveryView,
+} from "./generated/project-source-link-removal-recovery-view.js";
+export type {
   ActorRef as WorkingCandidateActorRef,
   AuthorityBoundary as WorkingCandidateAuthorityBoundary,
   BasisItem as WorkingCandidateBasisItem,

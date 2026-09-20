@@ -2231,6 +2231,50 @@
       "canonical_sha256": "sha256:19f7b88210d5fce73a584e1bfcdd59c4a23826126dbf9ae0c30eb07a3e3e9466",
       "generate_typescript": true,
       "typescript_path": "src/generated/communication-plan.ts"
+    },
+    {
+      "name": "project-source-link-removal-request",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-source-link-removal-request/1.0.0/schema.json",
+      "path": "schemas/project-source-link-removal-request/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-exact-project-source-link-removal",
+      "canonical_sha256": "sha256:792e57ff0027a4d2042a9e42c27cfd0c47de3a0a825adcfaeefae22dc999cacc",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-source-link-removal-request.ts"
+    },
+    {
+      "name": "project-source-link-removal-preview",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-source-link-removal-preview/1.0.0/schema.json",
+      "path": "schemas/project-source-link-removal-preview/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-exact-project-source-link-removal",
+      "canonical_sha256": "sha256:3cd1c6a01b92858f54c3667b88afcac9a81ea4d26b439c6b7880f95f7f6a1f12",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-source-link-removal-preview.ts"
+    },
+    {
+      "name": "project-source-link-removal-receipt",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-source-link-removal-receipt/1.0.0/schema.json",
+      "path": "schemas/project-source-link-removal-receipt/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-exact-project-source-link-removal",
+      "canonical_sha256": "sha256:fb0d4b9a9e260389833c12d9cd89095f0dd2828e5d6ddf907d2e72a7374a3e0d",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-source-link-removal-receipt.ts"
+    },
+    {
+      "name": "project-source-link-removal-recovery-view",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-source-link-removal-recovery-view/1.0.0/schema.json",
+      "path": "schemas/project-source-link-removal-recovery-view/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-exact-project-source-link-removal",
+      "canonical_sha256": "sha256:358b6cce0cf1b1fefc31d621c1ee207a20b9a2a9adc276637810f23cfbbc4730",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-source-link-removal-recovery-view.ts"
     }
   ]
 }

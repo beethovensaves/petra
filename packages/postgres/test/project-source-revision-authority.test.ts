@@ -7,6 +7,7 @@ import type {
   PetraProject,
   PetraProjectDefinition,
   PetraProjectSourceRegistrationRequest,
+  PetraProjectSourceLinkRemovalRequest,
   PetraProjectSourceRevisionRequest,
 } from "@petra/contracts";
 import type { ArtifactStore } from "@petra/core";
@@ -19,6 +20,8 @@ import {
   PostgresCapabilityGrantCommandAuthorizer,
   PostgresProjectDefinitionAuthorityRepository,
   PostgresProjectSourceRegistrationAuthority,
+  PostgresProjectSourceLifecycleAuthorityRepository,
+  PostgresProjectSourceLifecycleViewReader,
   PostgresProjectSourceRevisionAuthority,
   PostgresResearchScopeRepository,
 } from "../src/index.js";
@@ -194,7 +197,11 @@ describePostgres("PostgresProjectSourceRevisionAuthority", () => {
     await definitions.registerDefinitionRevision(definition);
     const content: PetraCapabilityGrantV1140["content"] = {
       scope_kind: "project_commands",
-      allowed_commands: ["RegisterProjectSource", "AddProjectSourceRevision"],
+      allowed_commands: [
+        "RegisterProjectSource",
+        "AddProjectSourceRevision",
+        "ExcludeProjectSource",
+      ],
       valid_from: "2026-09-01T00:00:00.000Z",
       reason: "Allow exact source registration and immutable version intake.",
     };
@@ -339,6 +346,176 @@ describePostgres("PostgresProjectSourceRevisionAuthority", () => {
       versions: "2",
       sources: "2",
       receipts: "1",
+    });
+  });
+
+  it("removes one exact Project link, survives restart, and never deletes the retained source copy", async () => {
+    const sourceId = request.expected.current_source_ref.project_source_id;
+    const previews = new PostgresProjectSourceLifecycleViewReader(pool);
+    const preview = await previews.getProjectSourceLinkRemovalPreview(
+      project.project_id,
+      sourceId,
+    );
+    expect(preview).toMatchObject({
+      project_id: project.project_id,
+      project_source_id: sourceId,
+      expected: {
+        project_ref: registrationRequest().expected.project_ref,
+        project_definition_ref:
+          registrationRequest().expected.project_definition_ref,
+        current_source_ref: request.expected.current_source_ref,
+      },
+      transition: {
+        state: "preview_available",
+        from_status: "active",
+        to_status: "excluded",
+      },
+      operation: {
+        state: "ready",
+        command_name: "ExcludeProjectSource",
+        separate_local_copy_deletion: true,
+      },
+    });
+    if (preview === undefined)
+      throw new Error("Expected link-removal preview.");
+    const removalRequest: PetraProjectSourceLinkRemovalRequest = {
+      schema_name: "petra.project-source-link-removal-request",
+      schema_version: "1.0.0",
+      command_id: "command_01K6W000000000000000000001",
+      idempotency_key: "wave6:postgres:source-link-removal",
+      expected: structuredClone(preview.expected),
+      reason:
+        "Stop ordinary new Project use while retaining immutable source authority.",
+    };
+    const denied = new PostgresProjectSourceLifecycleAuthorityRepository(pool, {
+      authorize: () => Promise.resolve(false),
+    });
+    await expect(
+      denied.executeProjectSourceLinkRemoval(
+        project.project_id,
+        sourceId,
+        removalRequest,
+        principal,
+      ),
+    ).rejects.toEqual(
+      expect.objectContaining({
+        code: "PROJECT_SOURCE_LINK_REMOVAL_NOT_AUTHORIZED",
+      }),
+    );
+    const authority = new PostgresProjectSourceLifecycleAuthorityRepository(
+      pool,
+      authorizer,
+    );
+    const staleDefinition = structuredClone(removalRequest);
+    staleDefinition.command_id = "command_01K6W000000000000000000002";
+    staleDefinition.idempotency_key =
+      "wave6:postgres:source-link-removal:stale-definition";
+    staleDefinition.expected.project_definition_ref.record_hash = `sha256:${"f".repeat(64)}`;
+    await expect(
+      authority.executeProjectSourceLinkRemoval(
+        project.project_id,
+        sourceId,
+        staleDefinition,
+        principal,
+      ),
+    ).rejects.toEqual(
+      expect.objectContaining({
+        code: "PROJECT_SOURCE_LINK_REMOVAL_DEFINITION_STALE",
+      }),
+    );
+    const before = await pool.query<{
+      artifacts: string;
+      manifests: string;
+      versions: string;
+    }>(
+      `SELECT
+         (SELECT count(*) FROM petra.artifacts)::text AS artifacts,
+         (SELECT count(*) FROM petra.artifact_manifests)::text AS manifests,
+         (SELECT count(*) FROM petra.work_version_revisions)::text AS versions`,
+    );
+    const first = await authority.executeProjectSourceLinkRemoval(
+      project.project_id,
+      sourceId,
+      removalRequest,
+      principal,
+    );
+    expect(first.applied).toBe(true);
+    expect(first.projectSource.content.status).toBe("excluded");
+    expect(first.receipt).toMatchObject({
+      command_id: removalRequest.command_id,
+      request_hash: canonicalHash(removalRequest),
+      project_ref: removalRequest.expected.project_ref,
+      project_definition_ref: removalRequest.expected.project_definition_ref,
+      prior_source_ref: removalRequest.expected.current_source_ref,
+      effect: {
+        kind: "project_source_link_removed",
+        ordinary_new_project_use: "disabled",
+        local_copy_deleted: false,
+        preservation: { local_artifact: "retained" },
+      },
+    });
+    expect(
+      first.receipt.lifecycle_receipt.content.command_ref.command_name,
+    ).toBe("ExcludeProjectSource");
+
+    const restarted = new PostgresProjectSourceLifecycleAuthorityRepository(
+      pool,
+      authorizer,
+    );
+    await expect(
+      restarted.executeProjectSourceLinkRemoval(
+        project.project_id,
+        sourceId,
+        removalRequest,
+        principal,
+      ),
+    ).resolves.toStrictEqual({ ...first, applied: false });
+    const recovery = await restarted.assessProjectSourceLinkRemovalRecovery(
+      project.project_id,
+      sourceId,
+      removalRequest,
+      principal,
+    );
+    expect(recovery.effect).toStrictEqual({
+      state: "effect_confirmed",
+      receipt: first.receipt,
+    });
+    expect(recovery.return).toStrictEqual({
+      state: "exact",
+      destination: first.receipt.destination,
+    });
+    const unknown = structuredClone(removalRequest);
+    unknown.command_id = "command_01K6W000000000000000000003";
+    unknown.idempotency_key = "wave6:postgres:source-link-removal:unknown";
+    const unknownRecovery =
+      await restarted.assessProjectSourceLinkRemovalRecovery(
+        project.project_id,
+        sourceId,
+        unknown,
+        principal,
+      );
+    expect(unknownRecovery.effect).toMatchObject({
+      state: "outcome_unknown",
+      retry: { reuse_exact_request: true },
+    });
+    const after = await pool.query<{
+      artifacts: string;
+      manifests: string;
+      versions: string;
+      receipts: string;
+      lifecycle_receipts: string;
+    }>(
+      `SELECT
+         (SELECT count(*) FROM petra.artifacts)::text AS artifacts,
+         (SELECT count(*) FROM petra.artifact_manifests)::text AS manifests,
+         (SELECT count(*) FROM petra.work_version_revisions)::text AS versions,
+         (SELECT count(*) FROM petra.project_source_link_removal_receipts)::text AS receipts,
+         (SELECT count(*) FROM petra.project_source_lifecycle_receipts)::text AS lifecycle_receipts`,
+    );
+    expect(after.rows[0]).toStrictEqual({
+      ...before.rows[0],
+      receipts: "1",
+      lifecycle_receipts: "1",
     });
   });
 });

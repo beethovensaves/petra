@@ -3,13 +3,19 @@ import { createHash, randomBytes } from "node:crypto";
 import type {
   PetraDomainEventV120,
   PetraOutboxRecordV120,
+  PetraProject,
+  PetraProjectDefinition,
   PetraProjectSource,
+  PetraProjectSourceLinkRemovalReceipt,
+  PetraProjectSourceLinkRemovalRecoveryView,
+  PetraProjectSourceLinkRemovalRequest,
   PetraProjectSourceLifecycleReceipt,
   ProjectSourceLifecycleExactSourceRef,
 } from "@petra/contracts";
 import { PetraContractRegistry } from "@petra/contracts/validator";
 import {
   ProjectSourceLifecycleAuthorityError,
+  ProjectSourceLinkRemovalError,
   createPetraId,
   derivePetraId,
   petraIdKind,
@@ -17,6 +23,9 @@ import {
   type ProjectSourceLifecycleAuthorityRepository,
   type ProjectSourceLifecycleCommandEnvelope,
   type ProjectSourceLifecycleCommandResult,
+  type ProjectSourceLinkRemovalAuthority,
+  type ProjectSourceLinkRemovalPrincipal,
+  type ProjectSourceLinkRemovalResult,
 } from "@petra/core";
 import { canonicalize } from "json-canonicalize";
 import type { Pool, PoolClient } from "pg";
@@ -52,7 +61,41 @@ interface TargetSequenceRow {
   current_target_sequence: string;
 }
 
+interface LinkRemovalReceiptRow {
+  command_id: string;
+  idempotency_key: string;
+  request_hash: string;
+  project_id: string;
+  project_source_id: string;
+  actor_id: string;
+  actor_kind: "human";
+  receipt_payload: unknown;
+  receipt_record_hash: string;
+  lifecycle_record_hash: string;
+  source_payload: unknown;
+  source_record_hash: string;
+}
+
+interface LinkRemovalBinding {
+  readonly request: PetraProjectSourceLinkRemovalRequest;
+  readonly requestHash: string;
+  readonly principal: ProjectSourceLinkRemovalPrincipal;
+}
+
+interface InternalLifecycleResult {
+  readonly lifecycleReceipt: PetraProjectSourceLifecycleReceipt;
+  readonly projectSource: PetraProjectSource;
+  readonly applied: boolean;
+  readonly linkRemovalReceipt?: PetraProjectSourceLinkRemovalReceipt;
+}
+
 const clone = <Value>(value: Value): Value => structuredClone(value);
+
+const sameActor = (
+  left: { readonly actor_id: string; readonly actor_kind: string },
+  right: { readonly actor_id: string; readonly actor_kind: string },
+): boolean =>
+  left.actor_id === right.actor_id && left.actor_kind === right.actor_kind;
 
 const canonicalHash = (value: unknown): string =>
   `sha256:${createHash("sha256").update(canonicalize(value)).digest("hex")}`;
@@ -104,7 +147,11 @@ const sourceRef = (
  * Transactional ProjectSource status authority on Petra's existing
  * command/event/outbox spine. No local Artifact bytes are deleted.
  */
-export class PostgresProjectSourceLifecycleAuthorityRepository implements ProjectSourceLifecycleAuthorityRepository {
+export class PostgresProjectSourceLifecycleAuthorityRepository
+  implements
+    ProjectSourceLifecycleAuthorityRepository,
+    ProjectSourceLinkRemovalAuthority
+{
   readonly #pool: Pool;
   readonly #commandAuthorizer: PostgresCommandAuthorizer;
   readonly #domainRecordFactory: DomainRecordFactory;
@@ -125,6 +172,186 @@ export class PostgresProjectSourceLifecycleAuthorityRepository implements Projec
   async executeProjectSourceLifecycleCommand(
     envelope: ProjectSourceLifecycleCommandEnvelope,
   ): Promise<ProjectSourceLifecycleCommandResult> {
+    const result = await this.#executeLifecycleCommand(envelope);
+    return {
+      receipt: result.lifecycleReceipt,
+      projectSource: result.projectSource,
+      applied: result.applied,
+    };
+  }
+
+  async executeProjectSourceLinkRemoval(
+    projectId: string,
+    projectSourceId: string,
+    request: PetraProjectSourceLinkRemovalRequest,
+    principal: ProjectSourceLinkRemovalPrincipal,
+  ): Promise<ProjectSourceLinkRemovalResult> {
+    this.#contracts.assertValid(
+      "project-source-link-removal-request",
+      "1.0.0",
+      request,
+    );
+    if (
+      request.expected.project_ref.project_id !== projectId ||
+      request.expected.current_source_ref.project_source_id !== projectSourceId
+    ) {
+      throw new ProjectSourceLinkRemovalError(
+        "PROJECT_SOURCE_LINK_REMOVAL_PROJECT_STALE",
+        "The link-removal route must match the exact reviewed Project and ProjectSource.",
+      );
+    }
+    const envelope: ProjectSourceLifecycleCommandEnvelope = {
+      schema_name: "petra.command-envelope",
+      schema_version: "1.2.0",
+      command_id: request.command_id,
+      idempotency_key: request.idempotency_key,
+      project_id: projectId,
+      actor: clone(principal.actor),
+      capability_grant_id: principal.capabilityGrantId,
+      correlation_id: derivePetraId(
+        "trace",
+        `source-link-removal:${request.command_id}`,
+      ),
+      submitted_at: new Date().toISOString(),
+      command: {
+        command_name: "ExcludeProjectSource",
+        expected_source_ref: {
+          project_source_id:
+            request.expected.current_source_ref.project_source_id,
+          revision: request.expected.current_source_ref.revision,
+          content_hash: request.expected.current_source_ref.content_hash,
+          record_hash: request.expected.current_source_ref.record_hash,
+          status: "active",
+        },
+        reason: request.reason,
+      },
+    };
+    try {
+      const result = await this.#executeLifecycleCommand(envelope, {
+        request,
+        requestHash: canonicalHash(request),
+        principal,
+      });
+      if (result.linkRemovalReceipt === undefined) {
+        throw new ProjectSourceLinkRemovalError(
+          "PROJECT_SOURCE_LINK_REMOVAL_STORED_RECORD_CORRUPT",
+          "The completed Project-link removal has no retained exact receipt.",
+        );
+      }
+      return {
+        receipt: result.linkRemovalReceipt,
+        projectSource: result.projectSource,
+        applied: result.applied,
+      };
+    } catch (error) {
+      throw this.#linkRemovalError(error);
+    }
+  }
+
+  async assessProjectSourceLinkRemovalRecovery(
+    projectId: string,
+    projectSourceId: string,
+    request: PetraProjectSourceLinkRemovalRequest,
+    principal: ProjectSourceLinkRemovalPrincipal,
+  ): Promise<PetraProjectSourceLinkRemovalRecoveryView> {
+    this.#contracts.assertValid(
+      "project-source-link-removal-request",
+      "1.0.0",
+      request,
+    );
+    if (
+      request.expected.project_ref.project_id !== projectId ||
+      request.expected.current_source_ref.project_source_id !== projectSourceId
+    ) {
+      throw new ProjectSourceLinkRemovalError(
+        "PROJECT_SOURCE_LINK_REMOVAL_PROJECT_STALE",
+        "The recovery route must match the exact reviewed Project and ProjectSource.",
+      );
+    }
+    const requestHash = canonicalHash(request);
+    const rows = await this.#linkRemovalRows(
+      this.#pool,
+      request.command_id,
+      request.idempotency_key,
+    );
+    const exact =
+      rows.length === 1 &&
+      rows[0]?.project_id === projectId &&
+      rows[0].project_source_id === projectSourceId &&
+      rows[0].command_id === request.command_id &&
+      rows[0].idempotency_key === request.idempotency_key &&
+      rows[0].request_hash === requestHash
+        ? rows[0]
+        : undefined;
+    const owned =
+      exact !== undefined && sameActor(exact, principal.actor)
+        ? this.#storedLinkRemoval(exact)
+        : undefined;
+    const subject = {
+      command_id: request.command_id,
+      idempotency_key: request.idempotency_key,
+      request_hash: requestHash,
+    };
+    const effect: PetraProjectSourceLinkRemovalRecoveryView["effect"] =
+      owned !== undefined
+        ? { state: "effect_confirmed", receipt: owned.receipt }
+        : rows.length === 0
+          ? {
+              state: "outcome_unknown",
+              reason: "receipt_not_observed_at_cutoff",
+              retry: {
+                method: "POST",
+                path: `/api/commands/projects/${projectId}/sources/${projectSourceId}/link-removal`,
+                reuse_exact_request: true,
+              },
+            }
+          : {
+              state: "unavailable_to_verify",
+              reason:
+                exact === undefined
+                  ? "command_identity_conflict"
+                  : "command_not_owned_by_authenticated_actor",
+            };
+    const returnValue: PetraProjectSourceLinkRemovalRecoveryView["return"] =
+      owned === undefined
+        ? {
+            state: "safe_fallback",
+            destination: { place_role: "sources", project_id: projectId },
+            reason:
+              "No exact owned receipt is available, so Petra returns to Sources and re-reads the ProjectSource before another action.",
+          }
+        : { state: "exact", destination: clone(owned.receipt.destination) };
+    const observedAt = await this.#databaseTime();
+    const hashed = {
+      project_id: projectId,
+      project_source_id: projectSourceId,
+      subject,
+      effect,
+      return: returnValue,
+      observed_at: observedAt,
+    };
+    const view: PetraProjectSourceLinkRemovalRecoveryView = {
+      schema_name: "petra.project-source-link-removal-recovery-view",
+      schema_version: "1.0.0",
+      assessment_id: derivePetraId(
+        "source_link_removal_recovery",
+        canonicalHash(hashed),
+      ),
+      ...hashed,
+      content_hash: canonicalHash(hashed),
+    };
+    this.#contracts.assertValid(
+      "project-source-link-removal-recovery-view",
+      "1.0.0",
+      view,
+    );
+    return clone(view);
+  }
+
+  async #executeLifecycleCommand(
+    envelope: ProjectSourceLifecycleCommandEnvelope,
+    linkRemoval?: LinkRemovalBinding,
+  ): Promise<InternalLifecycleResult> {
     this.#contracts.assertValid("command-envelope", "1.2.0", envelope);
     if (
       envelope.command.command_name !== "ExcludeProjectSource" &&
@@ -156,12 +383,37 @@ export class PostgresProjectSourceLifecycleAuthorityRepository implements Projec
           `Capability ${envelope.capability_grant_id} does not authorize ${envelope.command.command_name}.`,
         );
       }
+      if (linkRemoval !== undefined) {
+        const retained = await this.#linkRemovalRows(
+          client,
+          envelope.command_id,
+          envelope.idempotency_key,
+        );
+        if (retained.length > 0) {
+          const replay = this.#replayedLinkRemoval(retained, linkRemoval);
+          await client.query("COMMIT");
+          return replay;
+        }
+      }
       const replay = await this.#replay(client, envelope, fingerprint);
       if (replay !== undefined) {
+        if (linkRemoval !== undefined) {
+          throw new ProjectSourceLinkRemovalError(
+            "PROJECT_SOURCE_LINK_REMOVAL_COMMAND_CONFLICT",
+            "The command or idempotency identity belongs to a lifecycle request without this exact Project-link removal binding.",
+          );
+        }
         await client.query("COMMIT");
-        return replay;
+        return {
+          lifecycleReceipt: replay.receipt,
+          projectSource: replay.projectSource,
+          applied: replay.applied,
+        };
       }
       await this.#requireContext(client, envelope);
+      if (linkRemoval !== undefined) {
+        await this.#requireLinkRemovalContext(client, linkRemoval.request);
+      }
 
       const currentRow = await this.#currentSource(
         client,
@@ -285,11 +537,31 @@ export class PostgresProjectSourceLifecycleAuthorityRepository implements Projec
         recordedAt,
       );
       await this.#insertReceipt(client, receipt, nextRecordHash);
+      const linkRemovalReceipt =
+        linkRemoval === undefined
+          ? undefined
+          : this.#linkRemovalReceipt(
+              linkRemoval,
+              receipt,
+              next,
+              nextRecordHash,
+              recordedAt,
+            );
+      if (linkRemovalReceipt !== undefined) {
+        await this.#insertLinkRemovalReceipt(
+          client,
+          linkRemovalReceipt,
+          nextRecordHash,
+        );
+      }
       await client.query("COMMIT");
       return {
-        receipt: clone(receipt),
+        lifecycleReceipt: clone(receipt),
         projectSource: clone(next),
         applied: true,
+        ...(linkRemovalReceipt === undefined
+          ? {}
+          : { linkRemovalReceipt: clone(linkRemovalReceipt) }),
       };
     } catch (error) {
       await client.query("ROLLBACK");
@@ -311,6 +583,370 @@ export class PostgresProjectSourceLifecycleAuthorityRepository implements Projec
     return result.rows[0] === undefined
       ? undefined
       : this.#readReceipt(result.rows[0]);
+  }
+
+  async #requireLinkRemovalContext(
+    client: PoolClient,
+    request: PetraProjectSourceLinkRemovalRequest,
+  ): Promise<void> {
+    const projectResult = await client.query<SourceRow>(
+      `SELECT revision.payload, revision.record_hash
+         FROM petra.projects AS head
+         JOIN petra.project_revisions AS revision
+           ON revision.project_id = head.project_id
+          AND revision.revision = head.current_revision
+        WHERE head.project_id = $1
+        FOR SHARE OF head, revision`,
+      [request.expected.project_ref.project_id],
+    );
+    const projectRow = projectResult.rows[0];
+    if (projectRow === undefined) {
+      throw new ProjectSourceLinkRemovalError(
+        "PROJECT_SOURCE_LINK_REMOVAL_PROJECT_NOT_FOUND",
+        "The Project is not retained.",
+      );
+    }
+    this.#contracts.assertValid("project", "1.0.0", projectRow.payload);
+    const project = clone(projectRow.payload as PetraProject);
+    const expectedProject = request.expected.project_ref;
+    if (
+      canonicalHash(project) !== projectRow.record_hash ||
+      project.project_id !== expectedProject.project_id ||
+      project.revision !== expectedProject.revision ||
+      projectRow.record_hash !== expectedProject.record_hash ||
+      project.status !== "active"
+    ) {
+      throw new ProjectSourceLinkRemovalError(
+        "PROJECT_SOURCE_LINK_REMOVAL_PROJECT_STALE",
+        "The current active Project no longer matches the reviewed link-removal preview.",
+      );
+    }
+    const definitionResult = await client.query<SourceRow>(
+      `SELECT revision.payload, revision.record_hash
+         FROM petra.project_definitions AS head
+         JOIN petra.project_definition_revisions AS revision
+           ON revision.project_definition_id = head.project_definition_id
+          AND revision.revision = head.current_revision
+        WHERE head.project_id = $1
+        FOR SHARE OF head, revision`,
+      [project.project_id],
+    );
+    const definitionRow = definitionResult.rows[0];
+    if (definitionRow === undefined) {
+      throw new ProjectSourceLinkRemovalError(
+        "PROJECT_SOURCE_LINK_REMOVAL_DEFINITION_STALE",
+        "The Project has no retained current ProjectDefinition.",
+      );
+    }
+    this.#contracts.assertValid(
+      "project-definition",
+      "1.0.0",
+      definitionRow.payload,
+    );
+    const definition = clone(definitionRow.payload as PetraProjectDefinition);
+    const expectedDefinition = request.expected.project_definition_ref;
+    if (
+      canonicalHash(definition) !== definitionRow.record_hash ||
+      definition.project_id !== project.project_id ||
+      definition.project_definition_id !==
+        expectedDefinition.project_definition_id ||
+      definition.revision !== expectedDefinition.revision ||
+      definition.content_hash !== expectedDefinition.content_hash ||
+      definitionRow.record_hash !== expectedDefinition.record_hash
+    ) {
+      throw new ProjectSourceLinkRemovalError(
+        "PROJECT_SOURCE_LINK_REMOVAL_DEFINITION_STALE",
+        "The current ProjectDefinition no longer matches the reviewed link-removal preview.",
+      );
+    }
+  }
+
+  #linkRemovalReceipt(
+    binding: LinkRemovalBinding,
+    lifecycleReceipt: PetraProjectSourceLifecycleReceipt,
+    result: PetraProjectSource,
+    resultRecordHash: string,
+    recordedAt: string,
+  ): PetraProjectSourceLinkRemovalReceipt {
+    const prior = lifecycleReceipt.content.prior_source_ref;
+    const resulting = lifecycleReceipt.content.resulting_source_ref;
+    if (
+      lifecycleReceipt.content.command_ref.command_name !==
+        "ExcludeProjectSource" ||
+      prior.status !== "active" ||
+      resulting.status !== "excluded" ||
+      lifecycleReceipt.project_id !==
+        binding.request.expected.project_ref.project_id ||
+      resulting.project_source_id !== result.project_source_id ||
+      resulting.revision !== result.revision ||
+      resulting.content_hash !== result.content_hash ||
+      resulting.record_hash !== resultRecordHash
+    ) {
+      throw new ProjectSourceLinkRemovalError(
+        "PROJECT_SOURCE_LINK_REMOVAL_STORED_RECORD_CORRUPT",
+        "The lifecycle effect crossed the exact Project-link removal boundary.",
+      );
+    }
+    const projectId = lifecycleReceipt.project_id;
+    const projectSourceId = prior.project_source_id;
+    const receiptBase = {
+      schema_name: "petra.project-source-link-removal-receipt" as const,
+      schema_version: "1.0.0" as const,
+      receipt_id: derivePetraId(
+        "source_link_removal_receipt",
+        binding.request.command_id,
+      ),
+      command_id: binding.request.command_id,
+      idempotency_key: binding.request.idempotency_key,
+      request_hash: binding.requestHash,
+      project_id: projectId,
+      actor: clone(binding.principal.actor),
+      capability_grant_id: binding.principal.capabilityGrantId,
+      project_ref: clone(binding.request.expected.project_ref),
+      project_definition_ref: clone(
+        binding.request.expected.project_definition_ref,
+      ),
+      prior_source_ref: clone(binding.request.expected.current_source_ref),
+      resulting_source_ref: {
+        project_source_id: resulting.project_source_id,
+        revision: resulting.revision,
+        content_hash: resulting.content_hash,
+        record_hash: resulting.record_hash,
+        status: "excluded" as const,
+      },
+      lifecycle_receipt: clone(lifecycleReceipt),
+      effect: {
+        kind: "project_source_link_removed" as const,
+        summary:
+          "Ordinary new Project use under this exact source link is disabled; global source identity, immutable revisions, dependents, provenance, and local material remain retained.",
+        ordinary_new_project_use: "disabled" as const,
+        preservation: clone(lifecycleReceipt.content.preservation),
+        local_copy_deleted: false as const,
+      },
+      destination: {
+        place_role: "sources" as const,
+        project_id: projectId,
+        project_source_id: projectSourceId,
+      },
+      recovery: {
+        command_path: `/api/commands/projects/${projectId}/sources/${projectSourceId}/link-removal`,
+        assessment_path: `/api/queries/projects/${projectId}/sources/${projectSourceId}/link-removal-recovery`,
+        inverse_command_name: "RestoreProjectSource" as const,
+        retry_reuses_command_identity: true as const,
+        missing_receipt_means_unknown: true as const,
+      },
+      recorded_at: recordedAt,
+    };
+    const receipt: PetraProjectSourceLinkRemovalReceipt = {
+      ...receiptBase,
+      record_hash: canonicalHash(receiptBase),
+    };
+    this.#contracts.assertValid(
+      "project-source-link-removal-receipt",
+      "1.0.0",
+      receipt,
+    );
+    return receipt;
+  }
+
+  async #insertLinkRemovalReceipt(
+    client: PoolClient,
+    receipt: PetraProjectSourceLinkRemovalReceipt,
+    resultRecordHash: string,
+  ): Promise<void> {
+    const source = receipt.resulting_source_ref;
+    const lifecycle = receipt.lifecycle_receipt;
+    await client.query(
+      `INSERT INTO petra.project_source_link_removal_receipts (
+         receipt_id, command_id, idempotency_key, request_hash, project_id,
+         project_source_id, actor_id, actor_kind, capability_grant_id,
+         project_revision, project_record_hash, project_definition_id,
+         project_definition_revision, project_definition_content_hash,
+         project_definition_record_hash, prior_revision, prior_content_hash,
+         prior_record_hash, resulting_revision, resulting_content_hash,
+         resulting_record_hash, lifecycle_receipt_id, lifecycle_revision,
+         lifecycle_content_hash, lifecycle_record_hash, schema_name,
+         schema_version, record_hash, payload, recorded_at
+       ) VALUES (
+         $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14,
+         $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26,
+         $27, $28, $29::jsonb, $30::timestamptz
+       )`,
+      [
+        receipt.receipt_id,
+        receipt.command_id,
+        receipt.idempotency_key,
+        receipt.request_hash,
+        receipt.project_id,
+        source.project_source_id,
+        receipt.actor.actor_id,
+        receipt.actor.actor_kind,
+        receipt.capability_grant_id,
+        receipt.project_ref.revision,
+        receipt.project_ref.record_hash,
+        receipt.project_definition_ref.project_definition_id,
+        receipt.project_definition_ref.revision,
+        receipt.project_definition_ref.content_hash,
+        receipt.project_definition_ref.record_hash,
+        receipt.prior_source_ref.revision,
+        receipt.prior_source_ref.content_hash,
+        receipt.prior_source_ref.record_hash,
+        source.revision,
+        source.content_hash,
+        resultRecordHash,
+        lifecycle.project_source_lifecycle_receipt_id,
+        lifecycle.revision,
+        lifecycle.content_hash,
+        canonicalHash(lifecycle),
+        receipt.schema_name,
+        receipt.schema_version,
+        receipt.record_hash,
+        JSON.stringify(receipt),
+        receipt.recorded_at,
+      ],
+    );
+  }
+
+  async #linkRemovalRows(
+    queryable: Pick<Pool, "query"> | Pick<PoolClient, "query">,
+    commandId: string,
+    idempotencyKey: string,
+  ): Promise<LinkRemovalReceiptRow[]> {
+    const result = await queryable.query<LinkRemovalReceiptRow>(
+      `SELECT link.command_id, link.idempotency_key, link.request_hash,
+              link.project_id, link.project_source_id, link.actor_id,
+              link.actor_kind, link.payload AS receipt_payload,
+              link.record_hash AS receipt_record_hash,
+              link.lifecycle_record_hash,
+              source.payload AS source_payload,
+              source.record_hash AS source_record_hash
+         FROM petra.project_source_link_removal_receipts AS link
+         JOIN petra.project_source_revisions AS source
+           ON source.project_source_id = link.project_source_id
+          AND source.revision = link.resulting_revision
+          AND source.content_hash = link.resulting_content_hash
+          AND source.record_hash = link.resulting_record_hash
+        WHERE link.command_id = $1 OR link.idempotency_key = $2
+        ORDER BY link.command_id`,
+      [commandId, idempotencyKey],
+    );
+    return result.rows;
+  }
+
+  #replayedLinkRemoval(
+    rows: readonly LinkRemovalReceiptRow[],
+    binding: LinkRemovalBinding,
+  ): InternalLifecycleResult {
+    const row = rows[0];
+    if (
+      rows.length !== 1 ||
+      row === undefined ||
+      row.project_id !== binding.request.expected.project_ref.project_id ||
+      row.project_source_id !==
+        binding.request.expected.current_source_ref.project_source_id ||
+      row.command_id !== binding.request.command_id ||
+      row.idempotency_key !== binding.request.idempotency_key ||
+      row.request_hash !== binding.requestHash ||
+      !sameActor(row, binding.principal.actor)
+    ) {
+      throw new ProjectSourceLinkRemovalError(
+        "PROJECT_SOURCE_LINK_REMOVAL_COMMAND_CONFLICT",
+        "The command or idempotency identity is already bound to a different Project-link removal request.",
+      );
+    }
+    const stored = this.#storedLinkRemoval(row);
+    return {
+      lifecycleReceipt: clone(stored.receipt.lifecycle_receipt),
+      linkRemovalReceipt: clone(stored.receipt),
+      projectSource: clone(stored.projectSource),
+      applied: false,
+    };
+  }
+
+  #storedLinkRemoval(row: LinkRemovalReceiptRow): {
+    receipt: PetraProjectSourceLinkRemovalReceipt;
+    projectSource: PetraProjectSource;
+  } {
+    this.#contracts.assertValid(
+      "project-source-link-removal-receipt",
+      "1.0.0",
+      row.receipt_payload,
+    );
+    this.#contracts.assertValid("project-source", "1.0.0", row.source_payload);
+    const receipt = row.receipt_payload as PetraProjectSourceLinkRemovalReceipt;
+    const projectSource = row.source_payload as PetraProjectSource;
+    const receiptBase = Object.fromEntries(
+      Object.entries(receipt).filter(([key]) => key !== "record_hash"),
+    );
+    if (
+      canonicalHash(receiptBase) !== receipt.record_hash ||
+      row.receipt_record_hash !== receipt.record_hash ||
+      canonicalHash(receipt.lifecycle_receipt) !== row.lifecycle_record_hash ||
+      canonicalHash(projectSource) !== row.source_record_hash ||
+      receipt.command_id !==
+        receipt.lifecycle_receipt.content.command_ref.command_id ||
+      receipt.idempotency_key !==
+        receipt.lifecycle_receipt.content.command_ref.idempotency_key ||
+      receipt.lifecycle_receipt.content.command_ref.command_name !==
+        "ExcludeProjectSource" ||
+      receipt.resulting_source_ref.project_source_id !==
+        projectSource.project_source_id ||
+      receipt.resulting_source_ref.revision !== projectSource.revision ||
+      receipt.resulting_source_ref.content_hash !==
+        projectSource.content_hash ||
+      receipt.resulting_source_ref.record_hash !== row.source_record_hash ||
+      projectSource.content.status !== "excluded" ||
+      receipt.effect.local_copy_deleted !== false
+    ) {
+      throw new ProjectSourceLinkRemovalError(
+        "PROJECT_SOURCE_LINK_REMOVAL_STORED_RECORD_CORRUPT",
+        "The retained Project-link removal receipt or resulting ProjectSource failed exact hash validation.",
+      );
+    }
+    return { receipt: clone(receipt), projectSource: clone(projectSource) };
+  }
+
+  async #databaseTime(): Promise<string> {
+    const result = await this.#pool.query<{ observed_at: Date }>(
+      "SELECT CURRENT_TIMESTAMP AS observed_at",
+    );
+    const observedAt = result.rows[0]?.observed_at;
+    if (observedAt === undefined) {
+      throw new ProjectSourceLinkRemovalError(
+        "PROJECT_SOURCE_LINK_REMOVAL_STORED_RECORD_CORRUPT",
+        "PostgreSQL did not provide the link-removal recovery cutoff.",
+      );
+    }
+    return observedAt.toISOString();
+  }
+
+  #linkRemovalError(error: unknown): unknown {
+    if (error instanceof ProjectSourceLinkRemovalError) return error;
+    if (!(error instanceof ProjectSourceLifecycleAuthorityError)) return error;
+    const mapping = {
+      PROJECT_SOURCE_LIFECYCLE_COMMAND_NOT_AUTHORIZED:
+        "PROJECT_SOURCE_LINK_REMOVAL_NOT_AUTHORIZED",
+      PROJECT_SOURCE_LIFECYCLE_COMMAND_ID_REUSED:
+        "PROJECT_SOURCE_LINK_REMOVAL_COMMAND_CONFLICT",
+      PROJECT_SOURCE_LIFECYCLE_IDEMPOTENCY_KEY_REUSED:
+        "PROJECT_SOURCE_LINK_REMOVAL_COMMAND_CONFLICT",
+      PROJECT_SOURCE_LIFECYCLE_PROJECT_MISMATCH:
+        "PROJECT_SOURCE_LINK_REMOVAL_PROJECT_STALE",
+      PROJECT_SOURCE_LIFECYCLE_SOURCE_NOT_FOUND:
+        "PROJECT_SOURCE_LINK_REMOVAL_SOURCE_NOT_FOUND",
+      PROJECT_SOURCE_LIFECYCLE_STALE_SOURCE:
+        "PROJECT_SOURCE_LINK_REMOVAL_SOURCE_STALE",
+      PROJECT_SOURCE_LIFECYCLE_STATUS_MISMATCH:
+        "PROJECT_SOURCE_LINK_REMOVAL_SOURCE_STALE",
+      PROJECT_SOURCE_LIFECYCLE_ACTIVE_REPLACEMENT:
+        "PROJECT_SOURCE_LINK_REMOVAL_SOURCE_STALE",
+      PROJECT_SOURCE_LIFECYCLE_STORED_RECORD_CORRUPT:
+        "PROJECT_SOURCE_LINK_REMOVAL_STORED_RECORD_CORRUPT",
+    } as const;
+    return new ProjectSourceLinkRemovalError(
+      mapping[error.code],
+      error.message,
+    );
   }
 
   async #lock(
