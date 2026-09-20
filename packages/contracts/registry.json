@@ -809,8 +809,8 @@
       "$id": "https://petra.local/schemas/project-work-operations-view/1.0.0/schema.json",
       "path": "schemas/project-work-operations-view/1.0.0/schema.json",
       "status": "accepted",
-      "compatibility": "initial-composed-work-input-control-delivery-and-result-assessment",
-      "canonical_sha256": "sha256:cc61cba0158681b3f8417a6e52c0feb356bb1c4838cf952facaaf4c37cbb5010",
+      "compatibility": "backward-compatible-optional-exact-checkpoint-resume-binding",
+      "canonical_sha256": "sha256:9139b85d533ee635650b55c7b11b0cc1e2cb11e12416e2e6a33311127d4cef2e",
       "generate_typescript": true,
       "typescript_path": "src/generated/project-work-operations-view.ts"
     },

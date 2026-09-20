@@ -5527,12 +5527,21 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
           );
         }
         contracts.assertValid("project-work-operations-view", "1.0.0", view);
+        const resumeAvailable = view.controls.some(
+          (control) =>
+            control.operation === "resume" && control.state === "available",
+        );
         if (
           view.project_id !== projectId ||
-          view.work_unit_ref.work_unit_id !== workUnitId
+          view.work_unit_ref.work_unit_id !== workUnitId ||
+          resumeAvailable !== (view.resume_binding !== undefined) ||
+          (view.resume_binding !== undefined &&
+            (view.resume_binding.project_id !== projectId ||
+              canonicalize(view.resume_binding.expected_work_unit_ref) !==
+                canonicalize(view.work_unit_ref)))
         ) {
           throw new Error(
-            "The Work operation assessment crossed its exact Project or WorkUnit boundary.",
+            "The Work operation assessment crossed its exact Project, WorkUnit, or checkpoint-resume boundary.",
           );
         }
         context.header("Cache-Control", "no-store");

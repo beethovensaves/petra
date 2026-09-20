@@ -37,6 +37,9 @@ const receipt = readFixture<PetraProjectWorkOperationReceipt>(
 const view = readFixture<PetraProjectWorkOperationsView>(
   "project-work-operations-view",
 );
+const resumableView = readFixture<PetraProjectWorkOperationsView>(
+  "project-work-operations-view-resumable",
+);
 const resumeRequest = readFixture<PetraProjectWorkResumeRequest>(
   "project-work-resume-request",
 );
@@ -74,6 +77,51 @@ describe("ProjectWorkClient", () => {
     await expect(
       client.readOperations(view.project_id, view.work_unit_ref.work_unit_id),
     ).resolves.toStrictEqual(view);
+  });
+
+  it("returns only a server-bound checkpoint resume identity and rejects a crossed binding", async () => {
+    let call = 0;
+    const fetch = vi.fn(() => {
+      call += 1;
+      return Promise.resolve(
+        Response.json(
+          call === 1
+            ? resumableView
+            : {
+                ...resumableView,
+                resume_binding: {
+                  ...resumableView.resume_binding,
+                  expected_work_unit_ref: {
+                    ...resumableView.resume_binding?.expected_work_unit_ref,
+                    revision: resumableView.work_unit_ref.revision + 1,
+                  },
+                },
+              },
+        ),
+      );
+    });
+    const client = new ProjectWorkClient({
+      baseUrl: "http://petra.local",
+      token: "work-token",
+      fetch,
+    });
+
+    await expect(
+      client.readOperations(
+        resumableView.project_id,
+        resumableView.work_unit_ref.work_unit_id,
+      ),
+    ).resolves.toStrictEqual(resumableView);
+    await expect(
+      client.readOperations(
+        resumableView.project_id,
+        resumableView.work_unit_ref.work_unit_id,
+      ),
+    ).rejects.toEqual(
+      expect.objectContaining<Partial<ProjectWorkClientError>>({
+        code: "PROJECT_WORK_RESPONSE_INVALID",
+      }),
+    );
   });
 
   it("submits only the exact command payload and rejects crossed receipts", async () => {

@@ -488,6 +488,7 @@ describePostgres("Wave 6 Work production commands", () => {
         (control) => control.operation === "resume",
       ),
     ).toEqual(expect.objectContaining({ state: "unavailable" }));
+    expect(unregisteredResume).not.toHaveProperty("resume_binding");
     await expect(
       client().resume(third.workUnit.project_id, third.workUnit.work_unit_id, {
         schema_name: "petra.project-work-resume-request",
@@ -537,6 +538,15 @@ describePostgres("Wave 6 Work production commands", () => {
         command_path: `/api/commands/projects/${third.workUnit.project_id}/work/${third.workUnit.work_unit_id}/resume`,
       }),
     );
+    expect(registeredResume.resume_binding).toStrictEqual({
+      project_id: third.workUnit.project_id,
+      expected_work_unit_ref: {
+        work_unit_id: checkpointed.work_unit_id,
+        revision: checkpointed.revision,
+        spec_hash: checkpointed.spec_hash,
+      },
+      expected_checkpoint: checkpoint,
+    });
     const resumeRequest: PetraProjectWorkResumeRequest = {
       schema_name: "petra.project-work-resume-request",
       schema_version: "1.0.0",
@@ -737,7 +747,10 @@ describePostgres("Wave 6 Work production commands", () => {
         restart_assessment: {
           resume: {
             unregistered: "unavailable",
+            unregistered_binding_absent:
+              unregisteredResume.resume_binding === undefined,
             registered: "available",
+            assessment_binding: registeredResume.resume_binding,
             outcome: resume.outcome,
             checkpoint: resume.checkpoint,
             attempt_preserved: resume.resumed_attempt === 1,

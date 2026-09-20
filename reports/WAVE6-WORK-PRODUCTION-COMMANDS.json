@@ -2,7 +2,7 @@
   "evidence_id": "UX1.6-WORK",
   "scenario_id": "start-input-steer-cancel-retry",
   "status": "passed",
-  "executed_at": "2026-09-20T20:41:32.315Z",
+  "executed_at": "2026-09-20T20:54:38.800Z",
   "command": "npm run test:wave6:work",
   "database": "fresh disposable PostgreSQL 18.6 with Flyway V001-V057",
   "production_boundary": {
@@ -83,7 +83,21 @@
     "restart_assessment": {
       "resume": {
         "unregistered": "unavailable",
+        "unregistered_binding_absent": true,
         "registered": "available",
+        "assessment_binding": {
+          "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+          "expected_work_unit_ref": {
+            "work_unit_id": "work_unit_01K6P000000000000000000803",
+            "revision": 4,
+            "spec_hash": "sha256:77dc845d89a126d5477684a12a27d4d0565b92143e0fcd1c6188045591b3a1c1"
+          },
+          "expected_checkpoint": {
+            "artifact_id": "artifact_01ARZ3NDEKTSV4RRFFQ69G5FB1",
+            "recorded_at": "2026-09-19T16:02:03.000Z",
+            "content_hash": "sha256:76313fbb039e79b42da7b3ee67b26123f2b7e7157c80f019e688682337a0f09e"
+          }
+        },
         "outcome": "resumed",
         "checkpoint": {
           "artifact_id": "artifact_01ARZ3NDEKTSV4RRFFQ69G5FB1",

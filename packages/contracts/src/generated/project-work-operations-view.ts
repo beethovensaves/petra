@@ -39,6 +39,7 @@ export interface PetraProjectWorkOperationsView {
    */
   required_inputs: RequiredInput[];
   delivery: Delivery;
+  resume_binding?: ResumeBinding;
   /**
    * @minItems 11
    * @maxItems 11
@@ -302,6 +303,31 @@ export interface InputRequestRef {
    * A one-based optimistic revision within JavaScript's safe-integer range.
    */
   revision: number;
+}
+/**
+ * The exact server-owned identity a client must copy into a checkpoint-resume request. It is present only while Resume is available through a trusted registered transition.
+ */
+export interface ResumeBinding {
+  /**
+   * A Petra identifier whose kind is project.
+   */
+  project_id: string;
+  expected_work_unit_ref: WorkUnitRef;
+  expected_checkpoint: CheckpointRef;
+}
+export interface CheckpointRef {
+  /**
+   * A Petra identifier whose kind is artifact.
+   */
+  artifact_id: string;
+  /**
+   * A SHA-256 content identity over the exact bytes or canonical JSON projection defined by the enclosing contract.
+   */
+  content_hash: string;
+  /**
+   * An RFC 3339 timestamp normalized to UTC with millisecond precision.
+   */
+  recorded_at: string;
 }
 export interface Control {
   operation:

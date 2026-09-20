@@ -43,6 +43,7 @@
       "items": { "$ref": "#/$defs/RequiredInput" }
     },
     "delivery": { "$ref": "#/$defs/Delivery" },
+    "resume_binding": { "$ref": "#/$defs/ResumeBinding" },
     "controls": {
       "type": "array",
       "minItems": 11,
@@ -60,6 +61,27 @@
     }
   },
   "$defs": {
+    "ResumeBinding": {
+      "description": "The exact server-owned identity a client must copy into a checkpoint-resume request. It is present only while Resume is available through a trusted registered transition.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_id",
+        "expected_work_unit_ref",
+        "expected_checkpoint"
+      ],
+      "properties": {
+        "project_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+        },
+        "expected_work_unit_ref": {
+          "$ref": "../../project-work-operation-request/1.0.0/schema.json#/$defs/WorkUnitRef"
+        },
+        "expected_checkpoint": {
+          "$ref": "../../work-unit/1.0.0/schema.json#/$defs/CheckpointRef"
+        }
+      }
+    },
     "Plan": {
       "type": "object",
       "additionalProperties": false,

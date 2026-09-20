@@ -71,14 +71,23 @@ export class ProjectWorkClient {
     const body: unknown = await response.json();
     this.#contracts.assertValid("project-work-operations-view", "1.0.0", body);
     const view = body as PetraProjectWorkOperationsView;
+    const resumeAvailable = view.controls.some(
+      (control) =>
+        control.operation === "resume" && control.state === "available",
+    );
     if (
       view.project_id !== projectId ||
-      view.work_unit_ref.work_unit_id !== workUnitId
+      view.work_unit_ref.work_unit_id !== workUnitId ||
+      resumeAvailable !== (view.resume_binding !== undefined) ||
+      (view.resume_binding !== undefined &&
+        (view.resume_binding.project_id !== projectId ||
+          canonicalize(view.resume_binding.expected_work_unit_ref) !==
+            canonicalize(view.work_unit_ref)))
     ) {
       throw new ProjectWorkClientError(
         503,
         "PROJECT_WORK_RESPONSE_INVALID",
-        "The Work operation assessment crossed the requested Project or WorkUnit.",
+        "The Work operation assessment crossed the requested Project, WorkUnit, or exact checkpoint-resume boundary.",
       );
     }
     return structuredClone(view);

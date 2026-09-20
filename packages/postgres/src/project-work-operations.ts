@@ -850,6 +850,15 @@ export class PostgresProjectWorkOperations
         work.status.state === "checkpointed" &&
         resumeRegistration !== undefined &&
         pendingInputs.length === 0;
+      const workUnitRef = exactWorkRef(work);
+      const resumeBinding =
+        resumable && work.status.state === "checkpointed"
+          ? {
+              project_id: projectId,
+              expected_work_unit_ref: workUnitRef,
+              expected_checkpoint: clone(work.status.checkpoint),
+            }
+          : undefined;
       const controls: PetraProjectWorkOperationsView["controls"] = [
         {
           operation: "start",
@@ -957,11 +966,14 @@ export class PostgresProjectWorkOperations
       ];
       const content = {
         project_id: projectId,
-        work_unit_ref: exactWorkRef(work),
+        work_unit_ref: workUnitRef,
         execution_state: work.status.state,
         plan,
         required_inputs: inputs,
         delivery,
+        ...(resumeBinding === undefined
+          ? {}
+          : { resume_binding: resumeBinding }),
         controls,
         results,
         read_at: readAt,

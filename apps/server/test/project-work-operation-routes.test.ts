@@ -38,6 +38,9 @@ const receipt = readFixture<PetraProjectWorkOperationReceipt>(
 const view = readFixture<PetraProjectWorkOperationsView>(
   "project-work-operations-view",
 );
+const resumableView = readFixture<PetraProjectWorkOperationsView>(
+  "project-work-operations-view-resumable",
+);
 const resumeRequest = readFixture<PetraProjectWorkResumeRequest>(
   "project-work-resume-request",
 );
@@ -71,7 +74,7 @@ describe("Project Work operation routes", () => {
   it("returns the exact no-store operation assessment", async () => {
     const reader: ProjectWorkOperationsViewReader = {
       getProjectWorkOperationsView: vi.fn(() =>
-        Promise.resolve(structuredClone(view)),
+        Promise.resolve(structuredClone(resumableView)),
       ),
     };
     const petra = createPetraApp({
@@ -83,7 +86,36 @@ describe("Project Work operation routes", () => {
 
     expect(response.status).toBe(200);
     expect(response.headers.get("cache-control")).toBe("no-store");
-    await expect(response.json()).resolves.toStrictEqual(view);
+    await expect(response.json()).resolves.toStrictEqual(resumableView);
+  });
+
+  it("rejects a Work read whose resume binding crosses its exact revision", async () => {
+    const reader: ProjectWorkOperationsViewReader = {
+      getProjectWorkOperationsView: vi.fn(() =>
+        Promise.resolve({
+          ...structuredClone(resumableView),
+          resume_binding: {
+            ...structuredClone(resumableView.resume_binding!),
+            expected_work_unit_ref: {
+              ...structuredClone(
+                resumableView.resume_binding!.expected_work_unit_ref,
+              ),
+              revision: resumableView.work_unit_ref.revision + 1,
+            },
+          },
+        }),
+      ),
+    };
+    const petra = createPetraApp({
+      authToken: TOKEN,
+      projectWorkOperations: reader,
+    });
+
+    const response = await petra.app.fetch(authorized(queryPath));
+
+    expect(response.status).toBe(503);
+    const body = (await response.json()) as { error: { code: string } };
+    expect(body.error.code).toBe("PROJECT_WORK_OPERATIONS_READ_FAILED");
   });
 
   it("resolves server-owned ManageProjectWork authority before execution", async () => {
