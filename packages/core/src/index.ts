@@ -54,6 +54,7 @@ export * from "./project-thread.js";
 export * from "./project-shell-view.js";
 export * from "./project-source-authority-repository.js";
 export * from "./project-source-registration.js";
+export * from "./project-source-revision.js";
 export * from "./project-source-reuse.js";
 export * from "./project-source-processing.js";
 export * from "./project-source-replacement.js";

@@ -188,6 +188,17 @@
       "typescript_path": "src/generated/capability-grant-v1-13.ts"
     },
     {
+      "name": "capability-grant",
+      "version": "1.14.0",
+      "$id": "https://petra.local/schemas/capability-grant/1.14.0/schema.json",
+      "path": "schemas/capability-grant/1.14.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-project-source-revision-intake-command",
+      "canonical_sha256": "sha256:4ed63a50b481dd3dc6dfcd0dc4e1da7e5a1127e8d4d37e123f9df9e0e56c066a",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/capability-grant-v1-14.ts"
+    },
+    {
       "name": "capability-grant-revocation",
       "version": "1.0.0",
       "$id": "https://petra.local/schemas/capability-grant-revocation/1.0.0/schema.json",
@@ -857,6 +868,39 @@
       "canonical_sha256": "sha256:af195b8e201dae246dfee82e82c0d2069b5b3828db646a7d5908d79b48c83906",
       "generate_typescript": true,
       "typescript_path": "src/generated/project-source-registration-recovery-view.ts"
+    },
+    {
+      "name": "project-source-revision-request",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-source-revision-request/1.0.0/schema.json",
+      "path": "schemas/project-source-revision-request/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-exact-source-version-intake-request",
+      "canonical_sha256": "sha256:2ff6f4c45a028501667a03766c026a9832e96ab522b4f7c745c55203afb9811a",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-source-revision-request.ts"
+    },
+    {
+      "name": "project-source-revision-receipt",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-source-revision-receipt/1.0.0/schema.json",
+      "path": "schemas/project-source-revision-receipt/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-source-version-intake-and-replacement-handoff",
+      "canonical_sha256": "sha256:ee6a08640c1e27cffa4b11133ce31016427c34a1b53fe8597ce647c9ff1cc65a",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-source-revision-receipt.ts"
+    },
+    {
+      "name": "project-source-revision-recovery-view",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-source-revision-recovery-view/1.0.0/schema.json",
+      "path": "schemas/project-source-revision-recovery-view/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-source-version-intake-reconciliation",
+      "canonical_sha256": "sha256:483a6fbfa97bec988e20d460ddd50a6044d0586eda909ddfc3d138ebc4fb20d7",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-source-revision-recovery-view.ts"
     },
     {
       "name": "project-source-processing-request",
