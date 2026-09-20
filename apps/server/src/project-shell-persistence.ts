@@ -99,6 +99,10 @@ const BUILT_IN_PROFILE_URLS = [
     import.meta.url,
   ),
   new URL(
+    "../../../packages/contracts/fixtures/accepted/registered-project-profile-scientific-v1-2.json",
+    import.meta.url,
+  ),
+  new URL(
     "../../../packages/contracts/fixtures/accepted/registered-project-profile-controlled-writing.json",
     import.meta.url,
   ),

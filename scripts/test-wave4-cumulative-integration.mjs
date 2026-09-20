@@ -772,14 +772,29 @@ const seedScientific = async (pool, neo4jUri) => {
         semantic_key: "scientific.graph.return",
         contract: contractRef(contracts, "focused-graph-view"),
       },
+      {
+        registration_kind: "extension",
+        semantic_key: "scientific.graph.show-downstream",
+        contract: contractRef(contracts, "focused-graph-view", "1.1.0"),
+      },
     );
-    definition.content.terms.push({
-      semantic_key: "scientific.graph.return",
-      singular: "Return to evidence",
-      plural: "Return to evidence",
-      definition: "Return to the exact originating evidence object.",
-      generic_family: "task",
-    });
+    definition.content.terms.push(
+      {
+        semantic_key: "scientific.graph.return",
+        singular: "Return to evidence",
+        plural: "Return to evidence",
+        definition: "Return to the exact originating evidence object.",
+        generic_family: "task",
+      },
+      {
+        semantic_key: "scientific.graph.show-downstream",
+        singular: "Show downstream effects",
+        plural: "Show downstream effects",
+        definition:
+          "Reveal recorded downstream relationships within an exact bounded query.",
+        generic_family: "task",
+      },
+    );
   }
   const briefEntry = contracts.entries.find(
     (entry) =>

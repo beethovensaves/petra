@@ -72,8 +72,11 @@ describePostgres("PostgreSQL registered Project profile runtime", () => {
   const scientificV1 = readFixture<PetraRegisteredProjectProfile>(
     "registered-project-profile-scientific",
   );
-  const scientific = readFixture<PetraRegisteredProjectProfile>(
+  const scientificV11 = readFixture<PetraRegisteredProjectProfile>(
     "registered-project-profile-scientific-v1-1",
+  );
+  const scientific = readFixture<PetraRegisteredProjectProfile>(
+    "registered-project-profile-scientific-v1-2",
   );
   const writing = readFixture<PetraRegisteredProjectProfile>(
     "registered-project-profile-controlled-writing",
@@ -112,6 +115,7 @@ describePostgres("PostgreSQL registered Project profile runtime", () => {
     );
     await scopes.registerActor(actor);
     await runtime.registerProfile(scientificV1);
+    await runtime.registerProfile(scientificV11);
     await runtime.registerProfile(scientific);
     await runtime.registerProfile(writing);
   });
@@ -126,10 +130,13 @@ describePostgres("PostgreSQL registered Project profile runtime", () => {
     expect(
       listed.find((profile) => profile.profile_id === scientific.profile_id)
         ?.profile_version,
-    ).toBe("1.1.0");
+    ).toBe("1.2.0");
     await expect(
       runtime.getRegisteredProfile(scientificV1.profile_id, "1.0.0"),
     ).resolves.toStrictEqual(scientificV1);
+    await expect(
+      runtime.getRegisteredProfile(scientificV11.profile_id, "1.1.0"),
+    ).resolves.toStrictEqual(scientificV11);
     await expect(
       runtime.getRegisteredProfile(scientific.profile_id),
     ).resolves.toStrictEqual(scientific);
@@ -152,6 +159,10 @@ describePostgres("PostgreSQL registered Project profile runtime", () => {
     const scientificTaxonomy = await runtime.getProjectProfileTaxonomy(
       scientificReceipt.project_ref.project_id,
       1,
+    );
+    const createdScientificDefinition = await definitions.getDefinition(
+      scientificReceipt.project_definition_ref.project_definition_id,
+      scientificReceipt.project_definition_ref.revision,
     );
     const writingTaxonomy = await runtime.getProjectProfileTaxonomy(
       writingReceipt.project_ref.project_id,
@@ -179,6 +190,40 @@ describePostgres("PostgreSQL registered Project profile runtime", () => {
     expect(scientificTaxonomy.resolution.taxonomy.model_roles.state).toBe(
       "available",
     );
+    expect(
+      createdScientificDefinition?.content.registrations
+        .filter(
+          (registration) =>
+            registration.registration_kind === "extension" &&
+            [
+              "petra.focused-graph",
+              "scientific.graph.return",
+              "scientific.graph.show-downstream",
+            ].includes(registration.semantic_key),
+        )
+        .map((registration) => ({
+          semantic_key: registration.semantic_key,
+          contract_version: registration.contract.version,
+        })),
+    ).toEqual([
+      {
+        semantic_key: "petra.focused-graph",
+        contract_version: "1.0.0",
+      },
+      {
+        semantic_key: "scientific.graph.return",
+        contract_version: "1.0.0",
+      },
+      {
+        semantic_key: "scientific.graph.show-downstream",
+        contract_version: "1.1.0",
+      },
+    ]);
+    expect(
+      scientificTaxonomy.resolution.taxonomy.terminology.find(
+        (term) => term.semantic_key === "scientific.graph.show-downstream",
+      )?.singular,
+    ).toBe("Show downstream effects");
     expect(writingTaxonomy.resolution.taxonomy.model_roles.state).toBe(
       "unavailable",
     );
