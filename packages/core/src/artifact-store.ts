@@ -48,6 +48,12 @@ export interface ArtifactStagingCleanupResult {
   retainedStageIds: string[];
 }
 
+export interface ArtifactDeletionResult {
+  /** `not_found` is a safe idempotent result after a durable deletion intent. */
+  state: "deleted" | "not_found";
+  artifact?: AvailableArtifact;
+}
+
 export type ArtifactStoreErrorCode =
   | "ARTIFACT_STORE_HASH_INVALID"
   | "ARTIFACT_STORE_SIZE_INVALID"
@@ -85,6 +91,14 @@ export interface ArtifactStore {
     contentHash: string,
     expected?: Omit<ArtifactByteIdentity, "contentHash">,
   ): Promise<ArtifactRead>;
+  /**
+   * Removes one exact content-addressed local copy. Authority and retention
+   * eligibility are deliberately outside the byte-store boundary.
+   */
+  deleteByHash(
+    contentHash: string,
+    expected: Omit<ArtifactByteIdentity, "contentHash">,
+  ): Promise<ArtifactDeletionResult>;
   cleanupAbandonedStaging(
     olderThan: string,
     limit?: number,

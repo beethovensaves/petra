@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-source-local-copy-deletion-request/1.0.0/schema.json",
+  "title": "PetraProjectSourceLocalCopyDeletionRequest",
+  "description": "An exact reviewed request to delete one eligible content-addressed local copy without removing its Project link or retained authority.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "command_id",
+    "idempotency_key",
+    "expected",
+    "reason"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.project-source-local-copy-deletion-request"
+    },
+    "schema_version": { "const": "1.0.0" },
+    "command_id": {
+      "$ref": "../../project-source-registration-request/1.0.0/schema.json#/properties/command_id"
+    },
+    "idempotency_key": {
+      "$ref": "../../project-source-registration-request/1.0.0/schema.json#/properties/idempotency_key"
+    },
+    "expected": { "$ref": "#/$defs/Expected" },
+    "reason": { "type": "string", "minLength": 1, "maxLength": 4000 }
+  },
+  "$defs": {
+    "CurrentSourceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_source_id",
+        "revision",
+        "content_hash",
+        "record_hash",
+        "status"
+      ],
+      "properties": {
+        "project_source_id": {
+          "type": "string",
+          "pattern": "^project_source_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "status": { "enum": ["active", "excluded"] }
+      }
+    },
+    "CopyRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact_manifest_id",
+        "manifest_revision",
+        "manifest_record_hash",
+        "artifact_id",
+        "store_name",
+        "object_key",
+        "content_hash",
+        "byte_size",
+        "media_type"
+      ],
+      "properties": {
+        "artifact_manifest_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ArtifactManifestId"
+        },
+        "manifest_revision": { "const": 1 },
+        "manifest_record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "artifact_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ArtifactId"
+        },
+        "store_name": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "object_key": { "type": "string", "minLength": 1, "maxLength": 4000 },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "byte_size": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "media_type": { "type": "string", "minLength": 1, "maxLength": 500 }
+      }
+    },
+    "Expected": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_ref",
+        "project_definition_ref",
+        "current_source_ref",
+        "copy_ref"
+      ],
+      "properties": {
+        "project_ref": {
+          "$ref": "../../project-source-registration-request/1.0.0/schema.json#/$defs/ProjectRef"
+        },
+        "project_definition_ref": {
+          "$ref": "../../project-source-registration-request/1.0.0/schema.json#/$defs/DefinitionRef"
+        },
+        "current_source_ref": { "$ref": "#/$defs/CurrentSourceRef" },
+        "copy_ref": { "$ref": "#/$defs/CopyRef" }
+      }
+    }
+  }
+}

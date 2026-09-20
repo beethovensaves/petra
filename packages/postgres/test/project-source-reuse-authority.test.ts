@@ -235,6 +235,7 @@ describePostgres("PostgresProjectSourceReuseAuthority", () => {
     makeAvailable,
     inspectByHash: vi.fn(),
     readByHash: vi.fn(),
+    deleteByHash: vi.fn(),
     cleanupAbandonedStaging: vi.fn(),
   };
   const authorizer = new PostgresCapabilityGrantCommandAuthorizer();

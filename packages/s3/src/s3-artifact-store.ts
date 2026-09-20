@@ -15,6 +15,7 @@ import {
   type ArtifactByteIdentity,
   type ArtifactByteStream,
   type ArtifactMediaTypeVerification,
+  type ArtifactDeletionResult,
   type ArtifactRead,
   type ArtifactStagingCleanupResult,
   type ArtifactStore,
@@ -573,6 +574,32 @@ export class S3ArtifactStore implements ArtifactStore {
       }
     };
     return { artifact: this.#available(key, metadata), bytes: verified() };
+  }
+
+  async deleteByHash(
+    contentHash: string,
+    expected: Omit<ArtifactByteIdentity, "contentHash">,
+  ): Promise<ArtifactDeletionResult> {
+    const normalizedHash = normalizeHash(contentHash);
+    const exact = {
+      byteSize: normalizeSize(expected.byteSize),
+      mediaType: normalizeMediaType(expected.mediaType),
+    };
+    const artifact = await this.inspectByHash(normalizedHash, exact);
+    if (artifact === undefined) return { state: "not_found" };
+    await this.#client.send(
+      new DeleteObjectCommand({
+        Bucket: this.#bucket,
+        Key: artifact.objectKey,
+      }),
+    );
+    if ((await this.inspectByHash(normalizedHash, exact)) !== undefined) {
+      throw error(
+        "ARTIFACT_STORE_OBJECT_INTEGRITY_INVALID",
+        "The exact content-addressed Artifact remained visible after deletion.",
+      );
+    }
+    return { state: "deleted", artifact };
   }
 
   async cleanupAbandonedStaging(

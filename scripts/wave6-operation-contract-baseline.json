@@ -150,12 +150,12 @@
       "persistence": "PostgreSQL V055 composes the existing atomic ExcludeProjectSource status revision, command/event/outbox, and lifecycle receipt with an immutable exact-context link-removal receipt. Global Work identity, WorkVersion, ArtifactManifest, bytes, parsed representations, dependents, provenance, and history remain retained; local-copy deletion is never inferred.",
       "recovery": "Stable command and idempotency identities replay the exact composed receipt after restart. A read-only assessment distinguishes confirmed, unknown, conflicting, and differently owned outcomes and returns either the exact excluded ProjectSource or the safe Sources collection. RestoreProjectSource remains the separately previewed compensating command."
     },
-    "source-delete-partial": {
-      "kind": "partial",
-      "production_owner": "GET /api/queries/projects/:projectId/sources/:projectSourceId/lifecycle -> PostgresProjectSourceLifecycleViewReader",
-      "authorization": "Bearer-authenticated preview only; delete_local_copy is deliberately excluded from public lifecycle command actions.",
-      "persistence": "The view reads retained dependency groups and retention areas; no physical deletion receipt exists.",
-      "recovery": "Eligibility can be inspected, but deletion, unknown-effect reconciliation, and recovery are unavailable pending an accepted retention owner."
+    "source-local-copy-deletion": {
+      "kind": "command",
+      "production_owner": "GET /api/queries/projects/:projectId/sources/:projectSourceId/local-copy-deletion plus POST /api/{commands,queries}/projects/:projectId/sources/:projectSourceId/local-copy-deletion[-recovery] -> PostgresProjectSourceLocalCopyDeletionAuthority -> S3ArtifactStore.deleteByHash",
+      "authorization": "Bearer authentication plus a server-resolved human principal and the exact DeleteLocalSourceCopy grant. Preview and command bind current Project, ProjectDefinition, ProjectSource, ArtifactManifest, Artifact, store, object key, content hash, size, and media type; the command revalidates all database facts and the exact available object.",
+      "persistence": "PostgreSQL V056 records a durable pending deletion intent before storage delivery and an immutable receipt/tombstone after the exact content-addressed object is absent. Shared manifests, shared Project use, derived Artifact inputs, active Work, and open Review dependencies block deletion; Project link, canonical identity, manifest, rights, selectors, provenance, and history remain retained.",
+      "recovery": "Stable command and idempotency identities resume a pending storage attempt after restart. Read-only recovery distinguishes a confirmed immutable receipt, no observed effect, pending delivery with durable intent, command conflict, and differently owned attempts; an exact retry safely finalizes either deleted-now or already-absent-after-intent outcomes."
     },
     "review-read": {
       "kind": "query",
@@ -526,9 +526,9 @@
     },
     {
       "operation_id": "source.delete-local-copy",
-      "owner": "source-delete-partial",
-      "owner_status": "partial",
-      "missing_owner": "Accepted physical-retention policy plus authenticated deletion command and retained receipt."
+      "owner": "source-local-copy-deletion",
+      "owner_status": "owned",
+      "missing_owner": ""
     },
     {
       "operation_id": "review.queue",

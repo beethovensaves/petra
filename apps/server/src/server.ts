@@ -399,6 +399,17 @@ export const startPetraServer = async (
               projectSourceLinkRemovalPreviews:
                 options.projectShellPersistence.sourceLinkRemovalPreviews,
             }),
+      ...(options.projectSourceLocalCopyDeletionPreviews !== undefined
+        ? {
+            projectSourceLocalCopyDeletionPreviews:
+              options.projectSourceLocalCopyDeletionPreviews,
+          }
+        : options.projectShellPersistence === undefined
+          ? {}
+          : {
+              projectSourceLocalCopyDeletionPreviews:
+                options.projectShellPersistence.sourceLocalCopyDeletionPreviews,
+            }),
       ...(options.commandPrincipalResolver !== undefined
         ? { commandPrincipalResolver: options.commandPrincipalResolver }
         : options.projectShellPersistence?.commandPrincipalResolver ===
@@ -426,6 +437,17 @@ export const startPetraServer = async (
           : {
               projectSourceLinkRemovals:
                 options.projectShellPersistence.sourceLinkRemovals,
+            }),
+      ...(options.projectSourceLocalCopyDeletions !== undefined
+        ? {
+            projectSourceLocalCopyDeletions:
+              options.projectSourceLocalCopyDeletions,
+          }
+        : options.projectShellPersistence === undefined
+          ? {}
+          : {
+              projectSourceLocalCopyDeletions:
+                options.projectShellPersistence.sourceLocalCopyDeletions,
             }),
       ...(options.projectSourceReplacementAuthority !== undefined
         ? {

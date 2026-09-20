@@ -739,7 +739,7 @@ export class PostgresProjectSourceLifecycleViewReader
       return {
         state: "unavailable",
         reason:
-          "Local-copy deletion requires an explicit Artifact retention policy and destructive command, neither of which is registered.",
+          "Local-copy deletion is not executed by the general ProjectSource status lifecycle route; use the dedicated exact-copy retention preview and command.",
       };
     }
     if (action === "exclude_project_source") {
@@ -801,7 +801,7 @@ export class PostgresProjectSourceLifecycleViewReader
         area: "local_artifact",
         state: "deletion_unavailable",
         reason:
-          "No Artifact retention policy or local-copy deletion command is registered.",
+          "This status-lifecycle view does not authorize deletion; the dedicated exact-copy preview owns retention eligibility and deletion recovery.",
       },
       {
         area: "parsed_representation",

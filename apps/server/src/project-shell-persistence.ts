@@ -1,4 +1,10 @@
 import { PostgresCommunicationPlanReader } from "@petra/postgres";
+import {
+  CreateBucketCommand,
+  HeadBucketCommand,
+  S3Client,
+} from "@aws-sdk/client-s3";
+import { S3ArtifactStore } from "@petra/s3";
 import type { PetraRegisteredProjectProfile } from "@petra/contracts";
 import { readFile } from "node:fs/promises";
 import type { CommunicationPlanReader } from "@petra/core";
@@ -11,6 +17,7 @@ import {
   PostgresReviewSessionApplyBoundary,
   PostgresProjectHistoryCompensationExecutor,
   PostgresProjectSourceLifecycleAuthorityRepository,
+  PostgresProjectSourceLocalCopyDeletionAuthority,
   PostgresProjectSourceReplacementCommandAuthorityRepository,
   PostgresSingleUserCommandPrincipalResolver,
   PostgresProjectEffectiveControlsViewReader,
@@ -83,6 +90,8 @@ import type {
   ProjectSourceLifecycleAuthorityRepository,
   ProjectSourceLinkRemovalAuthority,
   ProjectSourceLinkRemovalPreviewReader,
+  ProjectSourceLocalCopyDeletionAuthority,
+  ProjectSourceLocalCopyDeletionPreviewReader,
   ProjectSourceReplacementCommandAuthorityRepository,
   ProjectSourceViewReader,
   ProjectThreadViewReader,
@@ -152,6 +161,7 @@ export interface ProjectShellPersistence {
   readonly sourceProcessingViews: ProjectSourceProcessingViewReader;
   readonly sourceLifecycleViews: ProjectSourceLifecycleViewReader;
   readonly sourceLinkRemovalPreviews: ProjectSourceLinkRemovalPreviewReader;
+  readonly sourceLocalCopyDeletionPreviews: ProjectSourceLocalCopyDeletionPreviewReader;
   readonly reviewViews: ProjectReviewViewReader;
   readonly reviewRecoveryAssessments: ReviewRecoveryAssessmentReader;
   readonly reviewSessionApply: ReviewSessionApplyBoundary;
@@ -180,6 +190,7 @@ export interface ProjectShellPersistence {
   readonly commandPrincipalResolver?: AuthenticatedCommandPrincipalResolver;
   readonly sourceLifecycleAuthority: ProjectSourceLifecycleAuthorityRepository;
   readonly sourceLinkRemovals: ProjectSourceLinkRemovalAuthority;
+  readonly sourceLocalCopyDeletions: ProjectSourceLocalCopyDeletionAuthority;
   readonly sourceReplacementAuthority: ProjectSourceReplacementCommandAuthorityRepository;
   readonly close: () => Promise<void>;
 }
@@ -192,6 +203,11 @@ export interface ProjectShellPersistenceEnvironment {
   readonly PETRA_POSTGRES_USER?: string;
   readonly PETRA_POSTGRES_PASSWORD?: string;
   readonly PETRA_POSTGRES_DATABASE?: string;
+  readonly PETRA_S3_ENDPOINT?: string;
+  readonly PETRA_S3_HOST_PORT?: string;
+  readonly PETRA_S3_ACCESS_KEY?: string;
+  readonly PETRA_S3_SECRET_KEY?: string;
+  readonly PETRA_S3_BUCKET?: string;
   readonly PETRA_LOCAL_ACTOR_ID?: string;
   readonly PETRA_NEO4J_URI?: string;
   readonly PETRA_NEO4J_HOST?: string;
@@ -218,12 +234,54 @@ export class ProjectShellPersistenceConfigurationError extends Error {
   }
 }
 
+const missingBucket = (error: unknown): boolean => {
+  if (typeof error !== "object" || error === null) return false;
+  const candidate = error as {
+    readonly name?: unknown;
+    readonly $metadata?: { readonly httpStatusCode?: unknown };
+  };
+  return (
+    candidate.name === "NotFound" ||
+    candidate.name === "NoSuchBucket" ||
+    candidate.$metadata?.httpStatusCode === 404
+  );
+};
+
+const ensureBucket = async (
+  client: S3Client,
+  bucket: string,
+): Promise<void> => {
+  try {
+    await client.send(new HeadBucketCommand({ Bucket: bucket }));
+    return;
+  } catch (error) {
+    if (!missingBucket(error)) throw error;
+  }
+  try {
+    await client.send(new CreateBucketCommand({ Bucket: bucket }));
+  } catch (error) {
+    if (
+      typeof error !== "object" ||
+      error === null ||
+      !["BucketAlreadyExists", "BucketAlreadyOwnedByYou"].includes(
+        String((error as { readonly name?: unknown }).name),
+      )
+    ) {
+      throw error;
+    }
+  }
+  await client.send(new HeadBucketCommand({ Bucket: bucket }));
+};
+
 const required = (
   environment: ProjectShellPersistenceEnvironment,
   name:
     | "PETRA_POSTGRES_USER"
     | "PETRA_POSTGRES_PASSWORD"
-    | "PETRA_POSTGRES_DATABASE",
+    | "PETRA_POSTGRES_DATABASE"
+    | "PETRA_S3_ACCESS_KEY"
+    | "PETRA_S3_SECRET_KEY"
+    | "PETRA_S3_BUCKET",
 ): string => {
   const value = environment[name]?.trim();
   if (value === undefined || value === "") {
@@ -249,6 +307,16 @@ const neo4jPort = (value: string | undefined): number => {
   if (!Number.isInteger(parsed) || parsed < 1 || parsed > 65_535) {
     throw new ProjectShellPersistenceConfigurationError(
       "PETRA_NEO4J_BOLT_HOST_PORT must be an integer TCP port between 1 and 65535.",
+    );
+  }
+  return parsed;
+};
+
+const s3Port = (value: string | undefined): number => {
+  const parsed = Number(value ?? "8333");
+  if (!Number.isInteger(parsed) || parsed < 1 || parsed > 65_535) {
+    throw new ProjectShellPersistenceConfigurationError(
+      "PETRA_S3_HOST_PORT must be an integer TCP port between 1 and 65535.",
     );
   }
   return parsed;
@@ -280,6 +348,9 @@ export const createProjectShellPersistenceFromEnvironment = async (
       );
     }
   }
+  const s3Bucket = required(environment, "PETRA_S3_BUCKET");
+  const s3AccessKey = required(environment, "PETRA_S3_ACCESS_KEY");
+  const s3SecretKey = required(environment, "PETRA_S3_SECRET_KEY");
   const pool = new Pool({
     host: environment.PETRA_POSTGRES_HOST?.trim() || "127.0.0.1",
     port: port(environment.PETRA_POSTGRES_HOST_PORT),
@@ -288,6 +359,23 @@ export const createProjectShellPersistenceFromEnvironment = async (
     database: required(environment, "PETRA_POSTGRES_DATABASE"),
     application_name: "petra-project-shell",
     max: 5,
+  });
+  const s3Client = new S3Client({
+    region: "us-east-1",
+    endpoint:
+      environment.PETRA_S3_ENDPOINT?.trim() ||
+      `http://127.0.0.1:${s3Port(environment.PETRA_S3_HOST_PORT)}`,
+    forcePathStyle: true,
+    credentials: {
+      accessKeyId: s3AccessKey,
+      secretAccessKey: s3SecretKey,
+    },
+  });
+  const artifactStore = new S3ArtifactStore({
+    client: s3Client,
+    bucket: s3Bucket,
+    storeName: "petra-artifacts",
+    namespace: "petra",
   });
   const contracts = new PetraContractRegistry();
   const profileRuntime = new PostgresProjectProfileRuntime(
@@ -375,12 +463,19 @@ export const createProjectShellPersistenceFromEnvironment = async (
       undefined,
       contracts,
     );
+  const sourceLocalCopyDeletions =
+    new PostgresProjectSourceLocalCopyDeletionAuthority(
+      pool,
+      artifactStore,
+      new PostgresCapabilityGrantCommandAuthorizer(contracts),
+      contracts,
+    );
   let driver: Driver | undefined;
   let closePromise: Promise<void> | undefined;
   const close = (): Promise<void> => {
-    closePromise ??= Promise.all([pool.end(), driver?.close()]).then(
-      () => undefined,
-    );
+    closePromise ??= Promise.all([pool.end(), driver?.close()]).then(() => {
+      s3Client.destroy();
+    });
     return closePromise;
   };
 
@@ -394,6 +489,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
           AND to_regclass('petra.registered_project_profiles') IS NOT NULL
           AND to_regclass('petra.project_profile_command_receipts') IS NOT NULL
           AND to_regclass('petra.project_source_link_removal_receipts') IS NOT NULL
+          AND to_regclass('petra.project_source_local_copy_deletion_receipts') IS NOT NULL
           AND to_regclass('petra.project_work_operation_receipts') IS NOT NULL
           AND to_regclass('petra.project_inquiry_save_receipts') IS NOT NULL
           AND to_regclass('petra.project_import_command_receipts') IS NOT NULL
@@ -425,6 +521,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
         "PostgreSQL is reachable, but the V050 Objective command runtime is unavailable.",
       );
     }
+    await ensureBucket(s3Client, s3Bucket);
     for (const profile of await readBuiltInProfiles()) {
       await profileRuntime.registerProfile(profile);
     }
@@ -511,6 +608,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
         sourceProcessingViews: sourceProcessing,
         sourceLifecycleViews,
         sourceLinkRemovalPreviews: sourceLifecycleViews,
+        sourceLocalCopyDeletionPreviews: sourceLocalCopyDeletions,
         reviewViews,
         reviewRecoveryAssessments: new PostgresReviewRecoveryAssessmentReader(
           pool,
@@ -557,6 +655,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
             }),
         sourceLifecycleAuthority,
         sourceLinkRemovals: sourceLifecycleAuthority,
+        sourceLocalCopyDeletions,
         sourceReplacementAuthority:
           new PostgresProjectSourceReplacementCommandAuthorityRepository(
             pool,
@@ -610,6 +709,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
     sourceProcessingViews: sourceProcessing,
     sourceLifecycleViews,
     sourceLinkRemovalPreviews: sourceLifecycleViews,
+    sourceLocalCopyDeletionPreviews: sourceLocalCopyDeletions,
     reviewViews,
     reviewRecoveryAssessments: new PostgresReviewRecoveryAssessmentReader(
       pool,
@@ -655,6 +755,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
         }),
     sourceLifecycleAuthority,
     sourceLinkRemovals: sourceLifecycleAuthority,
+    sourceLocalCopyDeletions,
     sourceReplacementAuthority:
       new PostgresProjectSourceReplacementCommandAuthorityRepository(
         pool,
