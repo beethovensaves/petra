@@ -106,6 +106,7 @@ import {
   projectObjectiveCanonicalHash,
   type ProjectObjectiveCommandContext,
 } from "./project-objective-command.js";
+import type { SourceRegistrationContext } from "./source-registration.js";
 
 import type {
   AttentionItem,
@@ -4751,20 +4752,28 @@ const requiredRouteIdentity = (
   return value;
 };
 
+export interface ProjectSourceCollectionData {
+  readonly sources: SourceRecord[];
+  readonly registration: SourceRegistrationContext;
+}
+
 export const loadProjectSourceCollection = async ({
   params,
-}: LoaderFunctionArgs): Promise<SourceRecord[]> => {
+}: LoaderFunctionArgs): Promise<ProjectSourceCollectionData> => {
   const projectId = requiredRouteIdentity(params.projectId, "A Project ID");
-  const value = await requestJson(
-    `/api/queries/projects/${encodeURIComponent(projectId)}/sources`,
-  );
+  const encoded = encodeURIComponent(projectId);
+  const [value, shellValue, controlsValue] = await Promise.all([
+    requestJson(`/api/queries/projects/${encoded}/sources`),
+    requestJson(`/api/queries/projects/${encoded}/shell`),
+    requestJson(`/api/queries/projects/${encoded}/effective-controls`),
+  ]);
   if (!isRecord(value) || !Array.isArray(value.sources)) {
     throw new ProjectDataError(
       "Petra returned an invalid Project source collection.",
       502,
     );
   }
-  return value.sources.map((source) => {
+  const sources = value.sources.map((source) => {
     const view = sourceView(source);
     if (view.project_id !== projectId) {
       throw new ProjectDataError(
@@ -4774,6 +4783,63 @@ export const loadProjectSourceCollection = async ({
     }
     return sourceRecordFromView(view);
   });
+  const shell = shellView(shellValue);
+  const controls = effectiveControlsView(controlsValue);
+  const taxonomy = await projectProfileClient().readProjectTaxonomy(
+    projectId,
+    shell.content.definition.revision,
+  );
+  const definitionRef = controls.content.project_definition_ref;
+  if (
+    shell.project_id !== projectId ||
+    shell.content.project.project_id !== projectId ||
+    controls.project_id !== projectId ||
+    controls.content.project_ref.record_id !== projectId ||
+    controls.content.project_ref.revision !== shell.content.project.revision ||
+    definitionRef.project_definition_id !==
+      shell.content.definition.project_definition_id ||
+    definitionRef.revision !== shell.content.definition.revision ||
+    definitionRef.content_hash !== shell.content.definition.content_hash ||
+    taxonomy.project_id !== projectId ||
+    taxonomy.project_revision !== shell.content.project.revision ||
+    taxonomy.project_definition_ref.project_definition_id !==
+      definitionRef.project_definition_id ||
+    taxonomy.project_definition_ref.revision !== definitionRef.revision ||
+    taxonomy.project_definition_ref.content_hash !== definitionRef.content_hash
+  ) {
+    throw new ProjectDataError(
+      "Source registration cannot bind one exact current Project, ProjectDefinition, and profile taxonomy. Refresh Sources before adding a copy.",
+      409,
+    );
+  }
+  const sourceRoles =
+    taxonomy.resolution.state === "unsupported_profile"
+      ? []
+      : taxonomy.resolution.taxonomy.source_roles.items
+          .filter(
+            (item) =>
+              item.availability === "available" &&
+              item.contract?.name === "petra.rights-decision" &&
+              item.contract.version === "1.0.0",
+          )
+          .map((item) => ({
+            semanticKey: item.semantic_key,
+            label: item.label,
+            meaning: item.meaning,
+          }));
+  return {
+    sources,
+    registration: {
+      projectId,
+      projectRef: {
+        project_id: projectId,
+        revision: controls.content.project_ref.revision,
+        record_hash: controls.content.project_ref.record_hash,
+      },
+      projectDefinitionRef: structuredClone(definitionRef),
+      sourceRoles,
+    },
+  };
 };
 
 /**

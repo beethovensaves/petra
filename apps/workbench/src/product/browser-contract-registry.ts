@@ -47,6 +47,10 @@ import suggestedActionViewV11Schema from "../../../../packages/contracts/schemas
 import workVersionSchema from "../../../../packages/contracts/schemas/work-version/1.0.0/schema.json";
 import assertionSchema from "../../../../packages/contracts/schemas/assertion/1.0.0/schema.json";
 import projectSourceSchema from "../../../../packages/contracts/schemas/project-source/1.0.0/schema.json";
+import projectSourceRegistrationRequestSchema from "../../../../packages/contracts/schemas/project-source-registration-request/1.0.0/schema.json";
+import projectSourceRegistrationReceiptSchema from "../../../../packages/contracts/schemas/project-source-registration-receipt/1.0.0/schema.json";
+import projectSourceRegistrationRecoveryViewSchema from "../../../../packages/contracts/schemas/project-source-registration-recovery-view/1.0.0/schema.json";
+import rightsDecisionSchema from "../../../../packages/contracts/schemas/rights-decision/1.0.0/schema.json";
 import projectDefinitionSchema from "../../../../packages/contracts/schemas/project-definition/1.0.0/schema.json";
 import registeredProjectProfileSchema from "../../../../packages/contracts/schemas/registered-project-profile/1.0.0/schema.json";
 import projectProfileTaxonomyViewSchema from "../../../../packages/contracts/schemas/project-profile-taxonomy-view/1.0.0/schema.json";
@@ -139,6 +143,9 @@ type BrowserContractName =
   | "project-work-operation-request@1.0.0"
   | "project-work-operation-receipt@1.0.0"
   | "project-work-operations-view@1.0.0"
+  | "project-source-registration-request@1.0.0"
+  | "project-source-registration-receipt@1.0.0"
+  | "project-source-registration-recovery-view@1.0.0"
   | "worker-output-manifest@1.0.0"
   | "working-candidate@1.0.0"
   | "working-relationship@1.0.0";
@@ -222,7 +229,11 @@ const schemas = [
   projectWorkOperationRequestSchema,
   projectWorkOperationReceiptSchema,
   projectWorkOperationsViewSchema,
+  projectSourceRegistrationRequestSchema,
+  projectSourceRegistrationReceiptSchema,
+  projectSourceRegistrationRecoveryViewSchema,
   projectSourceSchema,
+  rightsDecisionSchema,
   assertionSchema,
   recoveryAssessmentSchema,
   reviewViewSchema,
@@ -306,6 +317,12 @@ const contractIds: Record<BrowserContractName, string> = {
   "project-work-operation-request@1.0.0": projectWorkOperationRequestSchema.$id,
   "project-work-operation-receipt@1.0.0": projectWorkOperationReceiptSchema.$id,
   "project-work-operations-view@1.0.0": projectWorkOperationsViewSchema.$id,
+  "project-source-registration-request@1.0.0":
+    projectSourceRegistrationRequestSchema.$id,
+  "project-source-registration-receipt@1.0.0":
+    projectSourceRegistrationReceiptSchema.$id,
+  "project-source-registration-recovery-view@1.0.0":
+    projectSourceRegistrationRecoveryViewSchema.$id,
   "worker-output-manifest@1.0.0": briefWorkerOutputManifestV100Schema.$id,
   "working-candidate@1.0.0": workingCandidateSchema.$id,
   "working-relationship@1.0.0": workingRelationshipSchema.$id,
@@ -469,6 +486,24 @@ export class PetraContractRegistry {
       version: "1.0.0",
       canonical_sha256:
         "sha256:cc61cba0158681b3f8417a6e52c0feb356bb1c4838cf952facaaf4c37cbb5010",
+    },
+    {
+      name: "project-source-registration-request",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:f24333e7b6a2aa84f690793578f9e0a45aaf9ed607f9cd821927f4541295f9fb",
+    },
+    {
+      name: "project-source-registration-receipt",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:e651eb35eb22c788cf6e7e5eecc96d118a2fdae09b01cb5bfaac572ef4156fab",
+    },
+    {
+      name: "project-source-registration-recovery-view",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:af195b8e201dae246dfee82e82c0d2069b5b3828db646a7d5908d79b48c83906",
     },
     {
       name: "worker-output-manifest",

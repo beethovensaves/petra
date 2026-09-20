@@ -27,9 +27,11 @@ import {
   ProjectImportPanel,
   projectImportAvailability,
 } from "./ProjectImportSurface.js";
+import { SourceRegistrationPanel } from "./SourceRegistration.js";
 import type {
   ProjectBriefData,
   ProjectCollectionData,
+  ProjectSourceCollectionData,
 } from "./project-data.js";
 import { SuggestedWorkAction } from "./SuggestedAction.js";
 import type {
@@ -1248,8 +1250,15 @@ export const BriefRoute = (): React.JSX.Element => {
 const sourceSearchText = (source: SourceRecord): string =>
   `${source.title} ${source.kind} ${source.role} ${source.creator}`.toLocaleLowerCase();
 
-export const SourcesSurface = ({ project }: { project: ProjectRecord }) => {
+export const SourcesSurface = ({
+  project,
+  registration,
+}: {
+  project: ProjectRecord;
+  registration?: ProjectSourceCollectionData["registration"];
+}) => {
   const [query, setQuery] = useState("");
+  const [adding, setAdding] = useState(false);
   const normalizedQuery = query.trim().toLocaleLowerCase();
   const sources = project.sources.filter((source) =>
     sourceSearchText(source).includes(normalizedQuery),
@@ -1262,17 +1271,43 @@ export const SourcesSurface = ({ project }: { project: ProjectRecord }) => {
         title={project.profile.terms.referencePlural}
         description={`Inspect identity, available content, rights, and downstream use for this Project's ${project.profile.terms.referencePlural.toLocaleLowerCase()}.`}
         actions={
-          <PetraButton
-            variant="primary"
-            unavailable={{
-              reason: `${project.profile.terms.reference} registration is unavailable in this workspace.`,
-              prerequisite: "Source registration capability.",
-            }}
-          >
-            Add {project.profile.terms.reference}
-          </PetraButton>
+          <div className="reference-source-actions">
+            <PetraButton
+              variant="primary"
+              onClick={() => setAdding(true)}
+              {...(registration === undefined ||
+              registration.sourceRoles.length === 0
+                ? {
+                    unavailable: {
+                      reason: `This exact Project profile has no available registered ${project.profile.terms.reference.toLocaleLowerCase()} role.`,
+                      prerequisite:
+                        "A current registered source role with copy-rights governance.",
+                    },
+                  }
+                : {})}
+            >
+              Add {project.profile.terms.reference}
+            </PetraButton>
+            <PetraButton
+              variant="secondary"
+              unavailable={{
+                reason: `Reusing an existing ${project.profile.terms.reference.toLocaleLowerCase()} has no production command owner yet.`,
+                prerequisite: "Source reuse capability.",
+              }}
+            >
+              Use existing {project.profile.terms.reference.toLocaleLowerCase()}
+            </PetraButton>
+          </div>
         }
       />
+
+      {adding && registration !== undefined ? (
+        <SourceRegistrationPanel
+          context={registration}
+          sourceTerm={project.profile.terms.reference.toLocaleLowerCase()}
+          onCancel={() => setAdding(false)}
+        />
+      ) : null}
 
       <div className="reference-source-toolbar">
         <PetraTextField
@@ -1297,8 +1332,8 @@ export const SourcesSurface = ({ project }: { project: ProjectRecord }) => {
             No {project.profile.terms.referencePlural.toLocaleLowerCase()} yet
           </h2>
           <p>
-            This early Project has no registered basis. Adding one requires the
-            source command that owns identity and permissions.
+            This early Project has no registered basis. Add one by reviewing its
+            identity, exact copy rights, and registered Project role.
           </p>
         </section>
       ) : sources.length === 0 ? (
@@ -1354,8 +1389,13 @@ export const SourcesSurface = ({ project }: { project: ProjectRecord }) => {
 
 export const SourcesRoute = (): React.JSX.Element => {
   const project = useProjectRecord();
-  const sources = useLoaderData<SourceRecord[]>();
-  return <SourcesSurface project={{ ...project, sources }} />;
+  const data = useLoaderData<ProjectSourceCollectionData>();
+  return (
+    <SourcesSurface
+      project={{ ...project, sources: data.sources }}
+      registration={data.registration}
+    />
+  );
 };
 
 const SourceDetails = ({ source }: { source: SourceRecord }) => (
