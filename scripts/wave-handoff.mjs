@@ -1387,10 +1387,11 @@ export function validateCommitTransition(
   disposition,
   beforeCommit,
   afterCommit,
+  { allowNeedsUserCommit = false } = {},
 ) {
-  const retainsCommit = ["handoff", "wave_complete", "blocked"].includes(
-    disposition,
-  );
+  const retainsCommit =
+    ["handoff", "wave_complete", "blocked"].includes(disposition) ||
+    (disposition === "needs_user" && allowNeedsUserCommit);
   const changed = afterCommit !== beforeCommit;
   if (!retainsCommit && changed) {
     throw new Error(`Worker changed or committed work despite ${disposition}.`);
@@ -1924,11 +1925,23 @@ async function finalizeTurn(wave, role, claimedState, worker) {
     evidencePlan,
     prospectiveEvidence,
   );
-  const completed = ["handoff", "wave_complete"].includes(disposition);
+  const prospectiveMissingEvidence = missingRequiredEvidence(
+    evidencePlan,
+    prospectiveEvidence,
+  );
+  const userCheckpointReady =
+    disposition === "needs_user" &&
+    prospectiveMissingEvidence.length > 0 &&
+    prospectiveMissingEvidence.every(
+      (requirement) => requirement.owner === "user",
+    );
+  const completed =
+    ["handoff", "wave_complete"].includes(disposition) || userCheckpointReady;
   const commitChanged = validateCommitTransition(
     disposition,
     claimedState.commits[role],
     own.head,
+    { allowNeedsUserCommit: userCheckpointReady },
   );
 
   await withStateLock(wave, () => {
