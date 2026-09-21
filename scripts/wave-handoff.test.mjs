@@ -591,6 +591,61 @@ test("merges independent operation ownership and UI-state changes by id", () => 
   );
 });
 
+test("merges concurrent design evidence with the precise backend runtime owner", () => {
+  const base = {
+    schema_name: "petra.ui-operation-inventory",
+    operations: [
+      {
+        id: "work.open",
+        current_state: "partial",
+        runtime_owner: "",
+        evidence: [],
+      },
+    ],
+  };
+  const ours = {
+    ...base,
+    operations: [
+      {
+        ...base.operations[0],
+        current_state: "live",
+        runtime_owner: "GET /work/:id -> reader",
+        evidence: [{ artifact: "design-browser.json" }],
+      },
+    ],
+  };
+  const theirs = {
+    ...base,
+    operations: [
+      {
+        ...base.operations[0],
+        runtime_owner: "ProjectWorkClient.read -> GET /work/:id -> reader",
+        evidence: [{ artifact: "backend-authority.json" }],
+      },
+    ],
+  };
+  assert.deepEqual(
+    JSON.parse(
+      mergeOperationInventoryDocuments(
+        JSON.stringify(base),
+        JSON.stringify(ours),
+        JSON.stringify(theirs),
+      ),
+    ).operations,
+    [
+      {
+        id: "work.open",
+        current_state: "live",
+        runtime_owner: "ProjectWorkClient.read -> GET /work/:id -> reader",
+        evidence: [
+          { artifact: "design-browser.json" },
+          { artifact: "backend-authority.json" },
+        ],
+      },
+    ],
+  );
+});
+
 test("merges disjoint Wave coverage sections without conflict markers", () => {
   const base = "# Coverage\n\n## Updates\n\n## Exit\n";
   const ours =
