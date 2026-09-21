@@ -49,7 +49,7 @@ describe("Wave 6 in-product checkpoint guide", () => {
       </MemoryRouter>,
     );
 
-    expect(markup).toContain("First user-testable checkpoint");
+    expect(markup).toContain("Wave 6 user checkpoint");
     expect(markup).toContain("Starting state");
     expect(markup).toContain("Inspect Project profile");
     expect(markup).toContain("Ask Petra from exact context");
@@ -62,7 +62,7 @@ describe("Wave 6 in-product checkpoint guide", () => {
     expect(markup).toContain(
       "Resume and Start again appear only for exact workflow-registered",
     );
-    expect(markup).toContain("not Wave 6 acceptance");
+    expect(markup).toContain("explicitly accept or reject the checkpoint");
     expect(markup).toContain("/guide");
     expect(markup).toContain("ProjectDefinition revision");
     expect(markup).toContain(

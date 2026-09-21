@@ -110,7 +110,7 @@ export const createWave4EvidenceObserver = async ({ root }) => {
       "The Wave 6 checkpoint workbench did not start.",
     );
     process.stdout.write(
-      `\nWave 6 first user-testable checkpoint is ready.\n\nOpen the in-product guide:\n  ${workbench.url}/guide\n\nThe guide names the representative Project, expected outcomes, safe mutations, reset control, and current limits. Press Enter here when you are finished; Petra will then remove the disposable data and services.\n`,
+      `\nWave 6 user checkpoint is ready.\n\nOpen the in-product guide:\n  ${workbench.url}/guide\n\nThe guide names the representative Project, expected outcomes, safe mutations, reset control, and current limits. Press Enter here when you are finished; Petra will then remove the disposable data and services.\n`,
     );
 
     await new Promise((resolveStop) => {

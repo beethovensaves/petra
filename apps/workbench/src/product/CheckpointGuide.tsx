@@ -80,7 +80,7 @@ export const CheckpointGuideSurface = ({
     <main className="checkpoint-guide" id="reference-main">
       <header className="checkpoint-guide__heading">
         <div>
-          <p className="reference-eyebrow">First user-testable checkpoint</p>
+          <p className="reference-eyebrow">Wave 6 user checkpoint</p>
           <h1>Use Petra for one grounded Project task</h1>
           <p className="reference-lede">
             This guide keeps the starting state, task sequence, expected
@@ -88,7 +88,7 @@ export const CheckpointGuideSurface = ({
             product. Keep this page open and follow the exact Project links.
           </p>
         </div>
-        <span>Wave 6 · checkpoint · /guide</span>
+        <span>Wave 6 · user checkpoint · /guide</span>
       </header>
 
       {project === undefined ? (
@@ -324,9 +324,8 @@ export const CheckpointGuideSurface = ({
               Controls that explain an unavailable operation do not satisfy it.
             </li>
             <li>
-              This is the first checkpoint, not Wave 6 acceptance. Later slices
-              complete the remaining source, Review, History, recovery, and
-              evidence boundaries.
+              Automated Wave 6 checks do not accept the product for you. Finish
+              this guide, then explicitly accept or reject the checkpoint.
             </li>
           </ul>
         </section>

@@ -52,34 +52,42 @@ export const startWave6HistoryRecoveryBrowser = async ({
   root,
   getBackendUrl,
   projectId,
+  existingSession,
 }) => {
-  const calls = [];
-  const consoleFailures = [];
-  const workbench = await startWorkbench({ root, getBackendUrl, calls });
-  const chrome = await startChrome({ profilePrefix: "petra-wave6-history-" });
-  const cdp = await createCdp(chrome.socketUrl);
+  const ownsBrowser = existingSession === undefined;
+  const calls = existingSession?.calls ?? [];
+  const consoleFailures = existingSession?.consoleFailures ?? [];
+  const workbench =
+    existingSession?.workbench ??
+    (await startWorkbench({ root, getBackendUrl, calls }));
+  const chrome =
+    existingSession?.chrome ??
+    (await startChrome({ profilePrefix: "petra-wave6-history-" }));
+  const cdp = existingSession?.cdp ?? (await createCdp(chrome.socketUrl));
   const { send, evaluate, until } = cdp;
   let closed = false;
 
-  cdp.socket.addEventListener("message", (event) => {
-    const message = JSON.parse(event.data);
-    if (
-      message.method === "Runtime.consoleAPICalled" &&
-      ["error", "assert"].includes(message.params?.type)
-    ) {
-      consoleFailures.push(
-        message.params.args?.map(
-          (argument) => argument.value ?? argument.description,
-        ),
-      );
-    }
-    if (message.method === "Runtime.exceptionThrown") {
-      consoleFailures.push(
-        message.params?.exceptionDetails?.exception?.description ??
-          message.params?.exceptionDetails,
-      );
-    }
-  });
+  if (ownsBrowser) {
+    cdp.socket.addEventListener("message", (event) => {
+      const message = JSON.parse(event.data);
+      if (
+        message.method === "Runtime.consoleAPICalled" &&
+        ["error", "assert"].includes(message.params?.type)
+      ) {
+        consoleFailures.push(
+          message.params.args?.map(
+            (argument) => argument.value ?? argument.description,
+          ),
+        );
+      }
+      if (message.method === "Runtime.exceptionThrown") {
+        consoleFailures.push(
+          message.params?.exceptionDetails?.exception?.description ??
+            message.params?.exceptionDetails,
+        );
+      }
+    });
+  }
 
   await Promise.all([
     send("Page.enable"),
@@ -446,7 +454,7 @@ export const startWave6HistoryRecoveryBrowser = async ({
   };
 
   const close = async () => {
-    if (closed) return;
+    if (closed || !ownsBrowser) return;
     closed = true;
     try {
       await closeChrome({ chrome, cdp });

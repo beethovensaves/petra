@@ -500,16 +500,16 @@ the scientific Brief, focused Graph, Review, History, and controlled-writing
 Review on a clickable inspection index. It keeps those links active until you
 press Enter, then removes the disposable stores and services.
 
-For the Wave 6 first user-testable checkpoint, run
+For the final Wave 6 user checkpoint, run
 `./run-wave-6-checkpoint.zsh`. The launcher creates fresh disposable stores,
 executes the supported paired-profile setup, and then keeps the production
 workbench available at the stable URL `http://127.0.0.1:4311/guide`. The
 in-product guide identifies the representative Project, complete task sequence,
 expected outcomes, safe optional mutations, profile-aware reset control, and
-known checkpoint limits. Press Enter in the launching terminal to stop the
-checkpoint and remove its disposable services. This retained checkpoint setup
-is provider-free; it does not replace the separately configured certified-model
-UI run or its required evidence.
+known checkpoint limits. The configured certified model is ready through the
+same Petra UI; sending its registered question invokes the provider from the
+exact Project context. Press Enter in the launching terminal to stop the
+checkpoint and remove its disposable services.
 
 The fixture demonstrates ordered run, state, activity, custom, tool, text, and
 terminal events; durable review interruption; replay; idempotent commands; explicit

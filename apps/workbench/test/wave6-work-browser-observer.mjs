@@ -36,6 +36,7 @@ export const createWave4EvidenceObserver = async ({ root }) => {
   let chrome;
   let cdp;
   let observation;
+  let disconnectPredicate;
   let closed = false;
   const execution = {
     completed_checks: [],
@@ -95,6 +96,10 @@ export const createWave4EvidenceObserver = async ({ root }) => {
       root,
       getBackendUrl: () => backendUrl,
       calls,
+      shouldDisconnectResponse: (call) => disconnectPredicate?.(call) === true,
+      ...(process.env.PETRA_WAVE6_FINAL_EXIT === "1"
+        ? { port: 4311, strictPort: true }
+        : {}),
     });
     chrome = await startChrome({ profilePrefix: "petra-wave6-work-browser-" });
     cdp = await createCdp(chrome.socketUrl);
@@ -151,6 +156,7 @@ export const createWave4EvidenceObserver = async ({ root }) => {
   };
 
   const run = async () => {
+    if (observation !== undefined) return observation;
     await start();
     await navigate(
       `/projects/${scientificProjectId}/work`,
@@ -917,6 +923,7 @@ export const createWave4EvidenceObserver = async ({ root }) => {
       return undefined;
     }
     if (stage === "refreshed_paired_profile") {
+      if (process.env.PETRA_WAVE6_FINAL_EXIT === "1") return undefined;
       try {
         observation = await run();
         writeObservation();
@@ -1004,5 +1011,32 @@ export const createWave4EvidenceObserver = async ({ root }) => {
     }
   };
 
-  return { record, close };
+  return {
+    record,
+    close,
+    startBrowser: start,
+    runWorkflow: run,
+    setDisconnectPredicate(predicate) {
+      disconnectPredicate = predicate;
+    },
+    get browserSession() {
+      if (
+        workbench === undefined ||
+        chrome === undefined ||
+        cdp === undefined
+      ) {
+        return undefined;
+      }
+      return {
+        calls,
+        consoleFailures: consoleErrors,
+        workbench,
+        chrome,
+        cdp,
+      };
+    },
+    get observation() {
+      return observation;
+    },
+  };
 };

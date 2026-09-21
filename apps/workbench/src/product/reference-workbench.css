@@ -2150,6 +2150,20 @@
   color: var(--petra-text-secondary);
 }
 
+.reference-route-error__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--petra-space-4);
+  margin-top: var(--petra-space-5);
+}
+
+.reference-route-error__retry {
+  border: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
 @media (max-width: 68rem) {
   .reference-project-search {
     grid-template-columns: minmax(16rem, 2fr) repeat(2, minmax(10rem, 1fr));

@@ -25,6 +25,7 @@ import {
   useNavigate,
   useOutletContext,
   useRevalidator,
+  useRouteError,
   useSearchParams,
 } from "react-router";
 
@@ -2345,17 +2346,72 @@ export const SourceReaderRoute = (): React.JSX.Element => {
   );
 };
 
-export const RouteError = (): React.JSX.Element => (
-  <main className="reference-route-error" id="reference-main">
-    <PetraMark />
-    <p className="reference-eyebrow">Route unavailable</p>
-    <h1>Petra could not open this place</h1>
-    <p>
-      The current address is missing or malformed. No Project data was
-      substituted.
-    </p>
-    <Link className="reference-text-link" to="/">
-      Return to Projects
-    </Link>
-  </main>
-);
+export const RouteError = (): React.JSX.Element => {
+  const error = useRouteError();
+  const status =
+    typeof error === "object" &&
+    error !== null &&
+    "status" in error &&
+    typeof error.status === "number"
+      ? error.status
+      : undefined;
+  const permissionLost = status === 401 || status === 403;
+  const connectionLost =
+    status === 502 || status === 503 || error instanceof TypeError;
+  const detail =
+    error instanceof Error && error.message.trim() !== ""
+      ? error.message
+      : permissionLost
+        ? "Your current access no longer permits this Project read."
+        : connectionLost
+          ? "Petra could not confirm the server response."
+          : "The current address is missing, malformed, or no longer available.";
+
+  return (
+    <main
+      className="reference-route-error"
+      id="reference-main"
+      data-route-error-state={
+        permissionLost
+          ? "permission_lost"
+          : connectionLost
+            ? "offline"
+            : "unavailable"
+      }
+    >
+      <PetraMark />
+      <p className="reference-eyebrow">
+        {permissionLost
+          ? "Access changed"
+          : connectionLost
+            ? "Connection unavailable"
+            : "Route unavailable"}
+      </p>
+      <h1>
+        {permissionLost
+          ? "Petra could not verify your access"
+          : connectionLost
+            ? "Petra could not reach this place"
+            : "Petra could not open this place"}
+      </h1>
+      <p>{detail}</p>
+      <p>
+        No Project data was substituted and no task was marked complete. Drafts
+        kept in this browser remain available after access or the connection is
+        restored.
+      </p>
+      <div className="reference-route-error__actions">
+        <button
+          className="reference-primary-link reference-route-error__retry"
+          type="button"
+          onClick={() => window.location.reload()}
+        >
+          Try this place again
+        </button>
+        <Link className="reference-text-link" to="/">
+          Return to Projects
+        </Link>
+      </div>
+    </main>
+  );
+};
