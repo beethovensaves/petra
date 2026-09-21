@@ -387,7 +387,7 @@ export const startWave5CumulativeBrowser = async ({
     };
   };
 
-  const recordFocusedGraph = async () => {
+  const recordFocusedGraph = async ({ saveExactQuestion = false } = {}) => {
     assert.ok(reviewGraphPath !== undefined);
     const timings = {};
     const focus = {};
@@ -924,6 +924,103 @@ export const startWave5CumulativeBrowser = async ({
       'document.querySelector(".focused-graph-saved-questions ol") !== null',
       "bookmarked exact view",
     );
+    let inquirySave;
+    if (saveExactQuestion) {
+      const saveCallCount = calls.filter(
+        (call) =>
+          call.method === "POST" &&
+          call.path.endsWith(
+            `/api/commands/projects/${scientificProjectId}/inquiries`,
+          ),
+      ).length;
+      await activate(button("Save exact question to Project"));
+      await until(
+        'document.querySelector(".focused-graph-inquiry-save")?.dataset.state === "retained"',
+        "durably saved exact Graph question",
+      );
+      const saveCalls = calls.filter(
+        (call) =>
+          call.method === "POST" &&
+          call.path.endsWith(
+            `/api/commands/projects/${scientificProjectId}/inquiries`,
+          ),
+      );
+      assert.equal(saveCalls.length, saveCallCount + 1);
+      const save = saveCalls.at(-1);
+      assert.equal(save?.status, 200);
+      assert.equal(
+        save.requestJson.schema_name,
+        "petra.project-inquiry-save-request",
+      );
+      assert.deepEqual(
+        save.requestJson.graph_request,
+        working.requestJson,
+        "The visible save did not retain the exact active Graph request.",
+      );
+      assert.equal(
+        save.requestJson.expected_graph.content_hash,
+        working.json.content_hash,
+      );
+      for (const field of [
+        "actor",
+        "capability_grant_id",
+        "objective_ref",
+        "inquiry_role_ref",
+      ]) {
+        assert.equal(
+          Object.hasOwn(save.requestJson, field),
+          false,
+          `The Graph save supplied server-owned ${field}.`,
+        );
+      }
+      assert.equal(save.json.applied, true);
+      assert.equal(
+        save.json.receipt.graph_binding.task_request_id,
+        working.requestJson.request_id,
+      );
+      assert.deepEqual(
+        save.json.receipt.graph_binding.selection,
+        save.requestJson.selection,
+      );
+      assert.deepEqual(
+        save.json.receipt.graph_binding.return_destination,
+        working.requestJson.return_destination,
+      );
+      body = await evaluate("document.body.innerText");
+      for (const text of [
+        "Question saved to the Project",
+        "graph snapshot and selection remain context",
+        "Open retained Project question",
+        "Return to Review",
+      ]) {
+        assert.ok(body.includes(text), `Saved Graph question omitted ${text}.`);
+      }
+      const retainedDestination = await evaluate(
+        'document.querySelector(".focused-graph-inquiry-save .reference-primary-link")?.getAttribute("href")',
+      );
+      const retainedReturn = await evaluate(
+        'document.querySelector(".focused-graph-inquiry-save .reference-text-link")?.getAttribute("href")',
+      );
+      assert.ok(retainedDestination?.includes("/work#inquiry-"));
+      assert.equal(
+        retainedReturn,
+        new URL(contextualGraphPath, workbench.url).searchParams.get(
+          "returnPath",
+        ),
+      );
+      inquirySave = {
+        command_id: save.requestJson.command_id,
+        objective_id: save.json.receipt.objective_ref.objective_id,
+        graph_request_id: save.requestJson.graph_request.request_id,
+        graph_content_hash: save.requestJson.expected_graph.content_hash,
+        selection: save.requestJson.selection,
+        return_destination: save.requestJson.graph_request.return_destination,
+        retained_destination: retainedDestination,
+        exact_return: retainedReturn,
+        applied: save.json.applied,
+        client_authority_fields_sent: false,
+      };
+    }
     await activate(button("Radial"));
     await activate(button("Back"));
     await activate(button("Forward"));
@@ -1235,6 +1332,7 @@ export const startWave5CumulativeBrowser = async ({
         adverse_supplement:
           "UX-FX25 deterministic stale, late-response, and omission boundary",
       },
+      ...(inquirySave === undefined ? {} : { inquiry_save: inquirySave }),
     };
   };
 

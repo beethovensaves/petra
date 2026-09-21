@@ -1012,11 +1012,16 @@
       "surfaces": ["SP06"],
       "flows": ["UX-FLOW-03", "UX-FLOW-07"],
       "requests": ["UX-REQ-007", "UX-REQ-008", "UX-REQ-013"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/graph",
       "control": "Open Graph",
       "interaction": "navigation",
       "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:graph-details-ui",
+          "artifact": "reports/WAVE6-GRAPH-DETAILS-BROWSER.json",
+          "boundary": "UX1.6-GRAPH/task-graph-details-return: isolated Chrome executed this visible operation within one contextual/direct Graph, Current/Working/Historical, selection, Details/source, graph/text, expansion/filter/save, comparison/impact/time, governed correction-preview, and exact task-return workflow over authenticated live HTTP backed by fresh disposable PostgreSQL and Neo4j. This row is bound only because its control or query was invoked in the retained trace; no other Wave 6 scenario is claimed."
+        },
         {
           "command": "npm run test:wave6:graph",
           "artifact": "reports/WAVE6-GRAPH-DETAILS-AUTHORITY.json",
@@ -1033,11 +1038,16 @@
       "surfaces": ["SP06"],
       "flows": ["UX-FLOW-03", "UX-FLOW-07"],
       "requests": ["UX-REQ-007", "UX-REQ-008", "UX-REQ-013"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/graph",
       "control": "Return to origin",
       "interaction": "navigation",
       "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:graph-details-ui",
+          "artifact": "reports/WAVE6-GRAPH-DETAILS-BROWSER.json",
+          "boundary": "UX1.6-GRAPH/task-graph-details-return: isolated Chrome executed this visible operation within one contextual/direct Graph, Current/Working/Historical, selection, Details/source, graph/text, expansion/filter/save, comparison/impact/time, governed correction-preview, and exact task-return workflow over authenticated live HTTP backed by fresh disposable PostgreSQL and Neo4j. This row is bound only because its control or query was invoked in the retained trace; no other Wave 6 scenario is claimed."
+        },
         {
           "command": "npm run test:wave6:graph",
           "artifact": "reports/WAVE6-GRAPH-DETAILS-AUTHORITY.json",
@@ -1054,11 +1064,16 @@
       "surfaces": ["SP06"],
       "flows": ["UX-FLOW-09"],
       "requests": ["UX-REQ-007", "UX-REQ-013"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/graph",
       "control": "Semantic layer",
       "interaction": "query",
       "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:graph-details-ui",
+          "artifact": "reports/WAVE6-GRAPH-DETAILS-BROWSER.json",
+          "boundary": "UX1.6-GRAPH/task-graph-details-return: isolated Chrome executed this visible operation within one contextual/direct Graph, Current/Working/Historical, selection, Details/source, graph/text, expansion/filter/save, comparison/impact/time, governed correction-preview, and exact task-return workflow over authenticated live HTTP backed by fresh disposable PostgreSQL and Neo4j. This row is bound only because its control or query was invoked in the retained trace; no other Wave 6 scenario is claimed."
+        },
         {
           "command": "npm run test:wave6:graph",
           "artifact": "reports/WAVE6-GRAPH-DETAILS-AUTHORITY.json",
@@ -1075,11 +1090,16 @@
       "surfaces": ["SP06", "SP12"],
       "flows": ["UX-FLOW-07"],
       "requests": ["UX-REQ-009", "UX-REQ-013", "UX-REQ-022"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/graph",
       "control": "Select graph item",
       "interaction": "navigation",
       "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:graph-details-ui",
+          "artifact": "reports/WAVE6-GRAPH-DETAILS-BROWSER.json",
+          "boundary": "UX1.6-GRAPH/task-graph-details-return: isolated Chrome executed this visible operation within one contextual/direct Graph, Current/Working/Historical, selection, Details/source, graph/text, expansion/filter/save, comparison/impact/time, governed correction-preview, and exact task-return workflow over authenticated live HTTP backed by fresh disposable PostgreSQL and Neo4j. This row is bound only because its control or query was invoked in the retained trace; no other Wave 6 scenario is claimed."
+        },
         {
           "command": "npm run test:wave6:graph",
           "artifact": "reports/WAVE6-GRAPH-DETAILS-AUTHORITY.json",
@@ -1096,11 +1116,16 @@
       "surfaces": ["SP06", "SP12"],
       "flows": ["UX-FLOW-07"],
       "requests": ["UX-REQ-009", "UX-REQ-013", "UX-REQ-022"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/graph",
       "control": "Open Details",
       "interaction": "navigation",
       "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:graph-details-ui",
+          "artifact": "reports/WAVE6-GRAPH-DETAILS-BROWSER.json",
+          "boundary": "UX1.6-GRAPH/task-graph-details-return: isolated Chrome executed this visible operation within one contextual/direct Graph, Current/Working/Historical, selection, Details/source, graph/text, expansion/filter/save, comparison/impact/time, governed correction-preview, and exact task-return workflow over authenticated live HTTP backed by fresh disposable PostgreSQL and Neo4j. This row is bound only because its control or query was invoked in the retained trace; no other Wave 6 scenario is claimed."
+        },
         {
           "command": "npm run test:wave6:graph",
           "artifact": "reports/WAVE6-GRAPH-DETAILS-AUTHORITY.json",
@@ -1117,11 +1142,16 @@
       "surfaces": ["SP06", "SP12"],
       "flows": ["UX-FLOW-07"],
       "requests": ["UX-REQ-009", "UX-REQ-013", "UX-REQ-022"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/graph",
       "control": "Open source basis",
       "interaction": "navigation",
       "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:graph-details-ui",
+          "artifact": "reports/WAVE6-GRAPH-DETAILS-BROWSER.json",
+          "boundary": "UX1.6-GRAPH/task-graph-details-return: isolated Chrome executed this visible operation within one contextual/direct Graph, Current/Working/Historical, selection, Details/source, graph/text, expansion/filter/save, comparison/impact/time, governed correction-preview, and exact task-return workflow over authenticated live HTTP backed by fresh disposable PostgreSQL and Neo4j. This row is bound only because its control or query was invoked in the retained trace; no other Wave 6 scenario is claimed."
+        },
         {
           "command": "npm run test:wave6:graph",
           "artifact": "reports/WAVE6-GRAPH-DETAILS-AUTHORITY.json",
@@ -1144,6 +1174,11 @@
       "interaction": "query",
       "evidence": [
         {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:graph-details-ui",
+          "artifact": "reports/WAVE6-GRAPH-DETAILS-BROWSER.json",
+          "boundary": "UX1.6-GRAPH/task-graph-details-return: isolated Chrome executed this visible operation within one contextual/direct Graph, Current/Working/Historical, selection, Details/source, graph/text, expansion/filter/save, comparison/impact/time, governed correction-preview, and exact task-return workflow over authenticated live HTTP backed by fresh disposable PostgreSQL and Neo4j. This row is bound only because its control or query was invoked in the retained trace; no other Wave 6 scenario is claimed."
+        },
+        {
           "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:graph-ui",
           "artifact": "reports/WAVE6-GRAPH-EXPANSION-BROWSER.json",
           "boundary": "Isolated Chrome used the production Graph route and controls against authenticated live HTTP plus fresh disposable PostgreSQL and Neo4j stores. It selected the exact server-returned focus, invoked the registered scientific.graph.show-downstream recipe at finite depth 3, rendered v1.1 groups, accounting, and omissions, preserved selection, and executed the exact Brief return. This operation trace does not claim the complete UX1.6-GRAPH scenario."
@@ -1164,6 +1199,11 @@
       "control": "Relationship meaning, Direction, Recorded origin, and Finite depth",
       "interaction": "query",
       "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:graph-details-ui",
+          "artifact": "reports/WAVE6-GRAPH-DETAILS-BROWSER.json",
+          "boundary": "UX1.6-GRAPH/task-graph-details-return: isolated Chrome executed this visible operation within one contextual/direct Graph, Current/Working/Historical, selection, Details/source, graph/text, expansion/filter/save, comparison/impact/time, governed correction-preview, and exact task-return workflow over authenticated live HTTP backed by fresh disposable PostgreSQL and Neo4j. This row is bound only because its control or query was invoked in the retained trace; no other Wave 6 scenario is claimed."
+        },
         {
           "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:graph-ui",
           "artifact": "reports/WAVE6-GRAPH-EXPANSION-BROWSER.json",
@@ -1186,6 +1226,11 @@
       "interaction": "command",
       "evidence": [
         {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:graph-details-ui",
+          "artifact": "reports/WAVE6-GRAPH-DETAILS-BROWSER.json",
+          "boundary": "UX1.6-GRAPH/task-graph-details-return: isolated Chrome executed this visible operation within one contextual/direct Graph, Current/Working/Historical, selection, Details/source, graph/text, expansion/filter/save, comparison/impact/time, governed correction-preview, and exact task-return workflow over authenticated live HTTP backed by fresh disposable PostgreSQL and Neo4j. This row is bound only because its control or query was invoked in the retained trace; no other Wave 6 scenario is claimed."
+        },
+        {
           "command": "PETRA_WAVE5_ADVERSE_OUTPUT=/tmp/petra-wave6-graph-browser-support.json PETRA_WAVE6_GRAPH_INQUIRY_OUTPUT=reports/WAVE6-GRAPH-INQUIRY-SAVE-BROWSER.json npm run test:wave5:adverse-browser",
           "artifact": "reports/WAVE6-GRAPH-INQUIRY-SAVE-BROWSER.json",
           "boundary": "Isolated Chrome executed the production Graph controller for applied and idempotently replayed saves, unknown-effect assessment and exact retry, conflict, stale state, retained inquiry destination, exact return, and absence of client authority fields using injected typed transport; the live server and PostgreSQL command were verified separately by the backend prerequisite and were not re-executed by this browser artifact."
@@ -1201,11 +1246,16 @@
       "surfaces": ["SP06", "SP10"],
       "flows": ["UX-FLOW-08", "UX-FLOW-16"],
       "requests": ["UX-REQ-007", "UX-REQ-013", "UX-REQ-023"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/graph",
       "control": "Compare positions",
       "interaction": "query",
       "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:graph-details-ui",
+          "artifact": "reports/WAVE6-GRAPH-DETAILS-BROWSER.json",
+          "boundary": "UX1.6-GRAPH/task-graph-details-return: isolated Chrome executed this visible operation within one contextual/direct Graph, Current/Working/Historical, selection, Details/source, graph/text, expansion/filter/save, comparison/impact/time, governed correction-preview, and exact task-return workflow over authenticated live HTTP backed by fresh disposable PostgreSQL and Neo4j. This row is bound only because its control or query was invoked in the retained trace; no other Wave 6 scenario is claimed."
+        },
         {
           "command": "npm run test:wave6:graph",
           "artifact": "reports/WAVE6-GRAPH-DETAILS-AUTHORITY.json",
@@ -1222,11 +1272,16 @@
       "surfaces": ["SP06", "SP10"],
       "flows": ["UX-FLOW-08", "UX-FLOW-16"],
       "requests": ["UX-REQ-007", "UX-REQ-013", "UX-REQ-023"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/graph",
       "control": "Impact view",
       "interaction": "query",
       "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:graph-details-ui",
+          "artifact": "reports/WAVE6-GRAPH-DETAILS-BROWSER.json",
+          "boundary": "UX1.6-GRAPH/task-graph-details-return: isolated Chrome executed this visible operation within one contextual/direct Graph, Current/Working/Historical, selection, Details/source, graph/text, expansion/filter/save, comparison/impact/time, governed correction-preview, and exact task-return workflow over authenticated live HTTP backed by fresh disposable PostgreSQL and Neo4j. This row is bound only because its control or query was invoked in the retained trace; no other Wave 6 scenario is claimed."
+        },
         {
           "command": "npm run test:wave6:graph",
           "artifact": "reports/WAVE6-GRAPH-DETAILS-AUTHORITY.json",
@@ -1243,11 +1298,16 @@
       "surfaces": ["SP06", "SP10"],
       "flows": ["UX-FLOW-08", "UX-FLOW-16"],
       "requests": ["UX-REQ-007", "UX-REQ-013", "UX-REQ-023"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/graph",
       "control": "Time view",
       "interaction": "query",
       "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:graph-details-ui",
+          "artifact": "reports/WAVE6-GRAPH-DETAILS-BROWSER.json",
+          "boundary": "UX1.6-GRAPH/task-graph-details-return: isolated Chrome executed this visible operation within one contextual/direct Graph, Current/Working/Historical, selection, Details/source, graph/text, expansion/filter/save, comparison/impact/time, governed correction-preview, and exact task-return workflow over authenticated live HTTP backed by fresh disposable PostgreSQL and Neo4j. This row is bound only because its control or query was invoked in the retained trace; no other Wave 6 scenario is claimed."
+        },
         {
           "command": "npm run test:wave6:graph",
           "artifact": "reports/WAVE6-GRAPH-DETAILS-AUTHORITY.json",
@@ -1264,11 +1324,16 @@
       "surfaces": ["SP05", "SP06", "SP14"],
       "flows": ["UX-FLOW-03", "UX-FLOW-08"],
       "requests": ["UX-REQ-011", "UX-REQ-012", "UX-REQ-013"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/graph",
       "control": "Preview correction",
       "interaction": "command",
       "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:graph-details-ui",
+          "artifact": "reports/WAVE6-GRAPH-DETAILS-BROWSER.json",
+          "boundary": "UX1.6-GRAPH/task-graph-details-return: isolated Chrome executed this visible operation within one contextual/direct Graph, Current/Working/Historical, selection, Details/source, graph/text, expansion/filter/save, comparison/impact/time, governed correction-preview, and exact task-return workflow over authenticated live HTTP backed by fresh disposable PostgreSQL and Neo4j. This row is bound only because its control or query was invoked in the retained trace; no other Wave 6 scenario is claimed."
+        },
         {
           "command": "npm run test:wave6:graph",
           "artifact": "reports/WAVE6-GRAPH-DETAILS-AUTHORITY.json",
@@ -1846,11 +1911,16 @@
       "surfaces": ["SP12"],
       "flows": ["UX-FLOW-07"],
       "requests": ["UX-REQ-008", "UX-REQ-009", "UX-REQ-013", "UX-REQ-022"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "contextual",
       "control": "Open Details",
       "interaction": "navigation",
       "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:graph-details-ui",
+          "artifact": "reports/WAVE6-GRAPH-DETAILS-BROWSER.json",
+          "boundary": "UX1.6-GRAPH/task-graph-details-return: isolated Chrome executed this visible operation within one contextual/direct Graph, Current/Working/Historical, selection, Details/source, graph/text, expansion/filter/save, comparison/impact/time, governed correction-preview, and exact task-return workflow over authenticated live HTTP backed by fresh disposable PostgreSQL and Neo4j. This row is bound only because its control or query was invoked in the retained trace; no other Wave 6 scenario is claimed."
+        },
         {
           "command": "npm run test:wave6:graph",
           "artifact": "reports/WAVE6-GRAPH-DETAILS-AUTHORITY.json",
@@ -1867,11 +1937,16 @@
       "surfaces": ["SP12"],
       "flows": ["UX-FLOW-07"],
       "requests": ["UX-REQ-008", "UX-REQ-009", "UX-REQ-013", "UX-REQ-022"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "contextual",
       "control": "Return to selection",
       "interaction": "navigation",
       "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:graph-details-ui",
+          "artifact": "reports/WAVE6-GRAPH-DETAILS-BROWSER.json",
+          "boundary": "UX1.6-GRAPH/task-graph-details-return: isolated Chrome executed this visible operation within one contextual/direct Graph, Current/Working/Historical, selection, Details/source, graph/text, expansion/filter/save, comparison/impact/time, governed correction-preview, and exact task-return workflow over authenticated live HTTP backed by fresh disposable PostgreSQL and Neo4j. This row is bound only because its control or query was invoked in the retained trace; no other Wave 6 scenario is claimed."
+        },
         {
           "command": "npm run test:wave6:graph",
           "artifact": "reports/WAVE6-GRAPH-DETAILS-AUTHORITY.json",
