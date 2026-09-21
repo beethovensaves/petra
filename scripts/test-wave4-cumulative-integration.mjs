@@ -90,8 +90,11 @@ const traceMode = process.env.PETRA_WAVE4_TRACE;
 const item49Mode = traceMode === "conversation-model-identity";
 const sourceLocalCopyDeletionMode =
   traceMode === "wave6-source-local-copy-deletion";
+const wave6GraphDetailsMode = traceMode === "wave6-graph-details";
 const wave5Mode =
-  traceMode === "wave5-cumulative" || sourceLocalCopyDeletionMode;
+  traceMode === "wave5-cumulative" ||
+  sourceLocalCopyDeletionMode ||
+  wave6GraphDetailsMode;
 const wave6ActualModelUiMode = traceMode === "wave6-actual-model-ui";
 const liveProjectModelMode = wave5Mode || wave6ActualModelUiMode;
 const item53Mode = traceMode === "evidence-remediation-support" || wave5Mode;
@@ -5360,6 +5363,216 @@ const exerciseItem53Trace = async ({
           },
         )}`,
       );
+      let graphDetailsAuthority;
+      if (wave6GraphDetailsMode) {
+        const exactSnapshot = clone(focused.content.requested_snapshot);
+        const currentRequest = {
+          ...graphRequest,
+          request_id: derivePetraId(
+            "focused_graph_request",
+            "wave6-graph-details:current",
+          ),
+          semantic_layer: "current",
+          expected_snapshot: clone(exactSnapshot),
+        };
+        const workingRequest = {
+          ...graphRequest,
+          request_id: derivePetraId(
+            "focused_graph_request",
+            "wave6-graph-details:working",
+          ),
+          expected_snapshot: clone(exactSnapshot),
+        };
+        const [currentGraph, workingGraph, recentHistory] = await Promise.all([
+          graphClient.read(scientificProjectId, currentRequest),
+          graphClient.read(scientificProjectId, workingRequest),
+          projectData.getRecentProjectHistory(scientificProjectId),
+        ]);
+        const projection =
+          evidenceView.content.positions.authoritative.projection;
+        const historicalSnapshotMaterial = {
+          project_id: scientificProjectId,
+          project_definition_ref: currentRequest.project_definition_ref,
+          semantic_layer: "current",
+          event_position: projection.represented_event_position,
+          stream_revision: projection.represented_stream_revision,
+          graph_target_sequence: projection.represented_target_sequence,
+          position_kind: "requested",
+        };
+        const historicalSnapshot = {
+          snapshot_id: derivePetraId(
+            "snapshot",
+            canonicalize(historicalSnapshotMaterial),
+          ),
+          revision: 1,
+          event_position: projection.represented_event_position,
+          content_hash: hash(historicalSnapshotMaterial),
+        };
+        const historicalChange = recentHistory.content.changes.find(
+          (change) =>
+            change.event_ref.event_position ===
+            historicalSnapshot.event_position,
+        );
+        const impactChange = recentHistory.content.changes.find((change) =>
+          change.targets.some(
+            (target) =>
+              target.semantic_key === "scientific.claim" &&
+              target.object_id === graphRequest.focus_ref.record_id &&
+              target.revision === graphRequest.focus_ref.revision,
+          ),
+        );
+        assert(
+          historicalChange !== undefined && impactChange !== undefined,
+          `History did not retain the represented projection event and exact focus Claim event: ${JSON.stringify(
+            {
+              represented_event_position: projection.represented_event_position,
+              focus_ref: graphRequest.focus_ref,
+              changes: recentHistory.content.changes.map((change) => ({
+                event_ref: change.event_ref,
+                targets: change.targets,
+              })),
+            },
+          )}`,
+        );
+        const historicalRequest = {
+          ...currentRequest,
+          request_id: derivePetraId(
+            "focused_graph_request",
+            "wave6-graph-details:historical",
+          ),
+          semantic_layer: "historical",
+          temporal_position: {
+            position_kind: "historical",
+            dimension: "recorded_time",
+            at: { state: "exact", value: historicalChange.recorded_at },
+          },
+          expected_snapshot: historicalSnapshot,
+        };
+        const historicalGraph = await graphClient.read(
+          scientificProjectId,
+          historicalRequest,
+        );
+        const [comparison, impact, time] = await Promise.all([
+          graphClient.readAnalysis(scientificProjectId, {
+            analysis_request_id: derivePetraId(
+              "focused_graph_analysis_request",
+              "wave6-graph-details:comparison",
+            ),
+            task_kind: "comparison",
+            question: graphRequest.question,
+            before: {
+              position_key: "position:current",
+              label: "Current",
+              graph_request: currentRequest,
+            },
+            after: {
+              position_key: "position:working",
+              label: "Working changes",
+              graph_request: workingRequest,
+            },
+          }),
+          graphClient.readAnalysis(scientificProjectId, {
+            analysis_request_id: derivePetraId(
+              "focused_graph_analysis_request",
+              "wave6-graph-details:impact",
+            ),
+            task_kind: "impact",
+            question: graphRequest.question,
+            position: {
+              position_key: "position:current",
+              label: "Current",
+              graph_request: currentRequest,
+            },
+            history_event_id: impactChange.event_ref.event_id,
+          }),
+          graphClient.readAnalysis(scientificProjectId, {
+            analysis_request_id: derivePetraId(
+              "focused_graph_analysis_request",
+              "wave6-graph-details:time",
+            ),
+            task_kind: "time",
+            question: graphRequest.question,
+            position: {
+              position_key: "position:historical",
+              label: "Historical",
+              graph_request: historicalRequest,
+            },
+            temporal_dimension: "recorded_time",
+          }),
+        ]);
+        assert(
+          currentGraph.content.semantic_layer === "current" &&
+            workingGraph.content.semantic_layer === "working" &&
+            historicalGraph.content.semantic_layer === "historical" &&
+            historicalGraph.content.temporal_position.position_kind ===
+              "historical" &&
+            historicalGraph.content.temporal_position.at.state === "exact" &&
+            historicalGraph.content.temporal_position.at.value ===
+              historicalChange.recorded_at &&
+            comparison.content.analysis.analysis_kind === "comparison" &&
+            impact.content.analysis.analysis_kind === "impact" &&
+            impact.content.analysis.assessed_consequences.state ===
+              "unavailable" &&
+            time.content.analysis.analysis_kind === "time" &&
+            time.content.analysis.temporal_dimension === "recorded_time" &&
+            details.content.graph.return_destination.state === "available" &&
+            details.content.graph.return_destination.destination_key ===
+              graphRequest.return_destination.destination_key,
+          "The Graph, Details, comparison, impact, time, source-basis, or exact-return production owner lost its bounded authority contract.",
+        );
+        graphDetailsAuthority = {
+          route_calls: {
+            focused_graph: 5,
+            details: 1,
+            analysis: 3,
+            action_preview: 1,
+          },
+          positions: {
+            current: currentGraph.content_hash,
+            working: workingGraph.content_hash,
+            historical: historicalGraph.content_hash,
+            historical_recorded_at: historicalChange.recorded_at,
+          },
+          analysis: {
+            comparison: comparison.content_hash,
+            impact: impact.content_hash,
+            impact_history_event_id: impactChange.event_ref.event_id,
+            assessed_consequences:
+              impact.content.analysis.assessed_consequences,
+            time: time.content_hash,
+            temporal_dimension: time.content.analysis.temporal_dimension,
+          },
+          selection: {
+            selection_kind: details.content.selection.selection_kind,
+            selected_keys: details.content.selection.selected_keys,
+          },
+          source_basis: {
+            source_span_id: sourceInspection.source_span_ref.record_id,
+            inspection_state: sourceInspection.state,
+            source_view_content_hash: sourceInspection.source_view_content_hash,
+          },
+          exact_return: {
+            destination: clone(details.content.graph.return_destination),
+            graph_request_id: details.content.graph.task.request_id,
+          },
+          authority_boundary: {
+            postgresql_authoritative:
+              details.content.authority_boundary.postgresql_authoritative,
+            neo4j_projection_only:
+              details.content.authority_boundary.neo4j_projection_only,
+            selection_is_presentation_state:
+              details.content.authority_boundary
+                .selection_is_presentation_state,
+            details_are_read_only:
+              details.content.authority_boundary.details_are_read_only,
+            analysis_is_read_only:
+              comparison.content.authority_boundary.analysis_is_read_only,
+          },
+        };
+        progress(
+          "authenticated production owners returned exact Current, Working, Historical, comparison, impact, time, Details, and source-basis compositions",
+        );
+      }
       wave5Cumulative = {
         identity: {
           work_id: scientific.workVersion.work_id,
@@ -5386,6 +5599,9 @@ const exerciseItem53Trace = async ({
         ),
         projection_position: focused.content.projection_position,
         layers: focused.content.scope.included_layers,
+        ...(graphDetailsAuthority === undefined
+          ? {}
+          : { graph_details_authority: graphDetailsAuthority }),
         authority_read_matrix: {
           current: {
             authority_source:

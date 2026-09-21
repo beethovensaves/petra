@@ -1012,12 +1012,18 @@
       "surfaces": ["SP06"],
       "flows": ["UX-FLOW-03", "UX-FLOW-07"],
       "requests": ["UX-REQ-007", "UX-REQ-008", "UX-REQ-013"],
-      "current_state": "live",
+      "current_state": "partial",
       "route": "/projects/:projectId/graph",
       "control": "Open Graph",
       "interaction": "navigation",
-      "evidence": [],
-      "runtime_owner": "",
+      "evidence": [
+        {
+          "command": "npm run test:wave6:graph",
+          "artifact": "reports/WAVE6-GRAPH-DETAILS-AUTHORITY.json",
+          "boundary": "Fresh PostgreSQL and Neo4j plus authenticated production HTTP and FocusedGraphClient opened contextual and direct registered Graph reads with exact Project, ProjectDefinition, task, focus, snapshot, scope, and return identity. This backend prerequisite does not claim the visible named UX1.6-GRAPH scenario or final route integration."
+        }
+      ],
+      "runtime_owner": "FocusedGraphClient.read -> POST /api/queries/projects/:projectId/focused-graph -> PostgresFocusedGraphViewReader + Neo4jAuthorityGraphStore; visible route entry remains browser navigation over the exact registered request",
       "paths": ["UX-PATH-01", "UX-PATH-02", "UX-PATH-03", "UX-PATH-04"]
     },
     {
@@ -1031,8 +1037,14 @@
       "route": "/projects/:projectId/graph",
       "control": "Return to origin",
       "interaction": "navigation",
-      "evidence": [],
-      "runtime_owner": "",
+      "evidence": [
+        {
+          "command": "npm run test:wave6:graph",
+          "artifact": "reports/WAVE6-GRAPH-DETAILS-AUTHORITY.json",
+          "boundary": "The live trace retained the registered return action and exact server-bound destination across Graph reads, Details, source inspection, analysis, and restart/replay. It did not execute browser navigation or focus restoration and does not claim the named UX1.6-GRAPH scenario."
+        }
+      ],
+      "runtime_owner": "FocusedGraphViewContractResolver validates the registered return_action_semantic_key and exact return_destination in PostgresFocusedGraphViewReader; the production Graph route renders that server-bound destination and browser navigation restores its recorded focus",
       "paths": ["UX-PATH-01", "UX-PATH-02", "UX-PATH-03", "UX-PATH-04"]
     },
     {
@@ -1042,12 +1054,18 @@
       "surfaces": ["SP06"],
       "flows": ["UX-FLOW-09"],
       "requests": ["UX-REQ-007", "UX-REQ-013"],
-      "current_state": "live",
+      "current_state": "partial",
       "route": "/projects/:projectId/graph",
       "control": "Semantic layer",
       "interaction": "query",
-      "evidence": [],
-      "runtime_owner": "",
+      "evidence": [
+        {
+          "command": "npm run test:wave6:graph",
+          "artifact": "reports/WAVE6-GRAPH-DETAILS-AUTHORITY.json",
+          "boundary": "Authenticated production reads composed distinct exact Current, Working, and retained Historical graph positions from fresh PostgreSQL authority and the guarded Neo4j projection, including requested and represented snapshots and projection lag. This backend prerequisite does not claim the visible position controls or named UX1.6-GRAPH scenario."
+        }
+      ],
+      "runtime_owner": "FocusedGraphClient.read -> POST /api/queries/projects/:projectId/focused-graph -> PostgresFocusedGraphViewReader (semantic layer, temporal position, authoritative snapshots) + Neo4jAuthorityGraphStore (rebuildable projection)",
       "paths": ["UX-PATH-01", "UX-PATH-03"]
     },
     {
@@ -1057,12 +1075,18 @@
       "surfaces": ["SP06", "SP12"],
       "flows": ["UX-FLOW-07"],
       "requests": ["UX-REQ-009", "UX-REQ-013", "UX-REQ-022"],
-      "current_state": "live",
+      "current_state": "partial",
       "route": "/projects/:projectId/graph",
       "control": "Select graph item",
       "interaction": "navigation",
-      "evidence": [],
-      "runtime_owner": "",
+      "evidence": [
+        {
+          "command": "npm run test:wave6:graph",
+          "artifact": "reports/WAVE6-GRAPH-DETAILS-AUTHORITY.json",
+          "boundary": "The live production trace selected an exact relationship key and submitted it unchanged to Details and the governed correction preview, where server parsers re-executed the graph and rejected selection substitution; selection remained presentation state. This backend prerequisite does not claim the complete visible named scenario."
+        }
+      ],
+      "runtime_owner": "Local graph/text selection over server-returned stable keys; parseFocusedGraphDetailsViewRequest and parseFocusedGraphActionPreviewViewRequest validate the exact selection before PostgresFocusedGraphViewReader or FocusedGraphActionPreviewViewComposer composes a result",
       "paths": ["UX-PATH-01", "UX-PATH-02", "UX-PATH-04"]
     },
     {
@@ -1072,12 +1096,18 @@
       "surfaces": ["SP06", "SP12"],
       "flows": ["UX-FLOW-07"],
       "requests": ["UX-REQ-009", "UX-REQ-013", "UX-REQ-022"],
-      "current_state": "live",
+      "current_state": "partial",
       "route": "/projects/:projectId/graph",
       "control": "Open Details",
       "interaction": "navigation",
-      "evidence": [],
-      "runtime_owner": "",
+      "evidence": [
+        {
+          "command": "npm run test:wave6:graph",
+          "artifact": "reports/WAVE6-GRAPH-DETAILS-AUTHORITY.json",
+          "boundary": "FocusedGraphClient.readDetails reached the authenticated production Details route for the exact selected relationship; the server re-executed the bounded graph and returned snapshot-, projection-, selection-, object-location-, and source-bound Details. The final visible named scenario remains design-owned."
+        }
+      ],
+      "runtime_owner": "FocusedGraphClient.readDetails -> POST /api/queries/projects/:projectId/focused-graph/details -> PostgresFocusedGraphViewReader.queryFocusedGraphDetails -> PostgresProjectObjectLocationViewReader + PostgresProjectSourceViewReader",
       "paths": ["UX-PATH-01", "UX-PATH-02", "UX-PATH-04"]
     },
     {
@@ -1087,12 +1117,18 @@
       "surfaces": ["SP06", "SP12"],
       "flows": ["UX-FLOW-07"],
       "requests": ["UX-REQ-009", "UX-REQ-013", "UX-REQ-022"],
-      "current_state": "live",
+      "current_state": "partial",
       "route": "/projects/:projectId/graph",
       "control": "Open source basis",
       "interaction": "navigation",
-      "evidence": [],
-      "runtime_owner": "",
+      "evidence": [
+        {
+          "command": "npm run test:wave6:graph",
+          "artifact": "reports/WAVE6-GRAPH-DETAILS-AUTHORITY.json",
+          "boundary": "The exact selected relationship resolved an available SourceSpan through its current ProjectSource binding, representation, rights, preview, and content hash on fresh PostgreSQL. The trace did not execute the visible disclosure and the named UX1.6-GRAPH scenario remains design-owned."
+        }
+      ],
+      "runtime_owner": "FocusedGraphClient.readDetails -> POST /api/queries/projects/:projectId/focused-graph/details -> PostgresFocusedGraphViewReader.queryFocusedGraphDetails -> PostgresProjectSourceViewReader.readSourceInSnapshot for each exact SourceSpan binding",
       "paths": ["UX-PATH-01", "UX-PATH-02", "UX-PATH-04"]
     },
     {
@@ -1165,12 +1201,18 @@
       "surfaces": ["SP06", "SP10"],
       "flows": ["UX-FLOW-08", "UX-FLOW-16"],
       "requests": ["UX-REQ-007", "UX-REQ-013", "UX-REQ-023"],
-      "current_state": "live",
+      "current_state": "partial",
       "route": "/projects/:projectId/graph",
       "control": "Compare positions",
       "interaction": "query",
-      "evidence": [],
-      "runtime_owner": "",
+      "evidence": [
+        {
+          "command": "npm run test:wave6:graph",
+          "artifact": "reports/WAVE6-GRAPH-DETAILS-AUTHORITY.json",
+          "boundary": "FocusedGraphClient.readAnalysis executed the authenticated production comparison owner for two exact snapshot-bound positions and retained supplied differences, limitations, and distinct position identities. This backend prerequisite does not claim the visible comparison task or named UX1.6-GRAPH scenario."
+        }
+      ],
+      "runtime_owner": "FocusedGraphClient.readAnalysis -> POST /api/queries/projects/:projectId/focused-graph/analysis -> FocusedGraphAnalysisViewComposer -> PostgresFocusedGraphViewReader for both exact positions",
       "paths": ["UX-PATH-01", "UX-PATH-03", "UX-PATH-04"]
     },
     {
@@ -1180,12 +1222,18 @@
       "surfaces": ["SP06", "SP10"],
       "flows": ["UX-FLOW-08", "UX-FLOW-16"],
       "requests": ["UX-REQ-007", "UX-REQ-013", "UX-REQ-023"],
-      "current_state": "live",
+      "current_state": "partial",
       "route": "/projects/:projectId/graph",
       "control": "Impact view",
       "interaction": "query",
-      "evidence": [],
-      "runtime_owner": "",
+      "evidence": [
+        {
+          "command": "npm run test:wave6:graph",
+          "artifact": "reports/WAVE6-GRAPH-DETAILS-AUTHORITY.json",
+          "boundary": "FocusedGraphClient.readAnalysis executed the authenticated production impact owner for one exact graph position and matching History event, retaining dependency records and an explicit unavailable assessed-consequence state rather than inferring impact. The named visible scenario remains design-owned."
+        }
+      ],
+      "runtime_owner": "FocusedGraphClient.readAnalysis -> POST /api/queries/projects/:projectId/focused-graph/analysis -> FocusedGraphAnalysisViewComposer -> PostgresFocusedGraphViewReader + PostgresProjectHistoryViewReader + PostgresProjectReviewViewReader",
       "paths": ["UX-PATH-01", "UX-PATH-03", "UX-PATH-04"]
     },
     {
@@ -1195,12 +1243,18 @@
       "surfaces": ["SP06", "SP10"],
       "flows": ["UX-FLOW-08", "UX-FLOW-16"],
       "requests": ["UX-REQ-007", "UX-REQ-013", "UX-REQ-023"],
-      "current_state": "live",
+      "current_state": "partial",
       "route": "/projects/:projectId/graph",
       "control": "Time view",
       "interaction": "query",
-      "evidence": [],
-      "runtime_owner": "",
+      "evidence": [
+        {
+          "command": "npm run test:wave6:graph",
+          "artifact": "reports/WAVE6-GRAPH-DETAILS-AUTHORITY.json",
+          "boundary": "FocusedGraphClient.readAnalysis executed the authenticated production recorded-time owner for one exact retained historical graph position, preserving supplied dates and explicit unknown member dates. This backend prerequisite does not claim the visible time task or named UX1.6-GRAPH scenario."
+        }
+      ],
+      "runtime_owner": "FocusedGraphClient.readAnalysis -> POST /api/queries/projects/:projectId/focused-graph/analysis -> FocusedGraphAnalysisViewComposer -> PostgresFocusedGraphViewReader with exact retained snapshot and temporal position",
       "paths": ["UX-PATH-01", "UX-PATH-03", "UX-PATH-04"]
     },
     {
@@ -1210,12 +1264,18 @@
       "surfaces": ["SP05", "SP06", "SP14"],
       "flows": ["UX-FLOW-03", "UX-FLOW-08"],
       "requests": ["UX-REQ-011", "UX-REQ-012", "UX-REQ-013"],
-      "current_state": "live",
+      "current_state": "partial",
       "route": "/projects/:projectId/graph",
       "control": "Preview correction",
       "interaction": "command",
-      "evidence": [],
-      "runtime_owner": "",
+      "evidence": [
+        {
+          "command": "npm run test:wave6:graph",
+          "artifact": "reports/WAVE6-GRAPH-DETAILS-AUTHORITY.json",
+          "boundary": "The authenticated production action-preview route re-executed the exact graph, selected its exact open-Review WorkingRelationship, composed the matching Review member, and returned a read-only correction preview while issuing no command and leaving Review authority unchanged. The complete visible named scenario remains design-owned."
+        }
+      ],
+      "runtime_owner": "FocusedGraphClient.readActionPreview -> POST /api/queries/projects/:projectId/focused-graph/action-preview -> FocusedGraphActionPreviewViewComposer -> PostgresFocusedGraphViewReader + PostgresProjectReviewViewReader; preview issues no command",
       "paths": ["UX-PATH-01", "UX-PATH-03"]
     },
     {
@@ -1790,8 +1850,14 @@
       "route": "contextual",
       "control": "Open Details",
       "interaction": "navigation",
-      "evidence": [],
-      "runtime_owner": "",
+      "evidence": [
+        {
+          "command": "npm run test:wave6:graph",
+          "artifact": "reports/WAVE6-GRAPH-DETAILS-AUTHORITY.json",
+          "boundary": "The exact selected relationship opened one schema-valid, content-hash-bound Details response through the authenticated production route, with semantic destinations, basis, source inspection, snapshots, omissions, and authority positions composed by registered owners. The final contextual presentation and named scenario remain design-owned."
+        }
+      ],
+      "runtime_owner": "FocusedGraphClient.readDetails -> POST /api/queries/projects/:projectId/focused-graph/details -> PostgresFocusedGraphViewReader.queryFocusedGraphDetails -> registered semantic-location and ProjectSource readers",
       "paths": ["UX-PATH-01", "UX-PATH-02", "UX-PATH-04"]
     },
     {
@@ -1805,8 +1871,14 @@
       "route": "contextual",
       "control": "Return to selection",
       "interaction": "navigation",
-      "evidence": [],
-      "runtime_owner": "",
+      "evidence": [
+        {
+          "command": "npm run test:wave6:graph",
+          "artifact": "reports/WAVE6-GRAPH-DETAILS-AUTHORITY.json",
+          "boundary": "The production Details response retained the exact graph request, selected relationship, and server-owned origin destination, while restart/replay caused no duplicate effects. It did not execute the visible Details return or invoking-focus restoration and does not claim the named scenario."
+        }
+      ],
+      "runtime_owner": "FocusedGraphDetails response retains exact graph, selection, source, scope, and return_destination identity from PostgresFocusedGraphViewReader; the contextual Details controller closes presentation state and restores the invoking browser focus",
       "paths": ["UX-PATH-01", "UX-PATH-02", "UX-PATH-04"]
     },
     {
