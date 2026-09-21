@@ -450,7 +450,7 @@
       "surfaces": ["SP03", "SP10"],
       "flows": ["UX-FLOW-16"],
       "requests": ["UX-REQ-002", "UX-REQ-007"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/brief",
       "control": "Recent decisions",
       "interaction": "navigation",
@@ -459,6 +459,11 @@
           "command": "npm run test:wave6:history",
           "artifact": "reports/WAVE6-HISTORY-RECOVERY-AUTHORITY.json",
           "boundary": "Fresh disposable PostgreSQL plus authenticated production HTTP and ProjectBriefClient returned the canonical recent History window before and after additive compensation, including the original Apply event and the resulting Revert event. This backend prerequisite does not execute the visible Recent decisions navigation or UX1.6-HISTORY/effect-recovery-revert-return."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:history-ui",
+          "artifact": "reports/WAVE6-HISTORY-RECOVERY-BROWSER.json",
+          "boundary": "UX1.6-HISTORY/effect-recovery-revert-return: isolated Chrome opened the production Brief Recent decisions, navigated through visible controls into retained History, completed the exact event, comparison, impact, recovery, governed-Revert, additive-result, retained-original, and updated-Brief return workflow over authenticated live HTTP backed by fresh disposable PostgreSQL."
         }
       ],
       "runtime_owner": "ProjectBriefClient.read -> GET /api/queries/projects/:projectId/brief -> PostgresProjectBriefViewReader -> PostgresProjectHistoryViewReader.getRecentProjectHistoryView; visible event navigation remains browser-owned",
@@ -1812,7 +1817,7 @@
       "surfaces": ["SP10"],
       "flows": ["UX-FLOW-16"],
       "requests": ["UX-REQ-007", "UX-REQ-023"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/history",
       "control": "History episodes",
       "interaction": "query",
@@ -1821,6 +1826,11 @@
           "command": "npm run test:wave6:history",
           "artifact": "reports/WAVE6-HISTORY-RECOVERY-AUTHORITY.json",
           "boundary": "Fresh disposable PostgreSQL plus authenticated production HTTP and getRetainedProjectHistory returned the bounded causal event collection with exact immutable event, command, actor, target, effect, recovery, snapshot, and cursor identity. This backend prerequisite does not execute the visible History collection or UX1.6-HISTORY/effect-recovery-revert-return."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:history-ui",
+          "artifact": "reports/WAVE6-HISTORY-RECOVERY-BROWSER.json",
+          "boundary": "UX1.6-HISTORY/effect-recovery-revert-return: isolated Chrome entered the authenticated retained Project History collection through visible production controls and verified the server-owned causal event list before and after additive compensation."
         }
       ],
       "runtime_owner": "getRetainedProjectHistory -> GET /api/queries/projects/:projectId/history/events -> PostgresProjectHistoryViewReader.listRetainedProjectHistoryView",
@@ -1833,7 +1843,7 @@
       "surfaces": ["SP10"],
       "flows": ["UX-FLOW-16"],
       "requests": ["UX-REQ-007", "UX-REQ-023"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/history",
       "control": "History filters",
       "interaction": "query",
@@ -1842,6 +1852,11 @@
           "command": "npm run test:wave6:history",
           "artifact": "reports/WAVE6-HISTORY-RECOVERY-AUTHORITY.json",
           "boundary": "Fresh disposable PostgreSQL plus authenticated production HTTP invoked the retained History owner with registered family, command, event, actor, outcome, and canonical-effect filters and returned only the exact Apply event. This backend prerequisite does not execute visible filter controls or UX1.6-HISTORY/effect-recovery-revert-return."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:history-ui",
+          "artifact": "reports/WAVE6-HISTORY-RECOVERY-BROWSER.json",
+          "boundary": "UX1.6-HISTORY/effect-recovery-revert-return: isolated Chrome applied visible exact family, command, event, Actor, outcome, effect, and ChangeSet-target filters and received only the selected retained Apply event from authenticated production HTTP."
         }
       ],
       "runtime_owner": "getRetainedProjectHistory(filter) -> validated GET /api/queries/projects/:projectId/history/events query -> snapshot-bound PostgresProjectHistoryViewReader.listRetainedProjectHistoryView",
@@ -1854,7 +1869,7 @@
       "surfaces": ["SP10"],
       "flows": ["UX-FLOW-16"],
       "requests": ["UX-REQ-007", "UX-REQ-023"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/history",
       "control": "Open episode",
       "interaction": "navigation",
@@ -1863,6 +1878,11 @@
           "command": "npm run test:wave6:history",
           "artifact": "reports/WAVE6-HISTORY-RECOVERY-AUTHORITY.json",
           "boundary": "Fresh disposable PostgreSQL plus authenticated production HTTP opened the exact applied event through getProjectHistoryEpisode, preserving its command, canonical effect, causal stream order, retained targets, and registered historical destination. This backend prerequisite does not execute visible event navigation or UX1.6-HISTORY/effect-recovery-revert-return."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:history-ui",
+          "artifact": "reports/WAVE6-HISTORY-RECOVERY-BROWSER.json",
+          "boundary": "UX1.6-HISTORY/effect-recovery-revert-return: isolated Chrome opened the sole exact filtered event through its visible retained-History row and verified the immutable event response over authenticated production HTTP."
         }
       ],
       "runtime_owner": "getProjectHistoryEpisode -> GET /api/queries/projects/:projectId/history/events/:eventId -> PostgresProjectHistoryViewReader.getProjectHistoryEpisodeView",
@@ -1875,7 +1895,7 @@
       "surfaces": ["SP10", "SP12"],
       "flows": ["UX-FLOW-16"],
       "requests": ["UX-REQ-007", "UX-REQ-023"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/history/:eventId",
       "control": "Compare state",
       "interaction": "query",
@@ -1884,6 +1904,11 @@
           "command": "npm run test:wave6:history",
           "artifact": "reports/WAVE6-HISTORY-RECOVERY-AUTHORITY.json",
           "boundary": "Fresh disposable PostgreSQL plus authenticated production HTTP composed the event-selected causal episode against the exact immutable ProjectDefinition binding effective at that stream revision, without reconstructing history from current state. This backend prerequisite does not execute the visible comparison control or UX1.6-HISTORY/effect-recovery-revert-return."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:history-ui",
+          "artifact": "reports/WAVE6-HISTORY-RECOVERY-BROWSER.json",
+          "boundary": "UX1.6-HISTORY/effect-recovery-revert-return: isolated Chrome expanded Compare recorded state and inspected the selected event stream position, current impact-read position, and exact retained ProjectDefinition revision without a current-profile substitution."
         }
       ],
       "runtime_owner": "getProjectHistoryEpisode -> GET /api/queries/projects/:projectId/history/events/:eventId -> PostgresProjectHistoryViewReader historical ProjectDefinition binding and registered target resolution",
@@ -1896,7 +1921,7 @@
       "surfaces": ["SP10", "SP12"],
       "flows": ["UX-FLOW-16"],
       "requests": ["UX-REQ-007", "UX-REQ-023"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/history/:eventId",
       "control": "Impact",
       "interaction": "query",
@@ -1905,6 +1930,11 @@
           "command": "npm run test:wave6:history",
           "artifact": "reports/WAVE6-HISTORY-RECOVERY-AUTHORITY.json",
           "boundary": "Fresh disposable PostgreSQL plus authenticated production HTTP composed the exact event's registered command, projection, semantic, operational, and recovery impact while preserving unknown and non-inference boundaries. This backend prerequisite does not execute the visible Impact control or UX1.6-HISTORY/effect-recovery-revert-return."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:history-ui",
+          "artifact": "reports/WAVE6-HISTORY-RECOVERY-BROWSER.json",
+          "boundary": "UX1.6-HISTORY/effect-recovery-revert-return: isolated Chrome expanded Inspect impact and recovery and read the exact server-composed impact groups, recovery assessment, eligibility, boundaries, and non-inference limits."
         }
       ],
       "runtime_owner": "getProjectHistoryImpact -> GET /api/queries/projects/:projectId/history/events/:eventId/impact -> PostgresProjectHistoryViewReader.getProjectHistoryImpactView",
@@ -1917,7 +1947,7 @@
       "surfaces": ["SP10", "SP14"],
       "flows": ["UX-FLOW-12", "UX-FLOW-16"],
       "requests": ["UX-REQ-007", "UX-REQ-023"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/history/:eventId",
       "control": "Preview Revert",
       "interaction": "query",
@@ -1926,6 +1956,11 @@
           "command": "npm run test:wave6:history",
           "artifact": "reports/WAVE6-HISTORY-RECOVERY-AUTHORITY.json",
           "boundary": "Fresh disposable PostgreSQL plus authenticated production HTTP composed an eligible recovery assessment, revision-bound read-only preview, and explicitly confirmed three-command compensation plan while proving no authority records changed before execution. This backend prerequisite does not execute visible preview/confirmation controls or UX1.6-HISTORY/effect-recovery-revert-return."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:history-ui",
+          "artifact": "reports/WAVE6-HISTORY-RECOVERY-BROWSER.json",
+          "boundary": "UX1.6-HISTORY/effect-recovery-revert-return: isolated Chrome invoked the visible read-only preview, verified no execute request occurred, entered the reason and Approval rationale, and explicitly confirmed the exact server-composed compensation plan."
         }
       ],
       "runtime_owner": "getProjectHistoryRecoveryAssessment + getProjectHistoryCompensationPreview + composeProjectHistoryCompensationPlan -> authenticated recovery query routes -> PostgresProjectHistoryViewReader with server-owned human principal and current capability-grant checks",
@@ -1938,7 +1973,7 @@
       "surfaces": ["SP10", "SP14"],
       "flows": ["UX-FLOW-12", "UX-FLOW-16"],
       "requests": ["UX-REQ-007", "UX-REQ-023"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/history/:eventId",
       "control": "Execute Revert",
       "interaction": "command",
@@ -1947,6 +1982,11 @@
           "command": "npm run test:wave6:history",
           "artifact": "reports/WAVE6-HISTORY-RECOVERY-AUTHORITY.json",
           "boundary": "Fresh disposable PostgreSQL plus authenticated production HTTP executed the exact confirmed three-command compensation plan, rechecked authority per command, retained each outcome, replayed idempotently without a duplicate effect, preserved the original Apply event, and returned the additive Revert through History and Brief. This backend prerequisite does not execute the visible Execute control or UX1.6-HISTORY/effect-recovery-revert-return."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:history-ui",
+          "artifact": "reports/WAVE6-HISTORY-RECOVERY-BROWSER.json",
+          "boundary": "UX1.6-HISTORY/effect-recovery-revert-return: isolated Chrome invoked Execute governed Revert exactly once, observed the retained completed result, verified the original and additive compensation events in History, and returned through visible controls to the updated Brief."
         }
       ],
       "runtime_owner": "executeProjectHistoryCompensationPlan -> POST /api/commands/projects/:projectId/history/events/:eventId/recovery/execute -> PostgresProjectHistoryCompensationExecutor -> PostgresChangeControlAuthorityRepository",

@@ -382,6 +382,82 @@
   gap: var(--petra-space-4);
 }
 
+.history-collection {
+  display: grid;
+  gap: var(--petra-space-5);
+}
+
+.history-filters {
+  display: grid;
+  gap: var(--petra-space-4);
+  padding: var(--petra-space-5);
+  border: var(--petra-rule-thin) solid var(--petra-border-default);
+  border-radius: var(--petra-radius-medium);
+  background: var(--petra-surface-panel);
+}
+
+.history-filters > header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(16rem, 0.75fr);
+  gap: var(--petra-space-4);
+  align-items: end;
+}
+
+.history-filters > header h2,
+.history-filters > header p {
+  margin: 0;
+}
+
+.history-filters > header > p {
+  color: var(--petra-text-secondary);
+}
+
+.history-filters__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(12rem, 1fr));
+  gap: var(--petra-space-3);
+}
+
+.history-filters__grid label {
+  display: grid;
+  gap: var(--petra-space-1);
+  color: var(--petra-text-secondary);
+  font-size: var(--petra-font-size-caption);
+  font-weight: var(--petra-weight-medium);
+}
+
+.history-filters__grid select,
+.history-filters__grid input {
+  width: 100%;
+  min-height: var(--petra-control-height-comfortable);
+  border: var(--petra-rule-thin) solid var(--petra-border-default);
+  border-radius: var(--petra-radius-small);
+  padding: 0 var(--petra-space-3);
+  color: var(--petra-text-primary);
+  background: var(--petra-surface-overlay);
+  font: inherit;
+}
+
+.history-retained-events > header > div {
+  display: grid;
+  gap: var(--petra-space-1);
+}
+
+.history-retained-events__continuation {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--petra-space-3);
+  padding: var(--petra-space-4);
+  border-top: var(--petra-rule-thin) solid var(--petra-border-default);
+  color: var(--petra-text-secondary);
+}
+
+.history-retained-events__continuation p {
+  margin: 0;
+}
+
 .history-episodes {
   overflow: hidden;
 }
@@ -507,6 +583,13 @@
 .history-event__layout details,
 .history-event__revert details {
   margin-top: var(--petra-space-4);
+}
+
+.history-event__comparison,
+.history-event__impact-details {
+  padding: var(--petra-space-3);
+  border: var(--petra-rule-thin) solid var(--petra-border-subtle);
+  background: var(--petra-surface-inset);
 }
 
 .history-event__revert {
@@ -647,7 +730,9 @@
 @media (max-width: 54rem) {
   .composition-editor-layout,
   .history-layout,
-  .history-event__layout {
+  .history-event__layout,
+  .history-filters > header,
+  .history-filters__grid {
     grid-template-columns: 1fr;
   }
 
@@ -674,6 +759,7 @@
   .composition-provenance,
   .composition-outputs > ul > li,
   .history-detail,
+  .history-filters,
   .history-event__layout > article,
   .history-event__layout > aside,
   .history-event__revert,

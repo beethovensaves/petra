@@ -614,6 +614,14 @@ export const ProjectBriefSurface = ({
           its current impact, recovery assessment, and eligible governed Revert
           path.
         </p>
+        <p>
+          <Link
+            className="reference-text-link"
+            to={`/projects/${view.project_id}/history`}
+          >
+            View all Project History
+          </Link>
+        </p>
         {c.recent_decisions.content.changes.length === 0 ? (
           <p className="brief-empty">
             No recent decisions were returned within this History window.

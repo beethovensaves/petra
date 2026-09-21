@@ -340,7 +340,7 @@ describe("DB07 retained synthesis mapping", () => {
     expect(markup).not.toContain("<h1>Competing explanations</h1>");
   });
 
-  it("preserves the seven-section hierarchy, origins, limitations, exact basis and disabled History navigation", () => {
+  it("preserves the seven-section hierarchy, origins, limitations, exact basis and full History navigation", () => {
     const markup = render();
     const headings = [
       "Current focus",
@@ -377,7 +377,8 @@ describe("DB07 retained synthesis mapping", () => {
       synthesis.linked_response.content.snapshot_ref.snapshot_id,
     ])
       expect(markup).toContain(identity);
-    expect(markup).not.toMatch(/href="[^"]*\/history/);
+    expect(markup).toContain(`href="/projects/${fixture.project_id}/history"`);
+    expect(markup).toContain("View all Project History");
     expect(markup).not.toContain("No item needs attention");
     expect(markup).not.toContain("Petra recommends");
     expect(markup).toContain("Read current preview for this result");

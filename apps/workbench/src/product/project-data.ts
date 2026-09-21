@@ -90,6 +90,7 @@ import type {
   ProjectSourceReplacementExcludedSourceRef,
   ProjectSourceReplacementExclusionReceiptRef,
   ProjectHistoryRetainedCollectionFiltersV12,
+  ProjectHistoryRetainedExactTargetFilterV12,
   ProjectHistoryRetainedContinuationFailureSubcode,
   ProjectHistoryRetainedContinuationRestart,
   ProjectWorkDetailContent,
@@ -7270,6 +7271,200 @@ export const loadProjectSuggestedActionHistory = async ({
     );
   }
   return { invocation, historyDestination, workDestination };
+};
+
+export type ProjectHistoryRouteData =
+  | {
+      readonly kind: "retained";
+      readonly history: PetraProjectHistoryRetainedViewV12;
+    }
+  | {
+      readonly kind: "suggested_action";
+      readonly history: ProjectSuggestedActionHistoryData;
+    };
+
+const HISTORY_ROUTE_FILTER_VALUES = {
+  family: [
+    "change_control",
+    "project_source_lifecycle",
+    "project_source_replacement",
+  ],
+  command_name: [
+    "SubmitChangeSet",
+    "RecordApproval",
+    "ApplyChangeSet",
+    "ExcludeProjectSource",
+    "RestoreProjectSource",
+    "CreateProjectSourceReplacement",
+    "RetractProjectSourceReplacement",
+  ],
+  event_type: [
+    "change_set.submitted",
+    "approval.recorded",
+    "change_set.applied",
+    "change_set.conflicted",
+    "change_set.reverted",
+    "change_set.reversal_conflicted",
+    "project_source.excluded",
+    "project_source.restored",
+    "project_source.replacement_created",
+    "project_source.replacement_retracted",
+  ],
+  outcome: ["completed", "conflicted"],
+  effect: [
+    "change_proposed",
+    "approval_recorded",
+    "authority_change_applied",
+    "authority_change_conflicted",
+    "authority_change_reverted",
+    "reversal_conflicted",
+    "project_source_excluded",
+    "project_source_restored",
+    "source_replacement_created",
+    "source_replacement_retracted",
+  ],
+} as const;
+
+const historyRouteValue = (
+  search: URLSearchParams,
+  name: string,
+): string | undefined => {
+  const values = search.getAll(name).filter((value) => value.length > 0);
+  if (values.length > 1) {
+    throw new ProjectDataError(
+      `Full History requires at most one ${name.replaceAll("_", " ")} filter.`,
+      400,
+    );
+  }
+  return values[0];
+};
+
+const historyRouteEnum = <Values extends readonly string[]>(
+  search: URLSearchParams,
+  name: string,
+  values: Values,
+): Values[number] | undefined => {
+  const value = historyRouteValue(search, name);
+  if (value === undefined) return undefined;
+  if (!values.includes(value)) {
+    throw new ProjectDataError(
+      `Full History ${name.replaceAll("_", " ")} is not a registered filter value.`,
+      400,
+    );
+  }
+  return value;
+};
+
+const historyRouteTimestamp = (
+  search: URLSearchParams,
+  name: string,
+): string | undefined => {
+  const value = historyRouteValue(search, name);
+  if (value === undefined) return undefined;
+  const normalized = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/u.test(value)
+    ? `${value}:00.000Z`
+    : value;
+  if (
+    !HISTORY_RETAINED_TIMESTAMP.test(normalized) ||
+    !Number.isFinite(Date.parse(normalized))
+  ) {
+    throw new ProjectDataError(
+      `Full History ${name.replaceAll("_", " ")} must be an exact UTC date and time.`,
+      400,
+    );
+  }
+  return normalized;
+};
+
+/**
+ * Resolves either the separately bound SuggestedAction Work-History deep link
+ * or the authenticated retained Project History collection. The browser route
+ * never falls back to design fixtures when no deep-link identity is supplied.
+ */
+export const loadProjectHistory = async (
+  args: LoaderFunctionArgs,
+): Promise<ProjectHistoryRouteData> => {
+  const suggestedAction = await loadProjectSuggestedActionHistory(args);
+  if (suggestedAction !== undefined) {
+    return { kind: "suggested_action", history: suggestedAction };
+  }
+
+  const projectId = requiredRouteIdentity(
+    args.params.projectId,
+    "A Project ID",
+  );
+  const search = new URL(args.request.url).searchParams;
+  const family = historyRouteEnum(
+    search,
+    "family",
+    HISTORY_ROUTE_FILTER_VALUES.family,
+  );
+  const commandName = historyRouteEnum(
+    search,
+    "command_name",
+    HISTORY_ROUTE_FILTER_VALUES.command_name,
+  );
+  const eventType = historyRouteEnum(
+    search,
+    "event_type",
+    HISTORY_ROUTE_FILTER_VALUES.event_type,
+  );
+  const outcome = historyRouteEnum(
+    search,
+    "outcome",
+    HISTORY_ROUTE_FILTER_VALUES.outcome,
+  );
+  const effect = historyRouteEnum(
+    search,
+    "effect",
+    HISTORY_ROUTE_FILTER_VALUES.effect,
+  );
+  const actorId = historyRouteValue(search, "actor_id");
+  const targetValue = historyRouteValue(search, "target");
+  const targetParts = targetValue?.split("::") ?? [];
+  if (targetValue !== undefined && targetParts.length !== 2) {
+    throw new ProjectDataError(
+      "Full History target must preserve one exact semantic key and object identity.",
+      400,
+    );
+  }
+  const recordedFrom = historyRouteTimestamp(search, "recorded_from");
+  const recordedThrough = historyRouteTimestamp(search, "recorded_through");
+  const target =
+    targetValue === undefined
+      ? undefined
+      : ({
+          semantic_key: targetParts[0],
+          object_id: targetParts[1],
+        } as ProjectHistoryRetainedExactTargetFilterV12);
+  const filters: ProjectHistoryRetainedCollectionFiltersV12 = {
+    ...(family === undefined ? {} : { family }),
+    ...(commandName === undefined ? {} : { command_name: commandName }),
+    ...(eventType === undefined ? {} : { event_type: eventType }),
+    ...(actorId === undefined ? {} : { actor_id: actorId }),
+    ...(outcome === undefined ? {} : { outcome }),
+    ...(effect === undefined ? {} : { effect }),
+    ...(target === undefined ? {} : { target }),
+    ...(recordedFrom === undefined && recordedThrough === undefined
+      ? {}
+      : {
+          recorded_at: {
+            ...(recordedFrom === undefined
+              ? {}
+              : { from_inclusive: recordedFrom }),
+            ...(recordedThrough === undefined
+              ? {}
+              : { through_inclusive: recordedThrough }),
+          },
+        }),
+  };
+  return {
+    kind: "retained",
+    history: await getRetainedProjectHistory(projectId, {
+      limit: 50,
+      filters,
+    }),
+  };
 };
 
 const sameSuggestedActionInvocationAuthority = (

@@ -37,6 +37,7 @@ import type { EngineState } from "./product/model.js";
 import {
   loadProjectsHome,
   loadProjectBrief,
+  loadProjectHistory,
   loadProjectHistoryEvent,
   loadProjectObjectLocationRedirect,
   loadProjectPetra,
@@ -47,7 +48,6 @@ import {
   loadProjectReviewCollection,
   loadProjectReviewSession,
   loadProjectSettings,
-  loadProjectSuggestedActionHistory,
   loadProjectSourceCollection,
   loadProjectSourceRecord,
   loadProjectWorkCollection,
@@ -158,7 +158,7 @@ export const router = createBrowserRouter([
           },
           {
             path: "history",
-            loader: loadProjectSuggestedActionHistory,
+            loader: loadProjectHistory,
             element: <HistoryRoute />,
           },
           {

@@ -5,6 +5,7 @@ import type {
   PetraProjectHistoryEpisodeViewV12,
   PetraProjectHistoryImpactViewV14,
   PetraProjectHistoryRecoveryAssessmentView,
+  PetraProjectHistoryRetainedViewV12,
   PetraSuggestedActionInvocationView,
 } from "@petra/contracts";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -22,6 +23,7 @@ import {
   CompositionArtifactSurface,
   CompositionCollectionSurface,
   HistoryEventSurface,
+  HistoryCollectionSurface,
   HistorySurface,
   ProfileToolSurface,
   SettingsSurface,
@@ -80,6 +82,16 @@ const historyRecovery = JSON.parse(
     "utf8",
   ),
 ) as PetraProjectHistoryRecoveryAssessmentView;
+
+const retainedHistory = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-history-retained-view-v1-2.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectHistoryRetainedViewV12;
 
 describe("remaining neutral reference packets", () => {
   const writingProject = getReferenceProject("field-guide");
@@ -196,6 +208,26 @@ describe("remaining neutral reference packets", () => {
     );
   });
 
+  it("presents authenticated retained History with exact filters and event navigation", () => {
+    const markup = render(
+      <HistoryCollectionSurface
+        project={{ ...inquiryProject, id: retainedHistory.project_id }}
+        initialHistory={retainedHistory}
+      />,
+    );
+
+    expect(markup).toContain('data-runtime-history="authenticated-retained"');
+    expect(markup).toContain("Filter Project History");
+    expect(markup).toContain("Apply exact filters");
+    expect(markup).toContain("Exact target");
+    expect(markup).toContain("Researcher · 3");
+    expect(markup).toContain("Authority change applied");
+    expect(markup).toContain(
+      retainedHistory.content.changes[0]!.event_ref.event_id,
+    );
+    expect(markup).not.toContain("No permitted History episodes");
+  });
+
   it("maps an authenticated History event into a staged governed Revert boundary", () => {
     const markup = render(
       <HistoryEventSurface
@@ -215,6 +247,8 @@ describe("remaining neutral reference packets", () => {
       "Eligible for a revision-bound compensation preview",
     );
     expect(markup).toContain("Read governed Revert preview");
+    expect(markup).toContain("Compare recorded state");
+    expect(markup).toContain("Inspect impact and recovery");
     expect(markup).toContain("No compensation preview, plan, or execution");
     expect(markup).toContain("does not erase this event");
     expect(markup).not.toContain("Execute governed Revert");
