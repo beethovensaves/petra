@@ -1,4 +1,5 @@
 import type {
+  PetraProjectWorkReadView,
   PetraProjectWorkOperationReceipt,
   PetraProjectWorkOperationRequest,
   PetraProjectWorkOperationsView,
@@ -35,6 +36,30 @@ const WORK_UNIT_ID = /^work_unit_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const WORKER_OUTPUT_MANIFEST_ID =
   /^worker_output_manifest_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const HASH = /^sha256:[0-9a-f]{64}$/u;
+const CURSOR = /^offset:[0-9]{1,9}$/u;
+const WORK_STATES = new Set([
+  "requested",
+  "queued",
+  "running",
+  "checkpointed",
+  "completed",
+  "cancelled",
+]);
+
+export interface ProjectWorkCollectionRequest {
+  readonly limit?: number;
+  readonly cursor?: string;
+  readonly state?:
+    | "requested"
+    | "queued"
+    | "running"
+    | "checkpointed"
+    | "completed"
+    | "cancelled";
+}
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
 
 const canonicalHash = async (value: unknown): Promise<string> => {
   const digest = await crypto.subtle.digest(
@@ -59,6 +84,73 @@ export class ProjectWorkClient {
   constructor(readonly options: ProjectWorkClientOptions) {
     this.#fetch = options.fetch ?? fetch;
     this.#contracts = options.contracts ?? new PetraContractRegistry();
+  }
+
+  async list(
+    projectId: string,
+    request: ProjectWorkCollectionRequest = {},
+  ): Promise<PetraProjectWorkReadView> {
+    this.#assertProject(projectId);
+    if (
+      (request.limit !== undefined &&
+        (!Number.isSafeInteger(request.limit) ||
+          request.limit < 1 ||
+          request.limit > 100)) ||
+      (request.cursor !== undefined && !CURSOR.test(request.cursor)) ||
+      (request.state !== undefined && !WORK_STATES.has(request.state))
+    ) {
+      throw new TypeError(
+        "A Work collection read requires a registered limit, cursor, and execution state.",
+      );
+    }
+    const query = new URLSearchParams();
+    if (request.limit !== undefined) query.set("limit", String(request.limit));
+    if (request.cursor !== undefined) query.set("cursor", request.cursor);
+    if (request.state !== undefined) query.set("state", request.state);
+    const suffix = query.size === 0 ? "" : `?${query}`;
+    const response = await this.#request(
+      `/api/queries/projects/${projectId}/work${suffix}`,
+      { method: "GET" },
+    );
+    const view = this.#workReadView(await response.json());
+    if (
+      view.project_id !== projectId ||
+      view.content.view_kind !== "collection" ||
+      view.content.query.limit !== (request.limit ?? 50) ||
+      view.content.query.cursor !== request.cursor ||
+      view.content.query.state !== request.state
+    ) {
+      throw new ProjectWorkClientError(
+        503,
+        "PROJECT_WORK_RESPONSE_INVALID",
+        "The Work collection response crossed the requested Project or exact query boundary.",
+      );
+    }
+    return structuredClone(view);
+  }
+
+  async read(
+    projectId: string,
+    workUnitId: string,
+  ): Promise<PetraProjectWorkReadView> {
+    this.#assertTarget(projectId, workUnitId);
+    const response = await this.#request(
+      `/api/queries/projects/${projectId}/work/${workUnitId}`,
+      { method: "GET" },
+    );
+    const view = this.#workReadView(await response.json());
+    if (
+      view.project_id !== projectId ||
+      view.content.view_kind !== "detail" ||
+      view.content.summary.work_unit_ref.work_unit_id !== workUnitId
+    ) {
+      throw new ProjectWorkClientError(
+        503,
+        "PROJECT_WORK_RESPONSE_INVALID",
+        "The Work detail response crossed the requested Project or WorkUnit boundary.",
+      );
+    }
+    return structuredClone(view);
   }
 
   async readOperations(
@@ -309,11 +401,31 @@ export class ProjectWorkClient {
   }
 
   #assertTarget(projectId: string, workUnitId: string): void {
-    if (!PROJECT_ID.test(projectId) || !WORK_UNIT_ID.test(workUnitId)) {
+    this.#assertProject(projectId);
+    if (!WORK_UNIT_ID.test(workUnitId)) {
       throw new TypeError(
         "A Work operation requires canonical Project and WorkUnit identities.",
       );
     }
+  }
+
+  #assertProject(projectId: string): void {
+    if (!PROJECT_ID.test(projectId)) {
+      throw new TypeError("A Work read requires a canonical Project identity.");
+    }
+  }
+
+  #workReadView(body: unknown): PetraProjectWorkReadView {
+    const version = isRecord(body) ? body.schema_version : undefined;
+    if (version !== "1.0.0" && version !== "1.1.0") {
+      throw new ProjectWorkClientError(
+        503,
+        "PROJECT_WORK_RESPONSE_INVALID",
+        "The Work response did not use a registered contract version.",
+      );
+    }
+    this.#contracts.assertValid("project-work-view", version, body);
+    return body as PetraProjectWorkReadView;
   }
 
   async #request(path: string, init: RequestInit): Promise<Response> {

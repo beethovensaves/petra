@@ -29,6 +29,8 @@ import {
   PostgresCapabilityGrantCommandAuthorizer,
   PostgresProjectDefinitionAuthorityRepository,
   PostgresProjectWorkOperations,
+  PostgresProjectWorkViewReader,
+  PostgresProjectWorkerOutputManifestReader,
   PostgresResearchScopeRepository,
   PostgresScholarlyIdentityRepository,
   PostgresSingleUserCommandPrincipalResolver,
@@ -112,6 +114,10 @@ describePostgres("Wave 6 Work production commands", () => {
     pool,
     new PostgresCapabilityGrantCommandAuthorizer(),
   );
+  const workViews = new PostgresProjectWorkViewReader(pool);
+  const workerOutputManifests = new PostgresProjectWorkerOutputManifestReader(
+    pool,
+  );
   const human = readFixture<PetraActor>("actor");
   let server: PetraServer | undefined;
   const calls: Array<{ method: string; path: string; status: number }> = [];
@@ -164,6 +170,8 @@ describePostgres("Wave 6 Work production commands", () => {
       projectWorkOperationAuthority: workOperations,
       projectWorkResumeAuthority: workOperations,
       projectWorkStartAgainAuthority: workOperations,
+      projectWorkViews: workViews,
+      projectWorkerOutputManifests: workerOutputManifests,
     });
   };
 
@@ -827,6 +835,56 @@ describePostgres("Wave 6 Work production commands", () => {
         },
       },
     });
+    const collection = await client().list(second.workUnit.project_id, {
+      limit: 50,
+    });
+    expect(collection.content).toMatchObject({
+      view_kind: "collection",
+      query: { limit: 50 },
+    });
+    if (collection.content.view_kind !== "collection") {
+      throw new Error("Expected the exact Project Work collection.");
+    }
+    expect(
+      collection.content.tasks.some(
+        (task) =>
+          task.work_unit_ref.work_unit_id === second.workUnit.work_unit_id,
+      ),
+    ).toBe(true);
+    const detail = await client().read(
+      second.workUnit.project_id,
+      second.workUnit.work_unit_id,
+    );
+    expect(detail.content).toMatchObject({
+      view_kind: "detail",
+      summary: {
+        work_unit_ref: {
+          work_unit_id: second.workUnit.work_unit_id,
+        },
+        execution: {
+          state: "completed",
+          terminal_outcome: "succeeded",
+        },
+      },
+    });
+    const exactResult = completed.results[0];
+    if (
+      exactResult === undefined ||
+      exactResult.result_kind !== "worker_output_manifest"
+    ) {
+      throw new Error("Expected the completed Work output destination.");
+    }
+    const openedResult = await client().readWorkerOutputManifest(
+      second.workUnit.project_id,
+      exactResult.record_ref.record_id,
+      {
+        producing_work_unit_id: second.workUnit.work_unit_id,
+        revision: exactResult.record_ref.revision,
+        content_hash: exactResult.record_ref.content_hash,
+        record_hash: exactResult.record_ref.record_hash,
+      },
+    );
+    expect(openedResult).toStrictEqual(output);
 
     const durable = (
       await pool.query<{
@@ -920,8 +978,12 @@ describePostgres("Wave 6 Work production commands", () => {
       production_boundary: {
         server: "startPetraServer over an ephemeral TCP port",
         client: "ProjectWorkClient",
+        collection_query: "GET /api/queries/projects/:projectId/work",
+        detail_query: "GET /api/queries/projects/:projectId/work/:workUnitId",
         query:
           "GET /api/queries/projects/:projectId/work/:workUnitId/operations",
+        result_query:
+          "GET /api/queries/projects/:projectId/worker-output-manifests/:workerOutputManifestId",
         command: "POST /api/commands/projects/:projectId/work/:workUnitId",
         resume_command:
           "POST /api/commands/projects/:projectId/work/:workUnitId/resume",
@@ -1002,6 +1064,21 @@ describePostgres("Wave 6 Work production commands", () => {
           result_kind: completed.results[0]?.result_kind,
           record_id: completed.results[0]?.record_ref.record_id,
           destination: completed.results[0]?.destination,
+          opened_through_production_http:
+            openedResult.worker_output_manifest_id ===
+            completed.results[0]?.record_ref.record_id,
+        },
+        work_reads: {
+          collection_returned_count: collection.content.tasks.length,
+          collection_contains_completed_work: true,
+          detail_work_unit_id:
+            detail.content.view_kind === "detail"
+              ? detail.content.summary.work_unit_ref.work_unit_id
+              : undefined,
+          detail_execution_state:
+            detail.content.view_kind === "detail"
+              ? detail.content.summary.execution.state
+              : undefined,
         },
         http: {
           requests: calls.length,
@@ -1010,7 +1087,7 @@ describePostgres("Wave 6 Work production commands", () => {
         },
       },
       boundary:
-        "Executes authenticated production Work reads and commands against a fresh real PostgreSQL store, including one trusted exact-checkpoint compatibility registration, same-Work resume, one workflow-specific fresh-input registration, authenticated Start again into distinct Work attempt 1, immutable prior-attempt lineage, and restart-visible exact replay. Worker registration, fresh-input Work preparation, checkpoint creation, failure injection, and output completion are trusted worker-side setup; no React/browser usability claim is made.",
+        "Executes authenticated production Work collection, detail, operations, command, and exact-result reads against a fresh real PostgreSQL store, including one trusted exact-checkpoint compatibility registration, same-Work resume, one workflow-specific fresh-input registration, authenticated Start again into distinct Work attempt 1, immutable prior-attempt lineage, and restart-visible exact replay. Worker registration, fresh-input Work preparation, checkpoint creation, failure injection, and output completion are trusted worker-side setup; no React/browser usability claim is made.",
     };
     if (evidenceOutput === undefined) {
       throw new Error("The Work evidence output path is not configured.");
