@@ -2,6 +2,7 @@ import { readProjectBrief } from "./brief-read.js";
 import {
   FocusedGraphClient,
   FocusedGraphClientError,
+  ProjectBriefClientError,
   ProjectModelClient,
   ProjectProfileClient,
   ProjectWorkClient,
@@ -131,6 +132,7 @@ import type {
   WorkProjectView,
   WorkUnit,
 } from "./model.js";
+import { expectedProjectWorkDestinationFromSearch } from "./project-work-destination.js";
 
 const DEVELOPMENT_TOKEN = "petra-local-development";
 const TOKEN_STORAGE_KEY = "petra.auth.token";
@@ -2756,7 +2758,12 @@ export const projectRecordFromShellView = (
                   destination: view.content.selection.primary_destination.role,
                 },
               }),
-          ...(view.schema_version === "1.2.0"
+          ...(view.schema_version === "1.3.0"
+            ? {
+                attentionWork: structuredClone(view.content.attention_work),
+              }
+            : {}),
+          ...(view.schema_version === "1.2.0" || view.schema_version === "1.3.0"
             ? { resume: structuredClone(view.content.resume) }
             : {}),
         }),
@@ -4330,9 +4337,16 @@ export const loadProjectRecord = async ({
 export interface ProjectBriefData {
   readonly briefView?: PetraProjectBriefReadView;
   readonly objectiveCommandContext?: ProjectObjectiveCommandContext;
+  readonly comparisonRecovery?: ProjectBriefComparisonRecovery;
   readonly suggestedAction?: PetraSuggestedActionView;
   readonly suggestedWorkAction?: PetraSuggestedActionViewV11;
   readonly invokedInquiry?: PetraProjectInquiryView;
+}
+
+export interface ProjectBriefComparisonRecovery {
+  readonly state: "unavailable" | "stale";
+  readonly eventId: string;
+  readonly reason: string;
 }
 
 const objectiveCommandContextFromCurrentBrief = async (
@@ -4561,12 +4575,35 @@ export const loadProjectBrief = async (
   );
   const query = new URL(args.request.url).searchParams;
   const projectResume = query.get("projectResume");
+  const baselineEventIds = query.getAll("baseline_event_id");
+  const baselineRecordHashes = query.getAll("baseline_record_hash");
+  const expectedSnapshotHashes = query.getAll("expected_snapshot_hash");
+  const baselineEventId = baselineEventIds[0];
+  const baselineRecordHash = baselineRecordHashes[0];
+  const expectedSnapshotHash = expectedSnapshotHashes[0];
+  const baselineRequested =
+    baselineEventId !== undefined || baselineRecordHash !== undefined;
+  const actionRequested =
+    query.has("inquiry_result_link_id") || query.has("invoke");
   if (
     [...query.keys()].some(
       (key) =>
-        !["inquiry_result_link_id", "invoke", "projectResume"].includes(key),
+        ![
+          "inquiry_result_link_id",
+          "invoke",
+          "projectResume",
+          "baseline_event_id",
+          "baseline_record_hash",
+          "expected_snapshot_hash",
+        ].includes(key),
     ) ||
     query.getAll("projectResume").length > 1 ||
+    baselineEventIds.length > 1 ||
+    baselineRecordHashes.length > 1 ||
+    expectedSnapshotHashes.length > 1 ||
+    (baselineEventId === undefined) !== (baselineRecordHash === undefined) ||
+    (expectedSnapshotHash !== undefined && !baselineRequested) ||
+    (baselineRequested && (actionRequested || projectResume !== null)) ||
     (projectResume !== null &&
       ![
         "stale",
@@ -4579,7 +4616,7 @@ export const loadProjectBrief = async (
       ].includes(projectResume))
   ) {
     throw new ProjectDataError(
-      "This Brief route supports current observations and exact action selection only; comparison controls are unavailable here.",
+      "This Brief route requires one complete comparison baseline and keeps comparison separate from action or recovery selection.",
       400,
     );
   }
@@ -4587,30 +4624,60 @@ export const loadProjectBrief = async (
     `/api/queries/projects/${encodeURIComponent(projectId)}/effective-controls`,
   );
   let briefView: PetraProjectBriefReadView;
+  let comparisonRecovery: ProjectBriefComparisonRecovery | undefined;
   try {
     briefView = await readProjectBrief({
       projectId,
       baseUrl: apiBaseUrl(),
       token: apiToken(),
       signal: args.request.signal,
+      ...(baselineEventId === undefined || baselineRecordHash === undefined
+        ? {}
+        : {
+            request: {
+              baseline_event_id: baselineEventId,
+              baseline_record_hash: baselineRecordHash,
+              ...(expectedSnapshotHash === undefined
+                ? {}
+                : { expected_snapshot_hash: expectedSnapshotHash }),
+            },
+          }),
     });
   } catch (error) {
-    const [controlsValue, shellValue] = await Promise.all([
-      controlsPromise,
-      requestJson(
-        `/api/queries/projects/${encodeURIComponent(projectId)}/shell`,
-      ),
-    ]);
-    const controls = effectiveControlsView(controlsValue);
-    const shell = shellView(shellValue);
-    if (shell.content.current_objective !== undefined) throw error;
-    return {
-      objectiveCommandContext: objectiveCommandContextFromEmptyShell(
+    if (
+      baselineEventId !== undefined &&
+      error instanceof ProjectBriefClientError &&
+      (error.status === 409 || error.status === 422)
+    ) {
+      comparisonRecovery = {
+        state: error.status === 409 ? "stale" : "unavailable",
+        eventId: baselineEventId,
+        reason: error.message,
+      };
+      briefView = await readProjectBrief({
         projectId,
-        shell,
-        controls,
-      ),
-    };
+        baseUrl: apiBaseUrl(),
+        token: apiToken(),
+        signal: args.request.signal,
+      });
+    } else {
+      const [controlsValue, shellValue] = await Promise.all([
+        controlsPromise,
+        requestJson(
+          `/api/queries/projects/${encodeURIComponent(projectId)}/shell`,
+        ),
+      ]);
+      const controls = effectiveControlsView(controlsValue);
+      const shell = shellView(shellValue);
+      if (shell.content.current_objective !== undefined) throw error;
+      return {
+        objectiveCommandContext: objectiveCommandContextFromEmptyShell(
+          projectId,
+          shell,
+          controls,
+        ),
+      };
+    }
   }
   const controls = effectiveControlsView(await controlsPromise);
   const objectiveCommandContext = await objectiveCommandContextFromCurrentBrief(
@@ -4618,11 +4685,13 @@ export const loadProjectBrief = async (
     briefView,
     controls,
   );
-  const selected =
-    query.has("inquiry_result_link_id") || query.has("invoke")
-      ? await loadProjectBriefAction(args)
-      : {};
-  return { briefView, objectiveCommandContext, ...selected };
+  const selected = actionRequested ? await loadProjectBriefAction(args) : {};
+  return {
+    briefView,
+    objectiveCommandContext,
+    ...(comparisonRecovery === undefined ? {} : { comparisonRecovery }),
+    ...selected,
+  };
 };
 
 export const loadProjectBriefAction = async ({
@@ -7797,9 +7866,9 @@ export const loadProjectWorkDetail = async ({
 }: LoaderFunctionArgs): Promise<ProjectWorkDetailData> => {
   const projectId = requiredRouteIdentity(params.projectId, "A Project ID");
   const workUnitId = requiredRouteIdentity(params.workId, "A WorkUnit ID");
-  const selection = workerOutputRouteSelection(
-    new URL(request.url).searchParams,
-  );
+  const search = new URL(request.url).searchParams;
+  const selection = workerOutputRouteSelection(search);
+  const expectedDestination = expectedProjectWorkDestinationFromSearch(search);
   const [value, inquiryRead, operations] = await Promise.all([
     requestJson(
       `/api/queries/projects/${encodeURIComponent(projectId)}/work/${encodeURIComponent(workUnitId)}`,
@@ -7815,11 +7884,20 @@ export const loadProjectWorkDetail = async ({
     view.content.view_kind !== "detail" ||
     view.content.summary.work_unit_ref.work_unit_id !== workUnitId ||
     operations.project_id !== projectId ||
-    operations.work_unit_ref.work_unit_id !== workUnitId
+    operations.work_unit_ref.work_unit_id !== workUnitId ||
+    (expectedDestination !== undefined &&
+      (view.content.summary.work_unit_ref.revision !==
+        expectedDestination.revision ||
+        view.content.summary.work_unit_ref.spec_hash !==
+          expectedDestination.specHash ||
+        view.content.summary.work_unit_ref.record_hash !==
+          expectedDestination.recordHash))
   ) {
     throw new ProjectDataError(
-      "Petra returned a different Project Work identity.",
-      502,
+      expectedDestination === undefined
+        ? "Petra returned a different Project Work identity."
+        : "This exact Work destination is stale. Return to the originating task and open its current owner again.",
+      expectedDestination === undefined ? 502 : 409,
     );
   }
   let work: WorkProjectView;

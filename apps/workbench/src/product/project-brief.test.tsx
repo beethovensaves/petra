@@ -9,6 +9,8 @@ import registry from "../../../../packages/contracts/registry.json";
 import fixture from "./project-brief.fixture.json";
 import actionFixture from "../../../../packages/contracts/fixtures/accepted/suggested-action-view.json";
 import controlsFixture from "../../../../packages/contracts/fixtures/accepted/project-effective-controls-view.json";
+import historyFixture from "../../../../packages/contracts/fixtures/accepted/project-history-view.json";
+import workFixture from "../../../../packages/contracts/fixtures/accepted/project-work-view-detail.json";
 import { PetraContractRegistry } from "./browser-contract-registry.js";
 import { installedBriefPayloadHash, readProjectBrief } from "./brief-read.js";
 import { loadProjectBrief } from "./project-data.js";
@@ -74,12 +76,20 @@ const read = () =>
     token: "brief-browser-test",
     signal: new AbortController().signal,
   });
-const render = (view = sample()) =>
+const render = (
+  view = sample(),
+  comparisonRecovery?: {
+    state: "unavailable" | "stale";
+    eventId: string;
+    reason: string;
+  },
+) =>
   renderToStaticMarkup(
     <MemoryRouter>
       <ProjectBriefSurface
         view={view}
         objectiveCommandContext={objectiveContext(view)}
+        {...(comparisonRecovery === undefined ? {} : { comparisonRecovery })}
       />
     </MemoryRouter>,
   );
@@ -371,6 +381,93 @@ describe("DB07 retained synthesis mapping", () => {
     expect(markup).not.toContain("No item needs attention");
     expect(markup).not.toContain("Petra recommends");
     expect(markup).toContain("Read current preview for this result");
+  });
+
+  it("opens an exact Work attention owner and preserves its Brief return focus", () => {
+    const view = sample();
+    const work = structuredClone(
+      workFixture,
+    ) as unknown as PetraProjectBriefViewV11["content"]["work"][number];
+    work.read_at = view.read_at;
+    work.project_id = view.project_id;
+    if (work.content.view_kind !== "detail")
+      throw new Error("Expected exact Work detail fixture.");
+    view.content.work = [work];
+    view.content.attention = [
+      {
+        item_id: work.content.summary.work_unit_ref.work_unit_id,
+        owner: "work",
+        owner_content_hash: work.content_hash,
+        consequence_class: "work_interruption",
+        reason: "This task needs a response before it can continue.",
+        resolution: "inspect_canonical_owner",
+        deferral: "preserves_underlying_condition",
+        acknowledgment: "client_local",
+      },
+    ];
+
+    const markup = render(view);
+
+    expect(markup).toContain("Open exact Work task");
+    expect(markup).toContain("expected_work_revision=4");
+    expect(markup).toContain("expected_work_spec_hash=sha256%3A");
+    expect(markup).toContain("return_focus=brief-attention-item-0");
+  });
+
+  it("offers exact recent-History baselines, material comparison, and explicit recovery", () => {
+    const current = sample();
+    const history = structuredClone(historyFixture);
+    const newer = structuredClone(
+      history.content.changes[0]!,
+    ) as unknown as PetraProjectBriefViewV11["content"]["recent_decisions"]["content"]["changes"][number];
+    const older = structuredClone(
+      history.content.changes[0]!,
+    ) as unknown as PetraProjectBriefViewV11["content"]["recent_decisions"]["content"]["changes"][number];
+    newer.event_ref.event_id = "event_01K4C000000000000000000058";
+    newer.event_ref.event_position = 2;
+    newer.event_ref.stream_revision = 2;
+    newer.observed_effect.summary = "Applied the reviewed source replacement.";
+    older.event_ref.event_id = "event_01K4C000000000000000000057";
+    older.event_ref.event_position = 1;
+    older.event_ref.stream_revision = 1;
+    older.observed_effect.summary = "Recorded the earlier source baseline.";
+    current.content.recent_decisions.content.changes = [newer, older];
+    current.content.recent_decisions.content.authority = {
+      through_event_position: 2,
+      through_stream_revision: 2,
+    };
+
+    const currentMarkup = render(current);
+    expect(currentMarkup).toContain(
+      "Compare from Recorded the earlier source baseline.",
+    );
+    expect(currentMarkup).toContain("baseline_event_id=event_01K4C");
+    expect(currentMarkup).toContain("baseline_record_hash=sha256%3A");
+
+    const compared = structuredClone(current);
+    compared.content.comparison = {
+      state: "recent_history_interval",
+      baseline: structuredClone(older.event_ref),
+      through: structuredClone(
+        current.content.recent_decisions.content.authority,
+      ),
+      changes: [newer],
+      limitation: "Only canonical recent History events are compared.",
+    };
+    const comparedMarkup = render(compared);
+    expect(comparedMarkup).toContain(
+      "Applied the reviewed source replacement.",
+    );
+    expect(comparedMarkup).toContain("Refresh this exact comparison");
+    expect(comparedMarkup).toContain("Return to current Brief");
+
+    const recoveryMarkup = render(current, {
+      state: "stale",
+      eventId: older.event_ref.event_id,
+      reason: "The expected Brief snapshot is stale.",
+    });
+    expect(recoveryMarkup).toContain("The Brief changed before comparison");
+    expect(recoveryMarkup).toContain("without substituting a comparison");
   });
 
   it("keeps invalidated current revisions separate from original statements and evidence snapshots", () => {

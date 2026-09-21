@@ -13,6 +13,8 @@ import {
   type ProjectObjectiveReturnOutcome,
 } from "./ProjectObjectiveControl.js";
 import type { ProjectObjectiveCommandContext } from "./project-objective-command.js";
+import type { ProjectBriefComparisonRecovery } from "./project-data.js";
+import { projectWorkDestinationPath } from "./project-work-destination.js";
 import "./project-brief.css";
 
 const RecordDetails = ({ label, value }: { label: string; value: unknown }) => (
@@ -52,12 +54,14 @@ export const ProjectBriefSurface = ({
   selectedAction,
   objectiveCommandContext,
   objectiveCommandOutcome,
+  comparisonRecovery,
 }: {
   view: PetraProjectBriefReadView;
   resumeOutcome?: ReactNode;
   selectedAction?: ReactNode;
   objectiveCommandContext: ProjectObjectiveCommandContext;
   objectiveCommandOutcome?: ProjectObjectiveReturnOutcome;
+  comparisonRecovery?: ProjectBriefComparisonRecovery;
 }) => {
   const c = view.content;
   const payload = c.profile_payload;
@@ -66,6 +70,14 @@ export const ProjectBriefSurface = ({
     (term) => term.semantic_key === "scientific.claim",
   );
   const nextAction = c.next_steps.at(0);
+  const currentBriefPath = `/projects/${view.project_id}/brief`;
+  const comparisonReturnPath =
+    c.comparison.state === "recent_history_interval"
+      ? `${currentBriefPath}?${new URLSearchParams({
+          baseline_event_id: c.comparison.baseline.event_id,
+          baseline_record_hash: c.comparison.baseline.record_hash,
+        })}`
+      : currentBriefPath;
   return (
     <main className="reference-surface live-project-brief" id="reference-main">
       <header className="brief-heading">
@@ -135,40 +147,80 @@ export const ProjectBriefSurface = ({
           </p>
         ) : (
           <ol className="brief-attention-list">
-            {c.attention.map((item, index) => (
-              <li key={item.item_id}>
-                <details name="brief-attention-observation" open={index === 0}>
-                  <summary>{item.reason}</summary>
-                  <p>
-                    Review the {item.owner} observation. Its recorded
-                    consequence is{" "}
-                    {presentationLabel(
-                      item.consequence_class,
-                    ).toLocaleLowerCase()}
-                    .
-                  </p>
-                  <RecordDetails
-                    label="Exact attention and owner observation"
-                    value={{
-                      item,
-                      owner:
-                        item.owner === "shell"
-                          ? c.shell
-                          : item.owner === "review"
-                            ? c.reviews.find(
-                                (r) => r.review_session_id === item.item_id,
-                              )
-                            : c.work.find(
-                                (w) =>
-                                  w.content.view_kind === "detail" &&
-                                  w.content.summary.work_unit_ref
-                                    .work_unit_id === item.item_id,
-                              ),
-                    }}
-                  />
-                </details>
-              </li>
-            ))}
+            {c.attention.map((item, index) => {
+              const focusId = `brief-attention-item-${index}`;
+              const workOwner =
+                item.owner === "work"
+                  ? c.work.find(
+                      (work) =>
+                        work.content.view_kind === "detail" &&
+                        work.content.summary.work_unit_ref.work_unit_id ===
+                          item.item_id,
+                    )
+                  : undefined;
+              const workDestination =
+                workOwner?.content.view_kind === "detail"
+                  ? workOwner.content.summary.destination.target_ref
+                  : undefined;
+              return (
+                <li key={item.item_id} id={focusId} tabIndex={-1}>
+                  <details
+                    name="brief-attention-observation"
+                    open={index === 0}
+                  >
+                    <summary>{item.reason}</summary>
+                    <p>
+                      Review the {item.owner} observation. Its recorded
+                      consequence is{" "}
+                      {presentationLabel(
+                        item.consequence_class,
+                      ).toLocaleLowerCase()}
+                      .
+                    </p>
+                    {workDestination === undefined ? (
+                      <p className="brief-owner-unavailable">
+                        This Brief does not contain an exact visible destination
+                        for the canonical owner. Refresh before navigating.
+                      </p>
+                    ) : (
+                      <Link
+                        className="reference-primary-link"
+                        to={projectWorkDestinationPath(
+                          view.project_id,
+                          workDestination,
+                          {
+                            path: `${comparisonReturnPath}#${focusId}`,
+                            label: "Brief attention",
+                            focusId,
+                          },
+                        )}
+                      >
+                        Open exact Work task
+                      </Link>
+                    )}
+                    <RecordDetails
+                      label="Exact attention and owner observation"
+                      value={{
+                        item,
+                        owner:
+                          item.owner === "shell"
+                            ? c.shell
+                            : item.owner === "review"
+                              ? c.reviews.find(
+                                  (r) => r.review_session_id === item.item_id,
+                                )
+                              : c.work.find(
+                                  (w) =>
+                                    w.content.view_kind === "detail" &&
+                                    w.content.summary.work_unit_ref
+                                      .work_unit_id === item.item_id,
+                                ),
+                      }}
+                    />
+                  </details>
+                </li>
+              );
+            })}
           </ol>
         )}
         <RecordDetails label="Technical Review coverage" value={c.reviews} />
@@ -178,23 +230,109 @@ export const ProjectBriefSurface = ({
         aria-labelledby="brief-changed"
       >
         <p className="reference-panel-kicker">Since the baseline</p>
-        <h2 id="brief-changed">What changed</h2>
+        <h2 id="brief-changed" tabIndex={-1}>
+          What changed
+        </h2>
+        {comparisonRecovery === undefined ? null : (
+          <div
+            className="brief-comparison-recovery"
+            data-state={comparisonRecovery.state}
+            role="status"
+          >
+            <strong>
+              {comparisonRecovery.state === "stale"
+                ? "The Brief changed before comparison"
+                : "That baseline is no longer available"}
+            </strong>
+            <p>
+              {comparisonRecovery.state === "stale"
+                ? "Petra re-read the current Brief without substituting a comparison. Choose a current History baseline to try again."
+                : "Petra re-read the current Brief without inventing a historical snapshot. Choose another retained History event."}
+            </p>
+            <details className="brief-technical">
+              <summary>Comparison recovery detail</summary>
+              <p>{comparisonRecovery.reason}</p>
+              <code>{comparisonRecovery.eventId}</code>
+            </details>
+          </div>
+        )}
         {c.comparison.state === "current_only" ? (
-          <p>{c.comparison.reason}</p>
+          <>
+            <p>{c.comparison.reason}</p>
+            {c.recent_decisions.content.changes.length === 0 ? (
+              <p className="brief-empty">
+                No retained recent History event is available as a comparison
+                baseline.
+              </p>
+            ) : (
+              <ul className="brief-baseline-list" aria-label="Brief baselines">
+                {c.recent_decisions.content.changes.map((change) => (
+                  <li key={change.event_ref.event_id}>
+                    <Link
+                      className="reference-text-link"
+                      to={`${currentBriefPath}?${new URLSearchParams({
+                        baseline_event_id: change.event_ref.event_id,
+                        baseline_record_hash: change.event_ref.record_hash,
+                      })}#brief-changed`}
+                    >
+                      Compare from {change.observed_effect.summary}
+                    </Link>
+                    <span>
+                      {new Date(change.occurred_at).toLocaleString()} · event
+                      position {change.event_ref.event_position}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </>
         ) : (
           <>
             <p>
-              Event interval after {c.comparison.baseline.event_id} through
-              event position {c.comparison.through.through_event_position}.
+              This exact interval starts after the selected History event and
+              runs through current authority position{" "}
+              {c.comparison.through.through_event_position}.
             </p>
             <p>{c.comparison.limitation}</p>
+            {c.comparison.changes.length === 0 ? (
+              <p className="brief-empty">
+                No canonical changes occurred after this baseline.
+              </p>
+            ) : (
+              <ol className="brief-change-list">
+                {c.comparison.changes.map((change) => (
+                  <li key={change.event_ref.event_id}>
+                    <strong>{change.observed_effect.summary}</strong>
+                    <span>
+                      {presentationLabel(change.event_ref.event_type)} · event
+                      position {change.event_ref.event_position}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            )}
+            <div className="brief-change-actions">
+              <Link
+                className="reference-primary-link"
+                to={`${comparisonReturnPath}&${new URLSearchParams({
+                  expected_snapshot_hash: view.snapshot_hash,
+                })}#brief-changed`}
+              >
+                Refresh this exact comparison
+              </Link>
+              <Link
+                className="reference-text-link"
+                to={`${currentBriefPath}#brief-changed`}
+              >
+                Return to current Brief
+              </Link>
+            </div>
             <RecordDetails
               label="Technical comparison endpoints and changes"
               value={c.comparison}
             />
           </>
         )}
-        <p>A historical Brief snapshot comparison is unavailable.</p>
       </section>
       <section
         className="brief-section brief-state"

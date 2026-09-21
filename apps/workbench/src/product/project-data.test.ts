@@ -38,6 +38,7 @@ import type {
   PetraProjectShellView,
   PetraProjectShellViewV11,
   PetraProjectShellViewV12,
+  PetraProjectShellViewV13,
   PetraSuggestedActionView,
   PetraProjectSource,
   PetraProjectSourceLifecycleView,
@@ -256,6 +257,79 @@ const shellV12View: PetraProjectShellViewV12 = {
   content: shellV12Content,
   content_hash: `sha256:${createHash("sha256")
     .update(canonicalize(shellV12Content))
+    .digest("hex")}`,
+};
+
+const shellV13Content: PetraProjectShellViewV13["content"] = {
+  ...structuredClone(shellV12Content),
+  attention_work: {
+    state: "available",
+    coverage: "complete",
+    tasks: [
+      {
+        work_unit_ref: {
+          work_unit_id: "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+          revision: 4,
+          spec_hash: `sha256:${"a".repeat(64)}`,
+          record_hash: `sha256:${"b".repeat(64)}`,
+        },
+        task_label: "Parse registered source",
+        objective:
+          "Parse the exact registered source without changing authority.",
+        work_mode: "background",
+        priority: "normal",
+        workflow: {
+          workflow_name: "petra.ingestion.parse",
+          workflow_version: "1.0.0",
+          task_family: "document_processing",
+          task_name: "petra.document.parse",
+          task_version: "1.0.0",
+        },
+        execution: {
+          state: "running",
+          attempt: 1,
+          requested_at: "2026-09-20T10:00:00.000Z",
+          queued_at: "2026-09-20T10:00:01.000Z",
+          started_at: "2026-09-20T10:00:02.000Z",
+          updated_at: "2026-09-20T10:00:03.000Z",
+        },
+        attention: {
+          state: "active",
+          reason_code: "running",
+          reason: "The registered parser is running.",
+        },
+        elapsed: {
+          state: "measured",
+          milliseconds: 1_000,
+          basis: "start_to_observation",
+        },
+        resource_coverage: "limits_only",
+        reported_output_count: 0,
+        stage_plan: {
+          state: "unavailable",
+          reason: "No registered stage plan is available.",
+        },
+        destination: {
+          role: "work",
+          target_ref: {
+            work_unit_id: "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+            revision: 4,
+            spec_hash: `sha256:${"a".repeat(64)}`,
+            record_hash: `sha256:${"b".repeat(64)}`,
+          },
+        },
+      },
+    ],
+    returned_count: 1,
+    total_count: 1,
+  },
+};
+const shellV13View: PetraProjectShellViewV13 = {
+  ...structuredClone(shellV12View),
+  schema_version: "1.3.0",
+  content: shellV13Content,
+  content_hash: `sha256:${createHash("sha256")
+    .update(canonicalize(shellV13Content))
     .digest("hex")}`,
 };
 
@@ -1869,6 +1943,27 @@ describe("Project shell workbench adapter", () => {
     expect(project.resume?.state).toBe("not_found");
     expect(project.resume?.recovery.destination.role).toBe("brief");
     expect(shellV12View).toEqual(before);
+  });
+
+  it("retains bounded attention Work and resume context from shell 1.3", () => {
+    const before = structuredClone(shellV13View);
+    const project = projectRecordFromShellView(shellV13View);
+
+    expect(project.attentionWork).toStrictEqual(
+      shellV13View.content.attention_work,
+    );
+    expect(project.attentionWork?.state).toBe("available");
+    if (project.attentionWork?.state !== "available")
+      throw new Error("Expected available attention Work.");
+    expect(
+      project.attentionWork.tasks[0]?.destination.target_ref,
+    ).toStrictEqual(
+      shellV13View.content.attention_work.state === "available"
+        ? shellV13View.content.attention_work.tasks[0]?.work_unit_ref
+        : undefined,
+    );
+    expect(project.resume).toStrictEqual(shellV13View.content.resume);
+    expect(shellV13View).toEqual(before);
   });
 
   it("opens an unselected Project route through the exact typed shell read", async () => {

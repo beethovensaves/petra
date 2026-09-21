@@ -272,7 +272,7 @@
       "surfaces": ["SP02", "SP12"],
       "flows": ["UX-FLOW-07", "UX-FLOW-09"],
       "requests": ["UX-REQ-001", "UX-REQ-014"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId",
       "control": "Attention Work",
       "interaction": "query",
@@ -281,9 +281,14 @@
           "command": "npm run test:wave6:shell-brief",
           "artifact": "reports/WAVE6-SHELL-BRIEF-AUTHORITY.json",
           "boundary": "Real disposable PostgreSQL and the authenticated production shell route return project-shell-view@1.3.0 with a bounded canonical Work attention collection. The executed trace proves exact Work revision/spec/record identity, canonical active-or-needs-attention state and reason, semantic Work destination, honest complete coverage, and a matching shell Work count without mutation. The visible shell currently exposes only the count, so browser inspection and exact return remain design-owned; this trace claims no named Wave 6 evidence-plan scenario."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:shell-brief-ui",
+          "artifact": "reports/WAVE6-SHELL-BRIEF-BROWSER.json",
+          "boundary": "Isolated Chrome keyboard-opened the bounded active Work summary and its exact revision/specification/record destination from the production Project shell, rendered the canonical Work owner, and used the visible return control to restore the originating shell task and focus. project-shell-view@1.3.0 was consumed through ProjectShellClient with deterministic schema-valid authenticated HTTP; the exact backend counterpart separately proves live server and PostgreSQL ownership. This browser trace does not claim live server transport, persistence, the complete Work lifecycle, or a named Wave 6 evidence-plan scenario."
         }
       ],
-      "runtime_owner": "GET /api/queries/projects/:projectId/shell -> PostgresProjectShellViewReader -> PostgresProjectWorkViewReader.readAttentionWorkInSnapshot (authenticated REPEATABLE READ bounded canonical active-or-needs-attention Work summaries with exact destinations)",
+      "runtime_owner": "GET /api/queries/projects/:projectId/shell -> PostgresProjectShellViewReader -> PostgresProjectWorkViewReader.readAttentionWorkInSnapshot (authenticated REPEATABLE READ bounded canonical active-or-needs-attention Work summaries with exact destinations); ProjectShellClient -> loadProjectRecord -> ProjectShell maps and renders exact Work identity, destination, and return context",
       "paths": ["UX-PATH-01", "UX-PATH-02", "UX-PATH-03", "UX-PATH-04"]
     },
     {
@@ -341,7 +346,7 @@
       "surfaces": ["SP03"],
       "flows": ["UX-FLOW-08", "UX-FLOW-16"],
       "requests": ["UX-REQ-002", "UX-REQ-023"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/brief",
       "control": "Needs your attention",
       "interaction": "navigation",
@@ -350,9 +355,14 @@
           "command": "npm run test:wave6:shell-brief",
           "artifact": "reports/WAVE6-SHELL-BRIEF-AUTHORITY.json",
           "boundary": "Real disposable PostgreSQL and the authenticated production Brief query return an exact linked Work observation needing attention, its owner content hash, consequence class, reason, inspection-only resolution, non-resolving deferral, client-local acknowledgment boundary, and canonical Work destination. The visible Brief does not yet open that destination, so control execution, recovery presentation, and exact return remain design-owned; this trace claims no named Wave 6 evidence-plan scenario."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:shell-brief-ui",
+          "artifact": "reports/WAVE6-SHELL-BRIEF-BROWSER.json",
+          "boundary": "Isolated Chrome keyboard-opened the exact Work-backed Brief attention item through its canonical destination, rendered the production Work detail surface, and keyboard-returned to the same Brief item with task context and focus preserved. Deterministic schema-valid authenticated HTTP supplied the production clients and loaders; the backend counterpart separately proves the live server and PostgreSQL owner binding. This trace covers the Work-backed attention item returned by the integrated owner and does not claim every owner kind or a named Wave 6 evidence-plan scenario."
         }
       ],
-      "runtime_owner": "GET /api/queries/projects/:projectId/brief -> PostgresProjectBriefViewReader -> canonical shell, Review, and linked PostgresProjectWorkViewReader observations (server-ordered consequence class, exact owner hash, inspection boundary, deferral, and acknowledgment semantics)",
+      "runtime_owner": "GET /api/queries/projects/:projectId/brief -> PostgresProjectBriefViewReader -> canonical shell, Review, and linked PostgresProjectWorkViewReader observations (server-ordered consequence class, exact owner hash, inspection boundary, deferral, and acknowledgment semantics); ProjectBriefClient -> loadProjectBrief -> ProjectBriefSurface -> exact Work destination -> WorkDetailSurface -> focused Brief return",
       "paths": ["UX-PATH-01", "UX-PATH-03", "UX-PATH-04"]
     },
     {
@@ -362,7 +372,7 @@
       "surfaces": ["SP03"],
       "flows": ["UX-FLOW-08", "UX-FLOW-16"],
       "requests": ["UX-REQ-002", "UX-REQ-023"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/brief",
       "control": "What changed",
       "interaction": "query",
@@ -371,9 +381,14 @@
           "command": "npm run test:wave6:shell-brief",
           "artifact": "reports/WAVE6-SHELL-BRIEF-AUTHORITY.json",
           "boundary": "The command executes the authenticated production Brief read on real disposable PostgreSQL for current-only state, explicit unavailable-baseline recovery, stable snapshot replay, and stale-snapshot failure, then executes the existing PostgreSQL comparison test that applies canonical changes and returns the exact successful recent-History event interval with both endpoints and its limitation. The visible Brief offers no baseline selector yet, so browser selection, historical return, and material presentation remain design-owned; this trace claims no named Wave 6 evidence-plan scenario."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:shell-brief-ui",
+          "artifact": "reports/WAVE6-SHELL-BRIEF-BROWSER.json",
+          "boundary": "Isolated Chrome selected exact recent-History baselines through visible production Brief controls, rendered the canonical event-interval outcome and limitation, exercised explicit unavailable-baseline and stale-replay recovery without a substituted comparison, and returned to the current Brief with focus restored. Deterministic schema-valid authenticated HTTP supplied ProjectBriefClient; the exact backend counterpart separately proves live server and PostgreSQL comparison ownership. This trace does not claim broader History recovery, persistence, or a named Wave 6 evidence-plan scenario."
         }
       ],
-      "runtime_owner": "GET /api/queries/projects/:projectId/brief?baseline_event_id&baseline_record_hash -> ProjectBriefViewReader.getProjectBriefView -> PostgresProjectBriefViewReader + PostgresProjectHistoryViewReader (exact recent-History interval, current authority endpoint, limitation, and explicit unavailable/stale recovery)",
+      "runtime_owner": "GET /api/queries/projects/:projectId/brief?baseline_event_id&baseline_record_hash -> ProjectBriefViewReader.getProjectBriefView -> PostgresProjectBriefViewReader + PostgresProjectHistoryViewReader (exact recent-History interval, current authority endpoint, limitation, and explicit unavailable/stale recovery); ProjectBriefClient -> loadProjectBrief -> ProjectBriefSurface baseline, comparison, recovery, refresh, and contextual-return controls",
       "paths": ["UX-PATH-01", "UX-PATH-03", "UX-PATH-04"]
     },
     {
