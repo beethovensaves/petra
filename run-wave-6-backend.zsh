@@ -14,5 +14,5 @@ if [[ "$branch" != "main" ]]; then
 fi
 
 printf '\033]0;Petra Wave 6 Backend\007'
-"$pinned_node" scripts/wave-handoff.mjs doctor --wave 6 --max-slices 64
-exec "$pinned_node" scripts/wave-handoff.mjs worker --role backend --wave 6 --max-slices 64
+"$pinned_node" scripts/wave-handoff.mjs doctor --wave 6 --max-slices 128
+exec "$pinned_node" scripts/wave-handoff.mjs worker --role backend --wave 6 --max-slices 128

@@ -15,5 +15,5 @@ if [[ "$branch" != "design/m1-ux" ]]; then
 fi
 
 printf '\033]0;Petra Wave 6 Design\007'
-"$pinned_node" "$backend_root/scripts/wave-handoff.mjs" doctor --wave 6 --max-slices 64
-exec "$pinned_node" "$backend_root/scripts/wave-handoff.mjs" worker --role design --wave 6 --max-slices 64
+"$pinned_node" "$backend_root/scripts/wave-handoff.mjs" doctor --wave 6 --max-slices 128
+exec "$pinned_node" "$backend_root/scripts/wave-handoff.mjs" worker --role design --wave 6 --max-slices 128

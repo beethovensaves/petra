@@ -283,12 +283,12 @@
       "persistence": "PostgreSQL grounded response, ProjectDefinition communication metadata, references, force, limitations, action links, and validation facts.",
       "recovery": "Returns exact not-found, invalid-binding, failed-read, and no-store outcomes without client-generated claims."
     },
-    "petra-action-partial": {
-      "kind": "partial",
-      "production_owner": "SuggestedAction read/invocation owners and focused-graph action-preview query",
-      "authorization": "Server supplies exact action identity, readiness, and grant-derived availability; confirmation reaches the same command as direct invocation.",
-      "persistence": "PostgreSQL action basis and invocation/command/Work results for the currently registered families.",
-      "recovery": "Reread and exact destinations exist for bounded SuggestedActions; no general allowlisted Petra action composition covers every Wave 6 action family."
+    "suggested-action-parity": {
+      "kind": "command",
+      "production_owner": "GET /api/queries/projects/:projectId/suggested-actions?action_kind=run_grounded_synthesis plus POST /api/commands/projects/:projectId/suggested-actions/:suggestedActionId/invoke -> PostgresSuggestedActionViewReader -> SuggestedActionInvocationCoordinator -> PostgresSuggestedActionInvocationAuthorityRepository; PostgresCommunicationPlanReader composes the same receipt as Petra's action report",
+      "authorization": "The server derives the exact registered action, readiness, and grant reference, then re-resolves the authenticated human principal before the shared invocation command. Direct and conversational presentations carry the same request contract and cannot supply Actor, grant, Project, Work, interaction, trace, result, or authority effect.",
+      "persistence": "PostgreSQL retains the immutable SuggestedAction basis, invocation receipt, expected Work identity, canonical Work revisions, GroundedResponse, InteractionRun, History destinations, and current recovery eligibility. Model prose creates no command or authority.",
+      "recovery": "The exact invocation reread exposes pending registration, canonical result, idempotent pre-registration retry, reconnect, cancellation, Work and result inspection, and semantic Work/History destinations without duplicating authority."
     },
     "review-interrupt": {
       "kind": "command",
@@ -325,12 +325,12 @@
       "persistence": "PostgreSQL/Neo4j semantic detail and destination facts; origin/focus/scroll remain browser-local.",
       "recovery": "Distinguishes invalid, missing, stale, unsupported, superseded, unavailable, and safe fallback destination states."
     },
-    "feedback-partial": {
-      "kind": "partial",
-      "production_owner": "The originating registered query or command and its immutable request/receipt identity",
-      "authorization": "Feedback may invoke only the exact owning command or recovery action supplied by that owner; there is no generic confirm/retry authority.",
-      "persistence": "Outcomes remain in owning records; transient notices are browser-local.",
-      "recovery": "Some owners provide idempotent retry/reread, but no complete cross-operation result/return composition covers every Wave 6 operation."
+    "suggested-action-feedback": {
+      "kind": "command",
+      "production_owner": "The exact SuggestedAction preview, shared invocation command, and invocation-detail reread own confirmation, retry eligibility, result, and recovery; transient dismissal and focus return remain client-owned",
+      "authorization": "Confirmation reaches only InvokeSuggestedAction after the server re-reads the exact action and principal. Retry is exposed only by the current server-owned retry_exact_start descriptor and reuses the same immutable command and idempotency identities.",
+      "persistence": "The immutable invocation receipt, canonical Work/result/History records, and recovery view remain authoritative. Confirmation messages, dismissal, and focus are transient browser state and cannot alter them.",
+      "recovery": "Before Work registration, exact retry converges on the same receipt and expected Work. After registration, retry becomes ineligible and the view supplies exact reconnect, cancellation, Work, result, and History operations."
     },
     "client-feedback": {
       "kind": "client",
@@ -802,15 +802,15 @@
     },
     {
       "operation_id": "petra.preview-action",
-      "owner": "petra-action-partial",
-      "owner_status": "partial",
-      "missing_owner": "Server-owned action composition for every permitted Wave 6 direct command family."
+      "owner": "suggested-action-parity",
+      "owner_status": "owned",
+      "missing_owner": ""
     },
     {
       "operation_id": "petra.invoke-action",
-      "owner": "petra-action-partial",
-      "owner_status": "partial",
-      "missing_owner": "Shared invocation adapters for every permitted direct command family."
+      "owner": "suggested-action-parity",
+      "owner_status": "owned",
+      "missing_owner": ""
     },
     {
       "operation_id": "petra.respond-interrupt",
@@ -898,15 +898,15 @@
     },
     {
       "operation_id": "feedback.confirm",
-      "owner": "feedback-partial",
-      "owner_status": "partial",
-      "missing_owner": "Per-operation confirmation descriptors and exact results for all Wave 6 mutation families."
+      "owner": "suggested-action-feedback",
+      "owner_status": "owned",
+      "missing_owner": ""
     },
     {
       "operation_id": "feedback.retry",
-      "owner": "feedback-partial",
-      "owner_status": "partial",
-      "missing_owner": "Per-operation retry/reread eligibility and stable identity for all Wave 6 failure families."
+      "owner": "suggested-action-feedback",
+      "owner_status": "owned",
+      "missing_owner": ""
     },
     {
       "operation_id": "feedback.dismiss",

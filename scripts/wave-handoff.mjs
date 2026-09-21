@@ -43,6 +43,191 @@ const roles = {
   },
 };
 
+const wave6ClosureBundles = [
+  {
+    id: "actions-feedback",
+    title: "Suggested actions and feedback",
+    operationIds: [
+      "brief.suggested-preview",
+      "brief.suggested-invoke",
+      "petra.preview-action",
+      "petra.invoke-action",
+      "feedback.confirm",
+      "feedback.retry",
+      "feedback.dismiss",
+      "feedback.return",
+    ],
+    evidenceKeys: ["UX1.6-ACTIONS::suggested-action-interrupt-review"],
+  },
+  {
+    id: "sources",
+    title: "Source discovery and lifecycle",
+    operationIds: [
+      "source.find",
+      "source.open",
+      "source.register",
+      "source.reuse",
+      "source.start-processing",
+      "source.inspect-processing",
+      "source.inspect-exact",
+      "source.add-revision",
+      "source.remove-project-link",
+      "source.delete-local-copy",
+    ],
+    evidenceKeys: ["UX1.6-SOURCES::register-process-inspect-replace"],
+  },
+  {
+    id: "graph-details",
+    title: "Graph, exact Details, source basis, and task return",
+    operationIds: [
+      "graph.open",
+      "graph.return",
+      "graph.layer-position",
+      "graph.select",
+      "graph.open-details",
+      "graph.open-source",
+      "graph.expand",
+      "graph.filter",
+      "graph.save-question",
+      "graph.compare",
+      "graph.impact",
+      "graph.time",
+      "graph.correct-through-review",
+      "details.open",
+      "details.return",
+    ],
+    evidenceKeys: ["UX1.6-GRAPH::task-graph-details-return"],
+  },
+  {
+    id: "history-recovery",
+    title: "History, impact, recovery, and governed Revert",
+    operationIds: [
+      "brief.recent-decisions",
+      "history.list",
+      "history.filter",
+      "history.open",
+      "history.compare",
+      "history.impact",
+      "history.preview-revert",
+      "history.execute-revert",
+    ],
+    evidenceKeys: ["UX1.6-HISTORY::effect-recovery-revert-return"],
+  },
+  {
+    id: "work-petra-model",
+    title: "Work, Petra, and certified-model task flow",
+    operationIds: [
+      "work.list",
+      "work.open",
+      "work.start",
+      "work.answer-input",
+      "work.steer",
+      "work.prioritize",
+      "work.detach",
+      "work.reconnect",
+      "work.replay",
+      "work.cancel",
+      "work.retry",
+      "work.resume",
+      "work.start-again",
+      "work.open-result",
+      "petra.open",
+      "petra.resume-thread",
+      "petra.ask",
+      "petra.inspect-context",
+      "petra.inspect-references",
+      "model.inspect-readiness",
+      "model.use",
+    ],
+    evidenceKeys: [],
+  },
+  {
+    id: "taxonomy-guide-reset",
+    title: "Registered taxonomy, Project map, guide, and reset",
+    operationIds: [
+      "shell.project-map",
+      "taxonomy.inspect-profile",
+      "taxonomy.bind-project",
+      "application.guide",
+      "application.reset",
+    ],
+    evidenceKeys: [
+      "USER-TESTABLE-01::stable-url-clean-start-reset",
+      "UX1.6-TAXONOMY::usable-profile-ui",
+    ],
+  },
+  {
+    id: "personal-settings",
+    title: "Personal settings and scoped reset",
+    operationIds: ["settings.personal-change", "settings.personal-reset"],
+    evidenceKeys: [],
+  },
+];
+
+function operationIsIncomplete(operation) {
+  return (
+    operation?.current_state !== "live" ||
+    !nonEmptyString(operation?.runtime_owner) ||
+    !Array.isArray(operation?.evidence) ||
+    operation.evidence.length === 0
+  );
+}
+
+export function selectWave6ClosureBundle(
+  operations = [],
+  outstandingEvidence = [],
+) {
+  const operationsById = new Map(
+    operations.map((operation) => [operation.id, operation]),
+  );
+  const outstandingEvidenceKeys = new Set(
+    outstandingEvidence.map((requirement) => evidenceKey(requirement)),
+  );
+  for (const bundle of wave6ClosureBundles) {
+    const remainingOperationIds = bundle.operationIds.filter((operationId) => {
+      const operation = operationsById.get(operationId);
+      return operation !== undefined && operationIsIncomplete(operation);
+    });
+    if (remainingOperationIds.length > 0) {
+      return {
+        ...bundle,
+        remainingOperationIds,
+        outstandingEvidenceKeys: bundle.evidenceKeys.filter((key) =>
+          outstandingEvidenceKeys.has(key),
+        ),
+      };
+    }
+  }
+  const assignedOperationIds = new Set(
+    wave6ClosureBundles.flatMap((bundle) => bundle.operationIds),
+  );
+  const unassignedOperationIds = operations
+    .filter(
+      (operation) =>
+        operationIsIncomplete(operation) &&
+        !assignedOperationIds.has(operation.id),
+    )
+    .map((operation) => operation.id);
+  if (unassignedOperationIds.length > 0) {
+    return {
+      id: "unassigned-operations",
+      title: "Unassigned operation closure",
+      operationIds: unassignedOperationIds,
+      remainingOperationIds: unassignedOperationIds,
+      evidenceKeys: [],
+      outstandingEvidenceKeys: [],
+    };
+  }
+  return {
+    id: "final-evidence-exit",
+    title: "Cumulative evidence, adversarial audit, and exit",
+    operationIds: [],
+    remainingOperationIds: [],
+    evidenceKeys: [...outstandingEvidenceKeys],
+    outstandingEvidenceKeys: [...outstandingEvidenceKeys],
+  };
+}
+
 const sleep = (milliseconds) =>
   new Promise((resolvePromise) => setTimeout(resolvePromise, milliseconds));
 
@@ -86,9 +271,9 @@ export function parseArguments(argv) {
   if (
     !Number.isSafeInteger(options.maxSlices) ||
     options.maxSlices < 1 ||
-    options.maxSlices > 100
+    options.maxSlices > 160
   ) {
-    throw new Error("--max-slices must be an integer from 1 through 100.");
+    throw new Error("--max-slices must be an integer from 1 through 160.");
   }
   return options;
 }
@@ -1045,6 +1230,7 @@ export function buildWorkerPrompt({
   evidencePlan,
   recordedEvidence = [],
   recovery,
+  closureBundle,
 }) {
   const roleBoundary =
     role === "backend"
@@ -1071,6 +1257,10 @@ export function buildWorkerPrompt({
     ? `\nTRANSIENT SLICE RECOVERY\nA prior worker attempt for this same slice ended because of a transient Codex failure after advancing the local branch or writing files. The coordinator verified the unchanged remote at ${recovery.expected_remote ?? recovery.expected_commit}, the local head at ${recovery.expected_head ?? recovery.expected_commit}, and the worktree fingerprint ${recovery.worktree_digest}. Inspect the complete local commit range, diff, and prior run logs; preserve coherent partial work, correct or finish it, then run every required check, commit, and push. Do not reset, discard, or broaden the slice.\n`
     : "";
 
+  const closureControl = closureBundle
+    ? `\nMANDATORY WORKFLOW BUNDLE\nThis slice is assigned to ${closureBundle.id}: ${closureBundle.title}. The operation gate currently reports these incomplete operations in this bundle: ${closureBundle.remainingOperationIds.join(", ") || "none"}. ${closureBundle.outstandingEvidenceKeys.length > 0 ? `Applicable outstanding named scenarios: ${closureBundle.outstandingEvidenceKeys.map((key) => key.replace("::", "/")).join(", ")}.` : "No outstanding named scenario is assigned to this bundle."}\n\nThe bundle assignment takes precedence over an unrelated or narrower counterpart handoff. Treat the prior handoff as diagnostic input for this bundle. Complete every role-owned prerequisite and defect exposed by the same end-to-end workflow; do not stop after the first ledger row, stale assertion, or adjacent failure. The backend slice must reconcile all server owners and production prerequisites needed by this bundle in one pass. The design slice must integrate the exact backend commit, exercise the complete visible workflow, fix all design-owned failures encountered in that workflow, and update every inventory row actually proven by the retained execution. Do not claim an operation or named scenario that the execution did not cover. End by running the Wave 6 operation gate and report the bundle's exact remaining operation IDs.\n`
+    : "";
+
   return `You are Petra's unattended ${role} worker for Wave ${wave}.
 
 Current ${role} commit: ${ownCommit}
@@ -1078,7 +1268,7 @@ Exact counterpart commit: ${counterpartCommit}
 
 ${roleBoundary}
 
-Process exactly ONE bounded slice. Inspect the repository and the exact counterpart commit before acting. Follow accepted decisions and frozen requirements; this automation packet is coordination guidance only. Do not spawn additional agents. Use the pinned Node 24 toolchain. Preserve unrelated work and never use destructive Git commands.
+Process exactly ONE bounded slice. When a mandatory workflow bundle is supplied, that entire coherent workflow is the slice; a single ledger row or test assertion is not the slice boundary. Inspect the repository and the exact counterpart commit before acting. Follow accepted decisions and frozen requirements; this automation packet is coordination guidance only. Do not spawn additional agents. Use the pinned Node 24 toolchain. Preserve unrelated work and never use destructive Git commands.
 
 For a completed slice, run proportionate focused checks, the complete repository verification gate, and real PostgreSQL integration when persistence or PostgreSQL behavior changes. If the slice changes repository files, commit and push the coherent change before responding. If a bounded role-owned review finds no safe repository change, return a handoff from the unchanged clean and pushed commit and say so explicitly; do not fabricate a file change merely to create a commit. Confirm that your HEAD equals its remote tracking branch and that the worktree is clean except for the two explicitly known design assets. Do not continue to a second slice yourself.
 
@@ -1086,7 +1276,7 @@ If a consequential product, architecture, authority, information-hierarchy, or f
 
 Your final response must be only the JSON object required by the supplied output schema. Use the full 40-character HEAD in commit and the exact supplied counterpart commit in counterpart_commit. Return evidence as an array; use an empty array when this slice executed no named evidence-plan scenario. For handoff, write a complete next-turn prompt for the other role. For needs_user or blocked, explain the exact intervention in user_attention. Declare wave_complete only under the packet's full exit rule.
 
-${recoveryControl}${evidenceControl}
+${recoveryControl}${evidenceControl}${closureControl}
 
 COUNTERPART HANDOFF
 ${handoff}
@@ -1191,6 +1381,23 @@ async function runCodexWorker({ role, wave, state }) {
     throw new Error("The Wave evidence plan changed after initialization.");
   }
   const otherRole = role === "backend" ? "design" : "backend";
+  const outstandingEvidence = evidencePlan
+    ? missingRequiredEvidence(evidencePlan, state.evidence ?? [])
+    : [];
+  let closureBundle;
+  if (wave === "6" && state.slice_count >= 96) {
+    const inventoryPath = join(
+      designRoot,
+      "scripts/ui-operation-inventory.json",
+    );
+    const inventory = JSON.parse(readFileSync(inventoryPath, "utf8"));
+    closureBundle = selectWave6ClosureBundle(
+      (inventory.operations ?? []).filter(
+        (operation) => operation.milestone === 6,
+      ),
+      outstandingEvidence,
+    );
+  }
   const prompt = buildWorkerPrompt({
     role,
     wave,
@@ -1201,6 +1408,7 @@ async function runCodexWorker({ role, wave, state }) {
     evidencePlan,
     recordedEvidence: state.evidence ?? [],
     recovery: state.active?.recovery,
+    closureBundle,
   });
   writeFileSync(promptPath, `${prompt}\n`, "utf8");
 
@@ -1282,6 +1490,27 @@ function stateSummary(state) {
     const total = evidenceRequirements(evidencePlan).length;
     const missing = missingRequiredEvidence(evidencePlan, state.evidence ?? []);
     lines.push(`Executed evidence: ${total - missing.length}/${total}`);
+    if (
+      state.wave === "6" &&
+      state.slice_count >= 96 &&
+      state.status !== "complete"
+    ) {
+      const inventory = JSON.parse(
+        readFileSync(
+          join(designRoot, "scripts/ui-operation-inventory.json"),
+          "utf8",
+        ),
+      );
+      const closureBundle = selectWave6ClosureBundle(
+        (inventory.operations ?? []).filter(
+          (operation) => operation.milestone === 6,
+        ),
+        missing,
+      );
+      lines.push(
+        `Next closure bundle: ${closureBundle.id} (${closureBundle.remainingOperationIds.length} incomplete operations)`,
+      );
+    }
   }
   const latest = state.history.at(-1);
   if (latest) {
