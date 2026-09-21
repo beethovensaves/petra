@@ -41,6 +41,7 @@ import {
   resolveCompatibleIntegrationConflicts,
   resolveCompatiblePackageJsonConflict,
   retainDesignIntegrationConflict,
+  selectWave6ClosureBundle,
   unexpectedChanges,
   validateEvidencePlan,
   validateCommitTransition,
@@ -111,6 +112,47 @@ test("parses explicit user acceptance without treating it as worker authority", 
   assert.equal(evidenceOwnerCanSatisfy("user", "backend"), false);
   assert.equal(evidenceOwnerCanSatisfy("user", "design"), false);
   assert.equal(evidenceOwnerCanSatisfy("user", "user"), true);
+});
+
+test("selects the first incomplete Wave 6 workflow bundle", () => {
+  const complete = (id) => ({
+    id,
+    current_state: "live",
+    runtime_owner: "production owner",
+    evidence: [{ artifact: "report.json" }],
+  });
+  const selected = selectWave6ClosureBundle(
+    [
+      complete("brief.suggested-preview"),
+      {
+        ...complete("source.find"),
+        evidence: [],
+      },
+      {
+        ...complete("graph.open"),
+        runtime_owner: "",
+      },
+    ],
+    [
+      {
+        evidence_id: "UX1.6-SOURCES",
+        scenario_id: "register-process-inspect-replace",
+      },
+    ],
+  );
+  assert.equal(selected.id, "sources");
+  assert.deepEqual(selected.remainingOperationIds, ["source.find"]);
+  assert.deepEqual(selected.outstandingEvidenceKeys, [
+    "UX1.6-SOURCES::register-process-inspect-replace",
+  ]);
+  const unassigned = selectWave6ClosureBundle([
+    {
+      ...complete("future.operation"),
+      current_state: "partial",
+    },
+  ]);
+  assert.equal(unassigned.id, "unassigned-operations");
+  assert.deepEqual(unassigned.remainingOperationIds, ["future.operation"]);
 });
 
 test("extends only a wave stopped exactly at its protected slice ceiling", () => {
@@ -716,7 +758,15 @@ test("parses worker options with a bounded slice count", () => {
   );
   assert.throws(
     () => parseArguments(["worker", "--max-slices", "0"]),
-    /1 through 100/,
+    /1 through 160/,
+  );
+  assert.equal(
+    parseArguments(["extend", "--wave", "6", "--max-slices", "128"]).maxSlices,
+    128,
+  );
+  assert.throws(
+    () => parseArguments(["extend", "--max-slices", "161"]),
+    /1 through 160/,
   );
 });
 
@@ -972,8 +1022,8 @@ test("Wave 6 backend launcher identifies its role and extended remediation budge
   const path = new URL("../run-wave-6-backend.zsh", import.meta.url);
   const launcher = readFileSync(path, "utf8");
   assert.match(launcher, /Petra Wave 6 Backend/);
-  assert.match(launcher, /--role backend --wave 6 --max-slices 64/);
-  assert.match(launcher, /doctor --wave 6 --max-slices 64/);
+  assert.match(launcher, /--role backend --wave 6 --max-slices 128/);
+  assert.match(launcher, /doctor --wave 6 --max-slices 128/);
   assert.notEqual(statSync(path).mode & 0o111, 0);
 });
 
@@ -1129,6 +1179,29 @@ test("worker prompt fixes one-slice, commit, role, and stop boundaries", () => {
   assert.match(prompt, /Return blocked only when an external dependency/);
   assert.match(prompt, /leave handoff_prompt empty/);
   assert.match(prompt, /Map the exact backend slice/);
+});
+
+test("worker prompt makes the Wave 6 workflow bundle override a narrow handoff", () => {
+  const prompt = buildWorkerPrompt({
+    role: "design",
+    wave: "6",
+    ownCommit: "a".repeat(40),
+    counterpartCommit: "b".repeat(40),
+    handoff: "Fix only source.find.",
+    plan: "Close coherent workflows.",
+    closureBundle: {
+      id: "sources",
+      title: "Source discovery and lifecycle",
+      remainingOperationIds: ["source.find", "source.open"],
+      outstandingEvidenceKeys: [
+        "UX1.6-SOURCES::register-process-inspect-replace",
+      ],
+    },
+  });
+  assert.match(prompt, /MANDATORY WORKFLOW BUNDLE/);
+  assert.match(prompt, /takes precedence over an unrelated or narrower/);
+  assert.match(prompt, /source\.find, source\.open/);
+  assert.match(prompt, /single ledger row or test assertion is not/);
 });
 
 test("worker prompt distinguishes planned helpers from executed evidence", () => {

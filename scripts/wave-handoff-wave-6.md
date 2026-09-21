@@ -256,6 +256,32 @@ ledger row when the same production scenario can honestly close the group.
 Slice 96 is the final safety boundary. If automated evidence still remains, the
 wave stops as incomplete and cannot claim acceptance.
 
+## Slices 97–128: controller-selected closure bundles
+
+The controller selects the first incomplete workflow bundle directly from the
+Wave 6 operation inventory before every slice. This assignment takes precedence
+over a narrower or unrelated prior handoff. A slice must close all role-owned
+defects exposed by the same workflow execution; a single ledger row, stale test
+assertion, or adjacent failure is not a valid stopping boundary.
+
+The ordered bundles are Suggested actions and feedback; Source discovery and
+lifecycle; Graph, Details, source basis, and task return; History, recovery, and
+governed Revert; Work, Petra, and certified-model use; registered taxonomy,
+Project map, guide, and reset; personal settings; and final cumulative evidence.
+Backend slices reconcile every production owner and prerequisite needed by the
+selected bundle. Design slices integrate that exact backend history, execute the
+complete visible workflow, fix every design-owned defect encountered in that
+workflow, and attach evidence to every operation the retained execution proves.
+
+After the 97 operations pass, the controller keeps selecting the cumulative
+evidence and exit bundle until every automated scenario has a passed record.
+The final bundle includes the stable clean start, guided core path, visual and
+interaction review, Felicity language review, responsive keyboard/focus and
+semantics checks, adverse-state completion, operation gate, adversarial product
+engineering audit, clean pushed exit gate, and final user-task recording. The
+user-owned acceptance record remains outside worker authority. Slice 128 is the
+next safety boundary; it cannot be used to claim incomplete work as complete.
+
 ## Stop rules
 
 - Do not substitute fixtures, reports, screenshots, JSON, or a browser test for
