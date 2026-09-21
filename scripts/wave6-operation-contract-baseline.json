@@ -790,9 +790,9 @@
     },
     {
       "operation_id": "petra.inspect-context",
-      "owner": "communication-read",
-      "owner_status": "partial",
-      "missing_owner": "PresentationContext binding among exact semantic result, visible scene/text peer, model input, and explanation."
+      "owner": "model-readiness",
+      "owner_status": "owned",
+      "missing_owner": ""
     },
     {
       "operation_id": "petra.inspect-references",

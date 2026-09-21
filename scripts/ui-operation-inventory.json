@@ -1265,6 +1265,11 @@
           "command": "npm run test:wave6:work-ui",
           "artifact": "reports/WAVE6-WORK-BROWSER-OBSERVATION.json",
           "boundary": "After deliberate detach, the invoked production browser trace reads canonical Work operations and reconnects the same retained Work identity without starting another attempt. This trace does not claim model InteractionRun reconnect. Design must re-execute the integrated visible workflow before this row becomes live."
+        },
+        {
+          "command": "npm run test:wave6:actual-model-ui",
+          "artifact": "reports/WAVE6-MODEL-FAILURE-RECONNECT-BROWSER-OBSERVATION.json",
+          "boundary": "After an intentionally unconfirmed certified-model response, the production Petra route preserves the exact thread, run, connection, Work, Project context, draft, and task return across reload, then reconnects through the authenticated replay query without starting another Work or provider attempt. The paired actual-provider trace owns fresh PostgreSQL success; design must re-execute the integrated visible workflow before this row becomes live."
         }
       ],
       "runtime_owner": "ProjectWorkClient.readOperations -> GET /api/queries/projects/:projectId/work/:workUnitId/operations; PetraInteractionClient.replay -> GET /api/interactions/:runId for interaction-backed Work delivery",
@@ -1286,6 +1291,11 @@
           "command": "npm run test:wave6:work-ui",
           "artifact": "reports/WAVE6-WORK-BROWSER-OBSERVATION.json",
           "boundary": "The invoked production browser trace replays the exact retained Work operation delivery through authenticated reads without a duplicate Work effect. This trace does not claim certified-model replay. Design must re-execute the integrated visible workflow before this row becomes live."
+        },
+        {
+          "command": "npm run test:wave6:actual-model-ui",
+          "artifact": "reports/WAVE6-MODEL-FAILURE-RECONNECT-BROWSER-OBSERVATION.json",
+          "boundary": "The production Petra route replays one exact retained certified-model InteractionRun after an unconfirmed response, renders the confirmed provider failure and retained Work stages, and records one interaction POST, one replay GET, one provider attempt, one Work start, and no duplicate provider effect. The adverse runtime is deliberately in-process; design must re-execute the integrated visible workflow before this row becomes live."
         }
       ],
       "runtime_owner": "ProjectWorkClient.readOperations plus PetraInteractionClient.replay -> authenticated GET /api/interactions/:runId -> PetraInteractionRuntime/PostgresInteractionAuthorityRepository; replay cannot submit Work or model input",
@@ -1418,7 +1428,7 @@
       "control": "Open Petra",
       "interaction": "navigation",
       "evidence": [],
-      "runtime_owner": "",
+      "runtime_owner": "Design-owned task navigation binds the server-supplied Project, originating task, and exact return; retained Petra context resolves through GET /api/queries/projects/:projectId/threads/:projectThreadId -> PostgresProjectThreadViewReader and GET /api/queries/projects/:projectId/model-readiness -> PostgresProjectModelReadinessReader",
       "paths": ["UX-PATH-01", "UX-PATH-02"]
     },
     {
@@ -1432,7 +1442,13 @@
       "route": "/projects/:projectId/petra",
       "control": "Resume thread",
       "interaction": "navigation",
-      "evidence": [],
+      "evidence": [
+        {
+          "command": "npm run test:wave6:actual-model-ui",
+          "artifact": "reports/WAVE6-MODEL-FAILURE-RECONNECT-BROWSER-OBSERVATION.json",
+          "boundary": "The production Petra route retains the edited draft plus exact thread, run, connection, Work, Project context, and task return across reload, then exposes and executes Reconnect and replay against the retained run without duplicate execution. The trace enters the retained route by reload rather than the integrated originating Resume-thread control, so design must execute that navigation before this row becomes live."
+        }
+      ],
       "runtime_owner": "sessionStorage Project draft/run identity + GET /api/interactions/:runId -> PetraInteractionRuntime durable replay",
       "paths": ["UX-PATH-01", "UX-PATH-02"]
     },
@@ -1447,7 +1463,13 @@
       "route": "/projects/:projectId/petra",
       "control": "Send",
       "interaction": "command",
-      "evidence": [],
+      "evidence": [
+        {
+          "command": "npm run test:wave6:actual-model-ui",
+          "artifact": "reports/WAVE6-ACTUAL-MODEL-UI-TRACE.json",
+          "boundary": "Fresh PostgreSQL and the production React Petra composer execute Ask Petra with the exact registered Project question and immutable ContextPacket/EvidencePacket through one certified provider request, persist one durable no-authority terminal, and render the response. Design must re-execute this control after integrating the exact backend commit before this row becomes live."
+        }
+      ],
       "runtime_owner": "POST /api/interactions/run -> ProjectModelClient + PetraInteractionRuntime guarded by PostgresProjectModelReadinessReader",
       "paths": ["UX-PATH-01", "UX-PATH-02"]
     },
@@ -1462,7 +1484,13 @@
       "route": "/projects/:projectId/petra",
       "control": "Context disclosure",
       "interaction": "query",
-      "evidence": [],
+      "evidence": [
+        {
+          "command": "npm run test:wave6:actual-model-ui",
+          "artifact": "reports/WAVE6-ACTUAL-MODEL-UI-TRACE.json",
+          "boundary": "The production model-readiness read and Petra disclosure render the current Project revision, snapshot, certified role/deployment, exact ContextPacket and EvidencePacket identities, registered prompt policy, delivery mode, and no-authority boundary before submission. Design must re-execute the integrated disclosure before this row becomes live."
+        }
+      ],
       "runtime_owner": "GET /api/queries/projects/:projectId/model-readiness -> PostgresProjectModelReadinessReader",
       "paths": ["UX-PATH-01", "UX-PATH-02", "UX-PATH-04"]
     },
@@ -1477,7 +1505,13 @@
       "route": "/projects/:projectId/petra",
       "control": "Response basis",
       "interaction": "query",
-      "evidence": [],
+      "evidence": [
+        {
+          "command": "npm run test:wave6:actual-model-ui",
+          "artifact": "reports/WAVE6-ACTUAL-MODEL-UI-TRACE.json",
+          "boundary": "The provider-backed Petra response renders statement origins, limitations, ContextPacket, EvidencePacket, GroundedResponse, model deployment, role certification, snapshot, Work destination, Review effect, and exact Brief return from the durable terminal. Design must re-execute the integrated disclosure before this row becomes live."
+        }
+      ],
       "runtime_owner": "POST /api/interactions/run terminal -> grounded ContextPacket, EvidencePacket, origin, coverage, Work, and authority bindings",
       "paths": ["UX-PATH-01", "UX-PATH-02", "UX-PATH-04"]
     },
@@ -1560,7 +1594,13 @@
       "route": "/projects/:projectId/petra",
       "control": "Model status",
       "interaction": "query",
-      "evidence": [],
+      "evidence": [
+        {
+          "command": "npm run test:wave6:actual-model-ui",
+          "artifact": "reports/WAVE6-ACTUAL-MODEL-UI-TRACE.json",
+          "boundary": "Against a fresh store with no cached model execution, the authenticated production readiness query selects the registered scientific grounded-synthesist role, confirms the managed provider and exact model are ready, and binds the current Project, immutable packets, snapshot, certification, registered prompt, delivery, and no-authority effect. Design must re-execute the integrated status control before this row becomes live."
+        }
+      ],
       "runtime_owner": "GET /api/queries/projects/:projectId/model-readiness -> PostgresProjectModelReadinessReader",
       "paths": ["UX-PATH-01", "UX-PATH-02"]
     },
@@ -1575,7 +1615,13 @@
       "route": "/projects/:projectId/petra",
       "control": "Send",
       "interaction": "command",
-      "evidence": [],
+      "evidence": [
+        {
+          "command": "npm run test:wave6:actual-model-ui",
+          "artifact": "reports/WAVE6-ACTUAL-MODEL-UI-TRACE.json",
+          "boundary": "The production React Petra composer submits the exact registered question and server-read immutable context to the configured certified external provider, streams progress, persists exactly one ModelRequest, ModelCall, GroundedResponse, InteractionRun, and delivery record, and renders the provider result with no Project authority effect. Design must re-execute the integrated control before this row becomes live."
+        }
+      ],
       "runtime_owner": "POST /api/interactions/run -> ProjectModelClient + certified Codex grounded-synthesis runtime",
       "paths": ["UX-PATH-01", "UX-PATH-02"]
     },

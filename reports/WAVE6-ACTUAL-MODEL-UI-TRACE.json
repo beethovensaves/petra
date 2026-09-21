@@ -19,10 +19,10 @@
   },
   "browser": {
     "scenario": "UX1.6-MODEL/actual-certified-model-ui-path",
-    "url": "http://127.0.0.1:64816/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/petra?return_to=%2Fprojects%2Fproject_01ARZ3NDEKTSV4RRFFQ69G5FAW%2Fbrief&return_label=Brief",
+    "url": "http://127.0.0.1:52854/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/petra?return_to=%2Fprojects%2Fproject_01ARZ3NDEKTSV4RRFFQ69G5FAW%2Fbrief&return_label=Brief",
     "prompt": "What does the selected study report, and what limits the claim?",
     "readiness": "Certified model roleGrounded synthesistA certified advisory model role bound to exact Project context.ReadyProviderThe certified model is available through Petra's managed ChatGPT session. gpt-5.6-terraProject contextProject revision 1 · snapshot event 3DeliveryStreaming response with durable replayAuthorityNo authority effectModel identity and exact contextRegistered rolescientific.grounded-synthesist · gpt-5.6-terraRole certificationrole_certification_2QNNWEG32XSDY4HWQW209N9T86Context packetcontext_packet_01ARZ3NDEKTSV4RRFFQ69G5FCDEvidence packetevidence_packet_01ARZ3NDEKTSV4RRFFQ69G5FCGThis model role is advisory. Its response does not create facts, permission, approval, or authoritative Project state.The certified runtime accepts only the registered grounded-synthesis prompt and exact immutable Project context shown here.Model output is presented only after schema and grounding validation; malformed or ungrounded output fails closed.",
-    "answer": "H01 — The selected study reports a measurable improvement on its evaluation task\n\nWhat the source reports\nThe study reports a measurable improvement in the reported metric for its study-defined evaluation task. [Evidence 2]\nLimits: This records reviewed source attribution, not independent proof that the reported claim is true.\n\nPetra’s bounded synthesis\nWithin this packet, the selected claim and its ASSERTS relation establish that the study reports measurable improvement on the study-defined task; the packet does not specify the unreported scope dimensions. [Evidence 1, 2]\nLimits: Do not generalize beyond the study-defined task and reported outcome.\n\nWhat remains unresolved\nIt remains unresolved whether the reported improvement generalizes beyond the study-defined task. New evidence from evaluations or experiments across the currently unreported population, language, model family, dataset, intervention or exposure, comparator, setting, and temporal boundary would resolve this inference. [Evidence 1, 2]\nLimits: The selected records leave the relevant scope dimensions unreported.\nTo resolve it: Conduct or provide evaluations that test the reported outcome beyond the study-defined task across the unreported scope dimensions.\n\nEvidence boundary\nEvery object in the bounded ContextPacket is accounted for; this is not a claim of literature completeness. Coverage: complete_for_context.",
+    "answer": "H01 — The selected study reports a measurable improvement on its evaluation task\n\nWhat the source reports\nThe study reports a measurable improvement in the reported metric for its study-defined evaluation task. [Evidence 2]\nLimits: This records reviewed source attribution, not independent proof that the claim is true.\n\nPetra’s bounded synthesis\nWithin the reported task and outcome, the packet establishes that the study authors reported a measurable improvement; it does not specify the population, language, model family, dataset, intervention, comparator, setting, or temporal boundary. [Evidence 1, 2]\nLimits: Do not generalize beyond the study-defined task and reported outcome.\n\nWhat remains unresolved\nWhether the reported measurable improvement generalizes beyond the study-defined task remains unresolved. [Evidence 1, 2]\nLimits: The relevant dimensions beyond the reported task are unreported in this packet.\nTo resolve it: New evaluation evidence testing the result across explicitly defined populations, languages, model families, datasets, interventions, comparators, settings, and temporal boundaries would resolve this inference.\n\nEvidence boundary\nEvery object in the bounded ContextPacket is accounted for; this is not a claim of literature completeness. Coverage: complete_for_context.",
     "progress": [
       "Cancellable grounded work registeredRunning",
       "Finding a bounded evidence pathRetrieval · Running",
@@ -49,7 +49,7 @@
       "Role certification": "role_certification_2QNNWEG32XSDY4HWQW209N9T86",
       "Snapshot": "snapshot_01ARZ3NDEKTSV4RRFFQ69G5FCE"
     },
-    "work_destination": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/work/work_unit_45GTFQHGTP2AA6BCGYP7HZPSEJ",
+    "work_destination": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/work/work_unit_3M8KXX9QJGDH5MHRKY2D3RM5NS",
     "review_effect": "No Review request was returned",
     "return_destination": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/brief",
     "execution_source": "Provider",
@@ -64,6 +64,57 @@
       "readiness_reads": 1,
       "interaction_posts": 1,
       "submitted_exact_context": true
+    },
+    "recovery": {
+      "scenario": "UX1.6-MODEL/failure-reconnect-draft-preservation",
+      "url": "http://127.0.0.1:52821/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/petra?return_to=%2Fprojects%2Fproject_01ARZ3NDEKTSV4RRFFQ69G5FAW%2Fwork%2Fwork_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2&return_label=Work",
+      "boundary": {
+        "surface": "production React Petra route and composer",
+        "readiness_source": "live Project model-readiness query",
+        "failure_source": "production certified grounded-synthesis runtime with a deterministic unavailable-provider port",
+        "disconnect_source": "browser proxy replaced only the initial response with a 502 transport failure after the runtime reached its failed terminal",
+        "persistence_limit": "the adverse runtime retains replay and Work identity in-process; the separate actual-provider trace owns PostgreSQL provider-success evidence"
+      },
+      "draft": {
+        "edited_value": "What does the selected study report, and what limits the claim?\n\nKeep this local note through recovery.",
+        "retained_across_reload": true,
+        "restored_registered_prompt": "What does the selected study report, and what limits the claim?",
+        "retained_through_disconnect_and_replay": "What does the selected study report, and what limits the claim?\n\nKeep this local note through recovery.",
+        "restored_after_confirmed_failure_for_new_run": "What does the selected study report, and what limits the claim?"
+      },
+      "context": {
+        "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+        "context_packet_id": "context_packet_01ARZ3NDEKTSV4RRFFQ69G5FCD",
+        "evidence_packet_id": "evidence_packet_01ARZ3NDEKTSV4RRFFQ69G5FCG",
+        "snapshot_id": "snapshot_01ARZ3NDEKTSV4RRFFQ69G5FCE",
+        "role_certification_id": "role_certification_2QNNWEG32XSDY4HWQW209N9T86"
+      },
+      "retained_identity": {
+        "threadId": "thread_01M3272QM1DMYNQW3YCA4F3N9X",
+        "runId": "run_01M3272QM29ASBGRBFRKJRZKTK",
+        "connectionId": "interaction_connection_01M3272QM2J5X1Y8R6BSCK5C4H",
+        "work_unit_id": "work_unit_3CCV0021CFSHNBBP41JYFY6EK4",
+        "runtime_status_after_replay": "failed"
+      },
+      "initial_delivery": {
+        "state": "unconfirmed",
+        "recovery_presented": true
+      },
+      "replay": {
+        "state": "failed",
+        "message": "Certified responseResponse failedCertified provider unavailable by deliberate Wave 6 recovery injection.Response progressCancellable grounded work registeredRunningFinding a bounded evidence pathRetrieval · RunningBounded evidence path selectedRetrieval · CompletedImmutable evidence packet readyPacket compilation · CompletedRunning the certified synthesistModel execution · RunningCertified synthesist call completedModel execution · Completed",
+        "new_run_control_after_confirmed_failure": true,
+        "new_run_requires_registered_prompt": true
+      },
+      "api": {
+        "interaction_posts": 1,
+        "replay_gets": 1,
+        "provider_thread_attempts": 1,
+        "work_starts": 1,
+        "submitted_exact_context": true,
+        "duplicate_provider_effect": false
+      },
+      "return_destination": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/work/work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2"
     }
   },
   "durable": {
@@ -72,7 +123,7 @@
     "grounded_responses": 1,
     "interaction_runs": 1,
     "interaction_delivery_records": 1,
-    "provider_request_id": "01a0bb84-63fa-74b1-887d-9d905872acd5",
+    "provider_request_id": "01a0c471-7269-7e33-a650-b39d46e50d66",
     "model_call_id": "model_call_34EMJF50M0NHVMQA3D6187NS4R",
     "grounded_response_id": "grounded_response_0R812XV7Z34417E3M3F49QNE0A"
   }

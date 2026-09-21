@@ -2,7 +2,7 @@
   "evidence_id": "UX1.6-WORK",
   "scenario_id": "start-input-steer-cancel-retry",
   "status": "passed",
-  "executed_at": "2026-09-21T11:03:38.189Z",
+  "executed_at": "2026-09-21T14:39:25.381Z",
   "command": "npm run test:wave6:work",
   "database": "fresh disposable PostgreSQL 18.6 with Flyway V001-V058",
   "production_boundary": {
