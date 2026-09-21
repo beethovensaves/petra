@@ -156,8 +156,14 @@
       "route": "/projects/:projectId",
       "control": "Project navigation",
       "interaction": "navigation",
-      "evidence": [],
-      "runtime_owner": "",
+      "evidence": [
+        {
+          "command": "npm run test:wave6:shell-navigation",
+          "artifact": "reports/WAVE6-SHELL-NAVIGATION-AUTHORITY.json",
+          "boundary": "Real disposable PostgreSQL, the production HTTP server, bearer authentication, and ProjectShellClient prove that repeated Project-place context reads retain one exact Project, registered definition, current Objective, authority position, projection state, attention, supported-place order, and honest place summaries. The server rejects a client-supplied place override because browser place selection is presentation state, not backend authority. This trace does not invoke Project navigation, change a browser route, preserve browser-local focus or selection, or prove return to origin; those visible SP02 and UX-FLOW-07 behaviors remain design-owned."
+        }
+      ],
+      "runtime_owner": "GET /api/queries/projects/:projectId/shell -> ProjectShellViewReader.getProjectShellView -> PostgresProjectShellViewReader (authenticated REPEATABLE READ Project context and registered place summaries); the browser router owns place selection and visible navigation",
       "paths": ["UX-PATH-01", "UX-PATH-02", "UX-PATH-03", "UX-PATH-04"]
     },
     {

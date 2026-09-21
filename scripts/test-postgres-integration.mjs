@@ -160,6 +160,28 @@ try {
     );
     process.stdout.write(projectSwitchEvidence.stdout);
   }
+  if (process.env.PETRA_WAVE6_SHELL_NAVIGATION_EVIDENCE_OUTPUT !== undefined) {
+    const shellNavigationEvidence = await requireRun(
+      "npm",
+      [
+        "test",
+        "--workspace",
+        "@petra/server",
+        "--",
+        "project-shell-navigation-integration.test.ts",
+      ],
+      {
+        env: {
+          PETRA_TEST_POSTGRES_URL: `postgresql://petra:petra-m12-integration-only@127.0.0.1:${port}/petra`,
+          PETRA_WAVE6_SHELL_NAVIGATION_EVIDENCE_OUTPUT: resolve(
+            root,
+            process.env.PETRA_WAVE6_SHELL_NAVIGATION_EVIDENCE_OUTPUT,
+          ),
+        },
+      },
+    );
+    process.stdout.write(shellNavigationEvidence.stdout);
+  }
   if (process.env.PETRA_WAVE6_PROJECT_CREATE_EVIDENCE_OUTPUT !== undefined) {
     const projectCreateEvidence = await requireRun(
       "npm",
