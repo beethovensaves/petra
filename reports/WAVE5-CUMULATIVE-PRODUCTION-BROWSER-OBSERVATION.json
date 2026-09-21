@@ -4,13 +4,13 @@
   "wave": 5,
   "slice": 22,
   "status": "passed",
-  "executed_at": "2026-09-16T14:45:24.844Z",
+  "executed_at": "2026-09-21T03:09:42.388Z",
   "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave5:browser",
   "environment": {
     "node": "24.20.0",
     "browser": {
-      "product": "Chrome/152.0.7977.84",
-      "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/152.0.0.0 Safari/537.36",
+      "product": "Chrome/153.0.8010.48",
+      "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
       "protocol_version": "1.3"
     },
     "platform": "darwin",
@@ -46,8 +46,8 @@
     },
     "ux_fx25": {
       "command": "node apps/workbench/test/wave5-adverse-browser.mjs",
-      "artifact_sha256": "sha256:4ad6d99cf0c7fa693a3d9eaf547000c9bc2d33c88c6e242136626ef374218c8e",
-      "browser": "Chrome/152.0.7977.84",
+      "artifact_sha256": "sha256:e7e5ae8be32f857d443c1edc4b44510312e9187319c6bf9853e8bcb714662353",
+      "browser": "Chrome/153.0.8010.48",
       "boundary": "Real isolated Chrome over production focused-graph components with deterministic injected typed transport. Used for adverse ordering, omissions, correction-preview convergence, and supplied-impact presentation; not relabeled as a live backend trace."
     },
     "live_routes": {
@@ -58,26 +58,49 @@
         "status": "passed",
         "route_boundary": "Production React Router loaders and controllers in isolated headless Chrome over authenticated live server routes backed by the disposable PostgreSQL and Neo4j stores.",
         "pre_apply_review_target": {
-          "duration_ms": 347.41,
-          "action_target_sha256": "sha256:4762a4a791e860c0ebbac07dc891fe53885aec6af5f1f46663c02abfd3148664"
+          "duration_ms": 1757.63,
+          "action_target_sha256": "sha256:1209ea39a039eb1bf8718e29e236294478f65d0efdd4026f2359f954cb644cbe",
+          "correction_preview": {
+            "graph_duration_ms": 1911.876,
+            "live_route_availability": "preview_executed",
+            "open_review_session_id": "review_session_01K4D000000000000000000004",
+            "review_member_id": "review_member_73XZTG07J43ED75B7CG77CGRD6",
+            "working_relationship_ref": {
+              "working_relationship_id": "working_relationship_5MV0X9MX2PGD1T6W4AE42AC5DT",
+              "revision": 3,
+              "content_hash": "sha256:3ff96875ba9412f8d0f90b386dc2513b07c9ee80e550ce6b2e1894bc804b90f6"
+            },
+            "returned_relationship_ref": {
+              "element_id": "working_relationship_5MV0X9MX2PGD1T6W4AE42AC5DT",
+              "revision": 3,
+              "record_hash": "sha256:48bc49a6e6f464274caeb7fe4171c589bb7c8642b2d0f9108c12d386d9dc3d8d"
+            },
+            "graph_content_hash": "sha256:4d96bb18a3928ac06c7b3780ab00bfb3c1ed70042092a4e6cc6caead3fb681a5",
+            "preview_content_hash": "sha256:918a72e6a9af222184587fa1be9bd3a2700399be8c4ebe79a5591fc63cd9ac31",
+            "preview_trigger_focus_restored": true,
+            "exact_review_member_returned": true,
+            "exact_review_focus_restored": true,
+            "review_authority_unchanged": true,
+            "command_issued": false
+          }
         },
         "focused_graph": {
           "browser": {
-            "product": "Chrome/152.0.7977.84",
-            "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/152.0.0.0 Safari/537.36",
+            "product": "Chrome/153.0.8010.48",
+            "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
             "protocol_version": "1.3"
           },
           "route_transport": "live authenticated HTTP through the production server",
           "timings_ms": {
-            "contextual_graph_ms": 574.925,
-            "direct_graph_ms": 566.974,
-            "historical_ms": 575.058,
-            "impact_ms": 578.813
+            "contextual_graph_ms": 1914.674,
+            "direct_graph_ms": 1781.733,
+            "historical_ms": 1756.813,
+            "impact_ms": 1770.012
           },
           "calls": {
-            "focused_graph": 14,
+            "focused_graph": 18,
             "details": 1,
-            "action_preview": 0,
+            "action_preview": 2,
             "analysis": 3
           },
           "contextual_entry": {
@@ -95,16 +118,16 @@
               "maximum_paths": 24
             },
             "requested_snapshot": {
-              "snapshot_id": "snapshot_3JVWFTVQZSRCHAW57JWT9RX4K8",
+              "snapshot_id": "snapshot_30PC193N76WDK110VP4K73GEXT",
               "revision": 1,
               "event_position": 9,
-              "content_hash": "sha256:c15da237fa8e39e526c182707f4daf8573ccdecc1683e24a8be421902e733444"
+              "content_hash": "sha256:62c2482586431a7b2d9fac64d6d87af15a3309c3bfa080d222d5503d61f8bf83"
             },
             "return_path": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/review/review_session_01K4D000000000000000000004#review-decision-title"
           },
           "direct_entry": {
             "origin": "direct",
-            "content_hash": "sha256:fdfb397ee732ff2f0759c270e775d633be61ecb22d6cfb8f10fd253975964acb"
+            "content_hash": "sha256:9c28918c3afeddcf5a504ae34d7d0af5ad23405fdae5af20f4ff52061cdfc945"
           },
           "relation_review": {
             "relationship_count": 5,
@@ -126,15 +149,15 @@
             ]
           },
           "provenance_review": {
-            "details_content_hash": "sha256:8991255ce5d6d8b74b0772cf0485490011f0da88ecef1a5d5b4a9ee9da1aeabf",
+            "details_content_hash": "sha256:3be8e8710effc8f03971838d13d40f6dd40d550124618ca17e66a2732a1ecef6",
             "exact_source_inspections": 1,
             "inspected_source_state": "available",
             "source_states": ["available"],
             "requested_snapshot": {
-              "snapshot_id": "snapshot_3JVWFTVQZSRCHAW57JWT9RX4K8",
+              "snapshot_id": "snapshot_30PC193N76WDK110VP4K73GEXT",
               "revision": 1,
               "event_position": 9,
-              "content_hash": "sha256:c15da237fa8e39e526c182707f4daf8573ccdecc1683e24a8be421902e733444"
+              "content_hash": "sha256:62c2482586431a7b2d9fac64d6d87af15a3309c3bfa080d222d5503d61f8bf83"
             },
             "projection_position": {
               "authority_source": "postgresql",
@@ -143,7 +166,7 @@
               "checkpoint_ref": {
                 "record_id": "projection_checkpoint_01ARZ3NDEKTSV4RRFFQ69G5FC9",
                 "revision": 2,
-                "record_hash": "sha256:f5eda1e3618b7dc4d929351dd6cb16cd28e97eb4249adfb42c3585f774762672"
+                "record_hash": "sha256:61b5e6d9c3ce1ee9cf61167374c9cb905e44223d730df8a243c99a86558ca5df"
               },
               "represented_event_position": 3,
               "observed_event_position": 9,
@@ -154,7 +177,7 @@
           },
           "graph_text_parity": {
             "relationship_count": 5,
-            "normalized_facts_sha256": "sha256:b731f9798e6b98fa36e71413bfc7d77acc3ffcee764539e41c3dd1d21154eabb",
+            "normalized_facts_sha256": "sha256:02624ff7a3fb64f905dba48bee40067ac30a157cdef579239c76ffb5d4de1660",
             "exact_match": true
           },
           "focus": {
@@ -163,59 +186,163 @@
             "details_heading": true,
             "source_summary": true,
             "details_return": true,
-            "context_return": true
+            "context_return": true,
+            "expansion_context_return": true
           },
           "correction_preview": {
-            "graph_duration_ms": 748.922,
-            "live_route_availability": "not_in_bounded_result",
+            "graph_duration_ms": 1911.876,
+            "live_route_availability": "preview_executed",
             "open_review_session_id": "review_session_01K4D000000000000000000004",
-            "review_relationship_ids": [
-              "working_relationship_5MV0X9MX2PGD1T6W4AE42AC5DT"
-            ],
-            "returned_relationship_ids": [
-              "working_relationship_3VGZWGYA7TM6BY3MC96TTF24R3",
-              "working_relationship_1VPE3DSXKTKWAZ04XJY4HGDYJC",
-              "working_relationship_3FC7DS1773FAAWWSHNF463AHVN",
-              "working_relationship_74MKC22KTMH8WWJWW99J1ZE7EJ",
-              "working_relationship_6D6BQK0VACMEMKXDKB7JAWSXK5"
-            ],
-            "graph_content_hash": "sha256:ac2aac51caf69b37182c83b1d61f5dd48a4a1437f90c317070bd2c8f07138b30",
-            "executed_supplement": "UX-FX25 deterministic production-controller browser boundary"
+            "review_member_id": "review_member_73XZTG07J43ED75B7CG77CGRD6",
+            "working_relationship_ref": {
+              "working_relationship_id": "working_relationship_5MV0X9MX2PGD1T6W4AE42AC5DT",
+              "revision": 3,
+              "content_hash": "sha256:3ff96875ba9412f8d0f90b386dc2513b07c9ee80e550ce6b2e1894bc804b90f6"
+            },
+            "returned_relationship_ref": {
+              "element_id": "working_relationship_5MV0X9MX2PGD1T6W4AE42AC5DT",
+              "revision": 3,
+              "record_hash": "sha256:48bc49a6e6f464274caeb7fe4171c589bb7c8642b2d0f9108c12d386d9dc3d8d"
+            },
+            "graph_content_hash": "sha256:4d96bb18a3928ac06c7b3780ab00bfb3c1ed70042092a4e6cc6caead3fb681a5",
+            "preview_content_hash": "sha256:918a72e6a9af222184587fa1be9bd3a2700399be8c4ebe79a5591fc63cd9ac31",
+            "preview_trigger_focus_restored": true,
+            "exact_review_member_returned": true,
+            "exact_review_focus_restored": true,
+            "review_authority_unchanged": true,
+            "command_issued": false
           },
           "positions": {
-            "current": "sha256:e7f3e2f0b642f3c11e1915bb9e16e3b704bb83c99116dacdf4098ededf30bbf5",
-            "working": "sha256:25fb7b1954f3ef38b1a6f498051a4e0d9705417af7d4920f4a5dfcbedd3f9483",
-            "historical": "sha256:6fcc283980cd1f4e8198633782e270d934c6620c1a2d76a449f4b0a4044ec7e5",
-            "historical_recorded_at": "2026-09-16T14:44:45.992Z",
-            "comparison": "sha256:9afb75b8e4040b0a7fbdb41efd5ce95fef762579d585e4633cd273b6bf82ad1b",
+            "current": "sha256:cdddc608b2b6f731d1ecbde6c152c9bcca8d1cc13ab37960e62ef60b8f3575eb",
+            "working": "sha256:fda93cf7270f87d73b9bf5810bb39123d62c4d24eaa549586fa93367c51dfb19",
+            "historical": "sha256:c3cb496890aa34c9a1078bbb0f341f93f460d4287ccdaf8c5f27b9eb4954e6e9",
+            "historical_recorded_at": "2026-09-21T03:08:33.974Z",
+            "comparison": "sha256:fdf8f9d3230c9b1be7e637c92a69b64e2d4438d5091f78d5567a7deb351795a6",
             "impact": {
               "live_route_state": "passed",
-              "content_hash": "sha256:55e105e284a5803df303e209d03cc899026aa123c0a59c2471b2b151cbf3746e",
-              "event_id": "event_01M2NATSS9BRVNRK2VQE6F10PT",
+              "content_hash": "sha256:0008ccda8ab2c340d007e3d32c7e74b8d41c80acbf7efa7b9857df1e486f0549",
+              "event_id": "event_01M30YZKSP76ZKDHG9YBYJPKPP",
               "assessed_consequences": {
                 "state": "unavailable",
                 "coverage": "not_assessed",
                 "reason": "No exact Review member was bound to this impact request, so assessed consequences are unavailable."
               }
             },
-            "impact_event_id": "event_01M2NATSS9BRVNRK2VQE6F10PT",
-            "time": "sha256:1625ae9b4d81b27c4174368b4eec64b841ecf57584815bd5bfa33a6c863a6d13"
+            "impact_event_id": "event_01M30YZKSP76ZKDHG9YBYJPKPP",
+            "time": "sha256:a9e0517bcc014baaf9c4a66c7d7ef3693e2a75796db6736213eea81de7e2e9cb"
           },
           "expansion": {
-            "live_availability": "not_registered_for_exact_profile_and_layer",
-            "fail_closed_message": "No compatible named expansion is registered for this exact profile and semantic layer.",
+            "live_availability": "registered_and_executed",
+            "registration": {
+              "semantic_key": "scientific.graph.show-downstream",
+              "label": "Show downstream effects",
+              "contract": "petra.focused-graph-view@1.1.0"
+            },
+            "request": {
+              "request_id": "focused_graph_request_01M30Z0T8BB43GN4ZBX14VV9P4",
+              "expected_snapshot": {
+                "snapshot_id": "snapshot_30PC193N76WDK110VP4K73GEXT",
+                "revision": 1,
+                "event_position": 9,
+                "content_hash": "sha256:62c2482586431a7b2d9fac64d6d87af15a3309c3bfa080d222d5503d61f8bf83"
+              },
+              "target_ref": {
+                "record_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+                "revision": 2,
+                "record_hash": "sha256:f6147c6ffc63a7cad0412bb76c82ae620e91faadd37a3f1296788f4c80377d68"
+              },
+              "maximum_depth": 3,
+              "filters": {
+                "meaning_kinds": ["support"],
+                "directions": ["outgoing"],
+                "origins": ["canonical_record"]
+              },
+              "return_destination": {
+                "destination_key": "destination:review:claim_6x7aypk94k95fgker2jc6vzgef",
+                "destination_kind": "review",
+                "owner": "project_review_view",
+                "label": "Review",
+                "state": "available",
+                "target_ref": {
+                  "record_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+                  "revision": 2,
+                  "record_hash": "sha256:f6147c6ffc63a7cad0412bb76c82ae620e91faadd37a3f1296788f4c80377d68"
+                }
+              }
+            },
+            "response": {
+              "content_hash": "sha256:fafff4b2a12f395a2b9837069dece8325cd05529f88c47e566d5f0343fc7fd03",
+              "represented_snapshot": {
+                "snapshot_id": "snapshot_22887WA049VPRNJ3BMQJVB7GRK",
+                "revision": 1,
+                "event_position": 3,
+                "content_hash": "sha256:7fff63d27a6c595df54f557e3d2b4f7313a8a06d82f61b1b46671618d638e3dd"
+              },
+              "result_state": "complete_for_scope",
+              "accounting": {
+                "result_state": "complete_for_scope",
+                "capped_members": { "state": "exact", "value": 0 },
+                "hidden_relationships": { "state": "exact", "value": 5 },
+                "restricted_paths": { "state": "not_disclosed" },
+                "cycle_paths": { "state": "exact", "value": 0 },
+                "incomplete_paths": { "state": "exact", "value": 0 },
+                "unknown_paths": { "state": "unknown" }
+              },
+              "groups": [
+                {
+                  "group_key": "group:relationship-meaning:current:support",
+                  "label": "Support — Current",
+                  "returned_count": 0,
+                  "filtered_count": { "state": "exact", "value": 0 },
+                  "hidden_count": { "state": "exact", "value": 0 },
+                  "coverage": "complete_for_scope"
+                },
+                {
+                  "group_key": "group:relationship-meaning:working:support",
+                  "label": "Support — Working",
+                  "returned_count": 0,
+                  "filtered_count": { "state": "exact", "value": 0 },
+                  "hidden_count": { "state": "exact", "value": 0 },
+                  "coverage": "complete_for_scope"
+                }
+              ],
+              "omissions": [
+                {
+                  "omission_kind": "filtered",
+                  "description": "Recorded candidate relationships outside the registered recipe or normalized filters are hidden from this returned membership; this does not assert absence.",
+                  "count": { "state": "exact", "value": 5 }
+                },
+                {
+                  "omission_kind": "restricted",
+                  "description": "Authorization is rechecked for this expansion. Restricted path names, identities, connections, and counts are not disclosed.",
+                  "count": { "state": "not_disclosed" }
+                },
+                {
+                  "omission_kind": "unknown",
+                  "description": "Paths outside the exact registered recipe, snapshot, layer, filters, and finite limits remain unknown and cannot be treated as absent.",
+                  "count": { "state": "unknown" }
+                },
+                {
+                  "omission_kind": "out_of_scope",
+                  "description": "Whole-Project traversal, Historical state, unregistered recipes, and records beyond this exact named expansion remain outside scope. Current and Working members retain separate authority positions.",
+                  "count": { "state": "unknown" }
+                }
+              ]
+            },
             "selection_preserved": true,
-            "executed_supplement": "UX-FX25 deterministic adverse browser boundary"
+            "disclosure_rendered": true,
+            "exact_context_return_executed": true,
+            "adverse_supplement": "UX-FX25 deterministic stale, late-response, and omission boundary"
           }
         },
         "projection_lag": {
-          "duration_ms": 563.638,
-          "content_hash": "sha256:25fb7b1954f3ef38b1a6f498051a4e0d9705417af7d4920f4a5dfcbedd3f9483",
+          "duration_ms": 1907.103,
+          "content_hash": "sha256:fda93cf7270f87d73b9bf5810bb39123d62c4d24eaa549586fa93367c51dfb19",
           "requested_snapshot": {
-            "snapshot_id": "snapshot_3JVWFTVQZSRCHAW57JWT9RX4K8",
+            "snapshot_id": "snapshot_30PC193N76WDK110VP4K73GEXT",
             "revision": 1,
             "event_position": 9,
-            "content_hash": "sha256:c15da237fa8e39e526c182707f4daf8573ccdecc1683e24a8be421902e733444"
+            "content_hash": "sha256:62c2482586431a7b2d9fac64d6d87af15a3309c3bfa080d222d5503d61f8bf83"
           },
           "projection_position": {
             "authority_source": "postgresql",
@@ -224,7 +351,7 @@
             "checkpoint_ref": {
               "record_id": "projection_checkpoint_01ARZ3NDEKTSV4RRFFQ69G5FC9",
               "revision": 2,
-              "record_hash": "sha256:f5eda1e3618b7dc4d929351dd6cb16cd28e97eb4249adfb42c3585f774762672"
+              "record_hash": "sha256:61b5e6d9c3ce1ee9cf61167374c9cb905e44223d730df8a243c99a86558ca5df"
             },
             "represented_event_position": 3,
             "observed_event_position": 9,
@@ -233,7 +360,7 @@
           },
           "authority_source": "postgresql"
         },
-        "recorded_at": "2026-09-16T14:45:21.338Z"
+        "recorded_at": "2026-09-21T03:09:38.842Z"
       },
       "boundary": "Production React Router loaders and controllers in isolated headless Chrome over authenticated live server routes backed by the disposable PostgreSQL and Neo4j stores."
     }
@@ -241,7 +368,7 @@
   "support_only": {
     "backend_cumulative_artifact": {
       "path": "reports/WAVE5-PAIRED-PROFILE-CUMULATIVE-OBSERVATION.json",
-      "sha256": "sha256:eef96148b69682104e2b8488f1c9f9c6911b6c74e962a3f1fbbcbfa38dc04b91",
+      "sha256": "sha256:eac9576ce7d171aba184188e26df3a28677aa2b50d64f1545b22eb06d163b0d4",
       "boundary": "Backend evidence only. No browser record is inferred from this artifact."
     },
     "adverse_backend_artifact": {
@@ -305,15 +432,15 @@
       "scenario_id": "provenance-comprehension-review",
       "status": "passed",
       "observation": {
-        "details_content_hash": "sha256:8991255ce5d6d8b74b0772cf0485490011f0da88ecef1a5d5b4a9ee9da1aeabf",
+        "details_content_hash": "sha256:3be8e8710effc8f03971838d13d40f6dd40d550124618ca17e66a2732a1ecef6",
         "exact_source_inspections": 1,
         "inspected_source_state": "available",
         "source_states": ["available"],
         "requested_snapshot": {
-          "snapshot_id": "snapshot_3JVWFTVQZSRCHAW57JWT9RX4K8",
+          "snapshot_id": "snapshot_30PC193N76WDK110VP4K73GEXT",
           "revision": 1,
           "event_position": 9,
-          "content_hash": "sha256:c15da237fa8e39e526c182707f4daf8573ccdecc1683e24a8be421902e733444"
+          "content_hash": "sha256:62c2482586431a7b2d9fac64d6d87af15a3309c3bfa080d222d5503d61f8bf83"
         },
         "projection_position": {
           "authority_source": "postgresql",
@@ -322,7 +449,7 @@
           "checkpoint_ref": {
             "record_id": "projection_checkpoint_01ARZ3NDEKTSV4RRFFQ69G5FC9",
             "revision": 2,
-            "record_hash": "sha256:f5eda1e3618b7dc4d929351dd6cb16cd28e97eb4249adfb42c3585f774762672"
+            "record_hash": "sha256:61b5e6d9c3ce1ee9cf61167374c9cb905e44223d730df8a243c99a86558ca5df"
           },
           "represented_event_position": 3,
           "observed_event_position": 9,
@@ -353,19 +480,19 @@
             "maximum_paths": 24
           },
           "requested_snapshot": {
-            "snapshot_id": "snapshot_3JVWFTVQZSRCHAW57JWT9RX4K8",
+            "snapshot_id": "snapshot_30PC193N76WDK110VP4K73GEXT",
             "revision": 1,
             "event_position": 9,
-            "content_hash": "sha256:c15da237fa8e39e526c182707f4daf8573ccdecc1683e24a8be421902e733444"
+            "content_hash": "sha256:62c2482586431a7b2d9fac64d6d87af15a3309c3bfa080d222d5503d61f8bf83"
           },
           "return_path": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/review/review_session_01K4D000000000000000000004#review-decision-title"
         },
         "direct": {
           "origin": "direct",
-          "content_hash": "sha256:fdfb397ee732ff2f0759c270e775d633be61ecb22d6cfb8f10fd253975964acb"
+          "content_hash": "sha256:9c28918c3afeddcf5a504ae34d7d0af5ad23405fdae5af20f4ff52061cdfc945"
         },
         "focus": { "contextual_heading": true, "exact_return": true },
-        "timings_ms": { "contextual": 574.925, "direct": 566.974 }
+        "timings_ms": { "contextual": 1914.674, "direct": 1781.733 }
       },
       "boundary": "The exact retained Review action target was composed with a projected baseline Claim because the post-Apply Claim had not reached Neo4j. That contextual Review URL and a separately parsed direct URL executed through the production loader and live focused-query route with exact return focus."
     },
@@ -375,32 +502,32 @@
       "status": "passed",
       "observation": {
         "positions": {
-          "current": "sha256:e7f3e2f0b642f3c11e1915bb9e16e3b704bb83c99116dacdf4098ededf30bbf5",
-          "working": "sha256:25fb7b1954f3ef38b1a6f498051a4e0d9705417af7d4920f4a5dfcbedd3f9483",
-          "historical": "sha256:6fcc283980cd1f4e8198633782e270d934c6620c1a2d76a449f4b0a4044ec7e5",
-          "historical_recorded_at": "2026-09-16T14:44:45.992Z",
-          "comparison": "sha256:9afb75b8e4040b0a7fbdb41efd5ce95fef762579d585e4633cd273b6bf82ad1b",
+          "current": "sha256:cdddc608b2b6f731d1ecbde6c152c9bcca8d1cc13ab37960e62ef60b8f3575eb",
+          "working": "sha256:fda93cf7270f87d73b9bf5810bb39123d62c4d24eaa549586fa93367c51dfb19",
+          "historical": "sha256:c3cb496890aa34c9a1078bbb0f341f93f460d4287ccdaf8c5f27b9eb4954e6e9",
+          "historical_recorded_at": "2026-09-21T03:08:33.974Z",
+          "comparison": "sha256:fdf8f9d3230c9b1be7e637c92a69b64e2d4438d5091f78d5567a7deb351795a6",
           "impact": {
             "live_route_state": "passed",
-            "content_hash": "sha256:55e105e284a5803df303e209d03cc899026aa123c0a59c2471b2b151cbf3746e",
-            "event_id": "event_01M2NATSS9BRVNRK2VQE6F10PT",
+            "content_hash": "sha256:0008ccda8ab2c340d007e3d32c7e74b8d41c80acbf7efa7b9857df1e486f0549",
+            "event_id": "event_01M30YZKSP76ZKDHG9YBYJPKPP",
             "assessed_consequences": {
               "state": "unavailable",
               "coverage": "not_assessed",
               "reason": "No exact Review member was bound to this impact request, so assessed consequences are unavailable."
             }
           },
-          "impact_event_id": "event_01M2NATSS9BRVNRK2VQE6F10PT",
-          "time": "sha256:1625ae9b4d81b27c4174368b4eec64b841ecf57584815bd5bfa33a6c863a6d13"
+          "impact_event_id": "event_01M30YZKSP76ZKDHG9YBYJPKPP",
+          "time": "sha256:a9e0517bcc014baaf9c4a66c7d7ef3693e2a75796db6736213eea81de7e2e9cb"
         },
         "projection_lag": {
-          "duration_ms": 563.638,
-          "content_hash": "sha256:25fb7b1954f3ef38b1a6f498051a4e0d9705417af7d4920f4a5dfcbedd3f9483",
+          "duration_ms": 1907.103,
+          "content_hash": "sha256:fda93cf7270f87d73b9bf5810bb39123d62c4d24eaa549586fa93367c51dfb19",
           "requested_snapshot": {
-            "snapshot_id": "snapshot_3JVWFTVQZSRCHAW57JWT9RX4K8",
+            "snapshot_id": "snapshot_30PC193N76WDK110VP4K73GEXT",
             "revision": 1,
             "event_position": 9,
-            "content_hash": "sha256:c15da237fa8e39e526c182707f4daf8573ccdecc1683e24a8be421902e733444"
+            "content_hash": "sha256:62c2482586431a7b2d9fac64d6d87af15a3309c3bfa080d222d5503d61f8bf83"
           },
           "projection_position": {
             "authority_source": "postgresql",
@@ -409,7 +536,7 @@
             "checkpoint_ref": {
               "record_id": "projection_checkpoint_01ARZ3NDEKTSV4RRFFQ69G5FC9",
               "revision": 2,
-              "record_hash": "sha256:f5eda1e3618b7dc4d929351dd6cb16cd28e97eb4249adfb42c3585f774762672"
+              "record_hash": "sha256:61b5e6d9c3ce1ee9cf61167374c9cb905e44223d730df8a243c99a86558ca5df"
             },
             "represented_event_position": 3,
             "observed_event_position": 9,
@@ -427,7 +554,7 @@
       "status": "passed",
       "observation": {
         "relationship_count": 5,
-        "normalized_facts_sha256": "sha256:b731f9798e6b98fa36e71413bfc7d77acc3ffcee764539e41c3dd1d21154eabb",
+        "normalized_facts_sha256": "sha256:02624ff7a3fb64f905dba48bee40067ac30a157cdef579239c76ffb5d4de1660",
         "exact_match": true
       },
       "boundary": "The same live response rendered graph and complete textual peers; normalized relationship facts matched exactly and both exposed scope, destinations, actions, and limitations."
@@ -443,9 +570,11 @@
           "details_heading": true,
           "source_summary": true,
           "details_return": true,
-          "context_return": true
+          "context_return": true,
+          "expansion_context_return": true
         },
         "action_preview_focus": true,
+        "exact_review_focus": true,
         "renderer_recovery": {
           "textual_relationships_retained": 33,
           "exact_selection_retained": "node:claim-0",
@@ -453,7 +582,7 @@
           "project_effect_created": false
         }
       },
-      "boundary": "Keyboard executed contextual entry, Graph/Text alternative, live Details, exact source disclosure, Details return, and exact Review return. UX-FX25 executed action-preview close/focus recovery and production renderer recovery; native screen-reader evaluation remains outside scope."
+      "boundary": "Keyboard executed contextual entry, Graph/Text alternative, live Details, exact source disclosure, Details return, governed-preview close/focus recovery, and exact Review-member return. UX-FX25 executed production renderer recovery; native screen-reader evaluation remains outside scope."
     },
     {
       "evidence_id": "UX1.5-EV03",
@@ -461,10 +590,107 @@
       "status": "passed",
       "observation": {
         "live_expansion": {
-          "live_availability": "not_registered_for_exact_profile_and_layer",
-          "fail_closed_message": "No compatible named expansion is registered for this exact profile and semantic layer.",
+          "live_availability": "registered_and_executed",
+          "registration": {
+            "semantic_key": "scientific.graph.show-downstream",
+            "label": "Show downstream effects",
+            "contract": "petra.focused-graph-view@1.1.0"
+          },
+          "request": {
+            "request_id": "focused_graph_request_01M30Z0T8BB43GN4ZBX14VV9P4",
+            "expected_snapshot": {
+              "snapshot_id": "snapshot_30PC193N76WDK110VP4K73GEXT",
+              "revision": 1,
+              "event_position": 9,
+              "content_hash": "sha256:62c2482586431a7b2d9fac64d6d87af15a3309c3bfa080d222d5503d61f8bf83"
+            },
+            "target_ref": {
+              "record_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+              "revision": 2,
+              "record_hash": "sha256:f6147c6ffc63a7cad0412bb76c82ae620e91faadd37a3f1296788f4c80377d68"
+            },
+            "maximum_depth": 3,
+            "filters": {
+              "meaning_kinds": ["support"],
+              "directions": ["outgoing"],
+              "origins": ["canonical_record"]
+            },
+            "return_destination": {
+              "destination_key": "destination:review:claim_6x7aypk94k95fgker2jc6vzgef",
+              "destination_kind": "review",
+              "owner": "project_review_view",
+              "label": "Review",
+              "state": "available",
+              "target_ref": {
+                "record_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+                "revision": 2,
+                "record_hash": "sha256:f6147c6ffc63a7cad0412bb76c82ae620e91faadd37a3f1296788f4c80377d68"
+              }
+            }
+          },
+          "response": {
+            "content_hash": "sha256:fafff4b2a12f395a2b9837069dece8325cd05529f88c47e566d5f0343fc7fd03",
+            "represented_snapshot": {
+              "snapshot_id": "snapshot_22887WA049VPRNJ3BMQJVB7GRK",
+              "revision": 1,
+              "event_position": 3,
+              "content_hash": "sha256:7fff63d27a6c595df54f557e3d2b4f7313a8a06d82f61b1b46671618d638e3dd"
+            },
+            "result_state": "complete_for_scope",
+            "accounting": {
+              "result_state": "complete_for_scope",
+              "capped_members": { "state": "exact", "value": 0 },
+              "hidden_relationships": { "state": "exact", "value": 5 },
+              "restricted_paths": { "state": "not_disclosed" },
+              "cycle_paths": { "state": "exact", "value": 0 },
+              "incomplete_paths": { "state": "exact", "value": 0 },
+              "unknown_paths": { "state": "unknown" }
+            },
+            "groups": [
+              {
+                "group_key": "group:relationship-meaning:current:support",
+                "label": "Support — Current",
+                "returned_count": 0,
+                "filtered_count": { "state": "exact", "value": 0 },
+                "hidden_count": { "state": "exact", "value": 0 },
+                "coverage": "complete_for_scope"
+              },
+              {
+                "group_key": "group:relationship-meaning:working:support",
+                "label": "Support — Working",
+                "returned_count": 0,
+                "filtered_count": { "state": "exact", "value": 0 },
+                "hidden_count": { "state": "exact", "value": 0 },
+                "coverage": "complete_for_scope"
+              }
+            ],
+            "omissions": [
+              {
+                "omission_kind": "filtered",
+                "description": "Recorded candidate relationships outside the registered recipe or normalized filters are hidden from this returned membership; this does not assert absence.",
+                "count": { "state": "exact", "value": 5 }
+              },
+              {
+                "omission_kind": "restricted",
+                "description": "Authorization is rechecked for this expansion. Restricted path names, identities, connections, and counts are not disclosed.",
+                "count": { "state": "not_disclosed" }
+              },
+              {
+                "omission_kind": "unknown",
+                "description": "Paths outside the exact registered recipe, snapshot, layer, filters, and finite limits remain unknown and cannot be treated as absent.",
+                "count": { "state": "unknown" }
+              },
+              {
+                "omission_kind": "out_of_scope",
+                "description": "Whole-Project traversal, Historical state, unregistered recipes, and records beyond this exact named expansion remain outside scope. Current and Working members retain separate authority positions.",
+                "count": { "state": "unknown" }
+              }
+            ]
+          },
           "selection_preserved": true,
-          "executed_supplement": "UX-FX25 deterministic adverse browser boundary"
+          "disclosure_rendered": true,
+          "exact_context_return_executed": true,
+          "adverse_supplement": "UX-FX25 deterministic stale, late-response, and omission boundary"
         },
         "adverse_accounting": {
           "objects": 32,
@@ -475,18 +701,18 @@
           "restricted_paths": 1,
           "partial_paths": 1,
           "missing_destinations": 1,
-          "first_ready_ms": 424.363,
-          "second_ready_ms": 154.076,
-          "layout_capture_sha256": "sha256:690acdf7e021e3bac52284fb9748d2d14d8b180fb5615f9a871c6cd755f4cf74",
-          "repeated_layout_capture_sha256": "sha256:690acdf7e021e3bac52284fb9748d2d14d8b180fb5615f9a871c6cd755f4cf74",
+          "first_ready_ms": 1001.496,
+          "second_ready_ms": 487.124,
+          "layout_capture_sha256": "sha256:bd9e39f246fef7d92bd88f9b58b394592c5a47858b5c07477c5ef6e0195fae24",
+          "repeated_layout_capture_sha256": "sha256:bd9e39f246fef7d92bd88f9b58b394592c5a47858b5c07477c5ef6e0195fae24",
           "layout_capture_stable": true
         },
         "late_response": {
           "completion_order": [
-            "focused_graph_request_01M2NAT7PP70CSND4E9F0XTTG4",
-            "focused_graph_request_01M2NAT7MBK3RAZBZTJ0W4PAQ9"
+            "focused_graph_request_01M30YYWJQE6NRD9ENKMB9BYJW",
+            "focused_graph_request_01M30YYWG0Z5Q59SGF2ACVEH73"
           ],
-          "accepted_request_id": "focused_graph_request_01M2NAT7PP70CSND4E9F0XTTG4",
+          "accepted_request_id": "focused_graph_request_01M30YYWJQE6NRD9ENKMB9BYJW",
           "older_request_rejected": true,
           "exact_selection_retained": "node:claim-0"
         },
@@ -498,7 +724,7 @@
           "retry_succeeded": true
         }
       },
-      "boundary": "The live profile correctly failed closed because it registers no compatible named-expansion recipe for this exact layer, preserving selection. UX-FX25 executed named filters, expansion, caps, hidden, restricted, unknown, stale, and out-of-order completion behavior through production controllers with deterministic injected transport; no live expansion-route claim is made."
+      "boundary": "The registered scientific recipe executed through visible production controls and authenticated live HTTP with an exact target, filters, finite depth, snapshot, server accounting, preserved selection, rendered outcomes, and contextual Review return. UX-FX25 independently retained hidden, restricted, unknown, stale, and out-of-order completion coverage through production controllers with deterministic injected transport."
     },
     {
       "evidence_id": "UX1.5-EV03",
@@ -506,21 +732,27 @@
       "status": "passed",
       "observation": {
         "live_route": {
-          "graph_duration_ms": 748.922,
-          "live_route_availability": "not_in_bounded_result",
+          "graph_duration_ms": 1911.876,
+          "live_route_availability": "preview_executed",
           "open_review_session_id": "review_session_01K4D000000000000000000004",
-          "review_relationship_ids": [
-            "working_relationship_5MV0X9MX2PGD1T6W4AE42AC5DT"
-          ],
-          "returned_relationship_ids": [
-            "working_relationship_3VGZWGYA7TM6BY3MC96TTF24R3",
-            "working_relationship_1VPE3DSXKTKWAZ04XJY4HGDYJC",
-            "working_relationship_3FC7DS1773FAAWWSHNF463AHVN",
-            "working_relationship_74MKC22KTMH8WWJWW99J1ZE7EJ",
-            "working_relationship_6D6BQK0VACMEMKXDKB7JAWSXK5"
-          ],
-          "graph_content_hash": "sha256:ac2aac51caf69b37182c83b1d61f5dd48a4a1437f90c317070bd2c8f07138b30",
-          "executed_supplement": "UX-FX25 deterministic production-controller browser boundary"
+          "review_member_id": "review_member_73XZTG07J43ED75B7CG77CGRD6",
+          "working_relationship_ref": {
+            "working_relationship_id": "working_relationship_5MV0X9MX2PGD1T6W4AE42AC5DT",
+            "revision": 3,
+            "content_hash": "sha256:3ff96875ba9412f8d0f90b386dc2513b07c9ee80e550ce6b2e1894bc804b90f6"
+          },
+          "returned_relationship_ref": {
+            "element_id": "working_relationship_5MV0X9MX2PGD1T6W4AE42AC5DT",
+            "revision": 3,
+            "record_hash": "sha256:48bc49a6e6f464274caeb7fe4171c589bb7c8642b2d0f9108c12d386d9dc3d8d"
+          },
+          "graph_content_hash": "sha256:4d96bb18a3928ac06c7b3780ab00bfb3c1ed70042092a4e6cc6caead3fb681a5",
+          "preview_content_hash": "sha256:918a72e6a9af222184587fa1be9bd3a2700399be8c4ebe79a5591fc63cd9ac31",
+          "preview_trigger_focus_restored": true,
+          "exact_review_member_returned": true,
+          "exact_review_focus_restored": true,
+          "review_authority_unchanged": true,
+          "command_issued": false
         },
         "executed_preview": {
           "selected_relationship_key": "relationship:dense-0",
@@ -532,25 +764,25 @@
           "command_issued": false
         }
       },
-      "boundary": "UX-FX25 dispatched a Cytoscape tap inside real Chrome and used the non-drag selection control to open equivalent production-controller requests to an existing candidate/Review preview; geometry was absent and no command was issued. The live route was also inspected and honestly failed closed because the open Review's exact relationship was outside that bounded result; no live action-preview response is claimed."
+      "boundary": "The authenticated live route composed the exact open-Review WorkingRelationship, selected it through the non-drag production control, opened the governed read-only preview, verified the same Review member and relationship revision, closed without changing selection, and returned to the exact Review member and comparison focus with no command or authority change. UX-FX25 retains independent pointer/non-drag request-convergence coverage without renderer geometry."
     },
     {
       "evidence_id": "UX1.5-EV03",
       "scenario_id": "comparison-impact-time-browser",
       "status": "passed",
       "observation": {
-        "comparison_content_hash": "sha256:9afb75b8e4040b0a7fbdb41efd5ce95fef762579d585e4633cd273b6bf82ad1b",
+        "comparison_content_hash": "sha256:fdf8f9d3230c9b1be7e637c92a69b64e2d4438d5091f78d5567a7deb351795a6",
         "live_impact_route": {
           "live_route_state": "passed",
-          "content_hash": "sha256:55e105e284a5803df303e209d03cc899026aa123c0a59c2471b2b151cbf3746e",
-          "event_id": "event_01M2NATSS9BRVNRK2VQE6F10PT",
+          "content_hash": "sha256:0008ccda8ab2c340d007e3d32c7e74b8d41c80acbf7efa7b9857df1e486f0549",
+          "event_id": "event_01M30YZKSP76ZKDHG9YBYJPKPP",
           "assessed_consequences": {
             "state": "unavailable",
             "coverage": "not_assessed",
             "reason": "No exact Review member was bound to this impact request, so assessed consequences are unavailable."
           }
         },
-        "time_content_hash": "sha256:1625ae9b4d81b27c4174368b4eec64b841ecf57584815bd5bfa33a6c863a6d13",
+        "time_content_hash": "sha256:a9e0517bcc014baaf9c4a66c7d7ef3693e2a75796db6736213eea81de7e2e9cb",
         "supplement": {
           "historical_read_only": true,
           "unknown_date_explicit": true,
