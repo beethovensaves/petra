@@ -12,7 +12,7 @@ import type {
 import { PetraContractRegistry } from "@petra/contracts/validator";
 import { canonicalize } from "json-canonicalize";
 
-import { derivePetraId } from "./identity.js";
+import { deriveModelCallId, derivePetraId } from "./identity.js";
 import {
   buildModelEvidenceProposalBundle,
   ModelEvidenceExtractionError,
@@ -458,9 +458,10 @@ export class ModelGateway {
         `No adapter is registered for ${selected.deployment.adapter_id}.`,
       );
     }
-    const modelCallId = derivePetraId(
-      "model_call",
-      `${modelRequestId}|1|${selected.deployment.deployment.model_deployment_id}`,
+    const modelCallId = deriveModelCallId(
+      modelRequestId,
+      1,
+      selected.deployment.deployment.model_deployment_id,
     );
     let response: ExtractorAdapterResponse;
     try {
