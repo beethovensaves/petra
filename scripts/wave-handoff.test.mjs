@@ -918,6 +918,16 @@ test("retains clean blocked work without accepting stopped work changes", () => 
   );
   assert.equal(validateCommitTransition("blocked", before, after), true);
   assert.throws(
+    () => validateCommitTransition("needs_user", before, after),
+    /despite needs_user/,
+  );
+  assert.equal(
+    validateCommitTransition("needs_user", before, after, {
+      allowNeedsUserCommit: true,
+    }),
+    true,
+  );
+  assert.throws(
     () => validateCommitTransition("stopped", before, after),
     /despite stopped/,
   );
