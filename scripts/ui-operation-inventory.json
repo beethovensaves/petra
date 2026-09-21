@@ -628,7 +628,7 @@
       "control": "Correct candidate",
       "interaction": "command",
       "evidence": [],
-      "runtime_owner": "",
+      "runtime_owner": "POST /api/commands/projects/:projectId/reviews/:reviewSessionId/candidate-correction -> PostgresReviewSessionAuthorityRepository",
       "paths": ["UX-PATH-01", "UX-PATH-02", "UX-PATH-03"]
     },
     {
@@ -643,7 +643,7 @@
       "control": "Revise basis",
       "interaction": "command",
       "evidence": [],
-      "runtime_owner": "",
+      "runtime_owner": "POST /api/commands/projects/:projectId/reviews/:reviewSessionId/candidate-basis-revision -> PostgresReviewSessionAuthorityRepository",
       "paths": ["UX-PATH-01", "UX-PATH-02", "UX-PATH-03"]
     },
     {
@@ -658,7 +658,7 @@
       "control": "Separate changes",
       "interaction": "command",
       "evidence": [],
-      "runtime_owner": "",
+      "runtime_owner": "POST /api/commands/projects/:projectId/reviews/:reviewSessionId/separation -> PostgresReviewSessionAuthorityRepository",
       "paths": ["UX-PATH-01", "UX-PATH-02"]
     },
     {
@@ -673,7 +673,7 @@
       "control": "Prepare changes to apply",
       "interaction": "command",
       "evidence": [],
-      "runtime_owner": "",
+      "runtime_owner": "GET /api/queries/projects/:projectId/reviews/:reviewSessionId/apply-checkpoint -> PostgresReviewSessionApplyBoundary",
       "paths": ["UX-PATH-01", "UX-PATH-02", "UX-PATH-04"]
     },
     {
@@ -688,7 +688,7 @@
       "control": "Apply displayed ChangeSet",
       "interaction": "command",
       "evidence": [],
-      "runtime_owner": "",
+      "runtime_owner": "POST /api/commands/projects/:projectId/reviews/:reviewSessionId/apply -> PostgresReviewSessionApplyBoundary",
       "paths": ["UX-PATH-01", "UX-PATH-02", "UX-PATH-04"]
     },
     {
@@ -718,7 +718,7 @@
       "control": "Decide later",
       "interaction": "command",
       "evidence": [],
-      "runtime_owner": "",
+      "runtime_owner": "POST /api/commands/projects/:projectId/reviews/:reviewSessionId/lifecycle -> PostgresReviewSessionAuthorityRepository (DeferReviewSession)",
       "paths": ["UX-PATH-01", "UX-PATH-02", "UX-PATH-04"]
     },
     {
@@ -733,7 +733,7 @@
       "control": "Reopen review",
       "interaction": "command",
       "evidence": [],
-      "runtime_owner": "",
+      "runtime_owner": "POST /api/commands/projects/:projectId/reviews/:reviewSessionId/lifecycle -> PostgresReviewSessionAuthorityRepository (ReopenReviewSession)",
       "paths": ["UX-PATH-01", "UX-PATH-02", "UX-PATH-04"]
     },
     {
@@ -748,7 +748,7 @@
       "control": "Refresh Review",
       "interaction": "query",
       "evidence": [],
-      "runtime_owner": "",
+      "runtime_owner": "POST /api/commands/projects/:projectId/reviews/:reviewSessionId/refresh -> PostgresReviewSessionAuthorityRepository",
       "paths": ["UX-PATH-01", "UX-PATH-02", "UX-PATH-04"]
     },
     {
