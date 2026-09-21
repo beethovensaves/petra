@@ -1367,7 +1367,7 @@
       "surfaces": ["SP07"],
       "flows": ["UX-FLOW-11"],
       "requests": ["UX-REQ-014", "UX-REQ-016"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/work",
       "control": "Work list",
       "interaction": "query",
@@ -1376,6 +1376,11 @@
           "command": "npm run test:wave6:work",
           "artifact": "reports/WAVE6-WORK-PRODUCTION-COMMANDS.json",
           "boundary": "Fresh PostgreSQL plus authenticated production HTTP and ProjectWorkClient.list return the exact Project Work collection after lifecycle mutations and a server restart. This backend prerequisite does not claim the integrated visible control."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:work-ui",
+          "artifact": "reports/WAVE6-WORK-BROWSER-OBSERVATION.json",
+          "boundary": "The production React Work collection loaded the registered scientific inquiry and exact Needs attention, active, and terminal Work groupings from authenticated live HTTP before opening and managing their retained tasks against fresh disposable stores."
         }
       ],
       "runtime_owner": "ProjectWorkClient.list -> GET /api/queries/projects/:projectId/work -> PostgresProjectWorkViewReader.listProjectWorkView",
@@ -1414,7 +1419,7 @@
       "surfaces": ["SP03", "SP07", "SP13"],
       "flows": ["UX-FLOW-05", "UX-FLOW-11", "UX-FLOW-13"],
       "requests": ["UX-REQ-003", "UX-REQ-014"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/brief",
       "control": "Start work",
       "interaction": "command",
@@ -1423,6 +1428,11 @@
           "command": "npm run test:wave6:work",
           "artifact": "reports/WAVE6-WORK-PRODUCTION-COMMANDS.json",
           "boundary": "Fresh PostgreSQL executes the authenticated ProjectWorkClient.start command, exact idempotent replay, durable Work transition, and restart recovery. Registered SuggestedAction starts retain their separate shared coordinator. This backend prerequisite does not claim the integrated visible control."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:work-ui",
+          "artifact": "reports/WAVE6-WORK-BROWSER-OBSERVATION.json",
+          "boundary": "The production React Work task answered its registered prerequisite, invoked the enabled Start work control, received the authenticated operational receipt, and retained the running task for subsequent steering, detach, and cancellation without changing Project authority."
         }
       ],
       "runtime_owner": "ProjectWorkClient.execute(start) -> POST /api/commands/projects/:projectId/work/:workUnitId -> PostgresProjectWorkOperations; registered SuggestedAction starts retain SuggestedActionInvocationCoordinator",
@@ -1435,7 +1445,7 @@
       "surfaces": ["SP07", "SP13", "SP14"],
       "flows": ["UX-FLOW-11"],
       "requests": ["UX-REQ-006", "UX-REQ-014", "UX-REQ-015"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/work/:workId",
       "control": "Required input responses",
       "interaction": "command",
@@ -1444,6 +1454,11 @@
           "command": "npm run test:wave6:work",
           "artifact": "reports/WAVE6-WORK-PRODUCTION-COMMANDS.json",
           "boundary": "Fresh PostgreSQL registers a required input, keeps Start unavailable, executes the exact authenticated answer_input command once, and retains one durable response. This backend prerequisite does not claim the integrated visible control."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:work-ui",
+          "artifact": "reports/WAVE6-WORK-BROWSER-OBSERVATION.json",
+          "boundary": "The visible required-input region invoked one registered response through the production command route, rendered the canonical receipt, preserved the no-domain-authority boundary, and enabled the same exact Work task to proceed."
         }
       ],
       "runtime_owner": "ProjectWorkClient.execute(answer_input) -> POST /api/commands/projects/:projectId/work/:workUnitId -> PostgresProjectWorkOperations",
@@ -1456,7 +1471,7 @@
       "surfaces": ["SP07", "SP13"],
       "flows": ["UX-FLOW-11"],
       "requests": ["UX-REQ-015", "UX-REQ-016"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/work/:workId",
       "control": "Steer Work",
       "interaction": "command",
@@ -1465,6 +1480,11 @@
           "command": "npm run test:wave6:work",
           "artifact": "reports/WAVE6-WORK-PRODUCTION-COMMANDS.json",
           "boundary": "Fresh PostgreSQL executes ProjectWorkClient.execute(steer) against the exact expected Work revision and plan revision, retaining the instruction as the second immutable plan revision with no domain-authority effect. This backend prerequisite does not claim the integrated visible control."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:work-ui",
+          "artifact": "reports/WAVE6-WORK-BROWSER-OBSERVATION.json",
+          "boundary": "The production Work UI entered an exact scheduling-boundary instruction, selected user-blocking priority, invoked Steer work, verified the authenticated steer request and successful receipt, and left domain authority unchanged."
         }
       ],
       "runtime_owner": "ProjectWorkClient.execute(steer) -> POST /api/commands/projects/:projectId/work/:workUnitId -> PostgresProjectWorkOperations",
@@ -1477,7 +1497,7 @@
       "surfaces": ["SP07", "SP13"],
       "flows": ["UX-FLOW-11"],
       "requests": ["UX-REQ-015", "UX-REQ-016"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/work/:workId",
       "control": "Prioritize line",
       "interaction": "command",
@@ -1486,6 +1506,11 @@
           "command": "npm run test:wave6:work",
           "artifact": "reports/WAVE6-WORK-PRODUCTION-COMMANDS.json",
           "boundary": "Fresh PostgreSQL executes ProjectWorkClient.execute(prioritize) against the exact expected Work and plan revisions, retaining user-visible priority as the first immutable plan revision with no domain-authority effect. This backend prerequisite does not claim the integrated visible control."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:work-ui",
+          "artifact": "reports/WAVE6-WORK-BROWSER-OBSERVATION.json",
+          "boundary": "The production Work UI selected user-visible scheduling priority, invoked Set priority on the exact active task, verified the authenticated prioritize request and successful receipt, and did not alter prerequisites or domain authority."
         }
       ],
       "runtime_owner": "ProjectWorkClient.execute(prioritize) -> POST /api/commands/projects/:projectId/work/:workUnitId -> PostgresProjectWorkOperations",
@@ -1498,15 +1523,15 @@
       "surfaces": ["SP07", "SP13", "SP14"],
       "flows": ["UX-FLOW-11", "UX-FLOW-16"],
       "requests": ["UX-REQ-006", "UX-REQ-014", "UX-REQ-023"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/work/:workId",
       "control": "Leave running",
       "interaction": "navigation",
       "evidence": [
         {
-          "command": "npm run test:wave6:work-ui",
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:work-ui",
           "artifact": "reports/WAVE6-WORK-BROWSER-OBSERVATION.json",
-          "boundary": "The invoked production browser trace leaves active Work without issuing Cancel, returns to the collection, and later reconnects to the same retained Work identity; fresh PostgreSQL remains the canonical lifecycle owner. Design must re-execute the integrated visible workflow before this row becomes live."
+          "boundary": "The production browser activated Leave running on exact active Work, returned to Brief without issuing Cancel, reopened the same retained Work task, and continued through authenticated canonical operations on fresh PostgreSQL."
         }
       ],
       "runtime_owner": "Design-owned task navigation performs no command; ProjectWorkClient.readOperations -> GET /api/queries/projects/:projectId/work/:workUnitId/operations restores the same server-owned Work identity and state",
@@ -1519,20 +1544,20 @@
       "surfaces": ["SP07", "SP13", "SP14"],
       "flows": ["UX-FLOW-11", "UX-FLOW-16"],
       "requests": ["UX-REQ-006", "UX-REQ-014", "UX-REQ-023"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/work/:workId",
       "control": "Reconnect",
       "interaction": "query",
       "evidence": [
         {
-          "command": "npm run test:wave6:work-ui",
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:work-ui",
           "artifact": "reports/WAVE6-WORK-BROWSER-OBSERVATION.json",
-          "boundary": "After deliberate detach, the invoked production browser trace reads canonical Work operations and reconnects the same retained Work identity without starting another attempt. This trace does not claim model InteractionRun reconnect. Design must re-execute the integrated visible workflow before this row becomes live."
+          "boundary": "After deliberate detach, the production browser read canonical Work operations and activated Reconnect for the same retained Work identity without starting another attempt."
         },
         {
-          "command": "npm run test:wave6:actual-model-ui",
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:actual-model-ui",
           "artifact": "reports/WAVE6-MODEL-FAILURE-RECONNECT-BROWSER-OBSERVATION.json",
-          "boundary": "After an intentionally unconfirmed certified-model response, the production Petra route preserves the exact thread, run, connection, Work, Project context, draft, and task return across reload, then reconnects through the authenticated replay query without starting another Work or provider attempt. The paired actual-provider trace owns fresh PostgreSQL success; design must re-execute the integrated visible workflow before this row becomes live."
+          "boundary": "After an intentionally unconfirmed certified-model response, the production Petra route preserved the exact thread, run, connection, Work, Project context, draft, and task return, re-entered through the originating Work control, and reconnected through the authenticated replay query without another Work or provider attempt."
         }
       ],
       "runtime_owner": "ProjectWorkClient.readOperations -> GET /api/queries/projects/:projectId/work/:workUnitId/operations; PetraInteractionClient.replay -> GET /api/interactions/:runId for interaction-backed Work delivery",
@@ -1545,20 +1570,20 @@
       "surfaces": ["SP07", "SP13", "SP14"],
       "flows": ["UX-FLOW-11", "UX-FLOW-16"],
       "requests": ["UX-REQ-006", "UX-REQ-014", "UX-REQ-023"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/work/:workId",
       "control": "Replay delivery",
       "interaction": "query",
       "evidence": [
         {
-          "command": "npm run test:wave6:work-ui",
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:work-ui",
           "artifact": "reports/WAVE6-WORK-BROWSER-OBSERVATION.json",
-          "boundary": "The invoked production browser trace replays the exact retained Work operation delivery through authenticated reads without a duplicate Work effect. This trace does not claim certified-model replay. Design must re-execute the integrated visible workflow before this row becomes live."
+          "boundary": "The production browser activated Replay delivery for exact retained Work and rendered the authenticated replay observation without issuing another Work command or duplicate effect."
         },
         {
-          "command": "npm run test:wave6:actual-model-ui",
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:actual-model-ui",
           "artifact": "reports/WAVE6-MODEL-FAILURE-RECONNECT-BROWSER-OBSERVATION.json",
-          "boundary": "The production Petra route replays one exact retained certified-model InteractionRun after an unconfirmed response, renders the confirmed provider failure and retained Work stages, and records one interaction POST, one replay GET, one provider attempt, one Work start, and no duplicate provider effect. The adverse runtime is deliberately in-process; design must re-execute the integrated visible workflow before this row becomes live."
+          "boundary": "The production Petra route activated Reconnect and replay for one exact retained certified-model InteractionRun after an unconfirmed response, rendered the confirmed provider failure and retained Work stages, and recorded one interaction POST, one replay GET, one provider attempt, one Work start, and no duplicate provider effect."
         }
       ],
       "runtime_owner": "ProjectWorkClient.readOperations plus PetraInteractionClient.replay -> authenticated GET /api/interactions/:runId -> PetraInteractionRuntime/PostgresInteractionAuthorityRepository; replay cannot submit Work or model input",
@@ -1571,7 +1596,7 @@
       "surfaces": ["SP07", "SP13", "SP14"],
       "flows": ["UX-FLOW-11"],
       "requests": ["UX-REQ-014", "UX-REQ-015", "UX-REQ-023"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/work/:workId",
       "control": "Cancel work",
       "interaction": "command",
@@ -1580,6 +1605,11 @@
           "command": "npm run test:wave6:work",
           "artifact": "reports/WAVE6-WORK-PRODUCTION-COMMANDS.json",
           "boundary": "Fresh PostgreSQL executes the exact authenticated Cancel command, preserves its receipt across server restart, and proves replay creates no duplicate effect. This backend prerequisite does not claim the integrated visible control."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:work-ui",
+          "artifact": "reports/WAVE6-WORK-BROWSER-OBSERVATION.json",
+          "boundary": "The production Work UI opened the explicit cancellation confirmation, supplied its reviewed reason, invoked Confirm cancellation on the exact running task, and rendered the canonical cancelled receipt while retaining prior records and independent effects."
         }
       ],
       "runtime_owner": "ProjectWorkClient.execute(cancel) -> POST /api/commands/projects/:projectId/work/:workUnitId -> PostgresProjectWorkOperations",
@@ -1592,7 +1622,7 @@
       "surfaces": ["SP07", "SP14"],
       "flows": ["UX-FLOW-11", "UX-FLOW-16"],
       "requests": ["UX-REQ-014", "UX-REQ-015", "UX-REQ-023"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/work/:workId",
       "control": "Retry failed work",
       "interaction": "command",
@@ -1601,6 +1631,11 @@
           "command": "npm run test:wave6:work",
           "artifact": "reports/WAVE6-WORK-PRODUCTION-COMMANDS.json",
           "boundary": "Fresh PostgreSQL injects one retryable validation failure, returns server-owned Retry availability, executes the exact authenticated retry into attempt 2, completes it, and replays the retained receipt after restart without duplication. This backend prerequisite does not claim the integrated visible control."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:work-ui",
+          "artifact": "reports/WAVE6-WORK-BROWSER-OBSERVATION.json",
+          "boundary": "The production browser opened a representative Work task after an exact retryable output-validation failure, verified server-owned Retry availability, activated Retry failed work, rendered the next running attempt and canonical receipt, preserved prior attempts, and changed no domain authority."
         }
       ],
       "runtime_owner": "ProjectWorkClient.readOperations assessment plus ProjectWorkClient.execute(retry) -> POST /api/commands/projects/:projectId/work/:workUnitId -> PostgresProjectWorkOperations",
@@ -1665,7 +1700,7 @@
       "surfaces": ["SP07", "SP12"],
       "flows": ["UX-FLOW-11"],
       "requests": ["UX-REQ-008", "UX-REQ-014", "UX-REQ-016"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/work/:workId",
       "control": "Open result",
       "interaction": "navigation",
@@ -1674,6 +1709,11 @@
           "command": "npm run test:wave6:work",
           "artifact": "reports/WAVE6-WORK-PRODUCTION-COMMANDS.json",
           "boundary": "Fresh PostgreSQL composes the exact result destination and ProjectWorkClient.readWorkerOutputManifest opens its content-, record-, revision-, Project-, and producing-Work-bound output through authenticated production HTTP. This backend prerequisite does not claim the integrated visible destination."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:work-ui",
+          "artifact": "reports/WAVE6-WORK-BROWSER-OBSERVATION.json",
+          "boundary": "The production browser opened both server-owned result destinations: an exact worker-output manifest with outputs, measured resources, diagnostics, identity hashes, and producing Work, and an exact grounded response with references, authority limits, and return to producing Work."
         }
       ],
       "runtime_owner": "ProjectWorkClient.readOperations result destination -> ProjectWorkClient.readWorkerOutputManifest or exact GroundedResponse Petra destination -> production server-owned result readers",
@@ -1690,7 +1730,13 @@
       "route": "/projects/:projectId/petra",
       "control": "Open Petra",
       "interaction": "navigation",
-      "evidence": [],
+      "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:actual-model-ui",
+          "artifact": "reports/WAVE6-MODEL-FAILURE-RECONNECT-BROWSER-OBSERVATION.json",
+          "boundary": "The production browser opened exact retained Work, activated Discuss this task with Petra, verified the same-Project Petra destination and originating Work return binding, retained the local draft and exact run identity, and returned the visible control boundary without inventing task context."
+        }
+      ],
       "runtime_owner": "Design-owned task navigation binds the server-supplied Project, originating task, and exact return; retained Petra context resolves through GET /api/queries/projects/:projectId/threads/:projectThreadId -> PostgresProjectThreadViewReader and GET /api/queries/projects/:projectId/model-readiness -> PostgresProjectModelReadinessReader",
       "paths": ["UX-PATH-01", "UX-PATH-02"]
     },
@@ -1701,15 +1747,15 @@
       "surfaces": ["SP13"],
       "flows": ["UX-FLOW-10"],
       "requests": ["UX-REQ-006", "UX-REQ-021"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/petra",
       "control": "Resume thread",
       "interaction": "navigation",
       "evidence": [
         {
-          "command": "npm run test:wave6:actual-model-ui",
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:actual-model-ui",
           "artifact": "reports/WAVE6-MODEL-FAILURE-RECONNECT-BROWSER-OBSERVATION.json",
-          "boundary": "The production Petra route retains the edited draft plus exact thread, run, connection, Work, Project context, and task return across reload, then exposes and executes Reconnect and replay against the retained run without duplicate execution. The trace enters the retained route by reload rather than the integrated originating Resume-thread control, so design must execute that navigation before this row becomes live."
+          "boundary": "After unconfirmed delivery, the production browser left Petra, re-entered through the originating Work control, retained the edited draft plus exact thread, run, connection, Work, Project context, and task return, then executed Reconnect and replay without duplicate provider or Work execution."
         }
       ],
       "runtime_owner": "sessionStorage Project draft/run identity + GET /api/interactions/:runId -> PetraInteractionRuntime durable replay",
@@ -1722,15 +1768,15 @@
       "surfaces": ["SP13"],
       "flows": ["UX-FLOW-10"],
       "requests": ["UX-REQ-006", "UX-REQ-021"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/petra",
       "control": "Send",
       "interaction": "command",
       "evidence": [
         {
-          "command": "npm run test:wave6:actual-model-ui",
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:actual-model-ui",
           "artifact": "reports/WAVE6-ACTUAL-MODEL-UI-TRACE.json",
-          "boundary": "Fresh PostgreSQL and the production React Petra composer execute Ask Petra with the exact registered Project question and immutable ContextPacket/EvidencePacket through one certified provider request, persist one durable no-authority terminal, and render the response. Design must re-execute this control after integrating the exact backend commit before this row becomes live."
+          "boundary": "Fresh PostgreSQL and the production React Petra composer executed Ask Petra with the exact registered Project question and immutable ContextPacket/EvidencePacket through one certified provider request, persisted one durable no-authority terminal, and rendered the response."
         }
       ],
       "runtime_owner": "POST /api/interactions/run -> ProjectModelClient + PetraInteractionRuntime guarded by PostgresProjectModelReadinessReader",
@@ -1743,15 +1789,15 @@
       "surfaces": ["SP12", "SP13"],
       "flows": ["UX-FLOW-07", "UX-FLOW-10"],
       "requests": ["UX-REQ-006", "UX-REQ-021", "UX-REQ-022"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/petra",
       "control": "Context disclosure",
       "interaction": "query",
       "evidence": [
         {
-          "command": "npm run test:wave6:actual-model-ui",
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:actual-model-ui",
           "artifact": "reports/WAVE6-ACTUAL-MODEL-UI-TRACE.json",
-          "boundary": "The production model-readiness read and Petra disclosure render the current Project revision, snapshot, certified role/deployment, exact ContextPacket and EvidencePacket identities, registered prompt policy, delivery mode, and no-authority boundary before submission. Design must re-execute the integrated disclosure before this row becomes live."
+          "boundary": "The production model-readiness read and Petra disclosure rendered the current Project revision, snapshot, certified role and deployment, exact ContextPacket and EvidencePacket identities, registered prompt policy, delivery mode, and no-authority boundary before submission."
         }
       ],
       "runtime_owner": "GET /api/queries/projects/:projectId/model-readiness -> PostgresProjectModelReadinessReader",
@@ -1764,15 +1810,15 @@
       "surfaces": ["SP12", "SP13"],
       "flows": ["UX-FLOW-07", "UX-FLOW-10"],
       "requests": ["UX-REQ-006", "UX-REQ-021", "UX-REQ-022"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/petra",
       "control": "Response basis",
       "interaction": "query",
       "evidence": [
         {
-          "command": "npm run test:wave6:actual-model-ui",
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:actual-model-ui",
           "artifact": "reports/WAVE6-ACTUAL-MODEL-UI-TRACE.json",
-          "boundary": "The provider-backed Petra response renders statement origins, limitations, ContextPacket, EvidencePacket, GroundedResponse, model deployment, role certification, snapshot, Work destination, Review effect, and exact Brief return from the durable terminal. Design must re-execute the integrated disclosure before this row becomes live."
+          "boundary": "The provider-backed Petra response rendered statement origins, limitations, ContextPacket, EvidencePacket, GroundedResponse, model deployment, role certification, snapshot, Work destination, Review effect, and exact Brief return from the durable terminal."
         }
       ],
       "runtime_owner": "POST /api/interactions/run terminal -> grounded ContextPacket, EvidencePacket, origin, coverage, Work, and authority bindings",
@@ -1868,15 +1914,15 @@
       "surfaces": ["SP11", "SP13"],
       "flows": ["UX-FLOW-10", "UX-FLOW-17"],
       "requests": ["UX-REQ-020", "UX-REQ-021"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/petra",
       "control": "Model status",
       "interaction": "query",
       "evidence": [
         {
-          "command": "npm run test:wave6:actual-model-ui",
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:actual-model-ui",
           "artifact": "reports/WAVE6-ACTUAL-MODEL-UI-TRACE.json",
-          "boundary": "Against a fresh store with no cached model execution, the authenticated production readiness query selects the registered scientific grounded-synthesist role, confirms the managed provider and exact model are ready, and binds the current Project, immutable packets, snapshot, certification, registered prompt, delivery, and no-authority effect. Design must re-execute the integrated status control before this row becomes live."
+          "boundary": "Against a fresh store with no cached model execution, the authenticated production readiness query selected the registered scientific grounded-synthesist role, confirmed managed ChatGPT and gpt-5.6-terra were ready, and bound the current Project, immutable packets, snapshot, certification, registered prompt, delivery, and no-authority effect."
         }
       ],
       "runtime_owner": "GET /api/queries/projects/:projectId/model-readiness -> PostgresProjectModelReadinessReader",
@@ -1889,15 +1935,15 @@
       "surfaces": ["SP11", "SP13"],
       "flows": ["UX-FLOW-10", "UX-FLOW-17"],
       "requests": ["UX-REQ-020", "UX-REQ-021"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/petra",
       "control": "Send",
       "interaction": "command",
       "evidence": [
         {
-          "command": "npm run test:wave6:actual-model-ui",
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:actual-model-ui",
           "artifact": "reports/WAVE6-ACTUAL-MODEL-UI-TRACE.json",
-          "boundary": "The production React Petra composer submits the exact registered question and server-read immutable context to the configured certified external provider, streams progress, persists exactly one ModelRequest, ModelCall, GroundedResponse, InteractionRun, and delivery record, and renders the provider result with no Project authority effect. Design must re-execute the integrated control before this row becomes live."
+          "boundary": "The production React Petra composer submitted the exact registered question and server-read immutable context to certified gpt-5.6-terra, streamed progress, persisted exactly one ModelRequest, ModelCall, GroundedResponse, InteractionRun, and delivery record, and rendered the provider result with no Project authority effect."
         }
       ],
       "runtime_owner": "POST /api/interactions/run -> ProjectModelClient + certified Codex grounded-synthesis runtime",

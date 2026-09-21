@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
@@ -7,20 +8,25 @@ const artifactPath = resolve(
   root,
   "reports/WAVE6-OPERATION-CONTROL-AUDIT.json",
 );
-const inventory = JSON.parse(
-  readFileSync(resolve(root, "scripts/ui-operation-inventory.json"), "utf8"),
-);
-const baseline = JSON.parse(
-  readFileSync(
-    resolve(root, "scripts/wave6-operation-contract-baseline.json"),
-    "utf8",
-  ),
-);
-
 const target = {
   design_commit: "19c5ab8ccbe0986c0fa21b6567dcba00611a473a",
   counterpart_commit: "da6a24150180be6c020c1139149591e134e02f5d",
 };
+const readTargetJson = (commit, path) =>
+  JSON.parse(
+    execFileSync("git", ["show", `${commit}:${path}`], {
+      cwd: root,
+      encoding: "utf8",
+    }),
+  );
+const inventory = readTargetJson(
+  target.design_commit,
+  "scripts/ui-operation-inventory.json",
+);
+const baseline = readTargetJson(
+  target.counterpart_commit,
+  "scripts/wave6-operation-contract-baseline.json",
+);
 
 const sourceSurface = (id) => {
   const family = id.split(".")[0];
