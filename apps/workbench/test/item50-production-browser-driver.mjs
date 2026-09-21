@@ -462,7 +462,7 @@ export const startItem50ProductionBrowser = async ({
       "Applicable checks passed",
       "Prepare changes to apply",
       "Apply unavailable",
-      "Apply requires the exact server-prepared commitment above and one explicit human decision",
+      "Apply and reject each require their own exact server-prepared commitment and one explicit human decision",
       "Limitations and qualifications",
     ]) {
       assert.ok(
