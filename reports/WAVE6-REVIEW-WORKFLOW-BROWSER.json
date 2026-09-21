@@ -1,0 +1,139 @@
+{
+  "schema_name": "petra.wave6-review-workflow-browser-observation",
+  "schema_version": "1.0.0",
+  "status": "passed",
+  "recorded_at": "2026-09-21T03:40:05.206Z",
+  "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:review-ui",
+  "environment": {
+    "node": "24.20.0",
+    "browser": "Chrome/153.0.8010.48",
+    "workbench": "production React Router loaders, Review components, and command clients",
+    "transport": "authenticated live HTTP",
+    "persistence": "fresh disposable PostgreSQL"
+  },
+  "observation": {
+    "browser": "Chrome/153.0.8010.48",
+    "workbench_url": "http://127.0.0.1:56327",
+    "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+    "reviews": {
+      "correction": "review_session_0GJ4REYGN4AMP9PHEQH5ECVZ8T",
+      "separation": "review_session_7P9MVV2QZPEHJ0YVM74Q97FY54",
+      "separated": "review_session_01G8SGWP153TWGRHHQEZPASM85",
+      "rejection": "review_session_2PNVMSSHBQK1F3AW4PTFXB9J1N",
+      "lifecycle_refresh_apply": "review_session_22WYH6BPJBYMZPWVN4Q7XJNT32"
+    },
+    "operations": {
+      "correction": {
+        "method": "POST",
+        "path": "/api/commands/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/reviews/review_session_0GJ4REYGN4AMP9PHEQH5ECVZ8T/candidate-correction",
+        "status": 200,
+        "applied": true
+      },
+      "basis_revision": {
+        "method": "POST",
+        "path": "/api/commands/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/reviews/review_session_0GJ4REYGN4AMP9PHEQH5ECVZ8T/candidate-basis-revision",
+        "status": 200,
+        "applied": true
+      },
+      "separation": {
+        "method": "POST",
+        "path": "/api/commands/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/reviews/review_session_7P9MVV2QZPEHJ0YVM74Q97FY54/separation",
+        "status": 200,
+        "applied": true
+      },
+      "defer": {
+        "method": "POST",
+        "path": "/api/commands/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/reviews/review_session_22WYH6BPJBYMZPWVN4Q7XJNT32/lifecycle",
+        "status": 200,
+        "applied": true
+      },
+      "reopen": {
+        "method": "POST",
+        "path": "/api/commands/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/reviews/review_session_22WYH6BPJBYMZPWVN4Q7XJNT32/lifecycle",
+        "status": 200,
+        "applied": true
+      },
+      "reject_checkpoint": {
+        "method": "GET",
+        "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/reviews/review_session_2PNVMSSHBQK1F3AW4PTFXB9J1N/reject-checkpoint?expected_revision=1&expected_content_hash=sha256%3Ae7648298bf9aa83649deeb024bb8cae6720cf842e6bb42c694b52ae097c5d5f9&selected_review_member_id=review_member_7PVCPR9386KT5ENEHN5MVGAW5Q",
+        "status": 200,
+        "response_schema": "petra.review-session-reject-checkpoint"
+      },
+      "reject": {
+        "method": "POST",
+        "path": "/api/commands/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/reviews/review_session_2PNVMSSHBQK1F3AW4PTFXB9J1N/reject",
+        "status": 200,
+        "request_schema": "petra.review-session-reject-request",
+        "response_schema": "petra.review-session-reject-result",
+        "outcome": "rejected"
+      },
+      "refresh": {
+        "method": "POST",
+        "path": "/api/commands/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/reviews/review_session_22WYH6BPJBYMZPWVN4Q7XJNT32/refresh",
+        "status": 200,
+        "applied": true
+      },
+      "apply_checkpoint": {
+        "method": "GET",
+        "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/reviews/review_session_22WYH6BPJBYMZPWVN4Q7XJNT32/apply-checkpoint?expected_revision=4&expected_content_hash=sha256%3A2454ce0401db1d11dbb6dde27c402a350082121e2ba260f5155b506ffaca7d5f&selected_review_member_id=review_member_3NYDNWKWDQW2ST3YJY909Z22PC",
+        "status": 200,
+        "response_schema": "petra.review-session-apply-checkpoint"
+      },
+      "apply": {
+        "method": "POST",
+        "path": "/api/commands/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/reviews/review_session_22WYH6BPJBYMZPWVN4Q7XJNT32/apply",
+        "status": 200,
+        "request_schema": "petra.review-session-apply-request",
+        "response_schema": "petra.review-session-apply-result",
+        "outcome": "applied"
+      }
+    },
+    "member_outcomes": {
+      "rejected": [
+        {
+          "review_member_id": "review_member_7PVCPR9386KT5ENEHN5MVGAW5Q",
+          "outcome": "rejected"
+        }
+      ],
+      "applied": [
+        {
+          "review_member_id": "review_member_3NYDNWKWDQW2ST3YJY909Z22PC",
+          "outcome": "applied"
+        }
+      ],
+      "separated": [
+        {
+          "review_member_id": "review_member_36MH89JBWDAQRQV9FPCFXRDNQ5",
+          "outcome": "awaiting_decision"
+        }
+      ]
+    },
+    "return_path": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/work/work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+    "checks": [
+      "Review queue and exact session opened through visible links",
+      "candidate text correction invoked once and retained a working-only result",
+      "material source-basis revision invoked once and reset validation without a decision",
+      "exact multi-member selection and separation invoked once",
+      "defer and reopen invoked as distinct exact lifecycle commands",
+      "rejection preview sent no decision before the explicit rejected Approval",
+      "stale Review blocked preparation until visible Refresh completed",
+      "Apply preview sent no decision before one explicit Apply",
+      "rejected, separated, and applied member outcomes rendered",
+      "candidate, rejection, and Apply paths returned to the exact originating Work",
+      "no browser console or runtime failures"
+    ]
+  },
+  "scenario_records": [
+    {
+      "evidence_id": "UX1.6-REVIEW",
+      "scenario_id": "correct-reject-defer-apply",
+      "status": "passed",
+      "boundary": "Isolated Chrome executed the production Review queue, routes, visible controls, typed clients, authenticated live HTTP owners, and disposable PostgreSQL state for candidate correction, basis revision, member selection and separation, rejection, defer/reopen, stale refresh, exact ChangeSet preparation, Apply, member outcomes, and exact Work return. Purpose-built disposable Review records isolate incompatible decisions; no fixture response or client-owned authority substitutes for a production command."
+    }
+  ],
+  "limitations": [
+    "The retained workbench URL is stable for this isolated execution but is not the final long-lived USER-TESTABLE-01 URL.",
+    "This focused record does not claim the complete guided-core-path, responsive-accessibility, adverse-state, Graph, Source, History, operations, critic, exit, or user-acceptance scenarios.",
+    "The candidate and basis revision intentionally remain non-authoritative pending validation; Apply and Reject execute on distinct validation-passed Review records because those decisions are mutually exclusive."
+  ]
+}

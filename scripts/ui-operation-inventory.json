@@ -582,8 +582,14 @@
       "route": "/projects/:projectId/review",
       "control": "Review queue",
       "interaction": "query",
-      "evidence": [],
-      "runtime_owner": "",
+      "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:review-ui",
+          "artifact": "reports/WAVE6-REVIEW-WORKFLOW-BROWSER.json",
+          "boundary": "UX1.6-REVIEW/correct-reject-defer-apply: isolated Chrome opened the production Review queue and exact sessions through visible links, selected an exact member, invoked candidate correction, basis revision, separation, defer, reopen, rejection, stale refresh, exact ChangeSet preparation, and Apply over authenticated live HTTP backed by fresh disposable PostgreSQL, then rendered member outcomes and the exact Work return. This operation is bound only because its corresponding visible control or query was exercised; the record does not claim other Wave 6 scenarios."
+        }
+      ],
+      "runtime_owner": "GET /api/queries/projects/:projectId/reviews -> ProjectReviewViewReader -> PostgresProjectReviewViewReader",
       "paths": ["UX-PATH-01", "UX-PATH-02"]
     },
     {
@@ -597,8 +603,14 @@
       "route": "/projects/:projectId/review",
       "control": "Open Review",
       "interaction": "navigation",
-      "evidence": [],
-      "runtime_owner": "",
+      "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:review-ui",
+          "artifact": "reports/WAVE6-REVIEW-WORKFLOW-BROWSER.json",
+          "boundary": "UX1.6-REVIEW/correct-reject-defer-apply: isolated Chrome opened the production Review queue and exact sessions through visible links, selected an exact member, invoked candidate correction, basis revision, separation, defer, reopen, rejection, stale refresh, exact ChangeSet preparation, and Apply over authenticated live HTTP backed by fresh disposable PostgreSQL, then rendered member outcomes and the exact Work return. This operation is bound only because its corresponding visible control or query was exercised; the record does not claim other Wave 6 scenarios."
+        }
+      ],
+      "runtime_owner": "GET /api/queries/projects/:projectId/reviews/:reviewSessionId -> ProjectReviewViewReader -> PostgresProjectReviewViewReader",
       "paths": ["UX-PATH-01", "UX-PATH-02"]
     },
     {
@@ -612,8 +624,14 @@
       "route": "/projects/:projectId/review",
       "control": "Review members",
       "interaction": "navigation",
-      "evidence": [],
-      "runtime_owner": "",
+      "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:review-ui",
+          "artifact": "reports/WAVE6-REVIEW-WORKFLOW-BROWSER.json",
+          "boundary": "UX1.6-REVIEW/correct-reject-defer-apply: isolated Chrome opened the production Review queue and exact sessions through visible links, selected an exact member, invoked candidate correction, basis revision, separation, defer, reopen, rejection, stale refresh, exact ChangeSet preparation, and Apply over authenticated live HTTP backed by fresh disposable PostgreSQL, then rendered member outcomes and the exact Work return. This operation is bound only because its corresponding visible control or query was exercised; the record does not claim other Wave 6 scenarios."
+        }
+      ],
+      "runtime_owner": "GET /api/queries/projects/:projectId/reviews/:reviewSessionId -> ProjectReviewViewReader -> PostgresProjectReviewViewReader; exact member selection is local presentation over the server-returned member set and has no authority effect",
       "paths": ["UX-PATH-01", "UX-PATH-02"]
     },
     {
@@ -627,7 +645,13 @@
       "route": "/projects/:projectId/review/:reviewId",
       "control": "Correct candidate",
       "interaction": "command",
-      "evidence": [],
+      "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:review-ui",
+          "artifact": "reports/WAVE6-REVIEW-WORKFLOW-BROWSER.json",
+          "boundary": "UX1.6-REVIEW/correct-reject-defer-apply: isolated Chrome opened the production Review queue and exact sessions through visible links, selected an exact member, invoked candidate correction, basis revision, separation, defer, reopen, rejection, stale refresh, exact ChangeSet preparation, and Apply over authenticated live HTTP backed by fresh disposable PostgreSQL, then rendered member outcomes and the exact Work return. This operation is bound only because its corresponding visible control or query was exercised; the record does not claim other Wave 6 scenarios."
+        }
+      ],
       "runtime_owner": "POST /api/commands/projects/:projectId/reviews/:reviewSessionId/candidate-correction -> PostgresReviewSessionAuthorityRepository",
       "paths": ["UX-PATH-01", "UX-PATH-02", "UX-PATH-03"]
     },
@@ -642,7 +666,13 @@
       "route": "/projects/:projectId/review/:reviewId",
       "control": "Revise basis",
       "interaction": "command",
-      "evidence": [],
+      "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:review-ui",
+          "artifact": "reports/WAVE6-REVIEW-WORKFLOW-BROWSER.json",
+          "boundary": "UX1.6-REVIEW/correct-reject-defer-apply: isolated Chrome opened the production Review queue and exact sessions through visible links, selected an exact member, invoked candidate correction, basis revision, separation, defer, reopen, rejection, stale refresh, exact ChangeSet preparation, and Apply over authenticated live HTTP backed by fresh disposable PostgreSQL, then rendered member outcomes and the exact Work return. This operation is bound only because its corresponding visible control or query was exercised; the record does not claim other Wave 6 scenarios."
+        }
+      ],
       "runtime_owner": "POST /api/commands/projects/:projectId/reviews/:reviewSessionId/candidate-basis-revision -> PostgresReviewSessionAuthorityRepository",
       "paths": ["UX-PATH-01", "UX-PATH-02", "UX-PATH-03"]
     },
@@ -657,7 +687,13 @@
       "route": "/projects/:projectId/review/:reviewId",
       "control": "Separate changes",
       "interaction": "command",
-      "evidence": [],
+      "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:review-ui",
+          "artifact": "reports/WAVE6-REVIEW-WORKFLOW-BROWSER.json",
+          "boundary": "UX1.6-REVIEW/correct-reject-defer-apply: isolated Chrome opened the production Review queue and exact sessions through visible links, selected an exact member, invoked candidate correction, basis revision, separation, defer, reopen, rejection, stale refresh, exact ChangeSet preparation, and Apply over authenticated live HTTP backed by fresh disposable PostgreSQL, then rendered member outcomes and the exact Work return. This operation is bound only because its corresponding visible control or query was exercised; the record does not claim other Wave 6 scenarios."
+        }
+      ],
       "runtime_owner": "POST /api/commands/projects/:projectId/reviews/:reviewSessionId/separation -> PostgresReviewSessionAuthorityRepository",
       "paths": ["UX-PATH-01", "UX-PATH-02"]
     },
@@ -672,7 +708,13 @@
       "route": "/projects/:projectId/review/:reviewId",
       "control": "Prepare changes to apply",
       "interaction": "command",
-      "evidence": [],
+      "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:review-ui",
+          "artifact": "reports/WAVE6-REVIEW-WORKFLOW-BROWSER.json",
+          "boundary": "UX1.6-REVIEW/correct-reject-defer-apply: isolated Chrome opened the production Review queue and exact sessions through visible links, selected an exact member, invoked candidate correction, basis revision, separation, defer, reopen, rejection, stale refresh, exact ChangeSet preparation, and Apply over authenticated live HTTP backed by fresh disposable PostgreSQL, then rendered member outcomes and the exact Work return. This operation is bound only because its corresponding visible control or query was exercised; the record does not claim other Wave 6 scenarios."
+        }
+      ],
       "runtime_owner": "GET /api/queries/projects/:projectId/reviews/:reviewSessionId/apply-checkpoint -> PostgresReviewSessionApplyBoundary",
       "paths": ["UX-PATH-01", "UX-PATH-02", "UX-PATH-04"]
     },
@@ -687,7 +729,13 @@
       "route": "/projects/:projectId/review/:reviewId",
       "control": "Apply displayed ChangeSet",
       "interaction": "command",
-      "evidence": [],
+      "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:review-ui",
+          "artifact": "reports/WAVE6-REVIEW-WORKFLOW-BROWSER.json",
+          "boundary": "UX1.6-REVIEW/correct-reject-defer-apply: isolated Chrome opened the production Review queue and exact sessions through visible links, selected an exact member, invoked candidate correction, basis revision, separation, defer, reopen, rejection, stale refresh, exact ChangeSet preparation, and Apply over authenticated live HTTP backed by fresh disposable PostgreSQL, then rendered member outcomes and the exact Work return. This operation is bound only because its corresponding visible control or query was exercised; the record does not claim other Wave 6 scenarios."
+        }
+      ],
       "runtime_owner": "POST /api/commands/projects/:projectId/reviews/:reviewSessionId/apply -> PostgresReviewSessionApplyBoundary",
       "paths": ["UX-PATH-01", "UX-PATH-02", "UX-PATH-04"]
     },
@@ -702,7 +750,13 @@
       "route": "/projects/:projectId/review/:reviewId",
       "control": "Reject candidate",
       "interaction": "command",
-      "evidence": [],
+      "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:review-ui",
+          "artifact": "reports/WAVE6-REVIEW-WORKFLOW-BROWSER.json",
+          "boundary": "UX1.6-REVIEW/correct-reject-defer-apply: isolated Chrome opened the production Review queue and exact sessions through visible links, selected an exact member, invoked candidate correction, basis revision, separation, defer, reopen, rejection, stale refresh, exact ChangeSet preparation, and Apply over authenticated live HTTP backed by fresh disposable PostgreSQL, then rendered member outcomes and the exact Work return. This operation is bound only because its corresponding visible control or query was exercised; the record does not claim other Wave 6 scenarios."
+        }
+      ],
       "runtime_owner": "GET /api/queries/projects/:projectId/reviews/:reviewSessionId/reject-checkpoint and POST /api/commands/projects/:projectId/reviews/:reviewSessionId/reject -> PostgresReviewSessionApplyBoundary",
       "paths": ["UX-PATH-01", "UX-PATH-02", "UX-PATH-04"]
     },
@@ -717,7 +771,13 @@
       "route": "/projects/:projectId/review/:reviewId",
       "control": "Decide later",
       "interaction": "command",
-      "evidence": [],
+      "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:review-ui",
+          "artifact": "reports/WAVE6-REVIEW-WORKFLOW-BROWSER.json",
+          "boundary": "UX1.6-REVIEW/correct-reject-defer-apply: isolated Chrome opened the production Review queue and exact sessions through visible links, selected an exact member, invoked candidate correction, basis revision, separation, defer, reopen, rejection, stale refresh, exact ChangeSet preparation, and Apply over authenticated live HTTP backed by fresh disposable PostgreSQL, then rendered member outcomes and the exact Work return. This operation is bound only because its corresponding visible control or query was exercised; the record does not claim other Wave 6 scenarios."
+        }
+      ],
       "runtime_owner": "POST /api/commands/projects/:projectId/reviews/:reviewSessionId/lifecycle -> PostgresReviewSessionAuthorityRepository (DeferReviewSession)",
       "paths": ["UX-PATH-01", "UX-PATH-02", "UX-PATH-04"]
     },
@@ -732,7 +792,13 @@
       "route": "/projects/:projectId/review/:reviewId",
       "control": "Reopen review",
       "interaction": "command",
-      "evidence": [],
+      "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:review-ui",
+          "artifact": "reports/WAVE6-REVIEW-WORKFLOW-BROWSER.json",
+          "boundary": "UX1.6-REVIEW/correct-reject-defer-apply: isolated Chrome opened the production Review queue and exact sessions through visible links, selected an exact member, invoked candidate correction, basis revision, separation, defer, reopen, rejection, stale refresh, exact ChangeSet preparation, and Apply over authenticated live HTTP backed by fresh disposable PostgreSQL, then rendered member outcomes and the exact Work return. This operation is bound only because its corresponding visible control or query was exercised; the record does not claim other Wave 6 scenarios."
+        }
+      ],
       "runtime_owner": "POST /api/commands/projects/:projectId/reviews/:reviewSessionId/lifecycle -> PostgresReviewSessionAuthorityRepository (ReopenReviewSession)",
       "paths": ["UX-PATH-01", "UX-PATH-02", "UX-PATH-04"]
     },
@@ -747,7 +813,13 @@
       "route": "/projects/:projectId/review/:reviewId",
       "control": "Refresh Review",
       "interaction": "query",
-      "evidence": [],
+      "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:review-ui",
+          "artifact": "reports/WAVE6-REVIEW-WORKFLOW-BROWSER.json",
+          "boundary": "UX1.6-REVIEW/correct-reject-defer-apply: isolated Chrome opened the production Review queue and exact sessions through visible links, selected an exact member, invoked candidate correction, basis revision, separation, defer, reopen, rejection, stale refresh, exact ChangeSet preparation, and Apply over authenticated live HTTP backed by fresh disposable PostgreSQL, then rendered member outcomes and the exact Work return. This operation is bound only because its corresponding visible control or query was exercised; the record does not claim other Wave 6 scenarios."
+        }
+      ],
       "runtime_owner": "POST /api/commands/projects/:projectId/reviews/:reviewSessionId/refresh -> PostgresReviewSessionAuthorityRepository",
       "paths": ["UX-PATH-01", "UX-PATH-02", "UX-PATH-04"]
     },
