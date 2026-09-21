@@ -341,10 +341,10 @@
     },
     "client-preferences": {
       "kind": "client",
-      "production_owner": "Browser/device-local personal preference store",
-      "authorization": "Personal appearance, layout, editor, accessibility, and technical-detail disclosure do not alter Project authority.",
-      "persistence": "Device-local persistence only; cross-device synchronization is explicitly outside the accepted Wave 6 backend boundary.",
-      "recovery": "Scoped reset returns to product defaults without changing Project controls or domain records."
+      "production_owner": "apps/workbench/src/product/personal-preferences.ts -> PersonalPreferenceStore over the browser/device-local petra.shell.preferences.v1 record",
+      "authorization": "The closed typed owner accepts only supported appearance, layout, editor, and accessibility values and returns an explicit personal_device_presentation authority receipt. It cannot carry Actor, Project, Work, policy, routing, capability, content, or command identity and records that Project, Work, and Project content remain unchanged.",
+      "persistence": "One backward-compatible browser-local record retains validated preference groups across reload. Device-save, first-use default, session-only storage failure, and repair-required corrupt-value states are distinct; cross-device synchronization and server/PostgreSQL persistence remain explicitly outside the accepted boundary.",
+      "recovery": "Invalid stored fields alone fall back to safe defaults while unrelated valid preferences survive. A failed write keeps the requested value active for the session and supports bounded persistence retry. Control, group, or all-personal reset is scoped, device-persisted when available, and supports one session undo without changing Project controls, domain records, drafts, or Work."
     },
     "client-guide": {
       "kind": "client",
