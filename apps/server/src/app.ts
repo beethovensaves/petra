@@ -952,10 +952,14 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
           if (result.done) {
             if (streamClosed) return;
             streamClosed = true;
-            await recordDelivery(
-              streamAbort.signal.aborted ? "aborted" : "completed",
-            );
-            controller.close();
+            try {
+              await recordDelivery(
+                streamAbort.signal.aborted ? "aborted" : "completed",
+              );
+              controller.close();
+            } catch (error: unknown) {
+              controller.error(error);
+            }
             return;
           }
           controller.enqueue(result.value);
