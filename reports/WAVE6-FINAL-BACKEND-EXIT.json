@@ -1,0 +1,90 @@
+{
+  "schema_name": "petra.wave6-final-backend-exit",
+  "schema_version": "1.0.0",
+  "wave": 6,
+  "status": "passed",
+  "recorded_on": "2026-09-21",
+  "integrated_history": {
+    "backend_start": "a06ae2564d1c17e4f198dbaae0dc753754de25d5",
+    "design_counterpart": "47dcd6296b2cc38fe66f9902df180b48f07c36c5",
+    "integration": "The exact design counterpart fast-forwards the supplied backend start and is the integrated runtime tree audited by this record."
+  },
+  "toolchain": {
+    "node": "v24.20.0",
+    "npm": "11.19.0",
+    "postgresql": "18.6",
+    "migrations": 58
+  },
+  "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run gate:wave6:user-testable && PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run verify && PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:postgres:integration && PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:neo4j:integration && PATH=/opt/homebrew/opt/node@24/bin:$PATH PETRA_WAVE4_TRACE=wave5-cumulative PETRA_WAVE4_RESULT_OUTPUT=/tmp/petra-wave6-final-restart-replay.json node scripts/test-wave4-cumulative-integration.mjs && PATH=/opt/homebrew/opt/node@24/bin:$PATH PETRA_WAVE4_TRACE=wave6-actual-model-ui PETRA_WAVE4_EVIDENCE_OBSERVER=./apps/workbench/test/wave6-model-recovery-observer.mjs PETRA_WAVE4_RESULT_OUTPUT=/tmp/petra-wave6-final-model-trace.json PETRA_WAVE6_ACTUAL_MODEL_BROWSER_OUTPUT=/tmp/petra-wave6-final-model-browser.json PETRA_WAVE6_MODEL_RECOVERY_BROWSER_OUTPUT=/tmp/petra-wave6-final-model-recovery.json node scripts/test-wave4-cumulative-integration.mjs",
+  "checks": [
+    {
+      "id": "wave6-operation-gate",
+      "status": "passed",
+      "result": "All 97 operations due by Wave 6 are live and have attached executed evidence."
+    },
+    {
+      "id": "complete-repository-verification",
+      "status": "passed",
+      "result": "Generated contracts and fixtures, retrieval floor, formatting, lint, TypeScript and Python type checks, production workbench build, all unit suites, controller tests, and the complete UI-operation audit passed."
+    },
+    {
+      "id": "fresh-postgresql",
+      "status": "passed",
+      "result": "A disposable PostgreSQL 18.6 store applied all 58 migrations; 26 files and 186 real-store tests passed."
+    },
+    {
+      "id": "fresh-neo4j",
+      "status": "passed",
+      "result": "The real PostgreSQL-to-Neo4j projection and rebuild suite passed all four tests."
+    },
+    {
+      "id": "restart-replay",
+      "status": "passed",
+      "result": "The production runtime restarted over fresh stores, retained exact Work, source, graph, Review, model, command, event, ChangeSet, and projection identities, and replayed with identical durable cardinalities and no duplicate effects."
+    },
+    {
+      "id": "actual-certified-model-ui",
+      "status": "passed",
+      "result": "The production React Petra composer invoked one ready certified gpt-5.6-terra role from exact Project context, persisted one ModelRequest, ModelCall, GroundedResponse, InteractionRun, and delivery record, and created no Project authority effect."
+    },
+    {
+      "id": "model-failure-reconnect",
+      "status": "passed",
+      "result": "An unconfirmed response, retained draft and run identity, exact replay, confirmed provider failure, registered new-run boundary, and exact Work return completed without a duplicate provider or Work effect."
+    },
+    {
+      "id": "clean-pushed-branches",
+      "status": "passed",
+      "result": "The final command is rerun after this evidence artifact is committed and pushed. HEAD must equal origin/main, origin/design/m1-ux must equal the exact supplied design counterpart, and the shared worktree must be clean."
+    }
+  ],
+  "backend_adversarial_reconciliation": {
+    "status": "passed_with_design_boundary",
+    "findings": [],
+    "verified": [
+      "The operation gate exposes no incomplete Wave 6 operation or evidence row.",
+      "The actual certified-model path uses the production interaction command, exact server-owned context, provider-origin output, durable replay identity, and a no-authority result boundary.",
+      "Fresh-store and restart traces reject stale and cross-Project identities, keep PostgreSQL authoritative, keep Neo4j rebuildable, preserve unknown-effect and replay ownership, and produce no duplicate durable effect.",
+      "No backend completion claim is inferred from model prose, client selection, renderer state, cached state, fixture output, or an uninvoked helper."
+    ],
+    "not_claimed": [
+      "UX1.6-CRITIC/adversarial-product-engineering-audit remains unrecorded because slide-like presentation and final product-design behavior require the outstanding integrated design review.",
+      "UX1.6-RECOVERY/adverse-state-task-completion remains unrecorded because the final single visible task execution across every named adverse state is still outstanding.",
+      "No guided-path, visual-hierarchy, Felicity, responsive/keyboard/focus/semantics, final stable-URL recording, or user-acceptance record is claimed here."
+    ]
+  },
+  "scenario_records": [
+    {
+      "evidence_id": "UX1.6-OPERATIONS",
+      "scenario_id": "wave6-operation-gate",
+      "status": "passed",
+      "boundary": "The milestone gate inspected the integrated 116-row ledger and passed all 97 operations due by Wave 6 as live with attached executed evidence. It does not replace the outstanding cumulative browser, product-design, language, adverse-state, final-recording, or user-acceptance executions."
+    },
+    {
+      "evidence_id": "UX1.6-EXIT",
+      "scenario_id": "clean-pushed-complete-gate",
+      "status": "passed",
+      "boundary": "Pinned Node 24 ran the complete repository gate, disposable PostgreSQL and Neo4j integrations, fresh-store production restart/replay, the actual certified-model React path, provider failure/reconnect recovery, and the Wave 6 operation gate from the final clean pushed main history while the exact supplied design counterpart remained clean and pushed. Native screen-reader, physical-device, cross-browser, final design-review, stable long-lived URL, and user-acceptance claims are excluded."
+    }
+  ]
+}
