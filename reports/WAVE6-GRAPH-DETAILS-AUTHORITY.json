@@ -1,0 +1,171 @@
+{
+  "schema_name": "petra.wave6-graph-details-authority-observation",
+  "schema_version": "1.0.0",
+  "artifact_kind": "wave6_operation_prerequisite",
+  "bundle_id": "graph-details-source-basis-task-return",
+  "status": "passed",
+  "recorded_at": "2026-09-21T09:40:19.838Z",
+  "command": "npm run test:wave6:graph",
+  "operation_ids": [
+    "graph.open",
+    "graph.return",
+    "graph.layer-position",
+    "graph.select",
+    "graph.open-details",
+    "graph.open-source",
+    "graph.compare",
+    "graph.impact",
+    "graph.time",
+    "graph.correct-through-review",
+    "details.open",
+    "details.return"
+  ],
+  "environment": {
+    "node": "24.20.0",
+    "transport": "authenticated production HTTP through the renderer-neutral FocusedGraphClient",
+    "stores": ["fresh PostgreSQL 18.6", "fresh Neo4j 2026.07.1"],
+    "restart_replay": true,
+    "browser_scenario_executed": false
+  },
+  "production_owners": {
+    "focused_graph": {
+      "route": "POST /api/queries/projects/:projectId/focused-graph",
+      "calls": 5,
+      "content_hash": "sha256:ad96d89d43bfbac9cd8020ceaa49d1bb3746980740e5244be67594166a3206cb",
+      "layers": ["current", "working"],
+      "projection_position": {
+        "authority_source": "postgresql",
+        "projection_source": "neo4j_rebuildable_projection",
+        "state": "current",
+        "checkpoint_ref": {
+          "record_id": "projection_checkpoint_01ARZ3NDEKTSV4RRFFQ69G5FC9",
+          "revision": 2,
+          "record_hash": "sha256:bd09e368c842d752089a0ee1d1b5031bd2f9dd790e574685a80df92d78b0a791"
+        },
+        "represented_event_position": 3,
+        "observed_event_position": 3,
+        "pending_records": 0,
+        "detail": "Neo4j represents the exact PostgreSQL checkpoint at Project stream revision 3."
+      },
+      "positions": {
+        "current": "sha256:3a6e7a4eb4b9c72e2da66fea1de0a1e10f4ab6cf871f1c1d081fbdec9fda47af",
+        "working": "sha256:73a40bbeac3b2302649dc3aa3ffe0047d9f6033025fc1fa7e15dfa8cd8af4a7e",
+        "historical": "sha256:47a42fbc8a8e709bc1a2d354bcff24aa428711fb07b1ce3a15498158826fdf5e",
+        "historical_recorded_at": "2026-09-21T09:39:59.565Z"
+      }
+    },
+    "details_and_source": {
+      "route": "POST /api/queries/projects/:projectId/focused-graph/details",
+      "calls": 1,
+      "content_hash": "sha256:ca27ed9a2f1325ab4afe79f4bd454543f74d215479eb35868abbf2298e47737b",
+      "selection": {
+        "selection_kind": "relationship",
+        "selected_keys": [
+          "relationship:working:working_relationship_1vpe3dsxktkwaz04xjy4hgdyjc:1"
+        ]
+      },
+      "inspected_source_state": "available",
+      "source_span_id": "source_span_01ARZ3NDEKTSV4RRFFQ69G5FB7",
+      "source_inspection_content_hash": "sha256:d56139b18d38a636f3a3d83c0bae3e576ca1feb5d6eed12c8acf02394ad3d2f2"
+    },
+    "analysis": {
+      "route": "POST /api/queries/projects/:projectId/focused-graph/analysis",
+      "calls": 3,
+      "results": {
+        "comparison": "sha256:bffb2b160988ae535f1a21158563ff65825d5c7a773c7add9bd245a25e9fbb14",
+        "impact": "sha256:3f0a7fa7dec4560802ac71704419efbde5cabb7d53a32e89c48ced1fe4072b54",
+        "impact_history_event_id": "event_01M31NCAYDHPET6N4CC5HN8K1E",
+        "assessed_consequences": {
+          "state": "unavailable",
+          "reason": "No exact Review member was bound to this impact request, so assessed consequences are unavailable.",
+          "coverage": "not_assessed",
+          "limitations": [
+            "Recorded dependencies do not by themselves establish consequence, importance, reversibility, or invalidation."
+          ]
+        },
+        "time": "sha256:94cb1cead0e8726ef3d5dee8b0b6ce4747d1a2caa17d9fa464d4397b61c84cd3",
+        "temporal_dimension": "recorded_time"
+      }
+    },
+    "governed_correction_preview": {
+      "route": "POST /api/queries/projects/:projectId/focused-graph/action-preview",
+      "calls": 1,
+      "review_session_id": "review_session_01K4D000000000000000000004",
+      "review_member_id": "review_member_73XZTG07J43ED75B7CG77CGRD6",
+      "working_relationship_id": "working_relationship_5MV0X9MX2PGD1T6W4AE42AC5DT",
+      "working_relationship_revision": 3,
+      "preview_content_hash": "sha256:f9c2ec3a755d07b6f732e727e9464e7aee17362aabc04c7d0fbedea78dd04be0",
+      "command_issued": false
+    }
+  },
+  "exact_return": {
+    "graph_request_id": "focused_graph_request_6XR7T2ATDZ5Q6MCKBR5T9QATSK",
+    "destination": {
+      "destination_key": "destination:wave5:evidence",
+      "destination_kind": "evidence",
+      "state": "available",
+      "owner": "project_relationship_view",
+      "label": "Return to Evidence",
+      "target_ref": {
+        "record_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+        "revision": 2,
+        "record_hash": "sha256:f6147c6ffc63a7cad0412bb76c82ae620e91faadd37a3f1296788f4c80377d68"
+      }
+    },
+    "selection": {
+      "selection_kind": "relationship",
+      "selected_keys": [
+        "relationship:working:working_relationship_1vpe3dsxktkwaz04xjy4hgdyjc:1"
+      ]
+    }
+  },
+  "restart_replay": {
+    "working_content_hash_before": "sha256:caa2f2fd16830f2e5f676a53282710876ef12708d13f648932d21a9b539334e1",
+    "working_content_hash_after": "sha256:caa2f2fd16830f2e5f676a53282710876ef12708d13f648932d21a9b539334e1",
+    "focused_graph_content_hash_before": "sha256:8513b2acf1e233beab804f9bb2bca2875aac9d063fb0ebb197ef1493aefef091",
+    "focused_graph_content_hash_after": "sha256:8513b2acf1e233beab804f9bb2bca2875aac9d063fb0ebb197ef1493aefef091",
+    "review_content_hash_after": "sha256:118842a87a02e955f57e9461632b1bca113b47fd32e1a4d3438ae70e9755c04d",
+    "durable_counts_before": {
+      "work_units": 4,
+      "worker_output_manifests": 1,
+      "grounded_responses": 1,
+      "interaction_run_revisions": 3,
+      "working_candidate_revisions": 8,
+      "review_revisions": 4,
+      "change_sets": 5,
+      "commands": 17,
+      "events": 15,
+      "graph_outboxes": 5,
+      "writing_candidate_revisions": 1,
+      "writing_change_sets": 0,
+      "writing_commands": 0,
+      "writing_events": 0
+    },
+    "durable_counts_after": {
+      "work_units": 4,
+      "worker_output_manifests": 1,
+      "grounded_responses": 1,
+      "interaction_run_revisions": 3,
+      "working_candidate_revisions": 8,
+      "review_revisions": 4,
+      "change_sets": 5,
+      "commands": 17,
+      "events": 15,
+      "graph_outboxes": 5,
+      "writing_candidate_revisions": 1,
+      "writing_change_sets": 0,
+      "writing_commands": 0,
+      "writing_events": 0
+    },
+    "duplicate_effects": false
+  },
+  "authority_boundary": {
+    "postgresql_authoritative": true,
+    "neo4j_projection_only": true,
+    "selection_is_presentation_state": true,
+    "details_and_analysis_are_read_only": true,
+    "correction_preview_issued_command": false,
+    "duplicate_effects": false
+  },
+  "boundary": "A fresh disposable PostgreSQL and Neo4j trace exercised authenticated production Graph, Details, exact-source, comparison, impact, recorded-time, and governed-preview routes through the strict renderer-neutral FocusedGraphClient, then restarted the server and replayed the exact graph read without changing durable cardinalities. It proves server owners, exact identity, read-only boundaries, and retained return data only. It did not execute a browser scenario and does not claim UX1.6-GRAPH/task-graph-details-return, visible selection/focus/return, expansion/filter/save, or final design acceptance."
+}
