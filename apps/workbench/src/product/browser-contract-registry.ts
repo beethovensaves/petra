@@ -5,8 +5,10 @@ import briefSuggestedActionViewV100Schema from "../../../../packages/contracts/s
 import briefResearchBriefPayloadV110Schema from "../../../../packages/contracts/schemas/research-brief-payload/1.1.0/schema.json";
 import briefResearchBriefPayloadV100Schema from "../../../../packages/contracts/schemas/research-brief-payload/1.0.0/schema.json";
 import briefProjectWorkViewV100Schema from "../../../../packages/contracts/schemas/project-work-view/1.0.0/schema.json";
+import projectWorkViewV110Schema from "../../../../packages/contracts/schemas/project-work-view/1.1.0/schema.json";
 import briefProjectSourceViewV100Schema from "../../../../packages/contracts/schemas/project-source-view/1.0.0/schema.json";
 import briefProjectShellViewV120Schema from "../../../../packages/contracts/schemas/project-shell-view/1.2.0/schema.json";
+import briefProjectShellViewV130Schema from "../../../../packages/contracts/schemas/project-shell-view/1.3.0/schema.json";
 import briefProjectShellViewV110Schema from "../../../../packages/contracts/schemas/project-shell-view/1.1.0/schema.json";
 import briefProjectShellViewV100Schema from "../../../../packages/contracts/schemas/project-shell-view/1.0.0/schema.json";
 import projectShellCollectionViewV100Schema from "../../../../packages/contracts/schemas/project-shell-collection-view/1.0.0/schema.json";
@@ -136,6 +138,7 @@ type BrowserContractName =
   | "project-shell-view@1.0.0"
   | "project-shell-view@1.1.0"
   | "project-shell-view@1.2.0"
+  | "project-shell-view@1.3.0"
   | "project-shell-collection-view@1.0.0"
   | "review-session-apply-checkpoint@1.0.0"
   | "review-session-apply-request@1.0.0"
@@ -246,9 +249,11 @@ const schemas = [
   briefProjectShellViewV100Schema,
   briefProjectShellViewV110Schema,
   briefProjectShellViewV120Schema,
+  briefProjectShellViewV130Schema,
   projectShellCollectionViewV100Schema,
   briefProjectSourceViewV100Schema,
   briefProjectWorkViewV100Schema,
+  projectWorkViewV110Schema,
   briefResearchBriefPayloadV100Schema,
   briefResearchBriefPayloadV110Schema,
   briefSuggestedActionViewV100Schema,
@@ -345,6 +350,7 @@ const contractIds: Record<BrowserContractName, string> = {
   "project-shell-view@1.0.0": briefProjectShellViewV100Schema.$id,
   "project-shell-view@1.1.0": briefProjectShellViewV110Schema.$id,
   "project-shell-view@1.2.0": briefProjectShellViewV120Schema.$id,
+  "project-shell-view@1.3.0": briefProjectShellViewV130Schema.$id,
   "project-shell-collection-view@1.0.0":
     projectShellCollectionViewV100Schema.$id,
   "review-session-apply-checkpoint@1.0.0": applyCheckpointSchema.$id,

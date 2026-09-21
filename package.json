@@ -98,6 +98,7 @@
     "test:wave6:project-open": "npm test --workspace @petra/adapters -- project-shell-client.test.ts && PETRA_WAVE6_PROJECT_OPEN_EVIDENCE_OUTPUT=reports/WAVE6-PROJECT-OPEN-AUTHORITY.json node scripts/test-postgres-integration.mjs",
     "test:wave6:project-switch": "PETRA_WAVE6_PROJECT_SWITCH_EVIDENCE_OUTPUT=reports/WAVE6-PROJECT-SWITCH-AUTHORITY.json node scripts/test-postgres-integration.mjs",
     "test:wave6:shell-navigation": "PETRA_WAVE6_SHELL_NAVIGATION_EVIDENCE_OUTPUT=reports/WAVE6-SHELL-NAVIGATION-AUTHORITY.json node scripts/test-postgres-integration.mjs",
+    "test:wave6:shell-brief": "PETRA_WAVE6_SHELL_BRIEF_ONLY=1 PETRA_WAVE6_SHELL_BRIEF_EVIDENCE_OUTPUT=reports/WAVE6-SHELL-BRIEF-AUTHORITY.json node scripts/test-postgres-integration.mjs",
     "test:wave6:project-search": "PETRA_WAVE6_PROJECT_SEARCH_ONLY=1 PETRA_WAVE6_PROJECT_SEARCH_EVIDENCE_OUTPUT=reports/WAVE6-PROJECT-SEARCH-AUTHORITY.json node scripts/test-postgres-integration.mjs",
     "test:wave6:source-local-copy-deletion-production": "npm run build:packages && PETRA_WAVE4_TRACE=wave6-source-local-copy-deletion PETRA_WAVE4_RESULT_OUTPUT=reports/WAVE6-SOURCE-LOCAL-COPY-DELETION-PRODUCTION.json node scripts/test-wave4-cumulative-integration.mjs",
     "test:wave6:work": "PETRA_WAVE6_WORK_EVIDENCE_OUTPUT=reports/WAVE6-WORK-PRODUCTION-COMMANDS.json node scripts/test-postgres-integration.mjs",

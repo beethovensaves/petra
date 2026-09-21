@@ -3,12 +3,16 @@ import type {
   PetraProjectShellView,
   PetraProjectShellViewV11,
   PetraProjectShellViewV12,
+  PetraProjectShellViewV13,
 } from "@petra/contracts";
 
 import type { ProjectObjectLocationRequest } from "./project-object-location-view.js";
 
 export type ProjectShellView =
-  PetraProjectShellView | PetraProjectShellViewV11 | PetraProjectShellViewV12;
+  | PetraProjectShellView
+  | PetraProjectShellViewV11
+  | PetraProjectShellViewV12
+  | PetraProjectShellViewV13;
 
 export type ProjectShellStatusFilter = "active" | "archived";
 

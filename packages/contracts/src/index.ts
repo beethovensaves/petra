@@ -279,6 +279,13 @@ export type {
   ShellContent as ProjectShellContentV12,
 } from "./generated/project-shell-view-v1-2.js";
 export type {
+  AttentionWork as ProjectShellAttentionWork,
+  AvailableAttentionWork as ProjectShellAvailableAttentionWork,
+  PetraProjectShellViewV13,
+  ShellContent as ProjectShellContentV13,
+  UnavailableAttentionWork as ProjectShellUnavailableAttentionWork,
+} from "./generated/project-shell-view-v1-3.js";
+export type {
   CollectionContent as ProjectShellCollectionContent,
   CollectionQuery as ProjectShellCollectionQuery,
   Page as ProjectShellCollectionPage,
