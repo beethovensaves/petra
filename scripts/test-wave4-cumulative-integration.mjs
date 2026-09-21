@@ -91,10 +91,12 @@ const item49Mode = traceMode === "conversation-model-identity";
 const sourceLocalCopyDeletionMode =
   traceMode === "wave6-source-local-copy-deletion";
 const wave6GraphDetailsMode = traceMode === "wave6-graph-details";
+const wave6HistoryMode = traceMode === "wave6-history";
 const wave5Mode =
   traceMode === "wave5-cumulative" ||
   sourceLocalCopyDeletionMode ||
-  wave6GraphDetailsMode;
+  wave6GraphDetailsMode ||
+  wave6HistoryMode;
 const wave6ActualModelUiMode = traceMode === "wave6-actual-model-ui";
 const liveProjectModelMode = wave5Mode || wave6ActualModelUiMode;
 const item53Mode = traceMode === "evidence-remediation-support" || wave5Mode;
@@ -6265,6 +6267,87 @@ const exerciseItem53Trace = async ({
         appliedEvent !== undefined,
         "The exact Review Apply did not retain its causal History event.",
       );
+      const historyBriefClient = new ProjectBriefClient({
+        baseUrl: active.url,
+        token,
+        registeredProfileSchemaHash: scientific.briefSchemaHash,
+      });
+      const historyBriefBeforeRevert =
+        await historyBriefClient.read(scientificProjectId);
+      const recentHistoryBeforeRevert =
+        await projectData.getRecentProjectHistory(scientificProjectId);
+      const retainedHistoryBeforeRevert =
+        await projectData.getRetainedProjectHistory(scientificProjectId, {
+          limit: 50,
+        });
+      const filteredHistoryBeforeRevert =
+        await projectData.getRetainedProjectHistory(scientificProjectId, {
+          limit: 50,
+          filters: {
+            family: "change_control",
+            command_name: "ApplyChangeSet",
+            event_type: "change_set.applied",
+            actor_id: humanActorId,
+            outcome: "completed",
+            effect: "authority_change_applied",
+            target: {
+              semantic_key: "petra.change-set",
+              object_id: checkpoint.binding.change_set.change_set_id,
+            },
+          },
+        });
+      const historyEpisode = await projectData.getProjectHistoryEpisode(
+        scientificProjectId,
+        appliedEvent.event_id,
+      );
+      const historyImpact = await projectData.getProjectHistoryImpact(
+        scientificProjectId,
+        appliedEvent.event_id,
+      );
+      const historyRecovery =
+        await projectData.getProjectHistoryRecoveryAssessment(
+          scientificProjectId,
+          appliedEvent.event_id,
+        );
+      const appliedHistoryChange =
+        recentHistoryBeforeRevert.content.changes.find(
+          (change) => change.event_ref.event_id === appliedEvent.event_id,
+        );
+      const historyReadChecks = {
+        canonical_effect:
+          appliedHistoryChange?.observed_effect.effect ===
+          "authority_change_applied",
+        retained_collection: retainedHistoryBeforeRevert.content.changes.some(
+          (change) => change.event_ref.event_id === appliedEvent.event_id,
+        ),
+        exact_filter:
+          filteredHistoryBeforeRevert.content.changes.length === 1 &&
+          filteredHistoryBeforeRevert.content.changes[0]?.event_ref.event_id ===
+            appliedEvent.event_id,
+        exact_episode:
+          historyEpisode.content.change.event_ref.event_id ===
+          appliedEvent.event_id,
+        historical_definition:
+          historyEpisode.content.project_definition_authority.state ===
+          "available",
+        exact_impact:
+          historyImpact.content.selected_event.event_ref.event_id ===
+          appliedEvent.event_id,
+        non_inference_boundary:
+          historyImpact.content.decision_boundary.dependent_effect ===
+          "not_inferred_from_reference",
+        eligible_recovery:
+          historyRecovery.content.assessment.state === "eligible_for_preview",
+        brief_recent_decision:
+          historyBriefBeforeRevert.content.recent_decisions.content.changes.some(
+            (change) => change.event_ref.event_id === appliedEvent.event_id,
+          ),
+      };
+      assert(
+        Object.values(historyReadChecks).every(Boolean),
+        `The production History reads did not converge on the exact canonical Apply effect, historical definition, impact boundary, eligible recovery, and Brief decision: ${JSON.stringify(historyReadChecks)}`,
+      );
+      const countsBeforePreview = await item53Counts(pool);
       const preview = await projectData.getProjectHistoryCompensationPreview(
         scientificProjectId,
         appliedEvent.event_id,
@@ -6279,6 +6362,16 @@ const exerciseItem53Trace = async ({
           "The exact applied pair is intentionally reversed for cumulative authority evidence.",
         explicitConfirmation: true,
       });
+      assert(
+        canonicalize(await item53Counts(pool)) ===
+          canonicalize(countsBeforePreview) &&
+          preview.content.decision_boundary.preview === "read_only" &&
+          plan.content.persistence.change_set === "not_persisted" &&
+          plan.content.persistence.approval === "not_persisted" &&
+          plan.content.persistence.commands === "not_persisted" &&
+          plan.content.execution.state === "not_performed",
+        "The governed Revert preview or confirmed plan changed authority before execution.",
+      );
       const reverted = await projectData.executeProjectHistoryCompensationPlan({
         projectId: scientificProjectId,
         eventId: appliedEvent.event_id,
@@ -6302,6 +6395,57 @@ const exerciseItem53Trace = async ({
               .compensation_change_set_id,
         "Governed Revert did not retain one exact idempotent compensation effect.",
       );
+      const countsAfterRevertReplay = await item53Counts(pool);
+      const recoveryAfterRevert =
+        await projectData.getProjectHistoryRecoveryAssessment(
+          scientificProjectId,
+          appliedEvent.event_id,
+        );
+      const recentHistoryAfterRevert =
+        await projectData.getRecentProjectHistory(scientificProjectId);
+      const retainedHistoryAfterRevert =
+        await projectData.getRetainedProjectHistory(scientificProjectId, {
+          limit: 50,
+          filters: {
+            family: "change_control",
+            event_type: "change_set.reverted",
+            outcome: "completed",
+            effect: "authority_change_reverted",
+          },
+        });
+      const historyBriefAfterRevert =
+        await historyBriefClient.read(scientificProjectId);
+      const compensationEvent = recentHistoryAfterRevert.content.changes.find(
+        (change) =>
+          change.event_ref.event_type === "change_set.reverted" &&
+          change.targets.some(
+            (target) =>
+              target.semantic_key === "petra.change-set" &&
+              target.object_id ===
+                reverted.content.authoritative_effect
+                  .compensation_change_set_id,
+          ),
+      );
+      assert(
+        recoveryAfterRevert.content.assessment.state ===
+          "already_compensated" &&
+          compensationEvent?.observed_effect.effect ===
+            "authority_change_reverted" &&
+          retainedHistoryAfterRevert.content.changes.some(
+            (change) =>
+              change.event_ref.event_id ===
+              compensationEvent.event_ref.event_id,
+          ) &&
+          recentHistoryAfterRevert.content.changes.some(
+            (change) => change.event_ref.event_id === appliedEvent.event_id,
+          ) &&
+          historyBriefAfterRevert.content.recent_decisions.content.changes.some(
+            (change) =>
+              change.event_ref.event_id ===
+              compensationEvent.event_ref.event_id,
+          ),
+        "The governed Revert did not preserve the original effect, retain its additive compensation, close recovery eligibility, and return that updated decision through Brief.",
+      );
       wave5Cumulative.review = {
         inspected_review_session_id: scientific.session.review_session_id,
         corrected_candidate_revision: correction.candidate.revision,
@@ -6314,6 +6458,79 @@ const exerciseItem53Trace = async ({
           revertedReplay.content.authoritative_effect
             .compensation_change_set_id,
       };
+      if (wave6HistoryMode) {
+        wave5Cumulative.history_authority = {
+          route_calls: {
+            brief: 2,
+            recent: 2,
+            retained_list: 1,
+            retained_filter: 2,
+            episode: 1,
+            impact: 1,
+            recovery: 2,
+            preview: 1,
+            plan: 1,
+            execute: 2,
+          },
+          applied_event: {
+            event_id: appliedEvent.event_id,
+            episode_content_hash: historyEpisode.content_hash,
+            impact_content_hash: historyImpact.content_hash,
+            recovery_content_hash: historyRecovery.content_hash,
+            observed_effect: appliedHistoryChange.observed_effect,
+            project_definition_authority:
+              historyEpisode.content.project_definition_authority,
+            impact_summary: historyImpact.content.impact.summary,
+            recovery_state: historyRecovery.content.assessment.state,
+          },
+          collection: {
+            unfiltered_content_hash: retainedHistoryBeforeRevert.content_hash,
+            filtered_content_hash: filteredHistoryBeforeRevert.content_hash,
+            filtered_event_ids: filteredHistoryBeforeRevert.content.changes.map(
+              (change) => change.event_ref.event_id,
+            ),
+            filters: filteredHistoryBeforeRevert.content.query.filters,
+          },
+          governed_revert: {
+            preview_content_hash: preview.content_hash,
+            plan_content_hash: plan.content_hash,
+            execution_content_hash: reverted.content_hash,
+            replay_content_hash: revertedReplay.content_hash,
+            compensation_change_set_id:
+              reverted.content.authoritative_effect.compensation_change_set_id,
+            compensation_event_id: compensationEvent.event_ref.event_id,
+            completed_prefix: reverted.content.completed_prefix,
+            replay_preflight: revertedReplay.content.preflight.state,
+            recovery_after: recoveryAfterRevert.content.assessment.state,
+            preview_and_plan_changed_authority: false,
+            duplicate_effects: false,
+          },
+          preservation: {
+            original_event_retained: true,
+            compensation_event_retained: true,
+            original_and_compensation_in_recent_history: true,
+            counts_before_preview: countsBeforePreview,
+            counts_after_revert_replay: countsAfterRevertReplay,
+          },
+          return_to_brief: {
+            before_content_hash: historyBriefBeforeRevert.content_hash,
+            after_content_hash: historyBriefAfterRevert.content_hash,
+            recent_decision_event_ids:
+              historyBriefAfterRevert.content.recent_decisions.content.changes.map(
+                (change) => change.event_ref.event_id,
+              ),
+            compensation_event_id: compensationEvent.event_ref.event_id,
+          },
+          authority_boundary: {
+            authenticated_server_principal: humanActorId,
+            reads_are_server_composed: true,
+            preview_and_plan_are_read_only: true,
+            execution_rechecks_authority_per_command: true,
+            command_authority_is_not_inferred_from_model_text: true,
+            additive_compensation_preserves_history: true,
+          },
+        };
+      }
       progress(
         "production Review correction, exact Apply, and governed Revert completed through shared owners",
       );

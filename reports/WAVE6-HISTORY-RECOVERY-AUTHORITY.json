@@ -1,0 +1,195 @@
+{
+  "schema_name": "petra.wave6-history-authority-observation",
+  "schema_version": "1.0.0",
+  "artifact_kind": "wave6_operation_prerequisite",
+  "bundle_id": "history-recovery-governed-revert",
+  "status": "passed",
+  "recorded_at": "2026-09-21T10:17:55.469Z",
+  "command": "npm run test:wave6:history",
+  "operation_ids": [
+    "brief.recent-decisions",
+    "history.list",
+    "history.filter",
+    "history.open",
+    "history.compare",
+    "history.impact",
+    "history.preview-revert",
+    "history.execute-revert"
+  ],
+  "environment": {
+    "node": "24.20.0",
+    "transport": "authenticated production HTTP through strict renderer-neutral History and Brief clients",
+    "stores": [
+      "fresh PostgreSQL 18.6",
+      "fresh SeaweedFS 4.41 S3",
+      "fresh Neo4j 2026.07.1"
+    ],
+    "server_restart_replay": true,
+    "browser_scenario_executed": false
+  },
+  "production_owners": {
+    "brief_recent_decisions": {
+      "route": "GET /api/queries/projects/:projectId/brief",
+      "calls": 2,
+      "before_content_hash": "sha256:8fa8aeae3a18dbbd6423a41fbaabc5837085c4ab783c56265c824a318d8f18a0",
+      "after_content_hash": "sha256:306063046a3a511dae00edf826d61499ed2464f0c7062dea8ef40bb9b650c0b0",
+      "returned_compensation_event_id": "event_01M31QHM0F0HSQD67TD3H6KFSE"
+    },
+    "recent_and_retained_history": {
+      "routes": [
+        "GET /api/queries/projects/:projectId/history/recent",
+        "GET /api/queries/projects/:projectId/history/events"
+      ],
+      "calls": 5,
+      "unfiltered_content_hash": "sha256:c11d454d4d727aad746b38729bfb2e3a0e99bb1e894fb20b164b63ebbb1b4ea4",
+      "filtered_content_hash": "sha256:8436408b10c1a15132b93ae390a2e6a74fc26ed711eb3f413dba01b98f59c863",
+      "exact_filters": {
+        "family": "change_control",
+        "command_name": "ApplyChangeSet",
+        "event_type": "change_set.applied",
+        "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+        "outcome": "completed",
+        "effect": "authority_change_applied",
+        "target": {
+          "semantic_key": "petra.change-set",
+          "object_id": "change_set_66GQKHFQ8Z9520A2HAQYT91KAA"
+        }
+      }
+    },
+    "episode_compare_and_impact": {
+      "routes": [
+        "GET /api/queries/projects/:projectId/history/events/:eventId",
+        "GET /api/queries/projects/:projectId/history/events/:eventId/impact"
+      ],
+      "event_id": "event_01M31QHGC7XRN9TX908FJ8851S",
+      "episode_content_hash": "sha256:0286418aead5af57873fc5ba2abc6cd6e684adc76addb81d52f3475b78d39614",
+      "impact_content_hash": "sha256:d273ebc622adb34a6cea4388bd49ee77c73bf024db3c6e8989215b7e53ab6526",
+      "project_definition_authority": {
+        "state": "available",
+        "authority_source": "immutable_project_definition_event_stream_binding",
+        "selection_basis": "latest_retained_binding_effective_before_selected_event",
+        "effective_after_stream_revision": 0,
+        "project_definition_ref": {
+          "schema_name": "petra.project-definition",
+          "schema_version": "1.0.0",
+          "project_definition_id": "project_definition_01K4C000000000000000000001",
+          "revision": 3,
+          "content_hash": "sha256:e758d9c9bedc703e8495efe5e896ae067ff0add0c1fdd4464d707f60058f1bbf",
+          "record_hash": "sha256:47da6f29aee506751379817c9b38b54312aa1191f1b55e4bef9e19e13fcebb4f"
+        },
+        "historical_destination_interpretation": "performed_for_selected_event_target"
+      },
+      "impact_summary": {
+        "registered_group_count": 4,
+        "total_count": 2,
+        "coverage": "complete"
+      }
+    },
+    "recovery_preview_and_plan": {
+      "routes": [
+        "GET /api/queries/projects/:projectId/history/events/:eventId/recovery",
+        "GET /api/queries/projects/:projectId/history/events/:eventId/recovery/preview",
+        "POST /api/queries/projects/:projectId/history/events/:eventId/recovery/plan"
+      ],
+      "recovery_content_hash": "sha256:659b792cedfd0844a04f675a809bab3376438cf21e05fc51861a697d2af1e281",
+      "preview_content_hash": "sha256:34ed6e047f488906a0c4b9b668695524f16798a1797deb874e439cb31064cfa7",
+      "plan_content_hash": "sha256:6a8d0c4c300b01309e048b378ff407620444fd5f42b66d9123072761426f303e",
+      "read_only_before_execution": true
+    },
+    "governed_revert_execution": {
+      "route": "POST /api/commands/projects/:projectId/history/events/:eventId/recovery/execute",
+      "calls": 2,
+      "execution_content_hash": "sha256:399a007b22a831769426f9b30e6ebae00e036f2a10d20892bdfdc4f32a92f82a",
+      "replay_content_hash": "sha256:522014aa553361ec342b65db92eb617a4c7282a4ee28a355eb741973e2b35d48",
+      "compensation_change_set_id": "change_set_3DJFQKSJRGH0F1P4MXH1CYV67T",
+      "compensation_event_id": "event_01M31QHM0F0HSQD67TD3H6KFSE",
+      "replay_preflight": "retained_completion_replayed"
+    }
+  },
+  "preservation": {
+    "original_event_retained": true,
+    "compensation_event_retained": true,
+    "original_and_compensation_in_recent_history": true,
+    "counts_before_preview": {
+      "work_units": 4,
+      "worker_output_manifests": 1,
+      "grounded_responses": 1,
+      "interaction_run_revisions": 3,
+      "working_candidate_revisions": 8,
+      "review_revisions": 4,
+      "change_sets": 4,
+      "commands": 14,
+      "events": 12,
+      "graph_outboxes": 4,
+      "writing_candidate_revisions": 1,
+      "writing_change_sets": 0,
+      "writing_commands": 0,
+      "writing_events": 0
+    },
+    "counts_after_revert_replay": {
+      "work_units": 4,
+      "worker_output_manifests": 1,
+      "grounded_responses": 1,
+      "interaction_run_revisions": 3,
+      "working_candidate_revisions": 8,
+      "review_revisions": 4,
+      "change_sets": 5,
+      "commands": 17,
+      "events": 15,
+      "graph_outboxes": 5,
+      "writing_candidate_revisions": 1,
+      "writing_change_sets": 0,
+      "writing_commands": 0,
+      "writing_events": 0
+    }
+  },
+  "restart_replay": {
+    "working_content_hash_before": "sha256:a8678c610630fc2eb1129d6211b3d488feea28ff5a1db2b691c321e85c9ae9c5",
+    "working_content_hash_after": "sha256:a8678c610630fc2eb1129d6211b3d488feea28ff5a1db2b691c321e85c9ae9c5",
+    "focused_graph_content_hash_before": "sha256:14fa4179f772c38a04dade8544f285fc9f2e4ed3ba0fad42c6fd4e6d4cfe698a",
+    "focused_graph_content_hash_after": "sha256:14fa4179f772c38a04dade8544f285fc9f2e4ed3ba0fad42c6fd4e6d4cfe698a",
+    "review_content_hash_after": "sha256:39f5e99d9028d55b850fcc725e0fd549aaa8b1c05c6d168da928f0ea3ab5d221",
+    "durable_counts_before": {
+      "work_units": 4,
+      "worker_output_manifests": 1,
+      "grounded_responses": 1,
+      "interaction_run_revisions": 3,
+      "working_candidate_revisions": 8,
+      "review_revisions": 4,
+      "change_sets": 5,
+      "commands": 17,
+      "events": 15,
+      "graph_outboxes": 5,
+      "writing_candidate_revisions": 1,
+      "writing_change_sets": 0,
+      "writing_commands": 0,
+      "writing_events": 0
+    },
+    "durable_counts_after": {
+      "work_units": 4,
+      "worker_output_manifests": 1,
+      "grounded_responses": 1,
+      "interaction_run_revisions": 3,
+      "working_candidate_revisions": 8,
+      "review_revisions": 4,
+      "change_sets": 5,
+      "commands": 17,
+      "events": 15,
+      "graph_outboxes": 5,
+      "writing_candidate_revisions": 1,
+      "writing_change_sets": 0,
+      "writing_commands": 0,
+      "writing_events": 0
+    },
+    "duplicate_effects": false
+  },
+  "authority_boundary": {
+    "authenticated_server_principal": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "reads_are_server_composed": true,
+    "preview_and_plan_are_read_only": true,
+    "execution_rechecks_authority_per_command": true,
+    "command_authority_is_not_inferred_from_model_text": true,
+    "additive_compensation_preserves_history": true
+  },
+  "boundary": "A fresh disposable-store trace invoked authenticated production Brief and History reads, exact retained filtering, one event-selected episode, historical definition comparison, impact, recovery assessment, read-only governed-Revert preview and confirmed plan, exact execution and replay, then returned to a Brief containing the additive compensation while preserving the original event. It proves backend owners, server principal binding, current authorization rechecks, persistence, canonical effects, recovery, preservation, and duplicate-effect protection. It did not execute visible browser controls and does not claim UX1.6-HISTORY/effect-recovery-revert-return or final design acceptance."
+}
