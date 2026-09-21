@@ -6,6 +6,7 @@ export * from "../../../packages/adapters/src/project-model-client.js";
 export * from "../../../packages/adapters/src/project-work-client.js";
 export * from "../../../packages/adapters/src/project-shell-client.js";
 export * from "../../../packages/adapters/src/review-session-apply-client.js";
+export * from "../../../packages/adapters/src/review-session-reject-client.js";
 export * from "../../../packages/adapters/src/review-recovery-assessment-client.js";
 export * from "../../../packages/adapters/src/review-session-refresh-client.js";
 export * from "../../../packages/adapters/src/review-candidate-correction-client.js";
@@ -19,3 +20,4 @@ export * from "../../../packages/adapters/src/project-source-revision-client.js"
 export * from "../../../packages/adapters/src/project-source-link-removal-client.js";
 export * from "../../../packages/adapters/src/project-source-local-copy-deletion-client.js";
 export * from "../../../packages/adapters/src/project-source-registration-client.js";
+export * from "../../../packages/adapters/src/project-source-discovery-client.js";

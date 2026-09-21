@@ -1,0 +1,87 @@
+{
+  "schema_name": "petra.wave6-history-recovery-browser-observation",
+  "schema_version": "1.0.0",
+  "status": "passed",
+  "recorded_at": "2026-09-21T10:37:34.469Z",
+  "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:history-ui",
+  "environment": {
+    "node": "24.20.0",
+    "browser": "Chrome/153.0.8010.48",
+    "workbench": "production React Router Brief, retained History, exact event, impact, recovery, and governed-Revert components",
+    "transport": "authenticated live HTTP",
+    "persistence": "fresh disposable PostgreSQL"
+  },
+  "operation_ids": [
+    "brief.recent-decisions",
+    "history.list",
+    "history.filter",
+    "history.open",
+    "history.compare",
+    "history.impact",
+    "history.preview-revert",
+    "history.execute-revert"
+  ],
+  "observation": {
+    "browser": "Chrome/153.0.8010.48",
+    "stable_url": "http://127.0.0.1:62249",
+    "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+    "applied_event_id": "event_01M31RNEFYFYQGZ81R39TY9DRB",
+    "exact_filters": {
+      "family": "change_control",
+      "command_name": "ApplyChangeSet",
+      "event_type": "change_set.applied",
+      "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+      "outcome": "completed",
+      "effect": "authority_change_applied",
+      "target": {
+        "semantic_key": "petra.change-set",
+        "object_id": "change_set_59QQB0QDD5RC85WQ7A59MBF54F"
+      }
+    },
+    "collection_hash_before": "sha256:d47f6763301d5a15264e93e4b7a3715495817a55850de2f9288ed451cd9ad044",
+    "collection_hash_filtered": "sha256:f4cb7371237b36cdd2e33748a6262f0c98a2b946d6d9209d5e5dc9e9ab32b0a5",
+    "episode_hash": "sha256:b1b4cabfe66aadccb41914cf9964a8008bbb5872adef0b0df8f507f094870156",
+    "impact_hash": "sha256:835f02f94c735db9ab439dc387982eda7aa822c840331e71974d09118394c68e",
+    "recovery_hash": "sha256:ff037264a5404d7e63402d5b706cc21c8f2ae0bc82429f1b9b49ef2e8c5bfd46",
+    "plan_hash": "sha256:ce5a800e174b1d552f50d161f6b7984f872a5f42306ec339680e80d228aa22ef",
+    "execution_hash": "sha256:21884b350a6c98cc368b46aa85ff6325d048412ebf2ac0b0ea2edc2f280e9eeb",
+    "compensation_event_ids": [
+      "event_01M31RNQJ8KJGMH7ZJJPXKF45X",
+      "event_01M31RNQJPR473JHENTYTVC72Z",
+      "event_01M31RNQKJYDMC4QVK6PPJWZXW"
+    ],
+    "brief_hash_before": "sha256:5dae70f6eaafb6fecf0f7005481ef1c1390d0c80d09804766358c6e6978607f2",
+    "brief_hash_after": "sha256:da66ce582ff34204e22d775dd97bc9fceacff7f695f44f526cbfa9e4aeb8e04e",
+    "collection_hash_after": "sha256:8995e2176c79f8b9e91b2a71a0be7fee35cb211e3342402d438d2095dc5cd739",
+    "final_path": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/brief",
+    "request_counts": {
+      "retained_history": 3,
+      "episode": 1,
+      "impact": 1,
+      "recovery": 1,
+      "preview": 1,
+      "plan": 1,
+      "execute": 1,
+      "brief": 3
+    }
+  },
+  "scenario_records": [
+    {
+      "evidence_id": "UX1.6-HISTORY",
+      "scenario_id": "effect-recovery-revert-return",
+      "status": "passed",
+      "boundary": "Isolated Chrome opened the production Brief recent-decision area, entered authenticated retained Project History, applied one exact seven-dimension filter through visible controls, opened the selected immutable event, expanded its retained historical comparison and current impact/recovery assessment, read the governed-Revert preview, supplied and confirmed the reason and Approval rationale, executed the exact server-composed compensation plan once, observed the additive result, verified both original and compensation events in retained History, and returned to the updated Brief. Authenticated live HTTP reached production readers and commands over fresh disposable PostgreSQL; the client supplied no authority and no fixture response substituted for the workflow."
+    }
+  ],
+  "boundary": {
+    "browser": "The complete named scenario used visible production controls in isolated headless Chrome at one stable workbench URL.",
+    "transport": "Every Brief, retained collection, event, impact, recovery, preview, plan, execution, and final return read or command used authenticated live production HTTP.",
+    "persistence": "Fresh disposable PostgreSQL supplied authority, retained the original event and additive compensation, and served the updated Brief.",
+    "authority": "Filters and disclosure state remained presentation concerns. Historical interpretation, impact, recovery eligibility, preview, plan, authorization, execution, effects, and History retention remained server-owned."
+  },
+  "limitations": [
+    "The retained workbench URL is stable for this isolated execution but is not the final long-lived USER-TESTABLE-01 URL.",
+    "This focused record does not claim the complete guided core path, taxonomy, responsive/accessibility review, adverse-state matrix, operations gate, critic audit, exit gate, final recording, or user acceptance.",
+    "The scenario executed one currently eligible single-ChangeSet governed Revert; other History families remain visible and filterable but were not mutated by this trace."
+  ]
+}

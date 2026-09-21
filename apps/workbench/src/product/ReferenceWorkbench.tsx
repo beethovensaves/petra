@@ -49,6 +49,7 @@ import { searchProjectCollection } from "./project-data.js";
 import type { ProjectShellCollectionRequest } from "@petra/core";
 import type { SourceRevisionContext } from "./source-revision.js";
 import { SuggestedWorkAction } from "./SuggestedAction.js";
+import { projectWorkDestinationPath } from "./project-work-destination.js";
 import type {
   EngineState,
   ProjectPlace,
@@ -910,6 +911,60 @@ export const ProjectShell = (): React.JSX.Element => {
               );
             })}
           </nav>
+          {project.attentionWork === undefined ? null : (
+            <aside
+              className="reference-attention-work"
+              id="shell-attention-work"
+              tabIndex={-1}
+              aria-labelledby="shell-attention-work-title"
+              data-state={project.attentionWork.state}
+            >
+              <p className="reference-panel-kicker">Attention Work</p>
+              <h2 id="shell-attention-work-title">Active or waiting on you</h2>
+              {project.attentionWork.state === "unavailable" ? (
+                <p>{project.attentionWork.reason}</p>
+              ) : (
+                <>
+                  <p>
+                    {project.attentionWork.total_count === 0
+                      ? "No active or attention-bearing Work was returned."
+                      : `${project.attentionWork.total_count} ${project.attentionWork.total_count === 1 ? "task is" : "tasks are"} active or need attention.`}
+                  </p>
+                  {project.attentionWork.tasks.length === 0 ? null : (
+                    <ul>
+                      {project.attentionWork.tasks.map((task) => (
+                        <li key={task.work_unit_ref.work_unit_id}>
+                          <Link
+                            to={projectWorkDestinationPath(
+                              project.id,
+                              task.destination.target_ref,
+                              {
+                                path: `${location.pathname}${location.search}#shell-attention-work`,
+                                label: "Attention Work",
+                                focusId: "shell-attention-work",
+                              },
+                            )}
+                          >
+                            <strong>{task.task_label}</strong>
+                            <span>{task.objective}</span>
+                            <small data-state={task.attention.state}>
+                              {presentationLabel(task.execution.state)} ·{" "}
+                              {task.attention.reason}
+                            </small>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {project.attentionWork.coverage === "partial" ? (
+                    <p className="reference-attention-work__limit">
+                      {project.attentionWork.limitation}
+                    </p>
+                  ) : null}
+                </>
+              )}
+            </aside>
+          )}
           <details className="reference-profile-details">
             <summary>Profile terms</summary>
             <p>{project.profile.description}</p>
@@ -1633,6 +1688,9 @@ export const BriefRoute = (): React.JSX.Element => {
     <ProjectBriefSurface
       view={data.briefView}
       objectiveCommandContext={data.objectiveCommandContext}
+      {...(data.comparisonRecovery === undefined
+        ? {}
+        : { comparisonRecovery: data.comparisonRecovery })}
       {...(objectiveCommandOutcome === undefined
         ? {}
         : { objectiveCommandOutcome })}
@@ -1643,9 +1701,8 @@ export const BriefRoute = (): React.JSX.Element => {
               <ProjectResumeOutcome project={project} outcome={resumeOutcome} />
             ),
           })}
-      {...(data.suggestedAction === undefined
-        ? {}
-        : {
+      {...(data.suggestedAction !== undefined
+        ? {
             selectedAction: (
               <SuggestedActionPreview
                 actionView={data.suggestedAction}
@@ -1657,13 +1714,33 @@ export const BriefRoute = (): React.JSX.Element => {
                   : { invokedInquiry: data.invokedInquiry })}
               />
             ),
-          })}
+          }
+        : data.suggestedWorkAction !== undefined
+          ? {
+              selectedAction: (
+                <SuggestedWorkAction
+                  projectId={data.suggestedWorkAction.project_id}
+                  actionView={data.suggestedWorkAction}
+                  presentationPath="direct"
+                />
+              ),
+            }
+          : {})}
     />
   );
 };
 
 const sourceSearchText = (source: SourceRecord): string =>
   `${source.title} ${source.kind} ${source.role} ${source.creator}`.toLocaleLowerCase();
+
+const sourceInspectionPath = (
+  sourceId: string,
+  sourceQuery: string,
+): string => {
+  const query = new URLSearchParams({ from: "sources" });
+  if (sourceQuery.trim().length > 0) query.set("sourceQuery", sourceQuery);
+  return `${encodeURIComponent(sourceId)}?${query}`;
+};
 
 export const SourcesSurface = ({
   project,
@@ -1747,7 +1824,7 @@ export const SourcesSurface = ({
         />
       ) : null}
 
-      <div className="reference-source-toolbar">
+      <div className="reference-source-toolbar" id="source-reuse-return">
         <PetraTextField
           label={`Find ${project.profile.terms.referencePlural}`}
           placeholder="Title, kind, role, or creator"
@@ -1793,7 +1870,9 @@ export const SourcesSurface = ({
                 <div className="reference-source-row__identity">
                   <p>{source.kind}</p>
                   <h2>
-                    <Link to={source.id}>{source.title}</Link>
+                    <Link to={sourceInspectionPath(source.id, query)}>
+                      {source.title}
+                    </Link>
                   </h2>
                   <span>{source.role}</span>
                 </div>
@@ -1811,7 +1890,10 @@ export const SourcesSurface = ({
                     <dd>{source.rights}</dd>
                   </div>
                 </dl>
-                <Link className="reference-text-link" to={source.id}>
+                <Link
+                  className="reference-text-link"
+                  to={sourceInspectionPath(source.id, query)}
+                >
                   Inspect{" "}
                   <span className="visually-hidden">{source.title}</span>
                   <span aria-hidden="true">→</span>
@@ -1840,10 +1922,6 @@ export const SourcesRoute = (): React.JSX.Element => {
         await revalidator.revalidate();
         const destinationQuery = new URLSearchParams({
           from: "sources",
-          semanticKey: "petra.project-source",
-          selected: completion.projectSourceId,
-          revision: String(completion.receipt.project_source_ref.revision),
-          recordHash: completion.receipt.project_source_ref.record_hash,
         });
         if (sourceQuery.trim().length > 0) {
           destinationQuery.set("sourceQuery", sourceQuery);

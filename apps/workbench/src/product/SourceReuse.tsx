@@ -191,10 +191,6 @@ const SourceReuseReceipt = ({
 }): React.JSX.Element => {
   const destinationQuery = new URLSearchParams({
     from: "sources",
-    semanticKey: "petra.project-source",
-    selected: receipt.destination.project_source_id,
-    revision: String(receipt.project_source_ref.revision),
-    recordHash: receipt.project_source_ref.record_hash,
   });
   if (sourceQuery.trim().length > 0) {
     destinationQuery.set("sourceQuery", sourceQuery);

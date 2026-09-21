@@ -238,12 +238,7 @@ export const SourceRegistrationReceipt = ({
       <Link
         className="reference-primary-link"
         to={`/projects/${receipt.destination.project_id}/sources/${receipt.destination.project_source_id}?${new URLSearchParams(
-          {
-            semanticKey: "petra.project-source",
-            selected: receipt.destination.project_source_id,
-            revision: String(receipt.project_source_ref.revision),
-            recordHash: receipt.project_source_ref.record_hash,
-          },
+          { from: "sources" },
         )}`}
       >
         Inspect registered source

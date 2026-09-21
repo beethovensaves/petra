@@ -8,6 +8,7 @@ import type {
   PetraProjectHistoryCompensationExecutionView,
   PetraProjectHistoryCompensationPlanView,
   PetraProjectHistoryCompensationPreviewView,
+  PetraProjectHistoryRetainedViewV12,
 } from "@petra/contracts";
 
 import { PetraMark } from "../design-system/brand.js";
@@ -18,9 +19,7 @@ import {
   PetraTextArea,
 } from "../design-system/primitives.js";
 import {
-  getHistoryEpisode,
   getProjectArtifacts,
-  getProjectHistory,
   getProjectProfileTool,
   getReferenceArtifact,
 } from "./fixtures.js";
@@ -33,6 +32,7 @@ import type {
 import type {
   ProjectSettingsData,
   ProjectHistoryEventData,
+  ProjectHistoryRouteData,
   ProjectSuggestedActionHistoryData,
 } from "./project-data.js";
 import {
@@ -43,6 +43,7 @@ import {
   composeProjectHistoryCompensationPlan,
   executeProjectHistoryCompensationPlan,
   getProjectHistoryCompensationPreview,
+  getRetainedProjectHistory,
   ProjectDataError,
 } from "./project-data.js";
 import { useProjectRecord } from "./ReferenceWorkbench.js";
@@ -448,6 +449,343 @@ export const CompositionArtifactRoute = (): React.JSX.Element => {
   return <CompositionArtifactSurface project={project} artifact={artifact} />;
 };
 
+const historyFilterChoices = {
+  family: [
+    ["change_control", "Decisions and authority changes"],
+    ["project_source_lifecycle", "Source lifecycle"],
+    ["project_source_replacement", "Source replacements"],
+  ],
+  command_name: [
+    ["SubmitChangeSet", "Submit ChangeSet"],
+    ["RecordApproval", "Record Approval"],
+    ["ApplyChangeSet", "Apply ChangeSet"],
+    ["ExcludeProjectSource", "Exclude source"],
+    ["RestoreProjectSource", "Restore source"],
+    ["CreateProjectSourceReplacement", "Create source replacement"],
+    ["RetractProjectSourceReplacement", "Retract source replacement"],
+  ],
+  event_type: [
+    ["change_set.submitted", "Change proposed"],
+    ["approval.recorded", "Approval recorded"],
+    ["change_set.applied", "Authority change applied"],
+    ["change_set.conflicted", "Authority change conflicted"],
+    ["change_set.reverted", "Authority change reverted"],
+    ["change_set.reversal_conflicted", "Reversal conflicted"],
+    ["project_source.excluded", "Source excluded"],
+    ["project_source.restored", "Source restored"],
+    ["project_source.replacement_created", "Source replacement created"],
+    ["project_source.replacement_retracted", "Source replacement retracted"],
+  ],
+  outcome: [
+    ["completed", "Completed"],
+    ["conflicted", "Conflicted"],
+  ],
+  effect: [
+    ["change_proposed", "Change proposed"],
+    ["approval_recorded", "Approval recorded"],
+    ["authority_change_applied", "Authority change applied"],
+    ["authority_change_conflicted", "Authority change conflicted"],
+    ["authority_change_reverted", "Authority change reverted"],
+    ["reversal_conflicted", "Reversal conflicted"],
+    ["project_source_excluded", "Source excluded"],
+    ["project_source_restored", "Source restored"],
+    ["source_replacement_created", "Source replacement created"],
+    ["source_replacement_retracted", "Source replacement retracted"],
+  ],
+} as const;
+
+const historyTimestampInput = (value: string | undefined): string =>
+  value?.slice(0, 16) ?? "";
+
+const historyDisplayLabel = (value: string): string =>
+  value
+    .replaceAll("_", " ")
+    .replaceAll(".", " · ")
+    .replace(/^./u, (character) => character.toLocaleUpperCase());
+
+export const HistoryCollectionSurface = ({
+  project,
+  initialHistory,
+}: {
+  project: ProjectRecord;
+  initialHistory: PetraProjectHistoryRetainedViewV12;
+}): React.JSX.Element => {
+  const [pages, setPages] = useState([initialHistory]);
+  const [continuation, setContinuation] = useState<
+    "idle" | "loading" | "failed"
+  >("idle");
+  const status = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    setPages([initialHistory]);
+    setContinuation("idle");
+  }, [initialHistory]);
+
+  useEffect(() => {
+    if (continuation !== "idle") status.current?.focus();
+  }, [continuation]);
+
+  const history = pages[0] ?? initialHistory;
+  const lastPage = pages.at(-1) ?? history;
+  const changes = pages.flatMap((page) => page.content.changes);
+  const filters = history.content.query.filters;
+  const actors = history.content.filter_options.actor_catalogue.options;
+  const targets = history.content.filter_options.target_catalogue.options;
+  const selectedTarget =
+    filters.target === undefined
+      ? ""
+      : `${filters.target.semantic_key}::${filters.target.object_id}`;
+  const selectedActorReturned = actors.some(
+    (option) => option.actor_ref.actor_id === filters.actor_id,
+  );
+  const selectedTargetReturned = targets.some(
+    (option) =>
+      `${option.target_ref.semantic_key}::${option.target_ref.object_id}` ===
+      selectedTarget,
+  );
+
+  const loadOlder = async (): Promise<void> => {
+    const page = lastPage.content.page;
+    if (!page.has_more || continuation === "loading") return;
+    setContinuation("loading");
+    try {
+      const next = await getRetainedProjectHistory(project.id, {
+        limit: history.content.query.limit,
+        cursor: page.next_cursor,
+        filters,
+      });
+      if (
+        JSON.stringify(next.content.retention_snapshot) !==
+          JSON.stringify(history.content.retention_snapshot) ||
+        next.content.changes.some((change) =>
+          changes.some(
+            (existing) =>
+              existing.event_ref.event_id === change.event_ref.event_id,
+          ),
+        )
+      ) {
+        throw new ProjectDataError(
+          "Petra could not verify the next Full History page.",
+          502,
+        );
+      }
+      setPages((current) => [...current, next]);
+      setContinuation("idle");
+    } catch {
+      setContinuation("failed");
+    }
+  };
+
+  return (
+    <main
+      className="reference-surface history-collection"
+      id="reference-main"
+      data-runtime-history="authenticated-retained"
+    >
+      <header className="reference-surface-heading">
+        <div>
+          <p className="reference-eyebrow">History · retained Project events</p>
+          <h1>Project History</h1>
+          <p className="reference-lede">
+            Follow recorded decisions and effects, narrow the exact scope, then
+            open one event to inspect its historical position, impact, and safe
+            recovery choices.
+          </p>
+        </div>
+        <Link
+          className="reference-context-back"
+          to={`/projects/${project.id}/brief`}
+        >
+          Return to current Brief
+        </Link>
+      </header>
+
+      <form
+        className="history-filters"
+        method="get"
+        aria-labelledby="history-filters-title"
+      >
+        <header>
+          <div>
+            <p className="reference-panel-kicker">Exact retained scope</p>
+            <h2 id="history-filters-title">Filter Project History</h2>
+          </div>
+          <p>
+            Counts and choices reflect only events this Project author may
+            inspect in the current retained snapshot.
+          </p>
+        </header>
+        <div className="history-filters__grid">
+          {(
+            [
+              "family",
+              "command_name",
+              "event_type",
+              "outcome",
+              "effect",
+            ] as const
+          ).map((name) => (
+            <label key={name}>
+              <span>{historyDisplayLabel(name)}</span>
+              <select name={name} defaultValue={filters[name] ?? ""}>
+                <option value="">Any</option>
+                {historyFilterChoices[name].map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ))}
+          <label>
+            <span>Actor</span>
+            <select name="actor_id" defaultValue={filters.actor_id ?? ""}>
+              <option value="">Any permitted actor</option>
+              {!selectedActorReturned && filters.actor_id !== undefined ? (
+                <option value={filters.actor_id}>{filters.actor_id}</option>
+              ) : null}
+              {actors.map((option) => (
+                <option
+                  key={option.actor_ref.actor_id}
+                  value={option.actor_ref.actor_id}
+                >
+                  {`${option.display_descriptor.display_name} · ${option.matching_event_count}`}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            <span>Exact target</span>
+            <select name="target" defaultValue={selectedTarget}>
+              <option value="">Any permitted target</option>
+              {!selectedTargetReturned && filters.target !== undefined ? (
+                <option value={selectedTarget}>
+                  {filters.target.semantic_key} · {filters.target.object_id}
+                </option>
+              ) : null}
+              {targets.map((option) => {
+                const value = `${option.target_ref.semantic_key}::${option.target_ref.object_id}`;
+                return (
+                  <option key={value} value={value}>
+                    {`${option.target_ref.semantic_key} · ${option.target_ref.object_id} · ${option.matching_event_count}`}
+                  </option>
+                );
+              })}
+            </select>
+          </label>
+          <label>
+            <span>Recorded from (UTC)</span>
+            <input
+              type="datetime-local"
+              name="recorded_from"
+              defaultValue={historyTimestampInput(
+                filters.recorded_at?.from_inclusive,
+              )}
+            />
+          </label>
+          <label>
+            <span>Recorded through (UTC)</span>
+            <input
+              type="datetime-local"
+              name="recorded_through"
+              defaultValue={historyTimestampInput(
+                filters.recorded_at?.through_inclusive,
+              )}
+            />
+          </label>
+        </div>
+        <PetraButtonGroup label="Full History filter actions">
+          <PetraButton variant="primary" type="submit">
+            Apply exact filters
+          </PetraButton>
+          <Link
+            className="reference-text-link"
+            to={`/projects/${project.id}/history`}
+          >
+            Clear filters
+          </Link>
+        </PetraButtonGroup>
+      </form>
+
+      <section
+        className="history-episodes history-retained-events"
+        aria-labelledby="history-episodes-title"
+      >
+        <header>
+          <div>
+            <p className="reference-panel-kicker">Newest first</p>
+            <h2 id="history-episodes-title">Causal events</h2>
+          </div>
+          <span>
+            {changes.length} of {history.content.page.snapshot_total_count}
+          </span>
+        </header>
+        {changes.length === 0 ? (
+          <div className="history-runtime-empty">
+            <h3>No permitted History events match these filters</h3>
+            <p>
+              The exact filters remain selected. Clear or change them to read a
+              different retained scope.
+            </p>
+          </div>
+        ) : (
+          <ol>
+            {changes.map((change) => (
+              <li key={change.event_ref.event_id}>
+                <Link
+                  to={`/projects/${project.id}/history/${change.event_ref.event_id}`}
+                >
+                  <span>
+                    {`${change.recorded_at} · ${historyDisplayLabel(change.family)}`}
+                  </span>
+                  <strong>
+                    {historyDisplayLabel(change.observed_effect.effect)}
+                  </strong>
+                  <p>{change.observed_effect.summary}</p>
+                  <span>
+                    {historyDisplayLabel(change.observed_effect.outcome)} · Open
+                    exact event
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ol>
+        )}
+        <div className="history-retained-events__continuation">
+          <p>
+            {`Snapshot through Project stream revision ${history.content.retention_snapshot.through_stream_revision} · read ${history.read_at}`}
+          </p>
+          {lastPage.content.page.has_more ? (
+            <PetraButton
+              variant="secondary"
+              onClick={() => void loadOlder()}
+              busy={continuation === "loading"}
+              busyLabel="Loading older History events…"
+            >
+              Load older events
+            </PetraButton>
+          ) : (
+            <p>End of this retained History snapshot.</p>
+          )}
+          <section
+            ref={status}
+            tabIndex={-1}
+            role={continuation === "failed" ? "alert" : "status"}
+          >
+            {continuation === "failed" ? (
+              <p>
+                This History traversal can no longer continue from its verified
+                snapshot. Clear the continuation by applying the same filters
+                again.
+              </p>
+            ) : null}
+          </section>
+        </div>
+      </section>
+    </main>
+  );
+};
+
 export const HistorySurface = ({
   project,
   episodes,
@@ -818,6 +1156,37 @@ export const HistoryEventSurface = ({
               </li>
             ))}
           </ul>
+          <details className="history-event__comparison">
+            <summary>Compare recorded state</summary>
+            <h3>Historical position and current read</h3>
+            <p>
+              This event was retained at Project stream revision{" "}
+              {change.event_ref.stream_revision}. The current impact read
+              reaches Project stream revision{" "}
+              {impact.content.authority.through_stream_revision}.
+            </p>
+            {graphDefinitionAuthority.state === "available" ? (
+              <>
+                <p>
+                  Petra interpreted the event with the exact retained Project
+                  profile definition revision{" "}
+                  {graphDefinitionAuthority.project_definition_ref.revision},
+                  effective before this event.
+                </p>
+                <p>
+                  The historical definition itself is not reproduced here; its
+                  immutable content and record identities remain available in
+                  technical details.
+                </p>
+              </>
+            ) : (
+              <p>
+                No exact retained Project profile definition is available for
+                historical interpretation. Petra did not substitute the current
+                profile.
+              </p>
+            )}
+          </details>
           {graphTarget === undefined ||
           graphTarget.revision === undefined ||
           graphTarget.record_hash === undefined ||
@@ -972,8 +1341,8 @@ export const HistoryEventSurface = ({
             compensation; it does not erase this event, its decision, or its
             History.
           </p>
-          <details>
-            <summary>Complete impact and recovery assessments</summary>
+          <details className="history-event__impact-details">
+            <summary>Inspect impact and recovery</summary>
             <Observation value={{ impact, recovery }} />
           </details>
         </aside>
@@ -1077,6 +1446,14 @@ export const HistoryEventSurface = ({
                 <summary>Complete governed Revert execution record</summary>
                 <Observation value={revert.result} />
               </details>
+              <p>
+                <Link
+                  className="reference-primary-link"
+                  to={`/projects/${project.id}/brief`}
+                >
+                  Return to updated Brief
+                </Link>
+              </p>
             </>
           ) : (
             <p>
@@ -1393,25 +1770,17 @@ export const SuggestedActionWorkHistorySurface = ({
 
 export const HistoryRoute = (): React.JSX.Element => {
   const project = useProjectRecord();
-  const runtimeHistory = useLoaderData<
-    ProjectSuggestedActionHistoryData | undefined
-  >();
-  const { episodeId } = useParams();
-  if (runtimeHistory !== undefined) {
+  const data = useLoaderData<ProjectHistoryRouteData>();
+  if (data.kind === "suggested_action") {
     return (
       <SuggestedActionWorkHistorySurface
         project={project}
-        data={runtimeHistory}
+        data={data.history}
       />
     );
   }
-  const episodes = getProjectHistory(project.id);
-  const selected =
-    episodeId === undefined
-      ? episodes[0]
-      : getHistoryEpisode(project.id, episodeId);
   return (
-    <HistorySurface project={project} episodes={episodes} selected={selected} />
+    <HistoryCollectionSurface project={project} initialHistory={data.history} />
   );
 };
 

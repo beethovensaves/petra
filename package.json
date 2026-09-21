@@ -104,7 +104,6 @@
     "test:wave6:source-local-copy-deletion-production": "npm run build:packages && PETRA_WAVE4_TRACE=wave6-source-local-copy-deletion PETRA_WAVE4_RESULT_OUTPUT=reports/WAVE6-SOURCE-LOCAL-COPY-DELETION-PRODUCTION.json node scripts/test-wave4-cumulative-integration.mjs",
     "test:wave6:work": "PETRA_WAVE6_WORK_EVIDENCE_OUTPUT=reports/WAVE6-WORK-PRODUCTION-COMMANDS.json node scripts/test-postgres-integration.mjs",
     "test:wave6:graph": "npm run build:packages && npm test --workspace @petra/adapters -- focused-graph-client.test.ts && npm test --workspace @petra/server -- focused-graph-route.test.ts && PETRA_WAVE6_GRAPH_DETAILS_EVIDENCE_OUTPUT=reports/WAVE6-GRAPH-DETAILS-AUTHORITY.json node scripts/test-wave6-graph-details-integration.mjs && prettier --write reports/WAVE6-GRAPH-DETAILS-AUTHORITY.json",
-    "test:wave6:history": "npm run build:packages && npm test --workspace @petra/server -- project-shell-routes.test.ts && PETRA_WAVE6_HISTORY_EVIDENCE_OUTPUT=reports/WAVE6-HISTORY-RECOVERY-AUTHORITY.json node scripts/test-wave6-history-integration.mjs && prettier --write reports/WAVE6-HISTORY-RECOVERY-AUTHORITY.json",
     "inspect:wave5": "npm run build:packages && PETRA_WAVE4_TRACE=wave5-cumulative PETRA_WAVE4_EVIDENCE_OBSERVER=./apps/workbench/test/wave5-cumulative-evidence-observer.mjs PETRA_WAVE5_BROWSER_OBSERVER_OUTPUT=/tmp/petra-wave5-inspection.json PETRA_WAVE5_INSPECT=1 node scripts/test-wave4-cumulative-integration.mjs",
     "audit:wave5:evidence": "node scripts/audit-wave5-evidence.mjs",
     "audit:ui-operations": "node scripts/audit-ui-operation-coverage.mjs",
@@ -123,7 +122,7 @@
     "test:wave6:source-local-copy-deletion-ui": "npm run build:packages && node apps/workbench/test/run-source-local-copy-deletion-browser.mjs",
     "test:wave6:source-local-copy-deletion-production-ui": "npm run build:packages && node apps/workbench/test/run-source-local-copy-deletion-production-browser.mjs",
     "test:wave6:review-interrupt-ui": "npm run build:packages && PETRA_REVIEW_INTERRUPT_BROWSER_OUTPUT=reports/WAVE6-REVIEW-INTERRUPT-BROWSER.json node apps/workbench/test/run-petra-review-interrupt-browser.mjs",
-    "test:wave6:work-ui": "npm run build:packages && PETRA_WAVE4_TRACE=wave5-cumulative PETRA_WAVE4_EVIDENCE_OBSERVER=./apps/workbench/test/wave6-work-browser-observer.mjs PETRA_WAVE4_RESULT_OUTPUT=reports/WAVE6-WORK-CUMULATIVE-TRACE.json PETRA_WAVE6_WORK_BROWSER_OUTPUT=reports/WAVE6-WORK-BROWSER-OBSERVATION.json node scripts/test-wave4-cumulative-integration.mjs",
+    "test:wave6:work-ui": "npm run build:packages && node apps/workbench/test/run-wave6-work-browser.mjs",
     "inspect:wave6": "npm run build:packages && PETRA_WAVE4_TRACE=wave5-cumulative PETRA_WAVE4_EVIDENCE_OBSERVER=./apps/workbench/test/wave6-checkpoint-observer.mjs PETRA_WAVE5_INSPECT=1 node scripts/test-wave4-cumulative-integration.mjs",
     "audit:wave6:operation-control": "node scripts/audit-wave6-operation-control.mjs",
     "test:wave6:project-search-ui": "npm run build:packages && node apps/workbench/test/project-search-browser.mjs",
@@ -132,7 +131,14 @@
     "test:wave6:shell-navigation-ui": "npm run build:packages && node apps/workbench/test/shell-navigation-browser.mjs",
     "test:wave6:shell-return-ui": "npm run build:packages && PETRA_SHELL_RETURN_BROWSER_OUTPUT=reports/WAVE6-SHELL-RETURN-BROWSER.json node apps/workbench/test/shell-return-browser.mjs",
     "test:wave6:project-create": "npm test --workspace @petra/adapters -- project-profile-client.test.ts && npm test --workspace @petra/server -- project-profile-routes.test.ts && PETRA_WAVE6_PROJECT_CREATE_EVIDENCE_OUTPUT=reports/WAVE6-PROJECT-CREATE-AUTHORITY.json node scripts/test-postgres-integration.mjs",
-    "test:wave6:project-create-ui": "npm run build:packages && node apps/workbench/test/project-create-browser.mjs"
+    "test:wave6:project-create-ui": "npm run build:packages && node apps/workbench/test/project-create-browser.mjs",
+    "test:wave6:shell-brief-ui": "npm run build:packages && node apps/workbench/test/run-shell-brief-browser.mjs",
+    "test:wave6:sources-ui": "npm run build:packages && PETRA_WAVE4_TRACE=wave5-cumulative PETRA_WAVE4_EVIDENCE_OBSERVER=./apps/workbench/test/wave6-sources-lifecycle-observer.mjs PETRA_WAVE4_RESULT_OUTPUT=/tmp/petra-wave6-sources-lifecycle-backend.json PETRA_WAVE6_SOURCES_BROWSER_OUTPUT=reports/WAVE6-SOURCES-LIFECYCLE-BROWSER.json node apps/workbench/test/run-wave6-sources-lifecycle-browser.mjs",
+    "test:wave6:graph-details-ui": "npm run build:packages && PETRA_WAVE4_TRACE=wave5-cumulative PETRA_WAVE4_EVIDENCE_OBSERVER=./apps/workbench/test/wave6-graph-details-observer.mjs PETRA_WAVE4_RESULT_OUTPUT=/tmp/petra-wave6-graph-details-backend.json PETRA_WAVE6_GRAPH_DETAILS_BROWSER_OUTPUT=reports/WAVE6-GRAPH-DETAILS-BROWSER.json node scripts/test-wave4-cumulative-integration.mjs",
+    "test:wave6:actions-feedback-ui": "npm run build:packages && PETRA_WAVE4_TRACE=wave5-cumulative PETRA_WAVE4_EVIDENCE_OBSERVER=./apps/workbench/test/wave6-actions-feedback-observer.mjs PETRA_WAVE4_RESULT_OUTPUT=/tmp/petra-wave6-actions-feedback-backend.json PETRA_WAVE6_REVIEW_OUTPUT=reports/WAVE6-ACTIONS-FEEDBACK-BROWSER.json node apps/workbench/test/run-wave6-actions-feedback-browser.mjs",
+    "test:wave6:review-ui": "npm run build:packages && PETRA_WAVE4_TRACE=wave5-cumulative PETRA_WAVE4_EVIDENCE_OBSERVER=./apps/workbench/test/wave6-review-workflow-observer.mjs PETRA_WAVE4_RESULT_OUTPUT=/tmp/petra-wave6-review-workflow-backend.json PETRA_WAVE6_REVIEW_OUTPUT=reports/WAVE6-REVIEW-WORKFLOW-BROWSER.json node apps/workbench/test/run-wave6-review-workflow-browser.mjs",
+    "test:wave6:history": "npm run build:packages && npm test --workspace @petra/server -- project-shell-routes.test.ts && PETRA_WAVE6_HISTORY_EVIDENCE_OUTPUT=reports/WAVE6-HISTORY-RECOVERY-AUTHORITY.json node scripts/test-wave6-history-integration.mjs && prettier --write reports/WAVE6-HISTORY-RECOVERY-AUTHORITY.json",
+    "test:wave6:history-ui": "npm run build:packages && PETRA_WAVE4_TRACE=wave5-cumulative PETRA_WAVE4_EVIDENCE_OBSERVER=./apps/workbench/test/wave6-history-recovery-observer.mjs PETRA_WAVE4_RESULT_OUTPUT=/tmp/petra-wave6-history-recovery-backend.json PETRA_WAVE6_HISTORY_BROWSER_OUTPUT=reports/WAVE6-HISTORY-RECOVERY-BROWSER.json node scripts/test-wave4-cumulative-integration.mjs"
   },
   "devDependencies": {
     "@aws-sdk/client-s3": "3.1124.0",

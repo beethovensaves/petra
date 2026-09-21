@@ -1,5 +1,6 @@
 import { ProjectBriefClient } from "@petra/adapters";
 import type { PetraProjectBriefReadView } from "@petra/contracts";
+import type { ProjectBriefRequest } from "@petra/core/project-brief-view";
 import { canonicalize } from "json-canonicalize";
 import payloadV10 from "../../../../packages/contracts/schemas/research-brief-payload/1.0.0/schema.json";
 import payloadV11 from "../../../../packages/contracts/schemas/research-brief-payload/1.1.0/schema.json";
@@ -28,19 +29,32 @@ export const readProjectBrief = async (options: {
   baseUrl: string;
   token: string;
   signal: AbortSignal;
+  request?: ProjectBriefRequest;
 }): Promise<PetraProjectBriefReadView> => {
   const url = new URL(
     `/api/queries/projects/${encodeURIComponent(options.projectId)}/brief`,
     options.baseUrl,
   );
+  for (const key of [
+    "expected_snapshot_hash",
+    "baseline_event_id",
+    "baseline_record_hash",
+  ] as const) {
+    const value = options.request?.[key];
+    if (value !== undefined) url.searchParams.set(key, value);
+  }
   const response = await fetch(url, {
     headers: { authorization: `Bearer ${options.token}` },
     signal: options.signal,
   });
-  if (!response.ok)
-    throw new Error(
-      `Project Brief read failed (${response.status}). Refresh to retry; a registered Brief payload and current Objective are required.`,
-    );
+  if (!response.ok) {
+    return new ProjectBriefClient({
+      baseUrl: options.baseUrl,
+      token: options.token,
+      registeredProfileSchemaHash: await installedBriefPayloadHash("1.1.0"),
+      fetch: () => Promise.resolve(response),
+    }).read(options.projectId, options.request);
+  }
   const envelope = (await response.clone().json()) as {
     schema_version?: unknown;
   } | null;
@@ -54,5 +68,5 @@ export const readProjectBrief = async (options: {
     token: options.token,
     registeredProfileSchemaHash,
     fetch: () => Promise.resolve(response),
-  }).read(options.projectId);
+  }).read(options.projectId, options.request);
 };

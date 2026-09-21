@@ -1,0 +1,132 @@
+{
+  "schema_name": "petra.wave6-actions-feedback-browser-observation",
+  "schema_version": "1.0.0",
+  "status": "passed",
+  "recorded_at": "2026-09-21T07:52:02.638Z",
+  "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:actions-feedback-ui",
+  "environment": {
+    "node": "24.20.0",
+    "browser": "Chrome/153.0.8010.48",
+    "workbench": "production React Router loaders, product components, and command clients",
+    "transport": "authenticated live HTTP",
+    "persistence": "fresh disposable PostgreSQL"
+  },
+  "observation": {
+    "browser": "Chrome/153.0.8010.48",
+    "workbench_url": "http://127.0.0.1:52553",
+    "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+    "suggested_action": {
+      "suggested_action_id": "suggested_action_1PSSN08130QTMM1JB3KQT3S2VK",
+      "inquiry_result_link_id": "project_inquiry_link_0MD9HQ7QCQH8JKAT2VE8CZVQBJ",
+      "presentation_paths": ["direct", "conversational"],
+      "command_attempts": [
+        {
+          "command_id": "command_01M31F66GKBSYN0W1TX2CA0ZZD",
+          "attempts": 2,
+          "exact_request_reused": true
+        },
+        {
+          "command_id": "command_01M31F67MBX5BZB1CSF79EZ68Q",
+          "attempts": 2,
+          "exact_request_reused": true
+        }
+      ],
+      "feedback": {
+        "confirmation": true,
+        "exact_retry": true,
+        "dismissed": true,
+        "direct_focus_return": "suggested-work-action-control-direct",
+        "conversational_focus_return": "suggested-work-action-control-conversational"
+      }
+    },
+    "durable_interrupt": {
+      "interaction_interrupt_id": "interaction_interrupt_4NCV47Q3NZTTB6191AQZ6DQXRH",
+      "interaction_run_id": "interaction_run_019SK8KW1JJZKPTNRDRXK45Z7P",
+      "review_session_id": "review_session_68JHQFG25BC35CPDC9AJKCAT3G",
+      "resolution": {
+        "method": "POST",
+        "path": "/api/commands/reviews/resolve",
+        "status": 200,
+        "request_schema": "petra.review-interrupt-response"
+      },
+      "return_path": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/work/work_unit_1M59PHH5NWTD9XKTJKGSQQ3ED0"
+    },
+    "reviews": {
+      "correction": "review_session_0GJ4REYGN4AMP9PHEQH5ECVZ8T",
+      "decision": "review_session_22WYH6BPJBYMZPWVN4Q7XJNT32"
+    },
+    "operations": {
+      "correction": {
+        "method": "POST",
+        "path": "/api/commands/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/reviews/review_session_0GJ4REYGN4AMP9PHEQH5ECVZ8T/candidate-correction",
+        "status": 200,
+        "applied": true
+      },
+      "basis_revision": {
+        "method": "POST",
+        "path": "/api/commands/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/reviews/review_session_0GJ4REYGN4AMP9PHEQH5ECVZ8T/candidate-basis-revision",
+        "status": 200,
+        "applied": true
+      },
+      "refresh": {
+        "method": "POST",
+        "path": "/api/commands/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/reviews/review_session_22WYH6BPJBYMZPWVN4Q7XJNT32/refresh",
+        "status": 200,
+        "applied": true
+      },
+      "apply_checkpoint": {
+        "method": "GET",
+        "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/reviews/review_session_22WYH6BPJBYMZPWVN4Q7XJNT32/apply-checkpoint?expected_revision=2&expected_content_hash=sha256%3A029fc200d7583115d765268d8b91d1ded695ba40a317d2f0e1d32aa10e118680&selected_review_member_id=review_member_3NYDNWKWDQW2ST3YJY909Z22PC",
+        "status": 200,
+        "response_schema": "petra.review-session-apply-checkpoint"
+      },
+      "apply": {
+        "method": "POST",
+        "path": "/api/commands/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/reviews/review_session_22WYH6BPJBYMZPWVN4Q7XJNT32/apply",
+        "status": 200,
+        "request_schema": "petra.review-session-apply-request",
+        "response_schema": "petra.review-session-apply-result",
+        "outcome": "applied"
+      }
+    },
+    "member_outcomes": {
+      "applied": [
+        {
+          "review_member_id": "review_member_3NYDNWKWDQW2ST3YJY909Z22PC",
+          "outcome": "applied"
+        }
+      ]
+    },
+    "return_path": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/work/work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+    "checks": [
+      "Brief and Petra rendered the same registered SuggestedAction identity",
+      "both presentation paths exposed an exact consequence-naming confirmation",
+      "uncertain delivery retained and retried byte-equivalent command input",
+      "transient feedback dismissed without changing server-owned state",
+      "feedback return restored focus to each initiating action control",
+      "Petra replayed and resolved a PostgreSQL-backed durable Review interrupt",
+      "the durable response returned to the exact originating Work",
+      "Review queue and exact session opened through visible links",
+      "candidate text correction invoked once and retained a working-only result",
+      "material source-basis revision invoked once and reset validation without a decision",
+      "the independent prevalidated Review visibly refreshed after the earlier authority effect",
+      "Apply preview sent no decision before one explicit Apply",
+      "the applied member outcome rendered",
+      "candidate and decision paths returned to the exact originating Work",
+      "no browser console or runtime failures"
+    ]
+  },
+  "scenario_records": [
+    {
+      "evidence_id": "UX1.6-ACTIONS",
+      "scenario_id": "suggested-action-interrupt-review",
+      "status": "passed",
+      "boundary": "One isolated Chrome session executed the production Brief, Petra, Work, and Review routes at one stable workbench URL against authenticated live HTTP owners, a certified grounded-synthesis runtime, ArtifactStore bytes, and fresh disposable PostgreSQL. It previewed and invoked the same registered SuggestedAction in both direct and Petra presentations; confirmed the exact consequence; retained byte-equivalent commands across deliberately interrupted response delivery; exercised explicit retry, transient dismissal, and focus return; replayed and resolved a PostgreSQL-backed durable Review interrupt; corrected Review text and basis; visibly refreshed and applied a separate prevalidated exact Review; and returned to the originating Work. Purpose-built disposable records isolate correction from the independently eligible decision; no fixture response, hidden developer command, or client-owned authority substitutes for a production command."
+    }
+  ],
+  "limitations": [
+    "The retained workbench URL is stable for this isolated execution but stops when the test completes and is not the final long-lived USER-TESTABLE-01 URL.",
+    "This focused record does not claim the complete guided-core-path, responsive-accessibility, adverse-state, Graph, Source, History, operations, critic, exit, or user-acceptance scenarios.",
+    "The corrected candidate and basis intentionally remain non-authoritative pending validation; Apply executes on a distinct validation-passed Review record."
+  ]
+}

@@ -462,7 +462,7 @@ export const startItem50ProductionBrowser = async ({
       "Applicable checks passed",
       "Prepare changes to apply",
       "Apply unavailable",
-      "Apply requires the exact server-prepared commitment above and one explicit human decision",
+      "Apply and reject each require their own exact server-prepared commitment and one explicit human decision",
       "Limitations and qualifications",
     ]) {
       assert.ok(
@@ -846,17 +846,26 @@ export const startItem50ProductionBrowser = async ({
       true,
     );
     const text = await evaluate("document.body.innerText");
+    const applyObservationText = await evaluate(
+      'document.querySelector("#review-apply-observation")?.innerText ?? ""',
+    );
     for (const value of [
       "Reconciliation required",
       "REVIEW_APPLY_STALE",
       "This is a read-only assessment. No recovery execution is offered",
       "Reload Review",
-      "Refresh Review",
     ])
       assert.ok(
-        text.includes(value),
+        applyObservationText.includes(value),
         `Missing governed failure recovery meaning: ${value}`,
       );
+    assert.deepEqual(
+      await evaluate(
+        '[...document.querySelectorAll("#review-apply-observation button")].map((element) => element.textContent.trim())',
+      ),
+      ["Reload Review"],
+      "The Apply observation must expose only its exact reload control; Refresh Review belongs to the separate stale-session lifecycle.",
+    );
     if (applyCall.json.assessment.content.groups.length === 0) {
       assert.ok(text.includes("No associated ChangeSets were supplied"));
       assert.ok(text.includes("no effect is inferred"));

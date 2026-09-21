@@ -2,8 +2,31 @@
   "schema_name": "petra.wave6-graph-expansion-browser-observation",
   "schema_version": "1.0.0",
   "status": "passed",
-  "recorded_at": "2026-09-20T04:38:54.299Z",
+  "recorded_at": "2026-09-21T02:45:44.613Z",
   "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:graph-ui",
+  "correction_preview": {
+    "graph_duration_ms": 1951,
+    "live_route_availability": "preview_executed",
+    "open_review_session_id": "review_session_01K4D000000000000000000004",
+    "review_member_id": "review_member_73XZTG07J43ED75B7CG77CGRD6",
+    "working_relationship_ref": {
+      "working_relationship_id": "working_relationship_5MV0X9MX2PGD1T6W4AE42AC5DT",
+      "revision": 3,
+      "content_hash": "sha256:16fe7715ab5fb2c3c1956e3e3d8a79281eb311de0886cc816e2e55cbd31c4331"
+    },
+    "returned_relationship_ref": {
+      "element_id": "working_relationship_5MV0X9MX2PGD1T6W4AE42AC5DT",
+      "revision": 3,
+      "record_hash": "sha256:959bc01786ad5c8e5bc2a86ee6252b203e7a99f47484083ca90443ec1fe07b80"
+    },
+    "graph_content_hash": "sha256:6eafc331779acd150df8f39ccb8d9e7742c3ca62a8404938920f3e5b41b96ad7",
+    "preview_content_hash": "sha256:e4f935618f497d2ec8cc22260497f19b268e6cf5de38d280f9a77f5a8e9ba81a",
+    "preview_trigger_focus_restored": true,
+    "exact_review_member_returned": true,
+    "exact_review_focus_restored": true,
+    "review_authority_unchanged": true,
+    "command_issued": false
+  },
   "browser": {
     "product": "Chrome/153.0.8010.48",
     "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
@@ -23,7 +46,7 @@
     "contract": "petra.focused-graph-view@1.1.0"
   },
   "request": {
-    "request_id": "focused_graph_request_01M2YHR46Z3YX69W7MJMSK4XTB",
+    "request_id": "focused_graph_request_01M30XNKGDQD718RHQH0R3BVPC",
     "target_ref": {
       "record_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
       "revision": 2,
@@ -39,7 +62,7 @@
   "response": {
     "schema_name": "petra.focused-graph-view",
     "schema_version": "1.1.0",
-    "content_hash": "sha256:3a7694620eb61b7c5dc26e8e186b668b3c8045f1feb4e7771e3ab9ae7f9145e8",
+    "content_hash": "sha256:56619a94d99f7d8092c942d864bb256b39d29148faf960cfcfddc61ae0c25afb",
     "result_state": "complete_for_scope",
     "accounting": {
       "result_state": "complete_for_scope",
@@ -118,10 +141,11 @@
     "browser": "Isolated headless Chrome executed the production workbench route and controls.",
     "transport": "Authenticated live HTTP reached the production focused-graph query owner.",
     "persistence": "Fresh disposable PostgreSQL and Neo4j stores supplied exact authority and projection state.",
-    "authority": "Expansion and filtering remained read-only; renderer state did not enter the request."
+    "authority": "Correction preview, expansion, and filtering remained read-only; renderer state did not enter either request and no command was issued."
   },
   "limitations": [
     "This focused operation trace does not claim the complete UX1.6-GRAPH/task-graph-details-return scenario.",
+    "The correction-preview segment proves exact Review-to-Graph composition and return but does not claim the complete UX1.6-REVIEW/correct-reject-defer-apply scenario.",
     "The trace covers the representative scientific profile registration and does not repeat paired-profile or unsupported-profile evidence."
   ]
 }

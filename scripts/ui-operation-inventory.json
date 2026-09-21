@@ -9,6 +9,12 @@
     "unavailable": "The UI exposes a disabled or unavailable control for an operation required by the accepted contract.",
     "missing": "The accepted operation has no discoverable UI control."
   },
+  "interaction_definitions": {
+    "query": "Reads exact production state without an authority effect.",
+    "navigation": "Changes place or context while preserving exact identity, state, and return.",
+    "command": "Invokes a registered production mutation or durable operation.",
+    "local_command": "Changes scoped local presentation state without domain authority."
+  },
   "operations": [
     {
       "id": "project.search",
@@ -272,7 +278,7 @@
       "surfaces": ["SP02", "SP12"],
       "flows": ["UX-FLOW-07", "UX-FLOW-09"],
       "requests": ["UX-REQ-001", "UX-REQ-014"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId",
       "control": "Attention Work",
       "interaction": "query",
@@ -281,9 +287,14 @@
           "command": "npm run test:wave6:shell-brief",
           "artifact": "reports/WAVE6-SHELL-BRIEF-AUTHORITY.json",
           "boundary": "Real disposable PostgreSQL and the authenticated production shell route return project-shell-view@1.3.0 with a bounded canonical Work attention collection. The executed trace proves exact Work revision/spec/record identity, canonical active-or-needs-attention state and reason, semantic Work destination, honest complete coverage, and a matching shell Work count without mutation. The visible shell currently exposes only the count, so browser inspection and exact return remain design-owned; this trace claims no named Wave 6 evidence-plan scenario."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:shell-brief-ui",
+          "artifact": "reports/WAVE6-SHELL-BRIEF-BROWSER.json",
+          "boundary": "Isolated Chrome keyboard-opened the bounded active Work summary and its exact revision/specification/record destination from the production Project shell, rendered the canonical Work owner, and used the visible return control to restore the originating shell task and focus. project-shell-view@1.3.0 was consumed through ProjectShellClient with deterministic schema-valid authenticated HTTP; the exact backend counterpart separately proves live server and PostgreSQL ownership. This browser trace does not claim live server transport, persistence, the complete Work lifecycle, or a named Wave 6 evidence-plan scenario."
         }
       ],
-      "runtime_owner": "GET /api/queries/projects/:projectId/shell -> PostgresProjectShellViewReader -> PostgresProjectWorkViewReader.readAttentionWorkInSnapshot (authenticated REPEATABLE READ bounded canonical active-or-needs-attention Work summaries with exact destinations)",
+      "runtime_owner": "GET /api/queries/projects/:projectId/shell -> PostgresProjectShellViewReader -> PostgresProjectWorkViewReader.readAttentionWorkInSnapshot (authenticated REPEATABLE READ bounded canonical active-or-needs-attention Work summaries with exact destinations); ProjectShellClient -> loadProjectRecord -> ProjectShell maps and renders exact Work identity, destination, and return context",
       "paths": ["UX-PATH-01", "UX-PATH-02", "UX-PATH-03", "UX-PATH-04"]
     },
     {
@@ -341,7 +352,7 @@
       "surfaces": ["SP03"],
       "flows": ["UX-FLOW-08", "UX-FLOW-16"],
       "requests": ["UX-REQ-002", "UX-REQ-023"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/brief",
       "control": "Needs your attention",
       "interaction": "navigation",
@@ -350,9 +361,14 @@
           "command": "npm run test:wave6:shell-brief",
           "artifact": "reports/WAVE6-SHELL-BRIEF-AUTHORITY.json",
           "boundary": "Real disposable PostgreSQL and the authenticated production Brief query return an exact linked Work observation needing attention, its owner content hash, consequence class, reason, inspection-only resolution, non-resolving deferral, client-local acknowledgment boundary, and canonical Work destination. The visible Brief does not yet open that destination, so control execution, recovery presentation, and exact return remain design-owned; this trace claims no named Wave 6 evidence-plan scenario."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:shell-brief-ui",
+          "artifact": "reports/WAVE6-SHELL-BRIEF-BROWSER.json",
+          "boundary": "Isolated Chrome keyboard-opened the exact Work-backed Brief attention item through its canonical destination, rendered the production Work detail surface, and keyboard-returned to the same Brief item with task context and focus preserved. Deterministic schema-valid authenticated HTTP supplied the production clients and loaders; the backend counterpart separately proves the live server and PostgreSQL owner binding. This trace covers the Work-backed attention item returned by the integrated owner and does not claim every owner kind or a named Wave 6 evidence-plan scenario."
         }
       ],
-      "runtime_owner": "GET /api/queries/projects/:projectId/brief -> PostgresProjectBriefViewReader -> canonical shell, Review, and linked PostgresProjectWorkViewReader observations (server-ordered consequence class, exact owner hash, inspection boundary, deferral, and acknowledgment semantics)",
+      "runtime_owner": "GET /api/queries/projects/:projectId/brief -> PostgresProjectBriefViewReader -> canonical shell, Review, and linked PostgresProjectWorkViewReader observations (server-ordered consequence class, exact owner hash, inspection boundary, deferral, and acknowledgment semantics); ProjectBriefClient -> loadProjectBrief -> ProjectBriefSurface -> exact Work destination -> WorkDetailSurface -> focused Brief return",
       "paths": ["UX-PATH-01", "UX-PATH-03", "UX-PATH-04"]
     },
     {
@@ -362,7 +378,7 @@
       "surfaces": ["SP03"],
       "flows": ["UX-FLOW-08", "UX-FLOW-16"],
       "requests": ["UX-REQ-002", "UX-REQ-023"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/brief",
       "control": "What changed",
       "interaction": "query",
@@ -371,9 +387,14 @@
           "command": "npm run test:wave6:shell-brief",
           "artifact": "reports/WAVE6-SHELL-BRIEF-AUTHORITY.json",
           "boundary": "The command executes the authenticated production Brief read on real disposable PostgreSQL for current-only state, explicit unavailable-baseline recovery, stable snapshot replay, and stale-snapshot failure, then executes the existing PostgreSQL comparison test that applies canonical changes and returns the exact successful recent-History event interval with both endpoints and its limitation. The visible Brief offers no baseline selector yet, so browser selection, historical return, and material presentation remain design-owned; this trace claims no named Wave 6 evidence-plan scenario."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:shell-brief-ui",
+          "artifact": "reports/WAVE6-SHELL-BRIEF-BROWSER.json",
+          "boundary": "Isolated Chrome selected exact recent-History baselines through visible production Brief controls, rendered the canonical event-interval outcome and limitation, exercised explicit unavailable-baseline and stale-replay recovery without a substituted comparison, and returned to the current Brief with focus restored. Deterministic schema-valid authenticated HTTP supplied ProjectBriefClient; the exact backend counterpart separately proves live server and PostgreSQL comparison ownership. This trace does not claim broader History recovery, persistence, or a named Wave 6 evidence-plan scenario."
         }
       ],
-      "runtime_owner": "GET /api/queries/projects/:projectId/brief?baseline_event_id&baseline_record_hash -> ProjectBriefViewReader.getProjectBriefView -> PostgresProjectBriefViewReader + PostgresProjectHistoryViewReader (exact recent-History interval, current authority endpoint, limitation, and explicit unavailable/stale recovery)",
+      "runtime_owner": "GET /api/queries/projects/:projectId/brief?baseline_event_id&baseline_record_hash -> ProjectBriefViewReader.getProjectBriefView -> PostgresProjectBriefViewReader + PostgresProjectHistoryViewReader (exact recent-History interval, current authority endpoint, limitation, and explicit unavailable/stale recovery); ProjectBriefClient -> loadProjectBrief -> ProjectBriefSurface baseline, comparison, recovery, refresh, and contextual-return controls",
       "paths": ["UX-PATH-01", "UX-PATH-03", "UX-PATH-04"]
     },
     {
@@ -383,7 +404,7 @@
       "surfaces": ["SP03", "SP14"],
       "flows": ["UX-FLOW-10", "UX-FLOW-11"],
       "requests": ["UX-REQ-003", "UX-REQ-016"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/brief",
       "control": "Suggested next action",
       "interaction": "query",
@@ -392,6 +413,11 @@
           "command": "npm run test:wave6:actions",
           "artifact": "reports/WAVE6-SUGGESTED-ACTION-FEEDBACK-AUTHORITY.json",
           "boundary": "Real disposable PostgreSQL derives one exact registered Work-starting SuggestedAction preview with server-owned readiness, authority, scope, expected result, interruption, and direct/conversational path-convergence descriptors. The focused server route test exercises the authenticated production query and command contract. This backend prerequisite does not execute the visible Brief control or the named UX1.6-ACTIONS browser scenario."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:actions-feedback-ui",
+          "artifact": "reports/WAVE6-ACTIONS-FEEDBACK-BROWSER.json",
+          "boundary": "UX1.6-ACTIONS/suggested-action-interrupt-review: isolated Chrome executed the production Brief, Petra, Work, and Review routes over authenticated live HTTP against fresh disposable PostgreSQL and ArtifactStore authority. It covered the same registered SuggestedAction in direct and conversational presentations, exact confirmation, deliberately interrupted delivery with byte-identical retry, transient dismissal, focus return, durable interrupt replay and response, Review correction and basis revision, stale refresh, one exact Apply, and exact Work returns. The certified runtime was live; this provider-free continuation made no new external model call and assigned no authority to the client or model."
         }
       ],
       "runtime_owner": "GET /api/queries/projects/:projectId/suggested-actions?action_kind=run_grounded_synthesis -> SuggestedActionViewReader -> PostgresSuggestedActionViewReader (exact retained inquiry-result basis, authenticated readiness, registered invocation contract, no read-side Work start)",
@@ -404,7 +430,7 @@
       "surfaces": ["SP03", "SP14"],
       "flows": ["UX-FLOW-11"],
       "requests": ["UX-REQ-003", "UX-REQ-023"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/brief",
       "control": "Start suggested work",
       "interaction": "command",
@@ -413,6 +439,11 @@
           "command": "npm run test:wave6:actions",
           "artifact": "reports/WAVE6-SUGGESTED-ACTION-FEEDBACK-AUTHORITY.json",
           "boundary": "Real disposable PostgreSQL accepts the exact server-authorized SuggestedAction invocation, converges an exact replay on the same immutable receipt and expected Work identity, and composes canonical Work, result, History, and recovery state. The focused server route test proves the production route re-reads readiness and resolves the human principal before the coordinator. This backend prerequisite does not execute the visible Brief control or the named UX1.6-ACTIONS browser scenario."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:actions-feedback-ui",
+          "artifact": "reports/WAVE6-ACTIONS-FEEDBACK-BROWSER.json",
+          "boundary": "UX1.6-ACTIONS/suggested-action-interrupt-review: isolated Chrome executed the production Brief, Petra, Work, and Review routes over authenticated live HTTP against fresh disposable PostgreSQL and ArtifactStore authority. It covered the same registered SuggestedAction in direct and conversational presentations, exact confirmation, deliberately interrupted delivery with byte-identical retry, transient dismissal, focus return, durable interrupt replay and response, Review correction and basis revision, stale refresh, one exact Apply, and exact Work returns. The certified runtime was live; this provider-free continuation made no new external model call and assigned no authority to the client or model."
         }
       ],
       "runtime_owner": "POST /api/commands/projects/:projectId/suggested-actions/:suggestedActionId/invoke -> SuggestedActionInvocationCoordinator -> PostgresSuggestedActionInvocationAuthorityRepository + registered grounded-synthesis Work starter; GET /api/queries/projects/:projectId/suggested-action-invocations/:commandId composes the exact outcome",
@@ -425,7 +456,7 @@
       "surfaces": ["SP03", "SP10"],
       "flows": ["UX-FLOW-16"],
       "requests": ["UX-REQ-002", "UX-REQ-007"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/brief",
       "control": "Recent decisions",
       "interaction": "navigation",
@@ -434,6 +465,11 @@
           "command": "npm run test:wave6:history",
           "artifact": "reports/WAVE6-HISTORY-RECOVERY-AUTHORITY.json",
           "boundary": "Fresh disposable PostgreSQL plus authenticated production HTTP and ProjectBriefClient returned the canonical recent History window before and after additive compensation, including the original Apply event and the resulting Revert event. This backend prerequisite does not execute the visible Recent decisions navigation or UX1.6-HISTORY/effect-recovery-revert-return."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:history-ui",
+          "artifact": "reports/WAVE6-HISTORY-RECOVERY-BROWSER.json",
+          "boundary": "UX1.6-HISTORY/effect-recovery-revert-return: isolated Chrome opened the production Brief Recent decisions, navigated through visible controls into retained History, completed the exact event, comparison, impact, recovery, governed-Revert, additive-result, retained-original, and updated-Brief return workflow over authenticated live HTTP backed by fresh disposable PostgreSQL."
         }
       ],
       "runtime_owner": "ProjectBriefClient.read -> GET /api/queries/projects/:projectId/brief -> PostgresProjectBriefViewReader -> PostgresProjectHistoryViewReader.getRecentProjectHistoryView; visible event navigation remains browser-owned",
@@ -446,7 +482,7 @@
       "surfaces": ["SP04"],
       "flows": ["UX-FLOW-04"],
       "requests": ["UX-REQ-009"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/sources",
       "control": "Find sources",
       "interaction": "query",
@@ -455,6 +491,11 @@
           "command": "npm run test:wave6:sources",
           "artifact": "reports/WAVE6-SOURCE-DISCOVERY-LIFECYCLE-AUTHORITY.json",
           "boundary": "Real disposable PostgreSQL composes one exact Project-scoped source collection after registration and a distinct target collection after reuse. ProjectSourceDiscoveryClient verifies the authenticated collection transport, unique ProjectSource identities, exact Project binding, and content hashes; the visible Find control still performs presentation-only filtering over that server-owned collection. This backend prerequisite does not execute the visible filter or the named UX1.6-SOURCES browser scenario."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:sources-ui",
+          "artifact": "reports/WAVE6-SOURCES-LIFECYCLE-BROWSER.json",
+          "boundary": "Isolated Chrome invoked the visible Find sources control over the production server-owned collection and retained the filtered task context through exact source inspection and return. The same fresh PostgreSQL/S3 trace executed the complete named UX1.6-SOURCES lifecycle."
         }
       ],
       "runtime_owner": "ProjectSourceDiscoveryClient.list -> GET /api/queries/projects/:projectId/sources -> ProjectSourceViewReader.listProjectSourceViews -> PostgresProjectSourceViewReader; visible filtering is presentation state over the exact returned collection",
@@ -467,7 +508,7 @@
       "surfaces": ["SP04"],
       "flows": ["UX-FLOW-04"],
       "requests": ["UX-REQ-009"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/sources",
       "control": "Open source",
       "interaction": "navigation",
@@ -476,6 +517,11 @@
           "command": "npm run test:wave6:sources",
           "artifact": "reports/WAVE6-SOURCE-DISCOVERY-LIFECYCLE-AUTHORITY.json",
           "boundary": "Real disposable PostgreSQL resolves registered and reused collection members through exact ProjectSource detail reads and refuses cross-Project substitution. ProjectSourceDiscoveryClient proves canonical route identity, bearer transport, schema validation, and content-hash binding. This backend prerequisite does not invoke the visible Open source link, preserve browser focus, or execute the named UX1.6-SOURCES browser scenario."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:sources-ui",
+          "artifact": "reports/WAVE6-SOURCES-LIFECYCLE-BROWSER.json",
+          "boundary": "Isolated Chrome invoked the visible Open source control, validated the exact production ProjectSource read through ProjectSourceDiscoveryClient, and returned to the preserved filtered collection. The same fresh PostgreSQL/S3 trace executed the complete named UX1.6-SOURCES lifecycle."
         }
       ],
       "runtime_owner": "ProjectSourceDiscoveryClient.open -> GET /api/queries/projects/:projectId/sources/:projectSourceId -> ProjectSourceViewReader.getProjectSourceView -> PostgresProjectSourceViewReader",
@@ -488,7 +534,7 @@
       "surfaces": ["SP04"],
       "flows": ["UX-FLOW-04", "UX-FLOW-18"],
       "requests": ["UX-REQ-005", "UX-REQ-009", "UX-REQ-010"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/sources",
       "control": "Add source",
       "interaction": "command",
@@ -497,6 +543,11 @@
           "command": "npm run test:wave6:sources",
           "artifact": "reports/WAVE6-SOURCE-DISCOVERY-LIFECYCLE-AUTHORITY.json",
           "boundary": "Real disposable PostgreSQL executes exact registered-profile source intake, retains content-addressed material, identity, rights, Project membership, and one immutable receipt, safely replays the command, and reconciles confirmed or unknown effect. Focused client and server tests prove strict authenticated production transport. This backend prerequisite does not submit the visible Add source form or execute the named UX1.6-SOURCES browser scenario."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:sources-ui",
+          "artifact": "reports/WAVE6-SOURCES-LIFECYCLE-BROWSER.json",
+          "boundary": "Isolated Chrome submitted the visible Add source workflow through authenticated live HTTP, retaining reviewed identity, exact bytes, rights, Project role, and the resulting exact-source destination in fresh PostgreSQL/S3. The trace executed the complete named UX1.6-SOURCES lifecycle."
         }
       ],
       "runtime_owner": "ProjectSourceRegistrationClient -> POST /api/commands/projects/:projectId/sources/register + POST /api/queries/projects/:projectId/source-registration-recovery -> PostgresProjectSourceRegistrationAuthority + ArtifactStore",
@@ -509,7 +560,7 @@
       "surfaces": ["SP04"],
       "flows": ["UX-FLOW-04", "UX-FLOW-18"],
       "requests": ["UX-REQ-005", "UX-REQ-009", "UX-REQ-010"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/sources",
       "control": "Use existing source",
       "interaction": "command",
@@ -518,6 +569,11 @@
           "command": "npm run test:wave6:sources",
           "artifact": "reports/WAVE6-SOURCE-DISCOVERY-LIFECYCLE-AUTHORITY.json",
           "boundary": "Real disposable PostgreSQL selects a permitted retained copy for a paired registered profile, links only a new ProjectSource membership without cloning canonical identity or bytes, safely replays the exact request, and reconciles confirmed or unknown effect. Focused client and server tests prove strict authenticated option, command, and recovery transport. This backend prerequisite does not invoke the visible Use existing source flow or execute the named UX1.6-SOURCES browser scenario."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:sources-ui",
+          "artifact": "reports/WAVE6-SOURCES-LIFECYCLE-BROWSER.json",
+          "boundary": "Isolated Chrome invoked the visible Use existing source workflow for the paired registered profile, linked the retained identity and bytes without cloning them, and opened the exact reused ProjectSource. The fresh PostgreSQL/S3 trace executed the complete named UX1.6-SOURCES lifecycle."
         }
       ],
       "runtime_owner": "ProjectSourceReuseClient -> GET /api/queries/projects/:projectId/source-reuse-options -> PostgresProjectSourceReuseOptionsReader; POST /api/commands/projects/:projectId/sources/reuse + POST /api/queries/projects/:projectId/source-reuse-recovery -> PostgresProjectSourceReuseAuthority",
@@ -539,6 +595,11 @@
           "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH PETRA_WAVE6_SOURCE_PROCESSING_BROWSER_OUTPUT=reports/WAVE6-SOURCE-PROCESSING-BROWSER.json npm run test:wave6:source-processing-ui",
           "artifact": "reports/WAVE6-SOURCE-PROCESSING-BROWSER.json",
           "boundary": "Isolated Chrome executed the production Source Details processing component and renderer-neutral ProjectSourceProcessingClient boundary with deterministic typed transport. It verified server-composed exact requests, stable retry identity, recovery assessment, durable receipt, ready/unavailable/active/terminal states, bindings, representation, limitations, Work destination, exact task/focus return, keyboard semantics, and responsive reflow. The exact backend counterpart separately proves live server and PostgreSQL ownership; this artifact does not claim the complete named UX1.6-SOURCES scenario."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:sources-ui",
+          "artifact": "reports/WAVE6-SOURCES-LIFECYCLE-BROWSER.json",
+          "boundary": "Isolated Chrome invoked the visible Process source control through authenticated live HTTP and started bounded durable processing Work against the newly registered ProjectSource in fresh PostgreSQL. The trace executed the complete named UX1.6-SOURCES lifecycle."
         }
       ],
       "runtime_owner": "GET /api/queries/projects/:projectId/sources/:projectSourceId/processing + POST /api/commands/projects/:projectId/sources/:projectSourceId/processing + POST /api/queries/projects/:projectId/sources/:projectSourceId/processing-recovery",
@@ -560,6 +621,11 @@
           "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH PETRA_WAVE6_SOURCE_PROCESSING_BROWSER_OUTPUT=reports/WAVE6-SOURCE-PROCESSING-BROWSER.json npm run test:wave6:source-processing-ui",
           "artifact": "reports/WAVE6-SOURCE-PROCESSING-BROWSER.json",
           "boundary": "Isolated Chrome executed the production Source Details processing component and renderer-neutral ProjectSourceProcessingClient boundary with deterministic typed transport. It verified server-composed exact requests, stable retry identity, recovery assessment, durable receipt, ready/unavailable/active/terminal states, bindings, representation, limitations, Work destination, exact task/focus return, keyboard semantics, and responsive reflow. The exact backend counterpart separately proves live server and PostgreSQL ownership; this artifact does not claim the complete named UX1.6-SOURCES scenario."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:sources-ui",
+          "artifact": "reports/WAVE6-SOURCES-LIFECYCLE-BROWSER.json",
+          "boundary": "Isolated Chrome inspected the durable active Work, source-processing state, exact ProjectSource binding, and visible return destination after invoking production processing. The fresh PostgreSQL/S3 trace executed the complete named UX1.6-SOURCES lifecycle; it does not claim external worker completion."
         }
       ],
       "runtime_owner": "GET /api/queries/projects/:projectId/sources/:projectSourceId/processing -> PostgresProjectSourceProcessingAuthority",
@@ -572,7 +638,7 @@
       "surfaces": ["SP04", "SP12"],
       "flows": ["UX-FLOW-07"],
       "requests": ["UX-REQ-008", "UX-REQ-009", "UX-REQ-022"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/sources/:sourceId",
       "control": "Inspect exact source",
       "interaction": "query",
@@ -581,6 +647,11 @@
           "command": "npm run test:wave6:sources",
           "artifact": "reports/WAVE6-SOURCE-DISCOVERY-LIFECYCLE-AUTHORITY.json",
           "boundary": "Real disposable PostgreSQL composes exact identity, copy location, content hash, rights, representation extent, downstream use, and authority position for a registered ProjectSource, while ProjectSourceDiscoveryClient rejects crossed identities and invalid hashes. The newly registered trace is honestly identity-only until processing; existing complete-source fixtures and processing suites cover parsed exact spans. This backend prerequisite does not inspect the visible source reader or execute the named UX1.6-SOURCES browser scenario."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:sources-ui",
+          "artifact": "reports/WAVE6-SOURCES-LIFECYCLE-BROWSER.json",
+          "boundary": "Isolated Chrome inspected the complete representative source and lifecycle-created ProjectSources through the production exact reader, showing server-composed identity, rights, representation, limitations, downstream use, and authority position. The fresh PostgreSQL/S3 trace executed the complete named UX1.6-SOURCES lifecycle."
         }
       ],
       "runtime_owner": "ProjectSourceDiscoveryClient.open -> GET /api/queries/projects/:projectId/sources/:projectSourceId -> ProjectSourceViewReader.getProjectSourceView -> PostgresProjectSourceViewReader (exact identity, copy location, rights, representation preview/limitation, downstream use, and authority position)",
@@ -602,6 +673,11 @@
           "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH PETRA_WAVE6_SOURCE_REVISION_BROWSER_OUTPUT=reports/WAVE6-SOURCE-REVISION-BROWSER.json npm run test:wave6:source-revision-ui",
           "artifact": "reports/WAVE6-SOURCE-REVISION-BROWSER.json",
           "boundary": "Isolated Chrome executed the production SourceRevisionPanel and renderer-neutral ProjectSourceRevisionClient boundary with deterministic typed transport. It verified exact Project, ProjectDefinition, and active predecessor binding; immutable bytes, metadata, copy-rights, and replacement review; pending, applied, replayed, conflict, authorization, rejected, and unknown-effect recovery states; stable exact retry; preserved input and task return; distinct receipt-bound exclusion and replacement controls; keyboard semantics; and responsive reflow. The exact backend counterpart separately proves live server and PostgreSQL ownership; this artifact does not claim the complete named UX1.6-SOURCES scenario."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:sources-ui",
+          "artifact": "reports/WAVE6-SOURCES-LIFECYCLE-BROWSER.json",
+          "boundary": "Isolated Chrome added a new immutable source revision through the visible production control, then separately excluded the predecessor and recorded the replacement relationship through their receipt-bound controls. The fresh PostgreSQL/S3 trace executed the complete named UX1.6-SOURCES lifecycle."
         }
       ],
       "runtime_owner": "POST /api/commands/projects/:projectId/sources/:projectSourceId/revisions + POST /api/queries/projects/:projectId/source-revision-recovery -> PostgresProjectSourceRevisionAuthority; receipt hands off exact ExcludeProjectSource and CreateProjectSourceReplacement owners",
@@ -623,6 +699,11 @@
           "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH PETRA_WAVE6_SOURCE_LINK_REMOVAL_BROWSER_OUTPUT=reports/WAVE6-SOURCE-LINK-REMOVAL-BROWSER.json npm run test:wave6:source-link-removal-ui",
           "artifact": "reports/WAVE6-SOURCE-LINK-REMOVAL-BROWSER.json",
           "boundary": "Isolated Chrome executed the production Source Details SourceLinkRemovalActions and renderer-neutral ProjectSourceLinkRemovalClient boundary with deterministic typed transport. It verified authenticated preview invocation, exact Project/definition/source/role freshness, registered dependency impact, retained global identity and immutable revisions, required reason, applied and replayed results, conflicts, permission and rejected failures, exact-request unknown-effect recovery, a visibly distinct local-copy deletion control without invoking its separate owner, exact task/selection and focus return, and responsive keyboard/browser semantics. The exact backend counterpart separately proves the live server and PostgreSQL owners; this artifact does not claim the complete named UX1.6-SOURCES scenario."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:sources-ui",
+          "artifact": "reports/WAVE6-SOURCES-LIFECYCLE-BROWSER.json",
+          "boundary": "Isolated Chrome invoked the distinct visible Remove from Project control for the reused ProjectSource and confirmed the Project membership was removed while identity, bytes, dependencies, and provenance remained retained. The fresh PostgreSQL/S3 trace executed the complete named UX1.6-SOURCES lifecycle."
         }
       ],
       "runtime_owner": "GET /api/queries/projects/:projectId/sources/:projectSourceId/link-removal + POST /api/commands/projects/:projectId/sources/:projectSourceId/link-removal + POST /api/queries/projects/:projectId/sources/:projectSourceId/link-removal-recovery -> PostgresProjectSourceLifecycleViewReader + PostgresProjectSourceLifecycleAuthorityRepository",
@@ -644,6 +725,11 @@
           "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH PETRA_WAVE6_SOURCE_LOCAL_COPY_DELETION_BROWSER_OUTPUT=reports/WAVE6-SOURCE-LOCAL-COPY-DELETION-BROWSER.json npm run test:wave6:source-local-copy-deletion-production-ui",
           "artifact": "reports/WAVE6-SOURCE-LOCAL-COPY-DELETION-BROWSER.json",
           "boundary": "Isolated Chrome used the stable production workbench URL and production Source Details route over authenticated live server routes backed by disposable PostgreSQL and S3 services. It inspected the documented reset path, invoked the distinct Delete local copy control for the eligible representative source, exposed the exact content-addressed S3 identity and preservation consequences, retained the reviewed request across a deliberately interrupted browser response, reconciled the durable effect through the visible recovery control, replayed the exact request safely, and confirmed the Project link, source authority, rights, selectors, provenance, canonical History, and exact return remained usable. The focused browser suite separately covers blocked, conflict, permission, rejected, responsive, keyboard, and browser-semantic states. This evidence does not claim the complete named UX1.6-SOURCES lifecycle."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:sources-ui",
+          "artifact": "reports/WAVE6-SOURCES-LIFECYCLE-BROWSER.json",
+          "boundary": "Isolated Chrome invoked the distinct visible Delete local copy control against fresh S3, deliberately interrupted the response, and used the visible recovery control to confirm the durable exact effect without false success while retaining the ProjectSource and exact return. The trace executed the complete named UX1.6-SOURCES lifecycle."
         }
       ],
       "runtime_owner": "GET /api/queries/projects/:projectId/sources/:projectSourceId/local-copy-deletion + POST /api/commands/projects/:projectId/sources/:projectSourceId/local-copy-deletion + POST /api/queries/projects/:projectId/sources/:projectSourceId/local-copy-deletion-recovery -> PostgresProjectSourceLocalCopyDeletionAuthority + S3ArtifactStore.deleteByHash",
@@ -660,8 +746,19 @@
       "route": "/projects/:projectId/review",
       "control": "Review queue",
       "interaction": "query",
-      "evidence": [],
-      "runtime_owner": "",
+      "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:review-ui",
+          "artifact": "reports/WAVE6-REVIEW-WORKFLOW-BROWSER.json",
+          "boundary": "UX1.6-REVIEW/correct-reject-defer-apply: isolated Chrome opened the production Review queue and exact sessions through visible links, selected an exact member, invoked candidate correction, basis revision, separation, defer, reopen, rejection, stale refresh, exact ChangeSet preparation, and Apply over authenticated live HTTP backed by fresh disposable PostgreSQL, then rendered member outcomes and the exact Work return. This operation is bound only because its corresponding visible control or query was exercised; the record does not claim other Wave 6 scenarios."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:actions-feedback-ui",
+          "artifact": "reports/WAVE6-ACTIONS-FEEDBACK-BROWSER.json",
+          "boundary": "UX1.6-ACTIONS/suggested-action-interrupt-review opened the production Review queue through a visible navigation control before selecting its exact correction Review."
+        }
+      ],
+      "runtime_owner": "GET /api/queries/projects/:projectId/reviews -> ProjectReviewViewReader -> PostgresProjectReviewViewReader",
       "paths": ["UX-PATH-01", "UX-PATH-02"]
     },
     {
@@ -675,8 +772,19 @@
       "route": "/projects/:projectId/review",
       "control": "Open Review",
       "interaction": "navigation",
-      "evidence": [],
-      "runtime_owner": "",
+      "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:review-ui",
+          "artifact": "reports/WAVE6-REVIEW-WORKFLOW-BROWSER.json",
+          "boundary": "UX1.6-REVIEW/correct-reject-defer-apply: isolated Chrome opened the production Review queue and exact sessions through visible links, selected an exact member, invoked candidate correction, basis revision, separation, defer, reopen, rejection, stale refresh, exact ChangeSet preparation, and Apply over authenticated live HTTP backed by fresh disposable PostgreSQL, then rendered member outcomes and the exact Work return. This operation is bound only because its corresponding visible control or query was exercised; the record does not claim other Wave 6 scenarios."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:actions-feedback-ui",
+          "artifact": "reports/WAVE6-ACTIONS-FEEDBACK-BROWSER.json",
+          "boundary": "UX1.6-ACTIONS/suggested-action-interrupt-review activated a visible Review link and loaded the exact PostgreSQL-backed session through the production route."
+        }
+      ],
+      "runtime_owner": "GET /api/queries/projects/:projectId/reviews/:reviewSessionId -> ProjectReviewViewReader -> PostgresProjectReviewViewReader",
       "paths": ["UX-PATH-01", "UX-PATH-02"]
     },
     {
@@ -690,8 +798,14 @@
       "route": "/projects/:projectId/review",
       "control": "Review members",
       "interaction": "navigation",
-      "evidence": [],
-      "runtime_owner": "",
+      "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:review-ui",
+          "artifact": "reports/WAVE6-REVIEW-WORKFLOW-BROWSER.json",
+          "boundary": "UX1.6-REVIEW/correct-reject-defer-apply: isolated Chrome opened the production Review queue and exact sessions through visible links, selected an exact member, invoked candidate correction, basis revision, separation, defer, reopen, rejection, stale refresh, exact ChangeSet preparation, and Apply over authenticated live HTTP backed by fresh disposable PostgreSQL, then rendered member outcomes and the exact Work return. This operation is bound only because its corresponding visible control or query was exercised; the record does not claim other Wave 6 scenarios."
+        }
+      ],
+      "runtime_owner": "GET /api/queries/projects/:projectId/reviews/:reviewSessionId -> ProjectReviewViewReader -> PostgresProjectReviewViewReader; exact member selection is local presentation over the server-returned member set and has no authority effect",
       "paths": ["UX-PATH-01", "UX-PATH-02"]
     },
     {
@@ -705,7 +819,18 @@
       "route": "/projects/:projectId/review/:reviewId",
       "control": "Correct candidate",
       "interaction": "command",
-      "evidence": [],
+      "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:review-ui",
+          "artifact": "reports/WAVE6-REVIEW-WORKFLOW-BROWSER.json",
+          "boundary": "UX1.6-REVIEW/correct-reject-defer-apply: isolated Chrome opened the production Review queue and exact sessions through visible links, selected an exact member, invoked candidate correction, basis revision, separation, defer, reopen, rejection, stale refresh, exact ChangeSet preparation, and Apply over authenticated live HTTP backed by fresh disposable PostgreSQL, then rendered member outcomes and the exact Work return. This operation is bound only because its corresponding visible control or query was exercised; the record does not claim other Wave 6 scenarios."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:actions-feedback-ui",
+          "artifact": "reports/WAVE6-ACTIONS-FEEDBACK-BROWSER.json",
+          "boundary": "UX1.6-ACTIONS/suggested-action-interrupt-review edited and saved exact candidate text through the production correction command, retained its working-only outcome, and returned to the originating Work."
+        }
+      ],
       "runtime_owner": "POST /api/commands/projects/:projectId/reviews/:reviewSessionId/candidate-correction -> PostgresReviewSessionAuthorityRepository",
       "paths": ["UX-PATH-01", "UX-PATH-02", "UX-PATH-03"]
     },
@@ -720,7 +845,18 @@
       "route": "/projects/:projectId/review/:reviewId",
       "control": "Revise basis",
       "interaction": "command",
-      "evidence": [],
+      "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:review-ui",
+          "artifact": "reports/WAVE6-REVIEW-WORKFLOW-BROWSER.json",
+          "boundary": "UX1.6-REVIEW/correct-reject-defer-apply: isolated Chrome opened the production Review queue and exact sessions through visible links, selected an exact member, invoked candidate correction, basis revision, separation, defer, reopen, rejection, stale refresh, exact ChangeSet preparation, and Apply over authenticated live HTTP backed by fresh disposable PostgreSQL, then rendered member outcomes and the exact Work return. This operation is bound only because its corresponding visible control or query was exercised; the record does not claim other Wave 6 scenarios."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:actions-feedback-ui",
+          "artifact": "reports/WAVE6-ACTIONS-FEEDBACK-BROWSER.json",
+          "boundary": "UX1.6-ACTIONS/suggested-action-interrupt-review revised the exact candidate basis through its visible editor and production command, then rendered the non-authoritative pending-validation outcome."
+        }
+      ],
       "runtime_owner": "POST /api/commands/projects/:projectId/reviews/:reviewSessionId/candidate-basis-revision -> PostgresReviewSessionAuthorityRepository",
       "paths": ["UX-PATH-01", "UX-PATH-02", "UX-PATH-03"]
     },
@@ -735,7 +871,13 @@
       "route": "/projects/:projectId/review/:reviewId",
       "control": "Separate changes",
       "interaction": "command",
-      "evidence": [],
+      "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:review-ui",
+          "artifact": "reports/WAVE6-REVIEW-WORKFLOW-BROWSER.json",
+          "boundary": "UX1.6-REVIEW/correct-reject-defer-apply: isolated Chrome opened the production Review queue and exact sessions through visible links, selected an exact member, invoked candidate correction, basis revision, separation, defer, reopen, rejection, stale refresh, exact ChangeSet preparation, and Apply over authenticated live HTTP backed by fresh disposable PostgreSQL, then rendered member outcomes and the exact Work return. This operation is bound only because its corresponding visible control or query was exercised; the record does not claim other Wave 6 scenarios."
+        }
+      ],
       "runtime_owner": "POST /api/commands/projects/:projectId/reviews/:reviewSessionId/separation -> PostgresReviewSessionAuthorityRepository",
       "paths": ["UX-PATH-01", "UX-PATH-02"]
     },
@@ -750,7 +892,18 @@
       "route": "/projects/:projectId/review/:reviewId",
       "control": "Prepare changes to apply",
       "interaction": "command",
-      "evidence": [],
+      "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:review-ui",
+          "artifact": "reports/WAVE6-REVIEW-WORKFLOW-BROWSER.json",
+          "boundary": "UX1.6-REVIEW/correct-reject-defer-apply: isolated Chrome opened the production Review queue and exact sessions through visible links, selected an exact member, invoked candidate correction, basis revision, separation, defer, reopen, rejection, stale refresh, exact ChangeSet preparation, and Apply over authenticated live HTTP backed by fresh disposable PostgreSQL, then rendered member outcomes and the exact Work return. This operation is bound only because its corresponding visible control or query was exercised; the record does not claim other Wave 6 scenarios."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:actions-feedback-ui",
+          "artifact": "reports/WAVE6-ACTIONS-FEEDBACK-BROWSER.json",
+          "boundary": "UX1.6-ACTIONS/suggested-action-interrupt-review visibly prepared the exact ChangeSet after refreshing a stale prevalidated Review and verified that preparation sent no Apply command."
+        }
+      ],
       "runtime_owner": "GET /api/queries/projects/:projectId/reviews/:reviewSessionId/apply-checkpoint -> PostgresReviewSessionApplyBoundary",
       "paths": ["UX-PATH-01", "UX-PATH-02", "UX-PATH-04"]
     },
@@ -765,7 +918,18 @@
       "route": "/projects/:projectId/review/:reviewId",
       "control": "Apply displayed ChangeSet",
       "interaction": "command",
-      "evidence": [],
+      "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:review-ui",
+          "artifact": "reports/WAVE6-REVIEW-WORKFLOW-BROWSER.json",
+          "boundary": "UX1.6-REVIEW/correct-reject-defer-apply: isolated Chrome opened the production Review queue and exact sessions through visible links, selected an exact member, invoked candidate correction, basis revision, separation, defer, reopen, rejection, stale refresh, exact ChangeSet preparation, and Apply over authenticated live HTTP backed by fresh disposable PostgreSQL, then rendered member outcomes and the exact Work return. This operation is bound only because its corresponding visible control or query was exercised; the record does not claim other Wave 6 scenarios."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:actions-feedback-ui",
+          "artifact": "reports/WAVE6-ACTIONS-FEEDBACK-BROWSER.json",
+          "boundary": "UX1.6-ACTIONS/suggested-action-interrupt-review invoked one explicit Apply for the displayed exact ChangeSet, rendered the applied member outcome, and returned to the originating Work."
+        }
+      ],
       "runtime_owner": "POST /api/commands/projects/:projectId/reviews/:reviewSessionId/apply -> PostgresReviewSessionApplyBoundary",
       "paths": ["UX-PATH-01", "UX-PATH-02", "UX-PATH-04"]
     },
@@ -780,7 +944,13 @@
       "route": "/projects/:projectId/review/:reviewId",
       "control": "Reject candidate",
       "interaction": "command",
-      "evidence": [],
+      "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:review-ui",
+          "artifact": "reports/WAVE6-REVIEW-WORKFLOW-BROWSER.json",
+          "boundary": "UX1.6-REVIEW/correct-reject-defer-apply: isolated Chrome opened the production Review queue and exact sessions through visible links, selected an exact member, invoked candidate correction, basis revision, separation, defer, reopen, rejection, stale refresh, exact ChangeSet preparation, and Apply over authenticated live HTTP backed by fresh disposable PostgreSQL, then rendered member outcomes and the exact Work return. This operation is bound only because its corresponding visible control or query was exercised; the record does not claim other Wave 6 scenarios."
+        }
+      ],
       "runtime_owner": "GET /api/queries/projects/:projectId/reviews/:reviewSessionId/reject-checkpoint and POST /api/commands/projects/:projectId/reviews/:reviewSessionId/reject -> PostgresReviewSessionApplyBoundary",
       "paths": ["UX-PATH-01", "UX-PATH-02", "UX-PATH-04"]
     },
@@ -795,7 +965,13 @@
       "route": "/projects/:projectId/review/:reviewId",
       "control": "Decide later",
       "interaction": "command",
-      "evidence": [],
+      "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:review-ui",
+          "artifact": "reports/WAVE6-REVIEW-WORKFLOW-BROWSER.json",
+          "boundary": "UX1.6-REVIEW/correct-reject-defer-apply: isolated Chrome opened the production Review queue and exact sessions through visible links, selected an exact member, invoked candidate correction, basis revision, separation, defer, reopen, rejection, stale refresh, exact ChangeSet preparation, and Apply over authenticated live HTTP backed by fresh disposable PostgreSQL, then rendered member outcomes and the exact Work return. This operation is bound only because its corresponding visible control or query was exercised; the record does not claim other Wave 6 scenarios."
+        }
+      ],
       "runtime_owner": "POST /api/commands/projects/:projectId/reviews/:reviewSessionId/lifecycle -> PostgresReviewSessionAuthorityRepository (DeferReviewSession)",
       "paths": ["UX-PATH-01", "UX-PATH-02", "UX-PATH-04"]
     },
@@ -810,7 +986,13 @@
       "route": "/projects/:projectId/review/:reviewId",
       "control": "Reopen review",
       "interaction": "command",
-      "evidence": [],
+      "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:review-ui",
+          "artifact": "reports/WAVE6-REVIEW-WORKFLOW-BROWSER.json",
+          "boundary": "UX1.6-REVIEW/correct-reject-defer-apply: isolated Chrome opened the production Review queue and exact sessions through visible links, selected an exact member, invoked candidate correction, basis revision, separation, defer, reopen, rejection, stale refresh, exact ChangeSet preparation, and Apply over authenticated live HTTP backed by fresh disposable PostgreSQL, then rendered member outcomes and the exact Work return. This operation is bound only because its corresponding visible control or query was exercised; the record does not claim other Wave 6 scenarios."
+        }
+      ],
       "runtime_owner": "POST /api/commands/projects/:projectId/reviews/:reviewSessionId/lifecycle -> PostgresReviewSessionAuthorityRepository (ReopenReviewSession)",
       "paths": ["UX-PATH-01", "UX-PATH-02", "UX-PATH-04"]
     },
@@ -825,7 +1007,18 @@
       "route": "/projects/:projectId/review/:reviewId",
       "control": "Refresh Review",
       "interaction": "query",
-      "evidence": [],
+      "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:review-ui",
+          "artifact": "reports/WAVE6-REVIEW-WORKFLOW-BROWSER.json",
+          "boundary": "UX1.6-REVIEW/correct-reject-defer-apply: isolated Chrome opened the production Review queue and exact sessions through visible links, selected an exact member, invoked candidate correction, basis revision, separation, defer, reopen, rejection, stale refresh, exact ChangeSet preparation, and Apply over authenticated live HTTP backed by fresh disposable PostgreSQL, then rendered member outcomes and the exact Work return. This operation is bound only because its corresponding visible control or query was exercised; the record does not claim other Wave 6 scenarios."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:actions-feedback-ui",
+          "artifact": "reports/WAVE6-ACTIONS-FEEDBACK-BROWSER.json",
+          "boundary": "UX1.6-ACTIONS/suggested-action-interrupt-review rendered the stale prevalidated Review after the durable interrupt effect and invoked the visible production refresh before preparing its decision."
+        }
+      ],
       "runtime_owner": "POST /api/commands/projects/:projectId/reviews/:reviewSessionId/refresh -> PostgresReviewSessionAuthorityRepository",
       "paths": ["UX-PATH-01", "UX-PATH-02", "UX-PATH-04"]
     },
@@ -836,11 +1029,16 @@
       "surfaces": ["SP06"],
       "flows": ["UX-FLOW-03", "UX-FLOW-07"],
       "requests": ["UX-REQ-007", "UX-REQ-008", "UX-REQ-013"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/graph",
       "control": "Open Graph",
       "interaction": "navigation",
       "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:graph-details-ui",
+          "artifact": "reports/WAVE6-GRAPH-DETAILS-BROWSER.json",
+          "boundary": "UX1.6-GRAPH/task-graph-details-return: isolated Chrome executed this visible operation within one contextual/direct Graph, Current/Working/Historical, selection, Details/source, graph/text, expansion/filter/save, comparison/impact/time, governed correction-preview, and exact task-return workflow over authenticated live HTTP backed by fresh disposable PostgreSQL and Neo4j. This row is bound only because its control or query was invoked in the retained trace; no other Wave 6 scenario is claimed."
+        },
         {
           "command": "npm run test:wave6:graph",
           "artifact": "reports/WAVE6-GRAPH-DETAILS-AUTHORITY.json",
@@ -857,11 +1055,16 @@
       "surfaces": ["SP06"],
       "flows": ["UX-FLOW-03", "UX-FLOW-07"],
       "requests": ["UX-REQ-007", "UX-REQ-008", "UX-REQ-013"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/graph",
       "control": "Return to origin",
       "interaction": "navigation",
       "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:graph-details-ui",
+          "artifact": "reports/WAVE6-GRAPH-DETAILS-BROWSER.json",
+          "boundary": "UX1.6-GRAPH/task-graph-details-return: isolated Chrome executed this visible operation within one contextual/direct Graph, Current/Working/Historical, selection, Details/source, graph/text, expansion/filter/save, comparison/impact/time, governed correction-preview, and exact task-return workflow over authenticated live HTTP backed by fresh disposable PostgreSQL and Neo4j. This row is bound only because its control or query was invoked in the retained trace; no other Wave 6 scenario is claimed."
+        },
         {
           "command": "npm run test:wave6:graph",
           "artifact": "reports/WAVE6-GRAPH-DETAILS-AUTHORITY.json",
@@ -878,11 +1081,16 @@
       "surfaces": ["SP06"],
       "flows": ["UX-FLOW-09"],
       "requests": ["UX-REQ-007", "UX-REQ-013"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/graph",
       "control": "Semantic layer",
       "interaction": "query",
       "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:graph-details-ui",
+          "artifact": "reports/WAVE6-GRAPH-DETAILS-BROWSER.json",
+          "boundary": "UX1.6-GRAPH/task-graph-details-return: isolated Chrome executed this visible operation within one contextual/direct Graph, Current/Working/Historical, selection, Details/source, graph/text, expansion/filter/save, comparison/impact/time, governed correction-preview, and exact task-return workflow over authenticated live HTTP backed by fresh disposable PostgreSQL and Neo4j. This row is bound only because its control or query was invoked in the retained trace; no other Wave 6 scenario is claimed."
+        },
         {
           "command": "npm run test:wave6:graph",
           "artifact": "reports/WAVE6-GRAPH-DETAILS-AUTHORITY.json",
@@ -899,11 +1107,16 @@
       "surfaces": ["SP06", "SP12"],
       "flows": ["UX-FLOW-07"],
       "requests": ["UX-REQ-009", "UX-REQ-013", "UX-REQ-022"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/graph",
       "control": "Select graph item",
       "interaction": "navigation",
       "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:graph-details-ui",
+          "artifact": "reports/WAVE6-GRAPH-DETAILS-BROWSER.json",
+          "boundary": "UX1.6-GRAPH/task-graph-details-return: isolated Chrome executed this visible operation within one contextual/direct Graph, Current/Working/Historical, selection, Details/source, graph/text, expansion/filter/save, comparison/impact/time, governed correction-preview, and exact task-return workflow over authenticated live HTTP backed by fresh disposable PostgreSQL and Neo4j. This row is bound only because its control or query was invoked in the retained trace; no other Wave 6 scenario is claimed."
+        },
         {
           "command": "npm run test:wave6:graph",
           "artifact": "reports/WAVE6-GRAPH-DETAILS-AUTHORITY.json",
@@ -920,11 +1133,16 @@
       "surfaces": ["SP06", "SP12"],
       "flows": ["UX-FLOW-07"],
       "requests": ["UX-REQ-009", "UX-REQ-013", "UX-REQ-022"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/graph",
       "control": "Open Details",
       "interaction": "navigation",
       "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:graph-details-ui",
+          "artifact": "reports/WAVE6-GRAPH-DETAILS-BROWSER.json",
+          "boundary": "UX1.6-GRAPH/task-graph-details-return: isolated Chrome executed this visible operation within one contextual/direct Graph, Current/Working/Historical, selection, Details/source, graph/text, expansion/filter/save, comparison/impact/time, governed correction-preview, and exact task-return workflow over authenticated live HTTP backed by fresh disposable PostgreSQL and Neo4j. This row is bound only because its control or query was invoked in the retained trace; no other Wave 6 scenario is claimed."
+        },
         {
           "command": "npm run test:wave6:graph",
           "artifact": "reports/WAVE6-GRAPH-DETAILS-AUTHORITY.json",
@@ -941,11 +1159,16 @@
       "surfaces": ["SP06", "SP12"],
       "flows": ["UX-FLOW-07"],
       "requests": ["UX-REQ-009", "UX-REQ-013", "UX-REQ-022"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/graph",
       "control": "Open source basis",
       "interaction": "navigation",
       "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:graph-details-ui",
+          "artifact": "reports/WAVE6-GRAPH-DETAILS-BROWSER.json",
+          "boundary": "UX1.6-GRAPH/task-graph-details-return: isolated Chrome executed this visible operation within one contextual/direct Graph, Current/Working/Historical, selection, Details/source, graph/text, expansion/filter/save, comparison/impact/time, governed correction-preview, and exact task-return workflow over authenticated live HTTP backed by fresh disposable PostgreSQL and Neo4j. This row is bound only because its control or query was invoked in the retained trace; no other Wave 6 scenario is claimed."
+        },
         {
           "command": "npm run test:wave6:graph",
           "artifact": "reports/WAVE6-GRAPH-DETAILS-AUTHORITY.json",
@@ -968,6 +1191,11 @@
       "interaction": "query",
       "evidence": [
         {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:graph-details-ui",
+          "artifact": "reports/WAVE6-GRAPH-DETAILS-BROWSER.json",
+          "boundary": "UX1.6-GRAPH/task-graph-details-return: isolated Chrome executed this visible operation within one contextual/direct Graph, Current/Working/Historical, selection, Details/source, graph/text, expansion/filter/save, comparison/impact/time, governed correction-preview, and exact task-return workflow over authenticated live HTTP backed by fresh disposable PostgreSQL and Neo4j. This row is bound only because its control or query was invoked in the retained trace; no other Wave 6 scenario is claimed."
+        },
+        {
           "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:graph-ui",
           "artifact": "reports/WAVE6-GRAPH-EXPANSION-BROWSER.json",
           "boundary": "Isolated Chrome used the production Graph route and controls against authenticated live HTTP plus fresh disposable PostgreSQL and Neo4j stores. It selected the exact server-returned focus, invoked the registered scientific.graph.show-downstream recipe at finite depth 3, rendered v1.1 groups, accounting, and omissions, preserved selection, and executed the exact Brief return. This operation trace does not claim the complete UX1.6-GRAPH scenario."
@@ -988,6 +1216,11 @@
       "control": "Relationship meaning, Direction, Recorded origin, and Finite depth",
       "interaction": "query",
       "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:graph-details-ui",
+          "artifact": "reports/WAVE6-GRAPH-DETAILS-BROWSER.json",
+          "boundary": "UX1.6-GRAPH/task-graph-details-return: isolated Chrome executed this visible operation within one contextual/direct Graph, Current/Working/Historical, selection, Details/source, graph/text, expansion/filter/save, comparison/impact/time, governed correction-preview, and exact task-return workflow over authenticated live HTTP backed by fresh disposable PostgreSQL and Neo4j. This row is bound only because its control or query was invoked in the retained trace; no other Wave 6 scenario is claimed."
+        },
         {
           "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:graph-ui",
           "artifact": "reports/WAVE6-GRAPH-EXPANSION-BROWSER.json",
@@ -1010,6 +1243,11 @@
       "interaction": "command",
       "evidence": [
         {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:graph-details-ui",
+          "artifact": "reports/WAVE6-GRAPH-DETAILS-BROWSER.json",
+          "boundary": "UX1.6-GRAPH/task-graph-details-return: isolated Chrome executed this visible operation within one contextual/direct Graph, Current/Working/Historical, selection, Details/source, graph/text, expansion/filter/save, comparison/impact/time, governed correction-preview, and exact task-return workflow over authenticated live HTTP backed by fresh disposable PostgreSQL and Neo4j. This row is bound only because its control or query was invoked in the retained trace; no other Wave 6 scenario is claimed."
+        },
+        {
           "command": "PETRA_WAVE5_ADVERSE_OUTPUT=/tmp/petra-wave6-graph-browser-support.json PETRA_WAVE6_GRAPH_INQUIRY_OUTPUT=reports/WAVE6-GRAPH-INQUIRY-SAVE-BROWSER.json npm run test:wave5:adverse-browser",
           "artifact": "reports/WAVE6-GRAPH-INQUIRY-SAVE-BROWSER.json",
           "boundary": "Isolated Chrome executed the production Graph controller for applied and idempotently replayed saves, unknown-effect assessment and exact retry, conflict, stale state, retained inquiry destination, exact return, and absence of client authority fields using injected typed transport; the live server and PostgreSQL command were verified separately by the backend prerequisite and were not re-executed by this browser artifact."
@@ -1025,11 +1263,16 @@
       "surfaces": ["SP06", "SP10"],
       "flows": ["UX-FLOW-08", "UX-FLOW-16"],
       "requests": ["UX-REQ-007", "UX-REQ-013", "UX-REQ-023"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/graph",
       "control": "Compare positions",
       "interaction": "query",
       "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:graph-details-ui",
+          "artifact": "reports/WAVE6-GRAPH-DETAILS-BROWSER.json",
+          "boundary": "UX1.6-GRAPH/task-graph-details-return: isolated Chrome executed this visible operation within one contextual/direct Graph, Current/Working/Historical, selection, Details/source, graph/text, expansion/filter/save, comparison/impact/time, governed correction-preview, and exact task-return workflow over authenticated live HTTP backed by fresh disposable PostgreSQL and Neo4j. This row is bound only because its control or query was invoked in the retained trace; no other Wave 6 scenario is claimed."
+        },
         {
           "command": "npm run test:wave6:graph",
           "artifact": "reports/WAVE6-GRAPH-DETAILS-AUTHORITY.json",
@@ -1046,11 +1289,16 @@
       "surfaces": ["SP06", "SP10"],
       "flows": ["UX-FLOW-08", "UX-FLOW-16"],
       "requests": ["UX-REQ-007", "UX-REQ-013", "UX-REQ-023"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/graph",
       "control": "Impact view",
       "interaction": "query",
       "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:graph-details-ui",
+          "artifact": "reports/WAVE6-GRAPH-DETAILS-BROWSER.json",
+          "boundary": "UX1.6-GRAPH/task-graph-details-return: isolated Chrome executed this visible operation within one contextual/direct Graph, Current/Working/Historical, selection, Details/source, graph/text, expansion/filter/save, comparison/impact/time, governed correction-preview, and exact task-return workflow over authenticated live HTTP backed by fresh disposable PostgreSQL and Neo4j. This row is bound only because its control or query was invoked in the retained trace; no other Wave 6 scenario is claimed."
+        },
         {
           "command": "npm run test:wave6:graph",
           "artifact": "reports/WAVE6-GRAPH-DETAILS-AUTHORITY.json",
@@ -1067,11 +1315,16 @@
       "surfaces": ["SP06", "SP10"],
       "flows": ["UX-FLOW-08", "UX-FLOW-16"],
       "requests": ["UX-REQ-007", "UX-REQ-013", "UX-REQ-023"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/graph",
       "control": "Time view",
       "interaction": "query",
       "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:graph-details-ui",
+          "artifact": "reports/WAVE6-GRAPH-DETAILS-BROWSER.json",
+          "boundary": "UX1.6-GRAPH/task-graph-details-return: isolated Chrome executed this visible operation within one contextual/direct Graph, Current/Working/Historical, selection, Details/source, graph/text, expansion/filter/save, comparison/impact/time, governed correction-preview, and exact task-return workflow over authenticated live HTTP backed by fresh disposable PostgreSQL and Neo4j. This row is bound only because its control or query was invoked in the retained trace; no other Wave 6 scenario is claimed."
+        },
         {
           "command": "npm run test:wave6:graph",
           "artifact": "reports/WAVE6-GRAPH-DETAILS-AUTHORITY.json",
@@ -1088,11 +1341,16 @@
       "surfaces": ["SP05", "SP06", "SP14"],
       "flows": ["UX-FLOW-03", "UX-FLOW-08"],
       "requests": ["UX-REQ-011", "UX-REQ-012", "UX-REQ-013"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/graph",
       "control": "Preview correction",
       "interaction": "command",
       "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:graph-details-ui",
+          "artifact": "reports/WAVE6-GRAPH-DETAILS-BROWSER.json",
+          "boundary": "UX1.6-GRAPH/task-graph-details-return: isolated Chrome executed this visible operation within one contextual/direct Graph, Current/Working/Historical, selection, Details/source, graph/text, expansion/filter/save, comparison/impact/time, governed correction-preview, and exact task-return workflow over authenticated live HTTP backed by fresh disposable PostgreSQL and Neo4j. This row is bound only because its control or query was invoked in the retained trace; no other Wave 6 scenario is claimed."
+        },
         {
           "command": "npm run test:wave6:graph",
           "artifact": "reports/WAVE6-GRAPH-DETAILS-AUTHORITY.json",
@@ -1109,7 +1367,7 @@
       "surfaces": ["SP07"],
       "flows": ["UX-FLOW-11"],
       "requests": ["UX-REQ-014", "UX-REQ-016"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/work",
       "control": "Work list",
       "interaction": "query",
@@ -1118,6 +1376,11 @@
           "command": "npm run test:wave6:work",
           "artifact": "reports/WAVE6-WORK-PRODUCTION-COMMANDS.json",
           "boundary": "Fresh PostgreSQL plus authenticated production HTTP and ProjectWorkClient.list return the exact Project Work collection after lifecycle mutations and a server restart. This backend prerequisite does not claim the integrated visible control."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:work-ui",
+          "artifact": "reports/WAVE6-WORK-BROWSER-OBSERVATION.json",
+          "boundary": "The production React Work collection loaded the registered scientific inquiry and exact Needs attention, active, and terminal Work groupings from authenticated live HTTP before opening and managing their retained tasks against fresh disposable stores."
         }
       ],
       "runtime_owner": "ProjectWorkClient.list -> GET /api/queries/projects/:projectId/work -> PostgresProjectWorkViewReader.listProjectWorkView",
@@ -1130,11 +1393,16 @@
       "surfaces": ["SP07"],
       "flows": ["UX-FLOW-11"],
       "requests": ["UX-REQ-014", "UX-REQ-016"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/work",
       "control": "Open Work",
       "interaction": "navigation",
       "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:actions-feedback-ui",
+          "artifact": "reports/WAVE6-ACTIONS-FEEDBACK-BROWSER.json",
+          "boundary": "UX1.6-ACTIONS/suggested-action-interrupt-review activated exact return links after the durable interrupt, correction, and Review decision and loaded the corresponding production Work detail routes without losing Project context."
+        },
         {
           "command": "npm run test:wave6:work",
           "artifact": "reports/WAVE6-WORK-PRODUCTION-COMMANDS.json",
@@ -1151,7 +1419,7 @@
       "surfaces": ["SP03", "SP07", "SP13"],
       "flows": ["UX-FLOW-05", "UX-FLOW-11", "UX-FLOW-13"],
       "requests": ["UX-REQ-003", "UX-REQ-014"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/brief",
       "control": "Start work",
       "interaction": "command",
@@ -1160,6 +1428,11 @@
           "command": "npm run test:wave6:work",
           "artifact": "reports/WAVE6-WORK-PRODUCTION-COMMANDS.json",
           "boundary": "Fresh PostgreSQL executes the authenticated ProjectWorkClient.start command, exact idempotent replay, durable Work transition, and restart recovery. Registered SuggestedAction starts retain their separate shared coordinator. This backend prerequisite does not claim the integrated visible control."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:work-ui",
+          "artifact": "reports/WAVE6-WORK-BROWSER-OBSERVATION.json",
+          "boundary": "The production React Work task answered its registered prerequisite, invoked the enabled Start work control, received the authenticated operational receipt, and retained the running task for subsequent steering, detach, and cancellation without changing Project authority."
         }
       ],
       "runtime_owner": "ProjectWorkClient.execute(start) -> POST /api/commands/projects/:projectId/work/:workUnitId -> PostgresProjectWorkOperations; registered SuggestedAction starts retain SuggestedActionInvocationCoordinator",
@@ -1172,7 +1445,7 @@
       "surfaces": ["SP07", "SP13", "SP14"],
       "flows": ["UX-FLOW-11"],
       "requests": ["UX-REQ-006", "UX-REQ-014", "UX-REQ-015"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/work/:workId",
       "control": "Required input responses",
       "interaction": "command",
@@ -1181,6 +1454,11 @@
           "command": "npm run test:wave6:work",
           "artifact": "reports/WAVE6-WORK-PRODUCTION-COMMANDS.json",
           "boundary": "Fresh PostgreSQL registers a required input, keeps Start unavailable, executes the exact authenticated answer_input command once, and retains one durable response. This backend prerequisite does not claim the integrated visible control."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:work-ui",
+          "artifact": "reports/WAVE6-WORK-BROWSER-OBSERVATION.json",
+          "boundary": "The visible required-input region invoked one registered response through the production command route, rendered the canonical receipt, preserved the no-domain-authority boundary, and enabled the same exact Work task to proceed."
         }
       ],
       "runtime_owner": "ProjectWorkClient.execute(answer_input) -> POST /api/commands/projects/:projectId/work/:workUnitId -> PostgresProjectWorkOperations",
@@ -1193,7 +1471,7 @@
       "surfaces": ["SP07", "SP13"],
       "flows": ["UX-FLOW-11"],
       "requests": ["UX-REQ-015", "UX-REQ-016"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/work/:workId",
       "control": "Steer Work",
       "interaction": "command",
@@ -1202,6 +1480,11 @@
           "command": "npm run test:wave6:work",
           "artifact": "reports/WAVE6-WORK-PRODUCTION-COMMANDS.json",
           "boundary": "Fresh PostgreSQL executes ProjectWorkClient.execute(steer) against the exact expected Work revision and plan revision, retaining the instruction as the second immutable plan revision with no domain-authority effect. This backend prerequisite does not claim the integrated visible control."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:work-ui",
+          "artifact": "reports/WAVE6-WORK-BROWSER-OBSERVATION.json",
+          "boundary": "The production Work UI entered an exact scheduling-boundary instruction, selected user-blocking priority, invoked Steer work, verified the authenticated steer request and successful receipt, and left domain authority unchanged."
         }
       ],
       "runtime_owner": "ProjectWorkClient.execute(steer) -> POST /api/commands/projects/:projectId/work/:workUnitId -> PostgresProjectWorkOperations",
@@ -1214,7 +1497,7 @@
       "surfaces": ["SP07", "SP13"],
       "flows": ["UX-FLOW-11"],
       "requests": ["UX-REQ-015", "UX-REQ-016"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/work/:workId",
       "control": "Prioritize line",
       "interaction": "command",
@@ -1223,6 +1506,11 @@
           "command": "npm run test:wave6:work",
           "artifact": "reports/WAVE6-WORK-PRODUCTION-COMMANDS.json",
           "boundary": "Fresh PostgreSQL executes ProjectWorkClient.execute(prioritize) against the exact expected Work and plan revisions, retaining user-visible priority as the first immutable plan revision with no domain-authority effect. This backend prerequisite does not claim the integrated visible control."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:work-ui",
+          "artifact": "reports/WAVE6-WORK-BROWSER-OBSERVATION.json",
+          "boundary": "The production Work UI selected user-visible scheduling priority, invoked Set priority on the exact active task, verified the authenticated prioritize request and successful receipt, and did not alter prerequisites or domain authority."
         }
       ],
       "runtime_owner": "ProjectWorkClient.execute(prioritize) -> POST /api/commands/projects/:projectId/work/:workUnitId -> PostgresProjectWorkOperations",
@@ -1235,15 +1523,15 @@
       "surfaces": ["SP07", "SP13", "SP14"],
       "flows": ["UX-FLOW-11", "UX-FLOW-16"],
       "requests": ["UX-REQ-006", "UX-REQ-014", "UX-REQ-023"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/work/:workId",
       "control": "Leave running",
       "interaction": "navigation",
       "evidence": [
         {
-          "command": "npm run test:wave6:work-ui",
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:work-ui",
           "artifact": "reports/WAVE6-WORK-BROWSER-OBSERVATION.json",
-          "boundary": "The invoked production browser trace leaves active Work without issuing Cancel, returns to the collection, and later reconnects to the same retained Work identity; fresh PostgreSQL remains the canonical lifecycle owner. Design must re-execute the integrated visible workflow before this row becomes live."
+          "boundary": "The production browser activated Leave running on exact active Work, returned to Brief without issuing Cancel, reopened the same retained Work task, and continued through authenticated canonical operations on fresh PostgreSQL."
         }
       ],
       "runtime_owner": "Design-owned task navigation performs no command; ProjectWorkClient.readOperations -> GET /api/queries/projects/:projectId/work/:workUnitId/operations restores the same server-owned Work identity and state",
@@ -1256,20 +1544,20 @@
       "surfaces": ["SP07", "SP13", "SP14"],
       "flows": ["UX-FLOW-11", "UX-FLOW-16"],
       "requests": ["UX-REQ-006", "UX-REQ-014", "UX-REQ-023"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/work/:workId",
       "control": "Reconnect",
       "interaction": "query",
       "evidence": [
         {
-          "command": "npm run test:wave6:work-ui",
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:work-ui",
           "artifact": "reports/WAVE6-WORK-BROWSER-OBSERVATION.json",
-          "boundary": "After deliberate detach, the invoked production browser trace reads canonical Work operations and reconnects the same retained Work identity without starting another attempt. This trace does not claim model InteractionRun reconnect. Design must re-execute the integrated visible workflow before this row becomes live."
+          "boundary": "After deliberate detach, the production browser read canonical Work operations and activated Reconnect for the same retained Work identity without starting another attempt."
         },
         {
-          "command": "npm run test:wave6:actual-model-ui",
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:actual-model-ui",
           "artifact": "reports/WAVE6-MODEL-FAILURE-RECONNECT-BROWSER-OBSERVATION.json",
-          "boundary": "After an intentionally unconfirmed certified-model response, the production Petra route preserves the exact thread, run, connection, Work, Project context, draft, and task return across reload, then reconnects through the authenticated replay query without starting another Work or provider attempt. The paired actual-provider trace owns fresh PostgreSQL success; design must re-execute the integrated visible workflow before this row becomes live."
+          "boundary": "After an intentionally unconfirmed certified-model response, the production Petra route preserved the exact thread, run, connection, Work, Project context, draft, and task return, re-entered through the originating Work control, and reconnected through the authenticated replay query without another Work or provider attempt."
         }
       ],
       "runtime_owner": "ProjectWorkClient.readOperations -> GET /api/queries/projects/:projectId/work/:workUnitId/operations; PetraInteractionClient.replay -> GET /api/interactions/:runId for interaction-backed Work delivery",
@@ -1282,20 +1570,20 @@
       "surfaces": ["SP07", "SP13", "SP14"],
       "flows": ["UX-FLOW-11", "UX-FLOW-16"],
       "requests": ["UX-REQ-006", "UX-REQ-014", "UX-REQ-023"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/work/:workId",
       "control": "Replay delivery",
       "interaction": "query",
       "evidence": [
         {
-          "command": "npm run test:wave6:work-ui",
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:work-ui",
           "artifact": "reports/WAVE6-WORK-BROWSER-OBSERVATION.json",
-          "boundary": "The invoked production browser trace replays the exact retained Work operation delivery through authenticated reads without a duplicate Work effect. This trace does not claim certified-model replay. Design must re-execute the integrated visible workflow before this row becomes live."
+          "boundary": "The production browser activated Replay delivery for exact retained Work and rendered the authenticated replay observation without issuing another Work command or duplicate effect."
         },
         {
-          "command": "npm run test:wave6:actual-model-ui",
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:actual-model-ui",
           "artifact": "reports/WAVE6-MODEL-FAILURE-RECONNECT-BROWSER-OBSERVATION.json",
-          "boundary": "The production Petra route replays one exact retained certified-model InteractionRun after an unconfirmed response, renders the confirmed provider failure and retained Work stages, and records one interaction POST, one replay GET, one provider attempt, one Work start, and no duplicate provider effect. The adverse runtime is deliberately in-process; design must re-execute the integrated visible workflow before this row becomes live."
+          "boundary": "The production Petra route activated Reconnect and replay for one exact retained certified-model InteractionRun after an unconfirmed response, rendered the confirmed provider failure and retained Work stages, and recorded one interaction POST, one replay GET, one provider attempt, one Work start, and no duplicate provider effect."
         }
       ],
       "runtime_owner": "ProjectWorkClient.readOperations plus PetraInteractionClient.replay -> authenticated GET /api/interactions/:runId -> PetraInteractionRuntime/PostgresInteractionAuthorityRepository; replay cannot submit Work or model input",
@@ -1308,7 +1596,7 @@
       "surfaces": ["SP07", "SP13", "SP14"],
       "flows": ["UX-FLOW-11"],
       "requests": ["UX-REQ-014", "UX-REQ-015", "UX-REQ-023"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/work/:workId",
       "control": "Cancel work",
       "interaction": "command",
@@ -1317,6 +1605,11 @@
           "command": "npm run test:wave6:work",
           "artifact": "reports/WAVE6-WORK-PRODUCTION-COMMANDS.json",
           "boundary": "Fresh PostgreSQL executes the exact authenticated Cancel command, preserves its receipt across server restart, and proves replay creates no duplicate effect. This backend prerequisite does not claim the integrated visible control."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:work-ui",
+          "artifact": "reports/WAVE6-WORK-BROWSER-OBSERVATION.json",
+          "boundary": "The production Work UI opened the explicit cancellation confirmation, supplied its reviewed reason, invoked Confirm cancellation on the exact running task, and rendered the canonical cancelled receipt while retaining prior records and independent effects."
         }
       ],
       "runtime_owner": "ProjectWorkClient.execute(cancel) -> POST /api/commands/projects/:projectId/work/:workUnitId -> PostgresProjectWorkOperations",
@@ -1329,7 +1622,7 @@
       "surfaces": ["SP07", "SP14"],
       "flows": ["UX-FLOW-11", "UX-FLOW-16"],
       "requests": ["UX-REQ-014", "UX-REQ-015", "UX-REQ-023"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/work/:workId",
       "control": "Retry failed work",
       "interaction": "command",
@@ -1338,6 +1631,11 @@
           "command": "npm run test:wave6:work",
           "artifact": "reports/WAVE6-WORK-PRODUCTION-COMMANDS.json",
           "boundary": "Fresh PostgreSQL injects one retryable validation failure, returns server-owned Retry availability, executes the exact authenticated retry into attempt 2, completes it, and replays the retained receipt after restart without duplication. This backend prerequisite does not claim the integrated visible control."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:work-ui",
+          "artifact": "reports/WAVE6-WORK-BROWSER-OBSERVATION.json",
+          "boundary": "The production browser opened a representative Work task after an exact retryable output-validation failure, verified server-owned Retry availability, activated Retry failed work, rendered the next running attempt and canonical receipt, preserved prior attempts, and changed no domain authority."
         }
       ],
       "runtime_owner": "ProjectWorkClient.readOperations assessment plus ProjectWorkClient.execute(retry) -> POST /api/commands/projects/:projectId/work/:workUnitId -> PostgresProjectWorkOperations",
@@ -1402,7 +1700,7 @@
       "surfaces": ["SP07", "SP12"],
       "flows": ["UX-FLOW-11"],
       "requests": ["UX-REQ-008", "UX-REQ-014", "UX-REQ-016"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/work/:workId",
       "control": "Open result",
       "interaction": "navigation",
@@ -1411,6 +1709,11 @@
           "command": "npm run test:wave6:work",
           "artifact": "reports/WAVE6-WORK-PRODUCTION-COMMANDS.json",
           "boundary": "Fresh PostgreSQL composes the exact result destination and ProjectWorkClient.readWorkerOutputManifest opens its content-, record-, revision-, Project-, and producing-Work-bound output through authenticated production HTTP. This backend prerequisite does not claim the integrated visible destination."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:work-ui",
+          "artifact": "reports/WAVE6-WORK-BROWSER-OBSERVATION.json",
+          "boundary": "The production browser opened both server-owned result destinations: an exact worker-output manifest with outputs, measured resources, diagnostics, identity hashes, and producing Work, and an exact grounded response with references, authority limits, and return to producing Work."
         }
       ],
       "runtime_owner": "ProjectWorkClient.readOperations result destination -> ProjectWorkClient.readWorkerOutputManifest or exact GroundedResponse Petra destination -> production server-owned result readers",
@@ -1427,7 +1730,13 @@
       "route": "/projects/:projectId/petra",
       "control": "Open Petra",
       "interaction": "navigation",
-      "evidence": [],
+      "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:actual-model-ui",
+          "artifact": "reports/WAVE6-MODEL-FAILURE-RECONNECT-BROWSER-OBSERVATION.json",
+          "boundary": "The production browser opened exact retained Work, activated Discuss this task with Petra, verified the same-Project Petra destination and originating Work return binding, retained the local draft and exact run identity, and returned the visible control boundary without inventing task context."
+        }
+      ],
       "runtime_owner": "Design-owned task navigation binds the server-supplied Project, originating task, and exact return; retained Petra context resolves through GET /api/queries/projects/:projectId/threads/:projectThreadId -> PostgresProjectThreadViewReader and GET /api/queries/projects/:projectId/model-readiness -> PostgresProjectModelReadinessReader",
       "paths": ["UX-PATH-01", "UX-PATH-02"]
     },
@@ -1438,15 +1747,15 @@
       "surfaces": ["SP13"],
       "flows": ["UX-FLOW-10"],
       "requests": ["UX-REQ-006", "UX-REQ-021"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/petra",
       "control": "Resume thread",
       "interaction": "navigation",
       "evidence": [
         {
-          "command": "npm run test:wave6:actual-model-ui",
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:actual-model-ui",
           "artifact": "reports/WAVE6-MODEL-FAILURE-RECONNECT-BROWSER-OBSERVATION.json",
-          "boundary": "The production Petra route retains the edited draft plus exact thread, run, connection, Work, Project context, and task return across reload, then exposes and executes Reconnect and replay against the retained run without duplicate execution. The trace enters the retained route by reload rather than the integrated originating Resume-thread control, so design must execute that navigation before this row becomes live."
+          "boundary": "After unconfirmed delivery, the production browser left Petra, re-entered through the originating Work control, retained the edited draft plus exact thread, run, connection, Work, Project context, and task return, then executed Reconnect and replay without duplicate provider or Work execution."
         }
       ],
       "runtime_owner": "sessionStorage Project draft/run identity + GET /api/interactions/:runId -> PetraInteractionRuntime durable replay",
@@ -1459,15 +1768,15 @@
       "surfaces": ["SP13"],
       "flows": ["UX-FLOW-10"],
       "requests": ["UX-REQ-006", "UX-REQ-021"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/petra",
       "control": "Send",
       "interaction": "command",
       "evidence": [
         {
-          "command": "npm run test:wave6:actual-model-ui",
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:actual-model-ui",
           "artifact": "reports/WAVE6-ACTUAL-MODEL-UI-TRACE.json",
-          "boundary": "Fresh PostgreSQL and the production React Petra composer execute Ask Petra with the exact registered Project question and immutable ContextPacket/EvidencePacket through one certified provider request, persist one durable no-authority terminal, and render the response. Design must re-execute this control after integrating the exact backend commit before this row becomes live."
+          "boundary": "Fresh PostgreSQL and the production React Petra composer executed Ask Petra with the exact registered Project question and immutable ContextPacket/EvidencePacket through one certified provider request, persisted one durable no-authority terminal, and rendered the response."
         }
       ],
       "runtime_owner": "POST /api/interactions/run -> ProjectModelClient + PetraInteractionRuntime guarded by PostgresProjectModelReadinessReader",
@@ -1480,15 +1789,15 @@
       "surfaces": ["SP12", "SP13"],
       "flows": ["UX-FLOW-07", "UX-FLOW-10"],
       "requests": ["UX-REQ-006", "UX-REQ-021", "UX-REQ-022"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/petra",
       "control": "Context disclosure",
       "interaction": "query",
       "evidence": [
         {
-          "command": "npm run test:wave6:actual-model-ui",
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:actual-model-ui",
           "artifact": "reports/WAVE6-ACTUAL-MODEL-UI-TRACE.json",
-          "boundary": "The production model-readiness read and Petra disclosure render the current Project revision, snapshot, certified role/deployment, exact ContextPacket and EvidencePacket identities, registered prompt policy, delivery mode, and no-authority boundary before submission. Design must re-execute the integrated disclosure before this row becomes live."
+          "boundary": "The production model-readiness read and Petra disclosure rendered the current Project revision, snapshot, certified role and deployment, exact ContextPacket and EvidencePacket identities, registered prompt policy, delivery mode, and no-authority boundary before submission."
         }
       ],
       "runtime_owner": "GET /api/queries/projects/:projectId/model-readiness -> PostgresProjectModelReadinessReader",
@@ -1501,15 +1810,15 @@
       "surfaces": ["SP12", "SP13"],
       "flows": ["UX-FLOW-07", "UX-FLOW-10"],
       "requests": ["UX-REQ-006", "UX-REQ-021", "UX-REQ-022"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/petra",
       "control": "Response basis",
       "interaction": "query",
       "evidence": [
         {
-          "command": "npm run test:wave6:actual-model-ui",
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:actual-model-ui",
           "artifact": "reports/WAVE6-ACTUAL-MODEL-UI-TRACE.json",
-          "boundary": "The provider-backed Petra response renders statement origins, limitations, ContextPacket, EvidencePacket, GroundedResponse, model deployment, role certification, snapshot, Work destination, Review effect, and exact Brief return from the durable terminal. Design must re-execute the integrated disclosure before this row becomes live."
+          "boundary": "The provider-backed Petra response rendered statement origins, limitations, ContextPacket, EvidencePacket, GroundedResponse, model deployment, role certification, snapshot, Work destination, Review effect, and exact Brief return from the durable terminal."
         }
       ],
       "runtime_owner": "POST /api/interactions/run terminal -> grounded ContextPacket, EvidencePacket, origin, coverage, Work, and authority bindings",
@@ -1522,7 +1831,7 @@
       "surfaces": ["SP13", "SP14"],
       "flows": ["UX-FLOW-10", "UX-FLOW-11"],
       "requests": ["UX-REQ-003", "UX-REQ-012", "UX-REQ-015"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/petra",
       "control": "Preview action",
       "interaction": "query",
@@ -1531,6 +1840,11 @@
           "command": "npm run test:wave6:actions",
           "artifact": "reports/WAVE6-SUGGESTED-ACTION-FEEDBACK-AUTHORITY.json",
           "boundary": "The executed PostgreSQL trace derives the same registered SuggestedAction identity and invocation contract for direct and conversational presentation, then composes the resulting invocation into Petra's action-report communication plan. Model prose supplies no command or authority. This backend prerequisite does not execute the visible Petra preview or the named UX1.6-ACTIONS browser scenario."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:actions-feedback-ui",
+          "artifact": "reports/WAVE6-ACTIONS-FEEDBACK-BROWSER.json",
+          "boundary": "UX1.6-ACTIONS/suggested-action-interrupt-review: isolated Chrome executed the production Brief, Petra, Work, and Review routes over authenticated live HTTP against fresh disposable PostgreSQL and ArtifactStore authority. It covered the same registered SuggestedAction in direct and conversational presentations, exact confirmation, deliberately interrupted delivery with byte-identical retry, transient dismissal, focus return, durable interrupt replay and response, Review correction and basis revision, stale refresh, one exact Apply, and exact Work returns. The certified runtime was live; this provider-free continuation made no new external model call and assigned no authority to the client or model."
         }
       ],
       "runtime_owner": "GET /api/queries/projects/:projectId/suggested-actions?action_kind=run_grounded_synthesis -> PostgresSuggestedActionViewReader; Petra conversation context reuses the exact inquiry-result link and communication plan rather than deriving an action from model prose",
@@ -1543,7 +1857,7 @@
       "surfaces": ["SP13", "SP14"],
       "flows": ["UX-FLOW-10", "UX-FLOW-11"],
       "requests": ["UX-REQ-003", "UX-REQ-012", "UX-REQ-015"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/petra",
       "control": "Confirm action",
       "interaction": "command",
@@ -1552,6 +1866,11 @@
           "command": "npm run test:wave6:actions",
           "artifact": "reports/WAVE6-SUGGESTED-ACTION-FEEDBACK-AUTHORITY.json",
           "boundary": "The executed PostgreSQL trace proves direct_and_conversational_same_command on both the preview contract and immutable invocation receipt, while the Petra action-report composition reads that same receipt and server-owned outcome. The focused route test rejects request-carried authority and invokes the shared coordinator. This backend prerequisite does not execute the visible Petra confirmation or the named UX1.6-ACTIONS browser scenario."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:actions-feedback-ui",
+          "artifact": "reports/WAVE6-ACTIONS-FEEDBACK-BROWSER.json",
+          "boundary": "UX1.6-ACTIONS/suggested-action-interrupt-review: isolated Chrome executed the production Brief, Petra, Work, and Review routes over authenticated live HTTP against fresh disposable PostgreSQL and ArtifactStore authority. It covered the same registered SuggestedAction in direct and conversational presentations, exact confirmation, deliberately interrupted delivery with byte-identical retry, transient dismissal, focus return, durable interrupt replay and response, Review correction and basis revision, stale refresh, one exact Apply, and exact Work returns. The certified runtime was live; this provider-free continuation made no new external model call and assigned no authority to the client or model."
         }
       ],
       "runtime_owner": "The conversational presentation submits the same POST /api/commands/projects/:projectId/suggested-actions/:suggestedActionId/invoke request to SuggestedActionInvocationCoordinator as the direct presentation; PostgresSuggestedActionInvocationAuthorityRepository owns identity, authorization binding, idempotency, Work, result, and recovery",
@@ -1578,6 +1897,11 @@
           "command": "npm run test:wave6:review-interrupt-ui",
           "artifact": "reports/WAVE6-REVIEW-INTERRUPT-BROWSER.json",
           "boundary": "Focused Chromium executes the production Petra Respond component and typed command client, including keyboard submission, exact retry after uncertain delivery, authenticated outcome, recovery state, narrow reflow, and exact ProjectThread/Review/Work return links. The response transport is synthetic; the paired PostgreSQL artifact owns authority and persistence proof."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:actions-feedback-ui",
+          "artifact": "reports/WAVE6-ACTIONS-FEEDBACK-BROWSER.json",
+          "boundary": "UX1.6-ACTIONS/suggested-action-interrupt-review reconnected and replayed a PostgreSQL-backed interaction, accepted its exact Review interrupt with a rationale through the production Petra UI, received the applied outcome, and returned to the exact Work."
         }
       ],
       "runtime_owner": "POST /api/commands/reviews/resolve -> server-resolved direct Review authority -> DurableReviewInterruptCoordinator -> DurableReviewInterruptProductBindingLoader -> Postgres Review apply/reject boundaries",
@@ -1590,15 +1914,15 @@
       "surfaces": ["SP11", "SP13"],
       "flows": ["UX-FLOW-10", "UX-FLOW-17"],
       "requests": ["UX-REQ-020", "UX-REQ-021"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/petra",
       "control": "Model status",
       "interaction": "query",
       "evidence": [
         {
-          "command": "npm run test:wave6:actual-model-ui",
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:actual-model-ui",
           "artifact": "reports/WAVE6-ACTUAL-MODEL-UI-TRACE.json",
-          "boundary": "Against a fresh store with no cached model execution, the authenticated production readiness query selects the registered scientific grounded-synthesist role, confirms the managed provider and exact model are ready, and binds the current Project, immutable packets, snapshot, certification, registered prompt, delivery, and no-authority effect. Design must re-execute the integrated status control before this row becomes live."
+          "boundary": "Against a fresh store with no cached model execution, the authenticated production readiness query selected the registered scientific grounded-synthesist role, confirmed managed ChatGPT and gpt-5.6-terra were ready, and bound the current Project, immutable packets, snapshot, certification, registered prompt, delivery, and no-authority effect."
         }
       ],
       "runtime_owner": "GET /api/queries/projects/:projectId/model-readiness -> PostgresProjectModelReadinessReader",
@@ -1611,15 +1935,15 @@
       "surfaces": ["SP11", "SP13"],
       "flows": ["UX-FLOW-10", "UX-FLOW-17"],
       "requests": ["UX-REQ-020", "UX-REQ-021"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/petra",
       "control": "Send",
       "interaction": "command",
       "evidence": [
         {
-          "command": "npm run test:wave6:actual-model-ui",
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:actual-model-ui",
           "artifact": "reports/WAVE6-ACTUAL-MODEL-UI-TRACE.json",
-          "boundary": "The production React Petra composer submits the exact registered question and server-read immutable context to the configured certified external provider, streams progress, persists exactly one ModelRequest, ModelCall, GroundedResponse, InteractionRun, and delivery record, and renders the provider result with no Project authority effect. Design must re-execute the integrated control before this row becomes live."
+          "boundary": "The production React Petra composer submitted the exact registered question and server-read immutable context to certified gpt-5.6-terra, streamed progress, persisted exactly one ModelRequest, ModelCall, GroundedResponse, InteractionRun, and delivery record, and rendered the provider result with no Project authority effect."
         }
       ],
       "runtime_owner": "POST /api/interactions/run -> ProjectModelClient + certified Codex grounded-synthesis runtime",
@@ -1662,7 +1986,7 @@
       "surfaces": ["SP10"],
       "flows": ["UX-FLOW-16"],
       "requests": ["UX-REQ-007", "UX-REQ-023"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/history",
       "control": "History episodes",
       "interaction": "query",
@@ -1671,6 +1995,11 @@
           "command": "npm run test:wave6:history",
           "artifact": "reports/WAVE6-HISTORY-RECOVERY-AUTHORITY.json",
           "boundary": "Fresh disposable PostgreSQL plus authenticated production HTTP and getRetainedProjectHistory returned the bounded causal event collection with exact immutable event, command, actor, target, effect, recovery, snapshot, and cursor identity. This backend prerequisite does not execute the visible History collection or UX1.6-HISTORY/effect-recovery-revert-return."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:history-ui",
+          "artifact": "reports/WAVE6-HISTORY-RECOVERY-BROWSER.json",
+          "boundary": "UX1.6-HISTORY/effect-recovery-revert-return: isolated Chrome entered the authenticated retained Project History collection through visible production controls and verified the server-owned causal event list before and after additive compensation."
         }
       ],
       "runtime_owner": "getRetainedProjectHistory -> GET /api/queries/projects/:projectId/history/events -> PostgresProjectHistoryViewReader.listRetainedProjectHistoryView",
@@ -1683,7 +2012,7 @@
       "surfaces": ["SP10"],
       "flows": ["UX-FLOW-16"],
       "requests": ["UX-REQ-007", "UX-REQ-023"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/history",
       "control": "History filters",
       "interaction": "query",
@@ -1692,6 +2021,11 @@
           "command": "npm run test:wave6:history",
           "artifact": "reports/WAVE6-HISTORY-RECOVERY-AUTHORITY.json",
           "boundary": "Fresh disposable PostgreSQL plus authenticated production HTTP invoked the retained History owner with registered family, command, event, actor, outcome, and canonical-effect filters and returned only the exact Apply event. This backend prerequisite does not execute visible filter controls or UX1.6-HISTORY/effect-recovery-revert-return."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:history-ui",
+          "artifact": "reports/WAVE6-HISTORY-RECOVERY-BROWSER.json",
+          "boundary": "UX1.6-HISTORY/effect-recovery-revert-return: isolated Chrome applied visible exact family, command, event, Actor, outcome, effect, and ChangeSet-target filters and received only the selected retained Apply event from authenticated production HTTP."
         }
       ],
       "runtime_owner": "getRetainedProjectHistory(filter) -> validated GET /api/queries/projects/:projectId/history/events query -> snapshot-bound PostgresProjectHistoryViewReader.listRetainedProjectHistoryView",
@@ -1704,7 +2038,7 @@
       "surfaces": ["SP10"],
       "flows": ["UX-FLOW-16"],
       "requests": ["UX-REQ-007", "UX-REQ-023"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/history",
       "control": "Open episode",
       "interaction": "navigation",
@@ -1713,6 +2047,11 @@
           "command": "npm run test:wave6:history",
           "artifact": "reports/WAVE6-HISTORY-RECOVERY-AUTHORITY.json",
           "boundary": "Fresh disposable PostgreSQL plus authenticated production HTTP opened the exact applied event through getProjectHistoryEpisode, preserving its command, canonical effect, causal stream order, retained targets, and registered historical destination. This backend prerequisite does not execute visible event navigation or UX1.6-HISTORY/effect-recovery-revert-return."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:history-ui",
+          "artifact": "reports/WAVE6-HISTORY-RECOVERY-BROWSER.json",
+          "boundary": "UX1.6-HISTORY/effect-recovery-revert-return: isolated Chrome opened the sole exact filtered event through its visible retained-History row and verified the immutable event response over authenticated production HTTP."
         }
       ],
       "runtime_owner": "getProjectHistoryEpisode -> GET /api/queries/projects/:projectId/history/events/:eventId -> PostgresProjectHistoryViewReader.getProjectHistoryEpisodeView",
@@ -1725,7 +2064,7 @@
       "surfaces": ["SP10", "SP12"],
       "flows": ["UX-FLOW-16"],
       "requests": ["UX-REQ-007", "UX-REQ-023"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/history/:eventId",
       "control": "Compare state",
       "interaction": "query",
@@ -1734,6 +2073,11 @@
           "command": "npm run test:wave6:history",
           "artifact": "reports/WAVE6-HISTORY-RECOVERY-AUTHORITY.json",
           "boundary": "Fresh disposable PostgreSQL plus authenticated production HTTP composed the event-selected causal episode against the exact immutable ProjectDefinition binding effective at that stream revision, without reconstructing history from current state. This backend prerequisite does not execute the visible comparison control or UX1.6-HISTORY/effect-recovery-revert-return."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:history-ui",
+          "artifact": "reports/WAVE6-HISTORY-RECOVERY-BROWSER.json",
+          "boundary": "UX1.6-HISTORY/effect-recovery-revert-return: isolated Chrome expanded Compare recorded state and inspected the selected event stream position, current impact-read position, and exact retained ProjectDefinition revision without a current-profile substitution."
         }
       ],
       "runtime_owner": "getProjectHistoryEpisode -> GET /api/queries/projects/:projectId/history/events/:eventId -> PostgresProjectHistoryViewReader historical ProjectDefinition binding and registered target resolution",
@@ -1746,7 +2090,7 @@
       "surfaces": ["SP10", "SP12"],
       "flows": ["UX-FLOW-16"],
       "requests": ["UX-REQ-007", "UX-REQ-023"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/history/:eventId",
       "control": "Impact",
       "interaction": "query",
@@ -1755,6 +2099,11 @@
           "command": "npm run test:wave6:history",
           "artifact": "reports/WAVE6-HISTORY-RECOVERY-AUTHORITY.json",
           "boundary": "Fresh disposable PostgreSQL plus authenticated production HTTP composed the exact event's registered command, projection, semantic, operational, and recovery impact while preserving unknown and non-inference boundaries. This backend prerequisite does not execute the visible Impact control or UX1.6-HISTORY/effect-recovery-revert-return."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:history-ui",
+          "artifact": "reports/WAVE6-HISTORY-RECOVERY-BROWSER.json",
+          "boundary": "UX1.6-HISTORY/effect-recovery-revert-return: isolated Chrome expanded Inspect impact and recovery and read the exact server-composed impact groups, recovery assessment, eligibility, boundaries, and non-inference limits."
         }
       ],
       "runtime_owner": "getProjectHistoryImpact -> GET /api/queries/projects/:projectId/history/events/:eventId/impact -> PostgresProjectHistoryViewReader.getProjectHistoryImpactView",
@@ -1767,7 +2116,7 @@
       "surfaces": ["SP10", "SP14"],
       "flows": ["UX-FLOW-12", "UX-FLOW-16"],
       "requests": ["UX-REQ-007", "UX-REQ-023"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/history/:eventId",
       "control": "Preview Revert",
       "interaction": "query",
@@ -1776,6 +2125,11 @@
           "command": "npm run test:wave6:history",
           "artifact": "reports/WAVE6-HISTORY-RECOVERY-AUTHORITY.json",
           "boundary": "Fresh disposable PostgreSQL plus authenticated production HTTP composed an eligible recovery assessment, revision-bound read-only preview, and explicitly confirmed three-command compensation plan while proving no authority records changed before execution. This backend prerequisite does not execute visible preview/confirmation controls or UX1.6-HISTORY/effect-recovery-revert-return."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:history-ui",
+          "artifact": "reports/WAVE6-HISTORY-RECOVERY-BROWSER.json",
+          "boundary": "UX1.6-HISTORY/effect-recovery-revert-return: isolated Chrome invoked the visible read-only preview, verified no execute request occurred, entered the reason and Approval rationale, and explicitly confirmed the exact server-composed compensation plan."
         }
       ],
       "runtime_owner": "getProjectHistoryRecoveryAssessment + getProjectHistoryCompensationPreview + composeProjectHistoryCompensationPlan -> authenticated recovery query routes -> PostgresProjectHistoryViewReader with server-owned human principal and current capability-grant checks",
@@ -1788,7 +2142,7 @@
       "surfaces": ["SP10", "SP14"],
       "flows": ["UX-FLOW-12", "UX-FLOW-16"],
       "requests": ["UX-REQ-007", "UX-REQ-023"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/history/:eventId",
       "control": "Execute Revert",
       "interaction": "command",
@@ -1797,6 +2151,11 @@
           "command": "npm run test:wave6:history",
           "artifact": "reports/WAVE6-HISTORY-RECOVERY-AUTHORITY.json",
           "boundary": "Fresh disposable PostgreSQL plus authenticated production HTTP executed the exact confirmed three-command compensation plan, rechecked authority per command, retained each outcome, replayed idempotently without a duplicate effect, preserved the original Apply event, and returned the additive Revert through History and Brief. This backend prerequisite does not execute the visible Execute control or UX1.6-HISTORY/effect-recovery-revert-return."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:history-ui",
+          "artifact": "reports/WAVE6-HISTORY-RECOVERY-BROWSER.json",
+          "boundary": "UX1.6-HISTORY/effect-recovery-revert-return: isolated Chrome invoked Execute governed Revert exactly once, observed the retained completed result, verified the original and additive compensation events in History, and returned through visible controls to the updated Brief."
         }
       ],
       "runtime_owner": "executeProjectHistoryCompensationPlan -> POST /api/commands/projects/:projectId/history/events/:eventId/recovery/execute -> PostgresProjectHistoryCompensationExecutor -> PostgresChangeControlAuthorityRepository",
@@ -1809,11 +2168,16 @@
       "surfaces": ["SP12"],
       "flows": ["UX-FLOW-07"],
       "requests": ["UX-REQ-008", "UX-REQ-009", "UX-REQ-013", "UX-REQ-022"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "contextual",
       "control": "Open Details",
       "interaction": "navigation",
       "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:graph-details-ui",
+          "artifact": "reports/WAVE6-GRAPH-DETAILS-BROWSER.json",
+          "boundary": "UX1.6-GRAPH/task-graph-details-return: isolated Chrome executed this visible operation within one contextual/direct Graph, Current/Working/Historical, selection, Details/source, graph/text, expansion/filter/save, comparison/impact/time, governed correction-preview, and exact task-return workflow over authenticated live HTTP backed by fresh disposable PostgreSQL and Neo4j. This row is bound only because its control or query was invoked in the retained trace; no other Wave 6 scenario is claimed."
+        },
         {
           "command": "npm run test:wave6:graph",
           "artifact": "reports/WAVE6-GRAPH-DETAILS-AUTHORITY.json",
@@ -1830,11 +2194,16 @@
       "surfaces": ["SP12"],
       "flows": ["UX-FLOW-07"],
       "requests": ["UX-REQ-008", "UX-REQ-009", "UX-REQ-013", "UX-REQ-022"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "contextual",
       "control": "Return to selection",
       "interaction": "navigation",
       "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:graph-details-ui",
+          "artifact": "reports/WAVE6-GRAPH-DETAILS-BROWSER.json",
+          "boundary": "UX1.6-GRAPH/task-graph-details-return: isolated Chrome executed this visible operation within one contextual/direct Graph, Current/Working/Historical, selection, Details/source, graph/text, expansion/filter/save, comparison/impact/time, governed correction-preview, and exact task-return workflow over authenticated live HTTP backed by fresh disposable PostgreSQL and Neo4j. This row is bound only because its control or query was invoked in the retained trace; no other Wave 6 scenario is claimed."
+        },
         {
           "command": "npm run test:wave6:graph",
           "artifact": "reports/WAVE6-GRAPH-DETAILS-AUTHORITY.json",
@@ -1851,7 +2220,7 @@
       "surfaces": ["SP14"],
       "flows": ["UX-FLOW-11", "UX-FLOW-16"],
       "requests": ["UX-REQ-003", "UX-REQ-021", "UX-REQ-023"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "contextual",
       "control": "Confirm",
       "interaction": "command",
@@ -1860,6 +2229,11 @@
           "command": "npm run test:wave6:actions",
           "artifact": "reports/WAVE6-SUGGESTED-ACTION-FEEDBACK-AUTHORITY.json",
           "boundary": "The production route test and real PostgreSQL trace execute confirmation only after an exact ready preview, resolve the authenticated human principal and grant on the server, persist the immutable command receipt, and expose authority_effect=none. No visible feedback control or named browser scenario is claimed."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:actions-feedback-ui",
+          "artifact": "reports/WAVE6-ACTIONS-FEEDBACK-BROWSER.json",
+          "boundary": "UX1.6-ACTIONS/suggested-action-interrupt-review: isolated Chrome executed the production Brief, Petra, Work, and Review routes over authenticated live HTTP against fresh disposable PostgreSQL and ArtifactStore authority. It covered the same registered SuggestedAction in direct and conversational presentations, exact confirmation, deliberately interrupted delivery with byte-identical retry, transient dismissal, focus return, durable interrupt replay and response, Review correction and basis revision, stale refresh, one exact Apply, and exact Work returns. The certified runtime was live; this provider-free continuation made no new external model call and assigned no authority to the client or model."
         }
       ],
       "runtime_owner": "Exact SuggestedAction preview -> POST /api/commands/projects/:projectId/suggested-actions/:suggestedActionId/invoke -> server-resolved principal -> SuggestedActionInvocationCoordinator; the request cannot carry Actor, grant, Project, Work, interaction, trace, result, or authority effect",
@@ -1872,7 +2246,7 @@
       "surfaces": ["SP14"],
       "flows": ["UX-FLOW-11", "UX-FLOW-16"],
       "requests": ["UX-REQ-003", "UX-REQ-021", "UX-REQ-023"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "contextual",
       "control": "Retry",
       "interaction": "command",
@@ -1881,6 +2255,11 @@
           "command": "npm run test:wave6:actions",
           "artifact": "reports/WAVE6-SUGGESTED-ACTION-FEEDBACK-AUTHORITY.json",
           "boundary": "Real PostgreSQL executes an exact invocation replay and proves it returns applied=false with the same receipt; the invocation view supplies current retry_exact_start eligibility and reasons before and after Work registration. This backend prerequisite does not execute the visible retry control or the named UX1.6-ACTIONS browser scenario."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:actions-feedback-ui",
+          "artifact": "reports/WAVE6-ACTIONS-FEEDBACK-BROWSER.json",
+          "boundary": "UX1.6-ACTIONS/suggested-action-interrupt-review: isolated Chrome executed the production Brief, Petra, Work, and Review routes over authenticated live HTTP against fresh disposable PostgreSQL and ArtifactStore authority. It covered the same registered SuggestedAction in direct and conversational presentations, exact confirmation, deliberately interrupted delivery with byte-identical retry, transient dismissal, focus return, durable interrupt replay and response, Review correction and basis revision, stale refresh, one exact Apply, and exact Work returns. The certified runtime was live; this provider-free continuation made no new external model call and assigned no authority to the client or model."
         }
       ],
       "runtime_owner": "GET /api/queries/projects/:projectId/suggested-action-invocations/:commandId -> server-owned recovery.actions retry_exact_start eligibility; eligible retry reuses the retained POST invocation command and idempotency identities and converges on the same receipt and expected Work",
@@ -1893,11 +2272,17 @@
       "surfaces": ["SP14"],
       "flows": ["UX-FLOW-11", "UX-FLOW-16"],
       "requests": ["UX-REQ-003", "UX-REQ-021", "UX-REQ-023"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "contextual",
       "control": "Dismiss",
       "interaction": "navigation",
-      "evidence": [],
+      "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:actions-feedback-ui",
+          "artifact": "reports/WAVE6-ACTIONS-FEEDBACK-BROWSER.json",
+          "boundary": "UX1.6-ACTIONS/suggested-action-interrupt-review: isolated Chrome dismissed transient Petra action feedback after an exact production invocation result and verified that no server-owned command or state changed. The same session used authenticated live HTTP with fresh disposable PostgreSQL and ArtifactStore authority."
+        }
+      ],
       "runtime_owner": "Design-owned client-local transient feedback state over a verified production response; dismiss performs no server command and cannot alter the retained SuggestedAction invocation, Work, result, History, or recovery authority",
       "paths": ["UX-PATH-01", "UX-PATH-03", "UX-PATH-04"]
     },
@@ -1908,11 +2293,17 @@
       "surfaces": ["SP14"],
       "flows": ["UX-FLOW-11", "UX-FLOW-16"],
       "requests": ["UX-REQ-003", "UX-REQ-021", "UX-REQ-023"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "contextual",
       "control": "Return focus",
       "interaction": "navigation",
-      "evidence": [],
+      "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:actions-feedback-ui",
+          "artifact": "reports/WAVE6-ACTIONS-FEEDBACK-BROWSER.json",
+          "boundary": "UX1.6-ACTIONS/suggested-action-interrupt-review: isolated Chrome activated Return focus to action after deliberately interrupted delivery and exact retry, then verified focus on the initiating direct and conversational SuggestedAction controls without issuing another server command."
+        }
+      ],
       "runtime_owner": "Design-owned focus restoration to the initiating SuggestedAction control within the retained exact Project, inquiry-result link, action, command, and direct-or-conversational presentation context; focus return performs no server command",
       "paths": ["UX-PATH-01", "UX-PATH-03", "UX-PATH-04"]
     },
@@ -2261,11 +2652,5 @@
       "runtime_owner": "POST /api/commands/projects/:projectId/reset -> PostgresProjectProfileRuntime",
       "paths": ["UX-PATH-01", "UX-PATH-03", "UX-PATH-04"]
     }
-  ],
-  "interaction_definitions": {
-    "query": "Reads exact production state without an authority effect.",
-    "navigation": "Changes place or context while preserving exact identity, state, and return.",
-    "command": "Invokes a registered production mutation or durable operation.",
-    "local_command": "Changes scoped local presentation state without domain authority."
-  }
+  ]
 }

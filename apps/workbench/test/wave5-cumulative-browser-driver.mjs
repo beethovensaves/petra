@@ -387,7 +387,7 @@ export const startWave5CumulativeBrowser = async ({
     };
   };
 
-  const recordFocusedGraph = async () => {
+  const recordFocusedGraph = async ({ saveExactQuestion = false } = {}) => {
     assert.ok(reviewGraphPath !== undefined);
     const timings = {};
     const focus = {};
@@ -729,32 +729,298 @@ export const startWave5CumulativeBrowser = async ({
     const working = focusedCall();
     assert.equal(working.requestJson.semantic_layer, "working");
     assert.equal(working.json.content.semantic_layer, "working");
-    const selectionBeforeExpansion = await evaluate(
-      'document.querySelector(".focused-graph-exploration__selection select").value',
+    const recipe = await evaluate(`(() => {
+      const control = document.querySelector(".focused-graph-expansion-controls > label select");
+      return {
+        value: control?.value,
+        labels: [...(control?.options ?? [])].map((option) => option.textContent.trim()),
+      };
+    })()`);
+    assert.equal(recipe.value, "scientific.graph.show-downstream");
+    assert.deepEqual(recipe.labels, ["Show downstream effects"]);
+
+    const expansionTarget = working.json.content.nodes.find(
+      (node) =>
+        node.record_ref.record_id === working.requestJson.focus_ref.record_id &&
+        node.record_ref.revision === working.requestJson.focus_ref.revision &&
+        node.record_ref.record_hash ===
+          working.requestJson.focus_ref.record_hash,
     );
-    body = await evaluate("document.body.innerText");
     assert.ok(
-      body.includes(
-        "No compatible named expansion is registered for this exact profile and semantic layer.",
-      ),
+      expansionTarget !== undefined,
+      "The exact focused Claim is not represented for expansion.",
+    );
+    await evaluate(`(() => {
+      const control = document.querySelector(".focused-graph-exploration__selection select");
+      control.focus();
+      control.value = ${JSON.stringify(expansionTarget.node_key)};
+      control.dispatchEvent(new Event("change", { bubbles: true }));
+    })()`);
+    await until(
+      `document.querySelector(".focused-graph-exploration__selection select").value === ${JSON.stringify(expansionTarget.node_key)}`,
+      "exact cumulative Graph expansion target selection",
+    );
+
+    await evaluate(`(() => {
+      const controls = [...document.querySelectorAll(".focused-graph-expansion-controls label")];
+      for (const label of controls) {
+        const checkbox = label.querySelector('input[type="checkbox"]');
+        if (checkbox === null) continue;
+        const keep = ["outgoing", "support", "canonical record"].includes(
+          label.textContent.trim(),
+        );
+        if (checkbox.checked !== keep) checkbox.click();
+      }
+      const depth = controls
+        .find((label) => label.textContent.includes("Finite depth"))
+        ?.querySelector("select");
+      depth.value = "3";
+      depth.dispatchEvent(new Event("change", { bubbles: true }));
+    })()`);
+    await until(
+      `(() => {
+        const checked = [...document.querySelectorAll('.focused-graph-expansion-controls input[type="checkbox"]:checked')]
+          .map((input) => input.closest("label").textContent.trim())
+          .sort();
+        const depth = [...document.querySelectorAll(".focused-graph-expansion-controls label")]
+          .find((label) => label.textContent.includes("Finite depth"))
+          ?.querySelector("select")?.value;
+        return JSON.stringify(checked) === JSON.stringify(${JSON.stringify(
+          ["support", "canonical record", "outgoing"].sort(),
+        )}) && depth === "3";
+      })()`,
+      "registered cumulative Graph filters and finite depth",
+    );
+
+    const expansionReturnHrefBefore = await evaluate(
+      `${link("Return to Review")}.getAttribute("href")`,
+    );
+    await activate(button("Expand selected object"));
+    await until(
+      'document.querySelector(".focused-graph-expansion-summary") !== null && document.body.innerText.includes("Accepted Show downstream effects for the exact active snapshot")',
+      "cumulative live registered expansion result",
+    );
+    const expanded = focusedCall();
+    assert.equal(expanded?.status, 200);
+    assert.equal(expanded.json.schema_name, "petra.focused-graph-view");
+    assert.equal(expanded.json.schema_version, "1.1.0");
+    assert.equal(
+      expanded.requestJson.exploration.recipe_semantic_key,
+      "scientific.graph.show-downstream",
+    );
+    assert.deepEqual(
+      expanded.requestJson.exploration.target_ref,
+      expansionTarget.record_ref,
+    );
+    assert.equal(expanded.requestJson.exploration.maximum_depth, 3);
+    assert.deepEqual(expanded.requestJson.exploration.filters, {
+      meaning_kinds: ["support"],
+      directions: ["outgoing"],
+      origins: ["canonical_record"],
+    });
+    assert.equal(expanded.requestJson.semantic_layer, "working");
+    assert.deepEqual(
+      expanded.requestJson.expected_snapshot,
+      working.json.content.requested_snapshot,
+    );
+    assert.deepEqual(
+      expanded.requestJson.project_definition_ref,
+      working.requestJson.project_definition_ref,
+    );
+    assert.deepEqual(
+      expanded.requestJson.return_destination,
+      working.requestJson.return_destination,
     );
     assert.equal(
-      await evaluate(
-        'document.querySelector(".focused-graph-expansion-controls input[type=checkbox]") === null',
+      expanded.json.content.task.request_id,
+      expanded.requestJson.request_id,
+    );
+    assert.equal(expanded.json.content.semantic_layer, "working");
+    assert.deepEqual(
+      expanded.json.content.requested_snapshot,
+      expanded.requestJson.expected_snapshot,
+    );
+    assert.deepEqual(
+      expanded.json.content.profile.project_definition_ref,
+      expanded.requestJson.project_definition_ref,
+    );
+    assert.deepEqual(
+      expanded.json.content.exploration.target_ref,
+      expansionTarget.record_ref,
+    );
+    assert.deepEqual(
+      expanded.json.content.exploration.filters,
+      expanded.requestJson.exploration.filters,
+    );
+    assert.equal(expanded.json.content.exploration.maximum_depth, 3);
+    assert.ok(expanded.json.content.groups.length > 0);
+    assert.ok(Array.isArray(expanded.json.content.scope.omissions));
+    assert.ok(
+      Object.values(expanded.json.content.exploration.accounting).every(
+        (value) => value !== undefined,
       ),
-      true,
     );
     assert.equal(
       await evaluate(
         'document.querySelector(".focused-graph-exploration__selection select").value',
       ),
-      selectionBeforeExpansion,
+      expansionTarget.node_key,
+    );
+    const expansionSummary = await evaluate(
+      'document.querySelector(".focused-graph-expansion-summary").innerText',
+    );
+    for (const text of [
+      "Show downstream effects",
+      expansionTarget.record_ref.record_id,
+      "Normalized meanings",
+      "support",
+      "Normalized directions",
+      "outgoing",
+      "Normalized origins",
+      "canonical record",
+      "Capped members",
+      "Hidden relationships",
+      "Restricted paths",
+      "Cyclic paths",
+      "Incomplete paths",
+      "Unknown paths",
+      "do not establish absence or completeness",
+    ]) {
+      assert.ok(
+        expansionSummary.includes(text),
+        `Cumulative expansion summary omitted ${text}.`,
+      );
+    }
+    assert.equal(
+      await evaluate(
+        'document.querySelectorAll(".focused-graph-expansion-summary__groups > li").length',
+      ),
+      expanded.json.content.groups.length,
+    );
+    const expansionReturnHrefAfter = await evaluate(
+      `${link("Return to Review")}.getAttribute("href")`,
+    );
+    assert.equal(expansionReturnHrefAfter, expansionReturnHrefBefore);
+    assert.equal(
+      expansionReturnHrefAfter,
+      new URL(contextualGraphPath, workbench.url).searchParams.get(
+        "returnPath",
+      ),
+    );
+    await activate(link("Return to Review"));
+    await until(
+      `window.location.hash === ${JSON.stringify(`#${returnFocusId}`)} && document.activeElement?.id === ${JSON.stringify(returnFocusId)}`,
+      "exact Review return after cumulative expansion",
+    );
+    focus.expansion_context_return = true;
+
+    await navigate(
+      contextualGraphPath,
+      'document.querySelector(".focused-graph-exploration") !== null',
+      "restored contextual working Graph after expansion return",
     );
     await activate(button("Bookmark this view"));
     await until(
       'document.querySelector(".focused-graph-saved-questions ol") !== null',
       "bookmarked exact view",
     );
+    let inquirySave;
+    if (saveExactQuestion) {
+      const saveCallCount = calls.filter(
+        (call) =>
+          call.method === "POST" &&
+          call.path.endsWith(
+            `/api/commands/projects/${scientificProjectId}/inquiries`,
+          ),
+      ).length;
+      await activate(button("Save exact question to Project"));
+      await until(
+        'document.querySelector(".focused-graph-inquiry-save")?.dataset.state === "retained"',
+        "durably saved exact Graph question",
+      );
+      const saveCalls = calls.filter(
+        (call) =>
+          call.method === "POST" &&
+          call.path.endsWith(
+            `/api/commands/projects/${scientificProjectId}/inquiries`,
+          ),
+      );
+      assert.equal(saveCalls.length, saveCallCount + 1);
+      const save = saveCalls.at(-1);
+      assert.equal(save?.status, 200);
+      assert.equal(
+        save.requestJson.schema_name,
+        "petra.project-inquiry-save-request",
+      );
+      assert.deepEqual(
+        save.requestJson.graph_request,
+        working.requestJson,
+        "The visible save did not retain the exact active Graph request.",
+      );
+      assert.equal(
+        save.requestJson.expected_graph.content_hash,
+        working.json.content_hash,
+      );
+      for (const field of [
+        "actor",
+        "capability_grant_id",
+        "objective_ref",
+        "inquiry_role_ref",
+      ]) {
+        assert.equal(
+          Object.hasOwn(save.requestJson, field),
+          false,
+          `The Graph save supplied server-owned ${field}.`,
+        );
+      }
+      assert.equal(save.json.applied, true);
+      assert.equal(
+        save.json.receipt.graph_binding.task_request_id,
+        working.requestJson.request_id,
+      );
+      assert.deepEqual(
+        save.json.receipt.graph_binding.selection,
+        save.requestJson.selection,
+      );
+      assert.deepEqual(
+        save.json.receipt.graph_binding.return_destination,
+        working.requestJson.return_destination,
+      );
+      body = await evaluate("document.body.innerText");
+      for (const text of [
+        "Question saved to the Project",
+        "graph snapshot and selection remain context",
+        "Open retained Project question",
+        "Return to Review",
+      ]) {
+        assert.ok(body.includes(text), `Saved Graph question omitted ${text}.`);
+      }
+      const retainedDestination = await evaluate(
+        'document.querySelector(".focused-graph-inquiry-save .reference-primary-link")?.getAttribute("href")',
+      );
+      const retainedReturn = await evaluate(
+        'document.querySelector(".focused-graph-inquiry-save .reference-text-link")?.getAttribute("href")',
+      );
+      assert.ok(retainedDestination?.includes("/work#inquiry-"));
+      assert.equal(
+        retainedReturn,
+        new URL(contextualGraphPath, workbench.url).searchParams.get(
+          "returnPath",
+        ),
+      );
+      inquirySave = {
+        command_id: save.requestJson.command_id,
+        objective_id: save.json.receipt.objective_ref.objective_id,
+        graph_request_id: save.requestJson.graph_request.request_id,
+        graph_content_hash: save.requestJson.expected_graph.content_hash,
+        selection: save.requestJson.selection,
+        return_destination: save.requestJson.graph_request.return_destination,
+        retained_destination: retainedDestination,
+        exact_return: retainedReturn,
+        applied: save.json.applied,
+        client_authority_fields_sent: false,
+      };
+    }
     await activate(button("Radial"));
     await activate(button("Back"));
     await activate(button("Forward"));
@@ -1030,12 +1296,43 @@ export const startWave5CumulativeBrowser = async ({
         time: time.json.content_hash,
       },
       expansion: {
-        live_availability: "not_registered_for_exact_profile_and_layer",
-        fail_closed_message:
-          "No compatible named expansion is registered for this exact profile and semantic layer.",
+        live_availability: "registered_and_executed",
+        registration: {
+          semantic_key: recipe.value,
+          label: recipe.labels[0],
+          contract: "petra.focused-graph-view@1.1.0",
+        },
+        request: {
+          request_id: expanded.requestJson.request_id,
+          expected_snapshot: expanded.requestJson.expected_snapshot,
+          target_ref: expanded.requestJson.exploration.target_ref,
+          maximum_depth: expanded.requestJson.exploration.maximum_depth,
+          filters: expanded.requestJson.exploration.filters,
+          return_destination: expanded.requestJson.return_destination,
+        },
+        response: {
+          content_hash: expanded.json.content_hash,
+          represented_snapshot: expanded.json.content.represented_snapshot,
+          result_state:
+            expanded.json.content.exploration.accounting.result_state,
+          accounting: expanded.json.content.exploration.accounting,
+          groups: expanded.json.content.groups.map((group) => ({
+            group_key: group.group_key,
+            label: group.label,
+            returned_count: group.returned_count,
+            filtered_count: group.filtered_count,
+            hidden_count: group.hidden_count,
+            coverage: group.coverage,
+          })),
+          omissions: expanded.json.content.scope.omissions,
+        },
         selection_preserved: true,
-        executed_supplement: "UX-FX25 deterministic adverse browser boundary",
+        disclosure_rendered: true,
+        exact_context_return_executed: true,
+        adverse_supplement:
+          "UX-FX25 deterministic stale, late-response, and omission boundary",
       },
+      ...(inquirySave === undefined ? {} : { inquiry_save: inquirySave }),
     };
   };
 
@@ -1405,6 +1702,7 @@ const windowlessLocation = (call) => {
     returnDestinationKind: request.return_destination.destination_kind,
     returnDestinationOwner: request.return_destination.owner,
     returnDestinationLabel: request.return_destination.label,
+    returnDestinationState: request.return_destination.state,
     returnTargetId: request.return_destination.target_ref.record_id,
     returnTargetRevision: String(
       request.return_destination.target_ref.revision,

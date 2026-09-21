@@ -18,6 +18,9 @@ const wait = (milliseconds) =>
 const button = (label) =>
   `[...document.querySelectorAll('button')].find((element) => element.textContent.trim() === ${JSON.stringify(label)})`;
 
+const link = (label) =>
+  `[...document.querySelectorAll('a')].find((element) => element.textContent.trim() === ${JSON.stringify(label)})`;
+
 const certifiedModel = {
   id: "gpt-5.6-terra",
   model: "gpt-5.6-terra",
@@ -276,11 +279,44 @@ const exerciseModelRecovery = async (context) => {
     );
     assert.equal(workStarts.length, 1);
 
-    await send("Page.reload");
-    await wait(250);
+    const originatingNavigation = await send("Page.navigate", {
+      url: new URL(returnPath, workbench.url).href,
+    });
+    assert.equal(originatingNavigation.errorText, undefined);
     await until(
-      `${button("Reconnect and replay")} !== undefined && document.querySelector(".petra-composer textarea")?.value === ${JSON.stringify(changedDraft)}`,
-      "retained run reconnect control",
+      `${link("Discuss this task with Petra")} !== undefined`,
+      "originating Work control for retained Petra run",
+    );
+    const originatingHref = await evaluate(
+      `${link("Discuss this task with Petra")}.getAttribute("href")`,
+    );
+    const originatingDestination = new URL(originatingHref, workbench.url);
+    assert.equal(
+      originatingDestination.pathname,
+      `/projects/${context.scientificProjectId}/petra`,
+    );
+    assert.equal(
+      originatingDestination.searchParams.get("return_to"),
+      returnPath,
+    );
+    assert.equal(
+      originatingDestination.searchParams.get("return_label"),
+      "Work task",
+    );
+    assert.equal(
+      originatingDestination.searchParams.get("return_focus"),
+      "work-control-boundary",
+    );
+    await evaluate(`${link("Discuss this task with Petra")}.click()`);
+    await until(
+      `window.location.pathname === ${JSON.stringify(`/projects/${context.scientificProjectId}/petra`)} && ${button("Reconnect and replay")} !== undefined && document.querySelector(".petra-composer textarea")?.value === ${JSON.stringify(changedDraft)}`,
+      "retained run opened from its originating Work control",
+    );
+    assert.equal(
+      await evaluate(
+        'document.querySelector(".petra-model-return a").getAttribute("href")',
+      ),
+      `${returnPath}#work-control-boundary`,
     );
     await evaluate(`${button("Reconnect and replay")}.click()`);
     await until(
@@ -320,7 +356,7 @@ const exerciseModelRecovery = async (context) => {
       await evaluate(
         'document.querySelector(".petra-model-return a").getAttribute("href")',
       ),
-      returnPath,
+      `${returnPath}#work-control-boundary`,
     );
 
     const run = recoveryServer.runtime.snapshot(
@@ -404,6 +440,13 @@ const exerciseModelRecovery = async (context) => {
           "Reconnect and replay before starting another response",
         ),
       },
+      originating_control: {
+        label: "Discuss this task with Petra",
+        source: returnPath,
+        destination: originatingDestination.href,
+        exact_task_return: `${returnPath}#work-control-boundary`,
+        retained_draft_and_run: true,
+      },
       replay: {
         state: "failed",
         message: failureText.replaceAll(/\s+/gu, " ").trim(),
@@ -418,7 +461,7 @@ const exerciseModelRecovery = async (context) => {
         submitted_exact_context: true,
         duplicate_provider_effect: false,
       },
-      return_destination: returnPath,
+      return_destination: `${returnPath}#work-control-boundary`,
     };
     const output =
       process.env.PETRA_WAVE6_MODEL_RECOVERY_BROWSER_OUTPUT?.trim();

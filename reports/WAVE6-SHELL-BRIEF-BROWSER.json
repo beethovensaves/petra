@@ -1,0 +1,23 @@
+{
+  "schema_name": "petra.wave6-shell-brief-browser-evidence",
+  "schema_version": "1.0.0",
+  "state": "passed",
+  "operation_ids": ["shell.attention-work", "brief.attention", "brief.change"],
+  "browser": "Chrome via CDP",
+  "transport": "deterministic schema-valid HTTP at the production UI boundary",
+  "checks": [
+    "project-shell-view@1.3.0 consumed through ProjectShellClient and the production loader",
+    "bounded active Work summary, reason, and exact destination visible in the shell",
+    "keyboard-opened shell Work destination and focused return to Attention Work",
+    "keyboard-opened Brief attention owner and focused return to the originating item",
+    "recent-History baseline selected through a visible Brief control",
+    "exact canonical comparison outcome and current-Brief return",
+    "unavailable baseline recovery without a substituted comparison",
+    "stale comparison replay recovery without false success",
+    "Project context and current Objective orientation remained visible",
+    "375px width, 200% text reflow, reduced motion, and 44px Work target"
+  ],
+  "verified_not_credited": ["shell.inspect-context", "brief.orient"],
+  "named_scenario": null,
+  "boundary": "Isolated Chrome keyboard-invoked the production ProjectShell, ProjectBriefSurface, WorkDetailSurface, React Router controls, ProjectShellClient, ProjectBriefClient, exact Work destination checks, comparison success, unavailable recovery, stale recovery, and focused returns using deterministic schema-valid authenticated HTTP. The exact backend counterpart separately proves the live server and PostgreSQL owners. This artifact does not claim live server transport, PostgreSQL persistence, a complete guided workflow, or any frozen Wave 6 evidence-plan scenario."
+}

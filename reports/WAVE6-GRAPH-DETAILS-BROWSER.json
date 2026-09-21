@@ -1,0 +1,395 @@
+{
+  "schema_name": "petra.wave6-graph-details-browser-observation",
+  "schema_version": "1.0.0",
+  "status": "passed",
+  "recorded_at": "2026-09-21T09:55:35.941Z",
+  "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:graph-details-ui",
+  "environment": {
+    "node": "24.20.0",
+    "browser": {
+      "product": "Chrome/153.0.8010.48",
+      "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "protocol_version": "1.3"
+    },
+    "workbench": "production React Router loaders, Focused Graph components, Cytoscape renderer, textual peer, Details, and Review preview",
+    "transport": "authenticated live HTTP",
+    "persistence": "fresh disposable PostgreSQL and Neo4j"
+  },
+  "operation_ids": [
+    "graph.open",
+    "graph.return",
+    "graph.layer-position",
+    "graph.select",
+    "graph.open-details",
+    "graph.open-source",
+    "graph.expand",
+    "graph.filter",
+    "graph.save-question",
+    "graph.compare",
+    "graph.impact",
+    "graph.time",
+    "graph.correct-through-review",
+    "details.open",
+    "details.return"
+  ],
+  "correction_target": {
+    "duration_ms": 2039.671,
+    "action_target_sha256": "sha256:2fade6db29f6ea44ae156a0bdcc6bc7885cd8eb5612ac1135ec3e5d46ed4e9fe",
+    "correction_preview": {
+      "graph_duration_ms": 2089.172,
+      "live_route_availability": "preview_executed",
+      "open_review_session_id": "review_session_01K4D000000000000000000004",
+      "review_member_id": "review_member_73XZTG07J43ED75B7CG77CGRD6",
+      "working_relationship_ref": {
+        "working_relationship_id": "working_relationship_5MV0X9MX2PGD1T6W4AE42AC5DT",
+        "revision": 3,
+        "content_hash": "sha256:68928ec0e844197f9a8103be5a06b1534c66de735a864a4763a3c3c5db761bc8"
+      },
+      "returned_relationship_ref": {
+        "element_id": "working_relationship_5MV0X9MX2PGD1T6W4AE42AC5DT",
+        "revision": 3,
+        "record_hash": "sha256:6212a47643fa5a5a4c3cbd4456d7a95b51d84bd50afb036392c611f577581134"
+      },
+      "graph_content_hash": "sha256:ea37fd362f17ea268bd8127493421b3b2cdf7e8d03dfd045a995bfab5b0e1bd2",
+      "preview_content_hash": "sha256:c137a0fcd31de37cf50bc87cb4aabad34e0c3343d6884aa53c0f67bef20cf42b",
+      "preview_trigger_focus_restored": true,
+      "exact_review_member_returned": true,
+      "exact_review_focus_restored": true,
+      "review_authority_unchanged": true,
+      "command_issued": false
+    }
+  },
+  "observation": {
+    "browser": {
+      "product": "Chrome/153.0.8010.48",
+      "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "protocol_version": "1.3"
+    },
+    "route_transport": "live authenticated HTTP through the production server",
+    "timings_ms": {
+      "contextual_graph_ms": 1973.112,
+      "direct_graph_ms": 1912.269,
+      "historical_ms": 1920.298,
+      "impact_ms": 1934.126
+    },
+    "calls": {
+      "focused_graph": 18,
+      "details": 1,
+      "action_preview": 2,
+      "analysis": 3
+    },
+    "contextual_entry": {
+      "origin": "review",
+      "question": "Which recorded relationships, including Working changes, concern this Claim at the represented projection position?",
+      "focus_ref": {
+        "record_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+        "revision": 2,
+        "record_hash": "sha256:f6147c6ffc63a7cad0412bb76c82ae620e91faadd37a3f1296788f4c80377d68"
+      },
+      "limits": {
+        "maximum_depth": 1,
+        "maximum_nodes": 25,
+        "maximum_relationships": 24,
+        "maximum_paths": 24
+      },
+      "requested_snapshot": {
+        "snapshot_id": "snapshot_30PC193N76WDK110VP4K73GEXT",
+        "revision": 1,
+        "event_position": 9,
+        "content_hash": "sha256:62c2482586431a7b2d9fac64d6d87af15a3309c3bfa080d222d5503d61f8bf83"
+      },
+      "return_path": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/review/review_session_01K4D000000000000000000004#review-decision-title"
+    },
+    "direct_entry": {
+      "origin": "direct",
+      "content_hash": "sha256:d5a14d49682378917ef5bae319ff68344b23c5db86a8e3204bea66cc8d001919"
+    },
+    "relation_review": {
+      "relationship_count": 5,
+      "meaning_kinds": [
+        "citation",
+        "contradiction",
+        "inference",
+        "qualification",
+        "support"
+      ],
+      "non_color_fields": [
+        "term",
+        "predicate",
+        "direction",
+        "origin",
+        "authority_position",
+        "basis",
+        "limitations"
+      ]
+    },
+    "provenance_review": {
+      "details_content_hash": "sha256:2ad70136c948d317c9e081b0524aae97a148c6a4729e5de5e220b9bacf6425f0",
+      "exact_source_inspections": 1,
+      "inspected_source_state": "available",
+      "source_states": ["available"],
+      "requested_snapshot": {
+        "snapshot_id": "snapshot_30PC193N76WDK110VP4K73GEXT",
+        "revision": 1,
+        "event_position": 9,
+        "content_hash": "sha256:62c2482586431a7b2d9fac64d6d87af15a3309c3bfa080d222d5503d61f8bf83"
+      },
+      "projection_position": {
+        "authority_source": "postgresql",
+        "projection_source": "neo4j_rebuildable_projection",
+        "state": "catching_up",
+        "checkpoint_ref": {
+          "record_id": "projection_checkpoint_01ARZ3NDEKTSV4RRFFQ69G5FC9",
+          "revision": 2,
+          "record_hash": "sha256:4ae6f81f7a59ef7553114fce0263e74e95294ed2106f0063b9dde59e73de663e"
+        },
+        "represented_event_position": 3,
+        "observed_event_position": 9,
+        "pending_records": 2,
+        "detail": "Neo4j safely represents Project stream revision 3; 2 graph records are pending through revision 9."
+      },
+      "omissions": 1
+    },
+    "graph_text_parity": {
+      "relationship_count": 5,
+      "normalized_facts_sha256": "sha256:02624ff7a3fb64f905dba48bee40067ac30a157cdef579239c76ffb5d4de1660",
+      "exact_match": true
+    },
+    "focus": {
+      "contextual_heading": true,
+      "text_control": true,
+      "details_heading": true,
+      "source_summary": true,
+      "details_return": true,
+      "context_return": true,
+      "expansion_context_return": true
+    },
+    "correction_preview": {
+      "graph_duration_ms": 2089.172,
+      "live_route_availability": "preview_executed",
+      "open_review_session_id": "review_session_01K4D000000000000000000004",
+      "review_member_id": "review_member_73XZTG07J43ED75B7CG77CGRD6",
+      "working_relationship_ref": {
+        "working_relationship_id": "working_relationship_5MV0X9MX2PGD1T6W4AE42AC5DT",
+        "revision": 3,
+        "content_hash": "sha256:68928ec0e844197f9a8103be5a06b1534c66de735a864a4763a3c3c5db761bc8"
+      },
+      "returned_relationship_ref": {
+        "element_id": "working_relationship_5MV0X9MX2PGD1T6W4AE42AC5DT",
+        "revision": 3,
+        "record_hash": "sha256:6212a47643fa5a5a4c3cbd4456d7a95b51d84bd50afb036392c611f577581134"
+      },
+      "graph_content_hash": "sha256:ea37fd362f17ea268bd8127493421b3b2cdf7e8d03dfd045a995bfab5b0e1bd2",
+      "preview_content_hash": "sha256:c137a0fcd31de37cf50bc87cb4aabad34e0c3343d6884aa53c0f67bef20cf42b",
+      "preview_trigger_focus_restored": true,
+      "exact_review_member_returned": true,
+      "exact_review_focus_restored": true,
+      "review_authority_unchanged": true,
+      "command_issued": false
+    },
+    "positions": {
+      "current": "sha256:a58f5103db121271eaa99d1f43fdaf6d79e95ed4c889f44f1fc02b0cbbe5d9f5",
+      "working": "sha256:ef5de1e764db3c0017150e6a31ef6600a5dc70e16e9d4a0d3e08ba9afff40874",
+      "historical": "sha256:94a0c0c5849b3956ccc4e59e022ff1b524a0a2423de2643d001dec534eb64dfb",
+      "historical_recorded_at": "2026-09-21T09:54:51.022Z",
+      "comparison": "sha256:ed042eaebc137c33ec3f1d0c6c0d113d385b2309122d8d0dfcd78df181420cc6",
+      "impact": {
+        "live_route_state": "passed",
+        "content_hash": "sha256:69097c8f6d909e900aa4f4141c4b0c838146de1b99c2f23f1aa2caad69fb4e19",
+        "event_id": "event_01M31P7HGFQ0GVR8H47K89KR5W",
+        "assessed_consequences": {
+          "state": "unavailable",
+          "coverage": "not_assessed",
+          "reason": "No exact Review member was bound to this impact request, so assessed consequences are unavailable."
+        }
+      },
+      "impact_event_id": "event_01M31P7HGFQ0GVR8H47K89KR5W",
+      "time": "sha256:6a7820396311cba17d356974aa985882d932512238ad4826dc546e41622c2b5f"
+    },
+    "expansion": {
+      "live_availability": "registered_and_executed",
+      "registration": {
+        "semantic_key": "scientific.graph.show-downstream",
+        "label": "Show downstream effects",
+        "contract": "petra.focused-graph-view@1.1.0"
+      },
+      "request": {
+        "request_id": "focused_graph_request_01M31P890MRMNWQH63P1760KDW",
+        "expected_snapshot": {
+          "snapshot_id": "snapshot_30PC193N76WDK110VP4K73GEXT",
+          "revision": 1,
+          "event_position": 9,
+          "content_hash": "sha256:62c2482586431a7b2d9fac64d6d87af15a3309c3bfa080d222d5503d61f8bf83"
+        },
+        "target_ref": {
+          "record_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+          "revision": 2,
+          "record_hash": "sha256:f6147c6ffc63a7cad0412bb76c82ae620e91faadd37a3f1296788f4c80377d68"
+        },
+        "maximum_depth": 3,
+        "filters": {
+          "meaning_kinds": ["support"],
+          "directions": ["outgoing"],
+          "origins": ["canonical_record"]
+        },
+        "return_destination": {
+          "destination_key": "destination:review:claim_6x7aypk94k95fgker2jc6vzgef",
+          "destination_kind": "review",
+          "owner": "project_review_view",
+          "label": "Review",
+          "state": "available",
+          "target_ref": {
+            "record_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+            "revision": 2,
+            "record_hash": "sha256:f6147c6ffc63a7cad0412bb76c82ae620e91faadd37a3f1296788f4c80377d68"
+          }
+        }
+      },
+      "response": {
+        "content_hash": "sha256:c78675d3e60be69872b07591a71b7df0efbf7b533854f8bb3dbc643908762f1d",
+        "represented_snapshot": {
+          "snapshot_id": "snapshot_22887WA049VPRNJ3BMQJVB7GRK",
+          "revision": 1,
+          "event_position": 3,
+          "content_hash": "sha256:7fff63d27a6c595df54f557e3d2b4f7313a8a06d82f61b1b46671618d638e3dd"
+        },
+        "result_state": "complete_for_scope",
+        "accounting": {
+          "result_state": "complete_for_scope",
+          "capped_members": {
+            "state": "exact",
+            "value": 0
+          },
+          "hidden_relationships": {
+            "state": "exact",
+            "value": 5
+          },
+          "restricted_paths": {
+            "state": "not_disclosed"
+          },
+          "cycle_paths": {
+            "state": "exact",
+            "value": 0
+          },
+          "incomplete_paths": {
+            "state": "exact",
+            "value": 0
+          },
+          "unknown_paths": {
+            "state": "unknown"
+          }
+        },
+        "groups": [
+          {
+            "group_key": "group:relationship-meaning:current:support",
+            "label": "Support — Current",
+            "returned_count": 0,
+            "filtered_count": {
+              "state": "exact",
+              "value": 0
+            },
+            "hidden_count": {
+              "state": "exact",
+              "value": 0
+            },
+            "coverage": "complete_for_scope"
+          },
+          {
+            "group_key": "group:relationship-meaning:working:support",
+            "label": "Support — Working",
+            "returned_count": 0,
+            "filtered_count": {
+              "state": "exact",
+              "value": 0
+            },
+            "hidden_count": {
+              "state": "exact",
+              "value": 0
+            },
+            "coverage": "complete_for_scope"
+          }
+        ],
+        "omissions": [
+          {
+            "omission_kind": "filtered",
+            "description": "Recorded candidate relationships outside the registered recipe or normalized filters are hidden from this returned membership; this does not assert absence.",
+            "count": {
+              "state": "exact",
+              "value": 5
+            }
+          },
+          {
+            "omission_kind": "restricted",
+            "description": "Authorization is rechecked for this expansion. Restricted path names, identities, connections, and counts are not disclosed.",
+            "count": {
+              "state": "not_disclosed"
+            }
+          },
+          {
+            "omission_kind": "unknown",
+            "description": "Paths outside the exact registered recipe, snapshot, layer, filters, and finite limits remain unknown and cannot be treated as absent.",
+            "count": {
+              "state": "unknown"
+            }
+          },
+          {
+            "omission_kind": "out_of_scope",
+            "description": "Whole-Project traversal, Historical state, unregistered recipes, and records beyond this exact named expansion remain outside scope. Current and Working members retain separate authority positions.",
+            "count": {
+              "state": "unknown"
+            }
+          }
+        ]
+      },
+      "selection_preserved": true,
+      "disclosure_rendered": true,
+      "exact_context_return_executed": true,
+      "adverse_supplement": "UX-FX25 deterministic stale, late-response, and omission boundary"
+    },
+    "inquiry_save": {
+      "command_id": "command_01M31P8BRF5RTJTKFECNB6BYFN",
+      "objective_id": "objective_4BYT8G1PX6N9Z8N8J3G9F9XQR8",
+      "graph_request_id": "focused_graph_request_01M31P7XMASGF1QSV534K2CVBW",
+      "graph_content_hash": "sha256:ef5de1e764db3c0017150e6a31ef6600a5dc70e16e9d4a0d3e08ba9afff40874",
+      "selection": {
+        "state": "selected",
+        "selection_kind": "node",
+        "selected_keys": ["node:claim_01arz3ndektsv4rrffq69g5fbb"]
+      },
+      "return_destination": {
+        "destination_key": "destination:review:claim_6x7aypk94k95fgker2jc6vzgef",
+        "destination_kind": "review",
+        "owner": "project_review_view",
+        "label": "Review",
+        "state": "available",
+        "target_ref": {
+          "record_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+          "revision": 2,
+          "record_hash": "sha256:f6147c6ffc63a7cad0412bb76c82ae620e91faadd37a3f1296788f4c80377d68"
+        }
+      },
+      "retained_destination": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/work#inquiry-objective_4BYT8G1PX6N9Z8N8J3G9F9XQR8",
+      "exact_return": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/review/review_session_01K4D000000000000000000004#review-decision-title",
+      "applied": true,
+      "client_authority_fields_sent": false
+    }
+  },
+  "scenario_records": [
+    {
+      "evidence_id": "UX1.6-GRAPH",
+      "scenario_id": "task-graph-details-return",
+      "status": "passed",
+      "boundary": "Isolated Chrome executed contextual and direct production Graph entry; Current, Working changes, and exact retained Historical positions; exact relationship selection; synchronized Details and available SourceSpan disclosure; production Cytoscape/text parity; registered expansion with changed filters and finite depth; local bookmark plus durable Project-question save; server-supplied comparison, impact, and recorded-time analysis; governed correction preview through the exact open Review member; Details focus return; and exact return to the originating Review task and focus. Authenticated live HTTP reached production owners over fresh disposable PostgreSQL and Neo4j; renderer and presentation state supplied no authority."
+    }
+  ],
+  "boundary": {
+    "browser": "The retained scenario used visible production controls in isolated headless Chrome at one stable workbench URL.",
+    "transport": "Every Graph, Details, source, analysis, correction-preview, and save read or command used authenticated live production HTTP.",
+    "persistence": "Fresh disposable PostgreSQL supplied authority and durable Project-question state; fresh Neo4j supplied the rebuildable graph projection.",
+    "authority": "Selection, layout, filtering, bookmarks, and renderer geometry remained presentation state. The correction was read-only; the only scenario mutation was the explicit server-owned Project-question save."
+  },
+  "limitations": [
+    "This focused record does not claim the complete Review decision workflow, guided core path, responsive/accessibility review, adverse-state matrix, operations gate, critic audit, exit gate, final recording, or user acceptance.",
+    "The exact source basis was available in the representative scientific Project; unavailable-source recovery remains covered by separate focused tests and is not relabeled as this successful scenario."
+  ]
+}

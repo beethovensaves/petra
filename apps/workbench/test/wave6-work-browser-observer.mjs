@@ -29,6 +29,7 @@ export const createWave4EvidenceObserver = async ({ root }) => {
   let scientificReviewSessionId;
   let completedWorkUnitId;
   let inputWorkUnitId;
+  let retryWorkUnitId;
   let resumableWorkUnitId;
   let startAgainWorkUnitId;
   let workbench;
@@ -444,6 +445,66 @@ export const createWave4EvidenceObserver = async ({ root }) => {
     assert.ok(inputReceipt.includes("Project authority unchanged"));
     execution.completed_checks.push("required input recorded");
 
+    await cdp.evaluate(`(() => {
+      const select = document.querySelector(".work-steering select");
+      const setter = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, "value").set;
+      setter.call(select, "user_visible");
+      select.dispatchEvent(new Event("change", { bubbles: true }));
+    })()`);
+    assert.equal(
+      await cdp.evaluate(
+        `${button("Set priority")}.getAttribute("aria-disabled")`,
+      ),
+      null,
+      "The visible priority control stayed unavailable for active Work.",
+    );
+    await cdp.evaluate(`${button("Set priority")}.click()`);
+    await cdp.until(
+      'document.querySelector(".work-operation-result")?.textContent.includes("selected Work scheduling priority") === true',
+      "prioritized active Work",
+    );
+    const prioritizeCall = calls.findLast(
+      (call) =>
+        call.method === "POST" &&
+        call.path.endsWith(`/work/${inputWorkUnitId}`) &&
+        call.requestJson?.operation === "prioritize",
+    );
+    assert.equal(prioritizeCall?.status, 200);
+    assert.equal(prioritizeCall?.requestJson?.priority, "user_visible");
+    execution.completed_checks.push("active Work priority recorded");
+
+    const steeringInstruction =
+      "Preserve table captions with their nearest table.";
+    await cdp.evaluate(`(() => {
+      const textarea = document.querySelector(".work-steering textarea");
+      const textareaSetter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value").set;
+      textareaSetter.call(textarea, ${JSON.stringify("Preserve table captions with their nearest table.")});
+      textarea.dispatchEvent(new Event("input", { bubbles: true }));
+      const select = document.querySelector(".work-steering select");
+      const selectSetter = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, "value").set;
+      selectSetter.call(select, "user_blocking");
+      select.dispatchEvent(new Event("change", { bubbles: true }));
+    })()`);
+    await cdp.until(
+      `${button("Steer work")}.getAttribute("aria-disabled") !== "true"`,
+      "active Work steering input",
+    );
+    await cdp.evaluate(`${button("Steer work")}.click()`);
+    await cdp.until(
+      'document.querySelector(".work-operation-result")?.textContent.includes("Work instruction") === true',
+      "steered active Work",
+    );
+    const steerCall = calls.findLast(
+      (call) =>
+        call.method === "POST" &&
+        call.path.endsWith(`/work/${inputWorkUnitId}`) &&
+        call.requestJson?.operation === "steer",
+    );
+    assert.equal(steerCall?.status, 200);
+    assert.equal(steerCall?.requestJson?.instruction, steeringInstruction);
+    assert.equal(steerCall?.requestJson?.priority, "user_blocking");
+    execution.completed_checks.push("active Work steering recorded");
+
     const startDisabled = await cdp.evaluate(
       `${button("Start work")}.getAttribute("aria-disabled")`,
     );
@@ -485,6 +546,57 @@ export const createWave4EvidenceObserver = async ({ root }) => {
       );
       execution.completed_checks.push("active Work cancellation confirmed");
     }
+
+    assert.ok(
+      retryWorkUnitId,
+      "No exact retryable failed Work task is available.",
+    );
+    const retryPath = `/projects/${scientificProjectId}/work/${retryWorkUnitId}`;
+    await navigate(
+      retryPath,
+      'document.querySelector(".work-controls") !== null',
+      "retryable failed Work",
+    );
+    const failedWorkText = await cdp.evaluate("document.body.innerText");
+    for (const value of ["Failed", "Retry failed work"]) {
+      assert.ok(
+        failedWorkText.includes(value),
+        `Retryable failed Work omitted ${value}.`,
+      );
+    }
+    assert.equal(
+      await cdp.evaluate(
+        `${button("Retry failed work")}.getAttribute("aria-disabled")`,
+      ),
+      null,
+      "The visible Retry control stayed unavailable for retryable failed Work.",
+    );
+    await cdp.evaluate(`${button("Retry failed work")}.click()`);
+    await cdp.until(
+      'document.querySelector(".work-operation-result")?.textContent.includes("eligible failed Work entered its next recorded attempt") === true',
+      "retried failed Work",
+    );
+    const retryCall = calls.findLast(
+      (call) =>
+        call.method === "POST" &&
+        call.path.endsWith(`/work/${retryWorkUnitId}`) &&
+        call.requestJson?.operation === "retry",
+    );
+    assert.equal(retryCall?.status, 200);
+    assert.equal(retryCall?.json?.outcome, "retried");
+    assert.equal(
+      retryCall?.requestJson?.expected_work_unit_ref?.work_unit_id,
+      retryWorkUnitId,
+    );
+    assert.ok(
+      (await cdp.evaluate("document.body.innerText")).includes(
+        "Canonical execution\nrunning",
+      ),
+      "Retried Work did not render its next running attempt.",
+    );
+    execution.completed_checks.push(
+      "retryable failed Work entered its next retained attempt",
+    );
 
     await navigate(
       `/projects/${scientificProjectId}/work/${completedWorkUnitId}`,
@@ -714,13 +826,25 @@ export const createWave4EvidenceObserver = async ({ root }) => {
       project_id: scientificProjectId,
       registered_inquiry_visible: true,
       input_recorded: true,
+      steer_exercised: true,
+      prioritize_exercised: true,
       start_exercised: startDisabled !== "true",
       cancel_exercised: cancelDisabled !== "true",
+      retry_exercised: true,
       detach_exercised: true,
       reconnect_exercised: true,
       replay_exercised: true,
       resume_exercised: true,
       start_again_exercised: true,
+      retried_work: {
+        work_unit_id: retryWorkUnitId,
+        resulting_revision: retryCall.json.resulting_work_unit_ref.revision,
+        outcome: retryCall.json.outcome,
+        prior_attempts_preserved:
+          retryCall.json.effect.prior_attempts_preserved,
+        domain_authority_changed:
+          retryCall.json.effect.domain_authority_changed,
+      },
       resumed_work: {
         work_unit_id: resumableWorkUnitId,
         requested_revision:
@@ -787,6 +911,7 @@ export const createWave4EvidenceObserver = async ({ root }) => {
     if (stage === "corrected_blocked_limited_basis") {
       completedWorkUnitId = context.workUnitId;
       inputWorkUnitId = context.inputWorkUnitId;
+      retryWorkUnitId = context.retryWorkUnitId;
       resumableWorkUnitId = context.resumableWorkUnitId;
       startAgainWorkUnitId = context.startAgainWorkUnitId;
       return undefined;

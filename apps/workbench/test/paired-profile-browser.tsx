@@ -11,6 +11,7 @@ import type {
   PetraProjectShellViewV11,
   PetraReviewRecoveryAssessment,
 } from "@petra/contracts";
+import { canonicalize } from "json-canonicalize";
 import { createRoot } from "react-dom/client";
 import {
   RouterProvider,
@@ -61,7 +62,17 @@ const scientificRecovery = structuredClone(
   scientificReviewFixture,
 ) as unknown as PetraReviewRecoveryAssessment;
 
-const controlledShell = (): PetraProjectShellViewV11 => {
+const digest = async (value: unknown): Promise<string> => {
+  const bytes = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(canonicalize(value)),
+  );
+  return `sha256:${Array.from(new Uint8Array(bytes), (byte) =>
+    byte.toString(16).padStart(2, "0"),
+  ).join("")}`;
+};
+
+const controlledShell = async (): Promise<PetraProjectShellViewV11> => {
   const shell = structuredClone(scientificShell);
   shell.project_id = controlledProject.project_id;
   shell.content.project = {
@@ -123,7 +134,7 @@ const controlledShell = (): PetraProjectShellViewV11 => {
       : place,
   ) as typeof shell.content.place_summaries;
   delete shell.content.selection;
-  shell.content_hash = `sha256:${"d".repeat(64)}`;
+  shell.content_hash = await digest(shell.content);
   shell.read_at = "2026-09-13T15:30:00.000Z";
   return shell;
 };
@@ -619,7 +630,7 @@ const scientificOverlay = relationshipOverlay({
   predicateLabel: "asserts",
   limitation: "This browser scenario is bounded to one scientific path.",
 });
-const writingShell = controlledShell();
+const writingShell = await controlledShell();
 const writingOverlay = relationshipOverlay({
   projectId: writingShell.project_id,
   definitionId: writingShell.content.definition.project_definition_id,

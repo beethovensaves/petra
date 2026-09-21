@@ -1,4 +1,7 @@
-import type { ProjectShellResumeContext } from "@petra/contracts";
+import type {
+  ProjectShellAttentionWork,
+  ProjectShellResumeContext,
+} from "@petra/contracts";
 
 export type ProjectProfile = {
   id: string;
@@ -126,6 +129,7 @@ export type ProjectRecord = {
     summary?: string;
     destination: ProjectPlace;
   };
+  attentionWork?: ProjectShellAttentionWork;
   resume?: ProjectShellResumeContext;
 };
 

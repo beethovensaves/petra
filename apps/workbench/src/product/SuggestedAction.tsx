@@ -24,6 +24,13 @@ import {
 
 export type SuggestedActionPresentationPath = "direct" | "conversational";
 
+interface SuggestedActionFeedback {
+  readonly tone: "confirmed" | "danger";
+  readonly title: string;
+  readonly message: string;
+  readonly retry: boolean;
+}
+
 const plainLabel = (value: string): string => value.replaceAll("_", " ");
 
 const titleLabel = (value: string): string =>
@@ -188,6 +195,8 @@ export const SuggestedWorkAction = ({
   const [busy, setBusy] = useState<
     "invoke" | "refresh" | "replay" | "cancel"
   >();
+  const [confirming, setConfirming] = useState(false);
+  const [feedback, setFeedback] = useState<SuggestedActionFeedback>();
   const [message, setMessage] = useState<string>();
   const retainedRequest = useRef<
     PetraSuggestedActionInvocationRequest | undefined
@@ -202,6 +211,8 @@ export const SuggestedWorkAction = ({
     setActionView(suppliedActionView);
     setInvocation(initialInvocation);
     setReplayedResponse(undefined);
+    setConfirming(false);
+    setFeedback(undefined);
     setMessage(undefined);
     retainedRequest.current = undefined;
     retainedCancellationRequest.current = undefined;
@@ -219,10 +230,20 @@ export const SuggestedWorkAction = ({
       ? {}
       : { suggested_action_command_id: invocationCommandId }),
   });
+  const actionControlId = `suggested-work-action-control-${presentationPath}`;
+
+  const returnFocus = (): void => {
+    setFeedback(undefined);
+    globalThis.requestAnimationFrame?.(() => {
+      globalThis.document?.getElementById(actionControlId)?.focus();
+    });
+  };
 
   const invoke = async (): Promise<void> => {
     if (busy !== undefined || readiness.state !== "ready") return;
     setBusy("invoke");
+    setConfirming(false);
+    setFeedback(undefined);
     setMessage(undefined);
     try {
       await attemptSuggestedActionInvocation(
@@ -233,9 +254,13 @@ export const SuggestedWorkAction = ({
       );
       setReplayedResponse(undefined);
       retainedReplayRequest.current = undefined;
-      setMessage(
-        "The exact invocation was accepted. Work and delivery state remain server-owned.",
-      );
+      setFeedback({
+        tone: "confirmed",
+        title: "Exact Work start confirmed",
+        message:
+          "The registered invocation was accepted. Work, delivery, result, History, and recovery remain server-owned.",
+        retry: false,
+      });
     } catch (error) {
       if (
         error instanceof ProjectDataError &&
@@ -247,15 +272,23 @@ export const SuggestedWorkAction = ({
       ) {
         setActionView(error.suggestedActionRegeneration);
         retainedRequest.current = undefined;
-        setMessage(
-          "The selected action changed. Review the regenerated server preview before starting Work.",
-        );
+        setFeedback({
+          tone: "danger",
+          title: "Review the updated action",
+          message:
+            "The selected action changed. Review the regenerated server preview before starting Work.",
+          retry: false,
+        });
       } else {
-        setMessage(
-          error instanceof Error
-            ? error.message
-            : "The exact SuggestedAction invocation could not be confirmed.",
-        );
+        setFeedback({
+          tone: "danger",
+          title: "Work start was not confirmed",
+          message:
+            error instanceof Error
+              ? error.message
+              : "The exact SuggestedAction invocation could not be confirmed.",
+          retry: retainedRequest.current !== undefined,
+        });
       }
     } finally {
       setBusy(undefined);
@@ -525,9 +558,10 @@ export const SuggestedWorkAction = ({
       <div className="reference-suggested-action__actions">
         {invocation === undefined ? (
           <PetraButton
+            id={actionControlId}
             variant="primary"
             busy={busy === "invoke"}
-            busyLabel="Starting exact Work…"
+            busyLabel="Confirming exact Work…"
             {...(readiness.state === "ready"
               ? {}
               : {
@@ -536,11 +570,26 @@ export const SuggestedWorkAction = ({
                     prerequisite: readiness.missing_prerequisites.join(" "),
                   },
                 })}
-            onClick={() => void invoke()}
+            onClick={() => {
+              setFeedback(undefined);
+              setConfirming(true);
+            }}
           >
             Start exact Work
           </PetraButton>
-        ) : null}
+        ) : (
+          <PetraButton
+            id={actionControlId}
+            variant="quiet"
+            unavailable={{
+              reason: "This exact invocation is already registered.",
+              prerequisite:
+                "Inspect its server-owned Work, result, History, and recovery below.",
+            }}
+          >
+            Exact Work started
+          </PetraButton>
+        )}
         {presentationPath === "direct" ? (
           <Link
             className="reference-text-link"
@@ -557,6 +606,78 @@ export const SuggestedWorkAction = ({
           </Link>
         )}
       </div>
+
+      {!confirming || invocation !== undefined ? null : (
+        <section
+          className="reference-suggested-action__confirmation"
+          aria-labelledby={`suggested-work-action-confirm-${presentationPath}`}
+        >
+          <p className="reference-panel-kicker">Confirmation</p>
+          <h4 id={`suggested-work-action-confirm-${presentationPath}`}>
+            Start this exact registered Work?
+          </h4>
+          <p>
+            Petra will invoke {action.capability.command_name} for the displayed
+            objective and scope. This action creates Work; it does not apply a
+            domain-authority change.
+          </p>
+          <div className="reference-suggested-action__feedback-actions">
+            <PetraButton
+              variant="primary"
+              busy={busy === "invoke"}
+              busyLabel="Confirming exact Work…"
+              onClick={() => void invoke()}
+            >
+              Confirm exact start
+            </PetraButton>
+            <PetraButton
+              variant="quiet"
+              aria-disabled={busy === "invoke" || undefined}
+              onClick={() => {
+                setConfirming(false);
+                globalThis.requestAnimationFrame?.(() => {
+                  globalThis.document?.getElementById(actionControlId)?.focus();
+                });
+              }}
+            >
+              Keep reviewing
+            </PetraButton>
+          </div>
+        </section>
+      )}
+
+      {feedback === undefined ? null : (
+        <section
+          className="reference-suggested-action__feedback"
+          data-tone={feedback.tone}
+          role="status"
+          aria-labelledby={`suggested-work-action-feedback-${presentationPath}`}
+        >
+          <p className="reference-panel-kicker">Action feedback</p>
+          <h4 id={`suggested-work-action-feedback-${presentationPath}`}>
+            {feedback.title}
+          </h4>
+          <p>{feedback.message}</p>
+          <div className="reference-suggested-action__feedback-actions">
+            {feedback.retry ? (
+              <PetraButton
+                variant="primary"
+                busy={busy === "invoke"}
+                busyLabel="Retrying exact start…"
+                onClick={() => void invoke()}
+              >
+                Retry exact start
+              </PetraButton>
+            ) : null}
+            <PetraButton variant="quiet" onClick={() => setFeedback(undefined)}>
+              Dismiss feedback
+            </PetraButton>
+            <PetraButton variant="quiet" onClick={returnFocus}>
+              Return focus to action
+            </PetraButton>
+          </div>
+        </section>
+      )}
 
       {message === undefined ? null : (
         <p className="reference-suggested-action__message" role="status">

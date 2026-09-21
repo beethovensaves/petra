@@ -2,8 +2,10 @@ import { readProjectBrief } from "./brief-read.js";
 import {
   FocusedGraphClient,
   FocusedGraphClientError,
+  ProjectBriefClientError,
   ProjectModelClient,
   ProjectProfileClient,
+  ProjectSourceDiscoveryClient,
   ProjectWorkClient,
 } from "@petra/adapters";
 import {
@@ -88,6 +90,7 @@ import type {
   ProjectSourceReplacementExcludedSourceRef,
   ProjectSourceReplacementExclusionReceiptRef,
   ProjectHistoryRetainedCollectionFiltersV12,
+  ProjectHistoryRetainedExactTargetFilterV12,
   ProjectHistoryRetainedContinuationFailureSubcode,
   ProjectHistoryRetainedContinuationRestart,
   ProjectWorkDetailContent,
@@ -131,6 +134,7 @@ import type {
   WorkProjectView,
   WorkUnit,
 } from "./model.js";
+import { expectedProjectWorkDestinationFromSearch } from "./project-work-destination.js";
 
 const DEVELOPMENT_TOKEN = "petra-local-development";
 const TOKEN_STORAGE_KEY = "petra.auth.token";
@@ -180,6 +184,13 @@ const apiToken = (): string => {
 
 const apiBaseUrl = (): string =>
   typeof window === "undefined" ? "http://petra.local" : window.location.origin;
+
+const projectSourceDiscoveryClient = (): ProjectSourceDiscoveryClient =>
+  new ProjectSourceDiscoveryClient({
+    baseUrl: apiBaseUrl(),
+    token: apiToken(),
+    fetch: (input, init) => fetch(input, init),
+  });
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -1455,25 +1466,6 @@ const projectHistoryCompensationExecutionView = (
     );
   }
   return value as unknown as PetraProjectHistoryCompensationExecutionView;
-};
-
-const sourceView = (value: unknown): PetraProjectSourceView => {
-  if (
-    !isRecord(value) ||
-    value.schema_name !== "petra.project-source-view" ||
-    value.schema_version !== "1.0.0" ||
-    typeof value.project_id !== "string" ||
-    typeof value.project_source_id !== "string" ||
-    !isRecord(value.content) ||
-    typeof value.content_hash !== "string" ||
-    typeof value.read_at !== "string"
-  ) {
-    throw new ProjectDataError(
-      "Petra returned an invalid Project source view.",
-      502,
-    );
-  }
-  return value as unknown as PetraProjectSourceView;
 };
 
 type ReviewCandidateBasisRevisionSourceRef = NonNullable<
@@ -2756,7 +2748,12 @@ export const projectRecordFromShellView = (
                   destination: view.content.selection.primary_destination.role,
                 },
               }),
-          ...(view.schema_version === "1.2.0"
+          ...(view.schema_version === "1.3.0"
+            ? {
+                attentionWork: structuredClone(view.content.attention_work),
+              }
+            : {}),
+          ...(view.schema_version === "1.2.0" || view.schema_version === "1.3.0"
             ? { resume: structuredClone(view.content.resume) }
             : {}),
         }),
@@ -4330,9 +4327,16 @@ export const loadProjectRecord = async ({
 export interface ProjectBriefData {
   readonly briefView?: PetraProjectBriefReadView;
   readonly objectiveCommandContext?: ProjectObjectiveCommandContext;
+  readonly comparisonRecovery?: ProjectBriefComparisonRecovery;
   readonly suggestedAction?: PetraSuggestedActionView;
   readonly suggestedWorkAction?: PetraSuggestedActionViewV11;
   readonly invokedInquiry?: PetraProjectInquiryView;
+}
+
+export interface ProjectBriefComparisonRecovery {
+  readonly state: "unavailable" | "stale";
+  readonly eventId: string;
+  readonly reason: string;
 }
 
 const objectiveCommandContextFromCurrentBrief = async (
@@ -4561,12 +4565,35 @@ export const loadProjectBrief = async (
   );
   const query = new URL(args.request.url).searchParams;
   const projectResume = query.get("projectResume");
+  const baselineEventIds = query.getAll("baseline_event_id");
+  const baselineRecordHashes = query.getAll("baseline_record_hash");
+  const expectedSnapshotHashes = query.getAll("expected_snapshot_hash");
+  const baselineEventId = baselineEventIds[0];
+  const baselineRecordHash = baselineRecordHashes[0];
+  const expectedSnapshotHash = expectedSnapshotHashes[0];
+  const baselineRequested =
+    baselineEventId !== undefined || baselineRecordHash !== undefined;
+  const actionRequested =
+    query.has("inquiry_result_link_id") || query.has("invoke");
   if (
     [...query.keys()].some(
       (key) =>
-        !["inquiry_result_link_id", "invoke", "projectResume"].includes(key),
+        ![
+          "inquiry_result_link_id",
+          "invoke",
+          "projectResume",
+          "baseline_event_id",
+          "baseline_record_hash",
+          "expected_snapshot_hash",
+        ].includes(key),
     ) ||
     query.getAll("projectResume").length > 1 ||
+    baselineEventIds.length > 1 ||
+    baselineRecordHashes.length > 1 ||
+    expectedSnapshotHashes.length > 1 ||
+    (baselineEventId === undefined) !== (baselineRecordHash === undefined) ||
+    (expectedSnapshotHash !== undefined && !baselineRequested) ||
+    (baselineRequested && (actionRequested || projectResume !== null)) ||
     (projectResume !== null &&
       ![
         "stale",
@@ -4579,7 +4606,7 @@ export const loadProjectBrief = async (
       ].includes(projectResume))
   ) {
     throw new ProjectDataError(
-      "This Brief route supports current observations and exact action selection only; comparison controls are unavailable here.",
+      "This Brief route requires one complete comparison baseline and keeps comparison separate from action or recovery selection.",
       400,
     );
   }
@@ -4587,30 +4614,60 @@ export const loadProjectBrief = async (
     `/api/queries/projects/${encodeURIComponent(projectId)}/effective-controls`,
   );
   let briefView: PetraProjectBriefReadView;
+  let comparisonRecovery: ProjectBriefComparisonRecovery | undefined;
   try {
     briefView = await readProjectBrief({
       projectId,
       baseUrl: apiBaseUrl(),
       token: apiToken(),
       signal: args.request.signal,
+      ...(baselineEventId === undefined || baselineRecordHash === undefined
+        ? {}
+        : {
+            request: {
+              baseline_event_id: baselineEventId,
+              baseline_record_hash: baselineRecordHash,
+              ...(expectedSnapshotHash === undefined
+                ? {}
+                : { expected_snapshot_hash: expectedSnapshotHash }),
+            },
+          }),
     });
   } catch (error) {
-    const [controlsValue, shellValue] = await Promise.all([
-      controlsPromise,
-      requestJson(
-        `/api/queries/projects/${encodeURIComponent(projectId)}/shell`,
-      ),
-    ]);
-    const controls = effectiveControlsView(controlsValue);
-    const shell = shellView(shellValue);
-    if (shell.content.current_objective !== undefined) throw error;
-    return {
-      objectiveCommandContext: objectiveCommandContextFromEmptyShell(
+    if (
+      baselineEventId !== undefined &&
+      error instanceof ProjectBriefClientError &&
+      (error.status === 409 || error.status === 422)
+    ) {
+      comparisonRecovery = {
+        state: error.status === 409 ? "stale" : "unavailable",
+        eventId: baselineEventId,
+        reason: error.message,
+      };
+      briefView = await readProjectBrief({
         projectId,
-        shell,
-        controls,
-      ),
-    };
+        baseUrl: apiBaseUrl(),
+        token: apiToken(),
+        signal: args.request.signal,
+      });
+    } else {
+      const [controlsValue, shellValue] = await Promise.all([
+        controlsPromise,
+        requestJson(
+          `/api/queries/projects/${encodeURIComponent(projectId)}/shell`,
+        ),
+      ]);
+      const controls = effectiveControlsView(controlsValue);
+      const shell = shellView(shellValue);
+      if (shell.content.current_objective !== undefined) throw error;
+      return {
+        objectiveCommandContext: objectiveCommandContextFromEmptyShell(
+          projectId,
+          shell,
+          controls,
+        ),
+      };
+    }
   }
   const controls = effectiveControlsView(await controlsPromise);
   const objectiveCommandContext = await objectiveCommandContextFromCurrentBrief(
@@ -4618,11 +4675,13 @@ export const loadProjectBrief = async (
     briefView,
     controls,
   );
-  const selected =
-    query.has("inquiry_result_link_id") || query.has("invoke")
-      ? await loadProjectBriefAction(args)
-      : {};
-  return { briefView, objectiveCommandContext, ...selected };
+  const selected = actionRequested ? await loadProjectBriefAction(args) : {};
+  return {
+    briefView,
+    objectiveCommandContext,
+    ...(comparisonRecovery === undefined ? {} : { comparisonRecovery }),
+    ...selected,
+  };
 };
 
 export const loadProjectBriefAction = async ({
@@ -4703,13 +4762,21 @@ export const loadProjectBriefAction = async ({
       400,
     );
   }
-  const suggestedAction = await getProjectSuggestedAction(projectId, linkId);
+  let suggestedAction: PetraSuggestedActionView | undefined;
+  let unavailableInspection: ProjectDataError | undefined;
+  try {
+    suggestedAction = await getProjectSuggestedAction(projectId, linkId);
+  } catch (error) {
+    if (!(error instanceof ProjectDataError) || error.status !== 502)
+      throw error;
+    unavailableInspection = error;
+  }
   if (
     invocation !== undefined &&
-    suggestedAction.content.readiness.state !== "ready"
+    suggestedAction?.content.readiness.state !== "ready"
   ) {
     throw new ProjectDataError(
-      "This SuggestedAction is stale and cannot be invoked. Regenerate it from current authority first.",
+      "This exact inspection action is unavailable from the current Project position. Return to its registered Work action or refresh the Brief.",
       409,
     );
   }
@@ -4724,11 +4791,19 @@ export const loadProjectBriefAction = async ({
       throw error;
     }
   }
+  if (suggestedWorkAction === undefined && unavailableInspection !== undefined)
+    throw unavailableInspection;
   if (invocation === undefined) {
     return {
-      suggestedAction,
+      ...(suggestedAction === undefined ? {} : { suggestedAction }),
       ...(suggestedWorkAction === undefined ? {} : { suggestedWorkAction }),
     };
+  }
+  if (suggestedAction === undefined) {
+    throw new ProjectDataError(
+      "The exact inspection action is unavailable from the current Project position.",
+      409,
+    );
   }
   const objectiveId =
     suggestedAction.content.action.invocation.objective_ref.objective_id;
@@ -4826,27 +4901,12 @@ export const loadProjectSourceCollection = async ({
 }: LoaderFunctionArgs): Promise<ProjectSourceCollectionData> => {
   const projectId = requiredRouteIdentity(params.projectId, "A Project ID");
   const encoded = encodeURIComponent(projectId);
-  const [value, shellValue, controlsValue] = await Promise.all([
-    requestJson(`/api/queries/projects/${encoded}/sources`),
+  const [sourceViews, shellValue, controlsValue] = await Promise.all([
+    projectSourceDiscoveryClient().list(projectId),
     requestJson(`/api/queries/projects/${encoded}/shell`),
     requestJson(`/api/queries/projects/${encoded}/effective-controls`),
   ]);
-  if (!isRecord(value) || !Array.isArray(value.sources)) {
-    throw new ProjectDataError(
-      "Petra returned an invalid Project source collection.",
-      502,
-    );
-  }
-  const sources = value.sources.map((source) => {
-    const view = sourceView(source);
-    if (view.project_id !== projectId) {
-      throw new ProjectDataError(
-        "Petra returned a source from another Project.",
-        502,
-      );
-    }
-    return sourceRecordFromView(view);
-  });
+  const sources = sourceViews.map(sourceRecordFromView);
   const shell = shellView(shellValue);
   const controls = effectiveControlsView(controlsValue);
   const taxonomy = await projectProfileClient().readProjectTaxonomy(
@@ -5638,16 +5698,7 @@ export const loadProjectSourceRecord = async ({
 }: LoaderFunctionArgs): Promise<ProjectSourceRecordData> => {
   const projectId = requiredRouteIdentity(params.projectId, "A Project ID");
   const sourceId = requiredRouteIdentity(params.sourceId, "A ProjectSource ID");
-  const value = await requestJson(
-    `/api/queries/projects/${encodeURIComponent(projectId)}/sources/${encodeURIComponent(sourceId)}`,
-  );
-  const view = sourceView(value);
-  if (view.project_id !== projectId || view.project_source_id !== sourceId) {
-    throw new ProjectDataError(
-      "Petra returned a different Project source identity.",
-      502,
-    );
-  }
+  const view = await projectSourceDiscoveryClient().open(projectId, sourceId);
   const source = sourceRecordFromView(view);
   if (view.content.binding.status !== "active") {
     return {
@@ -7222,6 +7273,200 @@ export const loadProjectSuggestedActionHistory = async ({
   return { invocation, historyDestination, workDestination };
 };
 
+export type ProjectHistoryRouteData =
+  | {
+      readonly kind: "retained";
+      readonly history: PetraProjectHistoryRetainedViewV12;
+    }
+  | {
+      readonly kind: "suggested_action";
+      readonly history: ProjectSuggestedActionHistoryData;
+    };
+
+const HISTORY_ROUTE_FILTER_VALUES = {
+  family: [
+    "change_control",
+    "project_source_lifecycle",
+    "project_source_replacement",
+  ],
+  command_name: [
+    "SubmitChangeSet",
+    "RecordApproval",
+    "ApplyChangeSet",
+    "ExcludeProjectSource",
+    "RestoreProjectSource",
+    "CreateProjectSourceReplacement",
+    "RetractProjectSourceReplacement",
+  ],
+  event_type: [
+    "change_set.submitted",
+    "approval.recorded",
+    "change_set.applied",
+    "change_set.conflicted",
+    "change_set.reverted",
+    "change_set.reversal_conflicted",
+    "project_source.excluded",
+    "project_source.restored",
+    "project_source.replacement_created",
+    "project_source.replacement_retracted",
+  ],
+  outcome: ["completed", "conflicted"],
+  effect: [
+    "change_proposed",
+    "approval_recorded",
+    "authority_change_applied",
+    "authority_change_conflicted",
+    "authority_change_reverted",
+    "reversal_conflicted",
+    "project_source_excluded",
+    "project_source_restored",
+    "source_replacement_created",
+    "source_replacement_retracted",
+  ],
+} as const;
+
+const historyRouteValue = (
+  search: URLSearchParams,
+  name: string,
+): string | undefined => {
+  const values = search.getAll(name).filter((value) => value.length > 0);
+  if (values.length > 1) {
+    throw new ProjectDataError(
+      `Full History requires at most one ${name.replaceAll("_", " ")} filter.`,
+      400,
+    );
+  }
+  return values[0];
+};
+
+const historyRouteEnum = <Values extends readonly string[]>(
+  search: URLSearchParams,
+  name: string,
+  values: Values,
+): Values[number] | undefined => {
+  const value = historyRouteValue(search, name);
+  if (value === undefined) return undefined;
+  if (!values.includes(value)) {
+    throw new ProjectDataError(
+      `Full History ${name.replaceAll("_", " ")} is not a registered filter value.`,
+      400,
+    );
+  }
+  return value;
+};
+
+const historyRouteTimestamp = (
+  search: URLSearchParams,
+  name: string,
+): string | undefined => {
+  const value = historyRouteValue(search, name);
+  if (value === undefined) return undefined;
+  const normalized = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/u.test(value)
+    ? `${value}:00.000Z`
+    : value;
+  if (
+    !HISTORY_RETAINED_TIMESTAMP.test(normalized) ||
+    !Number.isFinite(Date.parse(normalized))
+  ) {
+    throw new ProjectDataError(
+      `Full History ${name.replaceAll("_", " ")} must be an exact UTC date and time.`,
+      400,
+    );
+  }
+  return normalized;
+};
+
+/**
+ * Resolves either the separately bound SuggestedAction Work-History deep link
+ * or the authenticated retained Project History collection. The browser route
+ * never falls back to design fixtures when no deep-link identity is supplied.
+ */
+export const loadProjectHistory = async (
+  args: LoaderFunctionArgs,
+): Promise<ProjectHistoryRouteData> => {
+  const suggestedAction = await loadProjectSuggestedActionHistory(args);
+  if (suggestedAction !== undefined) {
+    return { kind: "suggested_action", history: suggestedAction };
+  }
+
+  const projectId = requiredRouteIdentity(
+    args.params.projectId,
+    "A Project ID",
+  );
+  const search = new URL(args.request.url).searchParams;
+  const family = historyRouteEnum(
+    search,
+    "family",
+    HISTORY_ROUTE_FILTER_VALUES.family,
+  );
+  const commandName = historyRouteEnum(
+    search,
+    "command_name",
+    HISTORY_ROUTE_FILTER_VALUES.command_name,
+  );
+  const eventType = historyRouteEnum(
+    search,
+    "event_type",
+    HISTORY_ROUTE_FILTER_VALUES.event_type,
+  );
+  const outcome = historyRouteEnum(
+    search,
+    "outcome",
+    HISTORY_ROUTE_FILTER_VALUES.outcome,
+  );
+  const effect = historyRouteEnum(
+    search,
+    "effect",
+    HISTORY_ROUTE_FILTER_VALUES.effect,
+  );
+  const actorId = historyRouteValue(search, "actor_id");
+  const targetValue = historyRouteValue(search, "target");
+  const targetParts = targetValue?.split("::") ?? [];
+  if (targetValue !== undefined && targetParts.length !== 2) {
+    throw new ProjectDataError(
+      "Full History target must preserve one exact semantic key and object identity.",
+      400,
+    );
+  }
+  const recordedFrom = historyRouteTimestamp(search, "recorded_from");
+  const recordedThrough = historyRouteTimestamp(search, "recorded_through");
+  const target =
+    targetValue === undefined
+      ? undefined
+      : ({
+          semantic_key: targetParts[0],
+          object_id: targetParts[1],
+        } as ProjectHistoryRetainedExactTargetFilterV12);
+  const filters: ProjectHistoryRetainedCollectionFiltersV12 = {
+    ...(family === undefined ? {} : { family }),
+    ...(commandName === undefined ? {} : { command_name: commandName }),
+    ...(eventType === undefined ? {} : { event_type: eventType }),
+    ...(actorId === undefined ? {} : { actor_id: actorId }),
+    ...(outcome === undefined ? {} : { outcome }),
+    ...(effect === undefined ? {} : { effect }),
+    ...(target === undefined ? {} : { target }),
+    ...(recordedFrom === undefined && recordedThrough === undefined
+      ? {}
+      : {
+          recorded_at: {
+            ...(recordedFrom === undefined
+              ? {}
+              : { from_inclusive: recordedFrom }),
+            ...(recordedThrough === undefined
+              ? {}
+              : { through_inclusive: recordedThrough }),
+          },
+        }),
+  };
+  return {
+    kind: "retained",
+    history: await getRetainedProjectHistory(projectId, {
+      limit: 50,
+      filters,
+    }),
+  };
+};
+
 const sameSuggestedActionInvocationAuthority = (
   before: PetraSuggestedActionInvocationView,
   after: PetraSuggestedActionInvocationView,
@@ -7797,9 +8042,9 @@ export const loadProjectWorkDetail = async ({
 }: LoaderFunctionArgs): Promise<ProjectWorkDetailData> => {
   const projectId = requiredRouteIdentity(params.projectId, "A Project ID");
   const workUnitId = requiredRouteIdentity(params.workId, "A WorkUnit ID");
-  const selection = workerOutputRouteSelection(
-    new URL(request.url).searchParams,
-  );
+  const search = new URL(request.url).searchParams;
+  const selection = workerOutputRouteSelection(search);
+  const expectedDestination = expectedProjectWorkDestinationFromSearch(search);
   const [value, inquiryRead, operations] = await Promise.all([
     requestJson(
       `/api/queries/projects/${encodeURIComponent(projectId)}/work/${encodeURIComponent(workUnitId)}`,
@@ -7815,11 +8060,20 @@ export const loadProjectWorkDetail = async ({
     view.content.view_kind !== "detail" ||
     view.content.summary.work_unit_ref.work_unit_id !== workUnitId ||
     operations.project_id !== projectId ||
-    operations.work_unit_ref.work_unit_id !== workUnitId
+    operations.work_unit_ref.work_unit_id !== workUnitId ||
+    (expectedDestination !== undefined &&
+      (view.content.summary.work_unit_ref.revision !==
+        expectedDestination.revision ||
+        view.content.summary.work_unit_ref.spec_hash !==
+          expectedDestination.specHash ||
+        view.content.summary.work_unit_ref.record_hash !==
+          expectedDestination.recordHash))
   ) {
     throw new ProjectDataError(
-      "Petra returned a different Project Work identity.",
-      502,
+      expectedDestination === undefined
+        ? "Petra returned a different Project Work identity."
+        : "This exact Work destination is stale. Return to the originating task and open its current owner again.",
+      expectedDestination === undefined ? 502 : 409,
     );
   }
   let work: WorkProjectView;

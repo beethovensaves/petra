@@ -192,6 +192,7 @@ export const projectSourceRevisionClient = (): ProjectSourceRevisionClient =>
   new ProjectSourceRevisionClient({
     baseUrl: apiBaseUrl(),
     token: apiToken(),
+    fetch: (input, init) => fetch(input, init),
   });
 
 export const executeSourceRevision = (
