@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname } from "node:path";
 
 import type {
   PetraActor,
@@ -10,7 +11,10 @@ import type {
   PetraProjectSourceReuseRequest,
   PetraProjectSourceRegistrationRequest,
 } from "@petra/contracts";
-import type { ArtifactStore } from "@petra/core";
+import type {
+  ArtifactStore,
+  ProjectSourceRegistrationResult,
+} from "@petra/core";
 import { canonicalize } from "json-canonicalize";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
@@ -23,6 +27,7 @@ import {
   PostgresProjectSourceRegistrationAuthority,
   PostgresProjectSourceReuseAuthority,
   PostgresProjectSourceReuseOptionsReader,
+  PostgresProjectSourceViewReader,
   PostgresResearchScopeRepository,
 } from "../src/index.js";
 
@@ -249,6 +254,7 @@ describePostgres("PostgresProjectSourceReuseAuthority", () => {
     pool,
     authorizer,
   );
+  const sourceViews = new PostgresProjectSourceViewReader(pool);
   const sourcePrincipal = {
     actor: { actor_id: human.actor_id, actor_kind: "human" as const },
     capabilityGrantId: sourceGrantId,
@@ -266,6 +272,7 @@ describePostgres("PostgresProjectSourceReuseAuthority", () => {
     capabilityGrantId: unsupportedTargetGrantId,
   };
   let request: PetraProjectSourceReuseRequest;
+  let registration: ProjectSourceRegistrationResult;
 
   beforeAll(async () => {
     await pool.query("SELECT 1");
@@ -338,7 +345,7 @@ describePostgres("PostgresProjectSourceReuseAuthority", () => {
       unsupportedTargetPrincipal.actor,
     );
 
-    const registered = await registrations.executeProjectSourceRegistration(
+    registration = await registrations.executeProjectSourceRegistration(
       sourceProject.project_id,
       registrationRequest(),
       sourcePrincipal,
@@ -364,23 +371,24 @@ describePostgres("PostgresProjectSourceReuseAuthority", () => {
       existing_source: {
         origin_project_source_ref: {
           project_id: sourceProject.project_id,
-          ...registered.receipt.project_source_ref,
+          ...registration.receipt.project_source_ref,
         },
-        work_ref: registered.projectSource.content.work_ref,
-        work_version_ref: registered.projectSource.content.work_version_ref,
+        work_ref: registration.projectSource.content.work_ref,
+        work_version_ref: registration.projectSource.content.work_version_ref,
         artifact_ref: {
-          artifact_id: registered.receipt.material.artifact_ref.artifact_id,
+          artifact_id: registration.receipt.material.artifact_ref.artifact_id,
           revision: 1,
-          content_hash: registered.receipt.material.artifact_ref.content_hash,
-          record_hash: registered.receipt.material.artifact_ref.record_hash,
+          content_hash: registration.receipt.material.artifact_ref.content_hash,
+          record_hash: registration.receipt.material.artifact_ref.record_hash,
         },
         artifact_manifest_ref:
-          registered.projectSource.content.artifact_manifest_ref,
+          registration.projectSource.content.artifact_manifest_ref,
         rights_decision_ref: {
-          record_id: registered.receipt.material.rights_decision_ref.record_id,
+          record_id:
+            registration.receipt.material.rights_decision_ref.record_id,
           revision: 1,
           record_hash:
-            registered.receipt.material.rights_decision_ref.record_hash,
+            registration.receipt.material.rights_decision_ref.record_hash,
         },
       },
       project_membership: {
@@ -593,6 +601,152 @@ describePostgres("PostgresProjectSourceReuseAuthority", () => {
       registrations: "1",
       reuses: "1",
     });
+
+    const registrationRecovery =
+      await registrations.assessProjectSourceRegistrationRecovery(
+        sourceProject.project_id,
+        registrationRequest(),
+        sourcePrincipal,
+      );
+    expect(registrationRecovery.effect).toMatchObject({
+      state: "effect_confirmed",
+      receipt: registration.receipt,
+    });
+    const sourceCollection = await sourceViews.listProjectSourceViews(
+      sourceProject.project_id,
+    );
+    const targetCollection = await sourceViews.listProjectSourceViews(
+      targetProject.project_id,
+    );
+    const openedSource = await sourceViews.getProjectSourceView(
+      sourceProject.project_id,
+      registration.projectSource.project_source_id,
+    );
+    const openedReuse = await sourceViews.getProjectSourceView(
+      targetProject.project_id,
+      first.projectSource.project_source_id,
+    );
+    expect(sourceCollection.map((source) => source.project_source_id)).toEqual([
+      registration.projectSource.project_source_id,
+    ]);
+    expect(targetCollection.map((source) => source.project_source_id)).toEqual([
+      first.projectSource.project_source_id,
+    ]);
+    expect(openedSource).toMatchObject({
+      project_id: sourceCollection[0]?.project_id,
+      project_source_id: sourceCollection[0]?.project_source_id,
+      content: sourceCollection[0]?.content,
+      content_hash: sourceCollection[0]?.content_hash,
+    });
+    expect(openedReuse).toMatchObject({
+      project_id: targetCollection[0]?.project_id,
+      project_source_id: targetCollection[0]?.project_source_id,
+      content: targetCollection[0]?.content,
+      content_hash: targetCollection[0]?.content_hash,
+    });
+    expect(openedSource?.content.copy.source_location).toBe(
+      registrationRequest().rights.source_location,
+    );
+    expect(openedSource?.content.copy.artifact_ref.content_hash).toBe(
+      bytesHash,
+    );
+    expect(openedSource?.content.representation).toMatchObject({
+      extent: "identity_only",
+      page_count: 0,
+      block_count: 0,
+      source_span_count: 0,
+    });
+    expect(
+      await sourceViews.getProjectSourceView(
+        targetProject.project_id,
+        registration.projectSource.project_source_id,
+      ),
+    ).toBeUndefined();
+
+    const evidenceOutput = process.env.PETRA_WAVE6_SOURCES_EVIDENCE_OUTPUT;
+    if (evidenceOutput !== undefined) {
+      const writingOptions = await reuseOptions.readProjectSourceReuseOptions(
+        targetProject.project_id,
+        targetPrincipal,
+      );
+      const artifact = {
+        artifact_kind: "wave6_operation_prerequisite",
+        bundle_id: "sources",
+        status: "passed",
+        operation_ids: [
+          "source.find",
+          "source.open",
+          "source.register",
+          "source.reuse",
+          "source.inspect-exact",
+        ],
+        command: "npm run test:wave6:sources",
+        database: "fresh disposable PostgreSQL 18.6 with Flyway V001-V058",
+        registration: {
+          request: {
+            project_ref: registrationRequest().expected.project_ref,
+            project_definition_ref:
+              registrationRequest().expected.project_definition_ref,
+            source_role: registrationRequest().project_membership.source_role,
+            expected_content_hash:
+              registrationRequest().material.expected_content_hash,
+          },
+          receipt: registration.receipt,
+          applied: registration.applied,
+          recovery: registrationRecovery,
+        },
+        discovery: {
+          source_project_id: sourceProject.project_id,
+          source_ids: sourceCollection.map(
+            (source) => source.project_source_id,
+          ),
+          target_project_id: targetProject.project_id,
+          target_source_ids: targetCollection.map(
+            (source) => source.project_source_id,
+          ),
+          cross_project_substitution: false,
+        },
+        exact_inspection: {
+          project_id: openedSource?.project_id,
+          project_source_id: openedSource?.project_source_id,
+          title: openedSource?.content.identity.title,
+          source_location: openedSource?.content.copy.source_location,
+          artifact_ref: openedSource?.content.copy.artifact_ref,
+          rights_ref: openedSource?.content.rights.rights_ref,
+          representation: openedSource?.content.representation,
+          authority: openedSource?.content.authority,
+        },
+        reuse: {
+          options: writingOptions,
+          receipt: first.receipt,
+          applied: first.applied,
+          exact_replay_applied: false,
+          recovery,
+          canonical_identity_cloned:
+            first.receipt.material_outcome.canonical_identity_cloned,
+          bytes_cloned: first.receipt.material_outcome.bytes_cloned,
+        },
+        adjacent_lifecycle_owners: {
+          processing:
+            "GET /api/queries/projects/:projectId/sources/:projectSourceId/processing + POST command/recovery -> PostgresProjectSourceProcessingAuthority",
+          revision:
+            "POST /api/commands/projects/:projectId/sources/:projectSourceId/revisions + recovery -> PostgresProjectSourceRevisionAuthority",
+          link_removal:
+            "GET preview + POST command/recovery -> PostgresProjectSourceLifecycleViewReader + PostgresProjectSourceLifecycleAuthorityRepository",
+          local_copy_deletion:
+            "GET preview + POST command/recovery -> PostgresProjectSourceLocalCopyDeletionAuthority -> S3ArtifactStore.deleteByHash",
+        },
+        model_authority: "none",
+        boundary:
+          "Real disposable PostgreSQL proves exact registration, idempotent replay and recovery, Project-scoped collection discovery, exact retained-copy inspection, paired-profile reuse selection, reuse without cloning canonical identity or bytes, exact replay and recovery, and cross-Project substitution refusal. Focused adapter and server route tests in the same command prove bearer transport, strict response binding, and production HTTP composition. The newly registered copy is intentionally identity-only until separate processing Work creates a parsed representation; existing focused suites cover processing, immutable revision intake, Project-link removal, eligible local-copy deletion, and their recovery owners. This backend prerequisite does not execute visible controls or the named UX1.6-SOURCES browser scenario.",
+      };
+      mkdirSync(dirname(evidenceOutput), { recursive: true });
+      writeFileSync(
+        evidenceOutput,
+        `${JSON.stringify(artifact, null, 2)}\n`,
+        "utf8",
+      );
+    }
   });
 
   it("rejects stale/crossed identities, duplicate membership, and a copy owned by another human", async () => {

@@ -419,7 +419,7 @@ describePostgres("PostgreSQL ProjectDefinition authority repository", () => {
     const view = await reader.getProjectShellView(project.project_id);
     if (view === undefined) throw new Error("Expected a Project shell view.");
     expect(view.schema_name).toBe("petra.project-shell-view");
-    expect(view.schema_version).toBe("1.2.0");
+    expect(view.schema_version).toBe("1.3.0");
     expect(view.project_id).toBe(project.project_id);
     expect(view.content.project.revision).toBe(project.revision);
     expect(view.content.definition.project_definition_id).toBe(

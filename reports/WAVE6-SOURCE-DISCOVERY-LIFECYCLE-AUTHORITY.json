@@ -1,0 +1,592 @@
+{
+  "artifact_kind": "wave6_operation_prerequisite",
+  "bundle_id": "sources",
+  "status": "passed",
+  "operation_ids": [
+    "source.find",
+    "source.open",
+    "source.register",
+    "source.reuse",
+    "source.inspect-exact"
+  ],
+  "command": "npm run test:wave6:sources",
+  "database": "fresh disposable PostgreSQL 18.6 with Flyway V001-V058",
+  "registration": {
+    "request": {
+      "project_ref": {
+        "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+        "revision": 1,
+        "record_hash": "sha256:dc3d0aca15e39ab6a650065530eb706ffbdd8f9bde76e87927a7b3fab097457d"
+      },
+      "project_definition_ref": {
+        "project_definition_id": "project_definition_01K4C000000000000000000001",
+        "revision": 1,
+        "content_hash": "sha256:7a2c54d032f91255001ed31835c634ea14cd7b7f495ee7b9031bf764a365a22d",
+        "record_hash": "sha256:08d21fdbee57927842d2e3f070c411e68944f84b51d9910021e33388080a6a1b"
+      },
+      "source_role": "scientific.literature",
+      "expected_content_hash": "sha256:63d183326f2642b8675640cc4a9324fb103d0071e7517917e73089cc27c98be1"
+    },
+    "receipt": {
+      "schema_name": "petra.project-source-registration-receipt",
+      "schema_version": "1.0.0",
+      "receipt_id": "source_registration_receipt_60TZD7JQKGHMCKTCHHHVZBVPVT",
+      "command_id": "command_01K6T000000000000000000001",
+      "idempotency_key": "wave6:postgres:source-reuse:origin",
+      "request_hash": "sha256:04a3480d2e64988f7729e00b15ff044a2870cd156befaa0a6ac0d4521b9881e1",
+      "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+      "actor": {
+        "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+        "actor_kind": "human"
+      },
+      "capability_grant_id": "capability_grant_01K6T000000000000000000001",
+      "project_ref": {
+        "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+        "revision": 1,
+        "record_hash": "sha256:dc3d0aca15e39ab6a650065530eb706ffbdd8f9bde76e87927a7b3fab097457d"
+      },
+      "project_definition_ref": {
+        "project_definition_id": "project_definition_01K4C000000000000000000001",
+        "revision": 1,
+        "content_hash": "sha256:7a2c54d032f91255001ed31835c634ea14cd7b7f495ee7b9031bf764a365a22d",
+        "record_hash": "sha256:08d21fdbee57927842d2e3f070c411e68944f84b51d9910021e33388080a6a1b"
+      },
+      "source_identity": {
+        "work_ref": {
+          "record_id": "work_1X4HAQQWXJGK3B351EKZG1VSS1",
+          "revision": 1,
+          "record_hash": "sha256:c1efb7d4036a2092a33f17df7a9deb1462b7ce6c2827dab57cb7c1c8297a29cc"
+        },
+        "work_version_ref": {
+          "record_id": "work_version_0Z5HAW4RZB2Y919BE50N7XZF00",
+          "revision": 1,
+          "record_hash": "sha256:381477ec00a30b69a8bd0ec7a713ab6dfc80fc76e36d19383a960be204702129"
+        },
+        "author_refs": [
+          {
+            "record_id": "author_4JFSK7CKPKF0F7ZXWGDKVJ632F",
+            "revision": 1,
+            "record_hash": "sha256:6c15ac186afcaf73e5823fdc11ced5f66546de6b23eb70563bf90f4dabc0dc79"
+          }
+        ]
+      },
+      "material": {
+        "artifact_ref": {
+          "artifact_id": "artifact_6TFATRDFBSVTDMZKPDA6WNBC31",
+          "revision": 1,
+          "content_hash": "sha256:63d183326f2642b8675640cc4a9324fb103d0071e7517917e73089cc27c98be1",
+          "record_hash": "sha256:3796313fdf1e5a486eb4313bee701c8a8faab02be68f8ba1864e44a848141361",
+          "byte_size": 19,
+          "media_type": "text/plain; charset=utf-8"
+        },
+        "artifact_manifest_ref": {
+          "record_id": "artifact_manifest_7XY5QP36R703R3FFR8V51NS4F8",
+          "revision": 1,
+          "record_hash": "sha256:1d5f92625abf4d67d3328415e6a3c362074a177698b76ce95d1e2d9104b278a0"
+        },
+        "rights_decision_ref": {
+          "record_id": "rights_decision_36T5X6RSPEPSN05J6FKHCYQ66B",
+          "revision": 1,
+          "record_hash": "sha256:fd6206c9c4871b85e26ed9f6f0d916b0d0639425adcd99a04582c3da0f9ad909"
+        },
+        "storage": {
+          "store_name": "petra-test-artifacts",
+          "object_key": "sha256/63/d183326f2642b8675640cc4a9324fb103d0071e7517917e73089cc27c98be1",
+          "availability": "available"
+        },
+        "origin": {
+          "origin_kind": "user_supplied",
+          "original_filename": "reused-source.txt",
+          "source_location": "https://example.test/reused-source.txt"
+        }
+      },
+      "membership": {
+        "decision": "registered_and_linked",
+        "source_role": "scientific.literature",
+        "reviewed_by": {
+          "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+          "actor_kind": "human"
+        },
+        "reviewed_at": "2026-09-19T12:05:00.000Z"
+      },
+      "project_source_ref": {
+        "project_source_id": "project_source_3PQTTCM9ZXSN652N8Y6HTXWT67",
+        "revision": 1,
+        "content_hash": "sha256:4e606f8db1a77e1625cddc39b2ff5b7c420a2530f5a5c2f0a5a8561fecb82abf",
+        "record_hash": "sha256:767cd103d0355a09dac547cf1465add64a9fb8204689a9c05b857f1e91ad89e2",
+        "status": "active"
+      },
+      "effect": {
+        "kind": "source_registered_and_linked",
+        "summary": "The reviewed source bytes, identity, rights, and Project role are retained together without endorsing source meaning.",
+        "meaning_authority_unchanged": true
+      },
+      "destination": {
+        "place_role": "sources",
+        "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+        "project_source_id": "project_source_3PQTTCM9ZXSN652N8Y6HTXWT67"
+      },
+      "recovery": {
+        "command_path": "/api/commands/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/sources/register",
+        "assessment_path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/source-registration-recovery",
+        "retry_reuses_command_identity": true,
+        "missing_receipt_means_unknown": true
+      },
+      "recorded_at": "2026-09-21T08:17:45.767Z",
+      "record_hash": "sha256:96fcb92251b2e2619bd8a344e11e479f52d4ecb802e8c0426d47083e453ddc2e"
+    },
+    "applied": true,
+    "recovery": {
+      "schema_name": "petra.project-source-registration-recovery-view",
+      "schema_version": "1.0.0",
+      "assessment_id": "source_registration_recovery_7YFVDEF2H62V7Y19E77MC84KRF",
+      "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+      "subject": {
+        "command_id": "command_01K6T000000000000000000001",
+        "idempotency_key": "wave6:postgres:source-reuse:origin",
+        "request_hash": "sha256:04a3480d2e64988f7729e00b15ff044a2870cd156befaa0a6ac0d4521b9881e1"
+      },
+      "effect": {
+        "state": "effect_confirmed",
+        "receipt": {
+          "actor": {
+            "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+            "actor_kind": "human"
+          },
+          "effect": {
+            "kind": "source_registered_and_linked",
+            "summary": "The reviewed source bytes, identity, rights, and Project role are retained together without endorsing source meaning.",
+            "meaning_authority_unchanged": true
+          },
+          "material": {
+            "origin": {
+              "origin_kind": "user_supplied",
+              "source_location": "https://example.test/reused-source.txt",
+              "original_filename": "reused-source.txt"
+            },
+            "storage": {
+              "object_key": "sha256/63/d183326f2642b8675640cc4a9324fb103d0071e7517917e73089cc27c98be1",
+              "store_name": "petra-test-artifacts",
+              "availability": "available"
+            },
+            "artifact_ref": {
+              "revision": 1,
+              "byte_size": 19,
+              "media_type": "text/plain; charset=utf-8",
+              "artifact_id": "artifact_6TFATRDFBSVTDMZKPDA6WNBC31",
+              "record_hash": "sha256:3796313fdf1e5a486eb4313bee701c8a8faab02be68f8ba1864e44a848141361",
+              "content_hash": "sha256:63d183326f2642b8675640cc4a9324fb103d0071e7517917e73089cc27c98be1"
+            },
+            "rights_decision_ref": {
+              "revision": 1,
+              "record_id": "rights_decision_36T5X6RSPEPSN05J6FKHCYQ66B",
+              "record_hash": "sha256:fd6206c9c4871b85e26ed9f6f0d916b0d0639425adcd99a04582c3da0f9ad909"
+            },
+            "artifact_manifest_ref": {
+              "revision": 1,
+              "record_id": "artifact_manifest_7XY5QP36R703R3FFR8V51NS4F8",
+              "record_hash": "sha256:1d5f92625abf4d67d3328415e6a3c362074a177698b76ce95d1e2d9104b278a0"
+            }
+          },
+          "recovery": {
+            "command_path": "/api/commands/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/sources/register",
+            "assessment_path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/source-registration-recovery",
+            "missing_receipt_means_unknown": true,
+            "retry_reuses_command_identity": true
+          },
+          "command_id": "command_01K6T000000000000000000001",
+          "membership": {
+            "decision": "registered_and_linked",
+            "reviewed_at": "2026-09-19T12:05:00.000Z",
+            "reviewed_by": {
+              "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+              "actor_kind": "human"
+            },
+            "source_role": "scientific.literature"
+          },
+          "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+          "receipt_id": "source_registration_receipt_60TZD7JQKGHMCKTCHHHVZBVPVT",
+          "destination": {
+            "place_role": "sources",
+            "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+            "project_source_id": "project_source_3PQTTCM9ZXSN652N8Y6HTXWT67"
+          },
+          "project_ref": {
+            "revision": 1,
+            "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+            "record_hash": "sha256:dc3d0aca15e39ab6a650065530eb706ffbdd8f9bde76e87927a7b3fab097457d"
+          },
+          "record_hash": "sha256:96fcb92251b2e2619bd8a344e11e479f52d4ecb802e8c0426d47083e453ddc2e",
+          "recorded_at": "2026-09-21T08:17:45.767Z",
+          "schema_name": "petra.project-source-registration-receipt",
+          "request_hash": "sha256:04a3480d2e64988f7729e00b15ff044a2870cd156befaa0a6ac0d4521b9881e1",
+          "schema_version": "1.0.0",
+          "idempotency_key": "wave6:postgres:source-reuse:origin",
+          "source_identity": {
+            "work_ref": {
+              "revision": 1,
+              "record_id": "work_1X4HAQQWXJGK3B351EKZG1VSS1",
+              "record_hash": "sha256:c1efb7d4036a2092a33f17df7a9deb1462b7ce6c2827dab57cb7c1c8297a29cc"
+            },
+            "author_refs": [
+              {
+                "revision": 1,
+                "record_id": "author_4JFSK7CKPKF0F7ZXWGDKVJ632F",
+                "record_hash": "sha256:6c15ac186afcaf73e5823fdc11ced5f66546de6b23eb70563bf90f4dabc0dc79"
+              }
+            ],
+            "work_version_ref": {
+              "revision": 1,
+              "record_id": "work_version_0Z5HAW4RZB2Y919BE50N7XZF00",
+              "record_hash": "sha256:381477ec00a30b69a8bd0ec7a713ab6dfc80fc76e36d19383a960be204702129"
+            }
+          },
+          "project_source_ref": {
+            "status": "active",
+            "revision": 1,
+            "record_hash": "sha256:767cd103d0355a09dac547cf1465add64a9fb8204689a9c05b857f1e91ad89e2",
+            "content_hash": "sha256:4e606f8db1a77e1625cddc39b2ff5b7c420a2530f5a5c2f0a5a8561fecb82abf",
+            "project_source_id": "project_source_3PQTTCM9ZXSN652N8Y6HTXWT67"
+          },
+          "capability_grant_id": "capability_grant_01K6T000000000000000000001",
+          "project_definition_ref": {
+            "revision": 1,
+            "record_hash": "sha256:08d21fdbee57927842d2e3f070c411e68944f84b51d9910021e33388080a6a1b",
+            "content_hash": "sha256:7a2c54d032f91255001ed31835c634ea14cd7b7f495ee7b9031bf764a365a22d",
+            "project_definition_id": "project_definition_01K4C000000000000000000001"
+          }
+        }
+      },
+      "return": {
+        "state": "exact",
+        "destination": {
+          "place_role": "sources",
+          "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+          "project_source_id": "project_source_3PQTTCM9ZXSN652N8Y6HTXWT67"
+        }
+      },
+      "observed_at": "2026-09-21T08:17:45.951Z",
+      "content_hash": "sha256:89e1f2439764b9965aeb03cb1795eface62d9f1d5f9996ec22fff93b3b034a7c"
+    }
+  },
+  "discovery": {
+    "source_project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+    "source_ids": ["project_source_3PQTTCM9ZXSN652N8Y6HTXWT67"],
+    "target_project_id": "project_01K4E000000000000000000001",
+    "target_source_ids": ["project_source_5VG1N4SDQGQT1HT7XJVSM8P8D8"],
+    "cross_project_substitution": false
+  },
+  "exact_inspection": {
+    "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+    "project_source_id": "project_source_3PQTTCM9ZXSN652N8Y6HTXWT67",
+    "title": "Exact source reused across Projects",
+    "source_location": "https://example.test/reused-source.txt",
+    "artifact_ref": {
+      "record_id": "artifact_6TFATRDFBSVTDMZKPDA6WNBC31",
+      "revision": 1,
+      "content_hash": "sha256:63d183326f2642b8675640cc4a9324fb103d0071e7517917e73089cc27c98be1"
+    },
+    "rights_ref": {
+      "record_id": "rights_decision_36T5X6RSPEPSN05J6FKHCYQ66B",
+      "revision": 1,
+      "content_hash": "sha256:fd6206c9c4871b85e26ed9f6f0d916b0d0639425adcd99a04582c3da0f9ad909"
+    },
+    "representation": {
+      "extent": "identity_only",
+      "extent_label": "Identity and verified copy only",
+      "page_count": 0,
+      "block_count": 0,
+      "source_span_count": 0
+    },
+    "authority": {
+      "isolation": "repeatable_read",
+      "event_position": 1,
+      "stream_revision": 0
+    }
+  },
+  "reuse": {
+    "options": {
+      "schema_name": "petra.project-source-reuse-options-view",
+      "schema_version": "1.0.0",
+      "project_id": "project_01K4E000000000000000000001",
+      "expected": {
+        "project_ref": {
+          "project_id": "project_01K4E000000000000000000001",
+          "revision": 1,
+          "record_hash": "sha256:d759cd2339936215cd7c20a2c7132110d5e8a2ca40b0bba23694ef33b6962c8a"
+        },
+        "project_definition_ref": {
+          "project_definition_id": "project_definition_01K4E000000000000000000002",
+          "revision": 1,
+          "content_hash": "sha256:2dd295c9a3037f0c01368ffec612591816c2096ed38b1b6624f067ac3dcc8835",
+          "record_hash": "sha256:2635960acbfcbdf08a72abd10c32008cd3cb6469f75084e6036f62e9217f496b"
+        }
+      },
+      "profile": {
+        "resolution": "registered",
+        "definition_family": "petra.controlled-writing",
+        "label": "Controlled writing",
+        "purpose": "Organizes document purposes, requirements, authority sources, governing relationships, Review, revisions, outputs, and provenance without changing Petra's shared authority rules."
+      },
+      "source_roles": [
+        {
+          "semantic_key": "writing.authority-source",
+          "label": "Authority source",
+          "meaning": "A versioned basis that governs or informs the controlled document."
+        }
+      ],
+      "availability": {
+        "state": "empty",
+        "reason": "all_permitted_sources_already_linked",
+        "message": "Every retained copy you may reuse is already linked to this Project."
+      },
+      "counts": {
+        "permitted": 0,
+        "already_linked": 1
+      },
+      "candidates": []
+    },
+    "receipt": {
+      "schema_name": "petra.project-source-reuse-receipt",
+      "schema_version": "1.0.0",
+      "receipt_id": "source_reuse_receipt_7RHTR62BRTA49D14H3DCKWBDDD",
+      "command_id": "command_01K6T000000000000000000002",
+      "idempotency_key": "wave6:postgres:source-reuse",
+      "request_hash": "sha256:021b0df40102cc6557fe4a297c2fb5136e442d178eb21a3cc2cb8edcac29f35f",
+      "project_id": "project_01K4E000000000000000000001",
+      "actor": {
+        "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+        "actor_kind": "human"
+      },
+      "capability_grant_id": "capability_grant_01K6T000000000000000000002",
+      "project_ref": {
+        "project_id": "project_01K4E000000000000000000001",
+        "revision": 1,
+        "record_hash": "sha256:d759cd2339936215cd7c20a2c7132110d5e8a2ca40b0bba23694ef33b6962c8a"
+      },
+      "project_definition_ref": {
+        "project_definition_id": "project_definition_01K4E000000000000000000002",
+        "revision": 1,
+        "content_hash": "sha256:2dd295c9a3037f0c01368ffec612591816c2096ed38b1b6624f067ac3dcc8835",
+        "record_hash": "sha256:2635960acbfcbdf08a72abd10c32008cd3cb6469f75084e6036f62e9217f496b"
+      },
+      "existing_source": {
+        "origin_project_source_ref": {
+          "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+          "project_source_id": "project_source_3PQTTCM9ZXSN652N8Y6HTXWT67",
+          "revision": 1,
+          "content_hash": "sha256:4e606f8db1a77e1625cddc39b2ff5b7c420a2530f5a5c2f0a5a8561fecb82abf",
+          "record_hash": "sha256:767cd103d0355a09dac547cf1465add64a9fb8204689a9c05b857f1e91ad89e2",
+          "status": "active"
+        },
+        "work_ref": {
+          "work_id": "work_1X4HAQQWXJGK3B351EKZG1VSS1",
+          "revision": 1,
+          "record_hash": "sha256:c1efb7d4036a2092a33f17df7a9deb1462b7ce6c2827dab57cb7c1c8297a29cc"
+        },
+        "work_version_ref": {
+          "work_version_id": "work_version_0Z5HAW4RZB2Y919BE50N7XZF00",
+          "revision": 1,
+          "record_hash": "sha256:381477ec00a30b69a8bd0ec7a713ab6dfc80fc76e36d19383a960be204702129"
+        },
+        "artifact_ref": {
+          "artifact_id": "artifact_6TFATRDFBSVTDMZKPDA6WNBC31",
+          "revision": 1,
+          "content_hash": "sha256:63d183326f2642b8675640cc4a9324fb103d0071e7517917e73089cc27c98be1",
+          "record_hash": "sha256:3796313fdf1e5a486eb4313bee701c8a8faab02be68f8ba1864e44a848141361"
+        },
+        "artifact_manifest_ref": {
+          "artifact_manifest_id": "artifact_manifest_7XY5QP36R703R3FFR8V51NS4F8",
+          "revision": 1,
+          "record_hash": "sha256:1d5f92625abf4d67d3328415e6a3c362074a177698b76ce95d1e2d9104b278a0"
+        },
+        "rights_decision_ref": {
+          "record_id": "rights_decision_36T5X6RSPEPSN05J6FKHCYQ66B",
+          "revision": 1,
+          "record_hash": "sha256:fd6206c9c4871b85e26ed9f6f0d916b0d0639425adcd99a04582c3da0f9ad909"
+        }
+      },
+      "material_outcome": {
+        "kind": "existing_permitted_copy_reused",
+        "canonical_identity_cloned": false,
+        "artifact_cloned": false,
+        "bytes_cloned": false,
+        "storage_unchanged": true,
+        "availability": "available"
+      },
+      "membership": {
+        "decision": "reused_and_linked",
+        "source_role": "writing.authority-source",
+        "linked_by": {
+          "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+          "actor_kind": "human"
+        },
+        "linked_at": "2026-09-21T08:17:45.914Z"
+      },
+      "project_source_ref": {
+        "project_source_id": "project_source_5VG1N4SDQGQT1HT7XJVSM8P8D8",
+        "revision": 1,
+        "content_hash": "sha256:b1c583ac445e8d6818b44fafc86e16e7893a043d68422ab47228baf0c5708aaa",
+        "record_hash": "sha256:e1e9acc7ed3da35ee4072190c367d0a73f61d0a840a2ef376217d8cb583ca28c",
+        "status": "active"
+      },
+      "effect": {
+        "kind": "source_reused_and_linked",
+        "summary": "The exact existing source identity and permitted copy are linked to this Project role without cloning identity, Artifact, storage, or bytes.",
+        "meaning_authority_unchanged": true
+      },
+      "destination": {
+        "place_role": "sources",
+        "project_id": "project_01K4E000000000000000000001",
+        "project_source_id": "project_source_5VG1N4SDQGQT1HT7XJVSM8P8D8"
+      },
+      "recovery": {
+        "command_path": "/api/commands/projects/project_01K4E000000000000000000001/sources/reuse",
+        "assessment_path": "/api/queries/projects/project_01K4E000000000000000000001/source-reuse-recovery",
+        "retry_reuses_command_identity": true,
+        "missing_receipt_means_unknown": true
+      },
+      "recorded_at": "2026-09-21T08:17:45.914Z",
+      "record_hash": "sha256:243708230bbb5384b4d0fb74eec507a88b1df6c35aeae276070db98c0c025ff3"
+    },
+    "applied": true,
+    "exact_replay_applied": false,
+    "recovery": {
+      "schema_name": "petra.project-source-reuse-recovery-view",
+      "schema_version": "1.0.0",
+      "assessment_id": "source_reuse_recovery_05667ZC8P9F05E2YMCN1055DES",
+      "project_id": "project_01K4E000000000000000000001",
+      "subject": {
+        "command_id": "command_01K6T000000000000000000002",
+        "idempotency_key": "wave6:postgres:source-reuse",
+        "request_hash": "sha256:021b0df40102cc6557fe4a297c2fb5136e442d178eb21a3cc2cb8edcac29f35f"
+      },
+      "effect": {
+        "state": "effect_confirmed",
+        "receipt": {
+          "actor": {
+            "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+            "actor_kind": "human"
+          },
+          "effect": {
+            "kind": "source_reused_and_linked",
+            "summary": "The exact existing source identity and permitted copy are linked to this Project role without cloning identity, Artifact, storage, or bytes.",
+            "meaning_authority_unchanged": true
+          },
+          "recovery": {
+            "command_path": "/api/commands/projects/project_01K4E000000000000000000001/sources/reuse",
+            "assessment_path": "/api/queries/projects/project_01K4E000000000000000000001/source-reuse-recovery",
+            "missing_receipt_means_unknown": true,
+            "retry_reuses_command_identity": true
+          },
+          "command_id": "command_01K6T000000000000000000002",
+          "membership": {
+            "decision": "reused_and_linked",
+            "linked_at": "2026-09-21T08:17:45.914Z",
+            "linked_by": {
+              "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+              "actor_kind": "human"
+            },
+            "source_role": "writing.authority-source"
+          },
+          "project_id": "project_01K4E000000000000000000001",
+          "receipt_id": "source_reuse_receipt_7RHTR62BRTA49D14H3DCKWBDDD",
+          "destination": {
+            "place_role": "sources",
+            "project_id": "project_01K4E000000000000000000001",
+            "project_source_id": "project_source_5VG1N4SDQGQT1HT7XJVSM8P8D8"
+          },
+          "project_ref": {
+            "revision": 1,
+            "project_id": "project_01K4E000000000000000000001",
+            "record_hash": "sha256:d759cd2339936215cd7c20a2c7132110d5e8a2ca40b0bba23694ef33b6962c8a"
+          },
+          "record_hash": "sha256:243708230bbb5384b4d0fb74eec507a88b1df6c35aeae276070db98c0c025ff3",
+          "recorded_at": "2026-09-21T08:17:45.914Z",
+          "schema_name": "petra.project-source-reuse-receipt",
+          "request_hash": "sha256:021b0df40102cc6557fe4a297c2fb5136e442d178eb21a3cc2cb8edcac29f35f",
+          "schema_version": "1.0.0",
+          "existing_source": {
+            "work_ref": {
+              "work_id": "work_1X4HAQQWXJGK3B351EKZG1VSS1",
+              "revision": 1,
+              "record_hash": "sha256:c1efb7d4036a2092a33f17df7a9deb1462b7ce6c2827dab57cb7c1c8297a29cc"
+            },
+            "artifact_ref": {
+              "revision": 1,
+              "artifact_id": "artifact_6TFATRDFBSVTDMZKPDA6WNBC31",
+              "record_hash": "sha256:3796313fdf1e5a486eb4313bee701c8a8faab02be68f8ba1864e44a848141361",
+              "content_hash": "sha256:63d183326f2642b8675640cc4a9324fb103d0071e7517917e73089cc27c98be1"
+            },
+            "work_version_ref": {
+              "revision": 1,
+              "record_hash": "sha256:381477ec00a30b69a8bd0ec7a713ab6dfc80fc76e36d19383a960be204702129",
+              "work_version_id": "work_version_0Z5HAW4RZB2Y919BE50N7XZF00"
+            },
+            "rights_decision_ref": {
+              "revision": 1,
+              "record_id": "rights_decision_36T5X6RSPEPSN05J6FKHCYQ66B",
+              "record_hash": "sha256:fd6206c9c4871b85e26ed9f6f0d916b0d0639425adcd99a04582c3da0f9ad909"
+            },
+            "artifact_manifest_ref": {
+              "revision": 1,
+              "record_hash": "sha256:1d5f92625abf4d67d3328415e6a3c362074a177698b76ce95d1e2d9104b278a0",
+              "artifact_manifest_id": "artifact_manifest_7XY5QP36R703R3FFR8V51NS4F8"
+            },
+            "origin_project_source_ref": {
+              "status": "active",
+              "revision": 1,
+              "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+              "record_hash": "sha256:767cd103d0355a09dac547cf1465add64a9fb8204689a9c05b857f1e91ad89e2",
+              "content_hash": "sha256:4e606f8db1a77e1625cddc39b2ff5b7c420a2530f5a5c2f0a5a8561fecb82abf",
+              "project_source_id": "project_source_3PQTTCM9ZXSN652N8Y6HTXWT67"
+            }
+          },
+          "idempotency_key": "wave6:postgres:source-reuse",
+          "material_outcome": {
+            "kind": "existing_permitted_copy_reused",
+            "availability": "available",
+            "bytes_cloned": false,
+            "artifact_cloned": false,
+            "storage_unchanged": true,
+            "canonical_identity_cloned": false
+          },
+          "project_source_ref": {
+            "status": "active",
+            "revision": 1,
+            "record_hash": "sha256:e1e9acc7ed3da35ee4072190c367d0a73f61d0a840a2ef376217d8cb583ca28c",
+            "content_hash": "sha256:b1c583ac445e8d6818b44fafc86e16e7893a043d68422ab47228baf0c5708aaa",
+            "project_source_id": "project_source_5VG1N4SDQGQT1HT7XJVSM8P8D8"
+          },
+          "capability_grant_id": "capability_grant_01K6T000000000000000000002",
+          "project_definition_ref": {
+            "revision": 1,
+            "record_hash": "sha256:2635960acbfcbdf08a72abd10c32008cd3cb6469f75084e6036f62e9217f496b",
+            "content_hash": "sha256:2dd295c9a3037f0c01368ffec612591816c2096ed38b1b6624f067ac3dcc8835",
+            "project_definition_id": "project_definition_01K4E000000000000000000002"
+          }
+        }
+      },
+      "return": {
+        "state": "exact",
+        "destination": {
+          "place_role": "sources",
+          "project_id": "project_01K4E000000000000000000001",
+          "project_source_id": "project_source_5VG1N4SDQGQT1HT7XJVSM8P8D8"
+        }
+      },
+      "observed_at": "2026-09-21T08:17:45.944Z",
+      "content_hash": "sha256:189b1d5fe8b8a64ea6ba12d660e965d215636b44abed3871111a6a55d874eb35"
+    },
+    "canonical_identity_cloned": false,
+    "bytes_cloned": false
+  },
+  "adjacent_lifecycle_owners": {
+    "processing": "GET /api/queries/projects/:projectId/sources/:projectSourceId/processing + POST command/recovery -> PostgresProjectSourceProcessingAuthority",
+    "revision": "POST /api/commands/projects/:projectId/sources/:projectSourceId/revisions + recovery -> PostgresProjectSourceRevisionAuthority",
+    "link_removal": "GET preview + POST command/recovery -> PostgresProjectSourceLifecycleViewReader + PostgresProjectSourceLifecycleAuthorityRepository",
+    "local_copy_deletion": "GET preview + POST command/recovery -> PostgresProjectSourceLocalCopyDeletionAuthority -> S3ArtifactStore.deleteByHash"
+  },
+  "model_authority": "none",
+  "boundary": "Real disposable PostgreSQL proves exact registration, idempotent replay and recovery, Project-scoped collection discovery, exact retained-copy inspection, paired-profile reuse selection, reuse without cloning canonical identity or bytes, exact replay and recovery, and cross-Project substitution refusal. Focused adapter and server route tests in the same command prove bearer transport, strict response binding, and production HTTP composition. The newly registered copy is intentionally identity-only until separate processing Work creates a parsed representation; existing focused suites cover processing, immutable revision intake, Project-link removal, eligible local-copy deletion, and their recovery owners. This backend prerequisite does not execute visible controls or the named UX1.6-SOURCES browser scenario."
+}

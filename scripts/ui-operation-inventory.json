@@ -440,12 +440,18 @@
       "surfaces": ["SP04"],
       "flows": ["UX-FLOW-04"],
       "requests": ["UX-REQ-009"],
-      "current_state": "live",
+      "current_state": "partial",
       "route": "/projects/:projectId/sources",
       "control": "Find sources",
       "interaction": "query",
-      "evidence": [],
-      "runtime_owner": "",
+      "evidence": [
+        {
+          "command": "npm run test:wave6:sources",
+          "artifact": "reports/WAVE6-SOURCE-DISCOVERY-LIFECYCLE-AUTHORITY.json",
+          "boundary": "Real disposable PostgreSQL composes one exact Project-scoped source collection after registration and a distinct target collection after reuse. ProjectSourceDiscoveryClient verifies the authenticated collection transport, unique ProjectSource identities, exact Project binding, and content hashes; the visible Find control still performs presentation-only filtering over that server-owned collection. This backend prerequisite does not execute the visible filter or the named UX1.6-SOURCES browser scenario."
+        }
+      ],
+      "runtime_owner": "ProjectSourceDiscoveryClient.list -> GET /api/queries/projects/:projectId/sources -> ProjectSourceViewReader.listProjectSourceViews -> PostgresProjectSourceViewReader; visible filtering is presentation state over the exact returned collection",
       "paths": ["UX-PATH-02", "UX-PATH-03", "UX-PATH-04"]
     },
     {
@@ -455,12 +461,18 @@
       "surfaces": ["SP04"],
       "flows": ["UX-FLOW-04"],
       "requests": ["UX-REQ-009"],
-      "current_state": "live",
+      "current_state": "partial",
       "route": "/projects/:projectId/sources",
       "control": "Open source",
       "interaction": "navigation",
-      "evidence": [],
-      "runtime_owner": "",
+      "evidence": [
+        {
+          "command": "npm run test:wave6:sources",
+          "artifact": "reports/WAVE6-SOURCE-DISCOVERY-LIFECYCLE-AUTHORITY.json",
+          "boundary": "Real disposable PostgreSQL resolves registered and reused collection members through exact ProjectSource detail reads and refuses cross-Project substitution. ProjectSourceDiscoveryClient proves canonical route identity, bearer transport, schema validation, and content-hash binding. This backend prerequisite does not invoke the visible Open source link, preserve browser focus, or execute the named UX1.6-SOURCES browser scenario."
+        }
+      ],
+      "runtime_owner": "ProjectSourceDiscoveryClient.open -> GET /api/queries/projects/:projectId/sources/:projectSourceId -> ProjectSourceViewReader.getProjectSourceView -> PostgresProjectSourceViewReader",
       "paths": ["UX-PATH-02", "UX-PATH-03", "UX-PATH-04"]
     },
     {
@@ -470,12 +482,18 @@
       "surfaces": ["SP04"],
       "flows": ["UX-FLOW-04", "UX-FLOW-18"],
       "requests": ["UX-REQ-005", "UX-REQ-009", "UX-REQ-010"],
-      "current_state": "live",
+      "current_state": "partial",
       "route": "/projects/:projectId/sources",
       "control": "Add source",
       "interaction": "command",
-      "evidence": [],
-      "runtime_owner": "POST /api/commands/projects/:projectId/sources/register + POST /api/queries/projects/:projectId/source-registration-recovery",
+      "evidence": [
+        {
+          "command": "npm run test:wave6:sources",
+          "artifact": "reports/WAVE6-SOURCE-DISCOVERY-LIFECYCLE-AUTHORITY.json",
+          "boundary": "Real disposable PostgreSQL executes exact registered-profile source intake, retains content-addressed material, identity, rights, Project membership, and one immutable receipt, safely replays the command, and reconciles confirmed or unknown effect. Focused client and server tests prove strict authenticated production transport. This backend prerequisite does not submit the visible Add source form or execute the named UX1.6-SOURCES browser scenario."
+        }
+      ],
+      "runtime_owner": "ProjectSourceRegistrationClient -> POST /api/commands/projects/:projectId/sources/register + POST /api/queries/projects/:projectId/source-registration-recovery -> PostgresProjectSourceRegistrationAuthority + ArtifactStore",
       "paths": ["UX-PATH-02", "UX-PATH-03", "UX-PATH-04"]
     },
     {
@@ -485,12 +503,18 @@
       "surfaces": ["SP04"],
       "flows": ["UX-FLOW-04", "UX-FLOW-18"],
       "requests": ["UX-REQ-005", "UX-REQ-009", "UX-REQ-010"],
-      "current_state": "live",
+      "current_state": "partial",
       "route": "/projects/:projectId/sources",
       "control": "Use existing source",
       "interaction": "command",
-      "evidence": [],
-      "runtime_owner": "GET /api/queries/projects/:projectId/source-reuse-options + POST /api/commands/projects/:projectId/sources/reuse + POST /api/queries/projects/:projectId/source-reuse-recovery",
+      "evidence": [
+        {
+          "command": "npm run test:wave6:sources",
+          "artifact": "reports/WAVE6-SOURCE-DISCOVERY-LIFECYCLE-AUTHORITY.json",
+          "boundary": "Real disposable PostgreSQL selects a permitted retained copy for a paired registered profile, links only a new ProjectSource membership without cloning canonical identity or bytes, safely replays the exact request, and reconciles confirmed or unknown effect. Focused client and server tests prove strict authenticated option, command, and recovery transport. This backend prerequisite does not invoke the visible Use existing source flow or execute the named UX1.6-SOURCES browser scenario."
+        }
+      ],
+      "runtime_owner": "ProjectSourceReuseClient -> GET /api/queries/projects/:projectId/source-reuse-options -> PostgresProjectSourceReuseOptionsReader; POST /api/commands/projects/:projectId/sources/reuse + POST /api/queries/projects/:projectId/source-reuse-recovery -> PostgresProjectSourceReuseAuthority",
       "paths": ["UX-PATH-02", "UX-PATH-03", "UX-PATH-04"]
     },
     {
@@ -542,12 +566,18 @@
       "surfaces": ["SP04", "SP12"],
       "flows": ["UX-FLOW-07"],
       "requests": ["UX-REQ-008", "UX-REQ-009", "UX-REQ-022"],
-      "current_state": "live",
+      "current_state": "partial",
       "route": "/projects/:projectId/sources/:sourceId",
       "control": "Inspect exact source",
       "interaction": "query",
-      "evidence": [],
-      "runtime_owner": "",
+      "evidence": [
+        {
+          "command": "npm run test:wave6:sources",
+          "artifact": "reports/WAVE6-SOURCE-DISCOVERY-LIFECYCLE-AUTHORITY.json",
+          "boundary": "Real disposable PostgreSQL composes exact identity, copy location, content hash, rights, representation extent, downstream use, and authority position for a registered ProjectSource, while ProjectSourceDiscoveryClient rejects crossed identities and invalid hashes. The newly registered trace is honestly identity-only until processing; existing complete-source fixtures and processing suites cover parsed exact spans. This backend prerequisite does not inspect the visible source reader or execute the named UX1.6-SOURCES browser scenario."
+        }
+      ],
+      "runtime_owner": "ProjectSourceDiscoveryClient.open -> GET /api/queries/projects/:projectId/sources/:projectSourceId -> ProjectSourceViewReader.getProjectSourceView -> PostgresProjectSourceViewReader (exact identity, copy location, rights, representation preview/limitation, downstream use, and authority position)",
       "paths": ["UX-PATH-01", "UX-PATH-02", "UX-PATH-04"]
     },
     {

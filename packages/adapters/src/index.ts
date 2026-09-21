@@ -20,6 +20,7 @@ export * from "./project-shell-client.js";
 export * from "./project-profile-client.js";
 export * from "./project-model-client.js";
 export * from "./project-work-client.js";
+export * from "./project-source-discovery-client.js";
 export * from "./project-source-registration-client.js";
 export * from "./project-source-revision-client.js";
 export * from "./project-source-link-removal-client.js";
