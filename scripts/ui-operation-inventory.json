@@ -1388,7 +1388,7 @@
       "surfaces": ["SP07"],
       "flows": ["UX-FLOW-11"],
       "requests": ["UX-REQ-014", "UX-REQ-016"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/work",
       "control": "Open Work",
       "interaction": "navigation",
