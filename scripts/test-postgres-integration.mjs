@@ -287,6 +287,14 @@ try {
               process.env.PETRA_WAVE6_PROJECT_SEARCH_EVIDENCE_OUTPUT,
             ),
           }),
+      ...(process.env.PETRA_WAVE6_SOURCES_EVIDENCE_OUTPUT === undefined
+        ? {}
+        : {
+            PETRA_WAVE6_SOURCES_EVIDENCE_OUTPUT: resolve(
+              root,
+              process.env.PETRA_WAVE6_SOURCES_EVIDENCE_OUTPUT,
+            ),
+          }),
     },
   });
   process.stdout.write(test.stdout);
