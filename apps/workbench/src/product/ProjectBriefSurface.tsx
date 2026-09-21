@@ -239,7 +239,9 @@ export const ProjectBriefSurface = ({
                       <p className="reference-panel-kicker">
                         Retained Project result
                       </p>
-                      <h3 id={`brief-result-${index}`}>Result {index + 1}</h3>
+                      <h3 id={`brief-result-${index}`} tabIndex={-1}>
+                        Result {index + 1}
+                      </h3>
                     </div>
                     <span
                       className="reference-status"

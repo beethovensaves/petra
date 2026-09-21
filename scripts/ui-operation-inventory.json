@@ -215,12 +215,18 @@
       "surfaces": ["SP02"],
       "flows": ["UX-FLOW-01", "UX-FLOW-07"],
       "requests": ["UX-REQ-001", "UX-REQ-008"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId",
       "control": "Return to origin",
       "interaction": "navigation",
-      "evidence": [],
-      "runtime_owner": "",
+      "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:shell-return-ui",
+          "artifact": "reports/WAVE6-SHELL-RETURN-BROWSER.json",
+          "boundary": "Isolated Chromium keyboard-entered the production focused Graph from a contextual ProjectBriefSurface result, changed the production FocusedGraphExploration selection, and keyboard-activated the visible server-gated Return to Brief result control. Production React Router and ProjectShell restored the exact Project, Brief route, result hash, and focused result heading. Deterministic schema-shaped authenticated HTTP supplied ProjectShell, Brief, effective-controls, and focused-graph data; this browser record does not claim live server transport, persistence, every originating surface, shell.navigate, focus preservation beyond the exercised path, UX1.6-GRAPH/task-graph-details-return, or any named Wave 6 evidence-plan scenario."
+        }
+      ],
+      "runtime_owner": "GET /api/queries/projects/:projectId/shell -> ProjectShellViewReader.getProjectShellView -> PostgresProjectShellViewReader retains the Project context; POST /api/queries/projects/:projectId/focused-graph -> PostgresFocusedGraphViewReader and Neo4jAuthorityGraphStore return the exact origin, focus refs, semantic destination, and return_to_origin action; FocusedGraphEntryLink, React Router, and the ProjectShell hash-focus effect own browser route, Brief-result selection, and focus restoration",
       "paths": ["UX-PATH-01", "UX-PATH-02", "UX-PATH-03", "UX-PATH-04"]
     },
     {
