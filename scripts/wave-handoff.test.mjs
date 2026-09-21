@@ -15,6 +15,7 @@ import { fileURLToPath } from "node:url";
 import Ajv2020 from "ajv/dist/2020.js";
 
 import {
+  admissibleEvidenceRecords,
   buildCodexExecArguments,
   buildWorkerPrompt,
   canResumeBlockedRecovery,
@@ -1117,6 +1118,27 @@ test("tracks scenario execution and rejects premature completion", () => {
       completeEvidence,
     ),
     "wave_complete",
+  );
+});
+
+test("ignores already-recorded evidence repeated by the non-owning role", () => {
+  assert.deepEqual(
+    admissibleEvidenceRecords(
+      evidencePlan,
+      [evidenceRecord],
+      [evidenceRecord],
+      "backend",
+    ),
+    [],
+  );
+  assert.throws(
+    () =>
+      admissibleEvidenceRecords(evidencePlan, [], [evidenceRecord], "backend"),
+    /backend cannot satisfy UX1\.5-EV03::graph-keyboard-path owned by design/,
+  );
+  assert.deepEqual(
+    admissibleEvidenceRecords(evidencePlan, [], [evidenceRecord], "design"),
+    [evidenceRecord],
   );
 });
 

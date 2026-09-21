@@ -935,6 +935,40 @@ export function normalizePlannedEvidenceRecords(plan, records = []) {
   });
 }
 
+export function admissibleEvidenceRecords(
+  plan,
+  existingRecords = [],
+  candidateRecords = [],
+  role,
+) {
+  if (!plan) return candidateRecords;
+  const requirements = new Map(
+    evidenceRequirements(plan).map((requirement) => [
+      evidenceKey(requirement),
+      requirement,
+    ]),
+  );
+  const existingKeys = new Set(
+    existingRecords.map((record) => evidenceKey(record)),
+  );
+  const accepted = [];
+  for (const record of candidateRecords) {
+    const key = evidenceKey(record);
+    const requirement = requirements.get(key);
+    if (!requirement) {
+      throw new Error(`Worker reported unplanned evidence ${key}.`);
+    }
+    if (!evidenceOwnerCanSatisfy(requirement.owner, role)) {
+      if (existingKeys.has(key)) continue;
+      throw new Error(
+        `${role} cannot satisfy ${key} owned by ${requirement.owner}.`,
+      );
+    }
+    accepted.push(record);
+  }
+  return accepted;
+}
+
 function readEvidencePlan(wave, maxSlices) {
   const path = waveEvidencePlanPath(wave);
   if (!existsSync(path)) {
@@ -1787,9 +1821,11 @@ async function finalizeTurn(wave, role, claimedState, worker) {
   const otherRole = role === "backend" ? "design" : "backend";
   const result = worker.result;
   const evidencePlan = readEvidencePlan(wave, claimedState.max_slices);
-  const resultEvidence = normalizePlannedEvidenceRecords(
+  const resultEvidence = admissibleEvidenceRecords(
     evidencePlan,
-    result.evidence,
+    claimedState.evidence ?? [],
+    normalizePlannedEvidenceRecords(evidencePlan, result.evidence),
+    role,
   );
   const own = repositorySnapshot(role);
   const counterpart = repositorySnapshot(otherRole);
@@ -1805,27 +1841,7 @@ async function finalizeTurn(wave, role, claimedState, worker) {
     );
   }
 
-  if (evidencePlan) {
-    const requirements = new Map(
-      evidenceRequirements(evidencePlan).map((requirement) => [
-        evidenceKey(requirement),
-        requirement,
-      ]),
-    );
-    for (const record of resultEvidence) {
-      const requirement = requirements.get(evidenceKey(record));
-      if (!requirement) {
-        throw new Error(
-          `Worker reported unplanned evidence ${evidenceKey(record)}.`,
-        );
-      }
-      if (!evidenceOwnerCanSatisfy(requirement.owner, role)) {
-        throw new Error(
-          `${role} cannot satisfy ${evidenceKey(record)} owned by ${requirement.owner}.`,
-        );
-      }
-    }
-  } else if (resultEvidence.length > 0) {
+  if (!evidencePlan && resultEvidence.length > 0) {
     throw new Error("Worker reported evidence without a frozen evidence plan.");
   }
 
