@@ -31,6 +31,7 @@ import {
   RepositoryAuthorityGraphProjectionSource,
   ScientificGraphProjector,
   buildModelEvidenceProposalBundle,
+  deriveModelCallId,
   derivePetraId,
   extractorRoutingPolicyHash,
   groundedResponseCacheKey,
@@ -119,6 +120,16 @@ const item49Published = Object.freeze({
   candidateId: "working_candidate_131W6GBBPYDG1CX0FSQKX1RJ10",
   relationshipId: "working_relationship_5MV0X9MX2PGD1T6W4AE42AC5DT",
   reviewSessionId: "review_session_01K4D000000000000000000004",
+});
+const item53PresentationIdentities = Object.freeze({
+  featureManifestId: derivePetraId(
+    "interaction_feature_manifest",
+    "wave4-item53|item49-presentation",
+  ),
+  groundedResponseId: derivePetraId(
+    "grounded_response",
+    "wave4-item53|item49-presentation",
+  ),
 });
 
 const hash = (value) =>
@@ -3839,6 +3850,8 @@ const seedItem53WorkAndInteraction = async ({
   });
 
   const feature = readAccepted("interaction-feature-manifest");
+  feature.interaction_feature_manifest_id =
+    item53PresentationIdentities.featureManifestId;
   feature.compiled_by = { actor_id: serviceActorId, actor_kind: "service" };
   feature.compiled_at = "2026-09-15T04:00:00.000Z";
   await interactions.registerFeatureManifest(feature);
@@ -3932,7 +3945,7 @@ const seedItem53WorkAndInteraction = async ({
     kind: "run.finished",
     result: {
       executionSource: "provider_free_presentation_continuation",
-      groundedResponseId: item49Published.groundedResponseId,
+      groundedResponseId: item53PresentationIdentities.groundedResponseId,
       authorityEffect: "none",
     },
   };
@@ -4108,9 +4121,17 @@ const item53GroundedPresentation = async ({
       presentation_continuation: "item49",
     }),
   };
-  call.model_call_id = item49Published.synthesistModelCallId;
   call.content.model_request_id = request.model_request_id;
   call.content.deployment = deploymentObservation;
+  call.model_call_id = deriveModelCallId(
+    request.model_request_id,
+    call.content.attempt,
+    deploymentObservation.model_deployment_id,
+  );
+  assert(
+    call.model_call_id !== item49Published.synthesistModelCallId,
+    "The provider-free presentation seed reused the server-owned live provider ModelCall identity.",
+  );
   call.content.input.context_packet_ref = clone(
     request.content.context_packet_ref,
   );
@@ -4180,7 +4201,7 @@ const item53GroundedPresentation = async ({
     model_deployment_id: certification.deployment.model_deployment_id,
     role_certification_id: certification.role_certification_id,
     reason:
-      "This provider-free setup recreates the exact published item 49 presentation identity; it performs no routing or invocation.",
+      "This provider-free setup registers a presentation-owned execution distinct from the live provider identity; it performs no routing or invocation.",
   };
   request.content.terminal.model_call_ids = [call.model_call_id];
   request.content.terminal.output_hash = hash(call.content.output);
@@ -4190,7 +4211,6 @@ const item53GroundedPresentation = async ({
   await synthesistExecutions.persistExecution({ request, calls: [call] });
 
   const response = readAccepted("grounded-response");
-  response.grounded_response_id = item49Published.groundedResponseId;
   response.content.response_artifact_ref = {
     artifact_id: workAndInteraction.responseArtifact.artifact.artifact_id,
     content_hash: workAndInteraction.responseArtifact.artifact.content_hash,
@@ -4233,9 +4253,19 @@ const item53GroundedPresentation = async ({
     }),
   );
   response.content.model_output_hash = hash(call.content.output);
+  const presentationCacheKey = groundedResponseCacheKey(
+    request,
+    evidencePacket,
+  );
+  response.grounded_response_id =
+    item53PresentationIdentities.groundedResponseId;
+  assert(
+    response.grounded_response_id !== item49Published.groundedResponseId,
+    "The provider-free presentation seed reused the server-owned live GroundedResponse identity.",
+  );
   response.content.cache = {
     state: "reusable",
-    cache_key: groundedResponseCacheKey(request, evidencePacket),
+    cache_key: presentationCacheKey,
     checked_at: call.completed_at,
   };
   response.content.terminal = {
@@ -6684,6 +6714,13 @@ const exerciseItem53Trace = async ({
         : { model_runtime_checks: modelRuntimeChecks }),
       identities: {
         ...item49Published,
+        presentationInteractionFeatureManifestId:
+          continuation.workAndInteraction.terminalRun.feature_manifest_ref
+            .interaction_feature_manifest_id,
+        presentationSynthesistModelCallId:
+          continuation.grounded.call.model_call_id,
+        presentationGroundedResponseId:
+          continuation.grounded.response.grounded_response_id,
         directCandidateRevision: 1,
         modelCandidateRevision: correction.candidate.revision,
         blockedReviewRevision: correction.review_session.revision,
@@ -7521,7 +7558,7 @@ try {
             context: grounded.context,
           });
           progress(
-            "exact item 49 identities reconstructed for provider-free presentation continuation",
+            "item 49 presentation reconstructed with distinct presentation-owned execution identities",
           );
           return exerciseItem53Trace({
             environment,

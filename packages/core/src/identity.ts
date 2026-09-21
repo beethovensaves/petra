@@ -63,6 +63,16 @@ export const derivePetraId = <Kind extends string>(
   return createPetraId(kind, payload);
 };
 
+export const deriveModelCallId = (
+  modelRequestId: string,
+  attempt: number,
+  modelDeploymentId: string,
+): PetraId<"model_call"> =>
+  derivePetraId(
+    "model_call",
+    `${modelRequestId}|${attempt}|${modelDeploymentId}`,
+  );
+
 export const parsePetraId = <Kind extends string>(
   value: string,
   expectedKind?: Kind,

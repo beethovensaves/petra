@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   createPetraId,
+  deriveModelCallId,
   derivePetraId,
   parsePetraId,
   petraIdKind,
@@ -54,5 +55,28 @@ describe("Petra identity", () => {
     expect(
       derivePetraId("parsed_document", "immutable-parse-identity"),
     ).not.toBe(derivePetraId("artifact", "immutable-parse-identity"));
+  });
+
+  it("binds a server-owned model-call identity to request, attempt, and deployment", () => {
+    expect(
+      deriveModelCallId(
+        "model_request_7Y5T5E8PD099P5F8FEH9QGVE2S",
+        1,
+        "model_deployment_1WKCAZEM2G2CQ4NZAAB2G68XGW",
+      ),
+    ).toBe("model_call_4X3F15NYEFARA8DWX7HPP6GH9G");
+    expect(
+      deriveModelCallId(
+        "model_request_7Y5T5E8PD099P5F8FEH9QGVE2S",
+        2,
+        "model_deployment_1WKCAZEM2G2CQ4NZAAB2G68XGW",
+      ),
+    ).not.toBe(
+      deriveModelCallId(
+        "model_request_7Y5T5E8PD099P5F8FEH9QGVE2S",
+        1,
+        "model_deployment_1WKCAZEM2G2CQ4NZAAB2G68XGW",
+      ),
+    );
   });
 });

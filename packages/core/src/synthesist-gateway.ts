@@ -18,7 +18,7 @@ import {
   GroundedSynthesisError,
   GroundedSynthesisValidator,
 } from "./grounded-synthesis.js";
-import { derivePetraId } from "./identity.js";
+import { deriveModelCallId, derivePetraId } from "./identity.js";
 import type {
   SynthesistAdapterInvocationOptions,
   SynthesistAdapterResponse,
@@ -616,9 +616,10 @@ export class SynthesistGateway {
         `No synthesist adapter is registered for ${selected.deployment.adapter_id}.`,
       );
     }
-    const modelCallId = derivePetraId(
-      "model_call",
-      `${modelRequestId}|1|${selected.deployment.deployment.model_deployment_id}`,
+    const modelCallId = deriveModelCallId(
+      modelRequestId,
+      1,
+      selected.deployment.deployment.model_deployment_id,
     );
     let response: SynthesistAdapterResponse;
     try {
