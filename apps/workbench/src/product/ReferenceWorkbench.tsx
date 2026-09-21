@@ -1701,9 +1701,8 @@ export const BriefRoute = (): React.JSX.Element => {
               <ProjectResumeOutcome project={project} outcome={resumeOutcome} />
             ),
           })}
-      {...(data.suggestedAction === undefined
-        ? {}
-        : {
+      {...(data.suggestedAction !== undefined
+        ? {
             selectedAction: (
               <SuggestedActionPreview
                 actionView={data.suggestedAction}
@@ -1715,7 +1714,18 @@ export const BriefRoute = (): React.JSX.Element => {
                   : { invokedInquiry: data.invokedInquiry })}
               />
             ),
-          })}
+          }
+        : data.suggestedWorkAction !== undefined
+          ? {
+              selectedAction: (
+                <SuggestedWorkAction
+                  projectId={data.suggestedWorkAction.project_id}
+                  actionView={data.suggestedWorkAction}
+                  presentationPath="direct"
+                />
+              ),
+            }
+          : {})}
     />
   );
 };

@@ -1094,6 +1094,36 @@
   background: var(--petra-tone-information-soft);
 }
 
+.reference-suggested-action__confirmation,
+.reference-suggested-action__feedback {
+  border: 1px solid var(--petra-border-strong);
+  border-radius: var(--petra-radius-medium);
+  padding: var(--petra-space-4);
+  background: var(--petra-surface-raised);
+}
+
+.reference-suggested-action__feedback[data-tone="confirmed"] {
+  border-inline-start: 4px solid var(--petra-tone-positive);
+}
+
+.reference-suggested-action__feedback[data-tone="danger"] {
+  border-inline-start: 4px solid var(--petra-tone-danger);
+}
+
+.reference-suggested-action__confirmation h4,
+.reference-suggested-action__feedback h4,
+.reference-suggested-action__confirmation p,
+.reference-suggested-action__feedback p {
+  margin-block: 0 var(--petra-space-2);
+}
+
+.reference-suggested-action__feedback-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--petra-space-2);
+  align-items: center;
+}
+
 .reference-suggested-action__invocation {
   margin-top: var(--petra-space-5);
   padding: var(--petra-space-4);

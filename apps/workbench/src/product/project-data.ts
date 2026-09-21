@@ -4772,13 +4772,21 @@ export const loadProjectBriefAction = async ({
       400,
     );
   }
-  const suggestedAction = await getProjectSuggestedAction(projectId, linkId);
+  let suggestedAction: PetraSuggestedActionView | undefined;
+  let unavailableInspection: ProjectDataError | undefined;
+  try {
+    suggestedAction = await getProjectSuggestedAction(projectId, linkId);
+  } catch (error) {
+    if (!(error instanceof ProjectDataError) || error.status !== 502)
+      throw error;
+    unavailableInspection = error;
+  }
   if (
     invocation !== undefined &&
-    suggestedAction.content.readiness.state !== "ready"
+    suggestedAction?.content.readiness.state !== "ready"
   ) {
     throw new ProjectDataError(
-      "This SuggestedAction is stale and cannot be invoked. Regenerate it from current authority first.",
+      "This exact inspection action is unavailable from the current Project position. Return to its registered Work action or refresh the Brief.",
       409,
     );
   }
@@ -4793,11 +4801,19 @@ export const loadProjectBriefAction = async ({
       throw error;
     }
   }
+  if (suggestedWorkAction === undefined && unavailableInspection !== undefined)
+    throw unavailableInspection;
   if (invocation === undefined) {
     return {
-      suggestedAction,
+      ...(suggestedAction === undefined ? {} : { suggestedAction }),
       ...(suggestedWorkAction === undefined ? {} : { suggestedWorkAction }),
     };
+  }
+  if (suggestedAction === undefined) {
+    throw new ProjectDataError(
+      "The exact inspection action is unavailable from the current Project position.",
+      409,
+    );
   }
   const objectiveId =
     suggestedAction.content.action.invocation.objective_ref.objective_id;

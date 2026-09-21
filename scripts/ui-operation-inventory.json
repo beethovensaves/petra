@@ -398,7 +398,7 @@
       "surfaces": ["SP03", "SP14"],
       "flows": ["UX-FLOW-10", "UX-FLOW-11"],
       "requests": ["UX-REQ-003", "UX-REQ-016"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/brief",
       "control": "Suggested next action",
       "interaction": "query",
@@ -407,6 +407,11 @@
           "command": "npm run test:wave6:actions",
           "artifact": "reports/WAVE6-SUGGESTED-ACTION-FEEDBACK-AUTHORITY.json",
           "boundary": "Real disposable PostgreSQL derives one exact registered Work-starting SuggestedAction preview with server-owned readiness, authority, scope, expected result, interruption, and direct/conversational path-convergence descriptors. The focused server route test exercises the authenticated production query and command contract. This backend prerequisite does not execute the visible Brief control or the named UX1.6-ACTIONS browser scenario."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:actions-feedback-ui",
+          "artifact": "reports/WAVE6-ACTIONS-FEEDBACK-BROWSER.json",
+          "boundary": "UX1.6-ACTIONS/suggested-action-interrupt-review: isolated Chrome executed the production Brief, Petra, Work, and Review routes over authenticated live HTTP against fresh disposable PostgreSQL and ArtifactStore authority. It covered the same registered SuggestedAction in direct and conversational presentations, exact confirmation, deliberately interrupted delivery with byte-identical retry, transient dismissal, focus return, durable interrupt replay and response, Review correction and basis revision, stale refresh, one exact Apply, and exact Work returns. The certified runtime was live; this provider-free continuation made no new external model call and assigned no authority to the client or model."
         }
       ],
       "runtime_owner": "GET /api/queries/projects/:projectId/suggested-actions?action_kind=run_grounded_synthesis -> SuggestedActionViewReader -> PostgresSuggestedActionViewReader (exact retained inquiry-result basis, authenticated readiness, registered invocation contract, no read-side Work start)",
@@ -419,7 +424,7 @@
       "surfaces": ["SP03", "SP14"],
       "flows": ["UX-FLOW-11"],
       "requests": ["UX-REQ-003", "UX-REQ-023"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/brief",
       "control": "Start suggested work",
       "interaction": "command",
@@ -428,6 +433,11 @@
           "command": "npm run test:wave6:actions",
           "artifact": "reports/WAVE6-SUGGESTED-ACTION-FEEDBACK-AUTHORITY.json",
           "boundary": "Real disposable PostgreSQL accepts the exact server-authorized SuggestedAction invocation, converges an exact replay on the same immutable receipt and expected Work identity, and composes canonical Work, result, History, and recovery state. The focused server route test proves the production route re-reads readiness and resolves the human principal before the coordinator. This backend prerequisite does not execute the visible Brief control or the named UX1.6-ACTIONS browser scenario."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:actions-feedback-ui",
+          "artifact": "reports/WAVE6-ACTIONS-FEEDBACK-BROWSER.json",
+          "boundary": "UX1.6-ACTIONS/suggested-action-interrupt-review: isolated Chrome executed the production Brief, Petra, Work, and Review routes over authenticated live HTTP against fresh disposable PostgreSQL and ArtifactStore authority. It covered the same registered SuggestedAction in direct and conversational presentations, exact confirmation, deliberately interrupted delivery with byte-identical retry, transient dismissal, focus return, durable interrupt replay and response, Review correction and basis revision, stale refresh, one exact Apply, and exact Work returns. The certified runtime was live; this provider-free continuation made no new external model call and assigned no authority to the client or model."
         }
       ],
       "runtime_owner": "POST /api/commands/projects/:projectId/suggested-actions/:suggestedActionId/invoke -> SuggestedActionInvocationCoordinator -> PostgresSuggestedActionInvocationAuthorityRepository + registered grounded-synthesis Work starter; GET /api/queries/projects/:projectId/suggested-action-invocations/:commandId composes the exact outcome",
@@ -644,6 +654,11 @@
           "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:review-ui",
           "artifact": "reports/WAVE6-REVIEW-WORKFLOW-BROWSER.json",
           "boundary": "UX1.6-REVIEW/correct-reject-defer-apply: isolated Chrome opened the production Review queue and exact sessions through visible links, selected an exact member, invoked candidate correction, basis revision, separation, defer, reopen, rejection, stale refresh, exact ChangeSet preparation, and Apply over authenticated live HTTP backed by fresh disposable PostgreSQL, then rendered member outcomes and the exact Work return. This operation is bound only because its corresponding visible control or query was exercised; the record does not claim other Wave 6 scenarios."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:actions-feedback-ui",
+          "artifact": "reports/WAVE6-ACTIONS-FEEDBACK-BROWSER.json",
+          "boundary": "UX1.6-ACTIONS/suggested-action-interrupt-review opened the production Review queue through a visible navigation control before selecting its exact correction Review."
         }
       ],
       "runtime_owner": "GET /api/queries/projects/:projectId/reviews -> ProjectReviewViewReader -> PostgresProjectReviewViewReader",
@@ -665,6 +680,11 @@
           "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:review-ui",
           "artifact": "reports/WAVE6-REVIEW-WORKFLOW-BROWSER.json",
           "boundary": "UX1.6-REVIEW/correct-reject-defer-apply: isolated Chrome opened the production Review queue and exact sessions through visible links, selected an exact member, invoked candidate correction, basis revision, separation, defer, reopen, rejection, stale refresh, exact ChangeSet preparation, and Apply over authenticated live HTTP backed by fresh disposable PostgreSQL, then rendered member outcomes and the exact Work return. This operation is bound only because its corresponding visible control or query was exercised; the record does not claim other Wave 6 scenarios."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:actions-feedback-ui",
+          "artifact": "reports/WAVE6-ACTIONS-FEEDBACK-BROWSER.json",
+          "boundary": "UX1.6-ACTIONS/suggested-action-interrupt-review activated a visible Review link and loaded the exact PostgreSQL-backed session through the production route."
         }
       ],
       "runtime_owner": "GET /api/queries/projects/:projectId/reviews/:reviewSessionId -> ProjectReviewViewReader -> PostgresProjectReviewViewReader",
@@ -707,6 +727,11 @@
           "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:review-ui",
           "artifact": "reports/WAVE6-REVIEW-WORKFLOW-BROWSER.json",
           "boundary": "UX1.6-REVIEW/correct-reject-defer-apply: isolated Chrome opened the production Review queue and exact sessions through visible links, selected an exact member, invoked candidate correction, basis revision, separation, defer, reopen, rejection, stale refresh, exact ChangeSet preparation, and Apply over authenticated live HTTP backed by fresh disposable PostgreSQL, then rendered member outcomes and the exact Work return. This operation is bound only because its corresponding visible control or query was exercised; the record does not claim other Wave 6 scenarios."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:actions-feedback-ui",
+          "artifact": "reports/WAVE6-ACTIONS-FEEDBACK-BROWSER.json",
+          "boundary": "UX1.6-ACTIONS/suggested-action-interrupt-review edited and saved exact candidate text through the production correction command, retained its working-only outcome, and returned to the originating Work."
         }
       ],
       "runtime_owner": "POST /api/commands/projects/:projectId/reviews/:reviewSessionId/candidate-correction -> PostgresReviewSessionAuthorityRepository",
@@ -728,6 +753,11 @@
           "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:review-ui",
           "artifact": "reports/WAVE6-REVIEW-WORKFLOW-BROWSER.json",
           "boundary": "UX1.6-REVIEW/correct-reject-defer-apply: isolated Chrome opened the production Review queue and exact sessions through visible links, selected an exact member, invoked candidate correction, basis revision, separation, defer, reopen, rejection, stale refresh, exact ChangeSet preparation, and Apply over authenticated live HTTP backed by fresh disposable PostgreSQL, then rendered member outcomes and the exact Work return. This operation is bound only because its corresponding visible control or query was exercised; the record does not claim other Wave 6 scenarios."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:actions-feedback-ui",
+          "artifact": "reports/WAVE6-ACTIONS-FEEDBACK-BROWSER.json",
+          "boundary": "UX1.6-ACTIONS/suggested-action-interrupt-review revised the exact candidate basis through its visible editor and production command, then rendered the non-authoritative pending-validation outcome."
         }
       ],
       "runtime_owner": "POST /api/commands/projects/:projectId/reviews/:reviewSessionId/candidate-basis-revision -> PostgresReviewSessionAuthorityRepository",
@@ -770,6 +800,11 @@
           "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:review-ui",
           "artifact": "reports/WAVE6-REVIEW-WORKFLOW-BROWSER.json",
           "boundary": "UX1.6-REVIEW/correct-reject-defer-apply: isolated Chrome opened the production Review queue and exact sessions through visible links, selected an exact member, invoked candidate correction, basis revision, separation, defer, reopen, rejection, stale refresh, exact ChangeSet preparation, and Apply over authenticated live HTTP backed by fresh disposable PostgreSQL, then rendered member outcomes and the exact Work return. This operation is bound only because its corresponding visible control or query was exercised; the record does not claim other Wave 6 scenarios."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:actions-feedback-ui",
+          "artifact": "reports/WAVE6-ACTIONS-FEEDBACK-BROWSER.json",
+          "boundary": "UX1.6-ACTIONS/suggested-action-interrupt-review visibly prepared the exact ChangeSet after refreshing a stale prevalidated Review and verified that preparation sent no Apply command."
         }
       ],
       "runtime_owner": "GET /api/queries/projects/:projectId/reviews/:reviewSessionId/apply-checkpoint -> PostgresReviewSessionApplyBoundary",
@@ -791,6 +826,11 @@
           "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:review-ui",
           "artifact": "reports/WAVE6-REVIEW-WORKFLOW-BROWSER.json",
           "boundary": "UX1.6-REVIEW/correct-reject-defer-apply: isolated Chrome opened the production Review queue and exact sessions through visible links, selected an exact member, invoked candidate correction, basis revision, separation, defer, reopen, rejection, stale refresh, exact ChangeSet preparation, and Apply over authenticated live HTTP backed by fresh disposable PostgreSQL, then rendered member outcomes and the exact Work return. This operation is bound only because its corresponding visible control or query was exercised; the record does not claim other Wave 6 scenarios."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:actions-feedback-ui",
+          "artifact": "reports/WAVE6-ACTIONS-FEEDBACK-BROWSER.json",
+          "boundary": "UX1.6-ACTIONS/suggested-action-interrupt-review invoked one explicit Apply for the displayed exact ChangeSet, rendered the applied member outcome, and returned to the originating Work."
         }
       ],
       "runtime_owner": "POST /api/commands/projects/:projectId/reviews/:reviewSessionId/apply -> PostgresReviewSessionApplyBoundary",
@@ -875,6 +915,11 @@
           "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:review-ui",
           "artifact": "reports/WAVE6-REVIEW-WORKFLOW-BROWSER.json",
           "boundary": "UX1.6-REVIEW/correct-reject-defer-apply: isolated Chrome opened the production Review queue and exact sessions through visible links, selected an exact member, invoked candidate correction, basis revision, separation, defer, reopen, rejection, stale refresh, exact ChangeSet preparation, and Apply over authenticated live HTTP backed by fresh disposable PostgreSQL, then rendered member outcomes and the exact Work return. This operation is bound only because its corresponding visible control or query was exercised; the record does not claim other Wave 6 scenarios."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:actions-feedback-ui",
+          "artifact": "reports/WAVE6-ACTIONS-FEEDBACK-BROWSER.json",
+          "boundary": "UX1.6-ACTIONS/suggested-action-interrupt-review rendered the stale prevalidated Review after the durable interrupt effect and invoked the visible production refresh before preparing its decision."
         }
       ],
       "runtime_owner": "POST /api/commands/projects/:projectId/reviews/:reviewSessionId/refresh -> PostgresReviewSessionAuthorityRepository",
@@ -1119,7 +1164,13 @@
       "route": "/projects/:projectId/work",
       "control": "Open Work",
       "interaction": "navigation",
-      "evidence": [],
+      "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:actions-feedback-ui",
+          "artifact": "reports/WAVE6-ACTIONS-FEEDBACK-BROWSER.json",
+          "boundary": "UX1.6-ACTIONS/suggested-action-interrupt-review activated exact return links after the durable interrupt, correction, and Review decision and loaded the corresponding production Work detail routes without losing Project context."
+        }
+      ],
       "runtime_owner": "GET /api/queries/projects/:projectId/work/:workUnitId -> PostgresProjectWorkViewReader",
       "paths": ["UX-PATH-01", "UX-PATH-03", "UX-PATH-04"]
     },
@@ -1407,7 +1458,7 @@
       "surfaces": ["SP13", "SP14"],
       "flows": ["UX-FLOW-10", "UX-FLOW-11"],
       "requests": ["UX-REQ-003", "UX-REQ-012", "UX-REQ-015"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/petra",
       "control": "Preview action",
       "interaction": "query",
@@ -1416,6 +1467,11 @@
           "command": "npm run test:wave6:actions",
           "artifact": "reports/WAVE6-SUGGESTED-ACTION-FEEDBACK-AUTHORITY.json",
           "boundary": "The executed PostgreSQL trace derives the same registered SuggestedAction identity and invocation contract for direct and conversational presentation, then composes the resulting invocation into Petra's action-report communication plan. Model prose supplies no command or authority. This backend prerequisite does not execute the visible Petra preview or the named UX1.6-ACTIONS browser scenario."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:actions-feedback-ui",
+          "artifact": "reports/WAVE6-ACTIONS-FEEDBACK-BROWSER.json",
+          "boundary": "UX1.6-ACTIONS/suggested-action-interrupt-review: isolated Chrome executed the production Brief, Petra, Work, and Review routes over authenticated live HTTP against fresh disposable PostgreSQL and ArtifactStore authority. It covered the same registered SuggestedAction in direct and conversational presentations, exact confirmation, deliberately interrupted delivery with byte-identical retry, transient dismissal, focus return, durable interrupt replay and response, Review correction and basis revision, stale refresh, one exact Apply, and exact Work returns. The certified runtime was live; this provider-free continuation made no new external model call and assigned no authority to the client or model."
         }
       ],
       "runtime_owner": "GET /api/queries/projects/:projectId/suggested-actions?action_kind=run_grounded_synthesis -> PostgresSuggestedActionViewReader; Petra conversation context reuses the exact inquiry-result link and communication plan rather than deriving an action from model prose",
@@ -1428,7 +1484,7 @@
       "surfaces": ["SP13", "SP14"],
       "flows": ["UX-FLOW-10", "UX-FLOW-11"],
       "requests": ["UX-REQ-003", "UX-REQ-012", "UX-REQ-015"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/petra",
       "control": "Confirm action",
       "interaction": "command",
@@ -1437,6 +1493,11 @@
           "command": "npm run test:wave6:actions",
           "artifact": "reports/WAVE6-SUGGESTED-ACTION-FEEDBACK-AUTHORITY.json",
           "boundary": "The executed PostgreSQL trace proves direct_and_conversational_same_command on both the preview contract and immutable invocation receipt, while the Petra action-report composition reads that same receipt and server-owned outcome. The focused route test rejects request-carried authority and invokes the shared coordinator. This backend prerequisite does not execute the visible Petra confirmation or the named UX1.6-ACTIONS browser scenario."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:actions-feedback-ui",
+          "artifact": "reports/WAVE6-ACTIONS-FEEDBACK-BROWSER.json",
+          "boundary": "UX1.6-ACTIONS/suggested-action-interrupt-review: isolated Chrome executed the production Brief, Petra, Work, and Review routes over authenticated live HTTP against fresh disposable PostgreSQL and ArtifactStore authority. It covered the same registered SuggestedAction in direct and conversational presentations, exact confirmation, deliberately interrupted delivery with byte-identical retry, transient dismissal, focus return, durable interrupt replay and response, Review correction and basis revision, stale refresh, one exact Apply, and exact Work returns. The certified runtime was live; this provider-free continuation made no new external model call and assigned no authority to the client or model."
         }
       ],
       "runtime_owner": "The conversational presentation submits the same POST /api/commands/projects/:projectId/suggested-actions/:suggestedActionId/invoke request to SuggestedActionInvocationCoordinator as the direct presentation; PostgresSuggestedActionInvocationAuthorityRepository owns identity, authorization binding, idempotency, Work, result, and recovery",
@@ -1463,6 +1524,11 @@
           "command": "npm run test:wave6:review-interrupt-ui",
           "artifact": "reports/WAVE6-REVIEW-INTERRUPT-BROWSER.json",
           "boundary": "Focused Chromium executes the production Petra Respond component and typed command client, including keyboard submission, exact retry after uncertain delivery, authenticated outcome, recovery state, narrow reflow, and exact ProjectThread/Review/Work return links. The response transport is synthetic; the paired PostgreSQL artifact owns authority and persistence proof."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:actions-feedback-ui",
+          "artifact": "reports/WAVE6-ACTIONS-FEEDBACK-BROWSER.json",
+          "boundary": "UX1.6-ACTIONS/suggested-action-interrupt-review reconnected and replayed a PostgreSQL-backed interaction, accepted its exact Review interrupt with a rationale through the production Petra UI, received the applied outcome, and returned to the exact Work."
         }
       ],
       "runtime_owner": "POST /api/commands/reviews/resolve -> server-resolved direct Review authority -> DurableReviewInterruptCoordinator -> DurableReviewInterruptProductBindingLoader -> Postgres Review apply/reject boundaries",
@@ -1670,7 +1736,7 @@
       "surfaces": ["SP14"],
       "flows": ["UX-FLOW-11", "UX-FLOW-16"],
       "requests": ["UX-REQ-003", "UX-REQ-021", "UX-REQ-023"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "contextual",
       "control": "Confirm",
       "interaction": "command",
@@ -1679,6 +1745,11 @@
           "command": "npm run test:wave6:actions",
           "artifact": "reports/WAVE6-SUGGESTED-ACTION-FEEDBACK-AUTHORITY.json",
           "boundary": "The production route test and real PostgreSQL trace execute confirmation only after an exact ready preview, resolve the authenticated human principal and grant on the server, persist the immutable command receipt, and expose authority_effect=none. No visible feedback control or named browser scenario is claimed."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:actions-feedback-ui",
+          "artifact": "reports/WAVE6-ACTIONS-FEEDBACK-BROWSER.json",
+          "boundary": "UX1.6-ACTIONS/suggested-action-interrupt-review: isolated Chrome executed the production Brief, Petra, Work, and Review routes over authenticated live HTTP against fresh disposable PostgreSQL and ArtifactStore authority. It covered the same registered SuggestedAction in direct and conversational presentations, exact confirmation, deliberately interrupted delivery with byte-identical retry, transient dismissal, focus return, durable interrupt replay and response, Review correction and basis revision, stale refresh, one exact Apply, and exact Work returns. The certified runtime was live; this provider-free continuation made no new external model call and assigned no authority to the client or model."
         }
       ],
       "runtime_owner": "Exact SuggestedAction preview -> POST /api/commands/projects/:projectId/suggested-actions/:suggestedActionId/invoke -> server-resolved principal -> SuggestedActionInvocationCoordinator; the request cannot carry Actor, grant, Project, Work, interaction, trace, result, or authority effect",
@@ -1691,7 +1762,7 @@
       "surfaces": ["SP14"],
       "flows": ["UX-FLOW-11", "UX-FLOW-16"],
       "requests": ["UX-REQ-003", "UX-REQ-021", "UX-REQ-023"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "contextual",
       "control": "Retry",
       "interaction": "command",
@@ -1700,6 +1771,11 @@
           "command": "npm run test:wave6:actions",
           "artifact": "reports/WAVE6-SUGGESTED-ACTION-FEEDBACK-AUTHORITY.json",
           "boundary": "Real PostgreSQL executes an exact invocation replay and proves it returns applied=false with the same receipt; the invocation view supplies current retry_exact_start eligibility and reasons before and after Work registration. This backend prerequisite does not execute the visible retry control or the named UX1.6-ACTIONS browser scenario."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:actions-feedback-ui",
+          "artifact": "reports/WAVE6-ACTIONS-FEEDBACK-BROWSER.json",
+          "boundary": "UX1.6-ACTIONS/suggested-action-interrupt-review: isolated Chrome executed the production Brief, Petra, Work, and Review routes over authenticated live HTTP against fresh disposable PostgreSQL and ArtifactStore authority. It covered the same registered SuggestedAction in direct and conversational presentations, exact confirmation, deliberately interrupted delivery with byte-identical retry, transient dismissal, focus return, durable interrupt replay and response, Review correction and basis revision, stale refresh, one exact Apply, and exact Work returns. The certified runtime was live; this provider-free continuation made no new external model call and assigned no authority to the client or model."
         }
       ],
       "runtime_owner": "GET /api/queries/projects/:projectId/suggested-action-invocations/:commandId -> server-owned recovery.actions retry_exact_start eligibility; eligible retry reuses the retained POST invocation command and idempotency identities and converges on the same receipt and expected Work",
@@ -1712,11 +1788,17 @@
       "surfaces": ["SP14"],
       "flows": ["UX-FLOW-11", "UX-FLOW-16"],
       "requests": ["UX-REQ-003", "UX-REQ-021", "UX-REQ-023"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "contextual",
       "control": "Dismiss",
       "interaction": "navigation",
-      "evidence": [],
+      "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:actions-feedback-ui",
+          "artifact": "reports/WAVE6-ACTIONS-FEEDBACK-BROWSER.json",
+          "boundary": "UX1.6-ACTIONS/suggested-action-interrupt-review: isolated Chrome dismissed transient Petra action feedback after an exact production invocation result and verified that no server-owned command or state changed. The same session used authenticated live HTTP with fresh disposable PostgreSQL and ArtifactStore authority."
+        }
+      ],
       "runtime_owner": "Design-owned client-local transient feedback state over a verified production response; dismiss performs no server command and cannot alter the retained SuggestedAction invocation, Work, result, History, or recovery authority",
       "paths": ["UX-PATH-01", "UX-PATH-03", "UX-PATH-04"]
     },
@@ -1727,11 +1809,17 @@
       "surfaces": ["SP14"],
       "flows": ["UX-FLOW-11", "UX-FLOW-16"],
       "requests": ["UX-REQ-003", "UX-REQ-021", "UX-REQ-023"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "contextual",
       "control": "Return focus",
       "interaction": "navigation",
-      "evidence": [],
+      "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:actions-feedback-ui",
+          "artifact": "reports/WAVE6-ACTIONS-FEEDBACK-BROWSER.json",
+          "boundary": "UX1.6-ACTIONS/suggested-action-interrupt-review: isolated Chrome activated Return focus to action after deliberately interrupted delivery and exact retry, then verified focus on the initiating direct and conversational SuggestedAction controls without issuing another server command."
+        }
+      ],
       "runtime_owner": "Design-owned focus restoration to the initiating SuggestedAction control within the retained exact Project, inquiry-result link, action, command, and direct-or-conversational presentation context; focus return performs no server command",
       "paths": ["UX-PATH-01", "UX-PATH-03", "UX-PATH-04"]
     },
