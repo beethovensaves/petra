@@ -173,19 +173,68 @@ export const startItem50ProductionBrowser = async ({
     );
     assert.equal(turn.response.force, "proposal");
     assert.equal(turn.response.authority_effect, "none");
+    const modelReadiness = latestCall((call) =>
+      call.path.endsWith(`/projects/${scientificProjectId}/model-readiness`),
+    );
+    assert.equal(modelReadiness?.status, 200);
+    assert.equal(
+      modelReadiness?.authorization,
+      "Bearer petra-local-development",
+    );
+    assert.equal(
+      modelReadiness?.json?.schema_name,
+      "petra.project-model-readiness-view",
+    );
+    assert.equal(modelReadiness?.json?.project_id, scientificProjectId);
+    assert.equal(modelReadiness?.json?.readiness?.state, "ready");
+    assert.equal(
+      modelReadiness?.json?.readiness?.role?.semantic_key,
+      "scientific.grounded-synthesist",
+    );
+    assert.equal(modelReadiness?.json?.readiness?.provider?.state, "ready");
+    assert.equal(modelReadiness?.json?.readiness?.context?.state, "bound");
+    assert.equal(
+      modelReadiness?.json?.readiness?.command?.endpoint,
+      "/api/interactions/run",
+    );
+    const composer = await evaluate(`(() => {
+      const ask = [...document.querySelectorAll("button")].find(
+        (element) => element.textContent.trim() === "Ask Petra",
+      );
+      return {
+        readiness: document.querySelector(
+          ".petra-model-readiness[data-readiness=ready]",
+        ) !== null,
+        draft: document.querySelector(".petra-composer textarea")?.value,
+        askAvailable: ask !== undefined && ask.getAttribute("aria-disabled") !== "true",
+      };
+    })()`);
+    assert.deepEqual(composer, {
+      readiness: true,
+      draft: modelReadiness.json.readiness.command.registered_prompt,
+      askAvailable: true,
+    });
     const threadText = await evaluate("document.body.innerText");
     for (const text of [
       projectThreadId,
       "Proposal · Review still required",
       "Explanation and task direction only",
       "Open linked Work",
-      "The model response boundary is unavailable. No prompt will be sent.",
+      modelReadiness.json.readiness.role.label,
+      "The certified response is advisory. Work and Review outcomes remain separate.",
     ]) {
       assert.ok(
         threadText.includes(text),
         `Missing conversation boundary: ${text}`,
       );
     }
+    assert.equal(
+      threadText.includes(
+        "The model response boundary is unavailable. No prompt will be sent.",
+      ),
+      false,
+      "The ready Project rendered the retired unavailable composer.",
+    );
 
     const graphCallStart = calls.length;
     await navigate(
