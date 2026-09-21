@@ -24,6 +24,7 @@ import {
   type GroundedSynthesisInteractionExecutorPort,
   type GroundedSynthesisInteractionResult,
   type GroundedSynthesisTerminalPort,
+  type InteractionHistoryPort,
 } from "@petra/core";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 
@@ -367,6 +368,51 @@ describe("D014 Hono conformance", () => {
     expect(server.runtime.snapshot("run_hc03_error").delivery.writeErrors).toBe(
       1,
     );
+  });
+
+  test("D014-HC03: delivery persistence failure terminates the HTTP stream", async () => {
+    const unavailable = new Error("delivery persistence unavailable");
+    const history: InteractionHistoryPort = {
+      persistEvents: () => Promise.reject(new Error("not used")),
+      listEventRecords: () => Promise.reject(new Error("not used")),
+      advanceRun: () => Promise.reject(new Error("not used")),
+      restore: () => Promise.resolve(undefined),
+      recordDelivery: () => Promise.reject(unavailable),
+    };
+    const deliveryRuntime = new PetraInteractionRuntime({
+      interactionHistory: history,
+    });
+    const deliveryServer = await startPetraServer({
+      port: 0,
+      authToken: TOKEN,
+      runtime: deliveryRuntime,
+    });
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+    try {
+      const response = await rawRun(
+        deliveryServer,
+        "run_hc03_delivery_failure",
+      );
+      const outcome = await Promise.race([
+        response.text().then(
+          () => "completed" as const,
+          () => "failed" as const,
+        ),
+        new Promise<"timed_out">((resolveTimeout) => {
+          timeout = setTimeout(() => resolveTimeout("timed_out"), 1_000);
+        }),
+      ]);
+      expect(outcome).toBe("failed");
+      expect(
+        deliveryRuntime.snapshot("run_hc03_delivery_failure"),
+      ).toMatchObject({
+        status: "completed",
+        delivery: { completed: 1 },
+      });
+    } finally {
+      if (timeout !== undefined) clearTimeout(timeout);
+      await deliveryServer.shutdown();
+    }
   });
 
   test("D014-HC04: replay and review presentation preserve every identity", async () => {

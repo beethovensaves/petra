@@ -794,6 +794,7 @@ export class PostgresWorkingStateAuthorityRepository implements WorkingStateAuth
     record: WorkingRecord,
   ): Promise<void> {
     const task = record.task_context;
+    const requireCurrentExecution = record.lineage.lineage_kind === "root";
     await this.#requireExactRecordRef(
       client,
       record.project_id,
@@ -805,7 +806,7 @@ export class PostgresWorkingStateAuthorityRepository implements WorkingStateAuth
         client,
         record.project_id,
         task.work_unit_ref,
-        true,
+        requireCurrentExecution,
       );
     }
     if (task.task_kind !== "work_unit") {
@@ -813,7 +814,7 @@ export class PostgresWorkingStateAuthorityRepository implements WorkingStateAuth
         client,
         record.project_id,
         task.thread_binding.project_thread_ref,
-        true,
+        requireCurrentExecution,
       );
       const turn = await client.query<{ present: boolean }>(
         `SELECT true AS present
@@ -849,7 +850,7 @@ export class PostgresWorkingStateAuthorityRepository implements WorkingStateAuth
         client,
         record.project_id,
         task.interaction_run_ref,
-        true,
+        requireCurrentExecution,
       );
     }
 

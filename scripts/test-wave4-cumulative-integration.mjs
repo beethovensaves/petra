@@ -4037,10 +4037,12 @@ const item53GroundedPresentation = async ({
   );
   const context = readAcceptedRaw("context-packet");
   context.compiled_by = {
-    actor_id: serviceActorId,
+    actor_id: liveProjectModelMode
+      ? certificationActor.actor_id
+      : serviceActorId,
     actor_kind: "service",
   };
-  context.compiled_at = "2026-09-15T04:00:08.000Z";
+  if (!liveProjectModelMode) context.compiled_at = "2026-09-15T04:00:08.000Z";
   assert(
     context.context_packet_id === item49Published.contextPacketId &&
       context.snapshot_ref.snapshot_id === item49Published.snapshotId,
@@ -4090,7 +4092,7 @@ const item53GroundedPresentation = async ({
     evidencePacket.content_hash = hash(evidencePacket.content);
   }
   evidencePacket.compiled_by = clone(context.compiled_by);
-  evidencePacket.compiled_at = context.compiled_at;
+  if (!liveProjectModelMode) evidencePacket.compiled_at = context.compiled_at;
   const packets = new InMemoryContextPacketRegistry();
   packets.registerContextPacket(context, contextRecords);
   packets.registerEvidencePacket(evidencePacket);

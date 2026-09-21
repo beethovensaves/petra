@@ -636,6 +636,25 @@ describePostgres("PostgreSQL working-state authority", () => {
         profileRecord: fixture.assertion,
       }),
     ).toEqual(edge);
+    const queued = await workUnits.queue(
+      fixture.workUnit.work_unit_id,
+      fixture.workUnit.revision,
+      "2026-09-12T20:58:00.000Z",
+    );
+    expect(queued.revision).toBe(fixture.workUnit.revision + 1);
+
+    const staleRoot = structuredClone(root);
+    staleRoot.working_candidate_id =
+      "working_candidate_01K4D000000000000000000097";
+    staleRoot.content_hash = workingContentHash(staleRoot);
+    await expectWorkingCode(
+      () =>
+        working.admitWorkingCandidateRevision({
+          candidate: staleRoot,
+          profileRecord: fixture.claim,
+        }),
+      "WORKING_STATE_STALE",
+    );
     expect(
       await working.admitWorkingCandidateRevision({
         candidate: revised.candidate,
