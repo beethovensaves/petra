@@ -74,7 +74,7 @@
   "recovery": {
     "schema_name": "petra.review-recovery-assessment",
     "schema_version": "1.0.0",
-    "assessment_id": "review_recovery_sha256_8b3e68099bf02f9960806ebd29544ae4dc7a867d7e0d35c34ff6098169280203",
+    "assessment_id": "review_recovery_sha256_c033c49b89c501a5c017f586e420213bdf8e05224d0bf3b2a55243f1eb2578de",
     "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
     "content": {
       "freshness": {
@@ -323,7 +323,7 @@
                     "command_fingerprint": "sha256:e7678ecaedd0850e0a8575a3dd4a9618b7d9681ba7d03253b4d21e5a33897954",
                     "outcome": "success",
                     "submitted_at": "2026-09-20T16:00:00.000Z",
-                    "completed_at": "2026-09-20T16:21:03.934Z"
+                    "completed_at": "2026-09-21T06:00:01.064Z"
                   },
                   {
                     "command_id": "command_5DNHXRGSJG7CEMX3W1DTHMD8C0",
@@ -331,7 +331,7 @@
                     "command_fingerprint": "sha256:8f9c57fcc3069b9de4c3fe4ddc63c60d4ea1b7a389564c59e524f40f393a8f7c",
                     "outcome": "success",
                     "submitted_at": "2026-09-20T16:00:00.000Z",
-                    "completed_at": "2026-09-20T16:21:04.026Z"
+                    "completed_at": "2026-09-21T06:00:01.141Z"
                   },
                   {
                     "command_id": "command_665AQQKSE62JWKPY4FV1KVH7Q9",
@@ -339,36 +339,36 @@
                     "command_fingerprint": "sha256:5fa2c78c0b8e3a694b70d0335848a571ff37c3908a8cd54ae3ee21266a9cd0ea",
                     "outcome": "success",
                     "submitted_at": "2026-09-20T16:00:00.000Z",
-                    "completed_at": "2026-09-20T16:21:03.984Z"
+                    "completed_at": "2026-09-21T06:00:01.108Z"
                   }
                 ],
                 "events": [
                   {
-                    "event_id": "event_01M2ZSY09ZECA7DGV1WPTB9JW9",
+                    "event_id": "event_01M318SHS9925YS06AYVMMBTFT",
                     "event_type": "change_set.submitted",
                     "event_position": 1,
                     "stream_revision": 1,
                     "command_id": "command_3P4AZ4HPFA2QQT8GK4W53BCT0S",
-                    "record_hash": "sha256:ad3a6b0c08a4c71efc5715f05a46afa7e096a825430b238e75fa299e827b4326",
-                    "recorded_at": "2026-09-20T16:21:03.934Z"
+                    "record_hash": "sha256:cfe3b2a8a949fa339e0b24b0bfd5b767d97f456bb758f7cf994c5c988d01b19c",
+                    "recorded_at": "2026-09-21T06:00:01.064Z"
                   },
                   {
-                    "event_id": "event_01M2ZSY0BHFNY8WSJKA03GQ53P",
+                    "event_id": "event_01M318SHTMKSGXA2W9161SAJG6",
                     "event_type": "approval.recorded",
                     "event_position": 2,
                     "stream_revision": 2,
                     "command_id": "command_665AQQKSE62JWKPY4FV1KVH7Q9",
-                    "record_hash": "sha256:8fc1f6b14a523911e19b92905d57cc6b0ec50bdb93aee0fbc7036a9e1e055113",
-                    "recorded_at": "2026-09-20T16:21:03.984Z"
+                    "record_hash": "sha256:6b5a2679e27501436d02515221ef3a1f2a2755aed2a007df6bc1624feced6754",
+                    "recorded_at": "2026-09-21T06:00:01.108Z"
                   },
                   {
-                    "event_id": "event_01M2ZSY0CVDBVAAA1CPDQERXKH",
+                    "event_id": "event_01M318SHVPMQT4491WFE6Z6FE9",
                     "event_type": "change_set.applied",
                     "event_position": 3,
                     "stream_revision": 3,
                     "command_id": "command_5DNHXRGSJG7CEMX3W1DTHMD8C0",
-                    "record_hash": "sha256:f8931d1bf52ea081f851fbf90153c79d8e324a48c3989e8fe73b52800ec3e62a",
-                    "recorded_at": "2026-09-20T16:21:04.026Z"
+                    "record_hash": "sha256:818baeb4cb7b415f33802657ed4aaea41ffc132881c36157152e6ce12aba008b",
+                    "recorded_at": "2026-09-21T06:00:01.141Z"
                   }
                 ]
               }
@@ -842,10 +842,10 @@
                 "command_fingerprint": "sha256:e7678ecaedd0850e0a8575a3dd4a9618b7d9681ba7d03253b4d21e5a33897954",
                 "outcome": "success",
                 "submitted_at": "2026-09-20T16:00:00.000Z",
-                "completed_at": "2026-09-20T16:21:03.934Z"
+                "completed_at": "2026-09-21T06:00:01.064Z"
               },
               "receipt_owner": "petra.command_executions",
-              "receipt_hash": "sha256:fb2ed1acf284b2852070038abd251135ef75dc3f8c64939c5305371be6846d6a",
+              "receipt_hash": "sha256:9ea3e14da6aced57461b8af682b73fab272c4bc03c691a1dbde397b21174e599",
               "receipt_state": "success",
               "idempotency_key": "review-checkpoint:sha256:b888bc06862125e925e642c4327cad34542b3b533df8538526e0c460928472c4:0"
             },
@@ -856,10 +856,10 @@
                 "command_fingerprint": "sha256:8f9c57fcc3069b9de4c3fe4ddc63c60d4ea1b7a389564c59e524f40f393a8f7c",
                 "outcome": "success",
                 "submitted_at": "2026-09-20T16:00:00.000Z",
-                "completed_at": "2026-09-20T16:21:04.026Z"
+                "completed_at": "2026-09-21T06:00:01.141Z"
               },
               "receipt_owner": "petra.command_executions",
-              "receipt_hash": "sha256:afea40e806910df22f5882a981399900f6e7fe74db79444172a1b357a801c33f",
+              "receipt_hash": "sha256:1a8a1eae345a0f4a13f9e4ae71e25287f5b7051140f264e2ad143c56524eb73a",
               "receipt_state": "success",
               "idempotency_key": "review-checkpoint:sha256:b888bc06862125e925e642c4327cad34542b3b533df8538526e0c460928472c4:2"
             },
@@ -870,46 +870,46 @@
                 "command_fingerprint": "sha256:5fa2c78c0b8e3a694b70d0335848a571ff37c3908a8cd54ae3ee21266a9cd0ea",
                 "outcome": "success",
                 "submitted_at": "2026-09-20T16:00:00.000Z",
-                "completed_at": "2026-09-20T16:21:03.984Z"
+                "completed_at": "2026-09-21T06:00:01.108Z"
               },
               "receipt_owner": "petra.command_executions",
-              "receipt_hash": "sha256:a8042b49c05b097279cb53ace0433dc5f6bedadf6f7edd323517f930ba434237",
+              "receipt_hash": "sha256:9f2254527576a936ed413caa04f4f17edef39c56d46f113fe6955235293e19e3",
               "receipt_state": "success",
               "idempotency_key": "review-checkpoint:sha256:b888bc06862125e925e642c4327cad34542b3b533df8538526e0c460928472c4:1"
             }
           ],
           "events": [
             {
-              "event_id": "event_01M2ZSY09ZECA7DGV1WPTB9JW9",
+              "event_id": "event_01M318SHS9925YS06AYVMMBTFT",
               "event_type": "change_set.submitted",
               "event_position": 1,
               "stream_revision": 1,
               "command_id": "command_3P4AZ4HPFA2QQT8GK4W53BCT0S",
-              "record_hash": "sha256:ad3a6b0c08a4c71efc5715f05a46afa7e096a825430b238e75fa299e827b4326",
-              "recorded_at": "2026-09-20T16:21:03.934Z"
+              "record_hash": "sha256:cfe3b2a8a949fa339e0b24b0bfd5b767d97f456bb758f7cf994c5c988d01b19c",
+              "recorded_at": "2026-09-21T06:00:01.064Z"
             },
             {
-              "event_id": "event_01M2ZSY0BHFNY8WSJKA03GQ53P",
+              "event_id": "event_01M318SHTMKSGXA2W9161SAJG6",
               "event_type": "approval.recorded",
               "event_position": 2,
               "stream_revision": 2,
               "command_id": "command_665AQQKSE62JWKPY4FV1KVH7Q9",
-              "record_hash": "sha256:8fc1f6b14a523911e19b92905d57cc6b0ec50bdb93aee0fbc7036a9e1e055113",
-              "recorded_at": "2026-09-20T16:21:03.984Z"
+              "record_hash": "sha256:6b5a2679e27501436d02515221ef3a1f2a2755aed2a007df6bc1624feced6754",
+              "recorded_at": "2026-09-21T06:00:01.108Z"
             },
             {
-              "event_id": "event_01M2ZSY0CVDBVAAA1CPDQERXKH",
+              "event_id": "event_01M318SHVPMQT4491WFE6Z6FE9",
               "event_type": "change_set.applied",
               "event_position": 3,
               "stream_revision": 3,
               "command_id": "command_5DNHXRGSJG7CEMX3W1DTHMD8C0",
-              "record_hash": "sha256:f8931d1bf52ea081f851fbf90153c79d8e324a48c3989e8fe73b52800ec3e62a",
-              "recorded_at": "2026-09-20T16:21:04.026Z"
+              "record_hash": "sha256:818baeb4cb7b415f33802657ed4aaea41ffc132881c36157152e6ce12aba008b",
+              "recorded_at": "2026-09-21T06:00:01.141Z"
             }
           ],
           "history_assessment": {
-            "event_id": "event_01M2ZSY0CVDBVAAA1CPDQERXKH",
-            "content_hash": "sha256:0676a141b08cec7ea1dabbe677f844b6c661dc2bff9bcce3d28d4befa38bef85",
+            "event_id": "event_01M318SHVPMQT4491WFE6Z6FE9",
+            "content_hash": "sha256:65832168bc2a47a0f8edd36adc6799ad8a0cb1243425a4eafdce6e3bb1c554d7",
             "content": {
               "view_kind": "change_set_recovery_assessment",
               "authorization_scope": "authenticated_project",
@@ -924,19 +924,19 @@
                   "correlation_id": "trace_7QFSBVFH0S55CMPRP6AC1BR3MP"
                 },
                 "event_ref": {
-                  "event_id": "event_01M2ZSY0CVDBVAAA1CPDQERXKH",
+                  "event_id": "event_01M318SHVPMQT4491WFE6Z6FE9",
                   "schema_version": "1.0.0",
                   "event_type": "change_set.applied",
                   "event_position": 3,
                   "stream_revision": 3,
-                  "record_hash": "sha256:f8931d1bf52ea081f851fbf90153c79d8e324a48c3989e8fe73b52800ec3e62a"
+                  "record_hash": "sha256:818baeb4cb7b415f33802657ed4aaea41ffc132881c36157152e6ce12aba008b"
                 },
                 "actor": {
                   "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
                   "actor_kind": "human"
                 },
                 "occurred_at": "2026-09-20T16:00:00.000Z",
-                "recorded_at": "2026-09-20T16:21:04.026Z",
+                "recorded_at": "2026-09-21T06:00:01.141Z",
                 "family": "change_control",
                 "targets": [
                   {
@@ -1051,7 +1051,7 @@
                 "execution_recheck": "required_at_each_command"
               },
               "causal_impact_basis": {
-                "source_event_id": "event_01M2ZSY0CVDBVAAA1CPDQERXKH",
+                "source_event_id": "event_01M318SHVPMQT4491WFE6Z6FE9",
                 "direct_dependency_summary": {
                   "registered_group_count": 4,
                   "total_count": 2,
@@ -1215,9 +1215,9 @@
             "command_665AQQKSE62JWKPY4FV1KVH7Q9"
           ],
           "record_hashes": [
-            "sha256:fb2ed1acf284b2852070038abd251135ef75dc3f8c64939c5305371be6846d6a",
-            "sha256:afea40e806910df22f5882a981399900f6e7fe74db79444172a1b357a801c33f",
-            "sha256:a8042b49c05b097279cb53ace0433dc5f6bedadf6f7edd323517f930ba434237"
+            "sha256:9ea3e14da6aced57461b8af682b73fab272c4bc03c691a1dbde397b21174e599",
+            "sha256:1a8a1eae345a0f4a13f9e4ae71e25287f5b7051140f264e2ad143c56524eb73a",
+            "sha256:9f2254527576a936ed413caa04f4f17edef39c56d46f113fe6955235293e19e3"
           ],
           "detail": "Results and failures belong to the canonical command execution ledger; no recovery receipt is created."
         },
@@ -1267,9 +1267,9 @@
       "actions": [],
       "authority_effect": "none"
     },
-    "content_hash": "sha256:8b3e68099bf02f9960806ebd29544ae4dc7a867d7e0d35c34ff6098169280203",
-    "read_at": "2026-09-20T16:21:04.037Z",
-    "reconciled_at": "2026-09-20T16:21:04.037Z"
+    "content_hash": "sha256:c033c49b89c501a5c017f586e420213bdf8e05224d0bf3b2a55243f1eb2578de",
+    "read_at": "2026-09-21T06:00:01.152Z",
+    "reconciled_at": "2026-09-21T06:00:01.152Z"
   },
   "durable_counts": {
     "interrupts": "2",

@@ -1,0 +1,265 @@
+{
+  "artifact_kind": "wave6_operation_prerequisite",
+  "bundle_id": "actions-feedback",
+  "status": "passed",
+  "operation_ids": [
+    "brief.suggested-preview",
+    "brief.suggested-invoke",
+    "petra.preview-action",
+    "petra.invoke-action",
+    "feedback.confirm",
+    "feedback.retry"
+  ],
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "preview": {
+    "action_ref": {
+      "suggested_action_id": "suggested_action_1J3DT18J5EJD07VE2D58DW6BQV",
+      "revision": 1,
+      "content_hash": "sha256:48b731ba7b23be9f1343cb3c36ec95a8e5d8366701cc42cc3acca980545f1bac"
+    },
+    "readiness": {
+      "state": "ready",
+      "reason_code": "exact_grounded_work_authorized",
+      "reason": "Every immutable action dependency is current and one exact actor grant authorizes InvokeSuggestedAction.",
+      "missing_prerequisites": [],
+      "grant_ref": {
+        "capability_grant_id": "capability_grant_01K4C000000000000000000061",
+        "revision": 1,
+        "content_hash": "sha256:e9a2e77db0879df23081d5660e9cfd86539edaa11502c04a8a7884e6d9b01e5d",
+        "record_hash": "sha256:5d351ffb26940b25fb82dd4b2c1e66d7b41f69cd6c1b8cb8c930a2279e012c72"
+      }
+    },
+    "operation": {
+      "state": "command_ready",
+      "work_start": "only_after_exact_invocation",
+      "authority_change": "none"
+    },
+    "invocation": {
+      "kind": "authenticated_command",
+      "contract_name": "petra.suggested-action-invocation-request",
+      "contract_version": "1.0.0",
+      "command_name": "InvokeSuggestedAction",
+      "idempotency": "exact_command_and_work_convergence",
+      "path_convergence": "direct_and_conversational_same_command"
+    },
+    "expected_result": {
+      "state": "new_work_result",
+      "result_kind": "grounded_response",
+      "authority_effect": "none",
+      "reusable": true
+    },
+    "interrupt": {
+      "input_expectation": "none",
+      "delivery_abort": "does_not_cancel_work",
+      "reconnect": "exact_interaction_replay"
+    }
+  },
+  "confirmation": {
+    "command_ref": {
+      "command_id": "command_01K4C000000000000000000061",
+      "command_name": "InvokeSuggestedAction",
+      "idempotency_key": "suggested-action:01K4C000000000000000000061",
+      "command_fingerprint": "sha256:8dc2a14cb92c5e9c42594771285b22ffae0f37e27f060b4713b4931e37b1e3d1",
+      "capability_grant_id": "capability_grant_01K4C000000000000000000061",
+      "actor": {
+        "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+        "actor_kind": "human"
+      },
+      "correlation_id": "trace_01K4C000000000000000000061",
+      "submitted_at": "2026-09-11T18:40:00.000Z"
+    },
+    "invocation_ref": {
+      "suggested_action_invocation_id": "suggested_action_invocation_3418PKHNH5H9NHGNWF892EVYJ4",
+      "revision": 1,
+      "content_hash": "sha256:1a519812dd7bdd134684ec3794465c62b26f0dcf2b5272ceddb04dd891fed363",
+      "record_hash": "sha256:a72823372f398df84653ee4a311ae63205e02b5b9eaf88e5a84bfb15c3ffd59f"
+    },
+    "path_convergence": "direct_and_conversational_same_command",
+    "authority_effect": "none",
+    "exact_replay_applied": false
+  },
+  "result": {
+    "operation_state": "completed",
+    "work": {
+      "state": "available",
+      "work_unit_ref": {
+        "work_unit_id": "work_unit_000HXXSQ691919GHE9HGW83J3M",
+        "revision": 4,
+        "spec_hash": "sha256:c9c5e192be19c731b9e15c4d7937946505c928c527763896305473fb78275ca8",
+        "record_hash": "sha256:8bb1a3bb38b2fbfd8c9bb8fb88fe0574b893c323101c53b24afb84bae667280d"
+      },
+      "input_manifest_ref": {
+        "record_id": "worker_input_manifest_5KZB9ZBJBBJMNZH78WRV5TDJ1H",
+        "revision": 1,
+        "content_hash": "sha256:2bb56631a3b2e8ab3f9ace4629cd9c6a9d0c6315e1f40af9df6e380a9985b05c",
+        "record_hash": "sha256:97f88b786f94cc879ed299d54192fa071b709874f8482446af12bf208fb9bf00"
+      },
+      "execution_state": "completed",
+      "terminal_outcome": "succeeded"
+    },
+    "result": {
+      "state": "available",
+      "result_ref": {
+        "schema_name": "petra.grounded-response",
+        "schema_version": "1.0.0",
+        "record_id": "grounded_response_01ARZ3NDEKTSV4RRFFQ69G5FE9",
+        "revision": 1,
+        "content_hash": "sha256:692cee7e5cf181f15127eec8712e46f58364c10c36c33fcc472c5073afc40091",
+        "record_hash": "sha256:a346e6fb04f44ec9c383c408214921a8e4ef4df20d6c0877478dd560f676d277"
+      },
+      "authority_effect": "none"
+    },
+    "history": {
+      "source": "canonical_command_receipt_and_work_unit_revisions",
+      "command_receipt_ref": {
+        "suggested_action_invocation_id": "suggested_action_invocation_3418PKHNH5H9NHGNWF892EVYJ4",
+        "revision": 1,
+        "content_hash": "sha256:1a519812dd7bdd134684ec3794465c62b26f0dcf2b5272ceddb04dd891fed363",
+        "record_hash": "sha256:a72823372f398df84653ee4a311ae63205e02b5b9eaf88e5a84bfb15c3ffd59f"
+      },
+      "work_revisions": [
+        {
+          "work_unit_ref": {
+            "work_unit_id": "work_unit_000HXXSQ691919GHE9HGW83J3M",
+            "revision": 1,
+            "spec_hash": "sha256:c9c5e192be19c731b9e15c4d7937946505c928c527763896305473fb78275ca8",
+            "record_hash": "sha256:42be83be210cdf748491f36933615233322bb6cf13143cd1af01fd28e9313ccc"
+          },
+          "state": "requested",
+          "recorded_at": "2026-08-29T14:00:00.000Z"
+        },
+        {
+          "work_unit_ref": {
+            "work_unit_id": "work_unit_000HXXSQ691919GHE9HGW83J3M",
+            "revision": 2,
+            "spec_hash": "sha256:c9c5e192be19c731b9e15c4d7937946505c928c527763896305473fb78275ca8",
+            "record_hash": "sha256:aeed92fd186ce9ee878d4df738ff796232b1f9af2b353215fd1a7676a185f1f8"
+          },
+          "state": "queued",
+          "recorded_at": "2026-09-11T18:40:01.000Z"
+        },
+        {
+          "work_unit_ref": {
+            "work_unit_id": "work_unit_000HXXSQ691919GHE9HGW83J3M",
+            "revision": 3,
+            "spec_hash": "sha256:c9c5e192be19c731b9e15c4d7937946505c928c527763896305473fb78275ca8",
+            "record_hash": "sha256:963cd290dde4ce84b1fbb909b6c2aeb107b2ade72d6f7e30a615e6c6f93846e4"
+          },
+          "state": "running",
+          "recorded_at": "2026-09-11T18:40:02.000Z"
+        },
+        {
+          "work_unit_ref": {
+            "work_unit_id": "work_unit_000HXXSQ691919GHE9HGW83J3M",
+            "revision": 4,
+            "spec_hash": "sha256:c9c5e192be19c731b9e15c4d7937946505c928c527763896305473fb78275ca8",
+            "record_hash": "sha256:8bb1a3bb38b2fbfd8c9bb8fb88fe0574b893c323101c53b24afb84bae667280d"
+          },
+          "state": "completed",
+          "terminal_outcome": "succeeded",
+          "recorded_at": "2026-09-11T18:40:04.000Z"
+        }
+      ],
+      "destinations": [
+        {
+          "place_role": "work",
+          "task_intent": "continue_work",
+          "object_ref": {
+            "semantic_key": "petra.work-unit",
+            "object_id": "work_unit_000HXXSQ691919GHE9HGW83J3M"
+          }
+        },
+        {
+          "place_role": "history",
+          "task_intent": "view_history",
+          "object_ref": {
+            "semantic_key": "petra.work-unit",
+            "object_id": "work_unit_000HXXSQ691919GHE9HGW83J3M"
+          }
+        }
+      ]
+    }
+  },
+  "recovery": {
+    "before_work_registration": {
+      "assessment": "current_server_owned",
+      "actions": [
+        {
+          "operation": "retry_exact_start",
+          "eligibility": "eligible",
+          "command_name": "InvokeSuggestedAction",
+          "reason": "Retrying the exact command converges on the same receipt and expected Work identity."
+        },
+        {
+          "operation": "reconnect_delivery",
+          "eligibility": "ineligible",
+          "reason": "Delivery replay becomes available after durable Work registration."
+        },
+        {
+          "operation": "cancel_work",
+          "eligibility": "ineligible",
+          "reason": "Cancellation is available only while the exact Work is active."
+        },
+        {
+          "operation": "inspect_work",
+          "eligibility": "ineligible",
+          "reason": "The Work destination is pending durable registration."
+        },
+        {
+          "operation": "inspect_result",
+          "eligibility": "ineligible",
+          "reason": "No durable GroundedResponse is available yet."
+        }
+      ]
+    },
+    "after_result": {
+      "assessment": "current_server_owned",
+      "actions": [
+        {
+          "operation": "retry_exact_start",
+          "eligibility": "ineligible",
+          "command_name": "InvokeSuggestedAction",
+          "reason": "The exact Work is already durably registered."
+        },
+        {
+          "operation": "reconnect_delivery",
+          "eligibility": "eligible",
+          "reason": "The exact interaction correlation can be replayed without reapplying authority."
+        },
+        {
+          "operation": "cancel_work",
+          "eligibility": "ineligible",
+          "reason": "Cancellation is available only while the exact Work is active."
+        },
+        {
+          "operation": "inspect_work",
+          "eligibility": "eligible",
+          "reason": "The canonical Work destination and revision History are available."
+        },
+        {
+          "operation": "inspect_result",
+          "eligibility": "eligible",
+          "reason": "The exact durable GroundedResponse is available."
+        }
+      ]
+    }
+  },
+  "petra_mediated_composition": {
+    "action_report_family": "action_report",
+    "invocation_ref": {
+      "suggested_action_invocation_id": "suggested_action_invocation_3418PKHNH5H9NHGNWF892EVYJ4",
+      "revision": 1,
+      "content_hash": "sha256:1a519812dd7bdd134684ec3794465c62b26f0dcf2b5272ceddb04dd891fed363",
+      "record_hash": "sha256:a72823372f398df84653ee4a311ae63205e02b5b9eaf88e5a84bfb15c3ffd59f"
+    },
+    "operation_state": "completed",
+    "validation_outcome": "blocked",
+    "source_response_ref": {
+      "grounded_response_id": "grounded_response_01ARZ3NDEKTSV4RRFFQ69G5FE9",
+      "revision": 1,
+      "content_hash": "sha256:692cee7e5cf181f15127eec8712e46f58364c10c36c33fcc472c5073afc40091"
+    }
+  },
+  "model_authority": "none",
+  "boundary": "Real disposable PostgreSQL proves one registered SuggestedAction preview, exact authenticated invocation, idempotent receipt replay, canonical Work and result composition, direct/Petra path convergence, server-owned recovery eligibility, semantic Work and History destinations, and Petra-mediated action-report composition. The production HTTP route contract is exercised separately by the focused server route test. This backend artifact does not execute visible confirmation, retry, dismiss, focus return, Review correction/decision, or the named UX1.6-ACTIONS browser scenario."
+}

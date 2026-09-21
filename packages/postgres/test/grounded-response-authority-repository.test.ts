@@ -5,7 +5,7 @@ import { PetraContractRegistry } from "@petra/contracts/validator";
 import { ProjectBriefClient } from "@petra/adapters";
 import { PostgresProjectBriefViewReader } from "../src/project-brief-view-reader.js";
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 
 import type {
   PetraActor,
@@ -1793,16 +1793,21 @@ describePostgres("PostgreSQL grounded-response authority", () => {
     const accepted =
       await invocations.acceptSuggestedActionInvocation(envelope);
     expect(accepted.applied).toBe(true);
-    expect(
-      await invocations.acceptSuggestedActionInvocation(
-        structuredClone(envelope),
-      ),
-    ).toEqual({ invocation: accepted.invocation, applied: false });
+    const exactReplay = await invocations.acceptSuggestedActionInvocation(
+      structuredClone(envelope),
+    );
+    expect(exactReplay).toEqual({
+      invocation: accepted.invocation,
+      applied: false,
+    });
     const pendingInvocation =
       await invocations.getSuggestedActionInvocationView(
         objective.project_id,
         request.command_id,
       );
+    if (pendingInvocation === undefined) {
+      throw new Error("Expected the accepted SuggestedAction invocation.");
+    }
     expect(pendingInvocation?.content.operation_state).toBe("accepted");
     expect(pendingInvocation?.content.work).toEqual({
       state: "pending_registration",
@@ -1812,6 +1817,17 @@ describePostgres("PostgreSQL grounded-response authority", () => {
     expect(pendingInvocation?.content.recovery.assessment).toBe(
       "current_server_owned",
     );
+    expect(
+      pendingInvocation?.content.recovery.actions.find(
+        (action) => action.operation === "retry_exact_start",
+      ),
+    ).toEqual({
+      operation: "retry_exact_start",
+      eligibility: "eligible",
+      command_name: "InvokeSuggestedAction",
+      reason:
+        "Retrying the exact command converges on the same receipt and expected Work identity.",
+    });
 
     const invocationWork = makeWork(
       terminal.input.modelRequest,
@@ -2010,6 +2026,82 @@ describePostgres("PostgreSQL grounded-response authority", () => {
     ).toBe("ineligible");
     expect(communication?.content.source_response).toEqual(response);
     expect(communication?.content.validation.outcome).toBe("blocked");
+
+    const evidenceOutput =
+      process.env.PETRA_WAVE6_SUGGESTED_ACTION_EVIDENCE_OUTPUT;
+    if (evidenceOutput !== undefined) {
+      if (completedInvocation === undefined || communication === undefined) {
+        throw new Error(
+          "Expected the completed SuggestedAction invocation and Petra communication composition.",
+        );
+      }
+      writeFileSync(
+        evidenceOutput,
+        `${JSON.stringify(
+          {
+            artifact_kind: "wave6_operation_prerequisite",
+            bundle_id: "actions-feedback",
+            status: "passed",
+            operation_ids: [
+              "brief.suggested-preview",
+              "brief.suggested-invoke",
+              "petra.preview-action",
+              "petra.invoke-action",
+              "feedback.confirm",
+              "feedback.retry",
+            ],
+            project_id: objective.project_id,
+            preview: {
+              action_ref: workAction.content.action_ref,
+              readiness: workAction.content.readiness,
+              operation: workAction.content.operation,
+              invocation: workAction.content.action.invocation,
+              expected_result: workAction.content.action.expected_result,
+              interrupt: workAction.content.action.interrupt,
+            },
+            confirmation: {
+              command_ref: accepted.invocation.content.command_ref,
+              invocation_ref: completedInvocation.content.invocation_ref,
+              path_convergence: accepted.invocation.content.path_convergence,
+              authority_effect: accepted.invocation.content.authority_effect,
+              exact_replay_applied: exactReplay.applied,
+            },
+            result: {
+              operation_state: completedInvocation.content.operation_state,
+              work: completedInvocation.content.work,
+              result: completedInvocation.content.result,
+              history: completedInvocation.content.history,
+            },
+            recovery: {
+              before_work_registration: pendingInvocation.content.recovery,
+              after_result: completedInvocation.content.recovery,
+            },
+            petra_mediated_composition: {
+              action_report_family:
+                communication.content.segments.at(-1)?.family,
+              invocation_ref:
+                communication.content.invocation?.content.invocation_ref,
+              operation_state:
+                communication.content.invocation?.content.operation_state,
+              validation_outcome: communication.content.validation.outcome,
+              source_response_ref: {
+                grounded_response_id:
+                  communication.content.source_response.grounded_response_id,
+                revision: communication.content.source_response.revision,
+                content_hash:
+                  communication.content.source_response.content_hash,
+              },
+            },
+            model_authority: "none",
+            boundary:
+              "Real disposable PostgreSQL proves one registered SuggestedAction preview, exact authenticated invocation, idempotent receipt replay, canonical Work and result composition, direct/Petra path convergence, server-owned recovery eligibility, semantic Work and History destinations, and Petra-mediated action-report composition. The production HTTP route contract is exercised separately by the focused server route test. This backend artifact does not execute visible confirmation, retry, dismiss, focus return, Review correction/decision, or the named UX1.6-ACTIONS browser scenario.",
+          },
+          null,
+          2,
+        )}\n`,
+        "utf8",
+      );
+    }
   });
 
   it("persists immutable Project threads, revisions, and exact branch origins", async () => {

@@ -230,9 +230,10 @@ try {
   if (process.env.PETRA_WAVE6_ACTIONS_ONLY === "1") {
     postgresTestArgs.push(
       "--",
+      "grounded-response-authority-repository.test.ts",
       "review-session-authority-repository.test.ts",
       "--testNamePattern",
-      "uses the exact direct Review commands for a durable Petra interrupt after restart",
+      "maps an existing Objective as inquiry and preserves zero, many, and shared Work links|uses the exact direct Review commands for a durable Petra interrupt after restart",
     );
   }
   if (process.env.PETRA_WAVE6_PROJECT_SEARCH_ONLY === "1") {
@@ -268,6 +269,14 @@ try {
             PETRA_WAVE6_ACTIONS_EVIDENCE_OUTPUT: resolve(
               root,
               process.env.PETRA_WAVE6_ACTIONS_EVIDENCE_OUTPUT,
+            ),
+          }),
+      ...(process.env.PETRA_WAVE6_SUGGESTED_ACTION_EVIDENCE_OUTPUT === undefined
+        ? {}
+        : {
+            PETRA_WAVE6_SUGGESTED_ACTION_EVIDENCE_OUTPUT: resolve(
+              root,
+              process.env.PETRA_WAVE6_SUGGESTED_ACTION_EVIDENCE_OUTPUT,
             ),
           }),
       ...(process.env.PETRA_WAVE6_PROJECT_SEARCH_EVIDENCE_OUTPUT === undefined

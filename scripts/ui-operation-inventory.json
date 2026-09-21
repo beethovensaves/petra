@@ -383,12 +383,18 @@
       "surfaces": ["SP03", "SP14"],
       "flows": ["UX-FLOW-10", "UX-FLOW-11"],
       "requests": ["UX-REQ-003", "UX-REQ-016"],
-      "current_state": "live",
+      "current_state": "partial",
       "route": "/projects/:projectId/brief",
       "control": "Suggested next action",
       "interaction": "query",
-      "evidence": [],
-      "runtime_owner": "",
+      "evidence": [
+        {
+          "command": "npm run test:wave6:actions",
+          "artifact": "reports/WAVE6-SUGGESTED-ACTION-FEEDBACK-AUTHORITY.json",
+          "boundary": "Real disposable PostgreSQL derives one exact registered Work-starting SuggestedAction preview with server-owned readiness, authority, scope, expected result, interruption, and direct/conversational path-convergence descriptors. The focused server route test exercises the authenticated production query and command contract. This backend prerequisite does not execute the visible Brief control or the named UX1.6-ACTIONS browser scenario."
+        }
+      ],
+      "runtime_owner": "GET /api/queries/projects/:projectId/suggested-actions?action_kind=run_grounded_synthesis -> SuggestedActionViewReader -> PostgresSuggestedActionViewReader (exact retained inquiry-result basis, authenticated readiness, registered invocation contract, no read-side Work start)",
       "paths": ["UX-PATH-01", "UX-PATH-02", "UX-PATH-03", "UX-PATH-04"]
     },
     {
@@ -398,12 +404,18 @@
       "surfaces": ["SP03", "SP14"],
       "flows": ["UX-FLOW-11"],
       "requests": ["UX-REQ-003", "UX-REQ-023"],
-      "current_state": "live",
+      "current_state": "partial",
       "route": "/projects/:projectId/brief",
       "control": "Start suggested work",
       "interaction": "command",
-      "evidence": [],
-      "runtime_owner": "",
+      "evidence": [
+        {
+          "command": "npm run test:wave6:actions",
+          "artifact": "reports/WAVE6-SUGGESTED-ACTION-FEEDBACK-AUTHORITY.json",
+          "boundary": "Real disposable PostgreSQL accepts the exact server-authorized SuggestedAction invocation, converges an exact replay on the same immutable receipt and expected Work identity, and composes canonical Work, result, History, and recovery state. The focused server route test proves the production route re-reads readiness and resolves the human principal before the coordinator. This backend prerequisite does not execute the visible Brief control or the named UX1.6-ACTIONS browser scenario."
+        }
+      ],
+      "runtime_owner": "POST /api/commands/projects/:projectId/suggested-actions/:suggestedActionId/invoke -> SuggestedActionInvocationCoordinator -> PostgresSuggestedActionInvocationAuthorityRepository + registered grounded-synthesis Work starter; GET /api/queries/projects/:projectId/suggested-action-invocations/:commandId composes the exact outcome",
       "paths": ["UX-PATH-01", "UX-PATH-03", "UX-PATH-04"]
     },
     {
@@ -1312,8 +1324,14 @@
       "route": "/projects/:projectId/petra",
       "control": "Preview action",
       "interaction": "query",
-      "evidence": [],
-      "runtime_owner": "",
+      "evidence": [
+        {
+          "command": "npm run test:wave6:actions",
+          "artifact": "reports/WAVE6-SUGGESTED-ACTION-FEEDBACK-AUTHORITY.json",
+          "boundary": "The executed PostgreSQL trace derives the same registered SuggestedAction identity and invocation contract for direct and conversational presentation, then composes the resulting invocation into Petra's action-report communication plan. Model prose supplies no command or authority. This backend prerequisite does not execute the visible Petra preview or the named UX1.6-ACTIONS browser scenario."
+        }
+      ],
+      "runtime_owner": "GET /api/queries/projects/:projectId/suggested-actions?action_kind=run_grounded_synthesis -> PostgresSuggestedActionViewReader; Petra conversation context reuses the exact inquiry-result link and communication plan rather than deriving an action from model prose",
       "paths": ["UX-PATH-01", "UX-PATH-02", "UX-PATH-03", "UX-PATH-04"]
     },
     {
@@ -1327,8 +1345,14 @@
       "route": "/projects/:projectId/petra",
       "control": "Confirm action",
       "interaction": "command",
-      "evidence": [],
-      "runtime_owner": "",
+      "evidence": [
+        {
+          "command": "npm run test:wave6:actions",
+          "artifact": "reports/WAVE6-SUGGESTED-ACTION-FEEDBACK-AUTHORITY.json",
+          "boundary": "The executed PostgreSQL trace proves direct_and_conversational_same_command on both the preview contract and immutable invocation receipt, while the Petra action-report composition reads that same receipt and server-owned outcome. The focused route test rejects request-carried authority and invokes the shared coordinator. This backend prerequisite does not execute the visible Petra confirmation or the named UX1.6-ACTIONS browser scenario."
+        }
+      ],
+      "runtime_owner": "The conversational presentation submits the same POST /api/commands/projects/:projectId/suggested-actions/:suggestedActionId/invoke request to SuggestedActionInvocationCoordinator as the direct presentation; PostgresSuggestedActionInvocationAuthorityRepository owns identity, authorization binding, idempotency, Work, result, and recovery",
       "paths": ["UX-PATH-01", "UX-PATH-02", "UX-PATH-03", "UX-PATH-04"]
     },
     {
@@ -1563,8 +1587,14 @@
       "route": "contextual",
       "control": "Confirm",
       "interaction": "command",
-      "evidence": [],
-      "runtime_owner": "",
+      "evidence": [
+        {
+          "command": "npm run test:wave6:actions",
+          "artifact": "reports/WAVE6-SUGGESTED-ACTION-FEEDBACK-AUTHORITY.json",
+          "boundary": "The production route test and real PostgreSQL trace execute confirmation only after an exact ready preview, resolve the authenticated human principal and grant on the server, persist the immutable command receipt, and expose authority_effect=none. No visible feedback control or named browser scenario is claimed."
+        }
+      ],
+      "runtime_owner": "Exact SuggestedAction preview -> POST /api/commands/projects/:projectId/suggested-actions/:suggestedActionId/invoke -> server-resolved principal -> SuggestedActionInvocationCoordinator; the request cannot carry Actor, grant, Project, Work, interaction, trace, result, or authority effect",
       "paths": ["UX-PATH-01", "UX-PATH-03", "UX-PATH-04"]
     },
     {
@@ -1578,8 +1608,14 @@
       "route": "contextual",
       "control": "Retry",
       "interaction": "command",
-      "evidence": [],
-      "runtime_owner": "",
+      "evidence": [
+        {
+          "command": "npm run test:wave6:actions",
+          "artifact": "reports/WAVE6-SUGGESTED-ACTION-FEEDBACK-AUTHORITY.json",
+          "boundary": "Real PostgreSQL executes an exact invocation replay and proves it returns applied=false with the same receipt; the invocation view supplies current retry_exact_start eligibility and reasons before and after Work registration. This backend prerequisite does not execute the visible retry control or the named UX1.6-ACTIONS browser scenario."
+        }
+      ],
+      "runtime_owner": "GET /api/queries/projects/:projectId/suggested-action-invocations/:commandId -> server-owned recovery.actions retry_exact_start eligibility; eligible retry reuses the retained POST invocation command and idempotency identities and converges on the same receipt and expected Work",
       "paths": ["UX-PATH-01", "UX-PATH-03", "UX-PATH-04"]
     },
     {
@@ -1594,7 +1630,7 @@
       "control": "Dismiss",
       "interaction": "navigation",
       "evidence": [],
-      "runtime_owner": "",
+      "runtime_owner": "Design-owned client-local transient feedback state over a verified production response; dismiss performs no server command and cannot alter the retained SuggestedAction invocation, Work, result, History, or recovery authority",
       "paths": ["UX-PATH-01", "UX-PATH-03", "UX-PATH-04"]
     },
     {
@@ -1609,7 +1645,7 @@
       "control": "Return focus",
       "interaction": "navigation",
       "evidence": [],
-      "runtime_owner": "",
+      "runtime_owner": "Design-owned focus restoration to the initiating SuggestedAction control within the retained exact Project, inquiry-result link, action, command, and direct-or-conversational presentation context; focus return performs no server command",
       "paths": ["UX-PATH-01", "UX-PATH-03", "UX-PATH-04"]
     },
     {
