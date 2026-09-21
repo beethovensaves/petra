@@ -270,7 +270,7 @@ try {
           stale_response: adverse.observations.stale_response,
         },
         boundary:
-          "The live profile correctly failed closed because it registers no compatible named-expansion recipe for this exact layer, preserving selection. UX-FX25 executed named filters, expansion, caps, hidden, restricted, unknown, stale, and out-of-order completion behavior through production controllers with deterministic injected transport; no live expansion-route claim is made.",
+          "The registered scientific recipe executed through visible production controls and authenticated live HTTP with an exact target, filters, finite depth, snapshot, server accounting, preserved selection, rendered outcomes, and contextual Review return. UX-FX25 independently retained hidden, restricted, unknown, stale, and out-of-order completion coverage through production controllers with deterministic injected transport.",
       },
       {
         evidence_id: "UX1.5-EV03",
@@ -316,19 +316,19 @@ try {
 
   const report = `# Wave 5 cumulative production browser trace
 
-Date: 2026-09-16
+Date: 2026-09-20
 
-Original evidence slice: Wave 5 Slice 22; re-executed during Slice 24
+Original evidence slice: Wave 5 Slice 22; re-executed during Wave 6 Graph remediation
 
-Backend counterpart: \`3d50bea50724118272069c24c1a9da1c434c4001\`
+Backend counterpart: \`10595f33570b705e1c28e7e2d1ab3825933639e3\`
 
-Status: executed and passed; mandatory evidence inventory and remediation remain open
+Status: executed and passed; Wave 6 evidence and remediation remain open
 
 ## Result
 
 \`npm run test:wave5:browser\` executed the ten previously outstanding design-owned UX1.5 records through three explicit browser boundaries: UX-FX24 paired-profile fixture transport, UX-FX25 adverse fixture transport, and a fresh-store authenticated live-route trace. The retained machine-readable observation is \`reports/WAVE5-CUMULATIVE-PRODUCTION-BROWSER-OBSERVATION.json\`.
 
-The live phase used production React Router loaders, focused-graph controllers, the Cytoscape renderer, the complete textual peer, and authenticated server routes backed by fresh PostgreSQL and Neo4j stores. It exercised contextual and direct entry, Current, Working changes, the exact open-Review WorkingRelationship and governed correction preview, an exact retained Historical position, comparison, impact, time, synchronized Details, exact source inspection, Review return focus, projection catching up, and fail-closed expansion. UX-FX25 executed named expansion, pointer/non-drag convergence, and adverse impact presentation states through production components with deterministic injected typed transport.
+The live phase used production React Router loaders, focused-graph controllers, the Cytoscape renderer, the complete textual peer, and authenticated server routes backed by fresh PostgreSQL and Neo4j stores. It exercised contextual and direct entry, Current, Working changes, the exact open-Review WorkingRelationship and governed correction preview, an exact retained Historical position, comparison, impact, time, synchronized Details, exact source inspection, the registered scientific downstream expansion, exact Review return focus, and projection catching up. UX-FX25 retained stale, late-response, dense-omission, pointer/non-drag convergence, and adverse impact presentation coverage through production components with deterministic injected typed transport.
 
 ## Critic findings
 
@@ -341,7 +341,7 @@ The live phase used production React Router loaders, focused-graph controllers, 
 
 UX-FX24 ran in real Chrome through production UI code, but its controlled-writing graph packet remains deterministic synthetic transport because a controlled-writing focused-query HTTP composer is not installed. UX-FX25 likewise uses injected transport for adverse ordering and omission states. Neither is relabeled as a live backend trace.
 
-The live scientific ProjectDefinition does not register a compatible named-expansion recipe for this semantic layer. The live workbench therefore exposed no expansion controls and preserved selection; named expansion itself is evidenced only at the UX-FX25 production-controller boundary.
+The live scientific ProjectDefinition registered \`scientific.graph.show-downstream\` through \`petra.focused-graph-view@1.1.0\`. The live workbench selected the exact focused Claim, narrowed visible meaning, direction, and origin filters, chose a finite depth, reached the authenticated server owner, rendered returned groups and accounting, preserved selection, and returned to the exact Review context. UX-FX25 remains the deterministic boundary for stale and out-of-order responses and dense hidden, restricted, and unknown-path states.
 
 The live scientific trace now enters Graph from the exact open-Review candidate focus supplied by the Review route. The server composes that Review member's exact WorkingRelationship, and the workbench executes its authenticated governed action-preview read through visible controls. The preview remains read-only: selection grants no authority, renderer state is rejected, and no command or Work is issued. Pointer/non-drag request convergence remains independently covered at the UX-FX25 production-controller boundary.
 
@@ -355,7 +355,7 @@ ${artifact.scenario_records.map((record) => `- \`${record.evidence_id}/${record.
 
 ## Next safe boundary
 
-Design Slice 24 must finish the mandatory executed-inventory audit. The protected reserve remains available for any material inventory finding, and Wave 5 is not complete.
+Wave 6 must continue at the next bounded remediation named by the controller; this re-execution does not claim any outstanding Wave 6 scenario or user acceptance.
 `;
   writeFileSync(reportPath, report);
   process.stdout.write(
