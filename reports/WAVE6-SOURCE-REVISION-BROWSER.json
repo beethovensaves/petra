@@ -1,0 +1,20 @@
+{
+  "schema_name": "petra.wave6-source-revision-browser-observation",
+  "schema_version": 1,
+  "observed_at": "2026-09-20T12:51:40.347Z",
+  "operations": ["source.add-revision"],
+  "production_boundary": "Production SourceRevisionPanel with the renderer-neutral ProjectSourceRevisionClient boundary and deterministic typed transport.",
+  "exercised": [
+    "exact Project, ProjectDefinition, and active predecessor binding",
+    "immutable bytes, metadata, copy-rights, and replacement review",
+    "pending, applied, replayed, conflict, authorization, rejected, and unknown-effect recovery states",
+    "stable command and idempotency retry with preserved reviewed input",
+    "separate predecessor exclusion and successor replacement controls",
+    "exact originating source-task return",
+    "narrow viewport, 200% text, reduced motion, keyboard focus, and browser semantics"
+  ],
+  "exclusions": [
+    "No PostgreSQL service was started by this focused browser run.",
+    "This is not the complete UX1.6-SOURCES register/process/inspect/replace/remove/delete/recovery workflow."
+  ]
+}

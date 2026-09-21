@@ -1,0 +1,46 @@
+{
+  "schema_name": "petra.wave6-graph-inquiry-save-browser-observation",
+  "schema_version": "1.0.0",
+  "status": "pass",
+  "recorded_at": "2026-09-20T03:58:51.220Z",
+  "environment": {
+    "node": "v24.20.0",
+    "browser": "Chrome/153.0.8010.48",
+    "browser_user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+    "protocol_version": "1.3",
+    "platform": "darwin",
+    "architecture": "arm64",
+    "renderer": "Cytoscape production component in isolated headless Chrome"
+  },
+  "production_components": [
+    "FocusedGraphOrientationSurface",
+    "FocusedGraphExploration"
+  ],
+  "routes": {
+    "command": "POST /api/commands/projects/:projectId/inquiries",
+    "recovery": "POST /api/queries/projects/:projectId/inquiries/save-recovery"
+  },
+  "observation": {
+    "applied_outcome_rendered": true,
+    "idempotent_replay_rendered": true,
+    "exact_request_reused": true,
+    "recovery_assessment_called_with_exact_request": true,
+    "outcome_unknown_rendered": true,
+    "conflict_rendered_without_false_success": true,
+    "stale_rendered_without_false_success": true,
+    "retained_destination_rendered": true,
+    "exact_return_rendered": true,
+    "client_authority_fields_sent": false,
+    "boundary": "Production Graph state controller ran in isolated Chrome with injected typed save/recovery transport; live server and PostgreSQL authority were not invoked by this focused browser check."
+  },
+  "boundary": {
+    "transport": "injected typed save and recovery transport",
+    "live_server_invoked": false,
+    "postgresql_invoked": false,
+    "authority_fields_checked": true
+  },
+  "limitations": [
+    "This focused browser artifact does not re-execute the live server or PostgreSQL authority verified by the backend prerequisite.",
+    "This is not a complete UX1.6-GRAPH/task-graph-details-return scenario record."
+  ]
+}

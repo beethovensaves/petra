@@ -1,0 +1,21 @@
+{
+  "schema_name": "petra.wave6-source-link-removal-browser-observation",
+  "schema_version": 1,
+  "observed_at": "2026-09-20T14:46:56.336Z",
+  "operations": ["source.remove-project-link"],
+  "production_boundary": "Production Source Details SourceLinkRemovalActions with the renderer-neutral ProjectSourceLinkRemovalClient boundary and deterministic typed transport.",
+  "exercised": [
+    "authenticated preview invocation boundary and exact Project, ProjectDefinition, ProjectSource, and registered role presentation",
+    "registered direct and scientific dependency impact plus explicit limitations",
+    "retained global identity, immutable revisions, copy manifest, local copy, parsed representation, and provenance",
+    "required human reason and exact command/idempotency retry",
+    "applied, replayed, conflict, permission, rejected, and unknown-effect recovery outcomes",
+    "distinct local-copy deletion control without invoking its separate production owner",
+    "exact originating source-task selection and trigger-focus return",
+    "narrow viewport, 200% text, reduced motion, keyboard focus, touch target, and browser semantics"
+  ],
+  "exclusions": [
+    "No PostgreSQL service was started by this focused browser run.",
+    "This is not the complete UX1.6-SOURCES register/process/inspect/replace/remove/delete/recovery workflow."
+  ]
+}

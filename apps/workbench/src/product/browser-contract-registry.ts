@@ -9,9 +9,16 @@ import briefProjectSourceViewV100Schema from "../../../../packages/contracts/sch
 import briefProjectShellViewV120Schema from "../../../../packages/contracts/schemas/project-shell-view/1.2.0/schema.json";
 import briefProjectShellViewV110Schema from "../../../../packages/contracts/schemas/project-shell-view/1.1.0/schema.json";
 import briefProjectShellViewV100Schema from "../../../../packages/contracts/schemas/project-shell-view/1.0.0/schema.json";
+import projectShellCollectionViewV100Schema from "../../../../packages/contracts/schemas/project-shell-collection-view/1.0.0/schema.json";
 import briefProjectObjectiveV100Schema from "../../../../packages/contracts/schemas/project-objective/1.0.0/schema.json";
 import briefProjectObjectLocationViewV100Schema from "../../../../packages/contracts/schemas/project-object-location-view/1.0.0/schema.json";
 import briefProjectInquiryLinkV100Schema from "../../../../packages/contracts/schemas/project-inquiry-link/1.0.0/schema.json";
+import projectInquirySaveReceiptSchema from "../../../../packages/contracts/schemas/project-inquiry-save-receipt/1.0.0/schema.json";
+import projectInquirySaveRecoveryViewSchema from "../../../../packages/contracts/schemas/project-inquiry-save-recovery-view/1.0.0/schema.json";
+import projectInquirySaveRequestSchema from "../../../../packages/contracts/schemas/project-inquiry-save-request/1.0.0/schema.json";
+import projectObjectiveCommandRequestSchema from "../../../../packages/contracts/schemas/project-objective-command-request/1.0.0/schema.json";
+import projectObjectiveCommandReceiptSchema from "../../../../packages/contracts/schemas/project-objective-command-receipt/1.0.0/schema.json";
+import projectObjectiveCommandRecoveryViewSchema from "../../../../packages/contracts/schemas/project-objective-command-recovery-view/1.0.0/schema.json";
 import briefProjectBriefViewV110Schema from "../../../../packages/contracts/schemas/project-brief-view/1.1.0/schema.json";
 import briefProjectBriefViewV100Schema from "../../../../packages/contracts/schemas/project-brief-view/1.0.0/schema.json";
 import briefModelSynthesistOutputV100Schema from "../../../../packages/contracts/schemas/model-synthesist-output/1.0.0/schema.json";
@@ -41,10 +48,49 @@ import suggestedActionViewV11Schema from "../../../../packages/contracts/schemas
 import workVersionSchema from "../../../../packages/contracts/schemas/work-version/1.0.0/schema.json";
 import assertionSchema from "../../../../packages/contracts/schemas/assertion/1.0.0/schema.json";
 import projectSourceSchema from "../../../../packages/contracts/schemas/project-source/1.0.0/schema.json";
+import projectSourceRegistrationRequestSchema from "../../../../packages/contracts/schemas/project-source-registration-request/1.0.0/schema.json";
+import projectSourceRegistrationReceiptSchema from "../../../../packages/contracts/schemas/project-source-registration-receipt/1.0.0/schema.json";
+import projectSourceRegistrationRecoveryViewSchema from "../../../../packages/contracts/schemas/project-source-registration-recovery-view/1.0.0/schema.json";
+import projectSourceRevisionRequestSchema from "../../../../packages/contracts/schemas/project-source-revision-request/1.0.0/schema.json";
+import projectSourceRevisionReceiptSchema from "../../../../packages/contracts/schemas/project-source-revision-receipt/1.0.0/schema.json";
+import projectSourceRevisionRecoveryViewSchema from "../../../../packages/contracts/schemas/project-source-revision-recovery-view/1.0.0/schema.json";
+import projectSourceProcessingRequestSchema from "../../../../packages/contracts/schemas/project-source-processing-request/1.0.0/schema.json";
+import projectSourceProcessingReceiptSchema from "../../../../packages/contracts/schemas/project-source-processing-receipt/1.0.0/schema.json";
+import projectSourceProcessingRecoveryViewSchema from "../../../../packages/contracts/schemas/project-source-processing-recovery-view/1.0.0/schema.json";
+import projectSourceProcessingViewSchema from "../../../../packages/contracts/schemas/project-source-processing-view/1.0.0/schema.json";
+import projectSourceReuseRequestSchema from "../../../../packages/contracts/schemas/project-source-reuse-request/1.0.0/schema.json";
+import projectSourceReuseOptionsViewSchema from "../../../../packages/contracts/schemas/project-source-reuse-options-view/1.0.0/schema.json";
+import projectSourceReuseReceiptSchema from "../../../../packages/contracts/schemas/project-source-reuse-receipt/1.0.0/schema.json";
+import projectSourceReuseRecoveryViewSchema from "../../../../packages/contracts/schemas/project-source-reuse-recovery-view/1.0.0/schema.json";
+import projectSourceLocalCopyDeletionRequestSchema from "../../../../packages/contracts/schemas/project-source-local-copy-deletion-request/1.0.0/schema.json";
+import projectSourceLocalCopyDeletionPreviewSchema from "../../../../packages/contracts/schemas/project-source-local-copy-deletion-preview/1.0.0/schema.json";
+import projectSourceLocalCopyDeletionReceiptSchema from "../../../../packages/contracts/schemas/project-source-local-copy-deletion-receipt/1.0.0/schema.json";
+import projectSourceLocalCopyDeletionRecoveryViewSchema from "../../../../packages/contracts/schemas/project-source-local-copy-deletion-recovery-view/1.0.0/schema.json";
+import capabilityGrantSchema from "../../../../packages/contracts/schemas/capability-grant/1.0.0/schema.json";
+import rightsDecisionSchema from "../../../../packages/contracts/schemas/rights-decision/1.0.0/schema.json";
 import projectDefinitionSchema from "../../../../packages/contracts/schemas/project-definition/1.0.0/schema.json";
+import registeredProjectProfileSchema from "../../../../packages/contracts/schemas/registered-project-profile/1.0.0/schema.json";
+import projectProfileTaxonomyViewSchema from "../../../../packages/contracts/schemas/project-profile-taxonomy-view/1.0.0/schema.json";
+import projectModelReadinessViewSchema from "../../../../packages/contracts/schemas/project-model-readiness-view/1.0.0/schema.json";
+import projectProfileCommandRequestSchema from "../../../../packages/contracts/schemas/project-profile-command-request/1.0.0/schema.json";
+import projectProfileCommandReceiptSchema from "../../../../packages/contracts/schemas/project-profile-command-receipt/1.0.0/schema.json";
+import projectProfileCommandRecoveryViewSchema from "../../../../packages/contracts/schemas/project-profile-command-recovery-view/1.0.0/schema.json";
+import projectImportCommandRequestSchema from "../../../../packages/contracts/schemas/project-import-command-request/1.0.0/schema.json";
+import projectImportCommandReceiptSchema from "../../../../packages/contracts/schemas/project-import-command-receipt/1.0.0/schema.json";
+import projectImportCommandRecoveryViewSchema from "../../../../packages/contracts/schemas/project-import-command-recovery-view/1.0.0/schema.json";
+import projectWorkOperationRequestSchema from "../../../../packages/contracts/schemas/project-work-operation-request/1.0.0/schema.json";
+import projectWorkOperationReceiptSchema from "../../../../packages/contracts/schemas/project-work-operation-receipt/1.0.0/schema.json";
+import projectWorkOperationsViewSchema from "../../../../packages/contracts/schemas/project-work-operations-view/1.0.0/schema.json";
+import projectWorkResumeRequestSchema from "../../../../packages/contracts/schemas/project-work-resume-request/1.0.0/schema.json";
+import projectWorkResumeReceiptSchema from "../../../../packages/contracts/schemas/project-work-resume-receipt/1.0.0/schema.json";
+import projectWorkStartAgainRequestSchema from "../../../../packages/contracts/schemas/project-work-start-again-request/1.0.0/schema.json";
+import projectWorkStartAgainReceiptSchema from "../../../../packages/contracts/schemas/project-work-start-again-receipt/1.0.0/schema.json";
 import applyResultSchema from "../../../../packages/contracts/schemas/review-session-apply-result/1.0.0/schema.json";
 import applyRequestSchema from "../../../../packages/contracts/schemas/review-session-apply-request/1.0.0/schema.json";
 import applyCheckpointSchema from "../../../../packages/contracts/schemas/review-session-apply-checkpoint/1.0.0/schema.json";
+import rejectCheckpointSchema from "../../../../packages/contracts/schemas/review-session-reject-checkpoint/1.0.0/schema.json";
+import rejectRequestSchema from "../../../../packages/contracts/schemas/review-session-reject-request/1.0.0/schema.json";
+import rejectResultSchema from "../../../../packages/contracts/schemas/review-session-reject-result/1.0.0/schema.json";
 import Ajv2020, { type ValidateFunction } from "ajv/dist/2020.js";
 import addFormats from "ajv-formats";
 
@@ -87,15 +133,64 @@ type BrowserContractName =
   | "research-brief-payload@1.0.0"
   | "project-brief-view@1.1.0"
   | "project-brief-view@1.0.0"
+  | "project-shell-view@1.0.0"
+  | "project-shell-view@1.1.0"
+  | "project-shell-view@1.2.0"
+  | "project-shell-collection-view@1.0.0"
   | "review-session-apply-checkpoint@1.0.0"
   | "review-session-apply-request@1.0.0"
   | "review-session-apply-result@1.0.0"
+  | "review-session-reject-checkpoint@1.0.0"
+  | "review-session-reject-request@1.0.0"
+  | "review-session-reject-result@1.0.0"
   | "review-recovery-assessment@1.0.0"
   | "claim@1.0.0"
   | "review-candidate-basis-revision-receipt@1.0.0"
   | "review-candidate-correction-receipt@1.0.0"
   | "review-session-separation-receipt@1.0.0"
   | "review-session@1.1.0"
+  | "registered-project-profile@1.0.0"
+  | "project-profile-taxonomy-view@1.0.0"
+  | "project-model-readiness-view@1.0.0"
+  | "project-objective@1.0.0"
+  | "project-inquiry-save-request@1.0.0"
+  | "project-inquiry-save-receipt@1.0.0"
+  | "project-inquiry-save-recovery-view@1.0.0"
+  | "project-objective-command-request@1.0.0"
+  | "project-objective-command-receipt@1.0.0"
+  | "project-objective-command-recovery-view@1.0.0"
+  | "project-profile-command-request@1.0.0"
+  | "project-profile-command-receipt@1.0.0"
+  | "project-profile-command-recovery-view@1.0.0"
+  | "project-import-command-request@1.0.0"
+  | "project-import-command-receipt@1.0.0"
+  | "project-import-command-recovery-view@1.0.0"
+  | "project-work-operation-request@1.0.0"
+  | "project-work-operation-receipt@1.0.0"
+  | "project-work-operations-view@1.0.0"
+  | "project-work-resume-request@1.0.0"
+  | "project-work-resume-receipt@1.0.0"
+  | "project-work-start-again-request@1.0.0"
+  | "project-work-start-again-receipt@1.0.0"
+  | "project-source-registration-request@1.0.0"
+  | "project-source-registration-receipt@1.0.0"
+  | "project-source-registration-recovery-view@1.0.0"
+  | "project-source-revision-request@1.0.0"
+  | "project-source-revision-receipt@1.0.0"
+  | "project-source-revision-recovery-view@1.0.0"
+  | "project-source-processing-request@1.0.0"
+  | "project-source-processing-receipt@1.0.0"
+  | "project-source-processing-recovery-view@1.0.0"
+  | "project-source-processing-view@1.0.0"
+  | "project-source-reuse-request@1.0.0"
+  | "project-source-reuse-options-view@1.0.0"
+  | "project-source-reuse-receipt@1.0.0"
+  | "project-source-reuse-recovery-view@1.0.0"
+  | "project-source-local-copy-deletion-request@1.0.0"
+  | "project-source-local-copy-deletion-preview@1.0.0"
+  | "project-source-local-copy-deletion-receipt@1.0.0"
+  | "project-source-local-copy-deletion-recovery-view@1.0.0"
+  | "worker-output-manifest@1.0.0"
   | "working-candidate@1.0.0"
   | "working-relationship@1.0.0";
 
@@ -140,11 +235,18 @@ const schemas = [
   briefProjectBriefViewV100Schema,
   briefProjectBriefViewV110Schema,
   briefProjectInquiryLinkV100Schema,
+  projectInquirySaveRequestSchema,
+  projectInquirySaveReceiptSchema,
+  projectInquirySaveRecoveryViewSchema,
+  projectObjectiveCommandRequestSchema,
+  projectObjectiveCommandReceiptSchema,
+  projectObjectiveCommandRecoveryViewSchema,
   briefProjectObjectLocationViewV100Schema,
   briefProjectObjectiveV100Schema,
   briefProjectShellViewV100Schema,
   briefProjectShellViewV110Schema,
   briefProjectShellViewV120Schema,
+  projectShellCollectionViewV100Schema,
   briefProjectSourceViewV100Schema,
   briefProjectWorkViewV100Schema,
   briefResearchBriefPayloadV100Schema,
@@ -156,8 +258,47 @@ const schemas = [
   applyCheckpointSchema,
   applyRequestSchema,
   applyResultSchema,
+  rejectCheckpointSchema,
+  rejectRequestSchema,
+  rejectResultSchema,
   projectDefinitionSchema,
+  registeredProjectProfileSchema,
+  projectProfileTaxonomyViewSchema,
+  projectModelReadinessViewSchema,
+  projectProfileCommandRequestSchema,
+  projectProfileCommandReceiptSchema,
+  projectProfileCommandRecoveryViewSchema,
+  projectImportCommandRequestSchema,
+  projectImportCommandReceiptSchema,
+  projectImportCommandRecoveryViewSchema,
+  projectWorkOperationRequestSchema,
+  projectWorkOperationReceiptSchema,
+  projectWorkOperationsViewSchema,
+  projectWorkResumeRequestSchema,
+  projectWorkResumeReceiptSchema,
+  projectWorkStartAgainRequestSchema,
+  projectWorkStartAgainReceiptSchema,
+  projectSourceRegistrationRequestSchema,
+  projectSourceRegistrationReceiptSchema,
+  projectSourceRegistrationRecoveryViewSchema,
+  projectSourceRevisionRequestSchema,
+  projectSourceRevisionReceiptSchema,
+  projectSourceRevisionRecoveryViewSchema,
+  projectSourceProcessingRequestSchema,
+  projectSourceProcessingReceiptSchema,
+  projectSourceProcessingRecoveryViewSchema,
+  projectSourceProcessingViewSchema,
+  projectSourceReuseRequestSchema,
+  projectSourceReuseOptionsViewSchema,
+  projectSourceReuseReceiptSchema,
+  projectSourceReuseRecoveryViewSchema,
+  projectSourceLocalCopyDeletionRequestSchema,
+  projectSourceLocalCopyDeletionPreviewSchema,
+  projectSourceLocalCopyDeletionReceiptSchema,
+  projectSourceLocalCopyDeletionRecoveryViewSchema,
+  capabilityGrantSchema,
   projectSourceSchema,
+  rightsDecisionSchema,
   assertionSchema,
   recoveryAssessmentSchema,
   reviewViewSchema,
@@ -201,9 +342,17 @@ const contractIds: Record<BrowserContractName, string> = {
   "research-brief-payload@1.0.0": briefResearchBriefPayloadV100Schema.$id,
   "project-brief-view@1.1.0": briefProjectBriefViewV110Schema.$id,
   "project-brief-view@1.0.0": briefProjectBriefViewV100Schema.$id,
+  "project-shell-view@1.0.0": briefProjectShellViewV100Schema.$id,
+  "project-shell-view@1.1.0": briefProjectShellViewV110Schema.$id,
+  "project-shell-view@1.2.0": briefProjectShellViewV120Schema.$id,
+  "project-shell-collection-view@1.0.0":
+    projectShellCollectionViewV100Schema.$id,
   "review-session-apply-checkpoint@1.0.0": applyCheckpointSchema.$id,
   "review-session-apply-request@1.0.0": applyRequestSchema.$id,
   "review-session-apply-result@1.0.0": applyResultSchema.$id,
+  "review-session-reject-checkpoint@1.0.0": rejectCheckpointSchema.$id,
+  "review-session-reject-request@1.0.0": rejectRequestSchema.$id,
+  "review-session-reject-result@1.0.0": rejectResultSchema.$id,
   "review-recovery-assessment@1.0.0": recoveryAssessmentSchema.$id,
   "claim@1.0.0": claimSchema.$id,
   "review-candidate-basis-revision-receipt@1.0.0":
@@ -211,6 +360,73 @@ const contractIds: Record<BrowserContractName, string> = {
   "review-candidate-correction-receipt@1.0.0": correctionReceiptSchema.$id,
   "review-session-separation-receipt@1.0.0": separationReceiptSchema.$id,
   "review-session@1.1.0": reviewSessionV11Schema.$id,
+  "registered-project-profile@1.0.0": registeredProjectProfileSchema.$id,
+  "project-profile-taxonomy-view@1.0.0": projectProfileTaxonomyViewSchema.$id,
+  "project-model-readiness-view@1.0.0": projectModelReadinessViewSchema.$id,
+  "project-objective@1.0.0": briefProjectObjectiveV100Schema.$id,
+  "project-inquiry-save-request@1.0.0": projectInquirySaveRequestSchema.$id,
+  "project-inquiry-save-receipt@1.0.0": projectInquirySaveReceiptSchema.$id,
+  "project-inquiry-save-recovery-view@1.0.0":
+    projectInquirySaveRecoveryViewSchema.$id,
+  "project-objective-command-request@1.0.0":
+    projectObjectiveCommandRequestSchema.$id,
+  "project-objective-command-receipt@1.0.0":
+    projectObjectiveCommandReceiptSchema.$id,
+  "project-objective-command-recovery-view@1.0.0":
+    projectObjectiveCommandRecoveryViewSchema.$id,
+  "project-profile-command-request@1.0.0":
+    projectProfileCommandRequestSchema.$id,
+  "project-profile-command-receipt@1.0.0":
+    projectProfileCommandReceiptSchema.$id,
+  "project-profile-command-recovery-view@1.0.0":
+    projectProfileCommandRecoveryViewSchema.$id,
+  "project-import-command-request@1.0.0": projectImportCommandRequestSchema.$id,
+  "project-import-command-receipt@1.0.0": projectImportCommandReceiptSchema.$id,
+  "project-import-command-recovery-view@1.0.0":
+    projectImportCommandRecoveryViewSchema.$id,
+  "project-work-operation-request@1.0.0": projectWorkOperationRequestSchema.$id,
+  "project-work-operation-receipt@1.0.0": projectWorkOperationReceiptSchema.$id,
+  "project-work-operations-view@1.0.0": projectWorkOperationsViewSchema.$id,
+  "project-work-resume-request@1.0.0": projectWorkResumeRequestSchema.$id,
+  "project-work-resume-receipt@1.0.0": projectWorkResumeReceiptSchema.$id,
+  "project-work-start-again-request@1.0.0":
+    projectWorkStartAgainRequestSchema.$id,
+  "project-work-start-again-receipt@1.0.0":
+    projectWorkStartAgainReceiptSchema.$id,
+  "project-source-registration-request@1.0.0":
+    projectSourceRegistrationRequestSchema.$id,
+  "project-source-registration-receipt@1.0.0":
+    projectSourceRegistrationReceiptSchema.$id,
+  "project-source-registration-recovery-view@1.0.0":
+    projectSourceRegistrationRecoveryViewSchema.$id,
+  "project-source-revision-request@1.0.0":
+    projectSourceRevisionRequestSchema.$id,
+  "project-source-revision-receipt@1.0.0":
+    projectSourceRevisionReceiptSchema.$id,
+  "project-source-revision-recovery-view@1.0.0":
+    projectSourceRevisionRecoveryViewSchema.$id,
+  "project-source-processing-request@1.0.0":
+    projectSourceProcessingRequestSchema.$id,
+  "project-source-processing-receipt@1.0.0":
+    projectSourceProcessingReceiptSchema.$id,
+  "project-source-processing-recovery-view@1.0.0":
+    projectSourceProcessingRecoveryViewSchema.$id,
+  "project-source-processing-view@1.0.0": projectSourceProcessingViewSchema.$id,
+  "project-source-reuse-request@1.0.0": projectSourceReuseRequestSchema.$id,
+  "project-source-reuse-options-view@1.0.0":
+    projectSourceReuseOptionsViewSchema.$id,
+  "project-source-reuse-receipt@1.0.0": projectSourceReuseReceiptSchema.$id,
+  "project-source-reuse-recovery-view@1.0.0":
+    projectSourceReuseRecoveryViewSchema.$id,
+  "project-source-local-copy-deletion-request@1.0.0":
+    projectSourceLocalCopyDeletionRequestSchema.$id,
+  "project-source-local-copy-deletion-preview@1.0.0":
+    projectSourceLocalCopyDeletionPreviewSchema.$id,
+  "project-source-local-copy-deletion-receipt@1.0.0":
+    projectSourceLocalCopyDeletionReceiptSchema.$id,
+  "project-source-local-copy-deletion-recovery-view@1.0.0":
+    projectSourceLocalCopyDeletionRecoveryViewSchema.$id,
+  "worker-output-manifest@1.0.0": briefWorkerOutputManifestV100Schema.$id,
   "working-candidate@1.0.0": workingCandidateSchema.$id,
   "working-relationship@1.0.0": workingRelationshipSchema.$id,
 };
@@ -283,6 +499,258 @@ export class PetraContractRegistry {
       version: "1.0.0",
       canonical_sha256:
         "sha256:c32fbcc062c28b100babf7ca372a62d9eeb25fb7446f49b6491d8fab61d4882a",
+    },
+    {
+      name: "registered-project-profile",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:c08a6749198248bf1cabba134e320dbe90d1d6b5307b045fa88fc3639295dcaa",
+    },
+    {
+      name: "project-profile-taxonomy-view",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:4176da336913b2eaf10679fb9f984e23c0ca8fbc3b03e14d1bc1b149402dd4a6",
+    },
+    {
+      name: "project-model-readiness-view",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:6a9cacc35e9df3b73a4eaed2db936f8c2452cf07ebd0256523388c743eb2b22e",
+    },
+    {
+      name: "project-shell-view",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:b96d956d1a89d63965000bcb7cea7ea33d4e4cf6d44554c5acccbb37ac4b2cc4",
+    },
+    {
+      name: "project-shell-view",
+      version: "1.1.0",
+      canonical_sha256:
+        "sha256:859cf372c29e2ed06d7f4e0173a3f8955ba020ff7bb4a022be953d0e98038daf",
+    },
+    {
+      name: "project-shell-view",
+      version: "1.2.0",
+      canonical_sha256:
+        "sha256:c846435a0b3efa9707a2a83251b108d509a2ea2070559cd01bb1a74c5e98186b",
+    },
+    {
+      name: "project-shell-collection-view",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:bac8053554ca391baaba96cd0e84c65b9813e7e542ca49bf35704450fe798bff",
+    },
+    {
+      name: "project-objective-command-request",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:55e4423042dab6c37f913f43198c444b5f4cde584108b1cd4b30d216b89ee373",
+    },
+    {
+      name: "project-objective-command-receipt",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:15414d1bbd0f2c94e7909206d49134ea94f233f4d12b357cdce99c607e53be7c",
+    },
+    {
+      name: "project-objective-command-recovery-view",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:b64ac1a2076a71feb56f5defde4867013f5386ebcc67ce00486430df702c0fd6",
+    },
+    {
+      name: "project-profile-command-request",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:69e1df55b23578ffb0179d09995f81e9696f871d2d5a27d326e0ad26b85cf4f1",
+    },
+    {
+      name: "project-profile-command-receipt",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:5131baf319411d989a9f14de7a30cda8fd4ea729370e19f440763a6140bb188b",
+    },
+    {
+      name: "project-profile-command-recovery-view",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:77534795a71219fd9974160e547455966389f642f85c0e26fa3b44e2295c195e",
+    },
+    {
+      name: "project-import-command-request",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:e4ea1c2594c0c92ae0ccf17bd2cf1e2365753a04dac0022091dd77df40a4e4c2",
+    },
+    {
+      name: "project-import-command-receipt",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:76ce2aa5258d10be647ca47d782b124dfff8d611f5c51705ce0907bfae8b2bd6",
+    },
+    {
+      name: "project-import-command-recovery-view",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:1ba7b7d77a05f49014b08bb154f9511eed96cff7de08972d73ba7dfda9734930",
+    },
+    {
+      name: "project-work-operation-request",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:b0364e9458c0cf08ec28a729a8e88e3c066ca5c970d8fd65eaf5f0c791cdcb7d",
+    },
+    {
+      name: "project-work-operation-receipt",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:80a46aa22cee93ddd1d7542dfb67dec75db34f44f555ba4bff15a935a70e615b",
+    },
+    {
+      name: "project-work-operations-view",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:cc61cba0158681b3f8417a6e52c0feb356bb1c4838cf952facaaf4c37cbb5010",
+    },
+    {
+      name: "project-work-resume-request",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:6688eeb22907a81055240c80ab1aedd94751b37fa5433078002aef042e2120f9",
+    },
+    {
+      name: "project-work-resume-receipt",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:41ab775c6d9c0773574fd458ab09d146d99c0fb7e634741a777ad01476a57215",
+    },
+    {
+      name: "project-work-start-again-request",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:09caaf1a07141acb319dd628ec0d929df1c730dcfaf4c98c2bd6497772a9ed00",
+    },
+    {
+      name: "project-work-start-again-receipt",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:056fec8e90396d2a7eb8a8c8e5fbfaf1942c3e89e09b28e3fcd39f0c92331a84",
+    },
+    {
+      name: "project-source-registration-request",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:f24333e7b6a2aa84f690793578f9e0a45aaf9ed607f9cd821927f4541295f9fb",
+    },
+    {
+      name: "project-source-registration-receipt",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:e651eb35eb22c788cf6e7e5eecc96d118a2fdae09b01cb5bfaac572ef4156fab",
+    },
+    {
+      name: "project-source-registration-recovery-view",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:af195b8e201dae246dfee82e82c0d2069b5b3828db646a7d5908d79b48c83906",
+    },
+    {
+      name: "project-source-revision-request",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:2ff6f4c45a028501667a03766c026a9832e96ab522b4f7c745c55203afb9811a",
+    },
+    {
+      name: "project-source-revision-receipt",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:ee6a08640c1e27cffa4b11133ce31016427c34a1b53fe8597ce647c9ff1cc65a",
+    },
+    {
+      name: "project-source-revision-recovery-view",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:483a6fbfa97bec988e20d460ddd50a6044d0586eda909ddfc3d138ebc4fb20d7",
+    },
+    {
+      name: "project-source-processing-request",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:ed7e1f54b15d247485a47a502fb49fe474d0e5291c48be2cb313997d7be396ee",
+    },
+    {
+      name: "project-source-processing-receipt",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:9f0272e553ef770c1b530738699c3edfa0ea688ce5b317e8c9dd3a75e6e44b56",
+    },
+    {
+      name: "project-source-processing-recovery-view",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:ee2671041b39eefbfae79c7dd34fb509f1056ac4a4a8ff5c35284462dcc612f8",
+    },
+    {
+      name: "project-source-processing-view",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:dd61aaf9dbaf8e11e19d710d240fd0bf49c109c74d5dec48008ed60537b91ab9",
+    },
+    {
+      name: "project-source-reuse-request",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:9be4b4d55326dc521184f58c807895319349e8838770da5fc9746db4682a80b1",
+    },
+    {
+      name: "project-source-reuse-options-view",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:36837fccc0c9e32f147a6a02bb458b72f147c8908ff2bec039530b4fabcb1407",
+    },
+    {
+      name: "project-source-reuse-receipt",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:37dd0f699915772267d69db4247e5329ca1c9a0dcd8608a90eafe2b8a7bcec48",
+    },
+    {
+      name: "project-source-reuse-recovery-view",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:68bc2afbb5c9cd5134b55c0ac59f978ba4e16865e1ae80c04800913d6b78df81",
+    },
+    {
+      name: "project-source-local-copy-deletion-request",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:e00f0f94fbde05f903935576d6489d2c06757a88fc50f5c560dc3b339fc55451",
+    },
+    {
+      name: "project-source-local-copy-deletion-preview",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:3dcc16dcab6e5a770d7497d1ea8aa87eddcf1d20d0d59c26af49bd314520d8de",
+    },
+    {
+      name: "project-source-local-copy-deletion-receipt",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:6495a67536c7ec2dcd0f740b43170f10b629c74e79218bf527310e8856daf85a",
+    },
+    {
+      name: "project-source-local-copy-deletion-recovery-view",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:2aa1e357697f59c2751e189101ef7a963e7247d3a2be04531a2b98516cbb5639",
+    },
+    {
+      name: "worker-output-manifest",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:ed12de26da2bd491c573f44d2cd9ad3af6c6d3601c6bd41941ac179861f4845a",
     },
   ] as const;
 

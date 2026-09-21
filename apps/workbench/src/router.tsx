@@ -14,6 +14,8 @@ import {
   SourcesRoute,
 } from "./product/ReferenceWorkbench.js";
 import { GraphRoute } from "./product/GraphSurface.js";
+import { ProjectProfileRoute } from "./product/ProjectProfileSurface.js";
+import { CheckpointGuideRoute } from "./product/CheckpointGuide.js";
 import {
   ReviewCollectionRoute,
   ReviewSessionRoute,
@@ -33,13 +35,15 @@ import {
 } from "./product/RemainingSurfaces.js";
 import type { EngineState } from "./product/model.js";
 import {
-  loadProjectCollection,
+  loadProjectsHome,
   loadProjectBrief,
   loadProjectHistoryEvent,
   loadProjectObjectLocationRedirect,
   loadProjectPetra,
   loadProjectGraph,
   loadProjectRecord,
+  loadProjectResume,
+  loadProjectTaxonomy,
   loadProjectReviewCollection,
   loadProjectReviewSession,
   loadProjectSettings,
@@ -69,8 +73,13 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        loader: loadProjectCollection,
+        loader: loadProjectsHome,
         element: <ProjectsRoute />,
+      },
+      {
+        path: "guide",
+        loader: loadProjectsHome,
+        element: <CheckpointGuideRoute />,
       },
       {
         path: "projects/:projectId",
@@ -78,6 +87,11 @@ export const router = createBrowserRouter([
         element: <ProjectShell />,
         children: [
           { index: true, element: <Navigate to="brief" replace /> },
+          {
+            path: "resume",
+            loader: loadProjectResume,
+            element: <GraphRoute />,
+          },
           {
             path: "brief",
             loader: loadProjectBrief,
@@ -126,6 +140,16 @@ export const router = createBrowserRouter([
             path: "petra",
             loader: loadProjectPetra,
             element: <PetraRoute />,
+          },
+          {
+            path: "petra/:threadId",
+            loader: loadProjectPetra,
+            element: <PetraRoute />,
+          },
+          {
+            path: "profile",
+            loader: loadProjectTaxonomy,
+            element: <ProjectProfileRoute />,
           },
           { path: "composition", element: <CompositionCollectionRoute /> },
           {

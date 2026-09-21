@@ -6,6 +6,7 @@ import type {
   PetraFocusedGraphAnalysisView,
   PetraFocusedGraphViewV11,
   PetraProjectDefinition,
+  PetraProjectInquirySaveRequest,
 } from "@petra/contracts";
 import type {
   FocusedGraphActionPreviewViewRequest,
@@ -32,6 +33,11 @@ import { FocusedGraphAnalysisSurface } from "../src/product/FocusedGraphAnalysis
 import type { FocusedGraphActionPreviewRead } from "../src/product/FocusedGraphActions.js";
 import type { FocusedGraphExplorationRead } from "../src/product/FocusedGraphExploration.js";
 import type { FocusedGraphRendererFactory } from "../src/product/FocusedGraphResult.js";
+import {
+  ProjectInquirySaveClientError,
+  type ProjectInquirySaveCommand,
+  type ProjectInquirySaveRecoveryRead,
+} from "../src/product/project-inquiry-save.js";
 
 declare global {
   interface Window {
@@ -39,6 +45,8 @@ declare global {
     wave5ActionRequests: FocusedGraphActionPreviewViewRequest[];
     wave5Online: boolean;
     wave5Mode: string;
+    wave6InquirySaveRequests: PetraProjectInquirySaveRequest[];
+    wave6InquiryRecoveryRequests: PetraProjectInquirySaveRequest[];
   }
 }
 
@@ -516,10 +524,7 @@ const entryFor = (
   object_semantic_key: objectTerm.semantic_key,
   relationship_semantic_key: relationshipTerm.semantic_key,
   return_action_semantic_key: "scientific.graph.return",
-  return_destination: view.content.destinations[0] as Extract<
-    PetraFocusedGraphViewV11["content"]["destinations"][number],
-    { state: "available" }
-  >,
+  return_destination: view.content.destinations[0],
   limits: {
     ...structuredClone(view.content.scope.limits),
     maximum_depth: 1,
@@ -983,6 +988,65 @@ const data: FocusedGraphRouteData = {
 };
 
 window.wave5ActionRequests = [];
+window.wave6InquirySaveRequests = [];
+window.wave6InquiryRecoveryRequests = [];
+
+type InquirySaveResult = Awaited<ReturnType<ProjectInquirySaveCommand>>;
+type InquirySaveRecovery = Awaited<ReturnType<ProjectInquirySaveRecoveryRead>>;
+
+const inquirySave: ProjectInquirySaveCommand = (_exactProjectId, request) => {
+  window.wave6InquirySaveRequests.push(structuredClone(request));
+  if (mode === "save-conflict") {
+    throw new ProjectInquirySaveClientError(
+      "The command identity is already bound to another exact request.",
+      409,
+      "PROJECT_INQUIRY_SAVE_CONFLICT",
+    );
+  }
+  if (mode === "save-stale") {
+    throw new ProjectInquirySaveClientError(
+      "The focused Graph result no longer matches this save request.",
+      409,
+      "PROJECT_INQUIRY_SAVE_GRAPH_STALE",
+    );
+  }
+  if (mode === "save-unknown" && window.wave6InquirySaveRequests.length === 1) {
+    throw new TypeError("The response disconnected before delivery.");
+  }
+  const applied = window.wave6InquirySaveRequests.length === 1;
+  return Promise.resolve({
+    applied,
+    receipt: {
+      objective_ref: {
+        objective_id: "objective_01ARZ3NDEKTSV4RRFFQ69G5FAZ",
+      },
+      graph_binding: {
+        snapshot_ref: structuredClone(view.content.requested_snapshot),
+      },
+    } as InquirySaveResult["receipt"],
+    inquiry: {
+      objective_id: "objective_01ARZ3NDEKTSV4RRFFQ69G5FAZ",
+    } as InquirySaveResult["inquiry"],
+  });
+};
+
+const inquiryRecovery: ProjectInquirySaveRecoveryRead = (
+  _exactProjectId,
+  request,
+) => {
+  window.wave6InquiryRecoveryRequests.push(structuredClone(request));
+  return Promise.resolve({
+    effect: {
+      state: "outcome_unknown",
+      reason: "receipt_not_observed_at_cutoff",
+      retry: {
+        method: "POST",
+        path: `/api/commands/projects/${projectId}/inquiries`,
+        reuse_exact_request: true,
+      },
+    },
+  } as InquirySaveRecovery);
+};
 
 const content =
   mode === "comparison" ? (
@@ -998,6 +1062,8 @@ const content =
       data={data}
       explorationRead={adverseRead}
       actionPreviewRead={adverseActionRead}
+      saveInquiry={inquirySave}
+      assessInquirySave={inquiryRecovery}
       rendererFactory={adverseRenderer}
     />
   );

@@ -1,0 +1,201 @@
+.checkpoint-guide {
+  width: min(100%, 88rem);
+  margin: 0 auto;
+  padding: var(--petra-space-7) var(--petra-space-6) var(--petra-space-8);
+}
+
+.checkpoint-guide__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--petra-space-6);
+  padding-bottom: var(--petra-space-6);
+  border-bottom: var(--petra-rule-thin) solid var(--petra-border-default);
+}
+
+.checkpoint-guide__heading > div {
+  max-width: 50rem;
+}
+
+.checkpoint-guide__heading > span {
+  flex: none;
+  padding: var(--petra-space-2) var(--petra-space-3);
+  border: var(--petra-rule-thin) solid var(--petra-brand-accent);
+  border-radius: var(--petra-radius-pill);
+  background: var(--petra-tone-caution-soft);
+  font-size: var(--petra-font-size-caption);
+  font-weight: var(--petra-weight-semibold);
+}
+
+.checkpoint-guide__empty,
+.checkpoint-guide__start {
+  display: grid;
+  gap: var(--petra-space-5);
+  margin-top: var(--petra-space-6);
+  padding: var(--petra-space-6);
+  border: var(--petra-rule-thin) solid var(--petra-border-default);
+  border-radius: var(--petra-radius-medium);
+  background: var(--petra-surface-panel);
+}
+
+.checkpoint-guide__empty {
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+}
+
+.checkpoint-guide__empty svg {
+  width: 3rem;
+}
+
+.checkpoint-guide__start > dl {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--petra-space-3);
+  margin: 0;
+}
+
+.checkpoint-guide__start > dl > div {
+  min-width: 0;
+  padding-top: var(--petra-space-2);
+  border-top: var(--petra-rule-thin) solid var(--petra-border-subtle);
+}
+
+.checkpoint-guide dt {
+  color: var(--petra-text-tertiary);
+  font-size: var(--petra-font-size-caption);
+  font-weight: var(--petra-weight-semibold);
+}
+
+.checkpoint-guide dd {
+  margin: var(--petra-space-1) 0 0;
+}
+
+.checkpoint-guide__start-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--petra-space-4);
+}
+
+.checkpoint-guide__sequence {
+  margin-top: var(--petra-space-7);
+}
+
+.checkpoint-guide__sequence > header {
+  max-width: 48rem;
+}
+
+.checkpoint-guide__sequence > ol {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--petra-space-4);
+  margin: var(--petra-space-5) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.checkpoint-guide__sequence > ol > li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--petra-space-3);
+  padding: var(--petra-space-5);
+  border: var(--petra-rule-thin) solid var(--petra-border-default);
+  border-radius: var(--petra-radius-medium);
+  background: var(--petra-surface-panel);
+}
+
+.checkpoint-guide__sequence > ol > li > span {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--petra-text-inverse);
+  background: var(--petra-surface-inverse);
+  font-weight: var(--petra-weight-semibold);
+}
+
+.checkpoint-guide__sequence h3 {
+  margin-bottom: var(--petra-space-2);
+  font-size: var(--petra-font-size-body-large);
+}
+
+.checkpoint-guide__sequence p {
+  color: var(--petra-text-secondary);
+}
+
+.checkpoint-guide__support {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--petra-space-4);
+  margin-top: var(--petra-space-7);
+}
+
+.checkpoint-guide__support > section {
+  padding: var(--petra-space-5);
+  border-top: 3px solid var(--petra-border-strong);
+  background: var(--petra-surface-inset);
+}
+
+.checkpoint-guide__support ul {
+  margin-bottom: 0;
+  padding-left: 1.25rem;
+  color: var(--petra-text-secondary);
+}
+
+.checkpoint-guide__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--petra-space-4);
+  margin-top: var(--petra-space-7);
+  padding-top: var(--petra-space-4);
+  border-top: var(--petra-rule-thin) solid var(--petra-border-default);
+}
+
+.checkpoint-guide__footer p {
+  margin: 0;
+  color: var(--petra-text-secondary);
+}
+
+@media (max-width: 54rem) {
+  .checkpoint-guide {
+    padding-inline: var(--petra-space-4);
+  }
+
+  .checkpoint-guide__start > dl {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .checkpoint-guide__sequence > ol,
+  .checkpoint-guide__support {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 38rem) {
+  .checkpoint-guide__heading,
+  .checkpoint-guide__footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .checkpoint-guide__empty,
+  .checkpoint-guide__start > dl {
+    grid-template-columns: 1fr;
+  }
+
+  .checkpoint-guide__empty,
+  .checkpoint-guide__start,
+  .checkpoint-guide__sequence > ol > li,
+  .checkpoint-guide__support > section {
+    padding: var(--petra-space-4);
+  }
+}
+
+@media (forced-colors: active) {
+  .checkpoint-guide__sequence > ol > li > span {
+    color: Canvas;
+    background: CanvasText;
+  }
+}

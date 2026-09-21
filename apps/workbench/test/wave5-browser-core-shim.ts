@@ -6,3 +6,6 @@
 export const parseFocusedGraphActionPreviewViewRequest = (
   value: unknown,
 ): unknown => value;
+
+export const parseFocusedGraphViewRequest = (value: unknown): unknown =>
+  structuredClone(value);

@@ -27,6 +27,7 @@ export type SourceRecord = {
   title: string;
   kind: string;
   role: string;
+  roleId?: string;
   creator: string;
   revision: string;
   copy: string;
@@ -58,6 +59,22 @@ export type AttentionItem = {
 
 export type ProjectRecord = {
   id: string;
+  revision?: number;
+  importBinding?: {
+    sourceKind: "retained_project";
+    projectId: string;
+    projectRevision: number;
+    projectDefinitionRef: {
+      projectDefinitionId: string;
+      revision: number;
+      contentHash: string;
+    };
+    focusedObjectiveRef: {
+      objectiveId: string;
+      revision: number;
+      contentHash: string;
+    };
+  };
   title: string;
   objective: string;
   updatedAt: string;
@@ -486,6 +503,7 @@ export type WorkProjectView = {
   projectId: string;
   branches: InquiryBranch[];
   units: WorkUnit[];
+  inquiryLimitation?: string;
   query?: {
     limit: number;
     cursor?: string;

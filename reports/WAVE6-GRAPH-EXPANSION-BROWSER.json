@@ -1,0 +1,127 @@
+{
+  "schema_name": "petra.wave6-graph-expansion-browser-observation",
+  "schema_version": "1.0.0",
+  "status": "passed",
+  "recorded_at": "2026-09-20T04:38:54.299Z",
+  "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:graph-ui",
+  "browser": {
+    "product": "Chrome/153.0.8010.48",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+    "protocol_version": "1.3"
+  },
+  "route_transport": "production React Router and authenticated HTTP through the production server",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "entry": {
+    "path": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/graph",
+    "origin": "brief",
+    "return_path": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/brief#brief-focus",
+    "return_focus": "brief-focus"
+  },
+  "registration": {
+    "semantic_key": "scientific.graph.show-downstream",
+    "label": "Show downstream effects",
+    "contract": "petra.focused-graph-view@1.1.0"
+  },
+  "request": {
+    "request_id": "focused_graph_request_01M2YHR46Z3YX69W7MJMSK4XTB",
+    "target_ref": {
+      "record_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+      "revision": 2,
+      "record_hash": "sha256:f6147c6ffc63a7cad0412bb76c82ae620e91faadd37a3f1296788f4c80377d68"
+    },
+    "maximum_depth": 3,
+    "filters": {
+      "meaning_kinds": ["support"],
+      "directions": ["outgoing"],
+      "origins": ["canonical_record"]
+    }
+  },
+  "response": {
+    "schema_name": "petra.focused-graph-view",
+    "schema_version": "1.1.0",
+    "content_hash": "sha256:3a7694620eb61b7c5dc26e8e186b668b3c8045f1feb4e7771e3ab9ae7f9145e8",
+    "result_state": "complete_for_scope",
+    "accounting": {
+      "result_state": "complete_for_scope",
+      "capped_members": {
+        "state": "exact",
+        "value": 0
+      },
+      "hidden_relationships": {
+        "state": "exact",
+        "value": 0
+      },
+      "restricted_paths": {
+        "state": "not_disclosed"
+      },
+      "cycle_paths": {
+        "state": "exact",
+        "value": 0
+      },
+      "incomplete_paths": {
+        "state": "exact",
+        "value": 0
+      },
+      "unknown_paths": {
+        "state": "unknown"
+      }
+    },
+    "groups": [
+      {
+        "group_key": "group:relationship-meaning:current:support",
+        "label": "Support — Current",
+        "returned_count": 0,
+        "filtered_count": {
+          "state": "exact",
+          "value": 0
+        },
+        "hidden_count": {
+          "state": "exact",
+          "value": 0
+        },
+        "coverage": "complete_for_scope"
+      }
+    ],
+    "omissions": [
+      {
+        "omission_kind": "restricted",
+        "description": "Authorization is rechecked for this expansion. Restricted path names, identities, connections, and counts are not disclosed.",
+        "count": {
+          "state": "not_disclosed"
+        }
+      },
+      {
+        "omission_kind": "unknown",
+        "description": "Paths outside the exact registered recipe, snapshot, layer, filters, and finite limits remain unknown and cannot be treated as absent.",
+        "count": {
+          "state": "unknown"
+        }
+      },
+      {
+        "omission_kind": "out_of_scope",
+        "description": "Whole-Project traversal, Working changes, Historical state, unregistered recipes, and records beyond this exact named expansion remain outside scope.",
+        "count": {
+          "state": "unknown"
+        }
+      }
+    ]
+  },
+  "interaction": {
+    "exact_target_selected": true,
+    "filters_changed": true,
+    "finite_depth_changed": true,
+    "selection_preserved": true,
+    "disclosure_rendered": true,
+    "exact_return_executed": true
+  },
+  "boundary": {
+    "browser": "Isolated headless Chrome executed the production workbench route and controls.",
+    "transport": "Authenticated live HTTP reached the production focused-graph query owner.",
+    "persistence": "Fresh disposable PostgreSQL and Neo4j stores supplied exact authority and projection state.",
+    "authority": "Expansion and filtering remained read-only; renderer state did not enter the request."
+  },
+  "limitations": [
+    "This focused operation trace does not claim the complete UX1.6-GRAPH/task-graph-details-return scenario.",
+    "The trace covers the representative scientific profile registration and does not repeat paired-profile or unsupported-profile evidence."
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "state": "passed",
+  "browser": "Chrome via CDP",
+  "transport": "schema-valid synthetic HTTP at the production UI boundary",
+  "checks": [
+    "production loader and BriefRoute with browser schema validation",
+    "exact Project, ProjectDefinition, and focused Objective bindings",
+    "reviewed rough and proposed wording",
+    "applied result and exact Brief focus return",
+    "unknown-effect assessment with drafts preserved",
+    "exact command identity reuse and replayed outcome",
+    "command identity conflict with fail-closed recovery",
+    "no client actor, capability grant, Objective identity, revision, or authority timestamps; only the required human review time",
+    "seven DB07 headings",
+    "separate statement origin headings in accessibility tree",
+    "keyboard and touch packet disclosure without extra requests",
+    "375px at 200% text scaling",
+    "44px touch target",
+    "forced colors and reduced motion",
+    "unsupported registration fails visibly without fixture fallback"
+  ],
+  "boundary": "Isolated Chrome executed the production Brief loader, reviewed Objective component, typed command adapter, recovery adapter, and exact return with deterministic schema-valid HTTP. Live server and PostgreSQL execution remain covered by the exact backend counterpart and were not re-executed by this browser artifact."
+}

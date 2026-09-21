@@ -8,19 +8,64 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import registry from "../../../../packages/contracts/registry.json";
 import fixture from "./project-brief.fixture.json";
 import actionFixture from "../../../../packages/contracts/fixtures/accepted/suggested-action-view.json";
+import controlsFixture from "../../../../packages/contracts/fixtures/accepted/project-effective-controls-view.json";
 import { PetraContractRegistry } from "./browser-contract-registry.js";
 import { installedBriefPayloadHash, readProjectBrief } from "./brief-read.js";
 import { loadProjectBrief } from "./project-data.js";
 import { ProjectBriefSurface } from "./ProjectBriefSurface.js";
+import type { ProjectObjectiveCommandContext } from "./project-objective-command.js";
 
 const hash = (value: unknown): string =>
   `sha256:${createHash("sha256").update(canonicalize(value)).digest("hex")}`;
+const fetchUrl = (input: RequestInfo | URL): string => {
+  if (typeof input === "string") return input;
+  return input instanceof URL ? input.href : input.url;
+};
 const sample = () =>
   structuredClone(fixture) as unknown as PetraProjectBriefViewV11;
 const seal = (view: PetraProjectBriefViewV11) => {
   view.content_hash = hash(view.content);
   view.snapshot_hash = hash(projectBriefSnapshotMaterial(view.content));
   return view;
+};
+const objectiveContext = (
+  view: PetraProjectBriefViewV11,
+): ProjectObjectiveCommandContext => {
+  const objective = view.content.objective;
+  return {
+    projectId: view.project_id,
+    projectName: view.content.shell.content.project.name,
+    definitionLabel: view.content.definition.content.label,
+    projectRef: {
+      project_id: view.project_id,
+      revision: view.content.shell.content.project.revision,
+      record_hash: `sha256:${"1".repeat(64)}`,
+    },
+    projectDefinitionRef: {
+      project_definition_id: view.content.definition.project_definition_id,
+      revision: view.content.definition.revision,
+      content_hash: view.content.definition.content_hash,
+      record_hash: hash(view.content.definition),
+    },
+    focus: {
+      state: "focused",
+      objective,
+      objectiveRecordHash: hash(objective),
+      term:
+        view.content.definition.content.terms.find(
+          (term) => term.semantic_key === objective.content.objective_kind,
+        )?.singular ?? "Objective",
+    },
+  };
+};
+const controls = () => {
+  const value = structuredClone(controlsFixture);
+  value.content.project_definition_ref.content_hash =
+    fixture.content.definition.content_hash;
+  value.content.project_definition_ref.record_hash = hash(
+    fixture.content.definition,
+  );
+  return value;
 };
 const read = () =>
   readProjectBrief({
@@ -32,7 +77,10 @@ const read = () =>
 const render = (view = sample()) =>
   renderToStaticMarkup(
     <MemoryRouter>
-      <ProjectBriefSurface view={view} />
+      <ProjectBriefSurface
+        view={view}
+        objectiveCommandContext={objectiveContext(view)}
+      />
     </MemoryRouter>,
   );
 afterEach(() => vi.unstubAllGlobals());
@@ -63,9 +111,14 @@ describe("Project Brief browser boundary", () => {
   });
 
   it("loads one authenticated, fully validated Brief without shell or fixture fallback and preserves retries", async () => {
-    const fetch = vi.fn<typeof globalThis.fetch>(() =>
-      Promise.resolve(Response.json(fixture)),
-    );
+    const fetch = vi.fn<typeof globalThis.fetch>((input) => {
+      const url = input instanceof Request ? input.url : String(input);
+      return Promise.resolve(
+        Response.json(
+          url.endsWith("/effective-controls") ? controls() : fixture,
+        ),
+      );
+    });
     vi.stubGlobal("fetch", fetch);
     const url = new URL(
       `http://petra.test/projects/${fixture.project_id}/brief`,
@@ -77,14 +130,18 @@ describe("Project Brief browser boundary", () => {
       pattern: "/projects/:projectId/brief",
       context: new RouterContextProvider(),
     });
-    expect(result).toEqual({ briefView: fixture });
-    expect(fetch).toHaveBeenCalledOnce();
-    expect(fetch.mock.calls[0]?.[0]).toEqual(
+    expect(result.briefView).toEqual(fixture);
+    expect(result.objectiveCommandContext).toEqual(objectiveContext(sample()));
+    expect(fetch).toHaveBeenCalledTimes(2);
+    const briefCall = fetch.mock.calls.find(([input]) =>
+      fetchUrl(input).endsWith(`projects/${fixture.project_id}/brief`),
+    );
+    expect(briefCall?.[0]).toEqual(
       new URL(
         `http://petra.local/api/queries/projects/${fixture.project_id}/brief`,
       ),
     );
-    expect(fetch.mock.calls[0]?.[1]?.headers).toEqual({
+    expect(briefCall?.[1]?.headers).toEqual({
       authorization: "Bearer petra-local-development",
     });
     expect(await read()).toEqual(fixture);
@@ -102,15 +159,50 @@ describe("Project Brief browser boundary", () => {
     },
   );
 
+  it("frames from the shell's exact reviewed absence when the full Brief requires a focus", async () => {
+    const shell = structuredClone(fixture.content.shell);
+    delete (shell.content as { current_objective?: unknown }).current_objective;
+    const fetch = vi.fn<typeof globalThis.fetch>((input) => {
+      const path = fetchUrl(input);
+      return Promise.resolve(
+        path.endsWith("/effective-controls")
+          ? Response.json(controls())
+          : path.endsWith("/shell")
+            ? Response.json(shell)
+            : new Response(null, { status: 422 }),
+      );
+    });
+    vi.stubGlobal("fetch", fetch);
+    const url = new URL(
+      `http://petra.test/projects/${fixture.project_id}/brief`,
+    );
+    const result = await loadProjectBrief({
+      request: new Request(url),
+      url,
+      params: { projectId: fixture.project_id },
+      pattern: "/projects/:projectId/brief",
+      context: new RouterContextProvider(),
+    });
+    expect(result.briefView).toBeUndefined();
+    expect(result.objectiveCommandContext?.focus).toStrictEqual({
+      state: "none",
+      objectiveKind: "scientific.research-question",
+      term: "Research question",
+    });
+    expect(fetch).toHaveBeenCalledTimes(3);
+  });
+
   it("keeps an explicitly selected current preview separate from the captured Brief", async () => {
     const fetch = vi.fn<typeof globalThis.fetch>((input) => {
       const url = input instanceof Request ? input.url : String(input);
       return Promise.resolve(
-        url.endsWith("/brief")
-          ? Response.json(fixture)
-          : url.includes("action_kind=")
-            ? new Response(null, { status: 404 })
-            : Response.json(actionFixture),
+        url.endsWith("/effective-controls")
+          ? Response.json(controls())
+          : url.endsWith("/brief")
+            ? Response.json(fixture)
+            : url.includes("action_kind=")
+              ? new Response(null, { status: 404 })
+              : Response.json(actionFixture),
       );
     });
     vi.stubGlobal("fetch", fetch);
@@ -132,7 +224,7 @@ describe("Project Brief browser boundary", () => {
     expect(result.briefView?.content.next_steps[0]?.content_hash).not.toBe(
       result.suggestedAction?.content_hash,
     );
-    expect(fetch).toHaveBeenCalledTimes(3);
+    expect(fetch).toHaveBeenCalledTimes(4);
   });
 
   it("rejects unavailable comparison controls before reading a substitute current-only view", async () => {
@@ -222,6 +314,22 @@ describe("Project Brief browser boundary", () => {
 });
 
 describe("DB07 retained synthesis mapping", () => {
+  it("leads with the task and keeps diagnostic records in progressive disclosure", () => {
+    const markup = render();
+
+    expect(markup).toContain("<h1>Brief</h1>");
+    expect(markup).toContain(
+      "The current focus, what needs attention, and where to continue.",
+    );
+    expect(markup).toContain('href="#brief-next"');
+    expect(markup).toContain("Review next step");
+    expect(markup).toContain('class="brief-position"');
+    expect(markup).toContain(
+      'class="brief-record brief-technical"><summary>Technical position and scope',
+    );
+    expect(markup).not.toContain("<h1>Competing explanations</h1>");
+  });
+
   it("preserves the seven-section hierarchy, origins, limitations, exact basis and disabled History navigation", () => {
     const markup = render();
     const headings = [

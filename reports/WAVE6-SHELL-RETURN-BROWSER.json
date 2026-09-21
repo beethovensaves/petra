@@ -1,0 +1,154 @@
+{
+  "schema_name": "petra.wave6-shell-return-browser-evidence",
+  "schema_version": "1.0.0",
+  "status": "passed",
+  "operation_id": "shell.return",
+  "executed_at": "2026-09-21T01:03:37.411Z",
+  "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:shell-return-ui",
+  "browser": {
+    "product": "Chrome/153.0.8010.48",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+    "protocol_version": "1.3"
+  },
+  "verified": {
+    "visible_entry_control": "Inspect bounded current relationships for this Claim",
+    "visible_return_control": "Return to Brief result",
+    "keyboard_activation": true,
+    "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+    "project_title": "Competing explanations",
+    "originating_task_route": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/brief",
+    "result_selection": "brief-result-0",
+    "graph_route": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/graph",
+    "graph_selection_before_return": "relationship:assertion-a",
+    "server_task": {
+      "request_id": "focused_graph_request_01M30QTSTZBNH4B3QJAZ8RMBJ4",
+      "request_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "task_kind": "neighborhood",
+      "task_semantic_key": "scientific.research-question",
+      "question": "Which recorded relationships concern this Claim?",
+      "question_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "focus_refs": [
+        {
+          "record_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+          "revision": 2,
+          "record_hash": "sha256:b316d82c938b5d76fc02e11dab16d71f1bcf2788ed66d8aacfac7c622330e7fa"
+        }
+      ],
+      "origin": {
+        "origin_kind": "brief",
+        "origin_ref": {
+          "record_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+          "revision": 2,
+          "record_hash": "sha256:b316d82c938b5d76fc02e11dab16d71f1bcf2788ed66d8aacfac7c622330e7fa"
+        }
+      },
+      "return_destination_key": "destination:brief:claim_01arz3ndektsv4rrffq69g5fbb"
+    },
+    "server_return_destination": {
+      "destination_key": "destination:brief:claim_01arz3ndektsv4rrffq69g5fbb",
+      "destination_kind": "brief",
+      "owner": "project_brief_view",
+      "label": "Brief result",
+      "state": "available",
+      "target_ref": {
+        "record_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+        "revision": 2,
+        "record_hash": "sha256:b316d82c938b5d76fc02e11dab16d71f1bcf2788ed66d8aacfac7c622330e7fa"
+      }
+    },
+    "server_return_action": {
+      "action_key": "action:return-to-origin",
+      "action_kind": "return_to_origin",
+      "semantic_key": "scientific.graph.return",
+      "label": "Return to origin",
+      "consequence": "read_only_navigation",
+      "target_keys": ["node:claim-a"],
+      "availability": {
+        "state": "available",
+        "destination_key": "destination:brief:claim_01arz3ndektsv4rrffq69g5fbb"
+      }
+    },
+    "returned_route": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/brief#brief-result-0",
+    "returned_focus_target": "brief-result-0"
+  },
+  "calls": [
+    {
+      "method": "GET",
+      "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/effective-controls",
+      "authorization": "Bearer browser-shell-return-token"
+    },
+    {
+      "method": "GET",
+      "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/brief",
+      "authorization": "Bearer browser-shell-return-token"
+    },
+    {
+      "method": "GET",
+      "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/shell",
+      "authorization": "Bearer browser-shell-return-token"
+    },
+    {
+      "method": "POST",
+      "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/focused-graph",
+      "authorization": "Bearer browser-shell-return-token",
+      "body": {
+        "request_id": "focused_graph_request_01M30QTSTZBNH4B3QJAZ8RMBJ4",
+        "task_kind": "neighborhood",
+        "task_semantic_key": "scientific.research-question",
+        "question": "Which recorded relationships concern this Claim?",
+        "focus_ref": {
+          "record_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+          "revision": 2,
+          "record_hash": "sha256:b316d82c938b5d76fc02e11dab16d71f1bcf2788ed66d8aacfac7c622330e7fa"
+        },
+        "origin": {
+          "origin_kind": "brief",
+          "origin_ref": {
+            "record_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+            "revision": 2,
+            "record_hash": "sha256:b316d82c938b5d76fc02e11dab16d71f1bcf2788ed66d8aacfac7c622330e7fa"
+          }
+        },
+        "project_definition_ref": {
+          "project_definition_id": "project_definition_01K4C000000000000000000001",
+          "revision": 1,
+          "content_hash": "sha256:2f8947e7b3a7f297104ef88a2c91852e2edd53d9d096a453bdd493b61bc4fc07",
+          "record_hash": "sha256:6e588f1f3c12ddaf1631064c71f77567c124c9ada8e6cac412d1f72ff650206b",
+          "definition_family": "petra.scientific-evidence"
+        },
+        "semantic_layer": "current",
+        "temporal_position": {
+          "position_kind": "current",
+          "dimension": "project_snapshot"
+        },
+        "object_semantic_key": "scientific.claim",
+        "relationship_semantic_key": "scientific.assertion",
+        "return_action_semantic_key": "scientific.graph.return",
+        "return_destination": {
+          "destination_key": "destination:brief:claim_01arz3ndektsv4rrffq69g5fbb",
+          "destination_kind": "brief",
+          "owner": "project_brief_view",
+          "label": "Brief result",
+          "state": "available",
+          "target_ref": {
+            "record_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+            "revision": 2,
+            "record_hash": "sha256:b316d82c938b5d76fc02e11dab16d71f1bcf2788ed66d8aacfac7c622330e7fa"
+          }
+        },
+        "limits": {
+          "maximum_depth": 1,
+          "maximum_nodes": 25,
+          "maximum_relationships": 24,
+          "maximum_paths": 24
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/shell",
+      "authorization": "Bearer browser-shell-return-token"
+    }
+  ],
+  "boundary": "Isolated Chromium keyboard-entered the production focused Graph from a contextual ProjectBriefSurface result, changed the production FocusedGraphExploration selection, and keyboard-activated the visible server-gated Return to Brief result control. Production React Router and ProjectShell restored the exact Project, Brief route, result hash, and focused result heading. Deterministic schema-shaped authenticated HTTP supplied ProjectShell, Brief, effective-controls, and focused-graph data; this browser record does not claim live server transport, persistence, every originating surface, shell.navigate, focus preservation beyond the exercised path, UX1.6-GRAPH/task-graph-details-return, or any named Wave 6 evidence-plan scenario."
+}

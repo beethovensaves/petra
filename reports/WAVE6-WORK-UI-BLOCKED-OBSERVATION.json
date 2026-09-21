@@ -1,0 +1,102 @@
+{
+  "evidence_id": "UX1.6-WORK",
+  "scenario_id": "usable-work-ui",
+  "status": "blocked",
+  "executed_at": "2026-09-19T23:35:45Z",
+  "command": "./run-wave-6-checkpoint.zsh with pinned Node 24.20.0 and the repository Chrome DevTools driver; replay started at /guide and used the visible Open Work, Reconnect, and Replay delivery controls",
+  "stable_url": "http://127.0.0.1:4311/guide",
+  "latest_execution_scope": "Re-executed the completed task's reconnect and replay paths after the checkpoint restart. The earlier requested-task command observations remain retained below and were not repeated in this slice.",
+  "production_boundary": {
+    "client": "production React Work routes served by the documented Wave 6 checkpoint",
+    "server": "startPetraServer through the checkpoint proxy",
+    "database": "fresh disposable PostgreSQL 18.6 with Flyway V001-V046",
+    "browser": "isolated headless Google Chrome controlled through the repository CDP driver",
+    "fixtures": "the checkpoint's supported paired-profile setup; no browser response or Work state was mocked"
+  },
+  "observations": {
+    "guide": {
+      "rendered": true,
+      "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+      "work_url": "http://127.0.0.1:4311/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/work",
+      "opened_work_from_visible_guide_control": true
+    },
+    "collection": {
+      "production_work_tasks": 2,
+      "inquiry_path_limitation": "The current Project profile has no active inquiry-path mapping.",
+      "frontend_recovery": "The exact Work collection and detail remained usable with an explicit inquiry-path limitation; no inquiry link was inferred.",
+      "rendered_after_recovery": true
+    },
+    "requested_task": {
+      "work_unit_id": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+      "pending_required_input_count": 1,
+      "required_input_question": "Which bounded parsing mode should Petra use?",
+      "registered_responses": ["tables_and_text", "text_only"],
+      "selected_response": "tables_and_text",
+      "input_answered_receipt_rendered": true,
+      "registered_stage_count": 0,
+      "stage_boundary": "This workflow has no registered stage-plan record; Petra does not reconstruct stages from execution prose.",
+      "priority_result": "Scheduling priority changed to Blocking this task.",
+      "steering_instruction": "Preserve table captions with their nearest table.",
+      "resulting_plan_revision": 3,
+      "start_result": "The exact requested Work entered its first running attempt.",
+      "active_grant_not_found": false,
+      "detach_result": "Leave running navigated to Brief without cancelling; browser return restored the exact Work task.",
+      "cancel_result": "The confirmed cancellation reached canonical cancelled Work revision 4.",
+      "recovery_assessment": {
+        "retry": "unavailable because cancellation is not a retryable failure",
+        "resume": "unavailable because no exact compatible checkpoint is registered",
+        "start_again": "unavailable because no workflow-specific input-rebinding command is registered"
+      },
+      "delivery_boundary": "The requested WorkUnit has no registered durable interaction run, so reconnect and replay cannot be exercised for this task.",
+      "false_success_presented": false
+    },
+    "completed_task": {
+      "work_unit_id": "work_unit_1M59PHH5NWTD9XKTJKGSQQ3ED0",
+      "interaction_run_id": "interaction_run_525CDXC6KHKJEB9045XDXJTVBT",
+      "protocol_thread_id": "thread-wave4-item49-natural-conversation",
+      "protocol_run_id": "run-wave4-item49-natural-conversation",
+      "work_revision": 4,
+      "work_revision_after_delivery_reads": 4,
+      "measured_resources_visible": true,
+      "registered_stage_count": 0,
+      "server_assessed_reconnect": "query_only",
+      "server_assessed_replay": "query_only",
+      "reconnect_result": "Canonical Work delivery is completed with 2 retained events.",
+      "replay_result": "Replayed 2 retained events in exact RUN_STARTED then RUN_FINISHED order without starting another Work attempt.",
+      "work_command_requests_during_reconnect_and_replay": 0,
+      "instruction_retention_recovery_presented": true,
+      "false_delivery_success_presented": false
+    },
+    "destinations": [
+      {
+        "result_kind": "grounded_response",
+        "record_id": "grounded_response_0R812XV7Z34417E3M3F49QNE0A",
+        "work_assessment": "available",
+        "observed_locate_url": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/locate?semanticKey=petra.grounded-response&objectId=grounded_response_0R812XV7Z34417E3M3F49QNE0A&revision=1&taskIntent=inspect",
+        "observed_final_route": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/brief",
+        "exact_result_rendered": false
+      },
+      {
+        "result_kind": "worker_output_manifest",
+        "record_id": "worker_output_manifest_5SH8DMNBYZA54M275HC1587G8J",
+        "work_assessment": "available",
+        "observed_locate_url": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/locate?semanticKey=petra.worker-output-manifest&objectId=worker_output_manifest_5SH8DMNBYZA54M275HC1587G8J&revision=1&taskIntent=inspect",
+        "observed_final_route": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/brief",
+        "exact_result_rendered": false
+      }
+    ]
+  },
+  "resolved_since_prior_observation": [
+    "The representative requested Work now exposes one pending registered parsing input.",
+    "The visible input response, prioritize, steer, start, detach/return, and cancel paths execute with the authenticated human ManageProjectWork grant.",
+    "The Work command path no longer returns active_grant_not_found.",
+    "After checkpoint restart, the completed Work task reconnects to run-wave4-item49-natural-conversation with two retained events.",
+    "Visible Replay delivery returns RUN_STARTED then RUN_FINISHED, keeps Work revision 4, and issues no Work command or new attempt."
+  ],
+  "required_intervention": [
+    "Register a meaningful stage plan for the representative Work workflow so the task can expose and execute its actual stages.",
+    "Make the grounded-response and worker-output-manifest Work destinations render their exact registered objects instead of resolving to Brief.",
+    "Register the scientific Project definition's inquiry-role mapping if the checkpoint is intended to demonstrate linked inquiry paths."
+  ],
+  "boundary": "This is a retained failed browser observation, not a passed evidence record. It proves that the pending input and authenticated command blocker were fixed; that the visible answer, scheduling, start, detach/return, and cancellation controls execute without false success; and that the completed task now reconnects and replays RUN_STARTED then RUN_FINISHED after restart without a Work command, another attempt, or a revision change. It does not satisfy UX1.6-WORK/usable-work-ui because meaningful stages, exact result destinations, and the scientific inquiry-role mapping remain unavailable."
+}

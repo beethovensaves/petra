@@ -6,6 +6,7 @@ import { router } from "./router.js";
 import "./design-system/tokens.css";
 import "./styles.css";
 import "./product/reference-workbench.css";
+import "./product/project-profile.css";
 import "./product/review-graph.css";
 import "./product/work-petra.css";
 import "./product/remaining-surfaces.css";

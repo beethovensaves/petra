@@ -1,0 +1,65 @@
+{
+  "schema_name": "petra.wave6-project-open-browser-evidence",
+  "schema_version": "1.0.0",
+  "status": "passed",
+  "operation_id": "project.open",
+  "executed_at": "2026-09-20T22:41:19.685Z",
+  "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:project-open-ui",
+  "browser": {
+    "product": "Chrome/153.0.8010.48",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+    "protocol_version": "1.3"
+  },
+  "verified": {
+    "visible_control": "Open Brief",
+    "keyboard_activation": true,
+    "collection_project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+    "destination": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/brief",
+    "shell_project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+    "brief_project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+    "project_title": "Competing explanations",
+    "current_objective": "Determine which claims in the selected source are supported by exact inspectable passages.",
+    "return_control": "Projects",
+    "returned_destination": "/",
+    "substituted_project": false,
+    "authenticated_requests": true
+  },
+  "calls": [
+    {
+      "method": "GET",
+      "path": "/api/queries/project-profiles",
+      "authorization": "Bearer browser-project-open-token"
+    },
+    {
+      "method": "GET",
+      "path": "/api/queries/projects?limit=12",
+      "authorization": "Bearer browser-project-open-token"
+    },
+    {
+      "method": "GET",
+      "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/effective-controls",
+      "authorization": "Bearer browser-project-open-token"
+    },
+    {
+      "method": "GET",
+      "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/brief",
+      "authorization": "Bearer browser-project-open-token"
+    },
+    {
+      "method": "GET",
+      "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/shell",
+      "authorization": "Bearer browser-project-open-token"
+    },
+    {
+      "method": "GET",
+      "path": "/api/queries/project-profiles",
+      "authorization": "Bearer browser-project-open-token"
+    },
+    {
+      "method": "GET",
+      "path": "/api/queries/projects?limit=12",
+      "authorization": "Bearer browser-project-open-token"
+    }
+  ],
+  "boundary": "Isolated Chromium keyboard-activated the visible Open Brief control for one representative Project through the production React Router collection, Project shell, and Brief loaders, then returned through the visible Projects control with the same Project destination retained. Deterministic schema-valid authenticated HTTP supplied the browser transport; reports/WAVE6-PROJECT-OPEN-AUTHORITY.json separately proves the same collection and shell owner against real PostgreSQL and the production server. This operation record covers project.open only and does not claim a named Wave 6 evidence-plan scenario or the complete guided workflow."
+}

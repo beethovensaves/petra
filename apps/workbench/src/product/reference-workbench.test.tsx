@@ -6,6 +6,7 @@ import type {
   PetraSuggestedActionInvocationView,
   PetraSuggestedActionView,
   PetraSuggestedActionViewV11,
+  ProjectShellResumeContext,
 } from "@petra/contracts";
 import { renderToStaticMarkup } from "react-dom/server";
 import { MemoryRouter } from "react-router";
@@ -18,6 +19,7 @@ import {
 } from "./fixtures.js";
 import {
   BriefSurface,
+  ProjectResumeOutcome,
   ProjectsSurface,
   SuggestedActionPreview,
   SourceReaderSurface,
@@ -98,7 +100,17 @@ describe("neutral Petra reference workbench", () => {
   }
 
   it("renders three compatible taxonomies through one Projects surface", () => {
-    const markup = render(<ProjectsSurface />);
+    const markup = render(
+      <ProjectsSurface
+        projects={REFERENCE_PROJECTS}
+        query={{ limit: 12 }}
+        page={{
+          returned_count: REFERENCE_PROJECTS.length,
+          total_count: REFERENCE_PROJECTS.length,
+          has_more: false,
+        }}
+      />,
+    );
 
     expect(markup).toContain("Evidence inquiry");
     expect(markup).toContain("Controlled publication");
@@ -107,7 +119,163 @@ describe("neutral Petra reference workbench", () => {
     expect(markup).toContain(
       "Profiles supply compatible domain terms and tasks",
     );
+    expect(markup).toContain(
+      "Petra searches the current Project name, Objective statement, and registered profile label.",
+    );
+    expect(markup).toContain("Any status");
+    expect(markup).toContain("Any registered profile");
     expect(markup).not.toContain("projects/demo");
+  });
+
+  it("explains browser-local state before switching Projects", () => {
+    const priorProjectId = "project_01ARZ3NDEKTSV4RRFFQ69G5FAW";
+    const markup = renderToStaticMarkup(
+      <MemoryRouter
+        initialEntries={[
+          {
+            pathname: "/",
+            state: {
+              projectSwitchOrigin: {
+                href: `/projects/${priorProjectId}/brief#brief-focus`,
+                projectId: priorProjectId,
+                projectTitle: inletProject.title,
+                taskLabel: "the Project brief",
+              },
+            },
+          },
+        ]}
+      >
+        <ProjectsSurface projects={REFERENCE_PROJECTS} />
+      </MemoryRouter>,
+    );
+
+    expect(markup).toContain(
+      "Choose another Project without stopping prior Work",
+    );
+    expect(markup).toContain(
+      "it does not cancel or replace Work in the prior Project",
+    );
+    expect(markup).toContain(
+      "Unsubmitted fields, local selection, browser focus, and local presentation history are not transferred",
+    );
+    expect(markup).toContain("Return to prior task");
+    expect(markup).toContain(`/projects/${priorProjectId}/brief#brief-focus`);
+  });
+
+  it("exposes the server-assessed Project resume control and honest retry state", () => {
+    const noTask: ProjectShellResumeContext = {
+      state: "not_found",
+      failure: {
+        code: "PROJECT_RESUME_TASK_NOT_FOUND",
+        message: "This Project has no retained task to resume.",
+      },
+      recovery: {
+        action: "open_brief",
+        destination: {
+          role: "brief",
+          purpose: "Open the current Project Brief.",
+        },
+        reason: "Brief is the safe Project entry.",
+      },
+    };
+    const unavailable: ProjectShellResumeContext = {
+      state: "unavailable",
+      failure: {
+        code: "PROJECT_RESUME_TASK_UNAVAILABLE",
+        message: "The retained task could not be verified.",
+      },
+      recovery: {
+        action: "retry_read",
+        destination: {
+          role: "brief",
+          purpose: "Keep the current Project Brief available while retrying.",
+        },
+        reason: "Retry the authorized Project read.",
+      },
+    };
+    const markup = render(
+      <ProjectsSurface
+        projects={[
+          { ...inletProject, resume: noTask },
+          {
+            ...inletProject,
+            id: "retry-project",
+            title: "Retry Project",
+            resume: unavailable,
+          },
+        ]}
+      />,
+    );
+
+    expect(markup).toContain("Open Brief recovery");
+    expect(markup).toContain("Retry Resume");
+    expect(markup).toContain(`/projects/${inletProject.id}/resume`);
+    expect(markup).toContain("Brief recovery");
+    expect(markup).toContain("Resume read unavailable");
+  });
+
+  it("renders stale, missing, and unavailable Project resume recovery in Brief", () => {
+    const states: ProjectShellResumeContext[] = [
+      {
+        state: "stale",
+        failure: {
+          code: "PROJECT_RESUME_PROJECT_ARCHIVED",
+          message: "The retained task belongs to an archived Project.",
+        },
+        recovery: {
+          action: "open_brief",
+          destination: {
+            role: "brief",
+            purpose:
+              "Open the current Project Brief before starting a new task.",
+          },
+          reason: "The retained task is not a safe current destination.",
+        },
+      },
+      {
+        state: "not_found",
+        failure: {
+          code: "PROJECT_RESUME_TASK_NOT_FOUND",
+          message: "This Project has no retained task to resume.",
+        },
+        recovery: {
+          action: "open_brief",
+          destination: { role: "brief", purpose: "Open the current Brief." },
+          reason: "Brief is the safe Project entry.",
+        },
+      },
+      {
+        state: "unavailable",
+        failure: {
+          code: "PROJECT_RESUME_TASK_UNAVAILABLE",
+          message: "The retained task could not be verified.",
+        },
+        recovery: {
+          action: "retry_read",
+          destination: {
+            role: "brief",
+            purpose: "Keep the current Brief while retrying.",
+          },
+          reason: "Retry the authorized Project read.",
+        },
+      },
+    ];
+    const markup = states
+      .map((resume) =>
+        render(
+          <ProjectResumeOutcome
+            project={{ ...inletProject, resume }}
+            outcome={resume.state}
+          />,
+        ),
+      )
+      .join("\n");
+
+    expect(markup).toContain("Review the current Brief before continuing");
+    expect(markup).toContain("No retained task is available");
+    expect(markup).toContain("Resume is temporarily unavailable");
+    expect(markup).toContain("Retry Project resume");
+    expect(markup).toContain("Continue in current Brief");
   });
 
   it("keeps Petra's recommendation contextual and preserves valid alternatives", () => {
@@ -781,6 +949,15 @@ describe("neutral Petra reference workbench", () => {
     expect(referenceWorkbenchCss).toContain("overflow-wrap: anywhere");
   });
 
+  it("keeps the Project workflow persistent and gives Petra one primary place", () => {
+    expect(referenceWorkbenchCss).toContain("position: sticky");
+    expect(referenceWorkbenchCss).toContain(
+      '.reference-project-nav nav a[data-primary="true"]',
+    );
+    expect(referenceWorkbenchCss).toContain(".reference-nav-attention");
+    expect(referenceWorkbenchCss).toContain("position: static");
+  });
+
   it("separates source identity, extent, rights, and downstream use", () => {
     const markup = render(<SourcesSurface project={inletProject} />);
 
@@ -813,9 +990,8 @@ describe("neutral Petra reference workbench", () => {
     expect(markup).toContain(
       "cannot inspect or cite content until a permitted copy is processed",
     );
-    expect(markup).toContain(
-      "Processing eligibility and permission are unresolved",
-    );
+    expect(markup).toContain("Processing details");
+    expect(markup).toContain("Reading processing details");
     expect(markup).toContain(
       "/projects/inlet-cycle/brief#attention-source-depth",
     );

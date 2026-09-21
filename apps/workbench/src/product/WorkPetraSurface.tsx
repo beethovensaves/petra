@@ -1,5 +1,11 @@
-import { useState } from "react";
-import { Link, useLoaderData } from "react-router";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import {
+  Link,
+  useLoaderData,
+  useLocation,
+  useNavigate,
+  useSearchParams,
+} from "react-router";
 
 import { PetraMark } from "../design-system/brand.js";
 import { StateNotice } from "../design-system/state.js";
@@ -7,9 +13,17 @@ import {
   PetraButton,
   PetraButtonGroup,
   PetraTextArea,
+  PetraTextField,
 } from "../design-system/primitives.js";
 import type {
   PetraCommunicationPlan,
+  PetraProjectWorkOperationReceipt,
+  PetraProjectWorkOperationRequest,
+  PetraProjectWorkOperationsView,
+  PetraProjectWorkResumeReceipt,
+  PetraProjectWorkResumeRequest,
+  PetraProjectWorkStartAgainReceipt,
+  PetraProjectWorkStartAgainRequest,
   PetraSuggestedActionInvocationView,
   PetraSuggestedActionViewV11,
 } from "@petra/contracts";
@@ -23,10 +37,26 @@ import type {
 } from "./model.js";
 import type {
   ProjectPetraData,
+  ProjectWorkerOutputSelection,
   ProjectWorkDetailData,
+} from "./project-data.js";
+import {
+  createProjectWorkOperationRequest,
+  createProjectWorkResumeRequest,
+  createProjectWorkStartAgainRequest,
+  executeProjectWorkOperation,
+  executeProjectWorkResume,
+  executeProjectWorkStartAgain,
+  readProjectWorkOperations,
+  reconnectProjectWorkDelivery,
+  replayProjectWorkDelivery,
+  type ProjectWorkCommandOperation,
+  type ProjectWorkCommandOptions,
+  type ProjectWorkDeliveryObservation,
 } from "./project-data.js";
 import { useProjectRecord } from "./ReferenceWorkbench.js";
 import { SuggestedWorkAction } from "./SuggestedAction.js";
+import { PetraModelInteraction } from "./PetraModelInteraction.js";
 import {
   FocusedGraphEntryLink,
   focusedGraphDefinitionRef,
@@ -84,6 +114,7 @@ const BranchCard = ({
   return (
     <article
       className="inquiry-branch"
+      id={`inquiry-${branch.id}`}
       data-recommended={branch.recommended || undefined}
     >
       <header>
@@ -197,6 +228,17 @@ export const WorkCollectionSurface = ({
         </section>
       ) : (
         <>
+          {work.inquiryLimitation === undefined ? null : (
+            <StateNotice
+              notice={{
+                tone: "caution",
+                title: "Inquiry paths unavailable",
+                message: work.inquiryLimitation,
+                recovery:
+                  "You can still inspect and manage each exact Work task. Return later to inspect inquiry links after the Project profile registers that mapping.",
+              }}
+            />
+          )}
           {recommendedBranch === undefined ? null : (
             <section
               className="work-recommendation"
@@ -225,33 +267,35 @@ export const WorkCollectionSurface = ({
             </section>
           )}
 
-          <section
-            className="inquiry-branches"
-            aria-labelledby="inquiry-branches-title"
-          >
-            <header>
-              <div>
-                <p className="reference-panel-kicker">Project meaning</p>
-                <h2 id="inquiry-branches-title">Parallel inquiry paths</h2>
+          {work.branches.length === 0 ? null : (
+            <section
+              className="inquiry-branches"
+              aria-labelledby="inquiry-branches-title"
+            >
+              <header>
+                <div>
+                  <p className="reference-panel-kicker">Project meaning</p>
+                  <h2 id="inquiry-branches-title">Parallel inquiry paths</h2>
+                </div>
+                <span>{work.branches.length}</span>
+              </header>
+              <p className="inquiry-branches__explanation">
+                These paths organize the Project's open questions. They are not
+                hypotheses by default, and they are not Work execution stages. A
+                path may link to several tasks or none.
+              </p>
+              <div className="inquiry-branches__grid">
+                {work.branches.map((branch) => (
+                  <BranchCard
+                    key={branch.id}
+                    project={project}
+                    branch={branch}
+                    work={work}
+                  />
+                ))}
               </div>
-              <span>{work.branches.length}</span>
-            </header>
-            <p className="inquiry-branches__explanation">
-              These paths organize the Project's open questions. They are not
-              hypotheses by default, and they are not Work execution stages. A
-              path may link to several tasks or none.
-            </p>
-            <div className="inquiry-branches__grid">
-              {work.branches.map((branch) => (
-                <BranchCard
-                  key={branch.id}
-                  project={project}
-                  branch={branch}
-                  work={work}
-                />
-              ))}
-            </div>
-          </section>
+            </section>
+          )}
 
           <section className="work-units" aria-labelledby="work-units-title">
             <header>
@@ -338,14 +382,1107 @@ export const WorkCollectionRoute = (): React.JSX.Element => {
   return <WorkCollectionSurface project={project} work={work} />;
 };
 
+type RetainedWorkRequest = {
+  fingerprint: string;
+  request: PetraProjectWorkOperationRequest;
+};
+
+type RetainedWorkResumeRequest = {
+  fingerprint: string;
+  request: PetraProjectWorkResumeRequest;
+};
+
+type RetainedWorkStartAgainRequest = {
+  fingerprint: string;
+  request: PetraProjectWorkStartAgainRequest;
+};
+
+const workOperationLabel: Record<
+  PetraProjectWorkOperationsView["controls"][number]["operation"],
+  string
+> = {
+  start: "Start work",
+  answer_input: "Answer required input",
+  steer: "Steer work",
+  prioritize: "Set priority",
+  detach: "Leave running",
+  reconnect: "Reconnect",
+  replay: "Replay delivery",
+  cancel: "Cancel work",
+  retry: "Retry failed work",
+  resume: "Resume work",
+  start_again: "Start again",
+};
+
+const priorityLabel: Record<
+  NonNullable<PetraProjectWorkOperationRequest["priority"]>,
+  string
+> = {
+  user_blocking: "Blocking this task",
+  user_visible: "Keep visible",
+  normal: "Normal",
+  opportunistic: "When capacity allows",
+};
+
+const workControl = (
+  view: PetraProjectWorkOperationsView,
+  operation: PetraProjectWorkOperationsView["controls"][number]["operation"],
+) => view.controls.find((control) => control.operation === operation);
+
+const unavailableFor = (
+  view: PetraProjectWorkOperationsView,
+  operation: PetraProjectWorkOperationsView["controls"][number]["operation"],
+): { reason: string; prerequisite?: string } | undefined => {
+  const control = workControl(view, operation);
+  const queryOnlyDelivery =
+    (operation === "reconnect" || operation === "replay") &&
+    control?.state === "query_only";
+  return control?.state === "available" ||
+    control?.state === "client_owned" ||
+    queryOnlyDelivery
+    ? undefined
+    : {
+        reason: control?.reason ?? "This operation is not registered.",
+      };
+};
+
+const unavailableForResume = (
+  view: PetraProjectWorkOperationsView,
+): { reason: string; prerequisite?: string } | undefined => {
+  const assessed = unavailableFor(view, "resume");
+  if (assessed !== undefined) return assessed;
+  if (view.resume_binding === undefined) {
+    return {
+      reason:
+        "The server has not supplied the exact retained checkpoint binding required to resume this task.",
+    };
+  }
+  return undefined;
+};
+
+const unavailableForStartAgain = (
+  view: PetraProjectWorkOperationsView,
+): { reason: string; prerequisite?: string } | undefined => {
+  const assessed = unavailableFor(view, "start_again");
+  if (assessed !== undefined) return assessed;
+  if (view.start_again_binding === undefined) {
+    return {
+      reason:
+        "The server has not supplied the exact fresh-input registration required to start this task again.",
+    };
+  }
+  return undefined;
+};
+
+const withUnavailable = (
+  unavailable: { reason: string; prerequisite?: string } | undefined,
+): { unavailable: { reason: string; prerequisite?: string } } | object =>
+  unavailable === undefined ? {} : { unavailable };
+
+export interface ProjectWorkStartAgainOutcome {
+  readonly projectId: string;
+  readonly receiptId: string;
+  readonly summary: string;
+  readonly priorWorkUnitId: string;
+  readonly priorWorkAttempt: number;
+  readonly priorLineageAttempt: number;
+  readonly priorInputManifestId: string;
+  readonly freshInputManifestId: string;
+  readonly freshInputSummary: string;
+  readonly newWorkUnitId: string;
+  readonly newWorkAttempt: number;
+  readonly newLineageAttempt: number;
+}
+
+const startAgainOutcome = (
+  receipt: PetraProjectWorkStartAgainReceipt,
+): ProjectWorkStartAgainOutcome => ({
+  projectId: receipt.project_id,
+  receiptId: receipt.receipt_id,
+  summary: receipt.effect.summary,
+  priorWorkUnitId: receipt.prior_attempt.work_unit_ref.work_unit_id,
+  priorWorkAttempt: receipt.prior_attempt.work_attempt,
+  priorLineageAttempt: receipt.prior_attempt.lineage_attempt,
+  priorInputManifestId:
+    receipt.fresh_input.prior_input_manifest_ref.worker_input_manifest_id,
+  freshInputManifestId:
+    receipt.fresh_input.fresh_input_manifest_ref.worker_input_manifest_id,
+  freshInputSummary: receipt.fresh_input.summary,
+  newWorkUnitId: receipt.new_attempt.work_unit_ref.work_unit_id,
+  newWorkAttempt: receipt.new_attempt.work_attempt,
+  newLineageAttempt: receipt.new_attempt.lineage_attempt,
+});
+
+const WorkStartAgainOutcome = ({
+  outcome,
+}: {
+  outcome: ProjectWorkStartAgainOutcome;
+}): React.JSX.Element => (
+  <section
+    className="work-start-again-outcome"
+    aria-labelledby="work-start-again-outcome-title"
+    role="status"
+  >
+    <p className="reference-panel-kicker">Registered fresh execution</p>
+    <h2 id="work-start-again-outcome-title">Started again with fresh input</h2>
+    <p>{outcome.summary}</p>
+    <dl>
+      <div>
+        <dt>Prior attempt retained</dt>
+        <dd>
+          Attempt {outcome.priorWorkAttempt} · lineage attempt{" "}
+          {outcome.priorLineageAttempt}
+          <code>{outcome.priorWorkUnitId}</code>
+        </dd>
+      </div>
+      <div>
+        <dt>Fresh immutable input</dt>
+        <dd>
+          {outcome.freshInputSummary}
+          <code>{outcome.freshInputManifestId}</code>
+        </dd>
+      </div>
+      <div>
+        <dt>Output reuse</dt>
+        <dd>
+          None. Prior outputs, history, and incurred use remain with the prior
+          Work.
+        </dd>
+      </div>
+      <div>
+        <dt>New linked Work</dt>
+        <dd>
+          Attempt {outcome.newWorkAttempt} · lineage attempt{" "}
+          {outcome.newLineageAttempt}
+          <code>{outcome.newWorkUnitId}</code>
+        </dd>
+      </div>
+    </dl>
+    <details>
+      <summary>Exact transition identities</summary>
+      <dl>
+        <div>
+          <dt>Prior input manifest</dt>
+          <dd>
+            <code>{outcome.priorInputManifestId}</code>
+          </dd>
+        </div>
+        <div>
+          <dt>Start again receipt</dt>
+          <dd>
+            <code>{outcome.receiptId}</code>
+          </dd>
+        </div>
+      </dl>
+    </details>
+  </section>
+);
+
+const WorkOperationControls = ({
+  project,
+  initialView,
+}: {
+  project: ProjectRecord;
+  initialView: PetraProjectWorkOperationsView;
+}): React.JSX.Element => {
+  const navigate = useNavigate();
+  const [view, setView] = useState(initialView);
+  const [instruction, setInstruction] = useState("");
+  const [priority, setPriority] = useState<
+    NonNullable<PetraProjectWorkOperationRequest["priority"]>
+  >(initialView.plan.selected_priority);
+  const [cancelReason, setCancelReason] = useState(
+    "This task is no longer needed for the current Project decision.",
+  );
+  const [confirmingCancel, setConfirmingCancel] = useState(false);
+  const [pending, setPending] = useState<string>();
+  const [receipt, setReceipt] = useState<PetraProjectWorkOperationReceipt>();
+  const [resumeReceipt, setResumeReceipt] =
+    useState<PetraProjectWorkResumeReceipt>();
+  const [startAgainReceipt, setStartAgainReceipt] =
+    useState<PetraProjectWorkStartAgainReceipt>();
+  const [delivery, setDelivery] = useState<ProjectWorkDeliveryObservation>();
+  const [error, setError] = useState<{
+    message: string;
+    recovery: string;
+  }>();
+  const retained = useRef<RetainedWorkRequest | undefined>(undefined);
+  const retainedResume = useRef<RetainedWorkResumeRequest | undefined>(
+    undefined,
+  );
+  const retainedStartAgain = useRef<RetainedWorkStartAgainRequest | undefined>(
+    undefined,
+  );
+
+  useEffect(() => {
+    setView(initialView);
+    setPriority(initialView.plan.selected_priority);
+  }, [initialView.content_hash, initialView.plan.selected_priority]);
+
+  const execute = async (
+    operation: ProjectWorkCommandOperation,
+    options: ProjectWorkCommandOptions = {},
+  ): Promise<void> => {
+    const fingerprint = JSON.stringify({
+      operation,
+      options,
+      work: view.work_unit_ref,
+      plan: view.plan.revision,
+    });
+    const retainedRequest = retained.current;
+    const request =
+      retainedRequest?.fingerprint === fingerprint
+        ? retainedRequest.request
+        : createProjectWorkOperationRequest(view, operation, options);
+    retained.current = { fingerprint, request };
+    setPending(operation);
+    setError(undefined);
+    setDelivery(undefined);
+    setResumeReceipt(undefined);
+    setStartAgainReceipt(undefined);
+    try {
+      const nextReceipt = await executeProjectWorkOperation(
+        view.project_id,
+        view.work_unit_ref.work_unit_id,
+        request,
+      );
+      const refreshed = await readProjectWorkOperations(
+        view.project_id,
+        view.work_unit_ref.work_unit_id,
+      );
+      setReceipt(nextReceipt);
+      setView(refreshed);
+      setInstruction("");
+      setConfirmingCancel(false);
+      retained.current = undefined;
+    } catch (caught) {
+      setError({
+        message:
+          caught instanceof Error
+            ? caught.message
+            : "Petra could not complete this exact Work operation.",
+        recovery:
+          "Your instruction and exact command identity are retained. Resolve the stated condition, then try the same operation again.",
+      });
+    } finally {
+      setPending(undefined);
+    }
+  };
+
+  const executeResume = async (): Promise<void> => {
+    const fingerprint = JSON.stringify({
+      project: view.project_id,
+      binding: view.resume_binding,
+    });
+    const retainedRequest = retainedResume.current;
+    let request: PetraProjectWorkResumeRequest;
+    try {
+      request =
+        retainedRequest?.fingerprint === fingerprint
+          ? retainedRequest.request
+          : createProjectWorkResumeRequest(view);
+    } catch (caught) {
+      setError({
+        message:
+          caught instanceof Error
+            ? caught.message
+            : "Petra could not bind Resume to this exact checkpoint.",
+        recovery:
+          "Refresh this task to obtain the current server assessment. Resume stays unavailable without an exact registered checkpoint binding.",
+      });
+      return;
+    }
+    retainedResume.current = { fingerprint, request };
+    setPending("resume");
+    setError(undefined);
+    setReceipt(undefined);
+    setDelivery(undefined);
+    setStartAgainReceipt(undefined);
+    try {
+      const nextReceipt = await executeProjectWorkResume(
+        view.project_id,
+        view.work_unit_ref.work_unit_id,
+        request,
+      );
+      const refreshed = await readProjectWorkOperations(
+        view.project_id,
+        view.work_unit_ref.work_unit_id,
+      );
+      setResumeReceipt(nextReceipt);
+      setView(refreshed);
+      retainedResume.current = undefined;
+    } catch (caught) {
+      let refreshed = view;
+      try {
+        refreshed = await readProjectWorkOperations(
+          view.project_id,
+          view.work_unit_ref.work_unit_id,
+        );
+        setView(refreshed);
+      } catch {
+        // Preserve the last verified assessment when refresh is unavailable.
+      }
+      const currentResume = workControl(refreshed, "resume");
+      setError({
+        message:
+          caught instanceof Error
+            ? caught.message
+            : "Petra could not complete this exact checkpoint Resume.",
+        recovery:
+          currentResume?.state === "available" &&
+          refreshed.resume_binding !== undefined
+            ? "The exact command identity and checkpoint binding are retained. Try Resume again to reconcile an unknown result without creating a second effect."
+            : `The server assessment was refreshed. ${currentResume?.reason ?? "Resume is no longer available for this Work revision."} No new attempt was inferred.`,
+      });
+    } finally {
+      setPending(undefined);
+    }
+  };
+
+  const executeStartAgain = async (): Promise<void> => {
+    const fingerprint = JSON.stringify({
+      project: view.project_id,
+      binding: view.start_again_binding,
+    });
+    const retainedRequest = retainedStartAgain.current;
+    let request: PetraProjectWorkStartAgainRequest;
+    try {
+      request =
+        retainedRequest?.request ?? createProjectWorkStartAgainRequest(view);
+    } catch (caught) {
+      setError({
+        message:
+          caught instanceof Error
+            ? caught.message
+            : "Petra could not bind Start again to this exact fresh-input transition.",
+        recovery:
+          "Refresh this task to obtain the current server assessment. Start again stays unavailable without an exact registered fresh-input binding.",
+      });
+      return;
+    }
+    retainedStartAgain.current = { fingerprint, request };
+    setPending("start_again");
+    setError(undefined);
+    setReceipt(undefined);
+    setResumeReceipt(undefined);
+    setDelivery(undefined);
+    setStartAgainReceipt(undefined);
+    try {
+      const nextReceipt = await executeProjectWorkStartAgain(
+        view.project_id,
+        view.work_unit_ref.work_unit_id,
+        request,
+      );
+      retainedStartAgain.current = undefined;
+      setStartAgainReceipt(nextReceipt);
+      const returnPath = `/projects/${encodeURIComponent(project.id)}/work/${encodeURIComponent(nextReceipt.prior_attempt.work_unit_ref.work_unit_id)}`;
+      const destination = new URLSearchParams({
+        return_to: returnPath,
+        return_label: "prior Work task",
+        return_focus: "work-control-boundary",
+      });
+      await navigate(
+        `/projects/${encodeURIComponent(project.id)}/work/${encodeURIComponent(nextReceipt.destination.work_unit_ref.work_unit_id)}?${destination}#work-control-boundary`,
+        { state: { startAgainOutcome: startAgainOutcome(nextReceipt) } },
+      );
+    } catch (caught) {
+      try {
+        setView(
+          await readProjectWorkOperations(
+            view.project_id,
+            view.work_unit_ref.work_unit_id,
+          ),
+        );
+      } catch {
+        // Preserve the last verified assessment when refresh is unavailable.
+      }
+      const retainedExactRequest = retainedStartAgain.current !== undefined;
+      setError({
+        message:
+          caught instanceof Error
+            ? caught.message
+            : "Petra could not confirm this exact Start again transition.",
+        recovery: retainedExactRequest
+          ? "The exact command identity and fresh-input registration are retained. Retry Start again to reconcile the same command without creating a second effect."
+          : "The Start again effect was recorded, but its exact Work destination did not open. Use the new linked Work destination below; do not issue another command.",
+      });
+    } finally {
+      setPending(undefined);
+    }
+  };
+
+  const inspectDelivery = async (
+    operation: "reconnect" | "replay",
+  ): Promise<void> => {
+    setPending(operation);
+    setError(undefined);
+    setReceipt(undefined);
+    setResumeReceipt(undefined);
+    setStartAgainReceipt(undefined);
+    try {
+      const observation =
+        operation === "reconnect"
+          ? await reconnectProjectWorkDelivery(view)
+          : await replayProjectWorkDelivery(view);
+      setDelivery(observation);
+      setView(
+        await readProjectWorkOperations(
+          view.project_id,
+          view.work_unit_ref.work_unit_id,
+        ),
+      );
+    } catch (caught) {
+      setError({
+        message:
+          caught instanceof Error
+            ? caught.message
+            : "Petra could not restore this exact Work delivery.",
+        recovery:
+          "The current Work view remains unchanged. Resolve the stated condition, then retry the same delivery read.",
+      });
+    } finally {
+      setPending(undefined);
+    }
+  };
+
+  const pendingInputs = view.required_inputs.filter(
+    (input) => input.state === "pending",
+  );
+  const resultPath = (
+    result: PetraProjectWorkOperationsView["results"][number],
+  ): string | undefined => {
+    if (result.destination.state !== "available") return undefined;
+    const query = new URLSearchParams({
+      semanticKey: result.destination.target_ref.semantic_key,
+      objectId: result.destination.target_ref.object_id,
+      revision: String(result.destination.target_ref.revision),
+      taskIntent: "inspect",
+      contentHash: result.record_ref.content_hash,
+      recordHash: result.record_ref.record_hash,
+    });
+    return `/projects/${encodeURIComponent(project.id)}/locate?${query}`;
+  };
+
+  return (
+    <>
+      {pendingInputs.map((input) => (
+        <section
+          className="work-required-input"
+          id="required-input"
+          tabIndex={-1}
+          aria-labelledby={`work-input-${input.input_request_ref.input_request_id}`}
+          key={input.input_request_ref.input_request_id}
+        >
+          <span aria-hidden="true">!</span>
+          <div>
+            <p className="reference-panel-kicker">
+              Required input · {input.kind.replaceAll("_", " ")}
+            </p>
+            <h2 id={`work-input-${input.input_request_ref.input_request_id}`}>
+              {input.question}
+            </h2>
+            <p>{input.consequence}</p>
+            <p className="work-command-boundary">
+              Choose one registered response. Petra records it once against
+              input revision {input.input_request_ref.revision}; it does not
+              grant domain authority.
+            </p>
+            <PetraButtonGroup label="Required input responses">
+              {input.response_options.map((response, index) => (
+                <PetraButton
+                  key={response}
+                  variant={index === 0 ? "primary" : "secondary"}
+                  busy={pending === "answer_input"}
+                  busyLabel="Recording input"
+                  onClick={() =>
+                    void execute("answer_input", {
+                      inputRequestRef: input.input_request_ref,
+                      response,
+                    })
+                  }
+                >
+                  {response}
+                </PetraButton>
+              ))}
+            </PetraButtonGroup>
+          </div>
+        </section>
+      ))}
+
+      <section className="work-controls" aria-labelledby="work-controls-title">
+        <div className="work-controls__heading">
+          <p className="reference-panel-kicker">Operational controls</p>
+          <h2 id="work-controls-title">Manage this task</h2>
+          <p id="work-control-boundary" tabIndex={-1}>
+            Availability comes from the current server-owned Work assessment.
+            Commands change operational state only; they cannot accept a finding
+            or apply a Review. Project authority remains unchanged.
+          </p>
+        </div>
+
+        <dl className="work-controls__snapshot">
+          <div>
+            <dt>Canonical execution</dt>
+            <dd>{view.execution_state.replaceAll("_", " ")}</dd>
+          </div>
+          <div>
+            <dt>Plan</dt>
+            <dd>
+              Revision {view.plan.revision} ·{" "}
+              {priorityLabel[view.plan.selected_priority]}
+            </dd>
+          </div>
+          <div>
+            <dt>Observed</dt>
+            <dd>{view.read_at}</dd>
+          </div>
+          <div>
+            <dt>Delivery</dt>
+            <dd>
+              {view.delivery.state === "durable"
+                ? "Durable reconnect and replay available"
+                : view.delivery.reason}
+            </dd>
+          </div>
+        </dl>
+
+        <div className="work-controls__commands">
+          <PetraButtonGroup label="Execution controls">
+            <PetraButton
+              variant="primary"
+              busy={pending === "start"}
+              busyLabel="Starting work"
+              {...withUnavailable(unavailableFor(view, "start"))}
+              onClick={() => void execute("start")}
+            >
+              Start work
+            </PetraButton>
+            <PetraButton
+              busy={pending === "retry"}
+              busyLabel="Retrying work"
+              {...withUnavailable(unavailableFor(view, "retry"))}
+              onClick={() => void execute("retry")}
+            >
+              Retry failed work
+            </PetraButton>
+            <PetraButton
+              busy={pending === "resume"}
+              busyLabel="Resuming work"
+              {...withUnavailable(unavailableForResume(view))}
+              onClick={() => void executeResume()}
+            >
+              Resume work
+            </PetraButton>
+            <PetraButton
+              busy={pending === "start_again"}
+              busyLabel="Starting again"
+              {...withUnavailable(
+                retainedStartAgain.current === undefined
+                  ? unavailableForStartAgain(view)
+                  : undefined,
+              )}
+              onClick={() => void executeStartAgain()}
+            >
+              {retainedStartAgain.current === undefined
+                ? "Start again"
+                : "Retry Start again"}
+            </PetraButton>
+          </PetraButtonGroup>
+
+          <form
+            className="work-steering"
+            onSubmit={(event: FormEvent<HTMLFormElement>) => {
+              event.preventDefault();
+              void execute("steer", { instruction, priority });
+            }}
+          >
+            <PetraTextArea
+              label="Instruction for the next scheduling boundary"
+              hint={view.plan.effect_boundary.replaceAll("_", " ")}
+              rows={3}
+              maxLength={4_000}
+              value={instruction}
+              onChange={(event) => setInstruction(event.currentTarget.value)}
+            />
+            <label className="work-priority-field">
+              <span>Scheduling priority</span>
+              <select
+                value={priority}
+                onChange={(event) =>
+                  setPriority(
+                    event.currentTarget.value as NonNullable<
+                      PetraProjectWorkOperationRequest["priority"]
+                    >,
+                  )
+                }
+              >
+                {Object.entries(priorityLabel).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <PetraButtonGroup label="Plan controls">
+              <PetraButton
+                type="submit"
+                busy={pending === "steer"}
+                busyLabel="Recording instruction"
+                {...withUnavailable(
+                  instruction.trim().length === 0
+                    ? { reason: "Write a clear instruction first." }
+                    : unavailableFor(view, "steer"),
+                )}
+              >
+                Steer work
+              </PetraButton>
+              <PetraButton
+                type="button"
+                busy={pending === "prioritize"}
+                busyLabel="Setting priority"
+                {...withUnavailable(unavailableFor(view, "prioritize"))}
+                onClick={() => void execute("prioritize", { priority })}
+              >
+                Set priority
+              </PetraButton>
+            </PetraButtonGroup>
+          </form>
+
+          <div className="work-delivery-controls">
+            <PetraButtonGroup label="Delivery controls">
+              {workControl(view, "detach")?.state === "client_owned" ? (
+                <Link
+                  className="reference-primary-link"
+                  to={`/projects/${project.id}/brief`}
+                >
+                  Leave running
+                </Link>
+              ) : null}
+              <PetraButton
+                busy={pending === "reconnect"}
+                busyLabel="Reconnecting"
+                {...withUnavailable(unavailableFor(view, "reconnect"))}
+                onClick={() => void inspectDelivery("reconnect")}
+              >
+                Reconnect
+              </PetraButton>
+              <PetraButton
+                busy={pending === "replay"}
+                busyLabel="Replaying delivery"
+                {...withUnavailable(unavailableFor(view, "replay"))}
+                onClick={() => void inspectDelivery("replay")}
+              >
+                Replay delivery
+              </PetraButton>
+            </PetraButtonGroup>
+            <p>{workControl(view, "detach")?.reason}</p>
+          </div>
+
+          {!confirmingCancel ? (
+            <PetraButton
+              variant="danger"
+              {...withUnavailable(unavailableFor(view, "cancel"))}
+              onClick={() => setConfirmingCancel(true)}
+            >
+              Cancel work
+            </PetraButton>
+          ) : (
+            <div className="work-cancel-confirmation">
+              <PetraTextField
+                label="Reason for cancellation"
+                value={cancelReason}
+                maxLength={4_000}
+                onChange={(event) => setCancelReason(event.currentTarget.value)}
+              />
+              <PetraButtonGroup label="Confirm Work cancellation">
+                <PetraButton
+                  variant="danger"
+                  busy={pending === "cancel"}
+                  busyLabel="Cancelling work"
+                  {...withUnavailable(
+                    cancelReason.trim().length === 0
+                      ? { reason: "Enter a cancellation reason." }
+                      : undefined,
+                  )}
+                  onClick={() =>
+                    void execute("cancel", { reason: cancelReason })
+                  }
+                >
+                  Confirm cancellation
+                </PetraButton>
+                <PetraButton
+                  variant="quiet"
+                  onClick={() => setConfirmingCancel(false)}
+                >
+                  Keep work running
+                </PetraButton>
+              </PetraButtonGroup>
+            </div>
+          )}
+        </div>
+
+        <details className="work-operation-availability">
+          <summary>Why each Work operation is or is not available</summary>
+          <dl>
+            {view.controls.map((control) => (
+              <div key={control.operation} data-state={control.state}>
+                <dt>{workOperationLabel[control.operation]}</dt>
+                <dd>
+                  <strong>{control.state.replaceAll("_", " ")}</strong>
+                  <span>{control.reason}</span>
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </details>
+
+        {error === undefined ? null : (
+          <StateNotice
+            announce
+            notice={{
+              tone: "danger",
+              title: "Work operation not completed",
+              message: error.message,
+              recovery: error.recovery,
+            }}
+          />
+        )}
+        {receipt === undefined ? null : (
+          <div className="work-operation-result" role="status">
+            <strong>{receipt.effect.summary}</strong>
+            <p>
+              {receipt.outcome.replaceAll("_", " ")} · Work revision{" "}
+              {receipt.resulting_work_unit_ref.revision} · Project authority
+              unchanged
+            </p>
+            <code>{receipt.receipt_id}</code>
+          </div>
+        )}
+        {resumeReceipt === undefined ? null : (
+          <div className="work-operation-result" role="status">
+            <strong>{resumeReceipt.effect.summary}</strong>
+            <p>
+              Resumed attempt {resumeReceipt.resumed_attempt} · Work revision{" "}
+              {resumeReceipt.resulting_work_unit_ref.revision} · retained
+              checkpoint and prior attempts preserved · Project authority
+              unchanged
+            </p>
+            <code>{resumeReceipt.receipt_id}</code>
+            <Link
+              className="reference-text-link"
+              to={`/projects/${encodeURIComponent(project.id)}/work/${encodeURIComponent(resumeReceipt.resulting_work_unit_ref.work_unit_id)}#work-control-boundary`}
+            >
+              Return to this Work task
+            </Link>
+          </div>
+        )}
+        {startAgainReceipt === undefined ? null : (
+          <div className="work-operation-result" role="status">
+            <strong>{startAgainReceipt.effect.summary}</strong>
+            <p>
+              The fresh Work was created as attempt{" "}
+              {startAgainReceipt.new_attempt.work_attempt} · lineage attempt{" "}
+              {startAgainReceipt.new_attempt.lineage_attempt}. Prior Work,
+              attempts, outputs, and incurred use remain retained; no prior
+              output was reused.
+            </p>
+            <code>{startAgainReceipt.receipt_id}</code>
+            <Link
+              className="reference-text-link"
+              to={`/projects/${encodeURIComponent(project.id)}/work/${encodeURIComponent(startAgainReceipt.destination.work_unit_ref.work_unit_id)}?${new URLSearchParams(
+                {
+                  return_to: `/projects/${encodeURIComponent(project.id)}/work/${encodeURIComponent(startAgainReceipt.prior_attempt.work_unit_ref.work_unit_id)}`,
+                  return_label: "prior Work task",
+                  return_focus: "work-control-boundary",
+                },
+              )}#work-control-boundary`}
+              state={{
+                startAgainOutcome: startAgainOutcome(startAgainReceipt),
+              }}
+            >
+              Open the new linked Work
+            </Link>
+          </div>
+        )}
+        {delivery === undefined ? null : (
+          <div className="work-operation-result" role="status">
+            <strong>{delivery.summary}</strong>
+            <p>
+              InteractionRun {delivery.interactionRunId} · protocol run{" "}
+              {delivery.protocolRunId}
+            </p>
+          </div>
+        )}
+
+        <div className="work-controls__returns">
+          <Link
+            className="reference-text-link"
+            to={`/projects/${encodeURIComponent(project.id)}/petra?${new URLSearchParams(
+              {
+                return_to: `/projects/${encodeURIComponent(project.id)}/work/${encodeURIComponent(view.work_unit_ref.work_unit_id)}`,
+                return_label: "Work task",
+                return_focus: "work-control-boundary",
+              },
+            )}`}
+          >
+            Discuss this task with Petra
+          </Link>
+          <Link
+            className="reference-text-link"
+            to={`/projects/${project.id}/brief`}
+          >
+            Return to Brief without cancelling
+          </Link>
+        </div>
+      </section>
+
+      {view.results.length === 0 ? null : (
+        <section
+          className="work-results work-results--destinations"
+          aria-labelledby="work-destinations-title"
+        >
+          <header>
+            <div>
+              <p className="reference-panel-kicker">
+                Server-owned destinations
+              </p>
+              <h2 id="work-destinations-title">Open exact results</h2>
+            </div>
+            <span>{view.results.length}</span>
+          </header>
+          <ul>
+            {view.results.map((result) => {
+              const path = resultPath(result);
+              return (
+                <li
+                  key={`${result.result_kind}:${result.record_ref.record_id}`}
+                >
+                  <div>
+                    <strong>{result.result_kind.replaceAll("_", " ")}</strong>
+                    <code>{result.record_ref.record_id}</code>
+                  </div>
+                  {path === undefined ? (
+                    <span>
+                      {result.destination.state === "unavailable"
+                        ? result.destination.reason
+                        : "No destination supplied."}
+                    </span>
+                  ) : (
+                    <Link className="reference-text-link" to={path}>
+                      Open result
+                    </Link>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
+    </>
+  );
+};
+
+const measuredBytes = (value: number): string =>
+  new Intl.NumberFormat("en", { maximumFractionDigits: 1 }).format(value);
+
+const SelectedWorkerOutput = ({
+  result,
+}: {
+  result: ProjectWorkerOutputSelection;
+}): React.JSX.Element => (
+  <section
+    className="selected-worker-output"
+    id="selected-work-result"
+    tabIndex={-1}
+    aria-labelledby="selected-work-result-title"
+  >
+    <header>
+      <div>
+        <p className="reference-panel-kicker">Selected exact result</p>
+        <h2 id="selected-work-result-title">Worker output manifest</h2>
+        <p>
+          This immutable manifest belongs to the Work task shown below. Its
+          identity is retained separately from the producing WorkUnit.
+        </p>
+      </div>
+      <span data-state={result.outcome}>{words(result.outcome)}</span>
+    </header>
+
+    <dl className="selected-worker-output__identity">
+      <div>
+        <dt>Manifest</dt>
+        <dd>
+          <code>{result.resultRef.recordId}</code> · revision{" "}
+          {result.resultRef.revision}
+        </dd>
+      </div>
+      <div>
+        <dt>Producing Work</dt>
+        <dd>
+          <code>{result.producingWorkRef.workUnitId}</code> · revision{" "}
+          {result.producingWorkRef.revision}
+        </dd>
+      </div>
+      <div>
+        <dt>Outcome</dt>
+        <dd>
+          {words(result.outcome)} · attempt {result.attempt}
+        </dd>
+      </div>
+      <div>
+        <dt>Reported</dt>
+        <dd>{result.reportedAt}</dd>
+      </div>
+      <div>
+        <dt>Worker</dt>
+        <dd>
+          {result.worker.name} {result.worker.version} · {result.worker.runtime}
+        </dd>
+      </div>
+      <div>
+        <dt>Entrypoint</dt>
+        <dd>
+          <code>{result.worker.entrypoint}</code>
+        </dd>
+      </div>
+    </dl>
+
+    <section aria-labelledby="selected-work-outputs-title">
+      <h3 id="selected-work-outputs-title">Reported outputs</h3>
+      <ul className="selected-worker-output__outputs">
+        {result.outputs.map((output) => (
+          <li key={`${output.name}:${output.role}`}>
+            <strong>{words(output.name)}</strong>
+            <span>
+              {words(output.role)} · {output.state} · {output.mediaType}
+            </span>
+            {output.handle === undefined ? null : <code>{output.handle}</code>}
+            {output.contentHash === undefined ? null : (
+              <span>
+                {output.contentHash} · {measuredBytes(output.byteSize ?? 0)}
+                {" bytes"}
+              </span>
+            )}
+            <p>{output.limitation}</p>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <div className="selected-worker-output__detail-grid">
+      <section aria-labelledby="selected-work-diagnostics-title">
+        <h3 id="selected-work-diagnostics-title">Diagnostics</h3>
+        {result.diagnostics.length === 0 ? (
+          <StateNotice
+            notice={{
+              tone: "positive",
+              title: "No diagnostics reported",
+              message:
+                "The exact WorkerOutputManifest contains an empty diagnostics array for this attempt.",
+            }}
+          />
+        ) : (
+          <ul className="selected-worker-output__diagnostics">
+            {result.diagnostics.map((diagnostic, index) => (
+              <li
+                data-severity={diagnostic.severity}
+                key={`${diagnostic.code}:${index}`}
+              >
+                <strong>{diagnostic.code}</strong>
+                <span>{words(diagnostic.severity)}</span>
+                <p>{diagnostic.message}</p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+      <section aria-labelledby="selected-work-resources-title">
+        <h3 id="selected-work-resources-title">Measured resources</h3>
+        <dl>
+          <div>
+            <dt>Wall time</dt>
+            <dd>{measuredBytes(result.resourceUsage.wallTimeMs)} ms</dd>
+          </div>
+          <div>
+            <dt>CPU time</dt>
+            <dd>{measuredBytes(result.resourceUsage.cpuTimeMs)} ms</dd>
+          </div>
+          <div>
+            <dt>Peak memory</dt>
+            <dd>{measuredBytes(result.resourceUsage.peakMemoryBytes)} bytes</dd>
+          </div>
+          <div>
+            <dt>Input / output</dt>
+            <dd>
+              {measuredBytes(result.resourceUsage.inputBytes)} /{" "}
+              {measuredBytes(result.resourceUsage.outputBytes)} bytes
+            </dd>
+          </div>
+          <div>
+            <dt>Network</dt>
+            <dd>{measuredBytes(result.resourceUsage.networkBytes)} bytes</dd>
+          </div>
+          {result.resourceUsage.inputTokens === undefined &&
+          result.resourceUsage.outputTokens === undefined ? null : (
+            <div>
+              <dt>Input / output tokens</dt>
+              <dd>
+                {result.resourceUsage.inputTokens ?? "Not measured"} /{" "}
+                {result.resourceUsage.outputTokens ?? "Not measured"}
+              </dd>
+            </div>
+          )}
+        </dl>
+      </section>
+    </div>
+
+    <details>
+      <summary>Identity hashes and limitations</summary>
+      <dl>
+        <div>
+          <dt>Manifest content hash</dt>
+          <dd>
+            <code>{result.resultRef.contentHash}</code>
+          </dd>
+        </div>
+        <div>
+          <dt>Manifest record hash</dt>
+          <dd>
+            <code>{result.resultRef.recordHash}</code>
+          </dd>
+        </div>
+        <div>
+          <dt>Producing Work record hash</dt>
+          <dd>
+            <code>{result.producingWorkRef.recordHash}</code>
+          </dd>
+        </div>
+      </dl>
+      <ul>
+        {result.limitations.map((limitation) => (
+          <li key={limitation}>{limitation}</li>
+        ))}
+      </ul>
+    </details>
+  </section>
+);
+
 export const WorkDetailSurface = ({
   project,
   unit,
   work,
+  operations,
+  selectedResult,
+  returnTo,
+  startAgain,
 }: {
   project: ProjectRecord;
   unit: WorkUnit;
   work: WorkProjectView;
+  operations?: PetraProjectWorkOperationsView;
+  selectedResult?: ProjectWorkerOutputSelection;
+  returnTo?: { path: string; label: string };
+  startAgain?: ProjectWorkStartAgainOutcome;
 }): React.JSX.Element => {
   const branches = work.branches.filter((branch) =>
     unit.branchIds.includes(branch.id),
@@ -356,9 +1493,10 @@ export const WorkDetailSurface = ({
       <header className="work-detail__heading">
         <Link
           className="reference-context-back"
-          to={`/projects/${project.id}/work`}
+          to={returnTo?.path ?? `/projects/${project.id}/work`}
         >
-          <span aria-hidden="true">←</span> Return to Work
+          <span aria-hidden="true">←</span> Return to{" "}
+          {returnTo?.label ?? "Work"}
         </Link>
         <div className="work-detail__orientation">
           <div>
@@ -390,7 +1528,29 @@ export const WorkDetailSurface = ({
         </dl>
       </header>
 
-      {unit.requiredInput === undefined ? null : (
+      {startAgain === undefined ? null : (
+        <WorkStartAgainOutcome outcome={startAgain} />
+      )}
+
+      {selectedResult === undefined ? null : (
+        <SelectedWorkerOutput result={selectedResult} />
+      )}
+
+      {work.inquiryLimitation === undefined ? null : (
+        <StateNotice
+          notice={{
+            tone: "caution",
+            title: "Inquiry paths unavailable",
+            message: work.inquiryLimitation,
+            recovery:
+              "This exact task and its server-owned controls remain available. Inquiry status cannot be inferred from Work execution.",
+          }}
+        />
+      )}
+
+      {operations !== undefined ? (
+        <WorkOperationControls project={project} initialView={operations} />
+      ) : unit.requiredInput === undefined ? null : (
         <section
           className="work-required-input"
           id="required-input"
@@ -559,20 +1719,29 @@ export const WorkDetailSurface = ({
             <p className="reference-panel-kicker">Project meaning</p>
             <h2 id="work-links-title">Linked inquiry paths</h2>
           </header>
-          <ul>
-            {branches.map((branch) => (
-              <li key={branch.id}>
-                <strong>{branch.label}</strong>
-                <span>
-                  {branch.kind} · {branch.state}
-                </span>
-              </li>
-            ))}
-          </ul>
-          <p>
-            {unit.inquiryLimitation ??
-              "Work completion can supply a result to these paths. It does not resolve the inquiry or apply a candidate by itself."}
-          </p>
+          {branches.length === 0 ? (
+            <p>
+              {work.inquiryLimitation ??
+                "No exact inquiry path is linked to this task."}
+            </p>
+          ) : (
+            <>
+              <ul>
+                {branches.map((branch) => (
+                  <li key={branch.id}>
+                    <strong>{branch.label}</strong>
+                    <span>
+                      {branch.kind} · {branch.state}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <p>
+                {unit.inquiryLimitation ??
+                  "Work completion can supply a result to these paths. It does not resolve the inquiry or apply a candidate by itself."}
+              </p>
+            </>
+          )}
         </section>
       </div>
 
@@ -604,53 +1773,125 @@ export const WorkDetailSurface = ({
         )}
       </section>
 
-      <section className="work-controls" aria-labelledby="work-controls-title">
-        <div>
-          <p className="reference-panel-kicker">Operational controls</p>
-          <h2 id="work-controls-title">Manage this task</h2>
-          <p id="work-control-boundary">
-            {unit.cancellation} The operational command boundary is unavailable
-            in this workspace, so no control can change execution locally.
-          </p>
-        </div>
-        <PetraButtonGroup label="Work controls">
-          <PetraButton
-            aria-disabled="true"
-            aria-describedby="work-control-boundary"
-          >
-            Cancel work
-          </PetraButton>
-          <PetraButton
-            variant="quiet"
-            aria-disabled="true"
-            aria-describedby="work-control-boundary"
-          >
-            Retry failed work
-          </PetraButton>
-        </PetraButtonGroup>
-        <div className="work-controls__returns">
-          <Link
-            className="reference-text-link"
-            to={`/projects/${project.id}/petra`}
-          >
-            Discuss this task with Petra
-          </Link>
-          <Link
-            className="reference-text-link"
-            to={`/projects/${project.id}/brief`}
-          >
-            Return to Brief without cancelling
-          </Link>
-        </div>
-      </section>
+      {operations === undefined ? (
+        <section
+          className="work-controls"
+          aria-labelledby="work-controls-title"
+        >
+          <div>
+            <p className="reference-panel-kicker">Operational controls</p>
+            <h2 id="work-controls-title">Manage this task</h2>
+            <p id="work-control-boundary" tabIndex={-1}>
+              {unit.cancellation} The operational command boundary is
+              unavailable in this workspace, so no control can change execution
+              locally.
+            </p>
+          </div>
+          <PetraButtonGroup label="Work controls">
+            <PetraButton
+              aria-disabled="true"
+              aria-describedby="work-control-boundary"
+            >
+              Cancel work
+            </PetraButton>
+            <PetraButton
+              variant="quiet"
+              aria-disabled="true"
+              aria-describedby="work-control-boundary"
+            >
+              Retry failed work
+            </PetraButton>
+          </PetraButtonGroup>
+          <div className="work-controls__returns">
+            <Link
+              className="reference-text-link"
+              to={`/projects/${encodeURIComponent(project.id)}/petra?${new URLSearchParams(
+                {
+                  return_to: `/projects/${encodeURIComponent(project.id)}/work/${encodeURIComponent(unit.id)}`,
+                  return_label: "Work task",
+                  return_focus: "work-control-boundary",
+                },
+              )}`}
+            >
+              Discuss this task with Petra
+            </Link>
+            <Link
+              className="reference-text-link"
+              to={`/projects/${project.id}/brief`}
+            >
+              Return to Brief without cancelling
+            </Link>
+          </div>
+        </section>
+      ) : null}
     </main>
   );
 };
 
+export const workDetailReturnContext = (
+  projectId: string,
+  search: URLSearchParams,
+): { path: string; label: string } | undefined => {
+  const paths = search.getAll("return_to");
+  const labels = search.getAll("return_label");
+  const focusIds = search.getAll("return_focus");
+  if (paths.length === 0 && labels.length === 0 && focusIds.length === 0) {
+    return undefined;
+  }
+  if (paths.length !== 1 || labels.length !== 1 || focusIds.length > 1) {
+    return undefined;
+  }
+  const suppliedPath = paths[0]!;
+  const label = labels[0]!.trim();
+  const focusId = focusIds[0]?.trim();
+  const parsed = new URL(suppliedPath, "http://petra.local");
+  const projectRoot = `/projects/${encodeURIComponent(projectId)}/`;
+  if (
+    parsed.origin !== "http://petra.local" ||
+    !parsed.pathname.startsWith(projectRoot) ||
+    label.length === 0 ||
+    label.length > 100 ||
+    (focusId !== undefined &&
+      (focusId.length === 0 ||
+        focusId.length > 100 ||
+        !/^[A-Za-z][A-Za-z0-9_.:-]*$/u.test(focusId)))
+  ) {
+    return undefined;
+  }
+  const hash =
+    focusId === undefined ? parsed.hash : `#${encodeURIComponent(focusId)}`;
+  return {
+    path: `${parsed.pathname}${parsed.search}${hash}`,
+    label,
+  };
+};
+
 export const WorkDetailRoute = (): React.JSX.Element => {
   const project = useProjectRecord();
-  const { work, unit } = useLoaderData<ProjectWorkDetailData>();
-  return <WorkDetailSurface project={project} unit={unit} work={work} />;
+  const { work, unit, operations, selectedResult } =
+    useLoaderData<ProjectWorkDetailData>();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const returnTo = workDetailReturnContext(project.id, searchParams);
+  const state = location.state as {
+    startAgainOutcome?: ProjectWorkStartAgainOutcome;
+  } | null;
+  const startAgain =
+    state?.startAgainOutcome?.projectId === project.id &&
+    state.startAgainOutcome.newWorkUnitId === unit.id
+      ? state.startAgainOutcome
+      : undefined;
+  return (
+    <WorkDetailSurface
+      project={project}
+      unit={unit}
+      work={work}
+      operations={operations}
+      {...(selectedResult === undefined ? {} : { selectedResult })}
+      {...(returnTo === undefined ? {} : { returnTo })}
+      {...(startAgain === undefined ? {} : { startAgain })}
+    />
+  );
 };
 
 const forceClass = (force: PetraThread["messages"][number]["force"]): string =>
@@ -1266,14 +2507,17 @@ export const PetraSurface = ({
   suggestedWorkAction,
   suggestedActionInvocation,
   communicationPlan,
+  modelReadiness,
+  returnContext,
 }: {
   project: ProjectRecord;
   thread?: PetraThread | undefined;
   suggestedWorkAction?: PetraSuggestedActionViewV11;
   suggestedActionInvocation?: PetraSuggestedActionInvocationView;
   communicationPlan?: PetraCommunicationPlan;
+  modelReadiness?: ProjectPetraData["modelReadiness"];
+  returnContext?: ProjectPetraData["returnContext"];
 }): React.JSX.Element => {
-  const [draft, setDraft] = useState("");
   const focusedDefinition = communicationPlan?.content.composition_definition;
   const focusedSemantics =
     focusedDefinition === undefined
@@ -1285,11 +2529,27 @@ export const PetraSurface = ({
     );
   const focusedSnapshot =
     communicationPlan?.content.evidence_packet.snapshot_ref;
+  const communicationReturn =
+    communicationPlan === undefined
+      ? undefined
+      : (returnContext ?? {
+          path: `/projects/${encodeURIComponent(project.id)}/brief`,
+          label: "Brief",
+        });
 
   return (
     <main className="reference-surface petra-focus" id="reference-main">
       <header className="reference-surface-heading">
         <div>
+          {communicationReturn === undefined ? null : (
+            <Link
+              className="reference-context-back"
+              to={communicationReturn.path}
+            >
+              <span aria-hidden="true">←</span> Return to{" "}
+              {communicationReturn.label}
+            </Link>
+          )}
           <p className="reference-eyebrow">Petra · current Project</p>
           <h1>
             {thread?.title ??
@@ -1306,7 +2566,9 @@ export const PetraSurface = ({
         </div>
       </header>
 
-      {thread === undefined && communicationPlan === undefined ? (
+      {thread === undefined &&
+      communicationPlan === undefined &&
+      modelReadiness === undefined ? (
         <section
           className="reference-empty"
           aria-labelledby="petra-empty-title"
@@ -1329,9 +2591,11 @@ export const PetraSurface = ({
           <section
             className="petra-thread"
             aria-labelledby={
-              thread === undefined
-                ? "communication-plan-title"
-                : "petra-thread-title"
+              thread !== undefined
+                ? "petra-thread-title"
+                : communicationPlan !== undefined
+                  ? "communication-plan-title"
+                  : "petra-model-readiness-title"
             }
           >
             {thread === undefined ? null : (
@@ -1403,32 +2667,45 @@ export const PetraSurface = ({
               </>
             )}
 
-            <form
-              className="petra-composer"
-              onSubmit={(event) => event.preventDefault()}
-            >
-              <PetraTextArea
-                label="Message Petra"
-                hint="Your unsent text remains local to this page."
-                rows={4}
-                value={draft}
-                onChange={(event) => setDraft(event.currentTarget.value)}
+            {modelReadiness === undefined ? (
+              <form
+                className="petra-composer"
+                onSubmit={(event) => event.preventDefault()}
+              >
+                <PetraTextArea
+                  label="Message Petra"
+                  hint="Your unsent text remains local to this page."
+                  rows={4}
+                  value=""
+                  onChange={() => undefined}
+                />
+                <div>
+                  <span id="petra-send-boundary">
+                    The model response boundary is unavailable. No prompt will
+                    be sent.
+                  </span>
+                  <PetraButton
+                    type="submit"
+                    variant="primary"
+                    aria-disabled="true"
+                    aria-describedby="petra-send-boundary"
+                  >
+                    Send
+                  </PetraButton>
+                </div>
+              </form>
+            ) : (
+              <PetraModelInteraction
+                projectId={project.id}
+                readiness={modelReadiness}
+                returnContext={
+                  returnContext ?? {
+                    path: `/projects/${encodeURIComponent(project.id)}/brief`,
+                    label: "Brief",
+                  }
+                }
               />
-              <div>
-                <span id="petra-send-boundary">
-                  The model response boundary is unavailable. No prompt will be
-                  sent.
-                </span>
-                <PetraButton
-                  type="submit"
-                  variant="primary"
-                  aria-disabled="true"
-                  aria-describedby="petra-send-boundary"
-                >
-                  Send
-                </PetraButton>
-              </div>
-            </form>
+            )}
           </section>
 
           <aside
@@ -1442,15 +2719,19 @@ export const PetraSurface = ({
             </p>
             <h2 id="petra-task-context-title">
               {thread?.activeWorkTitle ??
-                (communicationPlan === undefined
-                  ? "Source coverage Work"
-                  : "Communication context")}
+                (communicationPlan !== undefined
+                  ? "Communication context"
+                  : modelReadiness?.readiness.state === "ready"
+                    ? modelReadiness.readiness.role.label
+                    : "Source coverage Work")}
             </h2>
             <p>
               {thread?.activeWorkSummary ??
-                (communicationPlan === undefined
-                  ? "The Work task is awaiting an exact permitted-copy choice. The thread can explain this state; only the Work input adapter can resolve it."
-                  : "This response is a read-only composition. Its communication record grants no command, Review, recovery, or Project authority.")}
+                (communicationPlan !== undefined
+                  ? "This response is a read-only composition. Its communication record grants no command, Review, recovery, or Project authority."
+                  : modelReadiness?.readiness.state === "ready"
+                    ? "This server-selected role can answer only its registered Project question. Its result is advisory; Work and Review remain separate."
+                    : "The Work task is awaiting an exact permitted-copy choice. The thread can explain this state; only the Work input adapter can resolve it.")}
             </p>
             {thread?.activeWorkId === undefined ? null : (
               <Link

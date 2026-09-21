@@ -1,5 +1,11 @@
 import { readProjectBrief } from "./brief-read.js";
-import { FocusedGraphClient, FocusedGraphClientError } from "@petra/adapters";
+import {
+  FocusedGraphClient,
+  FocusedGraphClientError,
+  ProjectModelClient,
+  ProjectProfileClient,
+  ProjectWorkClient,
+} from "@petra/adapters";
 import {
   PetraInteractionClient,
   type PetraInteractionResult,
@@ -31,8 +37,14 @@ import type {
   PetraProjectHistoryRetainedViewV12,
   PetraCommunicationPlan,
   PetraProjectInquiryView,
+  PetraProjectModelReadinessView,
   PetraProjectObjectLocationView,
   PetraProjectDefinition,
+  PetraProjectProfileCommandReceipt,
+  PetraProjectProfileCommandRecoveryView,
+  PetraProjectProfileCommandRequest,
+  PetraProjectProfileTaxonomyView,
+  PetraRegisteredProjectProfile,
   PetraProjectRelationshipOverlayView,
   PetraProjectRelationshipView,
   PetraProjectReviewViewRecord,
@@ -41,6 +53,7 @@ import type {
   PetraReviewSessionLifecycleReceipt,
   PetraReviewSessionRecord,
   PetraReviewSessionApplyRequest,
+  PetraReviewSessionRejectRequest,
   PetraReviewSessionV110,
   PetraProjectShellView,
   PetraProjectShellViewV11,
@@ -51,11 +64,20 @@ import type {
   PetraProjectSourceReplacement,
   PetraProjectSourceReplacementReceipt,
   PetraProjectSourceReplacementRetraction,
+  PetraProjectSourceRevisionRequest,
   PetraSuggestedActionInvocationRequest,
   PetraSuggestedActionInvocationView,
   PetraSuggestedActionViewV11,
   PetraProjectThreadView,
   PetraProjectWorkReadView,
+  PetraProjectWorkOperationReceipt,
+  PetraProjectWorkOperationRequest,
+  PetraProjectWorkOperationsView,
+  PetraProjectWorkResumeReceipt,
+  PetraProjectWorkResumeRequest,
+  PetraProjectWorkStartAgainReceipt,
+  PetraProjectWorkStartAgainRequest,
+  PetraWorkerOutputManifest,
   FocusedGraphProjectSnapshotRef,
   ProjectDefinitionTerm,
   CommandReviewSessionRef,
@@ -75,7 +97,9 @@ import type {
 import type {
   FocusedGraphAnalysisViewRequest,
   FocusedGraphReadRequest,
+  ProjectShellCollectionRequest,
 } from "@petra/core";
+import { parseFocusedGraphViewRequest } from "@petra/core";
 import { canonicalize } from "json-canonicalize";
 import { redirect, type LoaderFunctionArgs } from "react-router";
 
@@ -85,6 +109,12 @@ import {
   type FocusedGraphEntry,
   type FocusedGraphRouteData,
 } from "./focused-graph-entry.js";
+import {
+  projectObjectiveCanonicalHash,
+  type ProjectObjectiveCommandContext,
+} from "./project-objective-command.js";
+import type { SourceRegistrationContext } from "./source-registration.js";
+import type { SourceRevisionContext } from "./source-revision.js";
 
 import type {
   AttentionItem,
@@ -2543,34 +2573,21 @@ const retractProjectSourceReplacementResponse = (
   return { receipt, replacement, retraction, applied: value.applied };
 };
 
-const fallbackTerm = (
-  family: ProjectDefinitionTerm["generic_family"],
-): ProjectDefinitionTerm => {
-  const labels = {
-    focus: ["Focus", "Focus items"],
-    finding: ["Material", "Material"],
-    reference: ["Reference", "References"],
-    relationship: ["Relationship", "Relationships"],
-    task: ["Task", "Tasks"],
-    output: ["Output", "Outputs"],
-    other: ["Item", "Items"],
-  } as const;
-  return {
-    semantic_key: `petra.generic-${family}`,
-    singular: labels[family][0],
-    plural: labels[family][1],
-    definition: `Petra's generic ${family} term.`,
-    generic_family: family,
-  };
-};
-
 const termFor = (
   view: ProjectShellView,
   family: "focus" | "finding" | "reference",
-): ProjectDefinitionTerm =>
-  view.content.definition.terms.find(
+): ProjectDefinitionTerm => {
+  const term = view.content.definition.terms.find(
     (term) => term.generic_family === family,
-  ) ?? fallbackTerm(family);
+  );
+  if (term === undefined) {
+    throw new ProjectDataError(
+      `Petra cannot open this Project because its exact definition supplies no ${family} terminology. No substitute term was applied.`,
+      503,
+    );
+  }
+  return term;
+};
 
 const profileFrom = (view: ProjectShellView): ProjectProfile => {
   const focus = termFor(view, "focus");
@@ -2619,6 +2636,27 @@ export const projectRecordFromShellView = (
   const hasAttention = view.content.attention.length > 0;
   return {
     id: view.project_id,
+    revision: view.content.project.revision,
+    ...(objective === undefined
+      ? {}
+      : {
+          importBinding: {
+            sourceKind: "retained_project" as const,
+            projectId: view.project_id,
+            projectRevision: view.content.project.revision,
+            projectDefinitionRef: {
+              projectDefinitionId:
+                view.content.definition.project_definition_id,
+              revision: view.content.definition.revision,
+              contentHash: view.content.definition.content_hash,
+            },
+            focusedObjectiveRef: {
+              objectiveId: objective.objective_id,
+              revision: objective.revision,
+              contentHash: objective.content_hash,
+            },
+          },
+        }),
     title: view.content.project.name,
     objective:
       objective?.statement ?? "No current Project focus has been selected.",
@@ -2771,7 +2809,7 @@ const executionFrom = (
   if (execution.state === "checkpointed") {
     return {
       state: "running",
-      label: "Checkpoint recorded · resume unavailable",
+      label: "Checkpoint recorded · open task to assess Resume",
     };
   }
   if (execution.state === "cancelled") {
@@ -3032,6 +3070,7 @@ export const sourceRecordFromView = (
     title: identity.title,
     kind: titleCase(identity.work_kind),
     role: `${binding.source_role_label}${binding.status === "excluded" ? " · Excluded" : ""}`,
+    roleId: binding.source_role,
     creator: identity.creators
       .map((creator) => creator.display_name)
       .join(", "),
@@ -3829,8 +3868,9 @@ export const graphQuestionFromOverlayView = (
   };
 };
 
-export const loadProjectCollection = async (): Promise<ProjectRecord[]> => {
-  const value = await requestJson("/api/queries/projects");
+const projectCollectionPageFromView = (
+  value: unknown,
+): ProjectCollectionPage => {
   if (
     !isRecord(value) ||
     value.schema_name !== "petra.project-shell-collection-view" ||
@@ -3846,10 +3886,347 @@ export const loadProjectCollection = async (): Promise<ProjectRecord[]> => {
     );
   }
   const collection = value as unknown as PetraProjectShellCollectionView;
-  return collection.content.projects.map((project) =>
-    projectRecordFromShellView(shellView(project)),
-  );
+  return {
+    projects: collection.content.projects.map((project) =>
+      projectRecordFromShellView(shellView(project)),
+    ),
+    query: structuredClone(collection.content.query),
+    page: structuredClone(collection.content.page),
+  };
 };
+
+export interface ProjectCollectionPage {
+  readonly projects: ProjectRecord[];
+  readonly query: PetraProjectShellCollectionView["content"]["query"];
+  readonly page: PetraProjectShellCollectionView["content"]["page"];
+}
+
+export const searchProjectCollection = async (
+  request: ProjectShellCollectionRequest = {},
+): Promise<ProjectCollectionPage> => {
+  const { ProjectShellClient } = await import("@petra/adapters");
+  const collection = await new ProjectShellClient({
+    baseUrl: apiBaseUrl(),
+    token: apiToken(),
+    fetch: (input, init) => fetch(input, init),
+  }).search(request);
+  return projectCollectionPageFromView(collection);
+};
+
+export const loadProjectCollection = async (): Promise<ProjectRecord[]> => {
+  const value = await requestJson("/api/queries/projects");
+  return projectCollectionPageFromView(value).projects;
+};
+
+const projectResumeBriefPath = (projectId: string, state: string): string => {
+  const query = new URLSearchParams({ projectResume: state });
+  return `/projects/${encodeURIComponent(projectId)}/brief?${query}#project-resume-outcome`;
+};
+
+const projectResumeReturnPath = (
+  projectId: string,
+  request: FocusedGraphReadRequest,
+): string => {
+  const root = `/projects/${encodeURIComponent(projectId)}`;
+  const destination = request.return_destination;
+  if (destination.state === "unavailable") {
+    return projectResumeBriefPath(projectId, "return-unavailable");
+  }
+  const targetId = encodeURIComponent(destination.target_ref.record_id);
+  if (destination.destination_kind === "brief") return `${root}/brief`;
+  if (destination.destination_kind === "source_inspection") {
+    return `${root}/sources/${targetId}`;
+  }
+  if (destination.destination_kind === "review") {
+    return `${root}/review/${targetId}`;
+  }
+  if (destination.destination_kind === "history") {
+    return `${root}/history/${targetId}`;
+  }
+  if (destination.destination_kind === "work") {
+    return `${root}/work/${targetId}`;
+  }
+  const query = new URLSearchParams({
+    semanticKey: request.object_semantic_key,
+    objectId: destination.target_ref.record_id,
+    revision: String(destination.target_ref.revision),
+    taskIntent: "inspect",
+    recordHash: destination.target_ref.record_hash,
+  });
+  return `${root}/locate?${query}`;
+};
+
+export const projectResumeEntry = (
+  projectId: string,
+  retained: NonNullable<ProjectRecord["resume"]>["retained_task"],
+): FocusedGraphEntry => {
+  if (retained === undefined) {
+    throw new ProjectDataError(
+      "Petra marked Project resume available without an exact retained task.",
+      502,
+    );
+  }
+  const request = parseFocusedGraphViewRequest(retained.request);
+  if (
+    retained.task_kind !== "focused_graph" ||
+    retained.label !== request.question ||
+    canonicalize(retained.origin) !== canonicalize(request.origin) ||
+    canonicalize(retained.return_destination) !==
+      canonicalize(request.return_destination) ||
+    !retained.focus_refs.some(
+      (focus) => canonicalize(focus) === canonicalize(request.focus_ref),
+    ) ||
+    request.temporal_position.position_kind !== "current"
+  ) {
+    throw new ProjectDataError(
+      "Petra returned an incompatible retained Project task. No client identity was reconstructed.",
+      502,
+    );
+  }
+  return {
+    project_id: projectId,
+    request_id: request.request_id,
+    question: request.question,
+    focus_ref: structuredClone(request.focus_ref),
+    origin: structuredClone(retained.origin),
+    project_definition_ref: structuredClone(request.project_definition_ref),
+    task_semantic_key: request.task_semantic_key,
+    object_semantic_key: request.object_semantic_key,
+    relationship_semantic_key: request.relationship_semantic_key,
+    return_action_semantic_key: request.return_action_semantic_key,
+    return_destination: structuredClone(retained.return_destination),
+    limits: structuredClone(request.limits),
+    semantic_layer: request.semantic_layer,
+    presentation: "position",
+    ...(request.expected_snapshot === undefined
+      ? {}
+      : { expected_snapshot: structuredClone(request.expected_snapshot) }),
+    return_context: {
+      path: projectResumeReturnPath(projectId, request),
+      label:
+        retained.return_destination.state === "available"
+          ? retained.return_destination.label
+          : "current Brief",
+    },
+  };
+};
+
+export const loadProjectResume = async (
+  args: LoaderFunctionArgs,
+): Promise<FocusedGraphRouteData | Response> => {
+  const projectId = requiredRouteIdentity(
+    args.params.projectId,
+    "A Project ID",
+  );
+  const value = await requestJson(
+    `/api/queries/projects/${encodeURIComponent(projectId)}/shell`,
+  );
+  const view = shellView(value);
+  if (view.project_id !== projectId || view.schema_version !== "1.2.0") {
+    throw new ProjectDataError(
+      "Project resume requires the exact project-shell-view@1.2.0 read.",
+      502,
+    );
+  }
+  const resume = view.content.resume;
+  if (resume.state !== "available") {
+    return redirect(projectResumeBriefPath(projectId, resume.state));
+  }
+  const retained = resume.retained_task;
+  if (retained === undefined) {
+    throw new ProjectDataError(
+      "Petra marked Project resume available without an exact retained task.",
+      502,
+    );
+  }
+  const request = parseFocusedGraphViewRequest(retained.request);
+  const entry = projectResumeEntry(projectId, retained);
+  const brief = await readProjectBrief({
+    projectId,
+    baseUrl: apiBaseUrl(),
+    token: apiToken(),
+    signal: args.request.signal,
+  });
+  const definition = brief.content.definition;
+  let graph;
+  try {
+    graph = await new FocusedGraphClient({
+      baseUrl: apiBaseUrl(),
+      token: apiToken(),
+      projectDefinition: definition,
+    }).read(projectId, structuredClone(request));
+  } catch (error) {
+    if (error instanceof FocusedGraphClientError) {
+      return redirect(projectResumeBriefPath(projectId, "read-failed"));
+    }
+    throw error;
+  }
+  if (
+    graph.schema_name !== retained.expected_graph.schema_name ||
+    graph.schema_version !== retained.expected_graph.schema_version ||
+    graph.content_hash !== retained.expected_graph.content_hash
+  ) {
+    return redirect(projectResumeBriefPath(projectId, "read-stale"));
+  }
+  if (retained.selection.state === "selected") {
+    const selectionMatches = retained.selection.selected_keys.every((key) =>
+      retained.selection.state !== "selected"
+        ? false
+        : retained.selection.selection_kind === "node"
+          ? graph.content.nodes.some((node) => node.node_key === key)
+          : retained.selection.selection_kind === "relationship"
+            ? graph.content.relationships.some(
+                (relationship) => relationship.relationship_key === key,
+              )
+            : graph.content.paths.some((path) => path.path_key === key),
+    );
+    if (!selectionMatches) {
+      return redirect(projectResumeBriefPath(projectId, "selection-stale"));
+    }
+  }
+  return {
+    kind: "focused_graph",
+    entry,
+    definition,
+    request: structuredClone(request),
+    view: graph,
+    resume: {
+      label: retained.label,
+      retainedAt: retained.retained_at,
+      selection: structuredClone(retained.selection),
+      origin: structuredClone(retained.origin),
+      focusRefs: structuredClone(retained.focus_refs),
+      recovery: structuredClone(resume.recovery),
+    },
+  };
+};
+
+const projectProfileClient = (): ProjectProfileClient =>
+  new ProjectProfileClient({
+    baseUrl: apiBaseUrl(),
+    token: apiToken(),
+    fetch: (input, init) => fetch(input, init),
+  });
+
+export interface ProjectCollectionData extends ProjectCollectionPage {
+  readonly profiles: PetraRegisteredProjectProfile[];
+}
+
+export const loadProjectProfiles = async (): Promise<
+  PetraRegisteredProjectProfile[]
+> => projectProfileClient().listProfiles();
+
+export const loadProjectsHome = async (): Promise<ProjectCollectionData> => {
+  const [collection, profiles] = await Promise.all([
+    searchProjectCollection({ limit: 12 }),
+    loadProjectProfiles(),
+  ]);
+  return { ...collection, profiles };
+};
+
+export const loadProjectTaxonomy = async ({
+  params,
+}: LoaderFunctionArgs): Promise<PetraProjectProfileTaxonomyView> => {
+  const projectId = requiredRouteIdentity(params.projectId, "A Project ID");
+  return projectProfileClient().readProjectTaxonomy(projectId);
+};
+
+export interface ProjectProfileCommandInput {
+  readonly profile: PetraRegisteredProjectProfile;
+  readonly project: {
+    readonly name: string;
+    readonly description?: string;
+  };
+  readonly objective: string;
+  readonly commandId?: string;
+  readonly idempotencyKey?: string;
+}
+
+export interface ProjectProfileCommandIdentity {
+  readonly commandId: string;
+  readonly idempotencyKey: string;
+}
+
+export const createProjectProfileCommandIdentity = (
+  operation: "create" | "reset",
+): ProjectProfileCommandIdentity => {
+  const identity = randomUlidPayload();
+  return {
+    commandId: `command_${identity}`,
+    idempotencyKey: `project-profile:${operation}:${identity}`,
+  };
+};
+
+export const createProjectProfileCommandRequest = (
+  operation: "create" | "reset",
+  input: ProjectProfileCommandInput,
+  expectedProject?: { readonly projectId: string; readonly revision: number },
+): PetraProjectProfileCommandRequest => {
+  const identity = createProjectProfileCommandIdentity(operation);
+  return {
+    schema_name: "petra.project-profile-command-request",
+    schema_version: "1.0.0",
+    command_id: input.commandId ?? identity.commandId,
+    idempotency_key: input.idempotencyKey ?? identity.idempotencyKey,
+    operation,
+    profile_ref: {
+      profile_id: input.profile.profile_id,
+      profile_version: input.profile.profile_version,
+      content_hash: input.profile.content_hash,
+    },
+    ...(expectedProject === undefined
+      ? {}
+      : {
+          expected_project: {
+            project_id: expectedProject.projectId,
+            revision: expectedProject.revision,
+          },
+        }),
+    project: {
+      name: input.project.name,
+      ...(input.project.description === undefined ||
+      input.project.description.length === 0
+        ? {}
+        : { description: input.project.description }),
+    },
+    objective: { statement: input.objective },
+  };
+};
+
+export const createProjectWithProfile = async (
+  input: ProjectProfileCommandInput,
+): Promise<PetraProjectProfileCommandReceipt> =>
+  projectProfileClient().createProject(
+    createProjectProfileCommandRequest("create", input),
+  );
+
+export const resetProjectWithProfile = async (
+  projectId: string,
+  revision: number,
+  input: ProjectProfileCommandInput,
+): Promise<PetraProjectProfileCommandReceipt> =>
+  projectProfileClient().resetProject(
+    projectId,
+    createProjectProfileCommandRequest("reset", input, {
+      projectId,
+      revision,
+    }),
+  );
+
+export const assessProjectProfileCommandRecovery = async (
+  request: PetraProjectProfileCommandRequest,
+): Promise<PetraProjectProfileCommandRecoveryView> =>
+  projectProfileClient().assessProjectRecovery(request);
+
+export const executeProjectProfileCommandRequest = async (
+  request: PetraProjectProfileCommandRequest,
+): Promise<PetraProjectProfileCommandReceipt> =>
+  request.operation === "create"
+    ? projectProfileClient().createProject(request)
+    : projectProfileClient().resetProject(
+        request.expected_project?.project_id ?? "",
+        request,
+      );
 
 export const loadProjectRecord = async ({
   params,
@@ -3858,6 +4235,7 @@ export const loadProjectRecord = async ({
   if (params.projectId === undefined || params.projectId.length === 0) {
     throw new ProjectDataError("A Project ID is required.", 400);
   }
+  const projectId = params.projectId;
   const requestUrl = new URL(request.url);
   const incoming = requestUrl.searchParams;
   const semanticKey = incoming.get("semanticKey");
@@ -3906,10 +4284,20 @@ export const loadProjectRecord = async ({
     query.set("taskIntent", "inspect");
   }
   const suffix = query.size === 0 ? "" : `?${query}`;
-  const value = await requestJson(
-    `/api/queries/projects/${encodeURIComponent(params.projectId)}/shell${suffix}`,
-  );
-  const view = shellView(value);
+  const view = hasExactSelection
+    ? shellView(
+        await requestJson(
+          `/api/queries/projects/${encodeURIComponent(params.projectId)}/shell${suffix}`,
+        ),
+      )
+    : await (async (): Promise<ProjectShellView> => {
+        const { ProjectShellClient } = await import("@petra/adapters");
+        return new ProjectShellClient({
+          baseUrl: apiBaseUrl(),
+          token: apiToken(),
+          fetch: (input, init) => fetch(input, init),
+        }).open(projectId);
+      })();
   if (hasExactSelection) {
     if (
       view.schema_version !== "1.1.0" ||
@@ -3933,10 +4321,128 @@ export const loadProjectRecord = async ({
 
 export interface ProjectBriefData {
   readonly briefView?: PetraProjectBriefReadView;
+  readonly objectiveCommandContext?: ProjectObjectiveCommandContext;
   readonly suggestedAction?: PetraSuggestedActionView;
   readonly suggestedWorkAction?: PetraSuggestedActionViewV11;
   readonly invokedInquiry?: PetraProjectInquiryView;
 }
+
+const objectiveCommandContextFromCurrentBrief = async (
+  projectId: string,
+  brief: PetraProjectBriefReadView,
+  controls: PetraProjectEffectiveControlsView,
+): Promise<ProjectObjectiveCommandContext> => {
+  const content = brief.content;
+  const project = content.shell.content.project;
+  const shellDefinition = content.shell.content.definition;
+  const shellObjective = content.shell.content.current_objective;
+  const definitionRef = controls.content.project_definition_ref;
+  const objective = content.objective;
+  const term = content.definition.content.terms.find(
+    (candidate) => candidate.semantic_key === objective.content.objective_kind,
+  );
+  const [definitionRecordHash, objectiveRecordHash] = await Promise.all([
+    projectObjectiveCanonicalHash(content.definition),
+    projectObjectiveCanonicalHash(objective),
+  ]);
+  if (
+    brief.project_id !== projectId ||
+    project.project_id !== projectId ||
+    controls.project_id !== projectId ||
+    controls.content.project_ref.record_id !== projectId ||
+    controls.content.project_ref.revision !== project.revision ||
+    definitionRef.project_definition_id !==
+      content.definition.project_definition_id ||
+    definitionRef.revision !== content.definition.revision ||
+    definitionRef.content_hash !== content.definition.content_hash ||
+    definitionRef.record_hash !== definitionRecordHash ||
+    shellDefinition.project_definition_id !==
+      content.definition.project_definition_id ||
+    shellDefinition.revision !== content.definition.revision ||
+    shellDefinition.content_hash !== content.definition.content_hash ||
+    objective.project_id !== projectId ||
+    objective.project_definition_ref.project_definition_id !==
+      definitionRef.project_definition_id ||
+    objective.project_definition_ref.revision !== definitionRef.revision ||
+    objective.project_definition_ref.content_hash !==
+      definitionRef.content_hash ||
+    shellObjective === undefined ||
+    shellObjective.objective_id !== objective.objective_id ||
+    shellObjective.revision !== objective.revision ||
+    shellObjective.content_hash !== objective.content_hash ||
+    term === undefined
+  ) {
+    throw new ProjectDataError(
+      "The Brief cannot bind Objective review to one exact current Project, ProjectDefinition, focus, and registered term. Refresh before editing.",
+      409,
+    );
+  }
+  return {
+    projectId,
+    projectName: project.name,
+    definitionLabel: content.definition.content.label,
+    projectRef: {
+      project_id: projectId,
+      revision: controls.content.project_ref.revision,
+      record_hash: controls.content.project_ref.record_hash,
+    },
+    projectDefinitionRef: structuredClone(definitionRef),
+    focus: {
+      state: "focused",
+      objective: structuredClone(objective),
+      objectiveRecordHash,
+      term: term.singular,
+    },
+  };
+};
+
+const objectiveCommandContextFromEmptyShell = (
+  projectId: string,
+  shell: ProjectShellView,
+  controls: PetraProjectEffectiveControlsView,
+): ProjectObjectiveCommandContext => {
+  const project = shell.content.project;
+  const definition = shell.content.definition;
+  const definitionRef = controls.content.project_definition_ref;
+  const focusTerms = definition.terms.filter(
+    (term) => term.generic_family === "focus",
+  );
+  const term = focusTerms[0];
+  if (
+    shell.project_id !== projectId ||
+    project.project_id !== projectId ||
+    shell.content.current_objective !== undefined ||
+    controls.project_id !== projectId ||
+    controls.content.project_ref.record_id !== projectId ||
+    controls.content.project_ref.revision !== project.revision ||
+    definitionRef.project_definition_id !== definition.project_definition_id ||
+    definitionRef.revision !== definition.revision ||
+    definitionRef.content_hash !== definition.content_hash ||
+    focusTerms.length !== 1 ||
+    term === undefined
+  ) {
+    throw new ProjectDataError(
+      "The Brief cannot bind Objective framing to one exact reviewed absence and one registered focus term. Refresh or inspect the Project profile.",
+      409,
+    );
+  }
+  return {
+    projectId,
+    projectName: project.name,
+    definitionLabel: definition.label,
+    projectRef: {
+      project_id: projectId,
+      revision: controls.content.project_ref.revision,
+      record_hash: controls.content.project_ref.record_hash,
+    },
+    projectDefinitionRef: structuredClone(definitionRef),
+    focus: {
+      state: "none",
+      objectiveKind: term.semantic_key,
+      term: term.singular,
+    },
+  };
+};
 
 export const getProjectSuggestedAction = async (
   projectId: string,
@@ -4046,27 +4552,69 @@ export const loadProjectBrief = async (
     "A Project ID",
   );
   const query = new URL(args.request.url).searchParams;
+  const projectResume = query.get("projectResume");
   if (
     [...query.keys()].some(
-      (key) => !["inquiry_result_link_id", "invoke"].includes(key),
-    )
+      (key) =>
+        !["inquiry_result_link_id", "invoke", "projectResume"].includes(key),
+    ) ||
+    query.getAll("projectResume").length > 1 ||
+    (projectResume !== null &&
+      ![
+        "stale",
+        "not_found",
+        "unavailable",
+        "read-failed",
+        "read-stale",
+        "selection-stale",
+        "return-unavailable",
+      ].includes(projectResume))
   ) {
     throw new ProjectDataError(
       "This Brief route supports current observations and exact action selection only; comparison controls are unavailable here.",
       400,
     );
   }
-  const briefView = await readProjectBrief({
+  const controlsPromise = requestJson(
+    `/api/queries/projects/${encodeURIComponent(projectId)}/effective-controls`,
+  );
+  let briefView: PetraProjectBriefReadView;
+  try {
+    briefView = await readProjectBrief({
+      projectId,
+      baseUrl: apiBaseUrl(),
+      token: apiToken(),
+      signal: args.request.signal,
+    });
+  } catch (error) {
+    const [controlsValue, shellValue] = await Promise.all([
+      controlsPromise,
+      requestJson(
+        `/api/queries/projects/${encodeURIComponent(projectId)}/shell`,
+      ),
+    ]);
+    const controls = effectiveControlsView(controlsValue);
+    const shell = shellView(shellValue);
+    if (shell.content.current_objective !== undefined) throw error;
+    return {
+      objectiveCommandContext: objectiveCommandContextFromEmptyShell(
+        projectId,
+        shell,
+        controls,
+      ),
+    };
+  }
+  const controls = effectiveControlsView(await controlsPromise);
+  const objectiveCommandContext = await objectiveCommandContextFromCurrentBrief(
     projectId,
-    baseUrl: apiBaseUrl(),
-    token: apiToken(),
-    signal: args.request.signal,
-  });
+    briefView,
+    controls,
+  );
   const selected =
     query.has("inquiry_result_link_id") || query.has("invoke")
       ? await loadProjectBriefAction(args)
       : {};
-  return { briefView, ...selected };
+  return { briefView, objectiveCommandContext, ...selected };
 };
 
 export const loadProjectBriefAction = async ({
@@ -4197,6 +4745,8 @@ export const loadProjectBriefAction = async ({
 export interface ProjectSettingsData {
   selectedProject?: ProjectRecord;
   controls?: PetraProjectEffectiveControlsView;
+  profiles?: PetraRegisteredProjectProfile[];
+  taxonomy?: PetraProjectProfileTaxonomyView;
 }
 
 export const loadProjectSettings = async ({
@@ -4211,12 +4761,17 @@ export const loadProjectSettings = async ({
     );
   }
   const encoded = encodeURIComponent(target);
-  const [projectValue, controlsValue] = await Promise.all([
+  const [projectValue, controlsValue, profiles] = await Promise.all([
     requestJson(`/api/queries/projects/${encoded}/shell`),
     requestJson(`/api/queries/projects/${encoded}/effective-controls`),
+    loadProjectProfiles(),
   ]);
   const projectView = shellView(projectValue);
   const controls = effectiveControlsView(controlsValue);
+  const taxonomy = await projectProfileClient().readProjectTaxonomy(
+    target,
+    projectView.content.definition.revision,
+  );
   if (
     projectView.project_id !== target ||
     controls.project_id !== target ||
@@ -4238,6 +4793,8 @@ export const loadProjectSettings = async ({
   return {
     selectedProject: projectRecordFromShellView(projectView),
     controls,
+    profiles,
+    taxonomy,
   };
 };
 
@@ -4251,20 +4808,28 @@ const requiredRouteIdentity = (
   return value;
 };
 
+export interface ProjectSourceCollectionData {
+  readonly sources: SourceRecord[];
+  readonly registration: SourceRegistrationContext;
+}
+
 export const loadProjectSourceCollection = async ({
   params,
-}: LoaderFunctionArgs): Promise<SourceRecord[]> => {
+}: LoaderFunctionArgs): Promise<ProjectSourceCollectionData> => {
   const projectId = requiredRouteIdentity(params.projectId, "A Project ID");
-  const value = await requestJson(
-    `/api/queries/projects/${encodeURIComponent(projectId)}/sources`,
-  );
+  const encoded = encodeURIComponent(projectId);
+  const [value, shellValue, controlsValue] = await Promise.all([
+    requestJson(`/api/queries/projects/${encoded}/sources`),
+    requestJson(`/api/queries/projects/${encoded}/shell`),
+    requestJson(`/api/queries/projects/${encoded}/effective-controls`),
+  ]);
   if (!isRecord(value) || !Array.isArray(value.sources)) {
     throw new ProjectDataError(
       "Petra returned an invalid Project source collection.",
       502,
     );
   }
-  return value.sources.map((source) => {
+  const sources = value.sources.map((source) => {
     const view = sourceView(source);
     if (view.project_id !== projectId) {
       throw new ProjectDataError(
@@ -4274,6 +4839,63 @@ export const loadProjectSourceCollection = async ({
     }
     return sourceRecordFromView(view);
   });
+  const shell = shellView(shellValue);
+  const controls = effectiveControlsView(controlsValue);
+  const taxonomy = await projectProfileClient().readProjectTaxonomy(
+    projectId,
+    shell.content.definition.revision,
+  );
+  const definitionRef = controls.content.project_definition_ref;
+  if (
+    shell.project_id !== projectId ||
+    shell.content.project.project_id !== projectId ||
+    controls.project_id !== projectId ||
+    controls.content.project_ref.record_id !== projectId ||
+    controls.content.project_ref.revision !== shell.content.project.revision ||
+    definitionRef.project_definition_id !==
+      shell.content.definition.project_definition_id ||
+    definitionRef.revision !== shell.content.definition.revision ||
+    definitionRef.content_hash !== shell.content.definition.content_hash ||
+    taxonomy.project_id !== projectId ||
+    taxonomy.project_revision !== shell.content.project.revision ||
+    taxonomy.project_definition_ref.project_definition_id !==
+      definitionRef.project_definition_id ||
+    taxonomy.project_definition_ref.revision !== definitionRef.revision ||
+    taxonomy.project_definition_ref.content_hash !== definitionRef.content_hash
+  ) {
+    throw new ProjectDataError(
+      "Source registration cannot bind one exact current Project, ProjectDefinition, and profile taxonomy. Refresh Sources before adding a copy.",
+      409,
+    );
+  }
+  const sourceRoles =
+    taxonomy.resolution.state === "unsupported_profile"
+      ? []
+      : taxonomy.resolution.taxonomy.source_roles.items
+          .filter(
+            (item) =>
+              item.availability === "available" &&
+              item.contract?.name === "petra.rights-decision" &&
+              item.contract.version === "1.0.0",
+          )
+          .map((item) => ({
+            semanticKey: item.semantic_key,
+            label: item.label,
+            meaning: item.meaning,
+          }));
+  return {
+    sources,
+    registration: {
+      projectId,
+      projectRef: {
+        project_id: projectId,
+        revision: controls.content.project_ref.revision,
+        record_hash: controls.content.project_ref.record_hash,
+      },
+      projectDefinitionRef: structuredClone(definitionRef),
+      sourceRoles,
+    },
+  };
 };
 
 /**
@@ -4963,9 +5585,49 @@ export const getRetainedProjectHistory = async (
   return view;
 };
 
+export interface ProjectSourceRecordData {
+  readonly source: SourceRecord;
+  readonly linkRemovalAvailable: boolean;
+  readonly revision?: SourceRevisionContext;
+  readonly revisionUnavailable?: string;
+}
+
+const sourceRevisionPredecessorRef = (
+  value: unknown,
+  projectId: string,
+  sourceId: string,
+): PetraProjectSourceRevisionRequest["expected"]["current_source_ref"] => {
+  if (
+    !isRecord(value) ||
+    value.schema_name !== "petra.project-source-lifecycle-view" ||
+    value.schema_version !== "1.0.0" ||
+    value.project_id !== projectId ||
+    value.project_source_id !== sourceId ||
+    !isRecord(value.content) ||
+    value.content.requested_action !== "exclude_project_source" ||
+    !isRecord(value.content.source_ref) ||
+    value.content.source_ref.project_source_id !== sourceId ||
+    !Number.isSafeInteger(value.content.source_ref.revision) ||
+    Number(value.content.source_ref.revision) < 1 ||
+    typeof value.content.source_ref.content_hash !== "string" ||
+    !CONTENT_HASH.test(value.content.source_ref.content_hash) ||
+    typeof value.content.source_ref.record_hash !== "string" ||
+    !CONTENT_HASH.test(value.content.source_ref.record_hash) ||
+    value.content.source_ref.status !== "active"
+  ) {
+    throw new ProjectDataError(
+      "Petra did not return the exact active predecessor required for a new source version.",
+      502,
+    );
+  }
+  return structuredClone(
+    value.content.source_ref,
+  ) as unknown as PetraProjectSourceRevisionRequest["expected"]["current_source_ref"];
+};
+
 export const loadProjectSourceRecord = async ({
   params,
-}: LoaderFunctionArgs): Promise<SourceRecord> => {
+}: LoaderFunctionArgs): Promise<ProjectSourceRecordData> => {
   const projectId = requiredRouteIdentity(params.projectId, "A Project ID");
   const sourceId = requiredRouteIdentity(params.sourceId, "A ProjectSource ID");
   const value = await requestJson(
@@ -4978,7 +5640,80 @@ export const loadProjectSourceRecord = async ({
       502,
     );
   }
-  return sourceRecordFromView(view);
+  const source = sourceRecordFromView(view);
+  if (view.content.binding.status !== "active") {
+    return {
+      source,
+      linkRemovalAvailable: false,
+      revisionUnavailable:
+        "Only an active Project source can receive a new immutable version.",
+    };
+  }
+  try {
+    const encodedProject = encodeURIComponent(projectId);
+    const encodedSource = encodeURIComponent(sourceId);
+    const [shellValue, controlsValue, predecessorValue] = await Promise.all([
+      requestJson(`/api/queries/projects/${encodedProject}/shell`),
+      requestJson(`/api/queries/projects/${encodedProject}/effective-controls`),
+      requestJson(
+        `/api/queries/projects/${encodedProject}/sources/${encodedSource}/lifecycle?requested_action=exclude_project_source`,
+      ),
+    ]);
+    const shell = shellView(shellValue);
+    const controls = effectiveControlsView(controlsValue);
+    const predecessor = sourceRevisionPredecessorRef(
+      predecessorValue,
+      projectId,
+      sourceId,
+    );
+    const definitionRef = controls.content.project_definition_ref;
+    if (
+      shell.project_id !== projectId ||
+      shell.content.project.project_id !== projectId ||
+      controls.project_id !== projectId ||
+      controls.content.project_ref.record_id !== projectId ||
+      controls.content.project_ref.revision !==
+        shell.content.project.revision ||
+      definitionRef.project_definition_id !==
+        shell.content.definition.project_definition_id ||
+      definitionRef.revision !== shell.content.definition.revision ||
+      definitionRef.content_hash !== shell.content.definition.content_hash ||
+      view.content.binding.project_definition_ref.record_id !==
+        definitionRef.project_definition_id ||
+      view.content.binding.project_definition_ref.revision !==
+        definitionRef.revision ||
+      view.content.binding.project_definition_ref.content_hash !==
+        definitionRef.content_hash ||
+      predecessor.revision !== view.content.binding.revision ||
+      predecessor.content_hash !== view.content.binding.content_hash
+    ) {
+      throw new ProjectDataError(
+        "Petra could not bind one exact current Project, ProjectDefinition, and active predecessor.",
+        409,
+      );
+    }
+    return {
+      source,
+      linkRemovalAvailable: true,
+      revision: {
+        projectId,
+        projectRef: {
+          project_id: projectId,
+          revision: controls.content.project_ref.revision,
+          record_hash: controls.content.project_ref.record_hash,
+        },
+        projectDefinitionRef: structuredClone(definitionRef),
+        currentSourceRef: predecessor,
+      },
+    };
+  } catch {
+    return {
+      source,
+      linkRemovalAvailable: true,
+      revisionUnavailable:
+        "Petra could not bind the current Project, profile definition, and active predecessor. Re-read this exact source before adding a version.",
+    };
+  }
 };
 
 export const executeProjectSourceLifecycleCommand = async (
@@ -5311,6 +6046,29 @@ export const loadProjectReviewSession = async ({
   };
 };
 
+const WORK_INQUIRY_MAPPING_UNAVAILABLE =
+  "The current Project profile has no active inquiry-path mapping. Exact Work remains available, but Petra cannot show how these tasks relate to authored inquiry paths.";
+
+const readOptionalWorkInquiry = async (
+  path: string,
+): Promise<
+  { readonly view: PetraProjectInquiryView } | { readonly limitation: string }
+> => {
+  try {
+    return { view: projectInquiryView(await requestJson(path)) };
+  } catch (caught) {
+    if (
+      caught instanceof ProjectDataError &&
+      caught.status === 503 &&
+      caught.message ===
+        "The current ProjectDefinition has no active registered inquiry-role mapping."
+    ) {
+      return { limitation: WORK_INQUIRY_MAPPING_UNAVAILABLE };
+    }
+    throw caught;
+  }
+};
+
 export const loadProjectWorkCollection = async ({
   params,
   request,
@@ -5329,35 +6087,48 @@ export const loadProjectWorkCollection = async ({
     for (const value of incoming.getAll(key)) query.append(key, value);
   }
   if (!query.has("limit")) query.set("limit", "50");
-  const [value, inquiryCollectionValue] = await Promise.all([
+  const [value, inquiryRead] = await Promise.all([
     requestJson(
       `/api/queries/projects/${encodeURIComponent(projectId)}/work?${query}`,
     ),
-    requestJson(
+    readOptionalWorkInquiry(
       `/api/queries/projects/${encodeURIComponent(projectId)}/inquiries?limit=100`,
     ),
   ]);
   const view = projectWorkView(value);
-  const inquiryCollection = projectInquiryView(inquiryCollectionValue);
   if (
     view.project_id !== projectId ||
-    view.content.view_kind !== "collection" ||
+    view.content.view_kind !== "collection"
+  ) {
+    throw new ProjectDataError(
+      "Petra returned Work for a different Project or view kind.",
+      502,
+    );
+  }
+  if ("limitation" in inquiryRead) {
+    return {
+      ...workProjectFromView(view),
+      inquiryLimitation: inquiryRead.limitation,
+    };
+  }
+  const inquiryCollection = inquiryRead.view;
+  if (
     inquiryCollection.project_id !== projectId ||
     inquiryCollection.content.view_kind !== "collection"
   ) {
     throw new ProjectDataError(
-      "Petra returned Work or inquiries for a different Project or view kind.",
+      "Petra returned inquiries for a different Project or view kind.",
       502,
     );
   }
-  const inquiryDetails = await Promise.all(
+  const inquiryReads = await Promise.all(
     inquiryCollection.content.inquiries.map(async (inquiry) => {
       const objectiveId = inquiry.inquiry_anchor_ref.objective_id;
-      const detail = projectInquiryView(
-        await requestJson(
-          `/api/queries/projects/${encodeURIComponent(projectId)}/inquiries/${encodeURIComponent(objectiveId)}`,
-        ),
+      const detailRead = await readOptionalWorkInquiry(
+        `/api/queries/projects/${encodeURIComponent(projectId)}/inquiries/${encodeURIComponent(objectiveId)}`,
       );
+      if ("limitation" in detailRead) return detailRead;
+      const detail = detailRead.view;
       if (
         detail.project_id !== projectId ||
         detail.content.view_kind !== "detail" ||
@@ -5368,15 +6139,85 @@ export const loadProjectWorkCollection = async ({
           502,
         );
       }
-      return detail;
+      return { view: detail } as const;
     }),
   );
+  const unavailable = inquiryReads.find((read) => "limitation" in read);
+  if (unavailable !== undefined && "limitation" in unavailable) {
+    return {
+      ...workProjectFromView(view),
+      inquiryLimitation: unavailable.limitation,
+    };
+  }
+  const inquiryDetails = inquiryReads.map((read) => {
+    if ("limitation" in read) {
+      throw new ProjectDataError(
+        "Petra could not resolve the Work inquiry-path boundary.",
+        502,
+      );
+    }
+    return read.view;
+  });
   return workProjectFromView(view, inquiryDetails);
 };
 
 export interface ProjectWorkDetailData {
   work: WorkProjectView;
   unit: WorkUnit;
+  operations: PetraProjectWorkOperationsView;
+  selectedResult?: ProjectWorkerOutputSelection;
+}
+
+export interface ProjectWorkerOutputSelection {
+  readonly resultRef: {
+    readonly semanticKey: "petra.worker-output-manifest";
+    readonly recordId: string;
+    readonly revision: number;
+    readonly contentHash: string;
+    readonly recordHash: string;
+  };
+  readonly producingWorkRef: {
+    readonly workUnitId: string;
+    readonly revision: number;
+    readonly recordHash: string;
+  };
+  readonly worker: {
+    readonly name: string;
+    readonly version: string;
+    readonly runtime: string;
+    readonly entrypoint: string;
+  };
+  readonly outcome: string;
+  readonly attempt: number;
+  readonly reportedAt: string;
+  readonly outputs: ReadonlyArray<{
+    readonly name: string;
+    readonly role: string;
+    readonly state: string;
+    readonly handle?: string;
+    readonly contentHash?: string;
+    readonly byteSize?: number;
+    readonly mediaType: string;
+    readonly limitation: string;
+  }>;
+  readonly diagnostics: ReadonlyArray<{
+    readonly code: string;
+    readonly severity: "info" | "warning" | "error";
+    readonly message: string;
+  }>;
+  readonly resourceUsage: {
+    readonly wallTimeMs: number;
+    readonly cpuTimeMs: number;
+    readonly peakMemoryBytes: number;
+    readonly inputBytes: number;
+    readonly outputBytes: number;
+    readonly networkBytes: number;
+    readonly gpuTimeMs?: number;
+    readonly inputTokens?: number;
+    readonly outputTokens?: number;
+    readonly cost?: { readonly currency: string; readonly microunits: number };
+  };
+  readonly limitations: readonly string[];
 }
 
 const CROCKFORD_BASE32 = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
@@ -5396,6 +6237,382 @@ const randomUlidPayload = (): string => {
     value >>= 5n;
   }
   return payload;
+};
+
+const projectWorkClient = (): ProjectWorkClient =>
+  new ProjectWorkClient({
+    baseUrl: apiBaseUrl(),
+    token: apiToken(),
+    fetch: (input, init) => fetch(input, init),
+  });
+
+export type ProjectWorkCommandOperation =
+  PetraProjectWorkOperationRequest["operation"];
+
+export interface ProjectWorkCommandOptions {
+  readonly commandId?: string;
+  readonly idempotencyKey?: string;
+  readonly inputRequestRef?: PetraProjectWorkOperationRequest["input_request_ref"];
+  readonly response?: string;
+  readonly instruction?: string;
+  readonly priority?: PetraProjectWorkOperationRequest["priority"];
+  readonly reason?: string;
+}
+
+export interface ProjectWorkResumeCommandOptions {
+  readonly commandId?: string;
+  readonly idempotencyKey?: string;
+  readonly submittedAt?: string;
+}
+
+export interface ProjectWorkStartAgainCommandOptions {
+  readonly commandId?: string;
+  readonly idempotencyKey?: string;
+  readonly submittedAt?: string;
+}
+
+export const createProjectWorkCommandIdentity = (
+  operation: ProjectWorkCommandOperation,
+): { commandId: string; idempotencyKey: string } => {
+  const identity = randomUlidPayload();
+  return {
+    commandId: `command_${identity}`,
+    idempotencyKey: `project-work:${identity}:${operation}`,
+  };
+};
+
+/**
+ * Builds caller-owned command identity and task input only. Actor and grant
+ * authority remain server-owned, and the exact assessment supplies the Work
+ * and plan references.
+ */
+export const createProjectWorkOperationRequest = (
+  view: PetraProjectWorkOperationsView,
+  operation: ProjectWorkCommandOperation,
+  options: ProjectWorkCommandOptions = {},
+): PetraProjectWorkOperationRequest => {
+  const control = view.controls.find(
+    (candidate) => candidate.operation === operation,
+  );
+  if (control?.state !== "available") {
+    throw new ProjectDataError(
+      control?.reason ?? "This Work operation is not registered.",
+      409,
+    );
+  }
+  const identity = createProjectWorkCommandIdentity(operation);
+  const common = {
+    schema_name: "petra.project-work-operation-request" as const,
+    schema_version: "1.0.0" as const,
+    command_id: options.commandId ?? identity.commandId,
+    idempotency_key: options.idempotencyKey ?? identity.idempotencyKey,
+    operation,
+    expected_work_unit_ref: structuredClone(view.work_unit_ref),
+    submitted_at: new Date().toISOString(),
+  };
+  if (operation === "answer_input") {
+    const response = options.response?.trim();
+    if (
+      options.inputRequestRef === undefined ||
+      response === undefined ||
+      response.length === 0
+    ) {
+      throw new ProjectDataError(
+        "Answering Work input requires the exact pending request and one registered response.",
+        400,
+      );
+    }
+    const pending = view.required_inputs.find(
+      (input) =>
+        input.state === "pending" &&
+        input.input_request_ref.input_request_id ===
+          options.inputRequestRef?.input_request_id &&
+        input.input_request_ref.revision === options.inputRequestRef.revision,
+    );
+    if (pending === undefined || !pending.response_options.includes(response)) {
+      throw new ProjectDataError(
+        "The selected Work input response is not registered for this exact pending request.",
+        409,
+      );
+    }
+    return {
+      ...common,
+      operation,
+      input_request_ref: structuredClone(options.inputRequestRef),
+      response,
+    };
+  }
+  if (operation === "steer") {
+    const instruction = options.instruction?.trim();
+    if (
+      instruction === undefined ||
+      instruction.length === 0 ||
+      options.priority === undefined
+    ) {
+      throw new ProjectDataError(
+        "Steering Work requires a clear instruction and the next scheduling priority.",
+        400,
+      );
+    }
+    return {
+      ...common,
+      operation,
+      expected_plan_revision: view.plan.revision,
+      instruction,
+      priority: options.priority,
+    };
+  }
+  if (operation === "prioritize") {
+    if (options.priority === undefined) {
+      throw new ProjectDataError(
+        "Prioritizing Work requires one registered scheduling priority.",
+        400,
+      );
+    }
+    return {
+      ...common,
+      operation,
+      expected_plan_revision: view.plan.revision,
+      priority: options.priority,
+    };
+  }
+  if (operation === "cancel") {
+    const reason = options.reason?.trim();
+    if (reason === undefined || reason.length === 0) {
+      throw new ProjectDataError(
+        "Cancelling Work requires a retained reason.",
+        400,
+      );
+    }
+    return { ...common, operation, reason };
+  }
+  return { ...common, operation };
+};
+
+/**
+ * Copies the complete server-supplied checkpoint binding into one resume
+ * request. The browser never derives checkpoint compatibility from Work prose
+ * or execution state.
+ */
+export const createProjectWorkResumeRequest = (
+  view: PetraProjectWorkOperationsView,
+  options: ProjectWorkResumeCommandOptions = {},
+): PetraProjectWorkResumeRequest => {
+  const control = view.controls.find(
+    (candidate) => candidate.operation === "resume",
+  );
+  const binding = view.resume_binding;
+  if (control?.state !== "available") {
+    throw new ProjectDataError(
+      control?.reason ?? "The server did not make Resume available.",
+      409,
+    );
+  }
+  if (binding === undefined) {
+    throw new ProjectDataError(
+      "The server did not register an exact checkpoint for Resume.",
+      409,
+    );
+  }
+  if (
+    binding.project_id !== view.project_id ||
+    canonicalize(binding.expected_work_unit_ref) !==
+      canonicalize(view.work_unit_ref)
+  ) {
+    throw new ProjectDataError(
+      "The Resume binding does not match this exact Project and Work revision.",
+      409,
+    );
+  }
+  const identity = randomUlidPayload();
+  return {
+    schema_name: "petra.project-work-resume-request",
+    schema_version: "1.0.0",
+    command_id: options.commandId ?? `command_${identity}`,
+    idempotency_key:
+      options.idempotencyKey ?? `project-work:${identity}:resume`,
+    expected_work_unit_ref: structuredClone(binding.expected_work_unit_ref),
+    expected_checkpoint: structuredClone(binding.expected_checkpoint),
+    submitted_at: options.submittedAt ?? new Date().toISOString(),
+  };
+};
+
+/**
+ * Copies the complete server-supplied fresh-input registration into one Start
+ * again request. The browser creates only the command identity and never
+ * selects replacement Work, input reuse, lineage, or authority.
+ */
+export const createProjectWorkStartAgainRequest = (
+  view: PetraProjectWorkOperationsView,
+  options: ProjectWorkStartAgainCommandOptions = {},
+): PetraProjectWorkStartAgainRequest => {
+  const control = view.controls.find(
+    (candidate) => candidate.operation === "start_again",
+  );
+  const binding = view.start_again_binding;
+  if (control?.state !== "available") {
+    throw new ProjectDataError(
+      control?.reason ?? "The server did not make Start again available.",
+      409,
+    );
+  }
+  if (binding === undefined) {
+    throw new ProjectDataError(
+      "The server did not register an exact fresh-input transition for Start again.",
+      409,
+    );
+  }
+  if (
+    binding.project_id !== view.project_id ||
+    canonicalize(binding.expected_prior_work_unit_ref) !==
+      canonicalize(view.work_unit_ref) ||
+    binding.fresh_work_unit_ref.work_unit_id ===
+      view.work_unit_ref.work_unit_id ||
+    binding.input_transition.strategy !== "fresh_input" ||
+    binding.input_transition.retained_output_reuse !== "none" ||
+    binding.input_transition.prior_input_manifest_ref.content_hash ===
+      binding.input_transition.fresh_input_manifest_ref.content_hash ||
+    binding.new_lineage_attempt !== binding.prior_lineage_attempt + 1
+  ) {
+    throw new ProjectDataError(
+      "The Start again binding does not match this exact prior Work, fresh input, and linked execution boundary.",
+      409,
+    );
+  }
+  const identity = randomUlidPayload();
+  return {
+    schema_name: "petra.project-work-start-again-request",
+    schema_version: "1.0.0",
+    command_id: options.commandId ?? `command_${identity}`,
+    idempotency_key:
+      options.idempotencyKey ?? `project-work:${identity}:start-again`,
+    expected_prior_work_unit_ref: structuredClone(
+      binding.expected_prior_work_unit_ref,
+    ),
+    start_again_registration_ref: structuredClone(
+      binding.start_again_registration_ref,
+    ),
+    submitted_at: options.submittedAt ?? new Date().toISOString(),
+  };
+};
+
+export const readProjectWorkOperations = async (
+  projectId: string,
+  workUnitId: string,
+): Promise<PetraProjectWorkOperationsView> =>
+  projectWorkClient().readOperations(projectId, workUnitId);
+
+export const executeProjectWorkOperation = async (
+  projectId: string,
+  workUnitId: string,
+  request: PetraProjectWorkOperationRequest,
+): Promise<PetraProjectWorkOperationReceipt> =>
+  projectWorkClient().execute(projectId, workUnitId, request);
+
+export const executeProjectWorkResume = async (
+  projectId: string,
+  workUnitId: string,
+  request: PetraProjectWorkResumeRequest,
+): Promise<PetraProjectWorkResumeReceipt> =>
+  projectWorkClient().resume(projectId, workUnitId, request);
+
+export const executeProjectWorkStartAgain = async (
+  projectId: string,
+  priorWorkUnitId: string,
+  request: PetraProjectWorkStartAgainRequest,
+): Promise<PetraProjectWorkStartAgainReceipt> =>
+  projectWorkClient().startAgain(projectId, priorWorkUnitId, request);
+
+export interface ProjectWorkDeliveryObservation {
+  readonly kind: "reconnected" | "replayed";
+  readonly interactionRunId: string;
+  readonly protocolRunId: string;
+  readonly eventCount: number;
+  readonly summary: string;
+}
+
+const durableProjectWorkDelivery = (
+  view: PetraProjectWorkOperationsView,
+): Extract<
+  PetraProjectWorkOperationsView["delivery"],
+  { state: "durable" }
+> => {
+  if (view.delivery.state !== "durable") {
+    throw new ProjectDataError(view.delivery.reason, 409);
+  }
+  return view.delivery;
+};
+
+export const reconnectProjectWorkDelivery = async (
+  view: PetraProjectWorkOperationsView,
+): Promise<ProjectWorkDeliveryObservation> => {
+  const delivery = durableProjectWorkDelivery(view);
+  const snapshot = await requestJson(delivery.reconnect_path);
+  if (
+    !isRecord(snapshot) ||
+    snapshot.runId !== delivery.protocol_run_id ||
+    snapshot.threadId !== delivery.protocol_thread_id ||
+    snapshot.workUnitId !== view.work_unit_ref.work_unit_id ||
+    !Number.isSafeInteger(snapshot.eventCount) ||
+    Number(snapshot.eventCount) < 0
+  ) {
+    throw new ProjectDataError(
+      "Petra reconnected to a different durable Work delivery.",
+      502,
+    );
+  }
+  return {
+    kind: "reconnected",
+    interactionRunId: delivery.interaction_run_id,
+    protocolRunId: delivery.protocol_run_id,
+    eventCount: Number(snapshot.eventCount),
+    summary: `Canonical Work delivery is ${String(snapshot.status).replaceAll("_", " ")} with ${Number(snapshot.eventCount)} retained ${Number(snapshot.eventCount) === 1 ? "event" : "events"}.`,
+  };
+};
+
+export const replayProjectWorkDelivery = async (
+  view: PetraProjectWorkOperationsView,
+): Promise<ProjectWorkDeliveryObservation> => {
+  const delivery = durableProjectWorkDelivery(view);
+  const client = new PetraInteractionClient({
+    endpoint: "/api/interactions/run",
+    token: apiToken(),
+  });
+  const replay = await client.replay({
+    threadId: delivery.protocol_thread_id,
+    runId: delivery.protocol_run_id,
+    connectionId: `interaction_connection_${randomUlidPayload()}`,
+    afterSequence: 0,
+  });
+  const crossedWork = replay.events.some((event) => {
+    const metadata = isRecord(event.payload.metadata)
+      ? event.payload.metadata
+      : undefined;
+    const petra = isRecord(metadata?.petra) ? metadata.petra : undefined;
+    return (
+      petra !== undefined &&
+      petra.workUnitId !== view.work_unit_ref.work_unit_id
+    );
+  });
+  const terminal = replay.events.at(-1);
+  if (
+    replay.events.length === 0 ||
+    crossedWork ||
+    (terminal?.type === "RUN_FINISHED" &&
+      terminal.payload.runId !== delivery.protocol_run_id)
+  ) {
+    throw new ProjectDataError(
+      "Petra replayed a different or empty durable Work delivery.",
+      502,
+    );
+  }
+  return {
+    kind: "replayed",
+    interactionRunId: delivery.interaction_run_id,
+    protocolRunId: delivery.protocol_run_id,
+    eventCount: replay.events.length,
+    summary: `Replayed ${replay.events.length} retained ${replay.events.length === 1 ? "event" : "events"} without starting another Work attempt.`,
+  };
 };
 
 export interface ReviewSessionLifecycleCommandOptions {
@@ -6328,40 +7545,324 @@ export const cancelProjectSuggestedActionWork = async (
   return { cancellation, invocation: updated };
 };
 
+type WorkerOutputRouteSelection = {
+  readonly semanticKey: "petra.worker-output-manifest";
+  readonly recordId: string;
+  readonly revision: number;
+  readonly contentHash: string;
+  readonly recordHash: string;
+  readonly parentRevision: number;
+  readonly parentRecordHash: string;
+};
+
+const workerOutputRouteSelection = (
+  search: URLSearchParams,
+): WorkerOutputRouteSelection | undefined => {
+  const names = [
+    "result_semantic_key",
+    "result_id",
+    "result_revision",
+    "result_content_hash",
+    "result_record_hash",
+    "parent_revision",
+    "parent_record_hash",
+  ] as const;
+  const values = Object.fromEntries(
+    names.map((name) => {
+      const matches = search.getAll(name);
+      if (matches.length > 1) {
+        throw new ProjectDataError(
+          "A selected Work result must bind each exact identity once.",
+          400,
+        );
+      }
+      return [name, matches[0]];
+    }),
+  ) as Record<(typeof names)[number], string | undefined>;
+  if (names.every((name) => values[name] === undefined)) return undefined;
+  if (names.some((name) => values[name] === undefined)) {
+    throw new ProjectDataError(
+      "A selected Work result requires its exact manifest and producing-Work identities.",
+      400,
+    );
+  }
+  const revision = Number(values.result_revision);
+  const parentRevision = Number(values.parent_revision);
+  const recordId = values.result_id!;
+  if (
+    values.result_semantic_key !== "petra.worker-output-manifest" ||
+    !/^worker_output_manifest_[0-9A-HJKMNP-TV-Z]{26}$/u.test(recordId) ||
+    !Number.isSafeInteger(revision) ||
+    revision < 1 ||
+    !CONTENT_HASH.test(values.result_content_hash!) ||
+    !CONTENT_HASH.test(values.result_record_hash!) ||
+    !Number.isSafeInteger(parentRevision) ||
+    parentRevision < 1 ||
+    !CONTENT_HASH.test(values.parent_record_hash!)
+  ) {
+    throw new ProjectDataError(
+      "The selected WorkerOutputManifest binding is invalid.",
+      400,
+    );
+  }
+  return {
+    semanticKey: "petra.worker-output-manifest",
+    recordId,
+    revision,
+    contentHash: values.result_content_hash!,
+    recordHash: values.result_record_hash!,
+    parentRevision,
+    parentRecordHash: values.parent_record_hash!,
+  };
+};
+
+const selectedWorkerOutput = (
+  view: PetraProjectWorkReadView,
+  operations: PetraProjectWorkOperationsView,
+  selection: WorkerOutputRouteSelection | undefined,
+  manifest: PetraWorkerOutputManifest | undefined,
+): ProjectWorkerOutputSelection | undefined => {
+  if (selection === undefined) {
+    if (manifest !== undefined) {
+      throw new ProjectDataError(
+        "Petra returned an unselected WorkerOutputManifest.",
+        502,
+      );
+    }
+    return undefined;
+  }
+  if (view.content.view_kind !== "detail") {
+    throw new ProjectDataError(
+      "An exact worker result requires Project Work detail.",
+      502,
+    );
+  }
+  const { summary, resources, outputs, specification, coverage } = view.content;
+  const parent = summary.work_unit_ref;
+  const result = operations.results.find(
+    (candidate) =>
+      candidate.result_kind === "worker_output_manifest" &&
+      candidate.record_ref.semantic_key === selection.semanticKey &&
+      candidate.record_ref.record_id === selection.recordId &&
+      candidate.record_ref.revision === selection.revision &&
+      candidate.record_ref.content_hash === selection.contentHash &&
+      candidate.record_ref.record_hash === selection.recordHash,
+  );
+  const usage = resources.usage;
+  const reportedOutputs = outputs.filter(
+    (output) => output.report_state === "reported",
+  );
+  if (
+    parent.revision !== selection.parentRevision ||
+    parent.record_hash !== selection.parentRecordHash ||
+    operations.work_unit_ref.work_unit_id !== parent.work_unit_id ||
+    operations.work_unit_ref.revision !== parent.revision ||
+    result === undefined ||
+    result.destination.state !== "available" ||
+    result.destination.place_role !== "work" ||
+    result.destination.target_ref.semantic_key !== selection.semanticKey ||
+    result.destination.target_ref.object_id !== selection.recordId ||
+    result.destination.target_ref.revision !== selection.revision ||
+    usage.state !== "measured" ||
+    usage.output_manifest_ref.record_id !== selection.recordId ||
+    usage.output_manifest_ref.revision !== selection.revision ||
+    usage.output_manifest_ref.content_hash !== selection.contentHash ||
+    usage.output_manifest_ref.record_hash !== selection.recordHash ||
+    manifest === undefined ||
+    manifest.project_id !== view.project_id ||
+    manifest.worker_output_manifest_id !== selection.recordId ||
+    manifest.revision !== selection.revision ||
+    manifest.content_hash !== selection.contentHash ||
+    manifest.work_unit_id !== parent.work_unit_id ||
+    manifest.attempt !== summary.execution.attempt ||
+    manifest.content.outcome.outcome_kind !==
+      summary.execution.terminal_outcome ||
+    canonicalize(manifest.content.worker) !==
+      canonicalize(specification.worker) ||
+    canonicalize(manifest.content.resource_usage) !==
+      canonicalize(usage.resource_usage) ||
+    manifest.content.outcome.produced_outputs.length !==
+      reportedOutputs.length ||
+    manifest.content.outcome.produced_outputs.some((output) => {
+      const projected = reportedOutputs.find(
+        (candidate) =>
+          candidate.produced_output.output_name === output.output_name &&
+          candidate.produced_output.output_role === output.output_role,
+      );
+      return (
+        projected === undefined ||
+        canonicalize(projected.produced_output) !== canonicalize(output)
+      );
+    })
+  ) {
+    throw new ProjectDataError(
+      "The selected worker result no longer matches its exact producing Work and current manifest read.",
+      409,
+    );
+  }
+  const measured = manifest.content.resource_usage;
+  const limitations = [
+    ...outputs.map((output) => output.availability.limitation),
+    ...coverage.flatMap((item) =>
+      item.state === "complete" || item.limitation === undefined
+        ? []
+        : [item.limitation],
+    ),
+  ];
+  return {
+    resultRef: {
+      semanticKey: selection.semanticKey,
+      recordId: selection.recordId,
+      revision: selection.revision,
+      contentHash: selection.contentHash,
+      recordHash: selection.recordHash,
+    },
+    producingWorkRef: {
+      workUnitId: parent.work_unit_id,
+      revision: parent.revision,
+      recordHash: parent.record_hash,
+    },
+    worker: {
+      name: manifest.content.worker.worker_name,
+      version: manifest.content.worker.worker_version,
+      runtime: `${manifest.content.worker.runtime_name} ${manifest.content.worker.runtime_version}`,
+      entrypoint: manifest.content.worker.entrypoint,
+    },
+    outcome: manifest.content.outcome.outcome_kind,
+    attempt: manifest.attempt,
+    reportedAt: manifest.reported_at,
+    outputs: manifest.content.outcome.produced_outputs.map((output) => {
+      const projected = reportedOutputs.find(
+        (candidate) =>
+          candidate.produced_output.output_name === output.output_name &&
+          candidate.produced_output.output_role === output.output_role,
+      );
+      if (projected === undefined) {
+        throw new ProjectDataError(
+          "The exact WorkerOutputManifest output is absent from its producing Work read.",
+          502,
+        );
+      }
+      return {
+        name: output.output_name,
+        role: output.output_role,
+        state: "reported",
+        handle: output.output_handle,
+        contentHash: output.content_hash,
+        byteSize: output.byte_size,
+        mediaType: output.media_type,
+        limitation: projected.availability.limitation,
+      };
+    }),
+    diagnostics: manifest.content.diagnostics.map((diagnostic) => ({
+      code: diagnostic.code,
+      severity: diagnostic.severity,
+      message: diagnostic.message,
+    })),
+    resourceUsage: {
+      wallTimeMs: measured.wall_time_ms,
+      cpuTimeMs: measured.cpu_time_ms,
+      peakMemoryBytes: measured.peak_memory_bytes,
+      inputBytes: measured.input_bytes,
+      outputBytes: measured.output_bytes,
+      networkBytes: measured.network_bytes,
+      ...(measured.gpu_time_ms === undefined
+        ? {}
+        : { gpuTimeMs: measured.gpu_time_ms }),
+      ...(measured.input_tokens === undefined
+        ? {}
+        : { inputTokens: measured.input_tokens }),
+      ...(measured.output_tokens === undefined
+        ? {}
+        : { outputTokens: measured.output_tokens }),
+      ...(measured.cost === undefined
+        ? {}
+        : { cost: structuredClone(measured.cost) }),
+    },
+    limitations: [...new Set(limitations)],
+  };
+};
+
 export const loadProjectWorkDetail = async ({
   params,
+  request,
 }: LoaderFunctionArgs): Promise<ProjectWorkDetailData> => {
   const projectId = requiredRouteIdentity(params.projectId, "A Project ID");
   const workUnitId = requiredRouteIdentity(params.workId, "A WorkUnit ID");
-  const [value, inquiryValue] = await Promise.all([
+  const selection = workerOutputRouteSelection(
+    new URL(request.url).searchParams,
+  );
+  const [value, inquiryRead, operations] = await Promise.all([
     requestJson(
       `/api/queries/projects/${encodeURIComponent(projectId)}/work/${encodeURIComponent(workUnitId)}`,
     ),
-    requestJson(
+    readOptionalWorkInquiry(
       `/api/queries/projects/${encodeURIComponent(projectId)}/inquiries?limit=100&work_unit_id=${encodeURIComponent(workUnitId)}`,
     ),
+    readProjectWorkOperations(projectId, workUnitId),
   ]);
   const view = projectWorkView(value);
-  const inquiryView = projectInquiryView(inquiryValue);
   if (
     view.project_id !== projectId ||
     view.content.view_kind !== "detail" ||
     view.content.summary.work_unit_ref.work_unit_id !== workUnitId ||
-    inquiryView.project_id !== projectId ||
-    inquiryView.content.view_kind !== "collection" ||
-    inquiryView.content.query.work_unit_id !== workUnitId
+    operations.project_id !== projectId ||
+    operations.work_unit_ref.work_unit_id !== workUnitId
   ) {
     throw new ProjectDataError(
-      "Petra returned a different Project Work or inquiry-link identity.",
+      "Petra returned a different Project Work identity.",
       502,
     );
   }
-  const work = workProjectFromView(view, [inquiryView]);
+  let work: WorkProjectView;
+  if ("limitation" in inquiryRead) {
+    work = {
+      ...workProjectFromView(view),
+      inquiryLimitation: inquiryRead.limitation,
+    };
+  } else {
+    const inquiryView = inquiryRead.view;
+    if (
+      inquiryView.project_id !== projectId ||
+      inquiryView.content.view_kind !== "collection" ||
+      inquiryView.content.query.work_unit_id !== workUnitId
+    ) {
+      throw new ProjectDataError(
+        "Petra returned a different Project inquiry-link identity.",
+        502,
+      );
+    }
+    work = workProjectFromView(view, [inquiryView]);
+  }
   const unit = work.units[0];
   if (unit === undefined) {
     throw new ProjectDataError("Petra returned no exact Work task.", 502);
   }
-  return { work, unit };
+  const manifest =
+    selection === undefined
+      ? undefined
+      : await projectWorkClient().readWorkerOutputManifest(
+          projectId,
+          selection.recordId,
+          {
+            producing_work_unit_id: workUnitId,
+            revision: selection.revision,
+            content_hash: selection.contentHash,
+            record_hash: selection.recordHash,
+          },
+        );
+  const selectedResult = selectedWorkerOutput(
+    view,
+    operations,
+    selection,
+    manifest,
+  );
+  return {
+    work,
+    unit,
+    operations,
+    ...(selectedResult === undefined ? {} : { selectedResult }),
+  };
 };
 
 export const petraThreadFromView = (
@@ -6470,6 +7971,33 @@ export const loadProjectPetraThread = async ({
   params,
 }: LoaderFunctionArgs): Promise<PetraThread | undefined> => {
   const projectId = requiredRouteIdentity(params.projectId, "A Project ID");
+  const requestedThreadId = params.threadId;
+  if (
+    requestedThreadId !== undefined &&
+    !/^project_thread_[0-9A-HJKMNP-TV-Z]{26}$/u.test(requestedThreadId)
+  ) {
+    throw new ProjectDataError(
+      "The Project thread return identity is invalid.",
+      400,
+    );
+  }
+  if (requestedThreadId !== undefined) {
+    const detailValue = await requestJson(
+      `/api/queries/projects/${encodeURIComponent(projectId)}/threads/${encodeURIComponent(requestedThreadId)}`,
+    );
+    const detail = projectThreadView(detailValue);
+    if (
+      detail.project_id !== projectId ||
+      detail.content.view_kind !== "detail" ||
+      detail.content.summary.thread_ref.project_thread_id !== requestedThreadId
+    ) {
+      throw new ProjectDataError(
+        "Petra returned a different Project thread identity.",
+        502,
+      );
+    }
+    return petraThreadFromView(detail);
+  }
   const collectionValue = await requestJson(
     `/api/queries/projects/${encodeURIComponent(projectId)}/threads?limit=1&lifecycle=open`,
   );
@@ -6514,7 +8042,116 @@ export interface ProjectPetraData {
   readonly suggestedWorkAction?: PetraSuggestedActionViewV11;
   readonly suggestedActionInvocation?: PetraSuggestedActionInvocationView;
   readonly communicationPlan?: PetraCommunicationPlan;
+  readonly modelReadiness: PetraProjectModelReadinessView;
+  readonly returnContext: ProjectPetraReturnContext;
 }
+
+export interface ProjectPetraReturnContext {
+  readonly path: string;
+  readonly label: string;
+}
+
+export interface ProjectModelRunIdentity {
+  readonly threadId: string;
+  readonly runId: string;
+  readonly connectionId: string;
+}
+
+export const createProjectModelRunIdentity = (): ProjectModelRunIdentity => ({
+  threadId: `thread_${randomUlidPayload()}`,
+  runId: `run_${randomUlidPayload()}`,
+  connectionId: `interaction_connection_${randomUlidPayload()}`,
+});
+
+const projectModelClient = (): ProjectModelClient =>
+  new ProjectModelClient({
+    baseUrl: apiBaseUrl(),
+    token: apiToken(),
+    fetch: (input, init) => fetch(input, init),
+  });
+
+export const getProjectModelReadiness = async (
+  projectId: string,
+): Promise<PetraProjectModelReadinessView> =>
+  projectModelClient().readReadiness(projectId);
+
+export const runProjectModelInteraction = async (
+  readiness: PetraProjectModelReadinessView,
+  identity: ProjectModelRunIdentity,
+  prompt: string,
+): Promise<PetraInteractionResult> =>
+  projectModelClient().run({
+    readiness,
+    threadId: identity.threadId,
+    runId: identity.runId,
+    connectionId: identity.connectionId,
+    prompt,
+  });
+
+export const replayProjectModelInteraction = async (
+  readiness: PetraProjectModelReadinessView,
+  identity: ProjectModelRunIdentity,
+): Promise<PetraInteractionResult> => {
+  const endpoint =
+    readiness.readiness.state === "ready"
+      ? readiness.readiness.command.endpoint
+      : "/api/interactions/run";
+  return new PetraInteractionClient({
+    endpoint: new URL(endpoint, apiBaseUrl()).toString(),
+    token: apiToken(),
+  }).replay({
+    threadId: identity.threadId,
+    runId: identity.runId,
+    connectionId: identity.connectionId,
+    afterSequence: 0,
+  });
+};
+
+const projectPetraReturnContext = (
+  projectId: string,
+  search: URLSearchParams,
+): ProjectPetraReturnContext => {
+  const fallback = {
+    path: `/projects/${encodeURIComponent(projectId)}/brief`,
+    label: "Brief",
+  };
+  const paths = search.getAll("return_to");
+  const labels = search.getAll("return_label");
+  const focusIds = search.getAll("return_focus");
+  if (paths.length === 0 && labels.length === 0 && focusIds.length === 0) {
+    return fallback;
+  }
+  if (paths.length !== 1 || labels.length !== 1 || focusIds.length > 1) {
+    throw new ProjectDataError(
+      "A Petra return must name one exact same-Project path and label.",
+      400,
+    );
+  }
+  const suppliedPath = paths[0]!;
+  const label = labels[0]!.trim();
+  const focusId = focusIds[0]?.trim();
+  const parsed = new URL(suppliedPath, "http://petra.local");
+  const projectRoot = `/projects/${encodeURIComponent(projectId)}/`;
+  if (
+    parsed.origin !== "http://petra.local" ||
+    !parsed.pathname.startsWith(projectRoot) ||
+    label.length === 0 ||
+    label.length > 100 ||
+    (focusId !== undefined &&
+      (focusId.length === 0 ||
+        focusId.length > 100 ||
+        !/^[A-Za-z][A-Za-z0-9_.:-]*$/u.test(focusId)))
+  ) {
+    throw new ProjectDataError(
+      "The Petra return target is invalid or crosses the current Project boundary.",
+      400,
+    );
+  }
+  const path = `${parsed.pathname}${parsed.search}${
+    focusId === undefined ? parsed.hash : `#${encodeURIComponent(focusId)}`
+  }`;
+  return { path, label };
+};
 
 type CommunicationReadRequest = Parameters<CommunicationPlanClient["read"]>[1];
 
@@ -6604,6 +8241,7 @@ export const loadProjectPetra = async (
     "A Project ID",
   );
   const incoming = new URL(args.request.url).searchParams;
+  const returnContext = projectPetraReturnContext(projectId, incoming);
   const communicationRequest = communicationRequestFromSearch(incoming);
   const linkIds = incoming.getAll("inquiry_result_link_id");
   const commandIds = incoming.getAll("suggested_action_command_id");
@@ -6644,6 +8282,7 @@ export const loadProjectPetra = async (
     suggestedWorkAction,
     suggestedActionInvocation,
     communicationPlan,
+    modelReadiness,
   ] = await Promise.all([
     communicationRequest === undefined
       ? loadProjectPetraThread(args)
@@ -6657,6 +8296,7 @@ export const loadProjectPetra = async (
     communicationRequest === undefined
       ? undefined
       : getProjectCommunicationPlan(projectId, communicationRequest),
+    getProjectModelReadiness(projectId),
   ]);
   if (
     suggestedWorkAction !== undefined &&
@@ -6677,6 +8317,8 @@ export const loadProjectPetra = async (
       ? {}
       : { suggestedActionInvocation }),
     ...(communicationPlan === undefined ? {} : { communicationPlan }),
+    modelReadiness,
+    returnContext,
   };
 };
 
@@ -7027,15 +8669,54 @@ const exactSelection = (
     recordHash: target.record_hash,
   });
 
+type SemanticResultBinding = {
+  readonly contentHash?: string;
+  readonly recordHash?: string;
+};
+
+const resolvedLocation = (
+  view: PetraProjectObjectLocationView,
+):
+  | Extract<
+      PetraProjectObjectLocationView["content"]["resolution"],
+      { state: "current" | "historical" | "superseded" }
+    >
+  | undefined => {
+  const resolution = view.content.resolution;
+  return resolution.state === "current" ||
+    resolution.state === "historical" ||
+    resolution.state === "superseded"
+    ? resolution
+    : undefined;
+};
+
+const exactResultParent = (view: PetraProjectObjectLocationView) => {
+  const parent = resolvedLocation(view)?.parent_ref;
+  if (
+    parent === undefined ||
+    parent.semantic_key !== "petra.work-unit" ||
+    !WORK_UNIT_ID.test(parent.object_id) ||
+    !Number.isSafeInteger(parent.revision) ||
+    parent.revision < 1 ||
+    !CONTENT_HASH.test(parent.record_hash)
+  ) {
+    throw new ProjectDataError(
+      "Petra returned a Work result without its exact producing-Work parent.",
+      502,
+    );
+  }
+  return parent;
+};
+
 export const semanticDestinationPath = (
   view: PetraProjectObjectLocationView,
+  binding: SemanticResultBinding = {},
 ): string => {
   const projectRoot = `/projects/${encodeURIComponent(view.project_id)}`;
   const destination = view.content.primary_destination;
   const target = destination.target_ref;
   if (destination.role === "brief") return `${projectRoot}/brief`;
   if (destination.role === "settings") return "/settings";
-  if (destination.role === "petra") return `${projectRoot}/petra`;
   if (destination.role === "profile_tool") {
     if (destination.profile_tool_key === undefined) {
       throw new ProjectDataError(
@@ -7046,11 +8727,90 @@ export const semanticDestinationPath = (
     return `${projectRoot}/tools/${encodeURIComponent(destination.profile_tool_key)}`;
   }
   if (target === undefined) {
+    if (destination.role === "petra") return `${projectRoot}/petra`;
     throw new ProjectDataError(
       `Petra returned ${destination.role} without an exact target.`,
       502,
     );
   }
+  const resolution = resolvedLocation(view);
+  if (
+    resolution !== undefined &&
+    (resolution.resolved_ref.semantic_key !== target.semantic_key ||
+      resolution.resolved_ref.object_id !== target.object_id ||
+      resolution.resolved_ref.revision !== target.revision ||
+      resolution.resolved_ref.record_hash !== target.record_hash)
+  ) {
+    throw new ProjectDataError(
+      "Petra returned a semantic destination for a different resolved identity.",
+      502,
+    );
+  }
+  if (
+    binding.recordHash !== undefined &&
+    (resolution === undefined ||
+      resolution.resolved_ref.record_hash !== binding.recordHash)
+  ) {
+    throw new ProjectDataError(
+      "The selected result changed before its semantic destination was resolved.",
+      409,
+    );
+  }
+  if (
+    target.semantic_key === "petra.grounded-response" &&
+    destination.role === "petra"
+  ) {
+    if (
+      resolution === undefined ||
+      binding.contentHash === undefined ||
+      !CONTENT_HASH.test(binding.contentHash)
+    ) {
+      throw new ProjectDataError(
+        "Opening a grounded response requires its exact retained content identity.",
+        400,
+      );
+    }
+    const parent = exactResultParent(view);
+    const returnPath = `${projectRoot}/work/${encodeURIComponent(parent.object_id)}`;
+    const response = new URLSearchParams({
+      communication_response_id: target.object_id,
+      communication_response_revision: String(target.revision),
+      communication_response_content_hash: binding.contentHash,
+      communication_response_record_hash: resolution.resolved_ref.record_hash,
+      communication_locale: "en",
+      return_to: returnPath,
+      return_label: "producing Work task",
+      return_focus: "work-destinations-title",
+    });
+    return `${projectRoot}/petra?${response}`;
+  }
+  if (
+    target.semantic_key === "petra.worker-output-manifest" &&
+    destination.role === "work"
+  ) {
+    if (
+      resolution === undefined ||
+      binding.contentHash === undefined ||
+      !CONTENT_HASH.test(binding.contentHash)
+    ) {
+      throw new ProjectDataError(
+        "Opening a worker result requires its exact retained content identity.",
+        400,
+      );
+    }
+    const parent = exactResultParent(view);
+    const result = new URLSearchParams({
+      result_semantic_key: target.semantic_key,
+      result_id: target.object_id,
+      result_revision: String(target.revision),
+      result_content_hash: binding.contentHash,
+      result_record_hash: resolution.resolved_ref.record_hash,
+      parent_revision: String(parent.revision),
+      parent_record_hash: parent.record_hash,
+    });
+    return `${projectRoot}/work/${encodeURIComponent(parent.object_id)}?${result}#selected-work-result`;
+  }
+  if (destination.role === "petra") return `${projectRoot}/petra`;
   const selection = exactSelection(target);
   if (destination.role === "sources") {
     selection.delete("selected");
@@ -7073,6 +8833,32 @@ export const loadProjectObjectLocationRedirect = async ({
 }: LoaderFunctionArgs): Promise<Response> => {
   const projectId = requiredRouteIdentity(params.projectId, "A Project ID");
   const incoming = new URL(request.url).searchParams;
+  for (const key of [
+    "semanticKey",
+    "objectId",
+    "revision",
+    "taskIntent",
+    "contentHash",
+    "recordHash",
+  ]) {
+    if (incoming.getAll(key).length > 1) {
+      throw new ProjectDataError(
+        "A semantic destination must bind each exact result control once.",
+        400,
+      );
+    }
+  }
+  const contentHash = incoming.get("contentHash") ?? undefined;
+  const recordHash = incoming.get("recordHash") ?? undefined;
+  if (
+    (contentHash !== undefined && !CONTENT_HASH.test(contentHash)) ||
+    (recordHash !== undefined && !CONTENT_HASH.test(recordHash))
+  ) {
+    throw new ProjectDataError(
+      "A semantic result destination contains an invalid exact hash.",
+      400,
+    );
+  }
   const query = new URLSearchParams();
   for (const key of ["semanticKey", "objectId", "revision", "taskIntent"]) {
     const values = incoming.getAll(key);
@@ -7099,7 +8885,12 @@ export const loadProjectObjectLocationRedirect = async ({
       502,
     );
   }
-  return redirect(semanticDestinationPath(view));
+  return redirect(
+    semanticDestinationPath(view, {
+      ...(contentHash === undefined ? {} : { contentHash }),
+      ...(recordHash === undefined ? {} : { recordHash }),
+    }),
+  );
 };
 
 /** Read the entire exact Review; member selection never narrows this assessment. */
@@ -7141,4 +8932,31 @@ export const executeReviewApply = async (
     baseUrl: apiBaseUrl(),
     token: apiToken(),
   }).apply(request);
+};
+
+/** Preparation reads server-owned rejection authority without sending a decision. */
+export const prepareReviewReject = async (review: ReviewSession) => {
+  const { ReviewSessionRejectClient } = await import("@petra/adapters");
+  if (review.reviewMemberId === undefined)
+    throw new Error("No exact Review member supplied.");
+  return new ReviewSessionRejectClient({
+    baseUrl: apiBaseUrl(),
+    token: apiToken(),
+  }).prepare({
+    project_id: review.projectId,
+    review_session_id: review.id,
+    expected_revision: review.exactRef.revision,
+    expected_content_hash: review.exactRef.contentHash,
+    selected_review_member_id: review.reviewMemberId,
+  });
+};
+
+export const executeReviewReject = async (
+  request: PetraReviewSessionRejectRequest,
+) => {
+  const { ReviewSessionRejectClient } = await import("@petra/adapters");
+  return new ReviewSessionRejectClient({
+    baseUrl: apiBaseUrl(),
+    token: apiToken(),
+  }).reject(request);
 };

@@ -1,0 +1,88 @@
+{
+  "schema_name": "petra.wave6-project-switch-browser-evidence",
+  "schema_version": "1.0.0",
+  "status": "passed",
+  "operation_id": "project.switch",
+  "executed_at": "2026-09-20T23:29:42.215Z",
+  "command": "PATH=/opt/homebrew/Cellar/node@24/24.20.0/bin:$PATH npm run test:wave6:project-switch-ui",
+  "browser": {
+    "product": "Chrome/153.0.8010.48",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+    "protocol_version": "1.3"
+  },
+  "verified": {
+    "visible_switch_control": "Projects",
+    "switch_explanation": true,
+    "prior_project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+    "prior_route": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/resume#focused-graph-active-selection",
+    "prior_focus_target": "focused-graph-active-selection",
+    "retained_task": "Which retained relationship should I inspect next?",
+    "retained_selection": "relationship:assertion-a",
+    "target_project_id": "project_01K4E000000000000000000001",
+    "target_route": "/projects/project_01K4E000000000000000000001/brief",
+    "target_shell_title": "Controlled publication review",
+    "target_was_different": true,
+    "substituted_project": false,
+    "command_requests_during_switch": 0,
+    "exact_return_control": "Return to Competing explanations",
+    "returned_route": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/resume#focused-graph-active-selection",
+    "returned_focus_target": "focused-graph-active-selection",
+    "local_draft_disposition": "no local draft entered; the UI explicitly disclosed that unsubmitted fields are not transferred",
+    "local_selection_disposition": "server-retained selection reloaded; the UI explicitly disclosed that local selection is not transferred",
+    "local_presentation_history_disposition": "no local history entry created; the UI explicitly disclosed that local presentation history is not transferred",
+    "prior_work_disposition": "no browser command issued; separately proven unchanged by the PostgreSQL authority artifact"
+  },
+  "calls": [
+    {
+      "method": "GET",
+      "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/shell",
+      "authorization": "Bearer browser-project-switch-token"
+    },
+    {
+      "method": "GET",
+      "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/brief",
+      "authorization": "Bearer browser-project-switch-token"
+    },
+    {
+      "method": "GET",
+      "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/shell",
+      "authorization": "Bearer browser-project-switch-token"
+    },
+    {
+      "method": "POST",
+      "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/focused-graph",
+      "authorization": "Bearer browser-project-switch-token"
+    },
+    {
+      "method": "GET",
+      "path": "/api/queries/projects?limit=12",
+      "authorization": "Bearer browser-project-switch-token"
+    },
+    {
+      "method": "GET",
+      "path": "/api/queries/projects/project_01K4E000000000000000000001/shell",
+      "authorization": "Bearer browser-project-switch-token"
+    },
+    {
+      "method": "GET",
+      "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/shell",
+      "authorization": "Bearer browser-project-switch-token"
+    },
+    {
+      "method": "GET",
+      "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/brief",
+      "authorization": "Bearer browser-project-switch-token"
+    },
+    {
+      "method": "GET",
+      "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/shell",
+      "authorization": "Bearer browser-project-switch-token"
+    },
+    {
+      "method": "POST",
+      "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/focused-graph",
+      "authorization": "Bearer browser-project-switch-token"
+    }
+  ],
+  "boundary": "Isolated Chromium keyboard-activated the production Project shell's visible Projects control from an exact server-retained Graph task, read the switch-state explanation, opened a different exact collection member through the production React Router collection and server-owned shell at its Brief route, and used the visible exact-return control to reload the prior retained task, server-retained selection, route, and focus. The target Brief body is trace-only orientation; reports/WAVE6-PROJECT-SWITCH-AUTHORITY.json separately proves the server-owned target Brief fallback and, against real PostgreSQL, that the prior retained task and running Work remain unchanged. No local draft, selection change, or local history entry was created; the visible disclosure explains that those browser-local states are not transferred. Deterministic schema-shaped authenticated HTTP supplied browser transport, and the browser issued no cancellation or other command. This operation record covers project.switch only and does not claim a named Wave 6 evidence-plan scenario."
+}

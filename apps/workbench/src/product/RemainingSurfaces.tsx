@@ -3,6 +3,8 @@ import { Link, useLoaderData, useParams } from "react-router";
 
 import type {
   PetraProjectEffectiveControlsView,
+  PetraProjectProfileTaxonomyView,
+  PetraRegisteredProjectProfile,
   PetraProjectHistoryCompensationExecutionView,
   PetraProjectHistoryCompensationPlanView,
   PetraProjectHistoryCompensationPreviewView,
@@ -45,6 +47,7 @@ import {
 } from "./project-data.js";
 import { useProjectRecord } from "./ReferenceWorkbench.js";
 import { Observation } from "./ReviewRecovery.js";
+import { ProjectResetPanel } from "./ProjectProfileSurface.js";
 
 export const CompositionCollectionSurface = ({
   project,
@@ -1417,9 +1420,13 @@ type ThemeChoice = "system" | "stone" | "graphite" | "contrast";
 export const SettingsSurface = ({
   selectedProject,
   controls,
+  profiles = [],
+  taxonomy,
 }: {
   selectedProject?: ProjectRecord | undefined;
   controls?: PetraProjectEffectiveControlsView | undefined;
+  profiles?: PetraRegisteredProjectProfile[] | undefined;
+  taxonomy?: PetraProjectProfileTaxonomyView | undefined;
 }): React.JSX.Element => {
   const [theme, setTheme] = useState<ThemeChoice>("system");
   const [density, setDensity] = useState("comfortable");
@@ -1579,6 +1586,18 @@ export const SettingsSurface = ({
                     ProjectDefinition revision {selectedProject.profile.version}
                   </dd>
                 </div>
+                {taxonomy === undefined ? null : (
+                  <div>
+                    <dt>Taxonomy resolution</dt>
+                    <dd>
+                      {taxonomy.resolution.state === "registered"
+                        ? `Registered profile · version ${taxonomy.resolution.profile_ref.profile_version}`
+                        : taxonomy.resolution.state === "project_authored"
+                          ? `Project-authored definition · ${taxonomy.resolution.limitation}`
+                          : `Unsupported profile · ${taxonomy.resolution.message}`}
+                    </dd>
+                  </div>
+                )}
                 {controls === undefined ? (
                   <div>
                     <dt>Project controls</dt>
@@ -1628,18 +1647,33 @@ export const SettingsSurface = ({
               >
                 Change Project controls
               </PetraButton>
+              <Link
+                className="reference-primary-link"
+                to={`/projects/${selectedProject.id}/profile`}
+              >
+                Inspect Project profile
+              </Link>
             </>
           )}
         </section>
+        {selectedProject === undefined ? null : (
+          <ProjectResetPanel project={selectedProject} profiles={profiles} />
+        )}
       </div>
     </main>
   );
 };
 
 export const SettingsRoute = (): React.JSX.Element => {
-  const { selectedProject, controls } = useLoaderData<ProjectSettingsData>();
+  const { selectedProject, controls, profiles, taxonomy } =
+    useLoaderData<ProjectSettingsData>();
   return (
-    <SettingsSurface selectedProject={selectedProject} controls={controls} />
+    <SettingsSurface
+      selectedProject={selectedProject}
+      controls={controls}
+      profiles={profiles}
+      taxonomy={taxonomy}
+    />
   );
 };
 

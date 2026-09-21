@@ -276,7 +276,16 @@ const CorrectionPreview = ({
           </div>
           <div>
             <dt>WorkingRelationship revisions</dt>
-            <dd>{preview.working_relationship_refs.length}</dd>
+            <dd>
+              <ul>
+                {preview.working_relationship_refs.map((relationship) => (
+                  <li key={relationship.working_relationship_id}>
+                    <code>{relationship.working_relationship_id}</code> ·
+                    revision {relationship.revision}
+                  </li>
+                ))}
+              </ul>
+            </dd>
           </div>
         </dl>
       </section>

@@ -4,7 +4,7 @@
   "wave": 5,
   "slice": 22,
   "status": "passed",
-  "executed_at": "2026-09-16T14:33:41.147Z",
+  "executed_at": "2026-09-16T14:45:24.844Z",
   "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave5:browser",
   "environment": {
     "node": "24.20.0",
@@ -46,7 +46,7 @@
     },
     "ux_fx25": {
       "command": "node apps/workbench/test/wave5-adverse-browser.mjs",
-      "artifact_sha256": "sha256:e6a218daff9b0d95d9e35c9496a109ff06df89aafbdeda5752e050761d1f549f",
+      "artifact_sha256": "sha256:4ad6d99cf0c7fa693a3d9eaf547000c9bc2d33c88c6e242136626ef374218c8e",
       "browser": "Chrome/152.0.7977.84",
       "boundary": "Real isolated Chrome over production focused-graph components with deterministic injected typed transport. Used for adverse ordering, omissions, correction-preview convergence, and supplied-impact presentation; not relabeled as a live backend trace."
     },
@@ -58,8 +58,8 @@
         "status": "passed",
         "route_boundary": "Production React Router loaders and controllers in isolated headless Chrome over authenticated live server routes backed by the disposable PostgreSQL and Neo4j stores.",
         "pre_apply_review_target": {
-          "duration_ms": 339.662,
-          "action_target_sha256": "sha256:87cd373f0db6bb21ae83965adbff7b37eed6b7bdd0ef99d66b5ad84ac568c5af"
+          "duration_ms": 347.41,
+          "action_target_sha256": "sha256:4762a4a791e860c0ebbac07dc891fe53885aec6af5f1f46663c02abfd3148664"
         },
         "focused_graph": {
           "browser": {
@@ -69,10 +69,10 @@
           },
           "route_transport": "live authenticated HTTP through the production server",
           "timings_ms": {
-            "contextual_graph_ms": 575.171,
-            "direct_graph_ms": 559.823,
-            "historical_ms": 565.982,
-            "impact_ms": 575.243
+            "contextual_graph_ms": 574.925,
+            "direct_graph_ms": 566.974,
+            "historical_ms": 575.058,
+            "impact_ms": 578.813
           },
           "calls": {
             "focused_graph": 14,
@@ -104,7 +104,7 @@
           },
           "direct_entry": {
             "origin": "direct",
-            "content_hash": "sha256:da981adddf6223edf8da33215b3670772ae02bbd5617d4d0b4bc2b543548f837"
+            "content_hash": "sha256:fdfb397ee732ff2f0759c270e775d633be61ecb22d6cfb8f10fd253975964acb"
           },
           "relation_review": {
             "relationship_count": 5,
@@ -126,7 +126,7 @@
             ]
           },
           "provenance_review": {
-            "details_content_hash": "sha256:fd264daaebca1a455b8022af57d613b6f3692cc093f073439f64da3439e11dc2",
+            "details_content_hash": "sha256:8991255ce5d6d8b74b0772cf0485490011f0da88ecef1a5d5b4a9ee9da1aeabf",
             "exact_source_inspections": 1,
             "inspected_source_state": "available",
             "source_states": ["available"],
@@ -143,7 +143,7 @@
               "checkpoint_ref": {
                 "record_id": "projection_checkpoint_01ARZ3NDEKTSV4RRFFQ69G5FC9",
                 "revision": 2,
-                "record_hash": "sha256:4839f98cef46affd2342d1779816679f38a12d22e61a50473c75e22de474458c"
+                "record_hash": "sha256:f5eda1e3618b7dc4d929351dd6cb16cd28e97eb4249adfb42c3585f774762672"
               },
               "represented_event_position": 3,
               "observed_event_position": 9,
@@ -166,7 +166,7 @@
             "context_return": true
           },
           "correction_preview": {
-            "graph_duration_ms": 730.044,
+            "graph_duration_ms": 748.922,
             "live_route_availability": "not_in_bounded_result",
             "open_review_session_id": "review_session_01K4D000000000000000000004",
             "review_relationship_ids": [
@@ -179,27 +179,27 @@
               "working_relationship_74MKC22KTMH8WWJWW99J1ZE7EJ",
               "working_relationship_6D6BQK0VACMEMKXDKB7JAWSXK5"
             ],
-            "graph_content_hash": "sha256:843f2fb13ef3c44886c926d435b57c437a0824207ac23b4c7893406a08e926f7",
+            "graph_content_hash": "sha256:ac2aac51caf69b37182c83b1d61f5dd48a4a1437f90c317070bd2c8f07138b30",
             "executed_supplement": "UX-FX25 deterministic production-controller browser boundary"
           },
           "positions": {
-            "current": "sha256:fb79b988dc0e8743c0f47dc96486b1ca9150d305d474cae15607754912d7e8e5",
-            "working": "sha256:52f8b43312edebc45adedfa530daa019d1fdfefd3f85aa595325796732c9b223",
-            "historical": "sha256:8c1e608b7956b2b26f3e4187aa309ac3a67c63d5c09d459797e3c5594778dd15",
-            "historical_recorded_at": "2026-09-16T14:33:02.318Z",
-            "comparison": "sha256:a890d4995cecd3be92bcd3eb3877714ef39982823a73e84c4b87906b97cbbcf9",
+            "current": "sha256:e7f3e2f0b642f3c11e1915bb9e16e3b704bb83c99116dacdf4098ededf30bbf5",
+            "working": "sha256:25fb7b1954f3ef38b1a6f498051a4e0d9705417af7d4920f4a5dfcbedd3f9483",
+            "historical": "sha256:6fcc283980cd1f4e8198633782e270d934c6620c1a2d76a449f4b0a4044ec7e5",
+            "historical_recorded_at": "2026-09-16T14:44:45.992Z",
+            "comparison": "sha256:9afb75b8e4040b0a7fbdb41efd5ce95fef762579d585e4633cd273b6bf82ad1b",
             "impact": {
               "live_route_state": "passed",
-              "content_hash": "sha256:554ca1b6732f1c47668cc69ef0d64f2d8ed3d93eb0bf7de3ee633719c4a1f765",
-              "event_id": "event_01M2NA5AKFTZ0QD88YDNA04DSW",
+              "content_hash": "sha256:55e105e284a5803df303e209d03cc899026aa123c0a59c2471b2b151cbf3746e",
+              "event_id": "event_01M2NATSS9BRVNRK2VQE6F10PT",
               "assessed_consequences": {
                 "state": "unavailable",
                 "coverage": "not_assessed",
                 "reason": "No exact Review member was bound to this impact request, so assessed consequences are unavailable."
               }
             },
-            "impact_event_id": "event_01M2NA5AKFTZ0QD88YDNA04DSW",
-            "time": "sha256:8482ef7deb965d237b62a6d496f0bf4cc82b3a8a867aac88cf371c78c19c23f1"
+            "impact_event_id": "event_01M2NATSS9BRVNRK2VQE6F10PT",
+            "time": "sha256:1625ae9b4d81b27c4174368b4eec64b841ecf57584815bd5bfa33a6c863a6d13"
           },
           "expansion": {
             "live_availability": "not_registered_for_exact_profile_and_layer",
@@ -209,8 +209,8 @@
           }
         },
         "projection_lag": {
-          "duration_ms": 559.419,
-          "content_hash": "sha256:52f8b43312edebc45adedfa530daa019d1fdfefd3f85aa595325796732c9b223",
+          "duration_ms": 563.638,
+          "content_hash": "sha256:25fb7b1954f3ef38b1a6f498051a4e0d9705417af7d4920f4a5dfcbedd3f9483",
           "requested_snapshot": {
             "snapshot_id": "snapshot_3JVWFTVQZSRCHAW57JWT9RX4K8",
             "revision": 1,
@@ -224,7 +224,7 @@
             "checkpoint_ref": {
               "record_id": "projection_checkpoint_01ARZ3NDEKTSV4RRFFQ69G5FC9",
               "revision": 2,
-              "record_hash": "sha256:4839f98cef46affd2342d1779816679f38a12d22e61a50473c75e22de474458c"
+              "record_hash": "sha256:f5eda1e3618b7dc4d929351dd6cb16cd28e97eb4249adfb42c3585f774762672"
             },
             "represented_event_position": 3,
             "observed_event_position": 9,
@@ -233,7 +233,7 @@
           },
           "authority_source": "postgresql"
         },
-        "recorded_at": "2026-09-16T14:33:37.634Z"
+        "recorded_at": "2026-09-16T14:45:21.338Z"
       },
       "boundary": "Production React Router loaders and controllers in isolated headless Chrome over authenticated live server routes backed by the disposable PostgreSQL and Neo4j stores."
     }
@@ -305,7 +305,7 @@
       "scenario_id": "provenance-comprehension-review",
       "status": "passed",
       "observation": {
-        "details_content_hash": "sha256:fd264daaebca1a455b8022af57d613b6f3692cc093f073439f64da3439e11dc2",
+        "details_content_hash": "sha256:8991255ce5d6d8b74b0772cf0485490011f0da88ecef1a5d5b4a9ee9da1aeabf",
         "exact_source_inspections": 1,
         "inspected_source_state": "available",
         "source_states": ["available"],
@@ -322,7 +322,7 @@
           "checkpoint_ref": {
             "record_id": "projection_checkpoint_01ARZ3NDEKTSV4RRFFQ69G5FC9",
             "revision": 2,
-            "record_hash": "sha256:4839f98cef46affd2342d1779816679f38a12d22e61a50473c75e22de474458c"
+            "record_hash": "sha256:f5eda1e3618b7dc4d929351dd6cb16cd28e97eb4249adfb42c3585f774762672"
           },
           "represented_event_position": 3,
           "observed_event_position": 9,
@@ -362,10 +362,10 @@
         },
         "direct": {
           "origin": "direct",
-          "content_hash": "sha256:da981adddf6223edf8da33215b3670772ae02bbd5617d4d0b4bc2b543548f837"
+          "content_hash": "sha256:fdfb397ee732ff2f0759c270e775d633be61ecb22d6cfb8f10fd253975964acb"
         },
         "focus": { "contextual_heading": true, "exact_return": true },
-        "timings_ms": { "contextual": 575.171, "direct": 559.823 }
+        "timings_ms": { "contextual": 574.925, "direct": 566.974 }
       },
       "boundary": "The exact retained Review action target was composed with a projected baseline Claim because the post-Apply Claim had not reached Neo4j. That contextual Review URL and a separately parsed direct URL executed through the production loader and live focused-query route with exact return focus."
     },
@@ -375,27 +375,27 @@
       "status": "passed",
       "observation": {
         "positions": {
-          "current": "sha256:fb79b988dc0e8743c0f47dc96486b1ca9150d305d474cae15607754912d7e8e5",
-          "working": "sha256:52f8b43312edebc45adedfa530daa019d1fdfefd3f85aa595325796732c9b223",
-          "historical": "sha256:8c1e608b7956b2b26f3e4187aa309ac3a67c63d5c09d459797e3c5594778dd15",
-          "historical_recorded_at": "2026-09-16T14:33:02.318Z",
-          "comparison": "sha256:a890d4995cecd3be92bcd3eb3877714ef39982823a73e84c4b87906b97cbbcf9",
+          "current": "sha256:e7f3e2f0b642f3c11e1915bb9e16e3b704bb83c99116dacdf4098ededf30bbf5",
+          "working": "sha256:25fb7b1954f3ef38b1a6f498051a4e0d9705417af7d4920f4a5dfcbedd3f9483",
+          "historical": "sha256:6fcc283980cd1f4e8198633782e270d934c6620c1a2d76a449f4b0a4044ec7e5",
+          "historical_recorded_at": "2026-09-16T14:44:45.992Z",
+          "comparison": "sha256:9afb75b8e4040b0a7fbdb41efd5ce95fef762579d585e4633cd273b6bf82ad1b",
           "impact": {
             "live_route_state": "passed",
-            "content_hash": "sha256:554ca1b6732f1c47668cc69ef0d64f2d8ed3d93eb0bf7de3ee633719c4a1f765",
-            "event_id": "event_01M2NA5AKFTZ0QD88YDNA04DSW",
+            "content_hash": "sha256:55e105e284a5803df303e209d03cc899026aa123c0a59c2471b2b151cbf3746e",
+            "event_id": "event_01M2NATSS9BRVNRK2VQE6F10PT",
             "assessed_consequences": {
               "state": "unavailable",
               "coverage": "not_assessed",
               "reason": "No exact Review member was bound to this impact request, so assessed consequences are unavailable."
             }
           },
-          "impact_event_id": "event_01M2NA5AKFTZ0QD88YDNA04DSW",
-          "time": "sha256:8482ef7deb965d237b62a6d496f0bf4cc82b3a8a867aac88cf371c78c19c23f1"
+          "impact_event_id": "event_01M2NATSS9BRVNRK2VQE6F10PT",
+          "time": "sha256:1625ae9b4d81b27c4174368b4eec64b841ecf57584815bd5bfa33a6c863a6d13"
         },
         "projection_lag": {
-          "duration_ms": 559.419,
-          "content_hash": "sha256:52f8b43312edebc45adedfa530daa019d1fdfefd3f85aa595325796732c9b223",
+          "duration_ms": 563.638,
+          "content_hash": "sha256:25fb7b1954f3ef38b1a6f498051a4e0d9705417af7d4920f4a5dfcbedd3f9483",
           "requested_snapshot": {
             "snapshot_id": "snapshot_3JVWFTVQZSRCHAW57JWT9RX4K8",
             "revision": 1,
@@ -409,7 +409,7 @@
             "checkpoint_ref": {
               "record_id": "projection_checkpoint_01ARZ3NDEKTSV4RRFFQ69G5FC9",
               "revision": 2,
-              "record_hash": "sha256:4839f98cef46affd2342d1779816679f38a12d22e61a50473c75e22de474458c"
+              "record_hash": "sha256:f5eda1e3618b7dc4d929351dd6cb16cd28e97eb4249adfb42c3585f774762672"
             },
             "represented_event_position": 3,
             "observed_event_position": 9,
@@ -475,18 +475,18 @@
           "restricted_paths": 1,
           "partial_paths": 1,
           "missing_destinations": 1,
-          "first_ready_ms": 428.365,
-          "second_ready_ms": 154.419,
+          "first_ready_ms": 424.363,
+          "second_ready_ms": 154.076,
           "layout_capture_sha256": "sha256:690acdf7e021e3bac52284fb9748d2d14d8b180fb5615f9a871c6cd755f4cf74",
           "repeated_layout_capture_sha256": "sha256:690acdf7e021e3bac52284fb9748d2d14d8b180fb5615f9a871c6cd755f4cf74",
           "layout_capture_stable": true
         },
         "late_response": {
           "completion_order": [
-            "focused_graph_request_01M2NA4RH5B866JF119XXDS48J",
-            "focused_graph_request_01M2NA4RERNXBBRVN5STQAFZPB"
+            "focused_graph_request_01M2NAT7PP70CSND4E9F0XTTG4",
+            "focused_graph_request_01M2NAT7MBK3RAZBZTJ0W4PAQ9"
           ],
-          "accepted_request_id": "focused_graph_request_01M2NA4RH5B866JF119XXDS48J",
+          "accepted_request_id": "focused_graph_request_01M2NAT7PP70CSND4E9F0XTTG4",
           "older_request_rejected": true,
           "exact_selection_retained": "node:claim-0"
         },
@@ -506,7 +506,7 @@
       "status": "passed",
       "observation": {
         "live_route": {
-          "graph_duration_ms": 730.044,
+          "graph_duration_ms": 748.922,
           "live_route_availability": "not_in_bounded_result",
           "open_review_session_id": "review_session_01K4D000000000000000000004",
           "review_relationship_ids": [
@@ -519,7 +519,7 @@
             "working_relationship_74MKC22KTMH8WWJWW99J1ZE7EJ",
             "working_relationship_6D6BQK0VACMEMKXDKB7JAWSXK5"
           ],
-          "graph_content_hash": "sha256:843f2fb13ef3c44886c926d435b57c437a0824207ac23b4c7893406a08e926f7",
+          "graph_content_hash": "sha256:ac2aac51caf69b37182c83b1d61f5dd48a4a1437f90c317070bd2c8f07138b30",
           "executed_supplement": "UX-FX25 deterministic production-controller browser boundary"
         },
         "executed_preview": {
@@ -539,18 +539,18 @@
       "scenario_id": "comparison-impact-time-browser",
       "status": "passed",
       "observation": {
-        "comparison_content_hash": "sha256:a890d4995cecd3be92bcd3eb3877714ef39982823a73e84c4b87906b97cbbcf9",
+        "comparison_content_hash": "sha256:9afb75b8e4040b0a7fbdb41efd5ce95fef762579d585e4633cd273b6bf82ad1b",
         "live_impact_route": {
           "live_route_state": "passed",
-          "content_hash": "sha256:554ca1b6732f1c47668cc69ef0d64f2d8ed3d93eb0bf7de3ee633719c4a1f765",
-          "event_id": "event_01M2NA5AKFTZ0QD88YDNA04DSW",
+          "content_hash": "sha256:55e105e284a5803df303e209d03cc899026aa123c0a59c2471b2b151cbf3746e",
+          "event_id": "event_01M2NATSS9BRVNRK2VQE6F10PT",
           "assessed_consequences": {
             "state": "unavailable",
             "coverage": "not_assessed",
             "reason": "No exact Review member was bound to this impact request, so assessed consequences are unavailable."
           }
         },
-        "time_content_hash": "sha256:8482ef7deb965d237b62a6d496f0bf4cc82b3a8a867aac88cf371c78c19c23f1",
+        "time_content_hash": "sha256:1625ae9b4d81b27c4174368b4eec64b841ecf57584815bd5bfa33a6c863a6d13",
         "supplement": {
           "historical_read_only": true,
           "unknown_date_explicit": true,

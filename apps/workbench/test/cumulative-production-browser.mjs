@@ -143,8 +143,12 @@ source = replaceOnce(
 );
 source = replaceOnce(
   source,
-  "    await Promise.all([vite?.close(), active?.shutdown()]);",
-  "    await Promise.all([recoveryBrowserTrace?.close(), browserTrace?.close(), vite?.close(), active?.shutdown()]);",
+  '    if (process.env.PETRA_WAVE5_INSPECT === "1") {',
+  `    await Promise.all([
+      recoveryBrowserTrace?.close(),
+      browserTrace?.close(),
+    ]);
+    if (process.env.PETRA_WAVE5_INSPECT === "1") {`,
 );
 
 const run = () =>

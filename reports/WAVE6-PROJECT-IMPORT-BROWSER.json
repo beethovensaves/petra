@@ -1,0 +1,260 @@
+{
+  "schema_name": "petra.wave6-project-import-browser-observation",
+  "schema_version": "1.0.0",
+  "status": "passed",
+  "recorded_at": "2026-09-20T07:48:25.145Z",
+  "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:project-import-ui",
+  "browser": {
+    "product": "Chrome/153.0.8010.48",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+    "protocol_version": "1.3"
+  },
+  "route_transport": "Production Project collection and import controls with deterministic schema-valid HTTP responses in isolated Chrome.",
+  "checks": [
+    "keyboard operation selects one exact server-owned Project, definition, and focused-objective binding",
+    "reviewed admission names the bounded copied and retained-only scope before command availability",
+    "successful import invokes the production command and verifies the retained ancestry read before showing success",
+    "copied material, retained-only material, limitations, and exact derived Brief return remain visible",
+    "unknown outcome keeps the exact request, performs read-only recovery, and reuses command and idempotency identities for retry",
+    "conflicting identity exposes no retry, no derived destination, and no false success"
+  ],
+  "observations": {
+    "success_calls": [
+      {
+        "method": "GET",
+        "path": "/api/queries/projects"
+      },
+      {
+        "method": "POST",
+        "path": "/api/commands/projects/import",
+        "body": {
+          "schema_name": "petra.project-import-command-request",
+          "schema_version": "1.0.0",
+          "command_id": "command_01M2YWK9QYH478CGCQEMDNKWZ4",
+          "idempotency_key": "project-import:01M2YWK9QYH478CGCQEMDNKWZ4",
+          "source": {
+            "source_kind": "retained_project",
+            "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+            "project_revision": 1,
+            "project_definition_ref": {
+              "project_definition_id": "project_definition_01K4C000000000000000000001",
+              "revision": 1,
+              "content_hash": "sha256:0574f491dbf0d3893bbe80b7b47ffc540471430878416aabef51a9a7703627c9"
+            },
+            "focused_objective_ref": {
+              "objective_id": "objective_01K4C000000000000000000005",
+              "revision": 1,
+              "content_hash": "sha256:335ccee3cdd67d50a07b0e3acef369fb57ee6b2d83b0397a4bdddd48b97358f7"
+            }
+          },
+          "admission": {
+            "decision": "create_derived_project",
+            "copy_scope": "definition_and_focused_objective",
+            "source_effect": "preserve_without_modification",
+            "reviewed_at": "2026-09-20T07:48:24.446Z"
+          },
+          "project": {
+            "name": "Derived from Competing explanations"
+          }
+        }
+      },
+      {
+        "method": "GET",
+        "path": "/api/queries/projects/project_01K6P000000000000000000802/import-ancestry"
+      }
+    ],
+    "unknown_calls": [
+      {
+        "method": "GET",
+        "path": "/api/queries/projects"
+      },
+      {
+        "method": "POST",
+        "path": "/api/commands/projects/import",
+        "body": {
+          "schema_name": "petra.project-import-command-request",
+          "schema_version": "1.0.0",
+          "command_id": "command_01M2YWK9VW1PPWE7ECK355QTEA",
+          "idempotency_key": "project-import:01M2YWK9VW1PPWE7ECK355QTEA",
+          "source": {
+            "source_kind": "retained_project",
+            "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+            "project_revision": 1,
+            "project_definition_ref": {
+              "project_definition_id": "project_definition_01K4C000000000000000000001",
+              "revision": 1,
+              "content_hash": "sha256:0574f491dbf0d3893bbe80b7b47ffc540471430878416aabef51a9a7703627c9"
+            },
+            "focused_objective_ref": {
+              "objective_id": "objective_01K4C000000000000000000005",
+              "revision": 1,
+              "content_hash": "sha256:335ccee3cdd67d50a07b0e3acef369fb57ee6b2d83b0397a4bdddd48b97358f7"
+            }
+          },
+          "admission": {
+            "decision": "create_derived_project",
+            "copy_scope": "definition_and_focused_objective",
+            "source_effect": "preserve_without_modification",
+            "reviewed_at": "2026-09-20T07:48:24.572Z"
+          },
+          "project": {
+            "name": "Derived from Competing explanations"
+          }
+        }
+      },
+      {
+        "method": "POST",
+        "path": "/api/queries/project-import-command-recovery",
+        "body": {
+          "schema_name": "petra.project-import-command-request",
+          "schema_version": "1.0.0",
+          "command_id": "command_01M2YWK9VW1PPWE7ECK355QTEA",
+          "idempotency_key": "project-import:01M2YWK9VW1PPWE7ECK355QTEA",
+          "source": {
+            "source_kind": "retained_project",
+            "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+            "project_revision": 1,
+            "project_definition_ref": {
+              "project_definition_id": "project_definition_01K4C000000000000000000001",
+              "revision": 1,
+              "content_hash": "sha256:0574f491dbf0d3893bbe80b7b47ffc540471430878416aabef51a9a7703627c9"
+            },
+            "focused_objective_ref": {
+              "objective_id": "objective_01K4C000000000000000000005",
+              "revision": 1,
+              "content_hash": "sha256:335ccee3cdd67d50a07b0e3acef369fb57ee6b2d83b0397a4bdddd48b97358f7"
+            }
+          },
+          "admission": {
+            "decision": "create_derived_project",
+            "copy_scope": "definition_and_focused_objective",
+            "source_effect": "preserve_without_modification",
+            "reviewed_at": "2026-09-20T07:48:24.572Z"
+          },
+          "project": {
+            "name": "Derived from Competing explanations"
+          }
+        }
+      },
+      {
+        "method": "POST",
+        "path": "/api/commands/projects/import",
+        "body": {
+          "schema_name": "petra.project-import-command-request",
+          "schema_version": "1.0.0",
+          "command_id": "command_01M2YWK9VW1PPWE7ECK355QTEA",
+          "idempotency_key": "project-import:01M2YWK9VW1PPWE7ECK355QTEA",
+          "source": {
+            "source_kind": "retained_project",
+            "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+            "project_revision": 1,
+            "project_definition_ref": {
+              "project_definition_id": "project_definition_01K4C000000000000000000001",
+              "revision": 1,
+              "content_hash": "sha256:0574f491dbf0d3893bbe80b7b47ffc540471430878416aabef51a9a7703627c9"
+            },
+            "focused_objective_ref": {
+              "objective_id": "objective_01K4C000000000000000000005",
+              "revision": 1,
+              "content_hash": "sha256:335ccee3cdd67d50a07b0e3acef369fb57ee6b2d83b0397a4bdddd48b97358f7"
+            }
+          },
+          "admission": {
+            "decision": "create_derived_project",
+            "copy_scope": "definition_and_focused_objective",
+            "source_effect": "preserve_without_modification",
+            "reviewed_at": "2026-09-20T07:48:24.572Z"
+          },
+          "project": {
+            "name": "Derived from Competing explanations"
+          }
+        }
+      },
+      {
+        "method": "GET",
+        "path": "/api/queries/projects/project_01K6P000000000000000000802/import-ancestry"
+      }
+    ],
+    "conflict_calls": [
+      {
+        "method": "GET",
+        "path": "/api/queries/projects"
+      },
+      {
+        "method": "POST",
+        "path": "/api/commands/projects/import",
+        "body": {
+          "schema_name": "petra.project-import-command-request",
+          "schema_version": "1.0.0",
+          "command_id": "command_01M2YWKA6ZHKBFJKB9NMZ4Z29G",
+          "idempotency_key": "project-import:01M2YWKA6ZHKBFJKB9NMZ4Z29G",
+          "source": {
+            "source_kind": "retained_project",
+            "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+            "project_revision": 1,
+            "project_definition_ref": {
+              "project_definition_id": "project_definition_01K4C000000000000000000001",
+              "revision": 1,
+              "content_hash": "sha256:0574f491dbf0d3893bbe80b7b47ffc540471430878416aabef51a9a7703627c9"
+            },
+            "focused_objective_ref": {
+              "objective_id": "objective_01K4C000000000000000000005",
+              "revision": 1,
+              "content_hash": "sha256:335ccee3cdd67d50a07b0e3acef369fb57ee6b2d83b0397a4bdddd48b97358f7"
+            }
+          },
+          "admission": {
+            "decision": "create_derived_project",
+            "copy_scope": "definition_and_focused_objective",
+            "source_effect": "preserve_without_modification",
+            "reviewed_at": "2026-09-20T07:48:24.927Z"
+          },
+          "project": {
+            "name": "Derived from Competing explanations"
+          }
+        }
+      },
+      {
+        "method": "POST",
+        "path": "/api/queries/project-import-command-recovery",
+        "body": {
+          "schema_name": "petra.project-import-command-request",
+          "schema_version": "1.0.0",
+          "command_id": "command_01M2YWKA6ZHKBFJKB9NMZ4Z29G",
+          "idempotency_key": "project-import:01M2YWKA6ZHKBFJKB9NMZ4Z29G",
+          "source": {
+            "source_kind": "retained_project",
+            "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+            "project_revision": 1,
+            "project_definition_ref": {
+              "project_definition_id": "project_definition_01K4C000000000000000000001",
+              "revision": 1,
+              "content_hash": "sha256:0574f491dbf0d3893bbe80b7b47ffc540471430878416aabef51a9a7703627c9"
+            },
+            "focused_objective_ref": {
+              "objective_id": "objective_01K4C000000000000000000005",
+              "revision": 1,
+              "content_hash": "sha256:335ccee3cdd67d50a07b0e3acef369fb57ee6b2d83b0397a4bdddd48b97358f7"
+            }
+          },
+          "admission": {
+            "decision": "create_derived_project",
+            "copy_scope": "definition_and_focused_objective",
+            "source_effect": "preserve_without_modification",
+            "reviewed_at": "2026-09-20T07:48:24.927Z"
+          },
+          "project": {
+            "name": "Derived from Competing explanations"
+          }
+        }
+      }
+    ],
+    "exact_destination": "/projects/project_01K6P000000000000000000802/brief"
+  },
+  "boundary": {
+    "browser": "Isolated headless Chrome executed the production Project collection and retained-Project import controls.",
+    "transport": "The harness supplied deterministic schema-valid HTTP responses; backend PostgreSQL command ownership is proven by the exact counterpart commit and is not re-claimed here.",
+    "authority": "The UI submitted only the exact Project shell binding and explicit reviewed admission, then required matching retained ancestry before success.",
+    "scope": "This operation record covers project.import only; it does not claim the complete source lifecycle or any named Wave 6 evidence-plan scenario."
+  }
+}

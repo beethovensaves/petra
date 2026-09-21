@@ -1,0 +1,883 @@
+import assert from "node:assert/strict";
+import { rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
+
+import { ReviewSessionApplyClient } from "@petra/adapters";
+
+import {
+  createCdp,
+  startChrome,
+  startWorkbench,
+} from "./cumulative-production-browser-driver.mjs";
+
+const button = (label) =>
+  `[...document.querySelectorAll('button')].find((element) => element.textContent.trim() === ${JSON.stringify(label)})`;
+
+const link = (label) =>
+  `[...document.querySelectorAll('a')].find((element) => element.textContent.trim() === ${JSON.stringify(label)})`;
+
+const wait = (milliseconds) =>
+  new Promise((resolveWait) => setTimeout(resolveWait, milliseconds));
+
+export const createWave4EvidenceObserver = async ({ root }) => {
+  const calls = [];
+  const consoleErrors = [];
+  let backendUrl;
+  let token;
+  let scientificProjectId;
+  let scientificReviewSessionId;
+  let completedWorkUnitId;
+  let inputWorkUnitId;
+  let resumableWorkUnitId;
+  let startAgainWorkUnitId;
+  let workbench;
+  let chrome;
+  let cdp;
+  let observation;
+  let closed = false;
+  const execution = {
+    completed_checks: [],
+    worker_output_manifest: undefined,
+  };
+
+  const writeObservation = () => {
+    if (observation === undefined) return;
+    const output = resolve(
+      root,
+      process.env.PETRA_WAVE6_WORK_BROWSER_OUTPUT ??
+        "reports/WAVE6-WORK-BROWSER-OBSERVATION.json",
+    );
+    writeFileSync(output, `${JSON.stringify(observation, null, 2)}\n`);
+  };
+
+  const readReviewSelection = async (reviewSessionId) => {
+    const response = await fetch(
+      new URL(
+        `/api/queries/projects/${scientificProjectId}/reviews/${reviewSessionId}`,
+        backendUrl,
+      ),
+      { headers: { authorization: `Bearer ${token}` } },
+    );
+    assert.equal(response.status, 200, "The Work trace Review read failed.");
+    const review = await response.json();
+    const session = review?.content?.session;
+    const selected = review?.content?.members?.[0];
+    assert.ok(session && selected, "The Work trace Review is not actionable.");
+    return {
+      project_id: scientificProjectId,
+      review_session_id: reviewSessionId,
+      expected_revision: session.revision,
+      expected_content_hash: session.content_hash,
+      selected_review_member_id: selected.review_member_id,
+    };
+  };
+
+  const prepareAndApply = async (reviewSessionId, beforeApply) => {
+    const client = new ReviewSessionApplyClient({ baseUrl: backendUrl, token });
+    const checkpoint = await client.prepare(
+      await readReviewSelection(reviewSessionId),
+    );
+    await beforeApply?.();
+    const request = {
+      schema_name: "petra.review-session-apply-request",
+      schema_version: "1.0.0",
+      checkpoint,
+      decided_at: new Date().toISOString(),
+    };
+    return { request, result: await client.apply(request) };
+  };
+
+  const start = async () => {
+    if (workbench !== undefined) return;
+    workbench = await startWorkbench({
+      root,
+      getBackendUrl: () => backendUrl,
+      calls,
+    });
+    chrome = await startChrome({ profilePrefix: "petra-wave6-work-browser-" });
+    cdp = await createCdp(chrome.socketUrl);
+    cdp.socket.addEventListener("message", (event) => {
+      const message = JSON.parse(event.data);
+      if (message.method === "Runtime.consoleAPICalled") {
+        if (["error", "assert"].includes(message.params?.type)) {
+          consoleErrors.push(
+            message.params.args?.map((argument) => argument.value),
+          );
+        }
+      }
+      if (message.method === "Runtime.exceptionThrown") {
+        consoleErrors.push(message.params?.exceptionDetails);
+      }
+    });
+    await Promise.all([
+      cdp.send("Page.enable"),
+      cdp.send("Runtime.enable"),
+      cdp.send("Accessibility.enable"),
+      cdp.send("Emulation.setDeviceMetricsOverride", {
+        width: 1280,
+        height: 900,
+        deviceScaleFactor: 1,
+        mobile: false,
+      }),
+    ]);
+  };
+
+  const navigate = async (path, ready, label) => {
+    const result = await cdp.send("Page.navigate", {
+      url: new URL(path, workbench.url).href,
+    });
+    assert.equal(result.errorText, undefined, `Could not open ${label}.`);
+    await cdp.until(ready, label);
+    await cdp.evaluate("document.fonts.ready");
+  };
+
+  const activate = async (expression) => {
+    await cdp.evaluate(`${expression}.focus()`);
+    await cdp.send("Input.dispatchKeyEvent", {
+      type: "keyDown",
+      key: "Enter",
+      code: "Enter",
+      windowsVirtualKeyCode: 13,
+      text: "\r",
+    });
+    await cdp.send("Input.dispatchKeyEvent", {
+      type: "keyUp",
+      key: "Enter",
+      code: "Enter",
+      windowsVirtualKeyCode: 13,
+    });
+  };
+
+  const run = async () => {
+    await start();
+    await navigate(
+      `/projects/${scientificProjectId}/work`,
+      'document.querySelector(".work-units") !== null',
+      "Project Work collection",
+    );
+    const collectionText = await cdp.evaluate("document.body.innerText");
+    assert.ok(
+      collectionText.includes("Research question"),
+      "The registered scientific inquiry path is not visible in Work.",
+    );
+    execution.completed_checks.push("registered scientific inquiry visible");
+    assert.ok(
+      inputWorkUnitId,
+      "No exact Work task requiring registered input is available.",
+    );
+    const attentionPath = await cdp.evaluate(`(() => {
+      const group = [...document.querySelectorAll(".work-group")].find(
+        (candidate) => candidate.querySelector("h3")?.textContent.trim() === "Needs attention",
+      );
+      return [...(group?.querySelectorAll("a") ?? [])].find(
+        (candidate) => candidate.getAttribute("href")?.endsWith(${JSON.stringify(`/work/${inputWorkUnitId}`)}),
+      )?.getAttribute("href");
+    })()`);
+    assert.ok(attentionPath, "No exact Work task requiring input is visible.");
+
+    assert.ok(
+      resumableWorkUnitId,
+      "No exact registered-checkpoint Work task is available to Resume.",
+    );
+    const resumePath = `/projects/${scientificProjectId}/work/${resumableWorkUnitId}`;
+    await navigate(
+      resumePath,
+      'document.querySelector(".work-controls") !== null',
+      "checkpointed Work task",
+    );
+    const assessedResume = calls.findLast(
+      (call) =>
+        call.method === "GET" &&
+        call.path.endsWith(`/work/${resumableWorkUnitId}/operations`),
+    );
+    const resumeBinding = assessedResume?.json?.resume_binding;
+    assert.equal(
+      assessedResume?.json?.controls?.find(
+        (control) => control.operation === "resume",
+      )?.state,
+      "available",
+      "The production assessment did not make registered Resume available.",
+    );
+    assert.ok(
+      resumeBinding,
+      "The available Resume control omitted its exact checkpoint binding.",
+    );
+    assert.equal(
+      await cdp.evaluate(
+        `${button("Resume work")}.getAttribute("aria-disabled")`,
+      ),
+      null,
+      "The visible Resume control stayed unavailable despite its exact binding.",
+    );
+    assert.equal(
+      await cdp.evaluate(
+        `${button("Start again")}.getAttribute("aria-disabled")`,
+      ),
+      "true",
+      "Start again became available without a workflow-specific fresh-input transition.",
+    );
+    await cdp.evaluate(`${button("Resume work")}.click()`);
+    await cdp.until(
+      'document.querySelector(".work-operation-result")?.textContent.includes("registered compatible transition") === true',
+      "resumed checkpointed Work",
+    );
+    const resumeCall = calls.findLast(
+      (call) =>
+        call.method === "POST" &&
+        call.path.endsWith(`/work/${resumableWorkUnitId}/resume`),
+    );
+    assert.ok(
+      resumeCall,
+      "The visible Resume control issued no production command.",
+    );
+    assert.deepEqual(
+      resumeCall.requestJson.expected_work_unit_ref,
+      resumeBinding.expected_work_unit_ref,
+      "Resume did not copy the exact assessed Work revision and specification.",
+    );
+    assert.deepEqual(
+      resumeCall.requestJson.expected_checkpoint,
+      resumeBinding.expected_checkpoint,
+      "Resume did not copy the exact assessed checkpoint.",
+    );
+    assert.equal(
+      Object.hasOwn(resumeCall.requestJson, "actor"),
+      false,
+      "The browser selected resume authority.",
+    );
+    const resumeResultText = await cdp.evaluate(
+      'document.querySelector(".work-operation-result")?.innerText',
+    );
+    for (const value of [
+      "Resumed attempt 1",
+      "retained checkpoint and prior attempts preserved",
+      "Project authority unchanged",
+      "Return to this Work task",
+    ]) {
+      assert.ok(
+        resumeResultText.includes(value),
+        `Resume outcome omitted ${value}.`,
+      );
+    }
+    const resumeReturn = await cdp.evaluate(
+      `${link("Return to this Work task")}.getAttribute("href")`,
+    );
+    assert.equal(
+      resumeReturn,
+      `${resumePath}#work-control-boundary`,
+      "Resume did not preserve the exact Work return.",
+    );
+    assert.equal(
+      await cdp.evaluate("window.location.pathname"),
+      resumePath,
+      "Resume left the originating Work task.",
+    );
+    assert.equal(
+      await cdp.evaluate(
+        `${button("Resume work")}.getAttribute("aria-disabled")`,
+      ),
+      "true",
+      "Resume remained available after the checkpoint was consumed.",
+    );
+    execution.completed_checks.push(
+      "registered checkpoint resumed through exact visible control",
+    );
+
+    assert.ok(
+      completedWorkUnitId && startAgainWorkUnitId,
+      "No exact terminal prior Work and registered fresh Work are available for Start again.",
+    );
+    const priorWorkPath = `/projects/${scientificProjectId}/work/${completedWorkUnitId}`;
+    const freshWorkPath = `/projects/${scientificProjectId}/work/${startAgainWorkUnitId}`;
+    await navigate(
+      priorWorkPath,
+      'document.querySelector(".work-controls") !== null',
+      "terminal Work with registered fresh execution",
+    );
+    const assessedStartAgain = calls.findLast(
+      (call) =>
+        call.method === "GET" &&
+        call.path.endsWith(`/work/${completedWorkUnitId}/operations`),
+    );
+    const startAgainBinding = assessedStartAgain?.json?.start_again_binding;
+    assert.equal(
+      assessedStartAgain?.json?.controls?.find(
+        (control) => control.operation === "start_again",
+      )?.state,
+      "available",
+      "The production assessment did not make registered Start again available.",
+    );
+    assert.ok(
+      startAgainBinding,
+      "The available Start again control omitted its exact fresh-input binding.",
+    );
+    assert.equal(
+      startAgainBinding.fresh_work_unit_ref.work_unit_id,
+      startAgainWorkUnitId,
+      "The Start again assessment selected a different fresh Work identity.",
+    );
+    assert.equal(
+      await cdp.evaluate(
+        `${button("Start again")}.getAttribute("aria-disabled")`,
+      ),
+      null,
+      "The visible Start again control stayed unavailable despite its exact binding.",
+    );
+    assert.equal(
+      await cdp.evaluate(
+        `${button("Resume work")}.getAttribute("aria-disabled")`,
+      ),
+      "true",
+      "Resume became available on the separate terminal fresh-execution path.",
+    );
+    await cdp.evaluate(`${button("Start again")}.click()`);
+    await cdp.until(
+      `window.location.pathname === ${JSON.stringify(freshWorkPath)} && document.querySelector(".work-start-again-outcome") !== null`,
+      "fresh linked Work destination",
+    );
+    const startAgainCall = calls.findLast(
+      (call) =>
+        call.method === "POST" &&
+        call.path.endsWith(`/work/${completedWorkUnitId}/start-again`),
+    );
+    assert.ok(
+      startAgainCall,
+      "The visible Start again control issued no production command.",
+    );
+    assert.deepEqual(
+      startAgainCall.requestJson.expected_prior_work_unit_ref,
+      startAgainBinding.expected_prior_work_unit_ref,
+      "Start again did not copy the exact assessed prior Work revision and specification.",
+    );
+    assert.deepEqual(
+      startAgainCall.requestJson.start_again_registration_ref,
+      startAgainBinding.start_again_registration_ref,
+      "Start again did not copy the exact assessed fresh-input registration.",
+    );
+    for (const forbidden of [
+      "actor",
+      "capability_grant_id",
+      "fresh_work_unit_ref",
+      "input_transition",
+    ]) {
+      assert.equal(
+        Object.hasOwn(startAgainCall.requestJson, forbidden),
+        false,
+        `The browser selected server-owned ${forbidden}.`,
+      );
+    }
+    assert.equal(startAgainCall.status, 200);
+    assert.equal(
+      startAgainCall.json?.destination?.work_unit_ref?.work_unit_id,
+      startAgainWorkUnitId,
+      "The Start again receipt did not own the opened Work destination.",
+    );
+    const startAgainText = await cdp.evaluate(
+      'document.querySelector(".work-start-again-outcome")?.innerText',
+    );
+    for (const value of [
+      "Started again with fresh input",
+      "Prior attempt retained",
+      "Fresh immutable input",
+      "Output reuse",
+      "None. Prior outputs, history, and incurred use remain",
+      "New linked Work",
+      `lineage attempt ${startAgainCall.json.new_attempt.lineage_attempt}`,
+      startAgainBinding.input_transition.fresh_input_manifest_ref
+        .worker_input_manifest_id,
+    ]) {
+      assert.ok(
+        startAgainText.includes(value),
+        `Start again outcome omitted ${value}.`,
+      );
+    }
+    const priorReturn = await cdp.evaluate(
+      'document.querySelector(".work-detail__heading > .reference-context-back")?.getAttribute("href")',
+    );
+    assert.equal(
+      priorReturn,
+      `${priorWorkPath}#work-control-boundary`,
+      "The fresh Work destination did not preserve return to the prior Work task.",
+    );
+    await activate(
+      'document.querySelector(".work-detail__heading > .reference-context-back")',
+    );
+    await cdp.until(
+      `window.location.pathname === ${JSON.stringify(priorWorkPath)}`,
+      "prior Work contextual return",
+    );
+    assert.equal(
+      await cdp.evaluate(
+        `${button("Start again")}.getAttribute("aria-disabled")`,
+      ),
+      "true",
+      "Start again remained available after its registered fresh Work was consumed.",
+    );
+    execution.completed_checks.push(
+      "registered fresh-input Start again opened linked Work and returned to retained prior Work",
+    );
+
+    await navigate(
+      attentionPath,
+      'document.querySelector("#required-input") !== null',
+      "Work required input",
+    );
+    const inputText = await cdp.evaluate("document.body.innerText");
+    for (const value of [
+      "Required input",
+      "Manage this task",
+      "Project authority remains unchanged",
+    ]) {
+      assert.ok(inputText.includes(value), `Work input omitted ${value}.`);
+    }
+    await cdp.evaluate(
+      'document.querySelector("#required-input button")?.click()',
+    );
+    await cdp.until(
+      'document.querySelector(".work-operation-result") !== null',
+      "recorded Work input",
+    );
+    const inputReceipt = await cdp.evaluate(
+      'document.querySelector(".work-operation-result")?.textContent',
+    );
+    assert.ok(inputReceipt.includes("Project authority unchanged"));
+    execution.completed_checks.push("required input recorded");
+
+    const startDisabled = await cdp.evaluate(
+      `${button("Start work")}.getAttribute("aria-disabled")`,
+    );
+    if (startDisabled !== "true") {
+      await cdp.evaluate(`${button("Start work")}.click()`);
+      await cdp.until(
+        'document.querySelector(".work-operation-result")?.textContent.includes("started") === true || document.querySelector(".work-operation-result")?.textContent.includes("queued") === true',
+        "started Work",
+      );
+    }
+    const detachAvailable = await cdp.evaluate(
+      `${link("Leave running")} !== undefined`,
+    );
+    assert.ok(detachAvailable, "The active Work cannot be left running.");
+    await activate(link("Leave running"));
+    await cdp.until(
+      `window.location.pathname === ${JSON.stringify(`/projects/${scientificProjectId}/brief`)}`,
+      "detached Work return",
+    );
+    await navigate(
+      attentionPath,
+      'document.querySelector(".work-controls") !== null',
+      "detached Work task",
+    );
+    execution.completed_checks.push("active Work left running and reopened");
+    const cancelDisabled = await cdp.evaluate(
+      `${button("Cancel work")}.getAttribute("aria-disabled")`,
+    );
+    if (cancelDisabled !== "true") {
+      await cdp.evaluate(`${button("Cancel work")}.click()`);
+      await cdp.until(
+        `${button("Confirm cancellation")} !== undefined`,
+        "Work cancellation confirmation",
+      );
+      await cdp.evaluate(`${button("Confirm cancellation")}.click()`);
+      await cdp.until(
+        'document.querySelector(".work-operation-result")?.textContent.toLocaleLowerCase().includes("cancel") === true',
+        "cancelled Work",
+      );
+      execution.completed_checks.push("active Work cancellation confirmed");
+    }
+
+    await navigate(
+      `/projects/${scientificProjectId}/work/${completedWorkUnitId}`,
+      'document.querySelector(".work-results--destinations") !== null',
+      "completed grounded Work",
+    );
+    const completedText = await cdp.evaluate("document.body.innerText");
+    for (const value of [
+      "DECLARED DEPENDENCY PLAN",
+      "Stages",
+      "Measured use",
+      "Open exact results",
+      "grounded response",
+      "worker output manifest",
+      "Reconnect",
+      "Replay delivery",
+    ]) {
+      assert.ok(
+        completedText.includes(value),
+        `Completed Work omitted ${value}. Rendered text: ${completedText.slice(0, 2_000)}`,
+      );
+    }
+    execution.completed_checks.push(
+      "completed Work stages, resources, and result destinations rendered",
+    );
+    await cdp.evaluate(`${button("Reconnect")}.click()`);
+    await cdp.until(
+      'document.querySelector(".work-operation-result")?.textContent.includes("retained") === true',
+      "reconnected Work delivery",
+    );
+    await cdp.evaluate(`${button("Replay delivery")}.click()`);
+    await cdp.until(
+      'document.querySelector(".work-operation-result")?.textContent.toLocaleLowerCase().includes("replayed") === true',
+      "replayed Work delivery",
+    );
+    execution.completed_checks.push(
+      "durable delivery reconnected and replayed",
+    );
+
+    const resultIdentities = await cdp.evaluate(`
+      [...document.querySelectorAll(".work-results--destinations li")].map((item) => ({
+        kind: item.querySelector("strong")?.textContent.trim(),
+        id: item.querySelector("code")?.textContent.trim(),
+      }))
+    `);
+    assert.equal(resultIdentities.length, 2);
+    const groundedResult = resultIdentities.find(
+      (result) => result.kind === "grounded response",
+    );
+    const workerResult = resultIdentities.find(
+      (result) => result.kind === "worker output manifest",
+    );
+    assert.ok(groundedResult?.id && workerResult?.id);
+
+    await cdp.evaluate(`(() => {
+      const item = [...document.querySelectorAll(".work-results--destinations li")].find(
+        (candidate) => candidate.querySelector("strong")?.textContent.trim() === "worker output manifest",
+      );
+      item?.querySelector("a")?.click();
+    })()`);
+    await cdp.until(
+      'document.querySelector("#selected-work-result") !== null',
+      "selected WorkerOutputManifest",
+    );
+    const workerUrl = await cdp.evaluate("window.location.href");
+    const workerText = await cdp.evaluate(
+      'document.querySelector("#selected-work-result")?.innerText',
+    );
+    const manifestCall = calls.findLast(
+      (call) =>
+        call.method === "GET" &&
+        call.path.includes(
+          `/worker-output-manifests/${encodeURIComponent(workerResult.id)}`,
+        ),
+    );
+    assert.equal(
+      manifestCall?.status,
+      200,
+      "The selected result did not perform its exact production manifest read.",
+    );
+    const exactDiagnostics = manifestCall?.json?.content?.diagnostics;
+    assert.ok(
+      Array.isArray(exactDiagnostics),
+      "The production manifest response omitted its exact diagnostics array.",
+    );
+    const renderedDiagnostics = await cdp.evaluate(`
+      [...document.querySelectorAll(".selected-worker-output__diagnostics > li")].map((item) => ({
+        code: item.querySelector("strong")?.textContent.trim(),
+        severity: item.querySelector("span")?.textContent.trim().toLocaleLowerCase(),
+        message: item.querySelector("p")?.textContent.trim(),
+      }))
+    `);
+    assert.ok(
+      workerUrl.includes(`/work/${completedWorkUnitId}?`),
+      "The manifest was treated as a WorkUnit route identity.",
+    );
+    assert.ok(workerUrl.includes(encodeURIComponent(workerResult.id)));
+    for (const value of [
+      workerResult.id,
+      completedWorkUnitId,
+      "Reported outputs",
+      "Measured resources",
+      "Identity hashes and limitations",
+    ]) {
+      assert.ok(workerText.includes(value), `Worker result omitted ${value}.`);
+    }
+    assert.equal(renderedDiagnostics.length, exactDiagnostics.length);
+    if (exactDiagnostics.length === 0) {
+      assert.ok(workerText.includes("No diagnostics reported"));
+    } else {
+      assert.deepEqual(
+        renderedDiagnostics,
+        exactDiagnostics.map((diagnostic) => ({
+          code: diagnostic.code,
+          severity: diagnostic.severity,
+          message: diagnostic.message,
+        })),
+      );
+    }
+    assert.ok(!workerText.includes("Exact diagnostics unavailable"));
+    execution.worker_output_manifest = {
+      id: workerResult.id,
+      producing_work_unit_id: completedWorkUnitId,
+      destination: workerUrl,
+      exact_outputs_rendered: true,
+      measured_resources_rendered: true,
+      exact_diagnostics_rendered: true,
+      diagnostics_count: exactDiagnostics.length,
+    };
+    execution.completed_checks.push(
+      "manifest opened through producing Work with selected manifest identity retained",
+    );
+
+    await cdp.evaluate(`(() => {
+      const item = [...document.querySelectorAll(".work-results--destinations li")].find(
+        (candidate) => candidate.querySelector("strong")?.textContent.trim() === "grounded response",
+      );
+      item?.querySelector("a")?.click();
+    })()`);
+    await cdp.until(
+      'document.querySelector(".communication-plan, .reference-route-error") !== null',
+      "grounded-response destination",
+    );
+    const groundedUrl = await cdp.evaluate("window.location.href");
+    assert.ok(
+      await cdp.evaluate(
+        'document.querySelector(".communication-plan") !== null',
+      ),
+      `The exact retained grounded response did not render at ${groundedUrl}. Calls: ${JSON.stringify(calls.slice(-4))}`,
+    );
+    assert.ok(groundedUrl.includes(`/projects/${scientificProjectId}/petra?`));
+    assert.ok(groundedUrl.includes(encodeURIComponent(groundedResult.id)));
+    const communicationCall = calls.findLast(
+      (call) =>
+        call.method === "GET" &&
+        call.path.includes("/communication?response_id="),
+    );
+    assert.equal(
+      communicationCall?.status,
+      200,
+      "The exact production communication read did not return 200.",
+    );
+    const communication = communicationCall?.json;
+    assert.equal(
+      communication?.content?.source_response?.grounded_response_id,
+      groundedResult.id,
+    );
+    assert.ok(communication?.content?.context_packet?.context_packet_id);
+    assert.ok(communication?.content?.evidence_packet?.evidence_packet_id);
+    assert.ok(
+      communication?.content?.segments?.some(
+        (segment) => segment.original_statement?.evidence_refs?.length > 0,
+      ),
+      "The exact communication response omitted its references.",
+    );
+    assert.ok(
+      Array.isArray(communication?.content?.limitations) &&
+        communication.content.limitations.length > 0,
+      "The exact communication response omitted its authority limits.",
+    );
+    assert.equal(communication?.content?.authority?.effect, "none");
+    await cdp.evaluate(`(() => {
+      const details = [...document.querySelectorAll(".communication-plan__details")].find(
+        (candidate) => candidate.querySelector("summary")?.textContent.trim() === "Exact record and version bindings",
+      );
+      details?.querySelector("summary")?.click();
+    })()`);
+    const groundedText = await cdp.evaluate("document.body.innerText");
+    for (const value of [
+      "Exact response, preservation, and limits",
+      "Context packet",
+      "Evidence packet",
+      "Exact references",
+      "Return to producing Work task",
+    ]) {
+      assert.ok(
+        groundedText.includes(value),
+        `Grounded response omitted ${value}.`,
+      );
+    }
+    assert.ok(
+      groundedText.toLocaleLowerCase().includes("communication boundary"),
+      "Grounded response omitted its visible communication boundary.",
+    );
+    await activate(
+      `[...document.querySelectorAll('a')].find((element) => element.textContent.includes("Return to producing Work task"))`,
+    );
+    await cdp.until(
+      `window.location.pathname === ${JSON.stringify(`/projects/${scientificProjectId}/work/${completedWorkUnitId}`)}`,
+      "exact Work return",
+    );
+    await cdp.until(
+      'document.querySelector(".work-results--destinations") !== null',
+      "returned Work destinations",
+    );
+
+    const operationCalls = calls.filter(
+      (call) =>
+        call.path.includes("/work/") &&
+        (call.method === "POST" || call.path.endsWith("/operations")),
+    );
+    assert.deepEqual(consoleErrors, []);
+    observation = {
+      scenario: "UX1.6-WORK/usable-work-ui",
+      status: "passed",
+      stable_url: workbench.url,
+      project_id: scientificProjectId,
+      registered_inquiry_visible: true,
+      input_recorded: true,
+      start_exercised: startDisabled !== "true",
+      cancel_exercised: cancelDisabled !== "true",
+      detach_exercised: true,
+      reconnect_exercised: true,
+      replay_exercised: true,
+      resume_exercised: true,
+      start_again_exercised: true,
+      resumed_work: {
+        work_unit_id: resumableWorkUnitId,
+        requested_revision:
+          resumeCall.requestJson.expected_work_unit_ref.revision,
+        resulting_revision: resumeCall.json.resulting_work_unit_ref.revision,
+        resumed_attempt: resumeCall.json.resumed_attempt,
+        exact_checkpoint_copied: true,
+        contextual_return: resumeReturn,
+        start_again_unavailable: true,
+        authority_selected_by_browser: false,
+      },
+      started_again_work: {
+        prior_work_unit_id: completedWorkUnitId,
+        prior_work_attempt: startAgainCall.json.prior_attempt.work_attempt,
+        prior_lineage_attempt:
+          startAgainCall.json.prior_attempt.lineage_attempt,
+        fresh_work_unit_id: startAgainWorkUnitId,
+        fresh_work_attempt: startAgainCall.json.new_attempt.work_attempt,
+        fresh_lineage_attempt: startAgainCall.json.new_attempt.lineage_attempt,
+        fresh_input_manifest_id:
+          startAgainCall.json.fresh_input.fresh_input_manifest_ref
+            .worker_input_manifest_id,
+        retained_output_reuse:
+          startAgainCall.json.fresh_input.retained_output_reuse,
+        exact_registration_copied: true,
+        prior_work_preserved: startAgainCall.json.effect.prior_work_preserved,
+        contextual_return: priorReturn,
+        authority_selected_by_browser: false,
+      },
+      grounded_response: {
+        id: groundedResult.id,
+        destination: groundedUrl,
+        exact_response_rendered: true,
+        context_packet_id:
+          communication.content.context_packet.context_packet_id,
+        evidence_packet_id:
+          communication.content.evidence_packet.evidence_packet_id,
+        exact_references_rendered: true,
+        authority_limits_rendered: true,
+        producing_work_return_rendered: true,
+      },
+      worker_output_manifest: {
+        id: workerResult.id,
+        producing_work_unit_id: completedWorkUnitId,
+        destination: workerUrl,
+        exact_outputs_rendered: true,
+        measured_resources_rendered: true,
+        exact_diagnostics_rendered: true,
+        diagnostics_count: exactDiagnostics.length,
+      },
+      boundary:
+        "Executed the complete production Work browser path through registered controls, including separate exact registered-checkpoint Resume and registered fresh-input Start again transitions, linked Work navigation and return, and exact result reads. Worker registration and representative setup occur through the cumulative disposable-store harness; no browser response or Work result is mocked, and the browser selects no authority, replacement Work, lineage, or input-reuse policy.",
+      operation_call_count: operationCalls.length,
+      console_errors: consoleErrors,
+    };
+    return observation;
+  };
+
+  const record = async (stage, context) => {
+    backendUrl = context.backendUrl;
+    token = context.token;
+    scientificProjectId = context.scientificProjectId;
+    scientificReviewSessionId = context.scientificReviewSessionId;
+    if (stage === "corrected_blocked_limited_basis") {
+      completedWorkUnitId = context.workUnitId;
+      inputWorkUnitId = context.inputWorkUnitId;
+      resumableWorkUnitId = context.resumableWorkUnitId;
+      startAgainWorkUnitId = context.startAgainWorkUnitId;
+      return undefined;
+    }
+    if (stage === "refreshed_paired_profile") {
+      try {
+        observation = await run();
+        writeObservation();
+        assert.equal(
+          observation.status,
+          "passed",
+          observation.blocking_boundary,
+        );
+      } catch (error) {
+        observation = {
+          scenario: "UX1.6-WORK/usable-work-ui",
+          status: "incomplete",
+          stable_url: workbench?.url,
+          project_id: scientificProjectId,
+          producing_work_unit_id: completedWorkUnitId,
+          completed_checks: execution.completed_checks,
+          worker_output_manifest: execution.worker_output_manifest,
+          blocking_boundary:
+            error instanceof Error
+              ? error.message.split(". Calls:")[0]
+              : String(error),
+          final_calls: calls.slice(-8).map((call) => ({
+            method: call.method,
+            path: call.path,
+            status: call.status,
+            error_code: call.json?.error?.code,
+            error_message: call.json?.error?.message,
+          })),
+          console_errors: consoleErrors,
+        };
+        writeObservation();
+        throw error;
+      }
+      return undefined;
+    }
+    if (stage === "stale_before_refresh" || stage === "restart_complete") {
+      return undefined;
+    }
+    if (stage === "projection_lag") {
+      return prepareAndApply(scientificReviewSessionId);
+    }
+    if (stage === "governed_command_failure") {
+      return prepareAndApply(
+        context.failureReviewSessionId,
+        context.advanceAuthority,
+      );
+    }
+    throw new Error(`Unsupported Wave 6 Work observer stage: ${stage}`);
+  };
+
+  const close = async () => {
+    if (closed) return;
+    closed = true;
+    writeObservation();
+    try {
+      if (cdp?.socket.readyState === WebSocket.OPEN) {
+        await Promise.race([
+          cdp.send("Browser.close").catch(() => undefined),
+          wait(2_000),
+        ]);
+      }
+    } finally {
+      cdp?.socket.close();
+      if (chrome?.child.exitCode === null) {
+        chrome.child.kill("SIGTERM");
+        await Promise.race([
+          new Promise((resolveExit) =>
+            chrome.child.addListener("close", resolveExit),
+          ),
+          wait(5_000),
+        ]);
+      }
+      if (chrome?.child.exitCode === null) chrome.child.kill("SIGKILL");
+      await workbench?.vite.close();
+      if (
+        chrome?.profile?.startsWith(join(tmpdir(), "petra-wave6-work-browser-"))
+      ) {
+        rmSync(chrome.profile, {
+          recursive: true,
+          force: true,
+          maxRetries: 10,
+          retryDelay: 100,
+        });
+      }
+    }
+  };
+
+  return { record, close };
+};

@@ -248,6 +248,7 @@ describe("reference Review and Graph packets", () => {
     );
 
     expect(markup).toContain("Current · authoritative");
+    expect(markup).toContain('<h2 id="review-comparison-title" tabindex="-1">');
     expect(markup).toContain("No accepted relationship");
     expect(markup).toContain("Candidate · working");
     expect(markup).toContain("Inquiry analyst");
@@ -330,6 +331,25 @@ describe("reference Review and Graph packets", () => {
     expect(markup).toContain("A scheduled revisit time is not supported yet");
     expect(markup).toContain(
       'href="/projects/inlet-cycle/brief#attention-source-depth"',
+    );
+  });
+
+  it("offers rejection preparation only for an exact current open member", () => {
+    const rejectable: ReviewSession = {
+      ...structuredClone(review),
+      lifecycle: "open",
+      reviewMemberId: "review_member_01K4D000000000000000000005",
+    };
+    const markup = render(
+      <ReviewSessionSurface project={project} review={rejectable} />,
+    );
+    const control = markup.match(
+      /<button[^>]*data-operation="reject_review_candidate"[^>]*>/u,
+    )?.[0];
+    expect(control).toBeDefined();
+    expect(control).not.toContain("aria-disabled");
+    expect(markup).toContain(
+      "Rejection records a rejected Approval for the complete ChangeSet",
     );
   });
 

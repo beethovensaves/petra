@@ -1,0 +1,51 @@
+{
+  "scenario": "UX1.6-MODEL/failure-reconnect-draft-preservation",
+  "url": "http://127.0.0.1:49226/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/petra?return_to=%2Fprojects%2Fproject_01ARZ3NDEKTSV4RRFFQ69G5FAW%2Fwork%2Fwork_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2&return_label=Work",
+  "boundary": {
+    "surface": "production React Petra route and composer",
+    "readiness_source": "live Project model-readiness query",
+    "failure_source": "production certified grounded-synthesis runtime with a deterministic unavailable-provider port",
+    "disconnect_source": "browser proxy replaced only the initial response with a 502 transport failure after the runtime reached its failed terminal",
+    "persistence_limit": "the adverse runtime retains replay and Work identity in-process; the separate actual-provider trace owns PostgreSQL provider-success evidence"
+  },
+  "draft": {
+    "edited_value": "What does the selected study report, and what limits the claim?\n\nKeep this local note through recovery.",
+    "retained_across_reload": true,
+    "restored_registered_prompt": "What does the selected study report, and what limits the claim?",
+    "retained_through_disconnect_and_replay": "What does the selected study report, and what limits the claim?\n\nKeep this local note through recovery.",
+    "restored_after_confirmed_failure_for_new_run": "What does the selected study report, and what limits the claim?"
+  },
+  "context": {
+    "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+    "context_packet_id": "context_packet_01ARZ3NDEKTSV4RRFFQ69G5FCD",
+    "evidence_packet_id": "evidence_packet_01ARZ3NDEKTSV4RRFFQ69G5FCG",
+    "snapshot_id": "snapshot_01ARZ3NDEKTSV4RRFFQ69G5FCE",
+    "role_certification_id": "role_certification_2QNNWEG32XSDY4HWQW209N9T86"
+  },
+  "retained_identity": {
+    "threadId": "thread_01M2XSFKKDD3WBXMAWSF1KP315",
+    "runId": "run_01M2XSFKKD6SB1AR1J4T06ZVXA",
+    "connectionId": "interaction_connection_01M2XSFKKD9W0MGQ9BHPC6V3NB",
+    "work_unit_id": "work_unit_4PYFZNWY80A74MAHJ118BA3VMD",
+    "runtime_status_after_replay": "failed"
+  },
+  "initial_delivery": {
+    "state": "unconfirmed",
+    "recovery_presented": true
+  },
+  "replay": {
+    "state": "failed",
+    "message": "Certified responseResponse failedCertified provider unavailable by deliberate Wave 6 recovery injection.Response progressCancellable grounded work registeredRunningFinding a bounded evidence pathRetrieval · RunningBounded evidence path selectedRetrieval · CompletedImmutable evidence packet readyPacket compilation · CompletedRunning the certified synthesistModel execution · RunningCertified synthesist call completedModel execution · Completed",
+    "new_run_control_after_confirmed_failure": true,
+    "new_run_requires_registered_prompt": true
+  },
+  "api": {
+    "interaction_posts": 1,
+    "replay_gets": 1,
+    "provider_thread_attempts": 1,
+    "work_starts": 1,
+    "submitted_exact_context": true,
+    "duplicate_provider_effect": false
+  },
+  "return_destination": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/work/work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2"
+}

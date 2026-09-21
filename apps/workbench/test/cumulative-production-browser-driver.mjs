@@ -36,6 +36,9 @@ export const startWorkbench = async ({
   getBackendUrl,
   calls,
   getInspectionLinks,
+  shouldDisconnectResponse,
+  port = 0,
+  strictPort = false,
 }) => {
   const liveRouteProxy = {
     name: "petra-wave4-live-route-proxy",
@@ -97,7 +100,7 @@ export const startWorkbench = async ({
               );
             }
           }
-          const upstream = await fetch(new URL(path, getBackendUrl()), {
+          const upstream = await fetch(new URL(path, getBackendUrl(path)), {
             method: request.method,
             headers,
             ...(requestBody.byteLength === 0 ? {} : { body: requestBody }),
@@ -112,7 +115,7 @@ export const startWorkbench = async ({
               json = undefined;
             }
           }
-          calls.push({
+          const call = {
             method: request.method ?? "GET",
             path,
             authorization: headers.get("authorization"),
@@ -122,7 +125,16 @@ export const startWorkbench = async ({
                 : JSON.parse(requestBody.toString("utf8")),
             status: upstream.status,
             json,
-          });
+          };
+          calls.push(call);
+          if (shouldDisconnectResponse?.(call) === true) {
+            response.statusCode = 502;
+            response.setHeader("content-type", "text/plain; charset=utf-8");
+            response.end(
+              "The browser delivery disconnected after the upstream terminal.",
+            );
+            return;
+          }
           response.statusCode = upstream.status;
           for (const [name, value] of upstream.headers) {
             if (
@@ -179,8 +191,8 @@ export const startWorkbench = async ({
     },
     server: {
       host: "127.0.0.1",
-      port: 0,
-      strictPort: false,
+      port,
+      strictPort,
     },
   });
   await vite.listen();
@@ -595,9 +607,11 @@ export const startCumulativeProductionBrowser = async ({
     assert.equal(initialBrief?.status, 200);
     initialBriefSnapshot = initialBrief.json.snapshot_hash;
     assert.ok(
-      (await evaluate("document.body.innerText")).includes(
-        initialBriefSnapshot,
-      ),
+      (
+        await evaluate(
+          'document.querySelector(".live-project-brief")?.textContent ?? ""',
+        )
+      ).includes(initialBriefSnapshot),
     );
 
     await navigate(
@@ -845,16 +859,19 @@ export const startCumulativeProductionBrowser = async ({
     assert.equal(resultingBrief?.status, 200);
     assert.notEqual(resultingBrief.json.snapshot_hash, initialBriefSnapshot);
     const briefText = await evaluate("document.body.innerText");
+    const completeBriefText = await evaluate(
+      'document.querySelector(".live-project-brief")?.textContent ?? ""',
+    );
     for (const text of [
       resultingBrief.json.snapshot_hash,
-      "Recent decisions",
-      "Complete returned History window and recovery boundaries",
+      "Technical History window and recovery boundaries",
     ]) {
       assert.ok(
-        briefText.includes(text),
+        completeBriefText.includes(text),
         `Missing live Brief/History text: ${text}`,
       );
     }
+    assert.ok(briefText.includes("Recent decisions"));
     const decisionSummaries =
       resultingBrief.json.content.recent_decisions.content.changes.map(
         (change) => change.observed_effect.summary,

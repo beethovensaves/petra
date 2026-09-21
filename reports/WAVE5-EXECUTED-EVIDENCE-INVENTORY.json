@@ -3,12 +3,12 @@
   "schema_version": "1.0.0",
   "wave": 5,
   "status": "passed",
-  "audited_at": "2026-09-16T14:38:46.636Z",
+  "audited_at": "2026-09-16T14:49:51.316Z",
   "command": "npm run audit:wave5:evidence",
   "plan_sha256": "7c971a812333f3e3c11216e341feaef1879c1ee47c04df5181d224bb060dc251",
-  "state_sha256": "343d446d6f0b4340a029e66ed50075f87bbc5e0a8e7339059552befa5a1dffdf",
+  "state_sha256": "15256604e143e6392d2193a8f6fa0681102f228b062a3be19b3a09dddc464894",
   "state_position": {
-    "slice_count": 30,
+    "slice_count": 31,
     "max_slices": 32,
     "recorded_scenarios": 25
   },
@@ -16,9 +16,9 @@
     "state": "recorded",
     "status": "passed",
     "command": "npm run audit:wave5:evidence",
-    "artifact": "reports/WAVE5-EXECUTED-EVIDENCE-INVENTORY.json (sha256 0414f31e235b977236f76a622eaa46eef3642d6aaf9efa8932ee2ce7553bfe21)",
-    "commit": "1a8356af7bea473ac3ec2d4d9fce1367b6b33475",
-    "boundary": "Reconciled the frozen packet, plan, scope, roadmaps, controller records, exact commands and commits, committed artifact bytes, and scenario boundaries after the final cumulative browser recording. All 24 implementation scenarios pass with zero errors or warnings; live, deterministic, unavailable-feature, performance, device, and accessibility limits remain explicit."
+    "artifact": "reports/WAVE5-EXECUTED-EVIDENCE-INVENTORY.json (sha256 e2a647e289be648302f2267a37de7e15714f0fce42fe7152c6ac747bb2868e7c)",
+    "commit": "cc5b13bbb89ca64b0258e6ea4ed046762280c715",
+    "boundary": "Reconciled the frozen packet, plan, scope, roadmaps, controller records, exact commands and commits, committed artifact bytes, and scenario boundaries after the final integrated browser, critic, UX, and Felicity audits. All 24 implementation scenarios pass with zero errors or warnings; live, deterministic, unavailable-feature, performance, device, and accessibility limits remain explicit."
   },
   "summary": {
     "required_scenarios": 24,
@@ -152,8 +152,8 @@
       "status": "passed",
       "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave5:browser",
       "artifact": "reports/WAVE5-CUMULATIVE-PRODUCTION-BROWSER-OBSERVATION.json",
-      "artifact_sha256": "bdbc0a92307c533b6494bbdb285af1183847d3cf02583d95017caca8f591022e",
-      "commit": "9731c336ea106055f3b9fdddcdc0448c6a499eaa",
+      "artifact_sha256": "d1f29eb1d001cf8c0e015f77114fa9368a79176dad051515f698795c156d0509",
+      "commit": "651c445ff53c036915e5624fc4e84d8b0e7aa39f",
       "state_boundary": "Scientific and controlled-writing fixtures executed in Chrome through the same production overlay mapper, renderer, textual peer, Project shell, and Review controller. The controlled-writing response is synthetic fixture transport, not a live focused-query response.",
       "artifact_boundary": "Scientific and controlled-writing fixtures executed in Chrome through the same production overlay mapper, renderer, textual peer, Project shell, and Review controller. The controlled-writing response is synthetic fixture transport, not a live focused-query response.",
       "warnings": []
@@ -178,8 +178,8 @@
       "status": "passed",
       "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave5:browser",
       "artifact": "reports/WAVE5-CUMULATIVE-PRODUCTION-BROWSER-OBSERVATION.json",
-      "artifact_sha256": "bdbc0a92307c533b6494bbdb285af1183847d3cf02583d95017caca8f591022e",
-      "commit": "9731c336ea106055f3b9fdddcdc0448c6a499eaa",
+      "artifact_sha256": "d1f29eb1d001cf8c0e015f77114fa9368a79176dad051515f698795c156d0509",
+      "commit": "651c445ff53c036915e5624fc4e84d8b0e7aa39f",
       "state_boundary": "Critic inspection of every relationship fact in the live Working changes result and its exact graph/text renderings; color and position were not used as identifying facts.",
       "artifact_boundary": "Critic inspection of every relationship fact in the live Working changes result and its exact graph/text renderings; color and position were not used as identifying facts.",
       "warnings": []
@@ -191,8 +191,8 @@
       "status": "passed",
       "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave5:browser",
       "artifact": "reports/WAVE5-CUMULATIVE-PRODUCTION-BROWSER-OBSERVATION.json",
-      "artifact_sha256": "bdbc0a92307c533b6494bbdb285af1183847d3cf02583d95017caca8f591022e",
-      "commit": "9731c336ea106055f3b9fdddcdc0448c6a499eaa",
+      "artifact_sha256": "d1f29eb1d001cf8c0e015f77114fa9368a79176dad051515f698795c156d0509",
+      "commit": "651c445ff53c036915e5624fc4e84d8b0e7aa39f",
       "state_boundary": "Critic inspection of live Details and exact source inspection for basis, SourceSpan, ProjectSource representation, rights, snapshot, omissions, and projection position.",
       "artifact_boundary": "Critic inspection of live Details and exact source inspection for basis, SourceSpan, ProjectSource representation, rights, snapshot, omissions, and projection position.",
       "warnings": []
@@ -204,8 +204,8 @@
       "status": "passed",
       "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave5:browser",
       "artifact": "reports/WAVE5-CUMULATIVE-PRODUCTION-BROWSER-OBSERVATION.json",
-      "artifact_sha256": "bdbc0a92307c533b6494bbdb285af1183847d3cf02583d95017caca8f591022e",
-      "commit": "9731c336ea106055f3b9fdddcdc0448c6a499eaa",
+      "artifact_sha256": "d1f29eb1d001cf8c0e015f77114fa9368a79176dad051515f698795c156d0509",
+      "commit": "651c445ff53c036915e5624fc4e84d8b0e7aa39f",
       "state_boundary": "The exact retained Review action target was composed with a projected baseline Claim because the post-Apply Claim had not reached Neo4j. That contextual Review URL and a separately parsed direct URL executed through the production loader and live focused-query route with exact return focus.",
       "artifact_boundary": "The exact retained Review action target was composed with a projected baseline Claim because the post-Apply Claim had not reached Neo4j. That contextual Review URL and a separately parsed direct URL executed through the production loader and live focused-query route with exact return focus.",
       "warnings": []
@@ -217,8 +217,8 @@
       "status": "passed",
       "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave5:browser",
       "artifact": "reports/WAVE5-CUMULATIVE-PRODUCTION-BROWSER-OBSERVATION.json",
-      "artifact_sha256": "bdbc0a92307c533b6494bbdb285af1183847d3cf02583d95017caca8f591022e",
-      "commit": "9731c336ea106055f3b9fdddcdc0448c6a499eaa",
+      "artifact_sha256": "d1f29eb1d001cf8c0e015f77114fa9368a79176dad051515f698795c156d0509",
+      "commit": "651c445ff53c036915e5624fc4e84d8b0e7aa39f",
       "state_boundary": "Live Current, Working changes, exact retained Historical, comparison navigation, projection catching-up, and Return to current. Historical time was bound to the retained event matching the exact snapshot position.",
       "artifact_boundary": "Live Current, Working changes, exact retained Historical, comparison navigation, projection catching-up, and Return to current. Historical time was bound to the retained event matching the exact snapshot position.",
       "warnings": []
@@ -230,8 +230,8 @@
       "status": "passed",
       "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave5:browser",
       "artifact": "reports/WAVE5-CUMULATIVE-PRODUCTION-BROWSER-OBSERVATION.json",
-      "artifact_sha256": "bdbc0a92307c533b6494bbdb285af1183847d3cf02583d95017caca8f591022e",
-      "commit": "9731c336ea106055f3b9fdddcdc0448c6a499eaa",
+      "artifact_sha256": "d1f29eb1d001cf8c0e015f77114fa9368a79176dad051515f698795c156d0509",
+      "commit": "651c445ff53c036915e5624fc4e84d8b0e7aa39f",
       "state_boundary": "The same live response rendered graph and complete textual peers; normalized relationship facts matched exactly and both exposed scope, destinations, actions, and limitations.",
       "artifact_boundary": "The same live response rendered graph and complete textual peers; normalized relationship facts matched exactly and both exposed scope, destinations, actions, and limitations.",
       "warnings": []
@@ -243,8 +243,8 @@
       "status": "passed",
       "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave5:browser",
       "artifact": "reports/WAVE5-CUMULATIVE-PRODUCTION-BROWSER-OBSERVATION.json",
-      "artifact_sha256": "bdbc0a92307c533b6494bbdb285af1183847d3cf02583d95017caca8f591022e",
-      "commit": "9731c336ea106055f3b9fdddcdc0448c6a499eaa",
+      "artifact_sha256": "d1f29eb1d001cf8c0e015f77114fa9368a79176dad051515f698795c156d0509",
+      "commit": "651c445ff53c036915e5624fc4e84d8b0e7aa39f",
       "state_boundary": "Keyboard executed contextual entry, Graph/Text alternative, live Details, exact source disclosure, Details return, and exact Review return. UX-FX25 executed action-preview close/focus recovery and production renderer recovery; native screen-reader evaluation remains outside scope.",
       "artifact_boundary": "Keyboard executed contextual entry, Graph/Text alternative, live Details, exact source disclosure, Details return, and exact Review return. UX-FX25 executed action-preview close/focus recovery and production renderer recovery; native screen-reader evaluation remains outside scope.",
       "warnings": []
@@ -269,8 +269,8 @@
       "status": "passed",
       "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave5:browser",
       "artifact": "reports/WAVE5-CUMULATIVE-PRODUCTION-BROWSER-OBSERVATION.json",
-      "artifact_sha256": "bdbc0a92307c533b6494bbdb285af1183847d3cf02583d95017caca8f591022e",
-      "commit": "9731c336ea106055f3b9fdddcdc0448c6a499eaa",
+      "artifact_sha256": "d1f29eb1d001cf8c0e015f77114fa9368a79176dad051515f698795c156d0509",
+      "commit": "651c445ff53c036915e5624fc4e84d8b0e7aa39f",
       "state_boundary": "The live profile correctly failed closed because it registers no compatible named-expansion recipe for this exact layer, preserving selection. UX-FX25 executed named filters, expansion, caps, hidden, restricted, unknown, stale, and out-of-order completion behavior through production controllers with deterministic injected transport; no live expansion-route claim is made.",
       "artifact_boundary": "The live profile correctly failed closed because it registers no compatible named-expansion recipe for this exact layer, preserving selection. UX-FX25 executed named filters, expansion, caps, hidden, restricted, unknown, stale, and out-of-order completion behavior through production controllers with deterministic injected transport; no live expansion-route claim is made.",
       "warnings": []
@@ -282,8 +282,8 @@
       "status": "passed",
       "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave5:browser",
       "artifact": "reports/WAVE5-CUMULATIVE-PRODUCTION-BROWSER-OBSERVATION.json",
-      "artifact_sha256": "bdbc0a92307c533b6494bbdb285af1183847d3cf02583d95017caca8f591022e",
-      "commit": "9731c336ea106055f3b9fdddcdc0448c6a499eaa",
+      "artifact_sha256": "d1f29eb1d001cf8c0e015f77114fa9368a79176dad051515f698795c156d0509",
+      "commit": "651c445ff53c036915e5624fc4e84d8b0e7aa39f",
       "state_boundary": "UX-FX25 dispatched a Cytoscape tap inside real Chrome and used the non-drag selection control to open equivalent production-controller requests to an existing candidate/Review preview; geometry was absent and no command was issued. The live route was also inspected and honestly failed closed because the open Review's exact relationship was outside that bounded result; no live action-preview response is claimed.",
       "artifact_boundary": "UX-FX25 dispatched a Cytoscape tap inside real Chrome and used the non-drag selection control to open equivalent production-controller requests to an existing candidate/Review preview; geometry was absent and no command was issued. The live route was also inspected and honestly failed closed because the open Review's exact relationship was outside that bounded result; no live action-preview response is claimed.",
       "warnings": []
@@ -295,8 +295,8 @@
       "status": "passed",
       "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave5:browser",
       "artifact": "reports/WAVE5-CUMULATIVE-PRODUCTION-BROWSER-OBSERVATION.json",
-      "artifact_sha256": "bdbc0a92307c533b6494bbdb285af1183847d3cf02583d95017caca8f591022e",
-      "commit": "9731c336ea106055f3b9fdddcdc0448c6a499eaa",
+      "artifact_sha256": "d1f29eb1d001cf8c0e015f77114fa9368a79176dad051515f698795c156d0509",
+      "commit": "651c445ff53c036915e5624fc4e84d8b0e7aa39f",
       "state_boundary": "Dedicated comparison, impact, and recorded-time analyses executed through live production routes with exact positions, supplied dependencies, explicit consequence unavailability, dates or unknown dates, limitations, and graph/text parity. UX-FX25 independently exercised supplied, incomplete, and stale consequence presentation states with deterministic typed transport.",
       "artifact_boundary": "Dedicated comparison, impact, and recorded-time analyses executed through live production routes with exact positions, supplied dependencies, explicit consequence unavailability, dates or unknown dates, limitations, and graph/text parity. UX-FX25 independently exercised supplied, incomplete, and stale consequence presentation states with deterministic typed transport.",
       "warnings": []

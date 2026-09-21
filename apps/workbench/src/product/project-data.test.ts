@@ -21,8 +21,11 @@ import type {
   PetraProjectHistoryRetainedContinuationFailure,
   PetraProjectHistoryRetainedViewV12,
   PetraProjectInquiryView,
+  PetraProjectModelReadinessView,
   PetraProjectObjectLocationView,
   PetraProjectObjective,
+  PetraProjectProfileTaxonomyView,
+  PetraRegisteredProjectProfile,
   PetraProjectRelationshipOverlayView,
   PetraProjectRelationshipView,
   PetraProjectReviewView,
@@ -47,8 +50,16 @@ import type {
   PetraSuggestedActionInvocationView,
   PetraSuggestedActionViewV11,
   PetraProjectThreadView,
+  PetraProjectWorkOperationReceipt,
+  PetraProjectWorkOperationRequest,
+  PetraProjectWorkOperationsView,
+  PetraProjectWorkResumeReceipt,
+  PetraProjectWorkResumeRequest,
+  PetraProjectWorkStartAgainReceipt,
+  PetraProjectWorkStartAgainRequest,
   PetraProjectWorkView,
   PetraProjectWorkViewV11,
+  PetraWorkerOutputManifest,
   ProjectWorkStagePlanSummaryV11,
   ProjectWorkStagePlanV11,
   PetraWorkingCandidate,
@@ -62,6 +73,9 @@ import { PetraContractRegistry as BrowserContractRegistry } from "./browser-cont
 import {
   cancelProjectSuggestedActionWork,
   composeProjectHistoryCompensationPlan,
+  createProjectWorkOperationRequest,
+  createProjectWorkResumeRequest,
+  createProjectWorkStartAgainRequest,
   createReviewCandidateBasisRevisionCommandInput,
   createReviewCandidateCorrectionCommandInput,
   createReviewSessionDeferCommandInput,
@@ -79,6 +93,9 @@ import {
   executeReviewSessionRefreshCommand,
   executeReviewSessionSeparationCommand,
   executeProjectHistoryCompensationPlan,
+  executeProjectWorkOperation,
+  executeProjectWorkResume,
+  executeProjectWorkStartAgain,
   getRecentProjectHistory,
   getProjectSuggestedAction,
   getProjectHistoryEpisode,
@@ -99,6 +116,7 @@ import {
   loadProjectPetraThread,
   loadProjectRecord,
   loadProjectSettings,
+  loadProjectSourceRecord,
   loadProjectSuggestedActionHistory,
   loadProjectWorkCollection,
   loadProjectWorkDetail,
@@ -113,6 +131,50 @@ import {
   workProjectFromView,
   workUnitFromView,
 } from "./project-data.js";
+
+const unavailableModelReadiness = (
+  projectId: string,
+): PetraProjectModelReadinessView => ({
+  schema_name: "petra.project-model-readiness-view",
+  schema_version: "1.0.0",
+  project_id: projectId,
+  project_revision: 1,
+  project_definition_ref: {
+    project_definition_id: "project_definition_01K4C000000000000000000001",
+    revision: 1,
+    content_hash:
+      "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    record_hash:
+      "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    definition_family: "petra.scientific-evidence",
+  },
+  readiness: {
+    state: "unavailable",
+    reason: "role_unavailable",
+    role: {
+      state: "unavailable",
+      reason: "runtime_not_configured",
+      message: "No certified runtime is configured.",
+    },
+    provider: {
+      state: "unavailable",
+      provider_kind: "codex_app_server",
+      message: "The provider is unavailable.",
+    },
+    context: {
+      state: "unavailable",
+      reason: "project_context_not_compiled",
+      message: "Exact Project context is unavailable.",
+    },
+    command: {
+      state: "unavailable",
+      reason: "role_unavailable",
+      message: "No prompt will be submitted.",
+    },
+  },
+  limitations: ["The model has no authority effect."],
+  read_at: "2026-09-19T05:30:00.000Z",
+});
 
 const view = JSON.parse(
   readFileSync(
@@ -133,6 +195,41 @@ const shellV11View = JSON.parse(
     "utf8",
   ),
 ) as PetraProjectShellViewV11;
+
+const registeredScientificProfile = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/registered-project-profile-scientific.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraRegisteredProjectProfile;
+
+const registeredScientificTaxonomy: PetraProjectProfileTaxonomyView = {
+  schema_name: "petra.project-profile-taxonomy-view",
+  schema_version: "1.0.0",
+  project_id: shellV11View.project_id,
+  project_revision: shellV11View.content.project.revision,
+  project_definition_ref: {
+    project_definition_id:
+      shellV11View.content.definition.project_definition_id,
+    revision: shellV11View.content.definition.revision,
+    content_hash: shellV11View.content.definition.content_hash,
+  },
+  resolution: {
+    state: "registered",
+    profile_ref: {
+      profile_id: registeredScientificProfile.profile_id,
+      profile_version: registeredScientificProfile.profile_version,
+      content_hash: registeredScientificProfile.content_hash,
+    },
+    label: registeredScientificProfile.content.label,
+    purpose: registeredScientificProfile.content.purpose,
+    taxonomy: registeredScientificProfile.content.taxonomy,
+  },
+  read_at: "2026-09-19T12:00:00.000Z",
+};
 
 const shellV12Content: PetraProjectShellViewV12["content"] = {
   ...structuredClone(shellV11View.content),
@@ -1055,6 +1152,242 @@ const workDetailView = JSON.parse(
   ),
 ) as PetraProjectWorkView;
 
+const workOperationsView = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-work-operations-view.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectWorkOperationsView;
+
+const resumableWorkOperationsView = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-work-operations-view-resumable.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectWorkOperationsView;
+
+const projectWorkResumeRequest = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-work-resume-request.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectWorkResumeRequest;
+
+const projectWorkResumeReceipt = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-work-resume-receipt.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectWorkResumeReceipt;
+
+const projectWorkStartAgainRequest = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-work-start-again-request.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectWorkStartAgainRequest;
+
+const projectWorkStartAgainReceipt = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-work-start-again-receipt.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectWorkStartAgainReceipt;
+
+const startAgainWorkOperationsView = (): PetraProjectWorkOperationsView => {
+  const view = structuredClone(resumableWorkOperationsView);
+  view.work_unit_ref = structuredClone(
+    projectWorkStartAgainRequest.expected_prior_work_unit_ref,
+  );
+  view.execution_state = "cancelled";
+  delete view.resume_binding;
+  const resume = view.controls.find(
+    (control) => control.operation === "resume",
+  );
+  const startAgain = view.controls.find(
+    (control) => control.operation === "start_again",
+  );
+  if (resume === undefined || startAgain === undefined) {
+    throw new TypeError("Expected Resume and Start again controls.");
+  }
+  resume.state = "unavailable";
+  resume.reason = "No compatible registered checkpoint is available.";
+  delete resume.command_path;
+  startAgain.state = "available";
+  startAgain.reason =
+    "The owning workflow registered exact fresh input for one linked execution.";
+  startAgain.command_path = `/api/commands/projects/${view.project_id}/work/${view.work_unit_ref.work_unit_id}/start-again`;
+  view.start_again_binding = {
+    project_id: view.project_id,
+    expected_prior_work_unit_ref: structuredClone(view.work_unit_ref),
+    start_again_registration_ref: structuredClone(
+      projectWorkStartAgainRequest.start_again_registration_ref,
+    ),
+    fresh_work_unit_ref: {
+      ...structuredClone(
+        projectWorkStartAgainReceipt.new_attempt.work_unit_ref,
+      ),
+      revision: 1,
+    },
+    prior_work_attempt: projectWorkStartAgainReceipt.prior_attempt.work_attempt,
+    prior_lineage_attempt:
+      projectWorkStartAgainReceipt.prior_attempt.lineage_attempt,
+    new_lineage_attempt:
+      projectWorkStartAgainReceipt.new_attempt.lineage_attempt,
+    input_transition: structuredClone(projectWorkStartAgainReceipt.fresh_input),
+  };
+  return view;
+};
+
+const workerOutputManifest = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/worker-output-manifest.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraWorkerOutputManifest;
+
+const completedWorkOperationsView = (): PetraProjectWorkOperationsView => {
+  if (workDetailView.content.view_kind !== "detail") {
+    throw new TypeError("Expected exact Work detail.");
+  }
+  const usage = workDetailView.content.resources.usage;
+  if (usage.state !== "measured") {
+    throw new TypeError("Expected a measured WorkerOutputManifest.");
+  }
+  const operations = structuredClone(workOperationsView);
+  operations.work_unit_ref = {
+    work_unit_id: workDetailView.content.summary.work_unit_ref.work_unit_id,
+    revision: workDetailView.content.summary.work_unit_ref.revision,
+    spec_hash: workDetailView.content.summary.work_unit_ref.spec_hash,
+  };
+  operations.execution_state = "completed";
+  operations.results = [
+    {
+      result_kind: "worker_output_manifest",
+      record_ref: {
+        semantic_key: "petra.worker-output-manifest",
+        record_id: usage.output_manifest_ref.record_id,
+        revision: usage.output_manifest_ref.revision,
+        content_hash: usage.output_manifest_ref.content_hash,
+        record_hash: usage.output_manifest_ref.record_hash,
+      },
+      destination: {
+        state: "available",
+        place_role: "work",
+        target_ref: {
+          semantic_key: "petra.worker-output-manifest",
+          object_id: usage.output_manifest_ref.record_id,
+          revision: usage.output_manifest_ref.revision,
+        },
+      },
+    },
+  ];
+  return operations;
+};
+
+const resultLocationView = (
+  kind: "grounded_response" | "worker_output_manifest",
+): PetraProjectObjectLocationView => {
+  if (workDetailView.content.view_kind !== "detail") {
+    throw new TypeError("Expected exact Work detail.");
+  }
+  const grounded = kind === "grounded_response";
+  const semanticKey = grounded
+    ? "petra.grounded-response"
+    : "petra.worker-output-manifest";
+  const objectId = grounded
+    ? "grounded_response_01K4C000000000000000000062"
+    : "worker_output_manifest_01ARZ3NDEKTSV4RRFFQ69G5FC4";
+  const recordHash = grounded
+    ? `sha256:${"6".repeat(64)}`
+    : "sha256:9e3dc06cbebfeca6bbbe15a4fd22aa15668113d6ae2334e7c929d1570a6a614a";
+  const view = structuredClone(locationView);
+  const parent = workDetailView.content.summary.work_unit_ref;
+  view.content.request = {
+    object_ref: { semantic_key: semanticKey, object_id: objectId, revision: 1 },
+    task_intent: "inspect",
+  };
+  view.content.resolution = {
+    state: "current",
+    requested_ref: view.content.request.object_ref,
+    resolved_ref: {
+      semantic_key: semanticKey,
+      object_id: objectId,
+      revision: 1,
+      record_hash: recordHash,
+    },
+    current_ref: {
+      semantic_key: semanticKey,
+      object_id: objectId,
+      revision: 1,
+      record_hash: recordHash,
+    },
+    descriptor: {
+      semantic_key: semanticKey,
+      generic_family: "output",
+      label: grounded ? "Grounded response" : "Worker output",
+      summary: grounded ? "Exact grounded response." : "Exact worker output.",
+      lifecycle_state: "completed",
+    },
+    parent_ref: {
+      semantic_key: "petra.work-unit",
+      object_id: parent.work_unit_id,
+      revision: parent.revision,
+      record_hash: parent.record_hash,
+    },
+    replacement_chain: [],
+  };
+  view.content.primary_destination = {
+    role: grounded ? "petra" : "work",
+    purpose: grounded
+      ? "Inspect the exact grounded response."
+      : "Inspect the exact worker output.",
+    target_ref: view.content.resolution.resolved_ref,
+  };
+  return view;
+};
+
+const workOperationRequest = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-work-operation-request.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectWorkOperationRequest;
+
+const workOperationReceipt = JSON.parse(
+  readFileSync(
+    new URL(
+      "../../../../packages/contracts/fixtures/accepted/project-work-operation-receipt.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+) as PetraProjectWorkOperationReceipt;
+
 const inquiryCollectionView = JSON.parse(
   readFileSync(
     new URL(
@@ -1310,7 +1643,7 @@ afterEach(() => {
 });
 
 describe("Project shell workbench adapter", () => {
-  it("bundles the exact Review-correction and basis response validators for the browser", () => {
+  it("bundles the exact mutable product response validators for the browser", () => {
     const contracts = new BrowserContractRegistry();
     expect(() =>
       contracts.assertValid(
@@ -1328,6 +1661,34 @@ describe("Project shell workbench adapter", () => {
     ).not.toThrow();
     expect(() =>
       contracts.assertValid("review-session", "1.1.0", reviewSessionRecord),
+    ).not.toThrow();
+    expect(() =>
+      contracts.assertValid(
+        "project-work-operations-view",
+        "1.0.0",
+        workOperationsView,
+      ),
+    ).not.toThrow();
+    expect(() =>
+      contracts.assertValid(
+        "project-work-operation-request",
+        "1.0.0",
+        workOperationRequest,
+      ),
+    ).not.toThrow();
+    expect(() =>
+      contracts.assertValid(
+        "project-work-operation-receipt",
+        "1.0.0",
+        workOperationReceipt,
+      ),
+    ).not.toThrow();
+    expect(() =>
+      contracts.assertValid(
+        "worker-output-manifest",
+        "1.0.0",
+        workerOutputManifest,
+      ),
     ).not.toThrow();
     expect(() =>
       contracts.assertValid("working-candidate", "1.0.0", {
@@ -1432,6 +1793,18 @@ describe("Project shell workbench adapter", () => {
     ).toBe("Authority sources");
   });
 
+  it("fails closed when exact Project terminology is absent", () => {
+    const incomplete = structuredClone(view);
+    incomplete.content.definition.terms =
+      incomplete.content.definition.terms.filter(
+        (term) => term.generic_family !== "reference",
+      ) as typeof incomplete.content.definition.terms;
+
+    expect(() => projectRecordFromShellView(incomplete)).toThrow(
+      "its exact definition supplies no reference terminology. No substitute term was applied.",
+    );
+  });
+
   it("keeps a Project with no selected Objective explicit and usable", () => {
     const early = structuredClone(view);
     delete early.content.current_objective;
@@ -1498,6 +1871,49 @@ describe("Project shell workbench adapter", () => {
     expect(shellV12View).toEqual(before);
   });
 
+  it("opens an unselected Project route through the exact typed shell read", async () => {
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValue(Response.json(shellV11View));
+    vi.stubGlobal("fetch", fetch);
+    const projectId = "project_01ARZ3NDEKTSV4RRFFQ69G5FAW";
+    const url = new URL(`http://petra.test/projects/${projectId}/brief`);
+    const args: LoaderFunctionArgs = {
+      request: new Request(url),
+      url,
+      pattern: "/projects/:projectId",
+      params: { projectId },
+      context: new RouterContextProvider(),
+    };
+
+    const project = await loadProjectRecord(args);
+
+    expect(project.id).toBe(projectId);
+    expect(fetch).toHaveBeenCalledOnce();
+    const requested = fetch.mock.calls[0]?.[0];
+    if (!(requested instanceof URL)) {
+      throw new TypeError("Expected the Project open client to request a URL.");
+    }
+    expect(requested.href).toBe(
+      `http://petra.local/api/queries/projects/${projectId}/shell`,
+    );
+    expect(
+      new Headers(fetch.mock.calls[0]?.[1]?.headers).get("authorization"),
+    ).toBe("Bearer petra-local-development");
+
+    const crossed = structuredClone(shellV11View);
+    crossed.project_id = "project_01ARZ3NDEKTSV4RRFFQ69G5FZZ";
+    crossed.content.project.project_id = crossed.project_id;
+    crossed.content_hash = `sha256:${createHash("sha256")
+      .update(canonicalize(crossed.content))
+      .digest("hex")}`;
+    fetch.mockResolvedValueOnce(Response.json(crossed));
+
+    await expect(loadProjectRecord(args)).rejects.toThrow(
+      "Petra returned a Project shell for another Project",
+    );
+  });
+
   it("requests and verifies an exact route selection in the shell snapshot", async () => {
     const fetch = vi.fn<typeof globalThis.fetch>().mockResolvedValue(
       new Response(JSON.stringify(shellV11View), {
@@ -1555,7 +1971,13 @@ describe("Project shell workbench adapter", () => {
             : input.url;
       return Promise.resolve(
         Response.json(
-          path.endsWith("/effective-controls") ? controlsView : shellV11View,
+          path.endsWith("/effective-controls")
+            ? controlsView
+            : path.includes("/project-profiles")
+              ? { profiles: [registeredScientificProfile] }
+              : path.includes("/taxonomy")
+                ? registeredScientificTaxonomy
+                : shellV11View,
         ),
       );
     });
@@ -1576,7 +1998,9 @@ describe("Project shell workbench adapter", () => {
     expect(data.controls?.content.sections.capability.state).toBe(
       "unavailable",
     );
-    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(data.profiles).toEqual([registeredScientificProfile]);
+    expect(data.taxonomy?.resolution.state).toBe("registered");
+    expect(fetch).toHaveBeenCalledTimes(4);
 
     const noTarget = new URL("http://petra.test/settings");
     await expect(
@@ -1588,7 +2012,7 @@ describe("Project shell workbench adapter", () => {
         context: new RouterContextProvider(),
       }),
     ).resolves.toEqual({});
-    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(fetch).toHaveBeenCalledTimes(4);
   });
 
   it("reads one exact server-owned SuggestedAction without client authority", async () => {
@@ -2451,6 +2875,58 @@ describe("Project shell workbench adapter", () => {
       }),
     );
     expect(sourceView).toEqual(before);
+  });
+
+  it("binds source-version intake to the exact current Project, definition, and active predecessor", async () => {
+    const fetch = vi.fn((input: RequestInfo | URL) => {
+      const path =
+        typeof input === "string"
+          ? input
+          : input instanceof URL
+            ? input.toString()
+            : input.url;
+      if (path.endsWith(`/sources/${sourceView.project_source_id}`)) {
+        return Promise.resolve(Response.json(sourceView));
+      }
+      if (path.endsWith("/shell")) {
+        return Promise.resolve(Response.json(shellV11View));
+      }
+      if (path.endsWith("/effective-controls")) {
+        return Promise.resolve(Response.json(controlsView));
+      }
+      if (path.includes("/lifecycle?requested_action=exclude_project_source")) {
+        return Promise.resolve(Response.json(sourceLifecycleView));
+      }
+      return Promise.resolve(Response.json({}, { status: 404 }));
+    });
+    vi.stubGlobal("fetch", fetch);
+    const url = new URL(
+      `http://petra.test/projects/${sourceView.project_id}/sources/${sourceView.project_source_id}`,
+    );
+    const data = await loadProjectSourceRecord({
+      request: new Request(url),
+      url,
+      pattern: "/projects/:projectId/sources/:sourceId",
+      params: {
+        projectId: sourceView.project_id,
+        sourceId: sourceView.project_source_id,
+      },
+      context: new RouterContextProvider(),
+    });
+
+    expect(data.source.id).toBe(sourceView.project_source_id);
+    expect(data.revision).toEqual({
+      projectId: sourceView.project_id,
+      projectRef: {
+        project_id: sourceView.project_id,
+        revision: controlsView.content.project_ref.revision,
+        record_hash: controlsView.content.project_ref.record_hash,
+      },
+      projectDefinitionRef: controlsView.content.project_definition_ref,
+      currentSourceRef: sourceLifecycleView.content.source_ref,
+    });
+    expect(data.revisionUnavailable).toBeUndefined();
+    expect(fetch).toHaveBeenCalledTimes(4);
   });
 
   it("sends only exact lifecycle command input and verifies the resulting authority", async () => {
@@ -4337,6 +4813,200 @@ describe("Project shell workbench adapter", () => {
     expect(inquiryDetailView).toEqual(before);
   });
 
+  it("builds and executes exact Work commands without client-selected authority", async () => {
+    const request = createProjectWorkOperationRequest(
+      workOperationsView,
+      "start",
+      {
+        commandId: workOperationReceipt.command_id,
+        idempotencyKey: workOperationReceipt.idempotency_key,
+      },
+    );
+    expect(request).toEqual(
+      expect.objectContaining({
+        schema_name: "petra.project-work-operation-request",
+        operation: "start",
+        command_id: workOperationReceipt.command_id,
+        idempotency_key: workOperationReceipt.idempotency_key,
+        expected_work_unit_ref: workOperationsView.work_unit_ref,
+      }),
+    );
+    expect(request).not.toHaveProperty("actor");
+    expect(request).not.toHaveProperty("capability_grant_id");
+
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValueOnce(Response.json(workOperationReceipt));
+    vi.stubGlobal("fetch", fetch);
+    await expect(
+      executeProjectWorkOperation(
+        workOperationsView.project_id,
+        workOperationsView.work_unit_ref.work_unit_id,
+        request,
+      ),
+    ).resolves.toEqual(workOperationReceipt);
+    const [url, init] = fetch.mock.calls[0]!;
+    expect(
+      typeof url === "string" ? url : url instanceof URL ? url.href : url.url,
+    ).toBe(
+      `http://petra.local/api/commands/projects/${workOperationsView.project_id}/work/${workOperationsView.work_unit_ref.work_unit_id}`,
+    );
+    expect(new Headers(init?.headers).get("authorization")).toBe(
+      "Bearer petra-local-development",
+    );
+  });
+
+  it("copies the server Resume binding into the typed command without client inference", async () => {
+    const request = createProjectWorkResumeRequest(
+      resumableWorkOperationsView,
+      {
+        commandId: projectWorkResumeRequest.command_id,
+        idempotencyKey: projectWorkResumeRequest.idempotency_key,
+        submittedAt: projectWorkResumeRequest.submitted_at,
+      },
+    );
+    expect(request).toStrictEqual(projectWorkResumeRequest);
+    expect(request).not.toHaveProperty("actor");
+    expect(request).not.toHaveProperty("capability_grant_id");
+
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValueOnce(Response.json(projectWorkResumeReceipt));
+    vi.stubGlobal("fetch", fetch);
+    await expect(
+      executeProjectWorkResume(
+        resumableWorkOperationsView.project_id,
+        resumableWorkOperationsView.work_unit_ref.work_unit_id,
+        request,
+      ),
+    ).resolves.toStrictEqual(projectWorkResumeReceipt);
+    const [url, init] = fetch.mock.calls[0]!;
+    expect(
+      typeof url === "string" ? url : url instanceof URL ? url.href : url.url,
+    ).toBe(
+      `http://petra.local/api/commands/projects/${resumableWorkOperationsView.project_id}/work/${resumableWorkOperationsView.work_unit_ref.work_unit_id}/resume`,
+    );
+    const submittedBody = init?.body;
+    if (typeof submittedBody !== "string") {
+      throw new TypeError("Expected the Resume request as a JSON body.");
+    }
+    expect(JSON.parse(submittedBody)).toStrictEqual(projectWorkResumeRequest);
+  });
+
+  it("keeps Resume unavailable without both server control and exact binding", () => {
+    expect(() => createProjectWorkResumeRequest(workOperationsView)).toThrow(
+      "No compatible registered checkpoint",
+    );
+    const missingBinding = structuredClone(resumableWorkOperationsView);
+    delete missingBinding.resume_binding;
+    expect(() => createProjectWorkResumeRequest(missingBinding)).toThrow(
+      "server did not register an exact checkpoint",
+    );
+  });
+
+  it("copies only the server Start again binding into a fresh command identity", async () => {
+    const view = startAgainWorkOperationsView();
+    const request = createProjectWorkStartAgainRequest(view, {
+      commandId: projectWorkStartAgainRequest.command_id,
+      idempotencyKey: projectWorkStartAgainRequest.idempotency_key,
+      submittedAt: projectWorkStartAgainRequest.submitted_at,
+    });
+    expect(request).toStrictEqual(projectWorkStartAgainRequest);
+    expect(request).not.toHaveProperty("actor");
+    expect(request).not.toHaveProperty("capability_grant_id");
+    expect(request).not.toHaveProperty("fresh_work_unit_ref");
+    expect(request).not.toHaveProperty("input_transition");
+
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValueOnce(Response.json(projectWorkStartAgainReceipt));
+    vi.stubGlobal("fetch", fetch);
+    await expect(
+      executeProjectWorkStartAgain(
+        view.project_id,
+        view.work_unit_ref.work_unit_id,
+        request,
+      ),
+    ).resolves.toStrictEqual(projectWorkStartAgainReceipt);
+    const [url, init] = fetch.mock.calls[0]!;
+    expect(
+      typeof url === "string" ? url : url instanceof URL ? url.href : url.url,
+    ).toBe(
+      `http://petra.local/api/commands/projects/${view.project_id}/work/${view.work_unit_ref.work_unit_id}/start-again`,
+    );
+    const submittedBody = init?.body;
+    if (typeof submittedBody !== "string") {
+      throw new TypeError("Expected the Start again request as a JSON body.");
+    }
+    expect(JSON.parse(submittedBody)).toStrictEqual(
+      projectWorkStartAgainRequest,
+    );
+  });
+
+  it("keeps Start again unavailable without both server control and exact fresh-input binding", () => {
+    expect(() =>
+      createProjectWorkStartAgainRequest(workOperationsView),
+    ).toThrow(
+      "Fresh execution requires a workflow-specific input-rebinding command",
+    );
+    const missingBinding = startAgainWorkOperationsView();
+    delete missingBinding.start_again_binding;
+    expect(() => createProjectWorkStartAgainRequest(missingBinding)).toThrow(
+      "server did not register an exact fresh-input transition",
+    );
+  });
+
+  it("binds required input and steering to the exact assessed input and plan", () => {
+    const inputView = structuredClone(workOperationsView);
+    inputView.required_inputs = [
+      {
+        input_request_ref: {
+          input_request_id: "work_input_request_01K6P000000000000000000702",
+          revision: 1,
+        },
+        kind: "clarification",
+        question: "Which bounded comparison should continue?",
+        response_options: ["Compare the registered primary endpoints"],
+        state: "pending",
+        consequence: "Work remains paused until one response is recorded.",
+      },
+    ];
+    inputView.controls.find(
+      (control) => control.operation === "answer_input",
+    )!.state = "available";
+    expect(
+      createProjectWorkOperationRequest(inputView, "answer_input", {
+        inputRequestRef: inputView.required_inputs[0]?.input_request_ref,
+        response: "Compare the registered primary endpoints",
+      }),
+    ).toEqual(
+      expect.objectContaining({
+        operation: "answer_input",
+        input_request_ref: inputView.required_inputs[0]?.input_request_ref,
+        response: "Compare the registered primary endpoints",
+      }),
+    );
+    expect(
+      createProjectWorkOperationRequest(inputView, "steer", {
+        instruction: "Stop after the registered primary comparison.",
+        priority: "user_visible",
+      }),
+    ).toEqual(
+      expect.objectContaining({
+        operation: "steer",
+        expected_plan_revision: inputView.plan.revision,
+        instruction: "Stop after the registered primary comparison.",
+        priority: "user_visible",
+      }),
+    );
+    expect(() =>
+      createProjectWorkOperationRequest(inputView, "answer_input", {
+        inputRequestRef: inputView.required_inputs[0]?.input_request_ref,
+        response: "Invent a different scope",
+      }),
+    ).toThrow("not registered for this exact pending request");
+  });
+
   it("loads exact Project Work identities from the authorized read routes", async () => {
     if (workDetailView.content.view_kind !== "detail") {
       throw new Error("Expected the Work detail fixture.");
@@ -4361,6 +5031,9 @@ describe("Project shell workbench adapter", () => {
             "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2";
         }
         return Promise.resolve(Response.json(inquiryCollection));
+      }
+      if (path.includes("/operations")) {
+        return Promise.resolve(Response.json(workOperationsView));
       }
       return Promise.resolve(
         Response.json(
@@ -4401,13 +5074,199 @@ describe("Project shell workbench adapter", () => {
     expect(detail.unit.branchIds).toEqual([
       "objective_01K4C000000000000000000005",
     ]);
-    expect(fetch.mock.calls.map((call) => call[0])).toEqual([
+    expect(detail.operations).toEqual(workOperationsView);
+    expect(
+      fetch.mock.calls.map(([input]) =>
+        typeof input === "string"
+          ? input
+          : input instanceof URL
+            ? input.href
+            : input.url,
+      ),
+    ).toEqual([
       `/api/queries/projects/${projectId}/work?limit=50`,
       `/api/queries/projects/${projectId}/inquiries?limit=100`,
       `/api/queries/projects/${projectId}/inquiries/objective_01K4C000000000000000000005`,
       `/api/queries/projects/${projectId}/work/${workUnitId}`,
       `/api/queries/projects/${projectId}/inquiries?limit=100&work_unit_id=${workUnitId}`,
+      `http://petra.local/api/queries/projects/${projectId}/work/${workUnitId}/operations`,
     ]);
+  });
+
+  it("retains exact Work reads when the registered profile has no inquiry mapping", async () => {
+    if (workDetailView.content.view_kind !== "detail") {
+      throw new Error("Expected the Work detail fixture.");
+    }
+    const unavailableInquiry = () =>
+      Response.json(
+        {
+          error: {
+            code: "PROJECT_INQUIRY_READ_FAILED",
+            message:
+              "The current ProjectDefinition has no active registered inquiry-role mapping.",
+          },
+        },
+        { status: 503 },
+      );
+    const fetch = vi.fn((input: RequestInfo | URL) => {
+      const path =
+        typeof input === "string"
+          ? input
+          : input instanceof URL
+            ? input.href
+            : input.url;
+      if (path.includes("/inquiries?")) {
+        return Promise.resolve(unavailableInquiry());
+      }
+      if (path.includes("/operations")) {
+        return Promise.resolve(Response.json(workOperationsView));
+      }
+      return Promise.resolve(
+        Response.json(
+          path.includes("/work/") ? workDetailView : workCollectionView,
+        ),
+      );
+    });
+    vi.stubGlobal("fetch", fetch);
+    const projectId = workCollectionView.project_id;
+    const workUnitId =
+      workDetailView.content.summary.work_unit_ref.work_unit_id;
+    const collectionUrl = new URL(
+      `http://petra.test/projects/${projectId}/work`,
+    );
+    const collection = await loadProjectWorkCollection({
+      request: new Request(collectionUrl),
+      url: collectionUrl,
+      pattern: "/projects/:projectId/work",
+      params: { projectId },
+      context: new RouterContextProvider(),
+    });
+    expect(collection.units[0]?.id).toBe(workUnitId);
+    expect(collection.branches).toEqual([]);
+    expect(collection.inquiryLimitation).toContain(
+      "Exact Work remains available",
+    );
+
+    const detailUrl = new URL(
+      `http://petra.test/projects/${projectId}/work/${workUnitId}`,
+    );
+    const detail = await loadProjectWorkDetail({
+      request: new Request(detailUrl),
+      url: detailUrl,
+      pattern: "/projects/:projectId/work/:workId",
+      params: { projectId, workId: workUnitId },
+      context: new RouterContextProvider(),
+    });
+    expect(detail.unit.id).toBe(workUnitId);
+    expect(detail.unit.branchIds).toEqual([]);
+    expect(detail.work.inquiryLimitation).toContain(
+      "cannot show how these tasks relate",
+    );
+    expect(detail.operations).toEqual(workOperationsView);
+  });
+
+  it("loads a selected WorkerOutputManifest through its producing Work without losing exact identity", async () => {
+    if (workDetailView.content.view_kind !== "detail") {
+      throw new Error("Expected the Work detail fixture.");
+    }
+    const operations = completedWorkOperationsView();
+    const manifest = operations.results[0];
+    if (
+      manifest === undefined ||
+      manifest.result_kind !== "worker_output_manifest"
+    ) {
+      throw new Error("Expected the exact worker result.");
+    }
+    const parent = workDetailView.content.summary.work_unit_ref;
+    const query = new URLSearchParams({
+      result_semantic_key: manifest.record_ref.semantic_key,
+      result_id: manifest.record_ref.record_id,
+      result_revision: String(manifest.record_ref.revision),
+      result_content_hash: manifest.record_ref.content_hash,
+      result_record_hash: manifest.record_ref.record_hash,
+      parent_revision: String(parent.revision),
+      parent_record_hash: parent.record_hash,
+    });
+    const fetch = vi.fn((input: RequestInfo | URL) => {
+      const path =
+        typeof input === "string"
+          ? input
+          : input instanceof URL
+            ? input.href
+            : input.url;
+      if (path.includes("/inquiries?")) {
+        const inquiryCollection = structuredClone(inquiryCollectionView);
+        if (inquiryCollection.content.view_kind === "collection") {
+          inquiryCollection.content.query.work_unit_id = parent.work_unit_id;
+        }
+        return Promise.resolve(Response.json(inquiryCollection));
+      }
+      if (path.includes("/operations")) {
+        return Promise.resolve(Response.json(operations));
+      }
+      if (path.includes("/worker-output-manifests/")) {
+        return Promise.resolve(Response.json(workerOutputManifest));
+      }
+      return Promise.resolve(Response.json(workDetailView));
+    });
+    vi.stubGlobal("fetch", fetch);
+    const url = new URL(
+      `http://petra.test/projects/${workDetailView.project_id}/work/${parent.work_unit_id}?${query}`,
+    );
+
+    const detail = await loadProjectWorkDetail({
+      request: new Request(url),
+      url,
+      pattern: "/projects/:projectId/work/:workId",
+      params: {
+        projectId: workDetailView.project_id,
+        workId: parent.work_unit_id,
+      },
+      context: new RouterContextProvider(),
+    });
+
+    expect(detail.selectedResult?.outcome).toBe("succeeded");
+    expect(detail.selectedResult?.resultRef.recordId).toBe(
+      manifest.record_ref.record_id,
+    );
+    expect(detail.selectedResult?.resultRef.recordHash).toBe(
+      manifest.record_ref.record_hash,
+    );
+    expect(detail.selectedResult?.producingWorkRef).toEqual({
+      workUnitId: parent.work_unit_id,
+      revision: parent.revision,
+      recordHash: parent.record_hash,
+    });
+    expect(detail.selectedResult?.diagnostics).toEqual(
+      workerOutputManifest.content.diagnostics,
+    );
+    expect(detail.selectedResult?.outputs[0]?.name).toBe("parsed_document");
+    expect(detail.selectedResult?.outputs[0]?.handle).toBe(
+      "output:parsed-document-json",
+    );
+    expect(detail.selectedResult?.resourceUsage.outputBytes).toBe(40218);
+    expect(
+      fetch.mock.calls.some(([input]) => {
+        const path =
+          typeof input === "string"
+            ? input
+            : input instanceof URL
+              ? input.href
+              : input.url;
+        return (
+          path.includes(
+            `/worker-output-manifests/${manifest.record_ref.record_id}`,
+          ) &&
+          path.includes(`revision=${manifest.record_ref.revision}`) &&
+          path.includes(
+            `content_hash=${encodeURIComponent(manifest.record_ref.content_hash)}`,
+          ) &&
+          path.includes(
+            `record_hash=${encodeURIComponent(manifest.record_ref.record_hash)}`,
+          )
+        );
+      }),
+    ).toBe(true);
   });
 
   it("previews, invokes, and rereads one exact Work-starting SuggestedAction", async () => {
@@ -4546,13 +5405,15 @@ describe("Project shell workbench adapter", () => {
           : input instanceof URL
             ? input.href
             : input.url;
-      const value = path.includes("/suggested-action-invocations/")
-        ? suggestedActionInvocationView
-        : path.includes("/suggested-actions?")
-          ? suggestedWorkActionView
-          : path.includes(`/threads/${threadId}`)
-            ? threadDetailView
-            : threadCollectionView;
+      const value = path.includes("/model-readiness")
+        ? unavailableModelReadiness(suggestedWorkActionView.project_id)
+        : path.includes("/suggested-action-invocations/")
+          ? suggestedActionInvocationView
+          : path.includes("/suggested-actions?")
+            ? suggestedWorkActionView
+            : path.includes(`/threads/${threadId}`)
+              ? threadDetailView
+              : threadCollectionView;
       return Promise.resolve(Response.json(value));
     });
     vi.stubGlobal("fetch", fetch);
@@ -4578,10 +5439,19 @@ describe("Project shell workbench adapter", () => {
       suggestedActionInvocationView,
     );
     expect(data.thread?.id).toBe(threadId);
-    expect(fetch.mock.calls.map(([path]) => path)).toEqual([
+    expect(
+      fetch.mock.calls.map(([path]) =>
+        typeof path === "string"
+          ? path
+          : path instanceof URL
+            ? path.href
+            : path.url,
+      ),
+    ).toEqual([
       `/api/queries/projects/${projectId}/threads?limit=1&lifecycle=open`,
       `/api/queries/projects/${projectId}/suggested-actions?inquiry_result_link_id=${linkId}&action_kind=run_grounded_synthesis`,
       `/api/queries/projects/${projectId}/suggested-action-invocations/${commandId}`,
+      `http://petra.local/api/queries/projects/${projectId}/model-readiness`,
       `/api/queries/projects/${projectId}/threads/${threadId}`,
     ]);
   });
@@ -4594,7 +5464,11 @@ describe("Project shell workbench adapter", () => {
           : input instanceof URL
             ? input.href
             : input.url;
-      const value = path.includes("/communication?") ? communicationPlan : {};
+      const value = path.includes("/model-readiness")
+        ? unavailableModelReadiness(communicationPlan.project_id)
+        : path.includes("/communication?")
+          ? communicationPlan
+          : {};
       void init;
       return Promise.resolve(Response.json(value));
     });
@@ -4625,7 +5499,7 @@ describe("Project shell workbench adapter", () => {
 
     expect(data.communicationPlan).toEqual(communicationPlan);
     expect(data.thread).toBeUndefined();
-    expect(fetch).toHaveBeenCalledOnce();
+    expect(fetch).toHaveBeenCalledTimes(2);
     const communicationCall = fetch.mock.calls.find(([input]) => {
       const path =
         typeof input === "string"
@@ -4664,6 +5538,30 @@ describe("Project shell workbench adapter", () => {
     const projectId = communicationPlan.project_id;
     const url = new URL(
       `http://petra.test/projects/${projectId}/petra?communication_response_id=${communicationPlan.content.source_response.grounded_response_id}`,
+    );
+
+    await expect(
+      loadProjectPetra({
+        request: new Request(url),
+        url,
+        pattern: "/projects/:projectId/petra",
+        params: { projectId },
+        context: new RouterContextProvider(),
+      }),
+    ).rejects.toMatchObject({ status: 400 });
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("rejects a Petra return that crosses the current Project boundary", async () => {
+    const fetch = vi.fn<typeof globalThis.fetch>();
+    vi.stubGlobal("fetch", fetch);
+    const projectId = communicationPlan.project_id;
+    const query = new URLSearchParams({
+      return_to: "/projects/project_01K4C000000000000000000099/brief#attention",
+      return_label: "Another Project",
+    });
+    const url = new URL(
+      `http://petra.test/projects/${projectId}/petra?${query}`,
     );
 
     await expect(
@@ -5176,6 +6074,22 @@ describe("Project shell workbench adapter", () => {
       `/api/queries/projects/${projectId}/threads?limit=1&lifecycle=open`,
       `/api/queries/projects/${projectId}/threads/${thread.id}`,
     ]);
+
+    fetch.mockClear();
+    const exactUrl = new URL(
+      `http://petra.test/projects/${projectId}/petra/${thread.id}`,
+    );
+    const exact = await loadProjectPetraThread({
+      request: new Request(exactUrl),
+      url: exactUrl,
+      pattern: "/projects/:projectId/petra/:threadId",
+      params: { projectId, threadId: thread.id },
+      context: new RouterContextProvider(),
+    });
+    expect(exact).toEqual(thread);
+    expect(fetch.mock.calls.map((call) => call[0])).toEqual([
+      `/api/queries/projects/${projectId}/threads/${thread.id}`,
+    ]);
   });
 
   it("maps semantic roles to client routes while retaining exact identity", () => {
@@ -5215,6 +6129,41 @@ describe("Project shell workbench adapter", () => {
     );
   });
 
+  it("uses the resolved producing Work parent without treating a result as a WorkUnit", () => {
+    const grounded = resultLocationView("grounded_response");
+    const worker = resultLocationView("worker_output_manifest");
+    const groundedPath = semanticDestinationPath(grounded, {
+      contentHash: `sha256:${"5".repeat(64)}`,
+      recordHash: `sha256:${"6".repeat(64)}`,
+    });
+    const workerPath = semanticDestinationPath(worker, {
+      contentHash:
+        "sha256:5f9c81ae2ed811c77a5166d2a672ddde2243501542a8be66586b63f512458abb",
+      recordHash:
+        "sha256:9e3dc06cbebfeca6bbbe15a4fd22aa15668113d6ae2334e7c929d1570a6a614a",
+    });
+    const parentId =
+      workDetailView.content.view_kind === "detail"
+        ? workDetailView.content.summary.work_unit_ref.work_unit_id
+        : "missing";
+
+    expect(groundedPath).toContain("/petra?");
+    expect(groundedPath).toContain(
+      "communication_response_id=grounded_response_01K4C000000000000000000062",
+    );
+    expect(groundedPath).toContain(
+      `return_to=%2Fprojects%2F${grounded.project_id}%2Fwork%2F${parentId}`,
+    );
+    expect(workerPath).toContain(`/work/${parentId}?`);
+    expect(workerPath).toContain(
+      "result_id=worker_output_manifest_01ARZ3NDEKTSV4RRFFQ69G5FC4",
+    );
+    expect(workerPath).not.toContain(
+      "/work/worker_output_manifest_01ARZ3NDEKTSV4RRFFQ69G5FC4",
+    );
+    expect(workerPath.endsWith("#selected-work-result")).toBe(true);
+  });
+
   it("resolves a deep link through the authorized semantic query without ambient selection", async () => {
     const fetch = vi.fn((input: RequestInfo | URL) => {
       void input;
@@ -5252,5 +6201,54 @@ describe("Project shell workbench adapter", () => {
       "/object-location?semanticKey=petra.project-source&objectId=project_source_01K4C000000000000000000007&taskIntent=inspect",
     );
     expect(requestPath).not.toContain("selected=");
+  });
+
+  it("preserves exact Work-result hashes across the semantic redirect", async () => {
+    const worker = resultLocationView("worker_output_manifest");
+    const fetch = vi.fn((input: RequestInfo | URL) => {
+      void input;
+      return Promise.resolve(Response.json(worker));
+    });
+    vi.stubGlobal("fetch", fetch);
+    const contentHash =
+      "sha256:5f9c81ae2ed811c77a5166d2a672ddde2243501542a8be66586b63f512458abb";
+    const recordHash =
+      "sha256:9e3dc06cbebfeca6bbbe15a4fd22aa15668113d6ae2334e7c929d1570a6a614a";
+    const requested = worker.content.request.object_ref;
+    const url = new URL(
+      `http://petra.test/projects/${worker.project_id}/locate?${new URLSearchParams(
+        {
+          semanticKey: requested.semantic_key,
+          objectId: requested.object_id,
+          revision: String(requested.revision),
+          taskIntent: "inspect",
+          contentHash,
+          recordHash,
+        },
+      )}`,
+    );
+
+    const response = await loadProjectObjectLocationRedirect({
+      request: new Request(url),
+      url,
+      pattern: "/projects/:projectId/locate",
+      params: { projectId: worker.project_id },
+      context: new RouterContextProvider(),
+    });
+
+    expect(response.status).toBe(302);
+    const location = response.headers.get("location");
+    expect(location).toContain("result_content_hash=sha256%3A5f9c81");
+    expect(location).toContain("result_record_hash=sha256%3A9e3dc0");
+    expect(location).toContain("parent_record_hash=sha256%3Af4b25b");
+    const fetchInput = fetch.mock.calls[0]?.[0];
+    const requestedPath =
+      typeof fetchInput === "string"
+        ? fetchInput
+        : fetchInput instanceof URL
+          ? fetchInput.href
+          : fetchInput?.url;
+    expect(requestedPath).not.toContain("contentHash=");
+    expect(requestedPath).not.toContain("recordHash=");
   });
 });

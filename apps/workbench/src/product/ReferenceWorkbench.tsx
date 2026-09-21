@@ -1,4 +1,8 @@
 import { ProjectBriefSurface } from "./ProjectBriefSurface.js";
+import {
+  ProjectObjectiveEmptyBrief,
+  type ProjectObjectiveReturnOutcome,
+} from "./ProjectObjectiveControl.js";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type {
   PetraProjectInquiryView,
@@ -11,14 +15,39 @@ import {
   Outlet,
   useLoaderData,
   useLocation,
+  useNavigate,
   useOutletContext,
+  useRevalidator,
   useSearchParams,
 } from "react-router";
 
 import { PetraLockup, PetraMark } from "../design-system/brand.js";
 import { PetraButton, PetraTextField } from "../design-system/primitives.js";
-import { REFERENCE_PROJECTS, getProjectProfileTool } from "./fixtures.js";
-import type { ProjectBriefData } from "./project-data.js";
+import { getProjectProfileTool } from "./fixtures.js";
+import { ProjectCreationPanel } from "./ProjectProfileSurface.js";
+import {
+  ProjectImportPanel,
+  projectImportAvailability,
+} from "./ProjectImportSurface.js";
+import { SourceRegistrationPanel } from "./SourceRegistration.js";
+import { SourceProcessingPanel } from "./SourceProcessing.js";
+import {
+  SourceLinkRemovalActions,
+  type SourceLinkRemovalClient,
+} from "./SourceLinkRemoval.js";
+import type { SourceLocalCopyDeletionClient } from "./SourceLocalCopyDeletion.js";
+import { SourceRevisionPanel } from "./SourceRevision.js";
+import { SourceReusePanel, type SourceReuseCompletion } from "./SourceReuse.js";
+import type {
+  ProjectBriefData,
+  ProjectCollectionData,
+  ProjectCollectionPage,
+  ProjectSourceCollectionData,
+  ProjectSourceRecordData,
+} from "./project-data.js";
+import { searchProjectCollection } from "./project-data.js";
+import type { ProjectShellCollectionRequest } from "@petra/core";
+import type { SourceRevisionContext } from "./source-revision.js";
 import { SuggestedWorkAction } from "./SuggestedAction.js";
 import type {
   EngineState,
@@ -30,6 +59,47 @@ import type {
 
 const join = (...parts: Array<string | false | undefined>): string =>
   parts.filter(Boolean).join(" ");
+
+type ProjectSwitchOrigin = {
+  readonly href: string;
+  readonly projectId: string;
+  readonly projectTitle: string;
+  readonly taskLabel: string;
+};
+
+type ProjectSwitchLocationState = {
+  readonly projectSwitchOrigin: ProjectSwitchOrigin;
+};
+
+const projectSwitchOriginFromState = (
+  state: unknown,
+): ProjectSwitchOrigin | undefined => {
+  if (typeof state !== "object" || state === null) return undefined;
+  const origin = (state as Partial<ProjectSwitchLocationState>)
+    .projectSwitchOrigin;
+  if (
+    typeof origin !== "object" ||
+    origin === null ||
+    typeof origin.href !== "string" ||
+    !origin.href.startsWith("/projects/") ||
+    typeof origin.projectId !== "string" ||
+    !/^project_[0-9A-HJKMNP-TV-Z]{26}$/u.test(origin.projectId) ||
+    !origin.href.startsWith(
+      `/projects/${encodeURIComponent(origin.projectId)}/`,
+    ) ||
+    typeof origin.projectTitle !== "string" ||
+    origin.projectTitle.trim().length === 0 ||
+    typeof origin.taskLabel !== "string"
+  ) {
+    return undefined;
+  }
+  return origin;
+};
+
+const projectSwitchState = (
+  origin: ProjectSwitchOrigin | undefined,
+): ProjectSwitchLocationState | undefined =>
+  origin === undefined ? undefined : { projectSwitchOrigin: origin };
 
 const ProjectStateLabel = ({ project }: { project: ProjectRecord }) => (
   <span className="reference-status" data-state={project.state}>
@@ -56,6 +126,30 @@ const ProjectionLabel = ({ project }: { project: ProjectRecord }) => (
     {project.projection.label}
   </span>
 );
+
+const ProjectResumeState = ({ project }: { project: ProjectRecord }) => {
+  const resume = project.resume;
+  if (resume === undefined) return null;
+  const label =
+    resume.state === "available"
+      ? (resume.retained_task?.label ?? resume.recovery.destination.purpose)
+      : (resume.failure?.message ?? resume.recovery.reason);
+  return (
+    <div
+      className="reference-project-resume-state"
+      data-resume-state={resume.state}
+    >
+      <strong>
+        {resume.state === "available"
+          ? "Retained task ready"
+          : resume.state === "unavailable"
+            ? "Resume read unavailable"
+            : "Brief recovery"}
+      </strong>
+      <span>{label}</span>
+    </div>
+  );
+};
 
 const extentSymbol: Record<SourceExtent, string> = {
   identity_only: "○",
@@ -87,12 +181,15 @@ export const ProductFrame = (): React.JSX.Element => {
         <Link to="/" className="reference-brand" aria-label="Petra Projects">
           <PetraLockup variant="compact" />
         </Link>
-        <p>Private project workbench</p>
+        <p>Projects</p>
         <div
           className="reference-global-status"
           role="status"
           aria-live="polite"
         >
+          <Link className="reference-guide-link" to="/guide">
+            Test guide
+          </Link>
           <span className="reference-scope">Local · private</span>
           <span>
             <span
@@ -115,21 +212,162 @@ export const ProductFrame = (): React.JSX.Element => {
 };
 
 export const ProjectsSurface = ({
-  projects = REFERENCE_PROJECTS,
+  projects = [],
+  profiles = [],
+  query: initialQuery = { limit: 12 },
+  page: initialPage = {
+    returned_count: projects.length,
+    total_count: projects.length,
+    has_more: false,
+  },
+  searchProjects = searchProjectCollection,
 }: {
   projects?: ProjectRecord[];
+  profiles?: ProjectCollectionData["profiles"];
+  query?: ProjectCollectionData["query"];
+  page?: ProjectCollectionData["page"];
+  searchProjects?: (
+    request: ProjectShellCollectionRequest,
+  ) => Promise<ProjectCollectionPage>;
 }): React.JSX.Element => {
-  const [query, setQuery] = useState("");
-  const normalizedQuery = query.trim().toLocaleLowerCase();
-  const visibleProjects = useMemo(
-    () =>
-      projects.filter((project) =>
-        `${project.title} ${project.objective} ${project.profile.label}`
-          .toLocaleLowerCase()
-          .includes(normalizedQuery),
-      ),
-    [normalizedQuery, projects],
+  const location = useLocation();
+  const switchOrigin = projectSwitchOriginFromState(location.state);
+  const targetState = projectSwitchState(switchOrigin);
+  const [searchText, setSearchText] = useState(initialQuery.search ?? "");
+  const [status, setStatus] = useState<"" | "active" | "archived">(
+    initialQuery.status ?? "",
   );
+  const [profile, setProfile] = useState(initialQuery.profile ?? "");
+  const [results, setResults] = useState<ProjectCollectionPage>({
+    projects,
+    query: initialQuery,
+    page: initialPage,
+  });
+  const [cursorTrail, setCursorTrail] = useState<Array<string | undefined>>([]);
+  const [lastRequest, setLastRequest] =
+    useState<ProjectShellCollectionRequest>(initialQuery);
+  const [busy, setBusy] = useState(false);
+  const [failure, setFailure] = useState<
+    | { readonly kind: "invalid" | "unavailable"; readonly message: string }
+    | undefined
+  >();
+  const [creating, setCreating] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const requestSequence = useRef(0);
+  const importUnavailable = projectImportAvailability(results.projects);
+  const hasFilters =
+    results.query.search !== undefined ||
+    results.query.status !== undefined ||
+    results.query.profile !== undefined;
+  const profileOptions = useMemo(
+    () =>
+      Array.from(
+        new Map(
+          profiles.map((registered) => [
+            registered.definition_family,
+            registered,
+          ]),
+        ).values(),
+      ),
+    [profiles],
+  );
+  const profileSummaries = useMemo(
+    () =>
+      profileOptions.length > 0
+        ? profileOptions.map((registered) => ({
+            id: registered.definition_family,
+            label: registered.content.label,
+            detail: registered.content.purpose,
+          }))
+        : Array.from(
+            new Map(
+              results.projects.map((project) => [
+                project.profile.definitionFamily,
+                {
+                  id: project.profile.definitionFamily,
+                  label: project.profile.label,
+                  detail: `${project.profile.terms.focusPlural}, ${project.profile.terms.findingPlural}, and ${project.profile.terms.referencePlural}`,
+                },
+              ]),
+            ).values(),
+          ),
+    [profileOptions, results.projects],
+  );
+
+  useEffect(() => {
+    setResults({ projects, query: initialQuery, page: initialPage });
+    setSearchText(initialQuery.search ?? "");
+    setStatus(initialQuery.status ?? "");
+    setProfile(initialQuery.profile ?? "");
+    setCursorTrail([]);
+    setLastRequest(initialQuery);
+    setFailure(undefined);
+  }, [initialPage, initialQuery, projects]);
+
+  const runSearch = async (
+    request: ProjectShellCollectionRequest,
+    history: "reset" | "next" | "previous" | "retry",
+  ): Promise<void> => {
+    if (busy) return;
+    const sequence = requestSequence.current + 1;
+    requestSequence.current = sequence;
+    setBusy(true);
+    setFailure(undefined);
+    setLastRequest(request);
+    try {
+      const next = await searchProjects(request);
+      if (requestSequence.current !== sequence) return;
+      setResults(next);
+      if (history === "reset") setCursorTrail([]);
+      if (history === "next") {
+        setCursorTrail((trail) => [...trail, results.query.cursor]);
+      }
+      if (history === "previous") {
+        setCursorTrail((trail) => trail.slice(0, -1));
+      }
+    } catch (error) {
+      if (requestSequence.current !== sequence) return;
+      const invalid = error instanceof TypeError;
+      setFailure({
+        kind: invalid ? "invalid" : "unavailable",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Petra could not search Projects right now.",
+      });
+    } finally {
+      if (requestSequence.current === sequence) setBusy(false);
+    }
+  };
+
+  const submitSearch = (): void => {
+    const trimmed = searchText.trim();
+    if (searchText.length > 240 || (searchText.length > 0 && trimmed === "")) {
+      setFailure({
+        kind: "invalid",
+        message:
+          "Enter up to 240 characters, or leave Find a Project empty to show all Projects.",
+      });
+      return;
+    }
+    setSearchText(trimmed);
+    void runSearch(
+      {
+        ...(trimmed === "" ? {} : { search: trimmed }),
+        ...(status === "" ? {} : { status }),
+        ...(profile === "" ? {} : { profile }),
+        limit: results.query.limit,
+      },
+      "reset",
+    );
+  };
+
+  const clearSearch = (): void => {
+    setSearchText("");
+    setStatus("");
+    setProfile("");
+    void runSearch({ limit: results.query.limit }, "reset");
+  };
 
   return (
     <main className="reference-projects" id="reference-main">
@@ -145,78 +383,320 @@ export const ProjectsSurface = ({
             state. Petra stores this workspace locally.
           </p>
         </div>
-        <PetraButton
-          variant="primary"
-          unavailable={{
-            reason: "Project creation is unavailable in this workspace.",
-            prerequisite: "Project creation capability.",
-          }}
-        >
-          New Project
-        </PetraButton>
+        <div className="reference-page-heading__actions">
+          <PetraButton
+            variant="secondary"
+            onClick={() => {
+              setCreating(false);
+              setImporting(true);
+            }}
+            {...(importUnavailable === undefined
+              ? {}
+              : { unavailable: importUnavailable })}
+          >
+            Import Project
+          </PetraButton>
+          <PetraButton
+            variant="primary"
+            onClick={() => {
+              setImporting(false);
+              setCreating(true);
+            }}
+            {...(profiles.length === 0
+              ? {
+                  unavailable: {
+                    reason: "No registered Project profile is available.",
+                    prerequisite: "A registered profile from Petra services.",
+                  },
+                }
+              : {})}
+          >
+            New Project
+          </PetraButton>
+        </div>
       </section>
 
-      <PetraTextField
-        label="Find a Project"
-        placeholder="Name, objective, or profile"
-        type="search"
-        value={query}
-        onChange={(event) => setQuery(event.currentTarget.value)}
-      />
+      {switchOrigin === undefined ? null : (
+        <section
+          className="reference-project-switch"
+          aria-labelledby="project-switch-title"
+        >
+          <div>
+            <p className="reference-panel-kicker">Project switch</p>
+            <h2 id="project-switch-title">
+              Choose another Project without stopping prior Work
+            </h2>
+            <p>
+              You came from {switchOrigin.taskLabel} in{" "}
+              <strong>{switchOrigin.projectTitle}</strong>. Opening a different
+              Project only changes the visible workspace; it does not cancel or
+              replace Work in the prior Project.
+            </p>
+            <p>
+              The opened Project will offer an exact return to this task.
+              Unsubmitted fields, local selection, browser focus, and local
+              presentation history are not transferred between Projects; save or
+              submit them first when their surface does not say they are
+              retained.
+            </p>
+          </div>
+          <Link className="reference-primary-link" to={switchOrigin.href}>
+            Return to prior task
+          </Link>
+        </section>
+      )}
+
+      {creating ? (
+        <ProjectCreationPanel
+          profiles={[...profiles]}
+          onCancel={() => setCreating(false)}
+        />
+      ) : null}
+
+      {importing ? (
+        <ProjectImportPanel
+          projects={results.projects}
+          onCancel={() => setImporting(false)}
+        />
+      ) : null}
+
+      <form
+        className="reference-project-search"
+        aria-label="Find a Project"
+        onSubmit={(event) => {
+          event.preventDefault();
+          submitSearch();
+        }}
+      >
+        <PetraTextField
+          label="Find a Project"
+          hint="Petra searches the current Project name, Objective statement, and registered profile label."
+          placeholder="Name, Objective, or registered profile"
+          type="search"
+          maxLength={241}
+          value={searchText}
+          {...(failure?.kind === "invalid" ? { error: failure.message } : {})}
+          onChange={(event) => setSearchText(event.currentTarget.value)}
+        />
+        <label className="petra-field">
+          <span className="petra-field__label">Status</span>
+          <select
+            className="petra-field__control"
+            name="status"
+            value={status}
+            onChange={(event) =>
+              setStatus(event.currentTarget.value as "" | "active" | "archived")
+            }
+          >
+            <option value="">Any status</option>
+            <option value="active">Active</option>
+            <option value="archived">Archived</option>
+          </select>
+        </label>
+        <label className="petra-field">
+          <span className="petra-field__label">Profile</span>
+          <select
+            className="petra-field__control"
+            name="profile"
+            value={profile}
+            onChange={(event) => setProfile(event.currentTarget.value)}
+          >
+            <option value="">Any registered profile</option>
+            {profileOptions.map((registered) => (
+              <option
+                key={registered.definition_family}
+                value={registered.definition_family}
+              >
+                {registered.content.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <div className="reference-project-search__actions">
+          <PetraButton
+            variant="primary"
+            type="submit"
+            busy={busy}
+            busyLabel="Searching Projects"
+          >
+            Find Projects
+          </PetraButton>
+          {hasFilters ||
+          searchText !== "" ||
+          status !== "" ||
+          profile !== "" ? (
+            <PetraButton variant="quiet" onClick={clearSearch}>
+              Clear search
+            </PetraButton>
+          ) : null}
+        </div>
+      </form>
+
+      {failure?.kind === "unavailable" ? (
+        <section
+          className="reference-project-search__failure"
+          role="alert"
+          aria-labelledby="project-search-failure-title"
+        >
+          <div>
+            <h2 id="project-search-failure-title">
+              Project search is temporarily unavailable
+            </h2>
+            <p>{failure.message}</p>
+            <p>
+              Your last server results remain below. No local substitute was
+              used.
+            </p>
+          </div>
+          <PetraButton
+            variant="secondary"
+            busy={busy}
+            busyLabel="Retrying search"
+            onClick={() => void runSearch(lastRequest, "retry")}
+          >
+            Retry search
+          </PetraButton>
+        </section>
+      ) : null}
 
       <p className="reference-result-count" role="status" aria-live="polite">
-        {visibleProjects.length}{" "}
-        {visibleProjects.length === 1 ? "Project" : "Projects"}
+        {busy
+          ? "Searching Projects…"
+          : `Showing ${results.page.returned_count} of ${results.page.total_count} ${results.page.total_count === 1 ? "Project" : "Projects"}`}
       </p>
 
-      {visibleProjects.length === 0 ? (
-        <section
-          className="reference-empty"
-          aria-labelledby="no-projects-title"
+      <div className="reference-project-results" aria-busy={busy || undefined}>
+        {results.projects.length === 0 ? (
+          <section
+            className="reference-empty"
+            aria-labelledby="no-projects-title"
+          >
+            <PetraMark />
+            <h2 id="no-projects-title">
+              {hasFilters ? "No Projects match this search" : "No Projects yet"}
+            </h2>
+            <p>
+              {hasFilters
+                ? "Change or clear the search to ask Petra for another bounded Project list."
+                : "Create a Project with a registered profile to begin."}
+            </p>
+            {hasFilters ? (
+              <PetraButton variant="secondary" onClick={clearSearch}>
+                Show all Projects
+              </PetraButton>
+            ) : null}
+          </section>
+        ) : (
+          <ul className="reference-project-grid">
+            {results.projects.map((project) => (
+              <li key={project.id}>
+                <article className="reference-project-card">
+                  <div className="reference-project-card__topline">
+                    <span>{project.profile.label}</span>
+                    <ProjectStateLabel project={project} />
+                  </div>
+                  <h2>
+                    <Link
+                      to={`/projects/${project.id}/brief`}
+                      state={targetState}
+                    >
+                      {project.title}
+                    </Link>
+                  </h2>
+                  <p>{project.objective}</p>
+                  <ProjectResumeState project={project} />
+                  <dl className="reference-compact-facts">
+                    <div>
+                      <dt>Current</dt>
+                      <dd>{project.snapshot.label}</dd>
+                    </div>
+                    <div>
+                      <dt>Updated</dt>
+                      <dd>{project.updatedAt}</dd>
+                    </div>
+                  </dl>
+                  <div className="reference-project-card__footer">
+                    <ProjectionLabel project={project} />
+                    <div className="reference-project-card__actions">
+                      <Link
+                        className="reference-text-link"
+                        to={`/projects/${project.id}/brief`}
+                        state={targetState}
+                      >
+                        Open Brief
+                      </Link>
+                      {project.resume === undefined ? null : (
+                        <Link
+                          className="reference-primary-link"
+                          to={`/projects/${project.id}/resume`}
+                          state={targetState}
+                        >
+                          {project.resume.state === "available"
+                            ? "Resume Project"
+                            : project.resume.state === "unavailable"
+                              ? "Retry Resume"
+                              : "Open Brief recovery"}
+                          <span aria-hidden="true">→</span>
+                        </Link>
+                      )}
+                    </div>
+                  </div>
+                </article>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {cursorTrail.length > 0 || results.page.has_more ? (
+        <nav
+          className="reference-project-pagination"
+          aria-label="Project pages"
         >
-          <PetraMark />
-          <h2 id="no-projects-title">No Projects match this search</h2>
-          <p>Clear the search to return to the available local Projects.</p>
-        </section>
-      ) : (
-        <ul className="reference-project-grid">
-          {visibleProjects.map((project) => (
-            <li key={project.id}>
-              <article className="reference-project-card">
-                <div className="reference-project-card__topline">
-                  <span>{project.profile.label}</span>
-                  <ProjectStateLabel project={project} />
-                </div>
-                <h2>
-                  <Link to={`/projects/${project.id}/brief`}>
-                    {project.title}
-                  </Link>
-                </h2>
-                <p>{project.objective}</p>
-                <dl className="reference-compact-facts">
-                  <div>
-                    <dt>Current</dt>
-                    <dd>{project.snapshot.label}</dd>
-                  </div>
-                  <div>
-                    <dt>Updated</dt>
-                    <dd>{project.updatedAt}</dd>
-                  </div>
-                </dl>
-                <div className="reference-project-card__footer">
-                  <ProjectionLabel project={project} />
-                  <Link
-                    className="reference-text-link"
-                    to={`/projects/${project.id}/brief`}
-                  >
-                    Open Brief <span aria-hidden="true">→</span>
-                  </Link>
-                </div>
-              </article>
-            </li>
-          ))}
-        </ul>
-      )}
+          <PetraButton
+            variant="secondary"
+            {...(cursorTrail.length === 0
+              ? {
+                  unavailable: {
+                    reason: "This is the first Project page.",
+                  },
+                }
+              : {})}
+            onClick={() => {
+              const previousCursor = cursorTrail.at(-1);
+              const { cursor: currentCursor, ...baseRequest } = results.query;
+              void currentCursor;
+              const request =
+                previousCursor === undefined
+                  ? baseRequest
+                  : { ...baseRequest, cursor: previousCursor };
+              void runSearch(request, "previous");
+            }}
+          >
+            Previous page
+          </PetraButton>
+          <span>Server page {cursorTrail.length + 1}</span>
+          <PetraButton
+            variant="secondary"
+            {...(results.page.has_more
+              ? {}
+              : {
+                  unavailable: {
+                    reason: "There are no more matching Projects.",
+                  },
+                })}
+            onClick={() => {
+              if (results.page.next_cursor === undefined) return;
+              void runSearch(
+                { ...results.query, cursor: results.page.next_cursor },
+                "next",
+              );
+            }}
+          >
+            Next page
+          </PetraButton>
+        </nav>
+      ) : null}
 
       <aside
         className="reference-disclosure"
@@ -228,12 +708,9 @@ export const ProjectsSurface = ({
           own navigation, authority, provenance, status, recovery, and history.
         </p>
         <ul>
-          {projects.map((project) => (
-            <li key={project.profile.id}>
-              <strong>{project.profile.label}</strong>:{" "}
-              {project.profile.terms.focusPlural},{" "}
-              {project.profile.terms.findingPlural}, and{" "}
-              {project.profile.terms.referencePlural}
+          {profileSummaries.map((registered) => (
+            <li key={registered.id}>
+              <strong>{registered.label}</strong>: {registered.detail}
             </li>
           ))}
         </ul>
@@ -243,7 +720,7 @@ export const ProjectsSurface = ({
 };
 
 export const ProjectsRoute = (): React.JSX.Element => (
-  <ProjectsSurface projects={useLoaderData<ProjectRecord[]>()} />
+  <ProjectsSurface {...useLoaderData<ProjectCollectionData>()} />
 );
 
 type ProjectOutletContext = { project: ProjectRecord };
@@ -254,23 +731,27 @@ export const useProjectRecord = (): ProjectRecord => {
 };
 
 const placeFromPath = (pathname: string): ProjectPlace =>
-  pathname.includes("/sources")
-    ? "sources"
-    : pathname.includes("/review")
-      ? "review"
-      : pathname.includes("/graph")
-        ? "graph"
-        : pathname.includes("/work")
-          ? "work"
-          : pathname.includes("/composition")
-            ? "composition"
-            : pathname.includes("/history")
-              ? "history"
-              : pathname.includes("/tools/")
-                ? "profile_tool"
-                : pathname.includes("/petra")
-                  ? "petra"
-                  : "brief";
+  pathname.includes("/profile")
+    ? "profile_tool"
+    : pathname.includes("/resume")
+      ? "graph"
+      : pathname.includes("/sources")
+        ? "sources"
+        : pathname.includes("/review")
+          ? "review"
+          : pathname.includes("/graph")
+            ? "graph"
+            : pathname.includes("/work")
+              ? "work"
+              : pathname.includes("/composition")
+                ? "composition"
+                : pathname.includes("/history")
+                  ? "history"
+                  : pathname.includes("/tools/")
+                    ? "profile_tool"
+                    : pathname.includes("/petra")
+                      ? "petra"
+                      : "brief";
 
 export const hashFocusTargetId = (hash: string): string | undefined => {
   if (!hash.startsWith("#") || hash.length === 1) return undefined;
@@ -287,6 +768,30 @@ export const ProjectShell = (): React.JSX.Element => {
   const location = useLocation();
   const projectNav = useRef<HTMLElement>(null);
   const currentPlace = placeFromPath(location.pathname);
+  const incomingSwitchOrigin = projectSwitchOriginFromState(location.state);
+  const currentTaskLabel =
+    location.pathname.endsWith("/resume") &&
+    project.resume?.state === "available"
+      ? (project.resume.retained_task?.label ?? "the retained Graph task")
+      : currentPlace === "profile_tool"
+        ? "the Project profile"
+        : `the Project ${currentPlace}`;
+  const currentSwitchOrigin: ProjectSwitchOrigin = {
+    href: `${location.pathname}${location.search}${location.hash}`,
+    projectId: project.id,
+    projectTitle: project.title,
+    taskLabel: currentTaskLabel,
+  };
+  const collectionSwitchOrigin =
+    incomingSwitchOrigin === undefined ||
+    incomingSwitchOrigin.projectId === project.id
+      ? currentSwitchOrigin
+      : incomingSwitchOrigin;
+  const returnSwitchOrigin =
+    incomingSwitchOrigin !== undefined &&
+    incomingSwitchOrigin.projectId !== project.id
+      ? incomingSwitchOrigin
+      : undefined;
 
   useEffect(() => {
     projectNav.current
@@ -319,12 +824,16 @@ export const ProjectShell = (): React.JSX.Element => {
         aria-label="Current Project context"
       >
         <div className="reference-context-bar__identity">
-          <Link to="/" className="reference-context-back">
+          <Link
+            to="/"
+            className="reference-context-back"
+            state={projectSwitchState(collectionSwitchOrigin)}
+          >
             <span aria-hidden="true">←</span> Projects
           </Link>
           <div>
             <strong>{project.title}</strong>
-            <span>{project.profile.label}</span>
+            <Link to="profile">{project.profile.label}</Link>
           </div>
         </div>
         <div className="reference-context-bar__state">
@@ -333,9 +842,14 @@ export const ProjectShell = (): React.JSX.Element => {
             <small>{project.snapshot.asOf}</small>
           </span>
           <ProjectionLabel project={project} />
-          <Link className="reference-context-action" to="petra">
-            Ask Petra
-          </Link>
+          {returnSwitchOrigin === undefined ? null : (
+            <Link
+              className="reference-context-action"
+              to={returnSwitchOrigin.href}
+            >
+              Return to {returnSwitchOrigin.projectTitle}
+            </Link>
+          )}
           <Link
             className="reference-context-action"
             to={`/settings?project=${project.id}`}
@@ -347,17 +861,54 @@ export const ProjectShell = (): React.JSX.Element => {
 
       <div className="reference-project-layout">
         <aside className="reference-project-nav" id="project-navigation">
-          <p className="reference-nav-label">Project</p>
+          <p className="reference-nav-label">Project workflow</p>
           <nav ref={projectNav} aria-label={`${project.title} places`}>
-            <NavLink to="brief">Brief</NavLink>
-            <NavLink to="sources">
-              {project.profile.terms.referencePlural}
-            </NavLink>
-            <NavLink to="review">Review</NavLink>
-            <NavLink to="graph">Graph</NavLink>
-            <NavLink to="work">Work</NavLink>
-            <NavLink to="composition">Composition</NavLink>
-            <NavLink to="history">History</NavLink>
+            {[
+              { place: "brief" as const, to: "brief", label: "Brief" },
+              {
+                place: "petra" as const,
+                to: "petra",
+                label: "Ask Petra",
+                primary: true,
+              },
+              { place: "work" as const, to: "work", label: "Work" },
+              {
+                place: "sources" as const,
+                to: "sources",
+                label: project.profile.terms.referencePlural,
+              },
+              { place: "graph" as const, to: "graph", label: "Graph" },
+              { place: "review" as const, to: "review", label: "Review" },
+              { place: "history" as const, to: "history", label: "History" },
+              {
+                place: "composition" as const,
+                to: "composition",
+                label: "Composition",
+              },
+            ].map(({ place, to, label, primary = false }) => {
+              const summary = project.placeSummaries?.find(
+                (candidate) => candidate.role === place,
+              );
+              return (
+                <NavLink
+                  key={place}
+                  to={to}
+                  {...(primary ? { "data-primary": "true" } : {})}
+                >
+                  <span>{label}</span>
+                  {summary === undefined ||
+                  summary.attentionCount === 0 ? null : (
+                    <span
+                      className="reference-nav-attention"
+                      aria-label={`${summary.attentionCount} ${summary.attentionCount === 1 ? "item" : "items"} need attention`}
+                    >
+                      <span aria-hidden="true">!</span>
+                      {summary.attentionCount}
+                    </span>
+                  )}
+                </NavLink>
+              );
+            })}
           </nav>
           <details className="reference-profile-details">
             <summary>Profile terms</summary>
@@ -376,6 +927,9 @@ export const ProjectShell = (): React.JSX.Element => {
                 <dd>{project.profile.terms.referencePlural}</dd>
               </div>
             </dl>
+            <Link className="reference-text-link" to="profile">
+              Inspect Project profile
+            </Link>
           </details>
         </aside>
 
@@ -951,13 +1505,144 @@ export const BriefSurface = ({
   );
 };
 
+export const ProjectResumeOutcome = ({
+  project,
+  outcome,
+}: {
+  project: ProjectRecord;
+  outcome: string;
+}): React.JSX.Element => {
+  const resume = project.resume;
+  const readFailure = ["read-failed", "read-stale", "selection-stale"].includes(
+    outcome,
+  );
+  const returnUnavailable = outcome === "return-unavailable";
+  if (resume === undefined) {
+    return (
+      <section
+        className="project-resume-outcome"
+        id="project-resume-outcome"
+        data-resume-state="unavailable"
+        tabIndex={-1}
+        aria-labelledby="project-resume-outcome-title"
+      >
+        <p className="reference-panel-kicker">Project resume</p>
+        <h2 id="project-resume-outcome-title">Resume is not installed</h2>
+        <p>
+          This Project read does not include a server-owned resume assessment.
+          The current Brief remains available.
+        </p>
+      </section>
+    );
+  }
+  const retry = resume.state === "unavailable" || readFailure;
+  const title = returnUnavailable
+    ? "The exact return is unavailable"
+    : readFailure
+      ? "The retained task needs a fresh read"
+      : resume.state === "available"
+        ? "The retained task is ready now"
+        : resume.state === "stale"
+          ? "Review the current Brief before continuing"
+          : resume.state === "not_found"
+            ? "No retained task is available"
+            : "Resume is temporarily unavailable";
+  const message = returnUnavailable
+    ? resume.retained_task?.return_destination.state === "unavailable"
+      ? resume.retained_task.return_destination.reason
+      : "The retained task no longer has an exact available return destination."
+    : readFailure
+      ? "Petra did not open a Graph result that still matched the retained task, expected result, and selection. No identity was rebuilt in the browser."
+      : resume.state === "available"
+        ? resume.recovery.reason
+        : (resume.failure?.message ?? resume.recovery.reason);
+  return (
+    <section
+      className="project-resume-outcome"
+      id="project-resume-outcome"
+      data-resume-state={readFailure ? "unavailable" : resume.state}
+      tabIndex={-1}
+      aria-labelledby="project-resume-outcome-title"
+      role={retry ? "alert" : "status"}
+    >
+      <p className="reference-panel-kicker">Project resume</p>
+      <h2 id="project-resume-outcome-title">{title}</h2>
+      <p>{message}</p>
+      <p>{resume.recovery.reason}</p>
+      {resume.retained_task === undefined ? null : (
+        <details>
+          <summary>Retained context</summary>
+          <dl className="reference-detail-list">
+            <div>
+              <dt>Task</dt>
+              <dd>{resume.retained_task.label}</dd>
+            </div>
+            <div>
+              <dt>Origin</dt>
+              <dd>{resume.retained_task.origin.origin_kind}</dd>
+            </div>
+            <div>
+              <dt>Retained</dt>
+              <dd>{resume.retained_task.retained_at}</dd>
+            </div>
+          </dl>
+        </details>
+      )}
+      <div className="project-resume-outcome__actions">
+        {retry || (resume.state === "available" && !returnUnavailable) ? (
+          <Link
+            className="reference-primary-link"
+            to={`/projects/${project.id}/resume`}
+          >
+            {retry ? "Retry Project resume" : "Resume Project"}
+          </Link>
+        ) : (
+          <a className="reference-primary-link" href="#brief-focus">
+            Continue in current Brief
+          </a>
+        )}
+        <span>{resume.recovery.destination.purpose}</span>
+      </div>
+    </section>
+  );
+};
+
 export const BriefRoute = (): React.JSX.Element => {
   const data = useLoaderData<ProjectBriefData>();
-  if (data.briefView === undefined)
-    throw new Error("The Project Brief read is unavailable.");
+  const project = useProjectRecord();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const resumeOutcome = searchParams.get("projectResume");
+  if (data.objectiveCommandContext === undefined)
+    throw new Error("The reviewed Project Objective boundary is unavailable.");
+  const state = location.state as {
+    objectiveCommandOutcome?: ProjectObjectiveReturnOutcome;
+  } | null;
+  const objectiveCommandOutcome = state?.objectiveCommandOutcome;
+  if (data.briefView === undefined) {
+    return (
+      <ProjectObjectiveEmptyBrief
+        context={data.objectiveCommandContext}
+        {...(objectiveCommandOutcome === undefined
+          ? {}
+          : { outcome: objectiveCommandOutcome })}
+      />
+    );
+  }
   return (
     <ProjectBriefSurface
       view={data.briefView}
+      objectiveCommandContext={data.objectiveCommandContext}
+      {...(objectiveCommandOutcome === undefined
+        ? {}
+        : { objectiveCommandOutcome })}
+      {...(resumeOutcome === null
+        ? {}
+        : {
+            resumeOutcome: (
+              <ProjectResumeOutcome project={project} outcome={resumeOutcome} />
+            ),
+          })}
       {...(data.suggestedAction === undefined
         ? {}
         : {
@@ -980,8 +1665,23 @@ export const BriefRoute = (): React.JSX.Element => {
 const sourceSearchText = (source: SourceRecord): string =>
   `${source.title} ${source.kind} ${source.role} ${source.creator}`.toLocaleLowerCase();
 
-export const SourcesSurface = ({ project }: { project: ProjectRecord }) => {
-  const [query, setQuery] = useState("");
+export const SourcesSurface = ({
+  project,
+  registration,
+  initialQuery = "",
+  onSourceReuseComplete,
+}: {
+  project: ProjectRecord;
+  registration?: ProjectSourceCollectionData["registration"];
+  initialQuery?: string;
+  onSourceReuseComplete?: (
+    completion: SourceReuseCompletion,
+    sourceQuery: string,
+  ) => void | Promise<void>;
+}) => {
+  const [query, setQuery] = useState(initialQuery);
+  const [adding, setAdding] = useState(false);
+  const [reusing, setReusing] = useState(false);
   const normalizedQuery = query.trim().toLocaleLowerCase();
   const sources = project.sources.filter((source) =>
     sourceSearchText(source).includes(normalizedQuery),
@@ -994,17 +1694,58 @@ export const SourcesSurface = ({ project }: { project: ProjectRecord }) => {
         title={project.profile.terms.referencePlural}
         description={`Inspect identity, available content, rights, and downstream use for this Project's ${project.profile.terms.referencePlural.toLocaleLowerCase()}.`}
         actions={
-          <PetraButton
-            variant="primary"
-            unavailable={{
-              reason: `${project.profile.terms.reference} registration is unavailable in this workspace.`,
-              prerequisite: "Source registration capability.",
-            }}
-          >
-            Add {project.profile.terms.reference}
-          </PetraButton>
+          <div className="reference-source-actions">
+            <PetraButton
+              variant="primary"
+              onClick={() => {
+                setReusing(false);
+                setAdding(true);
+              }}
+              {...(registration === undefined ||
+              registration.sourceRoles.length === 0
+                ? {
+                    unavailable: {
+                      reason: `This exact Project profile has no available registered ${project.profile.terms.reference.toLocaleLowerCase()} role.`,
+                      prerequisite:
+                        "A current registered source role with copy-rights governance.",
+                    },
+                  }
+                : {})}
+            >
+              Add {project.profile.terms.reference}
+            </PetraButton>
+            <PetraButton
+              variant="secondary"
+              onClick={() => {
+                setAdding(false);
+                setReusing(true);
+              }}
+            >
+              Use existing {project.profile.terms.reference.toLocaleLowerCase()}
+            </PetraButton>
+          </div>
         }
       />
+
+      {adding && registration !== undefined ? (
+        <SourceRegistrationPanel
+          context={registration}
+          sourceTerm={project.profile.terms.reference.toLocaleLowerCase()}
+          onCancel={() => setAdding(false)}
+        />
+      ) : null}
+
+      {reusing ? (
+        <SourceReusePanel
+          projectId={project.id}
+          sourceTerm={project.profile.terms.reference.toLocaleLowerCase()}
+          sourceQuery={query}
+          onCancel={() => setReusing(false)}
+          onComplete={(completion) =>
+            onSourceReuseComplete?.(completion, query)
+          }
+        />
+      ) : null}
 
       <div className="reference-source-toolbar">
         <PetraTextField
@@ -1029,8 +1770,8 @@ export const SourcesSurface = ({ project }: { project: ProjectRecord }) => {
             No {project.profile.terms.referencePlural.toLocaleLowerCase()} yet
           </h2>
           <p>
-            This early Project has no registered basis. Adding one requires the
-            source command that owns identity and permissions.
+            This early Project has no registered basis. Add one by reviewing its
+            identity, exact copy rights, and registered Project role.
           </p>
         </section>
       ) : sources.length === 0 ? (
@@ -1086,11 +1827,54 @@ export const SourcesSurface = ({ project }: { project: ProjectRecord }) => {
 
 export const SourcesRoute = (): React.JSX.Element => {
   const project = useProjectRecord();
-  const sources = useLoaderData<SourceRecord[]>();
-  return <SourcesSurface project={{ ...project, sources }} />;
+  const data = useLoaderData<ProjectSourceCollectionData>();
+  const navigate = useNavigate();
+  const revalidator = useRevalidator();
+  const [searchParams] = useSearchParams();
+  return (
+    <SourcesSurface
+      project={{ ...project, sources: data.sources }}
+      registration={data.registration}
+      initialQuery={searchParams.get("query") ?? ""}
+      onSourceReuseComplete={async (completion, sourceQuery) => {
+        await revalidator.revalidate();
+        const destinationQuery = new URLSearchParams({
+          from: "sources",
+          semanticKey: "petra.project-source",
+          selected: completion.projectSourceId,
+          revision: String(completion.receipt.project_source_ref.revision),
+          recordHash: completion.receipt.project_source_ref.record_hash,
+        });
+        if (sourceQuery.trim().length > 0) {
+          destinationQuery.set("sourceQuery", sourceQuery);
+        }
+        await navigate(
+          `/projects/${encodeURIComponent(completion.projectId)}/sources/${encodeURIComponent(completion.projectSourceId)}?${destinationQuery}`,
+        );
+      }}
+    />
+  );
 };
 
-const SourceDetails = ({ source }: { source: SourceRecord }) => (
+export const SourceDetails = ({
+  projectId,
+  source,
+  taskReturnPath,
+  linkRemovalAvailable = true,
+  linkRemovalClient,
+  localCopyDeletionClient,
+  onLinkRemoved,
+  onLocalCopyDeleted,
+}: {
+  projectId: string;
+  source: SourceRecord;
+  taskReturnPath: string;
+  linkRemovalAvailable?: boolean;
+  linkRemovalClient?: SourceLinkRemovalClient;
+  localCopyDeletionClient?: SourceLocalCopyDeletionClient;
+  onLinkRemoved?: () => void | Promise<void>;
+  onLocalCopyDeleted?: () => void | Promise<void>;
+}) => (
   <aside className="reference-details" aria-labelledby="source-details-title">
     <div className="reference-details__heading">
       <div>
@@ -1131,6 +1915,23 @@ const SourceDetails = ({ source }: { source: SourceRecord }) => (
         <dd>{source.downstreamUse}</dd>
       </div>
     </dl>
+    <SourceLinkRemovalActions
+      projectId={projectId}
+      projectSourceId={source.id}
+      sourceTitle={source.title}
+      sourceRole={source.role}
+      {...(source.roleId === undefined ? {} : { sourceRoleId: source.roleId })}
+      taskReturnPath={taskReturnPath}
+      available={linkRemovalAvailable}
+      {...(linkRemovalClient === undefined
+        ? {}
+        : { client: linkRemovalClient })}
+      {...(localCopyDeletionClient === undefined
+        ? {}
+        : { localCopyDeletionClient })}
+      {...(onLinkRemoved === undefined ? {} : { onRemoved: onLinkRemoved })}
+      {...(onLocalCopyDeleted === undefined ? {} : { onLocalCopyDeleted })}
+    />
   </aside>
 );
 
@@ -1138,14 +1939,34 @@ export const SourceReaderSurface = ({
   project,
   source,
   returnTo,
+  taskReturnPath,
+  revision,
+  revisionUnavailable,
+  linkRemovalAvailable = true,
+  linkRemovalClient,
+  localCopyDeletionClient,
+  onLinkRemoved,
+  onLocalCopyDeleted,
 }: {
   project: ProjectRecord;
   source: SourceRecord;
   returnTo?: { path: string; label: string } | undefined;
+  taskReturnPath?: string;
+  revision?: SourceRevisionContext;
+  revisionUnavailable?: string;
+  linkRemovalAvailable?: boolean;
+  linkRemovalClient?: SourceLinkRemovalClient;
+  localCopyDeletionClient?: SourceLocalCopyDeletionClient;
+  onLinkRemoved?: () => void | Promise<void>;
+  onLocalCopyDeleted?: () => void | Promise<void>;
 }) => {
+  const [addingRevision, setAddingRevision] = useState(false);
   const returnPath = returnTo?.path ?? `/projects/${project.id}/sources`;
   const returnLabel =
     returnTo?.label ?? `Return to ${project.profile.terms.referencePlural}`;
+  const exactTaskReturn =
+    taskReturnPath ??
+    `/projects/${encodeURIComponent(project.id)}/sources/${encodeURIComponent(source.id)}`;
 
   return (
     <main className="reference-reader" id="reference-main">
@@ -1161,8 +1982,35 @@ export const SourceReaderSurface = ({
         <div className="reference-reader-heading__state">
           <SourceExtentLabel source={source} />
           <span>{source.location}</span>
+          <PetraButton
+            variant="secondary"
+            onClick={() => setAddingRevision(true)}
+            {...(revision === undefined
+              ? {
+                  unavailable: {
+                    reason:
+                      revisionUnavailable ??
+                      "The exact active predecessor is unavailable.",
+                    prerequisite:
+                      "A current Project, ProjectDefinition, and active Project source reference.",
+                  },
+                }
+              : {})}
+          >
+            Add new version
+          </PetraButton>
         </div>
       </header>
+
+      {addingRevision && revision !== undefined ? (
+        <SourceRevisionPanel
+          context={revision}
+          sourceTitle={source.title}
+          sourceRevision={source.revision}
+          taskReturnPath={exactTaskReturn}
+          onCancel={() => setAddingRevision(false)}
+        />
+      ) : null}
 
       <div className="reference-reader-layout">
         <article
@@ -1190,17 +2038,6 @@ export const SourceReaderSurface = ({
                   Only identity is available
                 </h3>
                 <p>{source.limitation}</p>
-                <PetraButton
-                  variant="primary"
-                  unavailable={{
-                    reason:
-                      "Processing eligibility and permission are unresolved.",
-                    prerequisite:
-                      "A permitted copy and source processing capability.",
-                  }}
-                >
-                  Process source
-                </PetraButton>
               </div>
             </section>
           ) : (
@@ -1225,8 +2062,25 @@ export const SourceReaderSurface = ({
             </>
           )}
         </article>
-        <SourceDetails source={source} />
+        <SourceDetails
+          projectId={project.id}
+          source={source}
+          taskReturnPath={exactTaskReturn}
+          linkRemovalAvailable={linkRemovalAvailable}
+          {...(linkRemovalClient === undefined ? {} : { linkRemovalClient })}
+          {...(localCopyDeletionClient === undefined
+            ? {}
+            : { localCopyDeletionClient })}
+          {...(onLinkRemoved === undefined ? {} : { onLinkRemoved })}
+          {...(onLocalCopyDeleted === undefined ? {} : { onLocalCopyDeleted })}
+        />
       </div>
+
+      <SourceProcessingPanel
+        projectId={project.id}
+        projectSourceId={source.id}
+        taskReturnPath={exactTaskReturn}
+      />
 
       <footer className="reference-reader-return">
         <p>
@@ -1243,9 +2097,13 @@ export const SourceReaderSurface = ({
 
 export const SourceReaderRoute = (): React.JSX.Element => {
   const project = useProjectRecord();
-  const source = useLoaderData<SourceRecord>();
+  const data = useLoaderData<ProjectSourceRecordData>();
+  const source = data.source;
+  const location = useLocation();
+  const revalidator = useRevalidator();
   const [searchParams] = useSearchParams();
   const returnOrigin = searchParams.get("from");
+  const returnSourceQuery = searchParams.get("sourceQuery");
   const returnReviewId = searchParams.get("reviewId");
   const returnBasisId = searchParams.get("basisId");
   const returnGraphNodeId = searchParams.get("graphNodeId");
@@ -1260,29 +2118,46 @@ export const SourceReaderRoute = (): React.JSX.Element => {
           path: `/projects/${project.id}/brief#attention-source-depth`,
           label: "Return to Attention",
         }
-      : returnOrigin === "graph" &&
-          returnGraphNodeId !== null &&
-          returnGraphNodeId.length > 0
+      : returnOrigin === "sources"
         ? {
-            path: `/projects/${project.id}/graph?layer=${returnGraphLayer}&selected=${encodeURIComponent(returnGraphNodeId)}#graph-selection`,
-            label: "Return to Graph",
+            path: `/projects/${project.id}/sources${
+              returnSourceQuery === null || returnSourceQuery.length === 0
+                ? ""
+                : `?${new URLSearchParams({ query: returnSourceQuery })}`
+            }#source-reuse-return`,
+            label: `Return to ${project.profile.terms.referencePlural}`,
           }
-        : returnOrigin === "review" &&
-            returnReviewId !== null &&
-            returnReviewId.length > 0 &&
-            returnBasisId !== null &&
-            returnBasisId.length > 0
+        : returnOrigin === "graph" &&
+            returnGraphNodeId !== null &&
+            returnGraphNodeId.length > 0
           ? {
-              path: `/projects/${encodeURIComponent(project.id)}/review/${encodeURIComponent(returnReviewId)}#basis-${encodeURIComponent(returnBasisId)}`,
-              label: "Return to Review",
+              path: `/projects/${project.id}/graph?layer=${returnGraphLayer}&selected=${encodeURIComponent(returnGraphNodeId)}#graph-selection`,
+              label: "Return to Graph",
             }
-          : undefined;
+          : returnOrigin === "review" &&
+              returnReviewId !== null &&
+              returnReviewId.length > 0 &&
+              returnBasisId !== null &&
+              returnBasisId.length > 0
+            ? {
+                path: `/projects/${encodeURIComponent(project.id)}/review/${encodeURIComponent(returnReviewId)}#basis-${encodeURIComponent(returnBasisId)}`,
+                label: "Return to Review",
+              }
+            : undefined;
 
   return (
     <SourceReaderSurface
       project={project}
       source={source}
       returnTo={returnTo}
+      taskReturnPath={`${location.pathname}${location.search}`}
+      linkRemovalAvailable={data.linkRemovalAvailable}
+      onLinkRemoved={() => revalidator.revalidate()}
+      onLocalCopyDeleted={() => revalidator.revalidate()}
+      {...(data.revision === undefined ? {} : { revision: data.revision })}
+      {...(data.revisionUnavailable === undefined
+        ? {}
+        : { revisionUnavailable: data.revisionUnavailable })}
     />
   );
 };
