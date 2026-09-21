@@ -1,0 +1,431 @@
+{
+  "schema_name": "petra.wave6-taxonomy-guide-reset-authority-evidence",
+  "schema_version": "1.0.0",
+  "status": "passed",
+  "operation_ids": [
+    "shell.project-map",
+    "taxonomy.inspect-profile",
+    "taxonomy.bind-project",
+    "application.guide",
+    "application.reset"
+  ],
+  "executed_at": "2026-09-21T17:16:59.990Z",
+  "command": "npm run test:wave6:taxonomy-guide-reset",
+  "database": "fresh disposable PostgreSQL 18.6 with current Flyway migrations",
+  "runtime_owners": [
+    "GET /api/queries/projects -> PostgresProjectShellViewReader",
+    "GET /api/queries/project-profiles and GET /api/queries/projects/:projectId/taxonomy -> PostgresProjectProfileRuntime",
+    "POST /api/commands/projects and POST /api/commands/projects/:projectId/reset -> PostgresProjectProfileRuntime",
+    "POST /api/queries/project-profile-command-recovery -> PostgresProjectProfileRuntime"
+  ],
+  "production_boundary": {
+    "server": "startPetraServer over ephemeral TCP ports before and after restart",
+    "clients": "ProjectProfileClient and ProjectShellClient",
+    "authentication": "Bearer middleware at /api/*",
+    "persistence": "Registered profile versions, Project-owned definitions/objectives, additive archive/replacement, and immutable idempotent receipts in PostgreSQL"
+  },
+  "observations": {
+    "guide_prerequisites": {
+      "registered_profile_refs": [
+        {
+          "profile_id": "project_template_01K6P000000000000000000002",
+          "profile_version": "1.0.0",
+          "content_hash": "sha256:3c25a33d76349ff7b80bcdd0e00b8cf0b04548b135562d291fee65a81d0d1fbd"
+        },
+        {
+          "profile_id": "project_template_01K6P000000000000000000001",
+          "profile_version": "1.3.0",
+          "content_hash": "sha256:f496bdb7f859bdd4a9746b812142ef4334f331bcc4f9d15598e2f71c7cdc4322"
+        }
+      ],
+      "active_project_id": "project_7EME59ESR3PX8CGJR18H3ZA3WJ",
+      "active_project_name": "Wave 6 representative writing Project",
+      "stable_destination": {
+        "place_role": "brief",
+        "project_id": "project_7EME59ESR3PX8CGJR18H3ZA3WJ"
+      }
+    },
+    "project_map": {
+      "project_id": "project_3CN017M5N1CAC3T3XMHQ6VGBKB",
+      "shell_definition": {
+        "project_definition_id": "project_definition_78HV8VSGN0QCGJQPYFZHT5YMGW",
+        "revision": 1,
+        "content_hash": "sha256:7a2c54d032f91255001ed31835c634ea14cd7b7f495ee7b9031bf764a365a22d",
+        "definition_family": "petra.scientific-evidence",
+        "label": "Scientific evidence inquiry",
+        "description": "Organizes research questions, claims, source relationships, grounded Work, Review, and provenance without changing Petra's shared authority rules.",
+        "kernel_compatibility": "petra.project-kernel@1.0.0",
+        "terms": [
+          {
+            "plural": "Research questions",
+            "singular": "Research question",
+            "definition": "A bounded question the Project is trying to answer.",
+            "semantic_key": "scientific.research-question",
+            "generic_family": "focus"
+          },
+          {
+            "plural": "Claims",
+            "singular": "Claim",
+            "definition": "A proposition with explicit scope, basis, and authority state.",
+            "semantic_key": "scientific.claim",
+            "generic_family": "finding"
+          },
+          {
+            "plural": "Sources",
+            "singular": "Source",
+            "definition": "A versioned and rights-governed basis available to the Project.",
+            "semantic_key": "scientific.literature",
+            "generic_family": "reference"
+          },
+          {
+            "plural": "Evidence links",
+            "singular": "Evidence link",
+            "definition": "An exact relationship connecting a Claim to its retained source basis.",
+            "semantic_key": "scientific.assertion",
+            "generic_family": "relationship"
+          },
+          {
+            "plural": "Return to evidence",
+            "singular": "Return to evidence",
+            "definition": "Return to the exact originating evidence object.",
+            "semantic_key": "scientific.graph.return",
+            "generic_family": "task"
+          },
+          {
+            "plural": "Show downstream effects",
+            "singular": "Show downstream effects",
+            "definition": "Reveal recorded downstream relationships within an exact bounded query.",
+            "semantic_key": "scientific.graph.show-downstream",
+            "generic_family": "task"
+          }
+        ],
+        "supported_places": [
+          "brief",
+          "sources",
+          "review",
+          "graph",
+          "work",
+          "petra",
+          "composition",
+          "history",
+          "settings"
+        ]
+      },
+      "taxonomy_definition_ref": {
+        "project_definition_id": "project_definition_78HV8VSGN0QCGJQPYFZHT5YMGW",
+        "revision": 1,
+        "content_hash": "sha256:7a2c54d032f91255001ed31835c634ea14cd7b7f495ee7b9031bf764a365a22d"
+      },
+      "exact_binding": true
+    },
+    "paired_taxonomy": {
+      "scientific": {
+        "profile_ref": {
+          "profile_id": "project_template_01K6P000000000000000000001",
+          "profile_version": "1.3.0",
+          "content_hash": "sha256:f496bdb7f859bdd4a9746b812142ef4334f331bcc4f9d15598e2f71c7cdc4322"
+        },
+        "label": "Scientific evidence inquiry",
+        "finding_term": "Claim",
+        "taxonomy": {
+          "sections": {
+            "object_kinds": "available",
+            "relationship_meanings": "available",
+            "source_roles": "available",
+            "validators": "unavailable",
+            "work_families": "partially_available",
+            "model_roles": "available",
+            "review_destinations": "available"
+          },
+          "terminology": [
+            {
+              "semantic_key": "scientific.research-question",
+              "singular": "Research question",
+              "generic_family": "focus"
+            },
+            {
+              "semantic_key": "scientific.claim",
+              "singular": "Claim",
+              "generic_family": "finding"
+            },
+            {
+              "semantic_key": "scientific.literature",
+              "singular": "Source",
+              "generic_family": "reference"
+            },
+            {
+              "semantic_key": "scientific.assertion",
+              "singular": "Evidence link",
+              "generic_family": "relationship"
+            },
+            {
+              "semantic_key": "scientific.graph.return",
+              "singular": "Return to evidence",
+              "generic_family": "task"
+            },
+            {
+              "semantic_key": "scientific.graph.show-downstream",
+              "singular": "Show downstream effects",
+              "generic_family": "task"
+            }
+          ],
+          "supported_places": [
+            "brief",
+            "sources",
+            "review",
+            "graph",
+            "work",
+            "petra",
+            "composition",
+            "history",
+            "settings"
+          ],
+          "unavailable_operations": [
+            {
+              "label": "Delete local copy",
+              "reason": "Physical deletion has no accepted retention owner.",
+              "operation_id": "source.delete-local-copy"
+            }
+          ]
+        }
+      },
+      "controlled_writing": {
+        "profile_ref": {
+          "profile_id": "project_template_01K6P000000000000000000002",
+          "profile_version": "1.0.0",
+          "content_hash": "sha256:3c25a33d76349ff7b80bcdd0e00b8cf0b04548b135562d291fee65a81d0d1fbd"
+        },
+        "label": "Controlled writing",
+        "finding_term": "Requirement",
+        "taxonomy": {
+          "sections": {
+            "object_kinds": "available",
+            "relationship_meanings": "available",
+            "source_roles": "available",
+            "validators": "unavailable",
+            "work_families": "unavailable",
+            "model_roles": "unavailable",
+            "review_destinations": "available"
+          },
+          "terminology": [
+            {
+              "semantic_key": "writing.document-purpose",
+              "singular": "Document purpose",
+              "generic_family": "focus"
+            },
+            {
+              "semantic_key": "writing.requirement",
+              "singular": "Requirement",
+              "generic_family": "finding"
+            },
+            {
+              "semantic_key": "writing.authority-source",
+              "singular": "Authority source",
+              "generic_family": "reference"
+            },
+            {
+              "semantic_key": "writing.governs",
+              "singular": "Governing link",
+              "generic_family": "relationship"
+            }
+          ],
+          "supported_places": [
+            "brief",
+            "sources",
+            "review",
+            "graph",
+            "work",
+            "petra",
+            "composition",
+            "history",
+            "settings"
+          ],
+          "unavailable_operations": [
+            {
+              "label": "Ask a controlled-writing model",
+              "reason": "No certified controlled-writing model role is registered yet.",
+              "operation_id": "model.use"
+            },
+            {
+              "label": "Start controlled-writing Work",
+              "reason": "No controlled-writing Work family is registered yet.",
+              "operation_id": "work.start"
+            },
+            {
+              "label": "Delete local copy",
+              "reason": "Physical deletion has no accepted retention owner.",
+              "operation_id": "source.delete-local-copy"
+            }
+          ]
+        }
+      }
+    },
+    "reset": {
+      "request": {
+        "command_id": "command_01K6P000000000000000000602",
+        "idempotency_key": "wave6:taxonomy-guide-reset:command_01K6P000000000000000000602",
+        "expected_project": {
+          "project_id": "project_3CN017M5N1CAC3T3XMHQ6VGBKB",
+          "revision": 1
+        },
+        "selected_profile_ref": {
+          "profile_id": "project_template_01K6P000000000000000000002",
+          "profile_version": "1.0.0",
+          "content_hash": "sha256:3c25a33d76349ff7b80bcdd0e00b8cf0b04548b135562d291fee65a81d0d1fbd"
+        }
+      },
+      "prior_project_ref": {
+        "project_id": "project_3CN017M5N1CAC3T3XMHQ6VGBKB",
+        "revision": 2,
+        "resulting_status": "archived"
+      },
+      "resulting_project_ref": {
+        "project_id": "project_7EME59ESR3PX8CGJR18H3ZA3WJ",
+        "revision": 1
+      },
+      "resulting_definition_ref": {
+        "project_definition_id": "project_definition_5Q8CBYRX4WC398Y7EQADVPZ6AC",
+        "revision": 1,
+        "content_hash": "sha256:2dd295c9a3037f0c01368ffec612591816c2096ed38b1b6624f067ac3dcc8835"
+      },
+      "destination": {
+        "place_role": "brief",
+        "project_id": "project_7EME59ESR3PX8CGJR18H3ZA3WJ"
+      },
+      "before_effect": "outcome_unknown",
+      "after_effect": "effect_confirmed",
+      "replay_equal_before_restart": true,
+      "replay_equal_after_restart": true,
+      "project_count": 2,
+      "receipt_count": 2
+    },
+    "unsupported_selection": {
+      "result_code": "PROJECT_PROFILE_NOT_REGISTERED",
+      "fallback_profile_used": false
+    },
+    "unauthorized_statuses": [401, 401, 401],
+    "calls": [
+      {
+        "phase": "before_restart",
+        "method": "GET",
+        "path": "/api/queries/project-profiles",
+        "status": 200
+      },
+      {
+        "phase": "before_restart",
+        "method": "POST",
+        "path": "/api/queries/project-profile-command-recovery",
+        "status": 200
+      },
+      {
+        "phase": "before_restart",
+        "method": "POST",
+        "path": "/api/commands/projects",
+        "status": 201
+      },
+      {
+        "phase": "before_restart",
+        "method": "POST",
+        "path": "/api/commands/projects",
+        "status": 201
+      },
+      {
+        "phase": "before_restart",
+        "method": "GET",
+        "path": "/api/queries/projects/project_3CN017M5N1CAC3T3XMHQ6VGBKB/shell",
+        "status": 200
+      },
+      {
+        "phase": "before_restart",
+        "method": "GET",
+        "path": "/api/queries/projects",
+        "status": 200
+      },
+      {
+        "phase": "before_restart",
+        "method": "GET",
+        "path": "/api/queries/projects/project_3CN017M5N1CAC3T3XMHQ6VGBKB/taxonomy",
+        "status": 200
+      },
+      {
+        "phase": "before_restart",
+        "method": "POST",
+        "path": "/api/queries/project-profile-command-recovery",
+        "status": 200
+      },
+      {
+        "phase": "before_restart",
+        "method": "POST",
+        "path": "/api/commands/projects/project_3CN017M5N1CAC3T3XMHQ6VGBKB/reset",
+        "status": 200
+      },
+      {
+        "phase": "before_restart",
+        "method": "POST",
+        "path": "/api/commands/projects/project_3CN017M5N1CAC3T3XMHQ6VGBKB/reset",
+        "status": 200
+      },
+      {
+        "phase": "before_restart",
+        "method": "POST",
+        "path": "/api/queries/project-profile-command-recovery",
+        "status": 200
+      },
+      {
+        "phase": "before_restart",
+        "method": "GET",
+        "path": "/api/queries/projects/project_7EME59ESR3PX8CGJR18H3ZA3WJ/taxonomy",
+        "status": 200
+      },
+      {
+        "phase": "before_restart",
+        "method": "GET",
+        "path": "/api/queries/projects",
+        "status": 200
+      },
+      {
+        "phase": "before_restart",
+        "method": "GET",
+        "path": "/api/queries/projects",
+        "status": 200
+      },
+      {
+        "phase": "before_restart",
+        "method": "POST",
+        "path": "/api/commands/projects",
+        "status": 422
+      },
+      {
+        "phase": "after_restart",
+        "method": "GET",
+        "path": "/api/queries/project-profiles",
+        "status": 200
+      },
+      {
+        "phase": "after_restart",
+        "method": "GET",
+        "path": "/api/queries/projects/project_7EME59ESR3PX8CGJR18H3ZA3WJ/shell",
+        "status": 200
+      },
+      {
+        "phase": "after_restart",
+        "method": "GET",
+        "path": "/api/queries/projects/project_7EME59ESR3PX8CGJR18H3ZA3WJ/taxonomy",
+        "status": 200
+      },
+      {
+        "phase": "after_restart",
+        "method": "POST",
+        "path": "/api/commands/projects/project_3CN017M5N1CAC3T3XMHQ6VGBKB/reset",
+        "status": 200
+      },
+      {
+        "phase": "after_restart",
+        "method": "POST",
+        "path": "/api/queries/project-profile-command-recovery",
+        "status": 200
+      }
+    ]
+  },
+  "boundary": "Fresh PostgreSQL, production HTTP routes, bearer authentication, and renderer-neutral typed clients execute the server-owned prerequisites for the registered-taxonomy, Project-map, guide, and reset workflow: paired profile catalogue reads, exact shell/taxonomy binding, explicit profile creation, additive replacement, unknown-effect and confirmed recovery, unauthorized denial, unsupported-profile rejection without fallback, idempotent replay, and restart retention. This trace does not open the React guide or profile surfaces, invoke browser navigation, or claim USER-TESTABLE-01/stable-url-clean-start-reset or UX1.6-TAXONOMY/usable-profile-ui."
+}
