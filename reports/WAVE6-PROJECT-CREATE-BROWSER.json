@@ -1,0 +1,142 @@
+{
+  "schema_name": "petra.wave6-project-create-browser-evidence",
+  "schema_version": "1.0.0",
+  "status": "passed",
+  "operation_ids": ["project.create", "project.recover"],
+  "executed_at": "2026-09-20T23:58:33.069Z",
+  "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:project-create-ui",
+  "browser": {
+    "product": "Chrome/153.0.8010.48",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+    "protocol_version": "1.3"
+  },
+  "verified": {
+    "visible_control": "New Project",
+    "selected_profile": {
+      "profile_id": "project_template_01K6P000000000000000000001",
+      "profile_version": "1.0.0",
+      "content_hash": "sha256:d0d84073ab2fc70a643890e002945f1f5bdc94a0c291c98b531cfedb5553b538"
+    },
+    "profile_inspection": true,
+    "project_name": "Wave 6 browser-created Project",
+    "first_focus": "Determine which retained evidence most strongly separates the candidate explanations.",
+    "initial_submit_count": 1,
+    "recovery_assessment_count": 1,
+    "recovery_state": "outcome_unknown",
+    "retry_reused_exact_request": true,
+    "command_attempt_count": 2,
+    "material_effect_count": 1,
+    "resulting_project_id": "project_6P0CFPJE8VQ1HT33B5N73BBAPQ",
+    "receipt_bound_destination": "/projects/project_6P0CFPJE8VQ1HT33B5N73BBAPQ/brief",
+    "resulting_project_context": "Wave 6 browser-created Project",
+    "resulting_brief_focus": "Determine which retained evidence most strongly separates the candidate explanations.",
+    "unrelated_project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+    "unrelated_project_available_after_creation": true,
+    "authenticated_requests": true
+  },
+  "calls": [
+    {
+      "method": "GET",
+      "path": "/api/queries/project-profiles",
+      "authorization": "Bearer browser-project-create-token",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/queries/projects?limit=12",
+      "authorization": "Bearer browser-project-create-token",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/commands/projects",
+      "authorization": "Bearer browser-project-create-token",
+      "body": {
+        "schema_name": "petra.project-profile-command-request",
+        "schema_version": "1.0.0",
+        "command_id": "command_01M30M3M5M1090DNAQFB518E9W",
+        "idempotency_key": "project-profile:create:01M30M3M5M1090DNAQFB518E9W",
+        "operation": "create",
+        "profile_ref": {
+          "profile_id": "project_template_01K6P000000000000000000001",
+          "profile_version": "1.0.0",
+          "content_hash": "sha256:d0d84073ab2fc70a643890e002945f1f5bdc94a0c291c98b531cfedb5553b538"
+        },
+        "project": {
+          "name": "Wave 6 browser-created Project"
+        },
+        "objective": {
+          "statement": "Determine which retained evidence most strongly separates the candidate explanations."
+        }
+      },
+      "status": 503
+    },
+    {
+      "method": "POST",
+      "path": "/api/queries/project-profile-command-recovery",
+      "authorization": "Bearer browser-project-create-token",
+      "body": {
+        "schema_name": "petra.project-profile-command-request",
+        "schema_version": "1.0.0",
+        "command_id": "command_01M30M3M5M1090DNAQFB518E9W",
+        "idempotency_key": "project-profile:create:01M30M3M5M1090DNAQFB518E9W",
+        "operation": "create",
+        "profile_ref": {
+          "profile_id": "project_template_01K6P000000000000000000001",
+          "profile_version": "1.0.0",
+          "content_hash": "sha256:d0d84073ab2fc70a643890e002945f1f5bdc94a0c291c98b531cfedb5553b538"
+        },
+        "project": {
+          "name": "Wave 6 browser-created Project"
+        },
+        "objective": {
+          "statement": "Determine which retained evidence most strongly separates the candidate explanations."
+        }
+      },
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/commands/projects",
+      "authorization": "Bearer browser-project-create-token",
+      "body": {
+        "schema_name": "petra.project-profile-command-request",
+        "schema_version": "1.0.0",
+        "command_id": "command_01M30M3M5M1090DNAQFB518E9W",
+        "idempotency_key": "project-profile:create:01M30M3M5M1090DNAQFB518E9W",
+        "operation": "create",
+        "profile_ref": {
+          "profile_id": "project_template_01K6P000000000000000000001",
+          "profile_version": "1.0.0",
+          "content_hash": "sha256:d0d84073ab2fc70a643890e002945f1f5bdc94a0c291c98b531cfedb5553b538"
+        },
+        "project": {
+          "name": "Wave 6 browser-created Project"
+        },
+        "objective": {
+          "statement": "Determine which retained evidence most strongly separates the candidate explanations."
+        }
+      },
+      "status": 201
+    },
+    {
+      "method": "GET",
+      "path": "/api/queries/projects/project_6P0CFPJE8VQ1HT33B5N73BBAPQ/shell",
+      "authorization": "Bearer browser-project-create-token",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/queries/project-profiles",
+      "authorization": "Bearer browser-project-create-token",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/queries/projects?limit=12",
+      "authorization": "Bearer browser-project-create-token",
+      "status": 200
+    }
+  ],
+  "boundary": "Isolated Chromium keyboard-activated the production Project collection's visible New Project control, selected and expanded one exact registered profile, entered a Project name and first focus, submitted once, assessed an unresolved response through the visible Recover Project control, reused the exact command and idempotency identities through Retry exact command, loaded the receipt-bound Project shell at its Brief destination, and returned to a collection that still exposed the unrelated Project. Deterministic schema-valid authenticated HTTP supplied browser transport; reports/WAVE6-PROJECT-CREATE-AUTHORITY.json separately proves the same ProjectProfileClient create/recovery and ProjectShellClient owners against real PostgreSQL and the production HTTP server, including canonical persistence and no duplicate effect. This operation record covers project.create and project.recover only and does not claim a named Wave 6 evidence-plan scenario or the complete guided workflow."
+}

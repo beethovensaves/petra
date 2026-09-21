@@ -124,7 +124,8 @@
     "test:wave6:project-search-ui": "npm run build:packages && node apps/workbench/test/project-search-browser.mjs",
     "test:wave6:project-open-ui": "npm run build:packages && node apps/workbench/test/project-open-browser.mjs",
     "test:wave6:project-switch-ui": "npm run build:packages && node apps/workbench/test/project-switch-browser.mjs",
-    "test:wave6:project-create": "npm test --workspace @petra/adapters -- project-profile-client.test.ts && npm test --workspace @petra/server -- project-profile-routes.test.ts && PETRA_WAVE6_PROJECT_CREATE_EVIDENCE_OUTPUT=reports/WAVE6-PROJECT-CREATE-AUTHORITY.json node scripts/test-postgres-integration.mjs"
+    "test:wave6:project-create": "npm test --workspace @petra/adapters -- project-profile-client.test.ts && npm test --workspace @petra/server -- project-profile-routes.test.ts && PETRA_WAVE6_PROJECT_CREATE_EVIDENCE_OUTPUT=reports/WAVE6-PROJECT-CREATE-AUTHORITY.json node scripts/test-postgres-integration.mjs",
+    "test:wave6:project-create-ui": "npm run build:packages && node apps/workbench/test/project-create-browser.mjs"
   },
   "devDependencies": {
     "@aws-sdk/client-s3": "3.1124.0",
