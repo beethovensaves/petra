@@ -49,6 +49,19 @@ import {
 import { useProjectRecord } from "./ReferenceWorkbench.js";
 import { Observation } from "./ReviewRecovery.js";
 import { ProjectResetPanel } from "./ProjectProfileSurface.js";
+import {
+  PERSONAL_LAYOUT_PRESETS,
+  PERSONAL_PANEL_LIMITS,
+  type PersonalLayoutPreset,
+  type PersonalPreferenceGroup,
+  type PersonalPreferencePersistence,
+  type PersonalPreferenceResetScope,
+  type PersonalTheme,
+} from "./personal-preferences.js";
+import {
+  usePersonalPreferences,
+  type PersonalPreferencesController,
+} from "./use-personal-preferences.js";
 
 export const CompositionCollectionSurface = ({
   project,
@@ -1784,7 +1797,495 @@ export const HistoryRoute = (): React.JSX.Element => {
   );
 };
 
-type ThemeChoice = "system" | "stone" | "graphite" | "contrast";
+const personalSettingGroups: ReadonlyArray<{
+  id: PersonalPreferenceGroup;
+  label: string;
+  summary: string;
+}> = [
+  {
+    id: "appearance",
+    label: "Appearance",
+    summary: "Theme and contrast on this device",
+  },
+  {
+    id: "layout",
+    label: "Layout",
+    summary: "Workspace preset, panels, and widths",
+  },
+  {
+    id: "editor",
+    label: "Editor",
+    summary: "Code-like text and ligatures",
+  },
+  {
+    id: "accessibility",
+    label: "Accessibility",
+    summary: "Motion and platform constraints",
+  },
+];
+
+const themeChoices: ReadonlyArray<{
+  id: PersonalTheme;
+  label: string;
+  detail: string;
+}> = [
+  {
+    id: "system",
+    label: "Use system setting",
+    detail: "Follow the operating-system light or dark appearance.",
+  },
+  {
+    id: "stone",
+    label: "Petra Stone",
+    detail: "Warm, low-glare light surfaces.",
+  },
+  {
+    id: "graphite",
+    label: "Petra Graphite",
+    detail: "Dim, chromatic dark surfaces.",
+  },
+  {
+    id: "contrast",
+    label: "High Contrast",
+    detail: "Stronger boundaries, text, and focus treatment.",
+  },
+];
+
+const layoutPresets: ReadonlyArray<{
+  id: Exclude<PersonalLayoutPreset, "custom">;
+  label: string;
+}> = [
+  { id: "focus", label: "Focus" },
+  { id: "review", label: "Review" },
+  { id: "graph", label: "Graph" },
+  { id: "collaborate", label: "Collaborate" },
+];
+
+const persistenceMessage = (
+  persistence: PersonalPreferencePersistence,
+): string => {
+  switch (persistence) {
+    case "device_default":
+      return "Using Petra defaults. Your first change will be saved on this device.";
+    case "saved_on_device":
+      return "Saved on this device. Petra does not sync these preferences to an account or another browser.";
+    case "session_only":
+      return "Applied for this session; could not save on this device.";
+    case "repair_required":
+      return "Some saved values were invalid. Petra kept valid preferences and used safe defaults only for the affected settings.";
+  }
+};
+
+const resetScopeLabel = (scope: PersonalPreferenceResetScope): string => {
+  if (scope.group === "all") return "all personal settings";
+  if (scope.preference === undefined) return `${scope.group} settings`;
+  const labels: Record<string, string> = {
+    theme: "theme",
+    preset: "layout preset",
+    panels: "panel widths",
+    mapCollapsed: "Project map visibility",
+    assistantCollapsed: "Petra panel visibility",
+    fontSize: "code text size",
+    ligatures: "code ligatures",
+    reduceMotion: "interface motion",
+  };
+  return labels[scope.preference] ?? scope.preference;
+};
+
+const PersonalSettingsPanel = ({
+  controller,
+}: {
+  controller: PersonalPreferencesController;
+}): React.JSX.Element => {
+  const [section, setSection] = useState<PersonalPreferenceGroup>("appearance");
+  const {
+    receipt,
+    announcement,
+    changeAppearance,
+    changeLayout,
+    changeEditor,
+    changeAccessibility,
+    reset,
+    undoReset,
+    retryPersistence,
+  } = controller;
+  const preferences = receipt.preferences;
+  const group = personalSettingGroups.find(
+    (candidate) => candidate.id === section,
+  );
+  if (group === undefined) {
+    throw new Error("The selected personal settings group is unavailable.");
+  }
+  const unchanged =
+    " Project controls, Project content, drafts, and Work are unchanged.";
+  const resetPreference = (scope: PersonalPreferenceResetScope): void => {
+    reset(
+      scope,
+      `Reset ${resetScopeLabel(scope)} to Petra defaults.${unchanged}`,
+    );
+  };
+
+  return (
+    <section
+      className="settings-section settings-personal"
+      aria-labelledby="personal-settings-title"
+    >
+      <header>
+        <p className="reference-panel-kicker">Personal · this device</p>
+        <h2 id="personal-settings-title">Personal settings</h2>
+        <p>
+          Changes apply immediately to presentation only. They never change a
+          Project rule, saved content, draft, or running Work.
+        </p>
+      </header>
+
+      <div className="settings-personal-layout">
+        <nav
+          className="settings-group-nav"
+          aria-label="Personal setting groups"
+        >
+          {personalSettingGroups.map((candidate) => (
+            <button
+              key={candidate.id}
+              type="button"
+              aria-current={candidate.id === section ? "page" : undefined}
+              onClick={() => setSection(candidate.id)}
+            >
+              <strong>{candidate.label}</strong>
+              <span>{candidate.summary}</span>
+            </button>
+          ))}
+        </nav>
+
+        <div
+          className="settings-preference-panel"
+          aria-labelledby={`personal-${section}-title`}
+        >
+          <header>
+            <div>
+              <p className="reference-panel-kicker">
+                Personal preference group
+              </p>
+              <h3 id={`personal-${section}-title`}>{group.label}</h3>
+            </div>
+            <PetraButton
+              density="compact"
+              variant="quiet"
+              onClick={() => resetPreference({ group: section })}
+            >
+              Reset {group.label}
+            </PetraButton>
+          </header>
+
+          {section === "appearance" ? (
+            <fieldset>
+              <legend>Theme</legend>
+              <p>
+                The saved theme remains available when forced colors or another
+                platform accessibility setting takes precedence.
+              </p>
+              {themeChoices.map((choice) => (
+                <label key={choice.id}>
+                  <input
+                    type="radio"
+                    name="personal-theme"
+                    value={choice.id}
+                    checked={preferences.appearance.theme === choice.id}
+                    onChange={() =>
+                      changeAppearance(
+                        { theme: choice.id },
+                        `Theme changed to ${choice.label}.${unchanged}`,
+                      )
+                    }
+                  />
+                  <span>
+                    <strong>{choice.label}</strong>
+                    <small>{choice.detail}</small>
+                  </span>
+                </label>
+              ))}
+              <PetraButton
+                density="compact"
+                variant="quiet"
+                onClick={() =>
+                  resetPreference({ group: "appearance", preference: "theme" })
+                }
+              >
+                Reset theme
+              </PetraButton>
+            </fieldset>
+          ) : null}
+
+          {section === "layout" ? (
+            <div className="settings-control-stack">
+              <fieldset>
+                <legend>Workspace preset</legend>
+                <p>
+                  Presets arrange presentation only. Responsive reflow can
+                  override saved wide-screen widths without replacing them.
+                </p>
+                <div className="settings-preset-row">
+                  {layoutPresets.map((preset) => (
+                    <button
+                      key={preset.id}
+                      type="button"
+                      aria-pressed={preferences.layout.preset === preset.id}
+                      onClick={() =>
+                        changeLayout(
+                          {
+                            preset: preset.id,
+                            panels: PERSONAL_LAYOUT_PRESETS[preset.id],
+                          },
+                          `${preset.label} layout applied.${unchanged}`,
+                        )
+                      }
+                    >
+                      {preset.label}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
+              <fieldset>
+                <legend>Panel widths</legend>
+                {(
+                  [
+                    ["map", "Project map"],
+                    ["details", "Details"],
+                    ["assistant", "Petra"],
+                  ] as const
+                ).map(([panel, label]) => (
+                  <label className="settings-range-control" key={panel}>
+                    <span>
+                      <strong>{label}</strong>
+                      <output>{preferences.layout.panels[panel]} px</output>
+                    </span>
+                    <input
+                      type="range"
+                      min={PERSONAL_PANEL_LIMITS[panel].min}
+                      max={PERSONAL_PANEL_LIMITS[panel].max}
+                      step="8"
+                      value={preferences.layout.panels[panel]}
+                      onChange={(event) =>
+                        changeLayout(
+                          {
+                            preset: "custom",
+                            panels: {
+                              ...preferences.layout.panels,
+                              [panel]: Number(event.currentTarget.value),
+                            },
+                          },
+                          `${label} width changed to ${event.currentTarget.value} pixels.${unchanged}`,
+                        )
+                      }
+                    />
+                  </label>
+                ))}
+                <PetraButton
+                  density="compact"
+                  variant="quiet"
+                  onClick={() =>
+                    resetPreference({ group: "layout", preference: "panels" })
+                  }
+                >
+                  Reset panel widths
+                </PetraButton>
+              </fieldset>
+              <fieldset>
+                <legend>Default panel visibility</legend>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={preferences.layout.mapCollapsed}
+                    onChange={(event) =>
+                      changeLayout(
+                        { mapCollapsed: event.currentTarget.checked },
+                        `Project map default changed to ${event.currentTarget.checked ? "hidden" : "shown"}.${unchanged}`,
+                      )
+                    }
+                  />
+                  <span>Start with the Project map hidden</span>
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={preferences.layout.assistantCollapsed}
+                    onChange={(event) =>
+                      changeLayout(
+                        { assistantCollapsed: event.currentTarget.checked },
+                        `Petra panel default changed to ${event.currentTarget.checked ? "collapsed" : "expanded"}.${unchanged}`,
+                      )
+                    }
+                  />
+                  <span>Start with the Petra panel collapsed</span>
+                </label>
+              </fieldset>
+              <div
+                className="settings-layout-preview"
+                aria-label="Saved wide-screen panel proportions"
+              >
+                <span>Map</span>
+                <span>Task</span>
+                <span>Details</span>
+                <span>Petra</span>
+              </div>
+            </div>
+          ) : null}
+
+          {section === "editor" ? (
+            <div className="settings-control-stack">
+              <fieldset>
+                <legend>Code-like text</legend>
+                <label className="settings-range-control">
+                  <span>
+                    <strong>Code text size</strong>
+                    <output>{preferences.editor.fontSize} px</output>
+                  </span>
+                  <input
+                    type="range"
+                    min="12"
+                    max="20"
+                    step="1"
+                    value={preferences.editor.fontSize}
+                    onChange={(event) =>
+                      changeEditor(
+                        { fontSize: Number(event.currentTarget.value) },
+                        `Code text size changed to ${event.currentTarget.value} pixels.${unchanged}`,
+                      )
+                    }
+                  />
+                </label>
+                <PetraButton
+                  density="compact"
+                  variant="quiet"
+                  onClick={() =>
+                    resetPreference({ group: "editor", preference: "fontSize" })
+                  }
+                >
+                  Reset code text size
+                </PetraButton>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={preferences.editor.ligatures}
+                    onChange={(event) =>
+                      changeEditor(
+                        { ligatures: event.currentTarget.checked },
+                        `Code ligatures turned ${event.currentTarget.checked ? "on" : "off"}.${unchanged}`,
+                      )
+                    }
+                  />
+                  <span>
+                    <strong>Code ligatures</strong>
+                    <small>Off by default so operators remain literal.</small>
+                  </span>
+                </label>
+              </fieldset>
+              <pre
+                className="settings-code-preview"
+                aria-label="Code presentation preview"
+              >
+                <code>{`MATCH (claim:Claim)\nWHERE claim.authority = "proposal"\nRETURN claim.id // current Project`}</code>
+              </pre>
+            </div>
+          ) : null}
+
+          {section === "accessibility" ? (
+            <div className="settings-control-stack">
+              <fieldset>
+                <legend>Motion</legend>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={preferences.accessibility.reduceMotion}
+                    onChange={(event) =>
+                      changeAccessibility(
+                        { reduceMotion: event.currentTarget.checked },
+                        `Interface motion reduction turned ${event.currentTarget.checked ? "on" : "off"}.${unchanged}`,
+                      )
+                    }
+                  />
+                  <span>
+                    <strong>Reduce interface motion</strong>
+                    <small>
+                      The operating-system preference is always honored.
+                    </small>
+                  </span>
+                </label>
+              </fieldset>
+              <section className="settings-platform-note">
+                <h4>Platform accessibility stays in control</h4>
+                <p>
+                  Browser zoom, text reflow, forced colors, and the system
+                  reduced-motion preference continue to apply. Petra never uses
+                  this preference to hide focus, meaning, or status.
+                </p>
+                <PetraButton
+                  density="compact"
+                  onClick={() =>
+                    changeAppearance(
+                      { theme: "contrast" },
+                      `Theme changed to High Contrast.${unchanged}`,
+                    )
+                  }
+                >
+                  Use High Contrast
+                </PetraButton>
+              </section>
+            </div>
+          ) : null}
+        </div>
+      </div>
+
+      <div
+        className="settings-preference-feedback"
+        data-persistence={receipt.persistence}
+        role="status"
+        aria-live="polite"
+      >
+        <strong>{announcement}</strong>
+        <p>{persistenceMessage(receipt.persistence)}</p>
+        <p>
+          Scope: personal presentation on this device. Project controls, Project
+          content, drafts, and Work are unchanged.
+        </p>
+        {receipt.issues.length === 0 ? null : (
+          <ul>
+            {receipt.issues.map((issue, index) => (
+              <li key={`${issue.group}-${issue.preference ?? "all"}-${index}`}>
+                {issue.reason === "storage_unavailable"
+                  ? `Could not access device storage for ${issue.group}.`
+                  : `${issue.group}${issue.preference === undefined ? "" : ` · ${issue.preference}`} used a safe default because its saved value was invalid.`}
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="settings-preference-actions">
+          {receipt.persistence === "session_only" ? (
+            <PetraButton
+              density="compact"
+              variant="primary"
+              onClick={retryPersistence}
+            >
+              Retry saving
+            </PetraButton>
+          ) : null}
+          {receipt.canUndoReset ? (
+            <PetraButton density="compact" variant="quiet" onClick={undoReset}>
+              Undo reset
+            </PetraButton>
+          ) : null}
+          <PetraButton
+            density="compact"
+            variant="quiet"
+            onClick={() => resetPreference({ group: "all" })}
+          >
+            Reset all personal settings
+          </PetraButton>
+        </div>
+      </div>
+    </section>
+  );
+};
 
 export const SettingsSurface = ({
   selectedProject,
@@ -1797,8 +2298,8 @@ export const SettingsSurface = ({
   profiles?: PetraRegisteredProjectProfile[] | undefined;
   taxonomy?: PetraProjectProfileTaxonomyView | undefined;
 }): React.JSX.Element => {
-  const [theme, setTheme] = useState<ThemeChoice>("system");
-  const [density, setDensity] = useState("comfortable");
+  const personalPreferences = usePersonalPreferences();
+  const preferences = personalPreferences.receipt.preferences;
   const displayValue = (value: string | boolean | number | string[]): string =>
     Array.isArray(value) ? value.join(", ") : String(value);
   const sections =
@@ -1816,11 +2317,26 @@ export const SettingsSurface = ({
     <main
       className="settings-surface"
       id="reference-main"
-      data-petra-theme={theme}
+      data-petra-theme={preferences.appearance.theme}
+      data-petra-reduced-motion={
+        preferences.accessibility.reduceMotion || undefined
+      }
+      data-layout-preset={preferences.layout.preset}
+      style={
+        {
+          "--settings-map-width": `${preferences.layout.panels.map}px`,
+          "--settings-details-width": `${preferences.layout.panels.details}px`,
+          "--settings-assistant-width": `${preferences.layout.panels.assistant}px`,
+          "--settings-code-size": `${preferences.editor.fontSize}px`,
+          "--settings-code-ligatures": preferences.editor.ligatures
+            ? "normal"
+            : "none",
+        } as React.CSSProperties
+      }
     >
       <header className="reference-surface-heading">
         <div>
-          <p className="reference-eyebrow">Settings · this browser session</p>
+          <p className="reference-eyebrow">Settings · personal and Project</p>
           <h1>Settings</h1>
           <p className="reference-lede">
             Personal presentation choices remain separate from governed Project
@@ -1842,85 +2358,7 @@ export const SettingsSurface = ({
       </header>
 
       <div className="settings-layout">
-        <section
-          className="settings-section"
-          aria-labelledby="appearance-title"
-        >
-          <header>
-            <p className="reference-panel-kicker">Personal · session only</p>
-            <h2 id="appearance-title">Appearance</h2>
-          </header>
-          <fieldset>
-            <legend>Theme</legend>
-            {(["system", "stone", "graphite", "contrast"] as ThemeChoice[]).map(
-              (choice) => (
-                <label key={choice}>
-                  <input
-                    type="radio"
-                    name="theme"
-                    value={choice}
-                    checked={theme === choice}
-                    onChange={() => setTheme(choice)}
-                  />
-                  <span>
-                    {choice === "system"
-                      ? "Use system setting"
-                      : choice === "stone"
-                        ? "Petra Stone"
-                        : choice === "graphite"
-                          ? "Petra Graphite"
-                          : "High Contrast"}
-                  </span>
-                </label>
-              ),
-            )}
-          </fieldset>
-          <fieldset>
-            <legend>Control spacing</legend>
-            {(["comfortable", "compact"] as const).map((choice) => (
-              <label key={choice}>
-                <input
-                  type="radio"
-                  name="density"
-                  value={choice}
-                  checked={density === choice}
-                  onChange={() => setDensity(choice)}
-                />
-                <span>
-                  {choice === "comfortable" ? "Comfortable" : "Compact"}
-                </span>
-              </label>
-            ))}
-          </fieldset>
-          <p className="settings-persistence">
-            Current preview: {theme} theme, {density} controls. These choices
-            reset when this page reloads.
-          </p>
-        </section>
-
-        <section
-          className="settings-section"
-          aria-labelledby="accessibility-title"
-        >
-          <header>
-            <p className="reference-panel-kicker">Personal · inherited</p>
-            <h2 id="accessibility-title">Accessibility</h2>
-          </header>
-          <dl className="settings-readonly">
-            <div>
-              <dt>Reduced motion</dt>
-              <dd>Uses the operating system preference</dd>
-            </div>
-            <div>
-              <dt>Forced colors</dt>
-              <dd>Uses the browser and operating system preference</dd>
-            </div>
-            <div>
-              <dt>Text size</dt>
-              <dd>Uses browser zoom without changing task semantics</dd>
-            </div>
-          </dl>
-        </section>
+        <PersonalSettingsPanel controller={personalPreferences} />
 
         <section
           className="settings-section settings-project"

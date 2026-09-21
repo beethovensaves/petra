@@ -640,6 +640,94 @@
   margin-bottom: var(--petra-space-4);
 }
 
+.settings-section > header > p:last-child {
+  max-width: 48rem;
+  margin-bottom: 0;
+  color: var(--petra-text-secondary);
+}
+
+.settings-personal {
+  grid-column: 1 / -1;
+}
+
+.settings-personal-layout {
+  display: grid;
+  grid-template-columns: minmax(12rem, 0.7fr) minmax(0, 2fr);
+  gap: var(--petra-space-5);
+  align-items: start;
+}
+
+.settings-group-nav {
+  display: grid;
+  gap: var(--petra-space-1);
+}
+
+.settings-group-nav button,
+.settings-preset-row button {
+  min-height: 2.75rem;
+  border: var(--petra-rule-thin) solid transparent;
+  border-radius: var(--petra-radius-small);
+  padding: var(--petra-space-2) var(--petra-space-3);
+  color: var(--petra-text-secondary);
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.settings-group-nav button {
+  display: grid;
+  gap: var(--petra-space-1);
+}
+
+.settings-group-nav button span {
+  font-size: var(--petra-font-size-caption);
+}
+
+.settings-group-nav button:hover,
+.settings-preset-row button:hover {
+  color: var(--petra-text-primary);
+  background: var(--petra-surface-hover);
+}
+
+.settings-group-nav button[aria-current="page"],
+.settings-preset-row button[aria-pressed="true"] {
+  border-color: var(--petra-border-default);
+  color: var(--petra-text-primary);
+  background: var(--petra-surface-selection);
+  box-shadow: inset 3px 0 var(--petra-action-primary);
+}
+
+.settings-group-nav button:focus-visible,
+.settings-preset-row button:focus-visible {
+  outline: 2px solid var(--petra-focus-ring);
+  outline-offset: 2px;
+}
+
+.settings-preference-panel {
+  min-width: 0;
+  padding: var(--petra-space-4);
+  border: var(--petra-rule-thin) solid var(--petra-border-default);
+  border-radius: var(--petra-radius-medium);
+  background: var(--petra-surface-work);
+}
+
+.settings-preference-panel > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--petra-space-3);
+}
+
+.settings-preference-panel > header h3 {
+  margin-bottom: 0;
+}
+
+.settings-control-stack {
+  display: grid;
+  gap: var(--petra-space-3);
+}
+
 .settings-section fieldset {
   display: grid;
   gap: var(--petra-space-2);
@@ -655,10 +743,137 @@
 
 .settings-section fieldset label {
   display: flex;
-  min-height: var(--petra-target-min);
+  min-height: 2.75rem;
   align-items: center;
   gap: var(--petra-space-2);
   cursor: pointer;
+}
+
+.settings-section fieldset label > span {
+  display: grid;
+  gap: var(--petra-space-1);
+}
+
+.settings-section fieldset label small,
+.settings-section fieldset > p {
+  color: var(--petra-text-secondary);
+  font-size: var(--petra-font-size-caption);
+  line-height: var(--petra-line-height-body);
+}
+
+.settings-preset-row,
+.settings-preference-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--petra-space-2);
+}
+
+.settings-preference-panel .petra-button,
+.settings-preference-actions .petra-button {
+  min-height: 2.75rem;
+}
+
+.settings-section fieldset .settings-range-control {
+  display: grid;
+  gap: var(--petra-space-2);
+}
+
+.settings-range-control > span {
+  display: flex !important;
+  justify-content: space-between;
+  gap: var(--petra-space-3);
+}
+
+.settings-range-control output {
+  color: var(--petra-text-secondary);
+  font-family: var(--petra-font-mono);
+  font-size: var(--petra-font-size-caption);
+}
+
+.settings-range-control input {
+  width: 100%;
+}
+
+.settings-layout-preview {
+  min-width: 0;
+  display: flex;
+  min-height: 4.5rem;
+  gap: 2px;
+  padding: var(--petra-space-2);
+  border: var(--petra-rule-thin) solid var(--petra-border-default);
+  border-radius: var(--petra-radius-small);
+  background: var(--petra-surface-inset);
+}
+
+.settings-layout-preview span {
+  min-width: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: var(--petra-rule-thin) solid var(--petra-border-strong);
+  background: var(--petra-surface-panel);
+  font-size: var(--petra-font-size-caption);
+}
+
+.settings-layout-preview span:nth-child(1) {
+  flex: 1 1 var(--settings-map-width);
+}
+
+.settings-layout-preview span:nth-child(2) {
+  flex: 2 1 28rem;
+}
+
+.settings-layout-preview span:nth-child(3) {
+  flex: 1 1 var(--settings-details-width);
+}
+
+.settings-layout-preview span:nth-child(4) {
+  flex: 1 1 var(--settings-assistant-width);
+}
+
+.settings-code-preview {
+  overflow-x: auto;
+  margin: 0;
+  padding: var(--petra-space-4);
+  border-radius: var(--petra-radius-small);
+  color: var(--petra-code-foreground);
+  background: var(--petra-code-background);
+  font-size: var(--settings-code-size);
+  font-variant-ligatures: var(--settings-code-ligatures);
+  line-height: 1.6;
+}
+
+.settings-platform-note,
+.settings-preference-feedback {
+  padding: var(--petra-space-4);
+  border: var(--petra-rule-thin) solid var(--petra-border-default);
+  border-radius: var(--petra-radius-small);
+  color: var(--petra-text-secondary);
+  background: var(--petra-surface-inset);
+}
+
+.settings-platform-note p,
+.settings-preference-feedback p {
+  margin-bottom: var(--petra-space-2);
+}
+
+.settings-preference-feedback {
+  margin-top: var(--petra-space-5);
+  border-left: 3px solid var(--petra-tone-information);
+}
+
+.settings-preference-feedback[data-persistence="session_only"],
+.settings-preference-feedback[data-persistence="repair_required"] {
+  border-left-color: var(--petra-tone-caution);
+  background: var(--petra-tone-caution-soft);
+}
+
+.settings-preference-feedback > strong {
+  color: var(--petra-text-primary);
+}
+
+.settings-preference-feedback ul {
+  padding-left: var(--petra-space-5);
 }
 
 .settings-persistence,
@@ -732,8 +947,13 @@
   .history-layout,
   .history-event__layout,
   .history-filters > header,
-  .history-filters__grid {
+  .history-filters__grid,
+  .settings-personal-layout {
     grid-template-columns: 1fr;
+  }
+
+  .settings-group-nav {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .composition-outline {
@@ -788,6 +1008,19 @@
 
   .settings-project {
     grid-column: 1;
+  }
+
+  .settings-personal {
+    grid-column: 1;
+  }
+
+  .settings-group-nav {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-preference-panel > header {
+    align-items: stretch;
+    flex-direction: column;
   }
 }
 

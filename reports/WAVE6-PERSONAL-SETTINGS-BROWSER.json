@@ -1,0 +1,150 @@
+{
+  "schema_name": "petra.wave6-personal-settings-browser-evidence",
+  "schema_version": "1.0.0",
+  "status": "passed",
+  "executed_at": "2026-09-21T19:15:34.664Z",
+  "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:personal-settings-ui",
+  "operation_ids": ["settings.personal-change", "settings.personal-reset"],
+  "environment": {
+    "stable_url": "http://127.0.0.1:4311/settings?project=project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+    "browser": {
+      "product": "Chrome/153.0.8010.48",
+      "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "protocol_version": "1.3"
+    },
+    "transport": "production React Router and authenticated Petra HTTP reads through the stable Vite proxy",
+    "persistence": "browser device-local preference record plus fresh disposable PostgreSQL Project and Work authority"
+  },
+  "observation": {
+    "browser": {
+      "product": "Chrome/153.0.8010.48",
+      "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "protocol_version": "1.3"
+    },
+    "stable_url": "http://127.0.0.1:4311/settings?project=project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+    "project": {
+      "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+      "project_revision": 1,
+      "project_definition_id": "project_definition_01K4C000000000000000000001",
+      "project_definition_revision": 3,
+      "project_definition_hash": "sha256:e758d9c9bedc703e8495efe5e896ae067ff0add0c1fdd4464d707f60058f1bbf",
+      "composed_view_hash_before": "sha256:26d2b31ac0495d28f784bb564b786d36fa91fd4fa613f6b82f8341087babfd2b",
+      "composed_view_hash_after": "sha256:8e8415356860162f1581a8bfefbb2c6d6fb0ca616b021dcfed8746b18e90db72"
+    },
+    "work": {
+      "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+      "work_unit_ref": {
+        "work_unit_id": "work_unit_1M59PHH5NWTD9XKTJKGSQQ3ED0",
+        "revision": 4,
+        "spec_hash": "sha256:47da21c2931765fa3282c4400a7874a6e2cf8813799570f65073ec2ce927f59a",
+        "record_hash": "sha256:d995cb93759487ad5f9ef0d513af798b1e3b26c39ebc4e9de2bda925c08e3cc4"
+      },
+      "execution_state": "completed",
+      "terminal_outcome": "succeeded",
+      "composed_view_hash_before": "sha256:b4501bd506aab74bb0b9578eb40784327050dcbda5ca74ef886177a224015c4a",
+      "composed_view_hash_after": "sha256:b4501bd506aab74bb0b9578eb40784327050dcbda5ca74ef886177a224015c4a"
+    },
+    "personal_preferences": {
+      "changed_groups": ["appearance", "layout", "editor", "accessibility"],
+      "reload_retained": true,
+      "exact_control_reset": "editor.fontSize",
+      "group_reset": "editor",
+      "reset_undo_executed": true,
+      "unrelated_preferences_preserved": true,
+      "session_only_failure_visible": true,
+      "persistence_retry_succeeded": true,
+      "invalid_field_recovery": "layout.panels.map",
+      "unrelated_draft_preserved": true
+    },
+    "responsive_keyboard": {
+      "widths_executed": [1280, 390],
+      "keyboard_controls_used": true,
+      "visible_focus": true,
+      "accessibility_tree_checked": true,
+      "minimum_touch_target_pixels": 44,
+      "horizontal_overflow": false
+    },
+    "requests": [
+      {
+        "method": "GET",
+        "path": "/health",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/effective-controls",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/shell",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/queries/project-profiles",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/taxonomy?definition_revision=3",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/health",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/effective-controls",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/shell",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/queries/project-profiles",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/taxonomy?definition_revision=3",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/health",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/effective-controls",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/shell",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/queries/project-profiles",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/taxonomy?definition_revision=3",
+        "status": 200
+      }
+    ]
+  },
+  "boundary": "One isolated Chromium session used the production /settings route at the stable Petra URL with an exact PostgreSQL-backed Project target. Keyboard interaction changed all four personal preference groups, observed immediate app presentation, reloaded retained values, reset one exact control and one group without changing unrelated preferences, undid an exact reset, recovered a blocked device write through the visible session-only retry, repaired one invalid stored field without discarding valid values, and repeated the surface at 390 CSS pixels with visible keyboard focus, browser semantics, responsive reflow, and 44-pixel targets. The unchanged exact Project and durable Work identities, unrelated draft record, route context, and absence of server mutation prove the personal-device authority boundary; composed read hashes are retained separately because current projection presentation may advance independently. No fixture route or developer-only product instruction substituted for the workflow.",
+  "limitations": [
+    "This focused operation artifact does not claim any outstanding named evidence-plan scenario.",
+    "The stable URL is retained for this isolated execution and stops when the command completes; final long-lived user acceptance remains separate."
+  ]
+}

@@ -3,7 +3,14 @@ import {
   ProjectObjectiveEmptyBrief,
   type ProjectObjectiveReturnOutcome,
 } from "./ProjectObjectiveControl.js";
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
 import type {
   PetraProjectInquiryView,
   PetraSuggestedActionView,
@@ -50,6 +57,7 @@ import type { ProjectShellCollectionRequest } from "@petra/core";
 import type { SourceRevisionContext } from "./source-revision.js";
 import { SuggestedWorkAction } from "./SuggestedAction.js";
 import { projectWorkDestinationPath } from "./project-work-destination.js";
+import { usePersonalPreferences } from "./use-personal-preferences.js";
 import type {
   EngineState,
   ProjectPlace,
@@ -172,6 +180,8 @@ const SourceExtentLabel = ({ source }: { source: SourceRecord }) => (
 export const ProductFrame = (): React.JSX.Element => {
   const health = useLoaderData<EngineState>();
   const location = useLocation();
+  const { receipt: personalPreferences } = usePersonalPreferences();
+  const preferences = personalPreferences.preferences;
   const servicesReady = health.ok && health.accepting;
   const projectMatch = /^\/projects\/([^/]+)/u.exec(location.pathname);
   const guideTarget =
@@ -180,7 +190,23 @@ export const ProductFrame = (): React.JSX.Element => {
       : `/guide?project=${encodeURIComponent(projectMatch[1])}`;
 
   return (
-    <div className="reference-app">
+    <div
+      className="reference-app"
+      data-petra-theme={preferences.appearance.theme}
+      data-petra-reduced-motion={
+        preferences.accessibility.reduceMotion || undefined
+      }
+      data-personal-layout={preferences.layout.preset}
+      style={
+        {
+          "--petra-project-map-width": `${preferences.layout.panels.map}px`,
+          "--petra-editor-font-size": `${preferences.editor.fontSize}px`,
+          "--petra-editor-ligatures": preferences.editor.ligatures
+            ? "normal"
+            : "none",
+        } as CSSProperties
+      }
+    >
       <a className="reference-skip-link" href="#reference-main">
         Skip to main content
       </a>

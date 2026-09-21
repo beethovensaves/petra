@@ -2347,12 +2347,18 @@
       "surfaces": ["SP11"],
       "flows": ["UX-FLOW-17"],
       "requests": ["UX-REQ-020"],
-      "current_state": "presentation_only",
+      "current_state": "live",
       "route": "/settings",
       "control": "Personal preferences",
       "interaction": "local_command",
-      "evidence": [],
-      "runtime_owner": "",
+      "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:personal-settings-ui",
+          "artifact": "reports/WAVE6-PERSONAL-SETTINGS-BROWSER.json",
+          "boundary": "An isolated Chromium session changed Appearance, Layout, Editor, and Accessibility preferences through keyboard-operable controls on the production /settings route at the stable Petra URL. It observed immediate app presentation, device-local persistence across reload, session-only storage failure with exact retry, invalid-field repair that preserved valid values, 1280px and 390px responsive behavior, visible focus, browser semantics, 44px targets, the same Project route context, an unrelated draft, exact durable Work identity, and no server mutation."
+        }
+      ],
+      "runtime_owner": "apps/workbench/src/product/personal-preferences.ts PersonalPreferenceStore, consumed through use-personal-preferences.ts by the production Settings route, ProductFrame, and shell controls; one validated petra.shell.preferences.v1 device-local record owns immediate appearance, layout, editor, accessibility, reload, session-only retry, and repair outcomes without Project or Work authority",
       "paths": []
     },
     {
@@ -2362,12 +2368,18 @@
       "surfaces": ["SP11"],
       "flows": ["UX-FLOW-17"],
       "requests": ["UX-REQ-020"],
-      "current_state": "presentation_only",
+      "current_state": "live",
       "route": "/settings",
       "control": "Reset preferences",
       "interaction": "local_command",
-      "evidence": [],
-      "runtime_owner": "",
+      "evidence": [
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:personal-settings-ui",
+          "artifact": "reports/WAVE6-PERSONAL-SETTINGS-BROWSER.json",
+          "boundary": "The same stable-URL production execution reset editor.fontSize exactly, proved theme, layout, reduced motion, Project context, draft, and durable Work identity were unchanged, undid that reset, then reset the Editor group without changing other personal groups. It also repaired an invalid layout.panels.map field through scoped reset, retained valid preferences, exposed session-only failure and retry, and issued no server mutation."
+        }
+      ],
+      "runtime_owner": "apps/workbench/src/product/personal-preferences.ts PersonalPreferenceStore reset and undoLastReset owners, rendered by the production Settings route with exact control, group, and all-personal scopes; resets persist on-device when available and cannot change Project controls, Project content, drafts, or Work",
       "paths": []
     },
     {

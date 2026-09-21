@@ -418,7 +418,16 @@ describe("remaining neutral reference packets", () => {
     expect(markup).toContain("Petra Stone");
     expect(markup).toContain("Petra Graphite");
     expect(markup).toContain("High Contrast");
-    expect(markup).toContain("These choices reset when this page reloads");
+    expect(markup).toContain("Personal · this device");
+    expect(markup).toContain("Reset theme");
+    expect(markup).toContain("Reset all personal settings");
+    expect(markup).toContain(
+      "Applied for this session; could not save on this device.",
+    );
+    expect(markup).toContain(
+      "Project controls, Project content, drafts, and Work are unchanged.",
+    );
+    expect(markup).not.toContain("reset when this page reloads");
     expect(markup).toContain("Governed Project scope");
     expect(markup).toContain("Visibility: private");
     expect(markup).toContain("scholarly, personal");

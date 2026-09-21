@@ -27,112 +27,25 @@ import type {
   ShellObjectRef,
   ShellViewId,
 } from "./model.js";
+import {
+  PERSONAL_LAYOUT_PRESETS,
+  PERSONAL_PANEL_LIMITS,
+  type PersonalLayoutPreset,
+  type PersonalPanelLayout,
+  type PersonalTheme,
+} from "../product/personal-preferences.js";
+import { usePersonalPreferences } from "../product/use-personal-preferences.js";
 import "./research-shell.css";
 
-type ShellTheme = "system" | "stone" | "graphite" | "contrast";
-type LayoutPreset = "focus" | "review" | "graph" | "collaborate";
+type ShellTheme = PersonalTheme;
+type LayoutPreset = Exclude<PersonalLayoutPreset, "custom">;
+type PanelLayout = PersonalPanelLayout;
 
-interface PanelLayout {
-  map: number;
-  details: number;
-  assistant: number;
-}
-
-const PANEL_LIMITS = {
-  map: { min: 176, max: 320 },
-  details: { min: 304, max: 520 },
-  assistant: { min: 240, max: 400 },
-} as const;
-
-const LAYOUT_PRESETS: Record<LayoutPreset, PanelLayout> = {
-  focus: { map: 192, details: 320, assistant: 248 },
-  review: { map: 216, details: 376, assistant: 272 },
-  graph: { map: 184, details: 336, assistant: 248 },
-  collaborate: { map: 192, details: 336, assistant: 352 },
-};
-
-const DEFAULT_LAYOUT = LAYOUT_PRESETS.review;
-const SHELL_PREFERENCES_KEY = "petra.shell.preferences.v1";
-
-interface ShellPreferences {
-  theme: ShellTheme;
-  layout: PanelLayout;
-  activePreset: LayoutPreset | "custom";
-  editorFontSize: number;
-  editorLigatures: boolean;
-  reducedMotion: boolean;
-  mapCollapsed: boolean;
-  assistantCollapsed: boolean;
-}
-
-const DEFAULT_PREFERENCES: ShellPreferences = {
-  theme: "stone",
-  layout: DEFAULT_LAYOUT,
-  activePreset: "review",
-  editorFontSize: 14,
-  editorLigatures: false,
-  reducedMotion: false,
-  mapCollapsed: false,
-  assistantCollapsed: true,
-};
+const PANEL_LIMITS = PERSONAL_PANEL_LIMITS;
+const LAYOUT_PRESETS = PERSONAL_LAYOUT_PRESETS;
 
 const clamp = (value: number, min: number, max: number): number =>
   Math.min(max, Math.max(min, value));
-
-const readShellPreferences = (): ShellPreferences => {
-  if (typeof window === "undefined") return DEFAULT_PREFERENCES;
-  try {
-    const parsed = JSON.parse(
-      window.localStorage.getItem(SHELL_PREFERENCES_KEY) ?? "null",
-    ) as Partial<ShellPreferences> | null;
-    if (parsed === null) return DEFAULT_PREFERENCES;
-
-    const themes: ShellTheme[] = ["system", "stone", "graphite", "contrast"];
-    const presets: Array<LayoutPreset | "custom"> = [
-      "focus",
-      "review",
-      "graph",
-      "collaborate",
-      "custom",
-    ];
-    const layout = parsed.layout ?? DEFAULT_LAYOUT;
-    return {
-      theme:
-        parsed.theme !== undefined && themes.includes(parsed.theme)
-          ? parsed.theme
-          : DEFAULT_PREFERENCES.theme,
-      layout: {
-        map: clamp(
-          layout.map ?? DEFAULT_LAYOUT.map,
-          PANEL_LIMITS.map.min,
-          PANEL_LIMITS.map.max,
-        ),
-        details: clamp(
-          layout.details ?? DEFAULT_LAYOUT.details,
-          PANEL_LIMITS.details.min,
-          PANEL_LIMITS.details.max,
-        ),
-        assistant: clamp(
-          layout.assistant ?? DEFAULT_LAYOUT.assistant,
-          PANEL_LIMITS.assistant.min,
-          PANEL_LIMITS.assistant.max,
-        ),
-      },
-      activePreset:
-        parsed.activePreset !== undefined &&
-        presets.includes(parsed.activePreset)
-          ? parsed.activePreset
-          : "custom",
-      editorFontSize: clamp(parsed.editorFontSize ?? 14, 12, 20),
-      editorLigatures: parsed.editorLigatures ?? false,
-      reducedMotion: parsed.reducedMotion ?? false,
-      mapCollapsed: parsed.mapCollapsed ?? false,
-      assistantCollapsed: parsed.assistantCollapsed ?? false,
-    };
-  } catch {
-    return DEFAULT_PREFERENCES;
-  }
-};
 
 const ObjectIdentity = ({
   object,
@@ -941,42 +854,38 @@ export const ResearchShell = ({
   initialLayout?: PanelLayout;
   initialAssistantCollapsed?: boolean;
 }): React.JSX.Element => {
-  const storedPreferences = useRef(readShellPreferences()).current;
-  const initialPreferences = useRef<ShellPreferences>({
-    ...storedPreferences,
-    theme: initialTheme ?? storedPreferences.theme,
-    layout: initialLayout ?? storedPreferences.layout,
-    assistantCollapsed:
-      initialAssistantCollapsed ?? storedPreferences.assistantCollapsed,
-  }).current;
+  const personalSettings = usePersonalPreferences({
+    ...(initialTheme === undefined
+      ? {}
+      : { appearance: { theme: initialTheme } }),
+    ...(initialLayout === undefined && initialAssistantCollapsed === undefined
+      ? {}
+      : {
+          layout: {
+            ...(initialLayout === undefined ? {} : { panels: initialLayout }),
+            ...(initialAssistantCollapsed === undefined
+              ? {}
+              : { assistantCollapsed: initialAssistantCollapsed }),
+          },
+        }),
+  });
+  const preferences = personalSettings.receipt.preferences;
+  const theme = preferences.appearance.theme;
+  const layout = preferences.layout.panels;
+  const activePreset = preferences.layout.preset;
+  const editorFontSize = preferences.editor.fontSize;
+  const editorLigatures = preferences.editor.ligatures;
+  const reducedMotion = preferences.accessibility.reduceMotion;
+  const mapCollapsed = preferences.layout.mapCollapsed;
+  const assistantCollapsed = preferences.layout.assistantCollapsed;
   const [activeView, setActiveView] = useState<ShellViewId>(
     initialView ?? model.initialView,
   );
   const [detailsOpen, setDetailsOpen] = useState(
     (initialView ?? model.initialView) !== "graph",
   );
-  const [assistantCollapsed, setAssistantCollapsed] = useState(
-    initialPreferences.assistantCollapsed,
-  );
   const [mapOpen, setMapOpen] = useState(false);
-  const [mapCollapsed, setMapCollapsed] = useState(
-    initialPreferences.mapCollapsed,
-  );
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [theme, setTheme] = useState<ShellTheme>(initialPreferences.theme);
-  const [layout, setLayout] = useState<PanelLayout>(initialPreferences.layout);
-  const [activePreset, setActivePreset] = useState<LayoutPreset | "custom">(
-    initialPreferences.activePreset,
-  );
-  const [editorFontSize, setEditorFontSize] = useState(
-    initialPreferences.editorFontSize,
-  );
-  const [editorLigatures, setEditorLigatures] = useState(
-    initialPreferences.editorLigatures,
-  );
-  const [reducedMotion, setReducedMotion] = useState(
-    initialPreferences.reducedMotion,
-  );
   const [narrowLayout, setNarrowLayout] = useState(false);
 
   useEffect(() => {
@@ -986,36 +895,6 @@ export const ResearchShell = ({
     query.addEventListener("change", sync);
     return () => query.removeEventListener("change", sync);
   }, []);
-
-  useEffect(() => {
-    const preferences: ShellPreferences = {
-      theme,
-      layout,
-      activePreset,
-      editorFontSize,
-      editorLigatures,
-      reducedMotion,
-      mapCollapsed,
-      assistantCollapsed,
-    };
-    try {
-      window.localStorage.setItem(
-        SHELL_PREFERENCES_KEY,
-        JSON.stringify(preferences),
-      );
-    } catch {
-      // The shell remains usable when browser storage is blocked.
-    }
-  }, [
-    activePreset,
-    assistantCollapsed,
-    editorFontSize,
-    editorLigatures,
-    layout,
-    mapCollapsed,
-    reducedMotion,
-    theme,
-  ]);
 
   const focusElement = (id: string): void => {
     requestAnimationFrame(() => {
@@ -1040,7 +919,10 @@ export const ResearchShell = ({
   };
 
   const openMap = (): void => {
-    setMapCollapsed(false);
+    personalSettings.changeLayout(
+      { mapCollapsed: false },
+      "Research map shown and saved on this device.",
+    );
     setMapOpen(narrowLayout);
     requestAnimationFrame(() => {
       document
@@ -1055,7 +937,10 @@ export const ResearchShell = ({
   };
 
   const collapseMap = (): void => {
-    setMapCollapsed(true);
+    personalSettings.changeLayout(
+      { mapCollapsed: true },
+      "Research map hidden and saved on this device.",
+    );
     setMapOpen(false);
     focusElement("shell-map-toggle");
   };
@@ -1068,24 +953,24 @@ export const ResearchShell = ({
   };
 
   const updateLayout = (next: PanelLayout): void => {
-    setLayout(next);
-    setActivePreset("custom");
+    personalSettings.changeLayout(
+      { panels: next, preset: "custom" },
+      "Custom panel widths saved on this device.",
+    );
   };
 
   const applyPreset = (preset: LayoutPreset): void => {
-    setLayout(LAYOUT_PRESETS[preset]);
-    setActivePreset(preset);
+    personalSettings.changeLayout(
+      { panels: LAYOUT_PRESETS[preset], preset },
+      `${preset} layout saved on this device.`,
+    );
   };
 
   const resetWorkspace = (): void => {
-    setTheme("stone");
-    setLayout(DEFAULT_LAYOUT);
-    setActivePreset("review");
-    setEditorFontSize(14);
-    setEditorLigatures(false);
-    setReducedMotion(false);
-    setMapCollapsed(false);
-    setAssistantCollapsed(true);
+    personalSettings.reset(
+      { group: "all" },
+      "All personal workspace settings returned to Petra defaults.",
+    );
   };
 
   const shellStyle = {
@@ -1174,7 +1059,12 @@ export const ResearchShell = ({
           <PetraButton
             density="compact"
             variant="quiet"
-            onClick={() => setAssistantCollapsed(false)}
+            onClick={() =>
+              personalSettings.changeLayout(
+                { assistantCollapsed: false },
+                "Petra panel expanded and saved on this device.",
+              )
+            }
           >
             Review requested work ({model.context.attentionWorkCount})
           </PetraButton>
@@ -1327,7 +1217,12 @@ export const ResearchShell = ({
               }
               variant="quiet"
               aria-expanded={!assistantCollapsed}
-              onClick={() => setAssistantCollapsed((collapsed) => !collapsed)}
+              onClick={() =>
+                personalSettings.changeLayout(
+                  { assistantCollapsed: !assistantCollapsed },
+                  `Petra panel ${assistantCollapsed ? "expanded" : "collapsed"} and saved on this device.`,
+                )
+              }
             />
           </header>
           {assistantCollapsed ? (
@@ -1403,12 +1298,32 @@ export const ResearchShell = ({
         editorLigatures={editorLigatures}
         reducedMotion={reducedMotion}
         onClose={() => setSettingsOpen(false)}
-        onThemeChange={setTheme}
+        onThemeChange={(nextTheme) =>
+          personalSettings.changeAppearance(
+            { theme: nextTheme },
+            `${nextTheme} theme saved on this device.`,
+          )
+        }
         onLayoutChange={updateLayout}
         onPresetChange={applyPreset}
-        onEditorFontSizeChange={setEditorFontSize}
-        onEditorLigaturesChange={setEditorLigatures}
-        onReducedMotionChange={setReducedMotion}
+        onEditorFontSizeChange={(fontSize) =>
+          personalSettings.changeEditor(
+            { fontSize },
+            "Code text size saved on this device.",
+          )
+        }
+        onEditorLigaturesChange={(ligatures) =>
+          personalSettings.changeEditor(
+            { ligatures },
+            "Code ligature preference saved on this device.",
+          )
+        }
+        onReducedMotionChange={(reduceMotion) =>
+          personalSettings.changeAccessibility(
+            { reduceMotion },
+            "Motion preference saved on this device.",
+          )
+        }
         onReset={resetWorkspace}
       />
     </section>

@@ -52,6 +52,13 @@
   font: inherit;
 }
 
+.reference-app pre,
+.reference-app code,
+.reference-app .composition-editor .petra-field__textarea {
+  font-size: var(--petra-editor-font-size, inherit);
+  font-variant-ligatures: var(--petra-editor-ligatures, none);
+}
+
 .reference-skip-link {
   position: fixed;
   z-index: 100;
@@ -603,7 +610,7 @@
 .reference-project-layout {
   display: grid;
   min-height: calc(100vh - 7.25rem);
-  grid-template-columns: 15rem minmax(0, 1fr);
+  grid-template-columns: var(--petra-project-map-width, 15rem) minmax(0, 1fr);
 }
 
 .reference-project-nav {
