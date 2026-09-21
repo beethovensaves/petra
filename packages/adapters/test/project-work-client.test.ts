@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 
 import type {
+  PetraProjectWorkReadView,
   PetraProjectWorkOperationReceipt,
   PetraProjectWorkOperationRequest,
   PetraProjectWorkOperationsView,
@@ -39,6 +40,12 @@ const receipt = readFixture<PetraProjectWorkOperationReceipt>(
 const view = readFixture<PetraProjectWorkOperationsView>(
   "project-work-operations-view",
 );
+const collection = readFixture<PetraProjectWorkReadView>(
+  "project-work-view-collection",
+);
+const detail = readFixture<PetraProjectWorkReadView>(
+  "project-work-view-detail",
+);
 const resumableView = readFixture<PetraProjectWorkOperationsView>(
   "project-work-operations-view-resumable",
 );
@@ -60,6 +67,88 @@ const outputRecordHash = `sha256:${createHash("sha256")
   .digest("hex")}`;
 
 describe("ProjectWorkClient", () => {
+  it("authenticates and validates exact Work collection and detail reads", async () => {
+    const requests: string[] = [];
+    const fetch = vi.fn((input: URL | RequestInfo, init?: RequestInit) => {
+      const url =
+        input instanceof Request
+          ? input.url
+          : input instanceof URL
+            ? input.href
+            : input;
+      requests.push(url);
+      expect(new Headers(init?.headers).get("authorization")).toBe(
+        "Bearer work-token",
+      );
+      return Promise.resolve(
+        Response.json(requests.length === 1 ? collection : detail),
+      );
+    });
+    const client = new ProjectWorkClient({
+      baseUrl: "http://petra.local",
+      token: "work-token",
+      fetch,
+    });
+    const workUnitId =
+      detail.content.view_kind === "detail"
+        ? detail.content.summary.work_unit_ref.work_unit_id
+        : "";
+
+    await expect(client.list(collection.project_id)).resolves.toStrictEqual(
+      collection,
+    );
+    await expect(
+      client.read(detail.project_id, workUnitId),
+    ).resolves.toStrictEqual(detail);
+    expect(requests).toEqual([
+      `http://petra.local/api/queries/projects/${collection.project_id}/work`,
+      `http://petra.local/api/queries/projects/${detail.project_id}/work/${workUnitId}`,
+    ]);
+  });
+
+  it("rejects crossed Work collection and detail identities", async () => {
+    let call = 0;
+    const fetch = vi.fn(() => {
+      call += 1;
+      return Promise.resolve(
+        Response.json(
+          call === 1
+            ? {
+                ...collection,
+                content: {
+                  ...collection.content,
+                  query: { limit: 25 },
+                },
+              }
+            : {
+                ...detail,
+                project_id: "project_01ARZ3NDEKTSV4RRFFQ69G5FZZ",
+              },
+        ),
+      );
+    });
+    const client = new ProjectWorkClient({
+      baseUrl: "http://petra.local",
+      token: "work-token",
+      fetch,
+    });
+    const workUnitId =
+      detail.content.view_kind === "detail"
+        ? detail.content.summary.work_unit_ref.work_unit_id
+        : "";
+
+    await expect(client.list(collection.project_id)).rejects.toEqual(
+      expect.objectContaining<Partial<ProjectWorkClientError>>({
+        code: "PROJECT_WORK_RESPONSE_INVALID",
+      }),
+    );
+    await expect(client.read(detail.project_id, workUnitId)).rejects.toEqual(
+      expect.objectContaining<Partial<ProjectWorkClientError>>({
+        code: "PROJECT_WORK_RESPONSE_INVALID",
+      }),
+    );
+  });
+
   it("authenticates and validates the exact composed Work read", async () => {
     const fetch = vi.fn((input: URL | RequestInfo, init?: RequestInit) => {
       const url =

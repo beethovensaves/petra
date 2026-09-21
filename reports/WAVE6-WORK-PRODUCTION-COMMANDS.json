@@ -2,13 +2,16 @@
   "evidence_id": "UX1.6-WORK",
   "scenario_id": "start-input-steer-cancel-retry",
   "status": "passed",
-  "executed_at": "2026-09-20T21:48:52.342Z",
+  "executed_at": "2026-09-21T14:39:25.381Z",
   "command": "npm run test:wave6:work",
   "database": "fresh disposable PostgreSQL 18.6 with Flyway V001-V058",
   "production_boundary": {
     "server": "startPetraServer over an ephemeral TCP port",
     "client": "ProjectWorkClient",
+    "collection_query": "GET /api/queries/projects/:projectId/work",
+    "detail_query": "GET /api/queries/projects/:projectId/work/:workUnitId",
     "query": "GET /api/queries/projects/:projectId/work/:workUnitId/operations",
+    "result_query": "GET /api/queries/projects/:projectId/worker-output-manifests/:workerOutputManifestId",
     "command": "POST /api/commands/projects/:projectId/work/:workUnitId",
     "resume_command": "POST /api/commands/projects/:projectId/work/:workUnitId/resume",
     "start_again_command": "POST /api/commands/projects/:projectId/work/:workUnitId/start-again",
@@ -177,10 +180,17 @@
           "object_id": "worker_output_manifest_01K6P000000000000000000802",
           "revision": 1
         }
-      }
+      },
+      "opened_through_production_http": true
+    },
+    "work_reads": {
+      "collection_returned_count": 5,
+      "collection_contains_completed_work": true,
+      "detail_work_unit_id": "work_unit_01K6P000000000000000000802",
+      "detail_execution_state": "completed"
     },
     "http": {
-      "requests": 21,
+      "requests": 24,
       "failed_requests": 1,
       "invoked_paths": [
         "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/work/work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2/operations",
@@ -189,9 +199,12 @@
         "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/work/work_unit_01K6P000000000000000000802/operations",
         "/api/commands/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/work/work_unit_01K6P000000000000000000802",
         "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/work/work_unit_01K6P000000000000000000803/operations",
-        "/api/commands/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/work/work_unit_01K6P000000000000000000803/resume"
+        "/api/commands/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/work/work_unit_01K6P000000000000000000803/resume",
+        "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/work",
+        "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/work/work_unit_01K6P000000000000000000802",
+        "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/worker-output-manifests/worker_output_manifest_01K6P000000000000000000802"
       ]
     }
   },
-  "boundary": "Executes authenticated production Work reads and commands against a fresh real PostgreSQL store, including one trusted exact-checkpoint compatibility registration, same-Work resume, one workflow-specific fresh-input registration, authenticated Start again into distinct Work attempt 1, immutable prior-attempt lineage, and restart-visible exact replay. Worker registration, fresh-input Work preparation, checkpoint creation, failure injection, and output completion are trusted worker-side setup; no React/browser usability claim is made."
+  "boundary": "Executes authenticated production Work collection, detail, operations, command, and exact-result reads against a fresh real PostgreSQL store, including one trusted exact-checkpoint compatibility registration, same-Work resume, one workflow-specific fresh-input registration, authenticated Start again into distinct Work attempt 1, immutable prior-attempt lineage, and restart-visible exact replay. Worker registration, fresh-input Work preparation, checkpoint creation, failure injection, and output completion are trusted worker-side setup; no React/browser usability claim is made."
 }
