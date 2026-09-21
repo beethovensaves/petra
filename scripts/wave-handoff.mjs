@@ -462,19 +462,11 @@ export function mergeOperationInventoryDocuments(
             ]),
           );
           value = [...unique.values()];
-        } else if (
-          key === "runtime_owner" &&
-          !isDeepStrictEqual(oursValue, baseValue) &&
-          !isDeepStrictEqual(theirsValue, baseValue) &&
-          !isDeepStrictEqual(oursValue, theirsValue)
-        ) {
-          value = theirsValue;
-        } else if (
-          key === "current_state" &&
-          !isDeepStrictEqual(oursValue, baseValue) &&
-          !isDeepStrictEqual(theirsValue, baseValue) &&
-          !isDeepStrictEqual(oursValue, theirsValue)
-        ) {
+        } else if (key === "runtime_owner") {
+          value = !isDeepStrictEqual(theirsValue, baseValue)
+            ? theirsValue
+            : oursValue;
+        } else if (key === "current_state") {
           value = oursValue;
         } else {
           value = mergeJsonValue(

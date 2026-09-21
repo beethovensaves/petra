@@ -597,7 +597,7 @@ test("merges concurrent design evidence with the precise backend runtime owner",
     operations: [
       {
         id: "work.open",
-        current_state: "partial",
+        current_state: "live",
         runtime_owner: "",
         evidence: [],
       },
@@ -608,7 +608,6 @@ test("merges concurrent design evidence with the precise backend runtime owner",
     operations: [
       {
         ...base.operations[0],
-        current_state: "live",
         runtime_owner: "GET /work/:id -> reader",
         evidence: [{ artifact: "design-browser.json" }],
       },
@@ -619,6 +618,7 @@ test("merges concurrent design evidence with the precise backend runtime owner",
     operations: [
       {
         ...base.operations[0],
+        current_state: "partial",
         runtime_owner: "ProjectWorkClient.read -> GET /work/:id -> reader",
         evidence: [{ artifact: "backend-authority.json" }],
       },
