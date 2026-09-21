@@ -226,6 +226,30 @@ try {
     );
     process.stdout.write(projectCreateEvidence.stdout);
   }
+  if (
+    process.env.PETRA_WAVE6_TAXONOMY_GUIDE_RESET_EVIDENCE_OUTPUT !== undefined
+  ) {
+    const taxonomyGuideResetEvidence = await requireRun(
+      "npm",
+      [
+        "test",
+        "--workspace",
+        "@petra/server",
+        "--",
+        "project-taxonomy-guide-reset-integration.test.ts",
+      ],
+      {
+        env: {
+          PETRA_TEST_POSTGRES_URL: `postgresql://petra:petra-m12-integration-only@127.0.0.1:${port}/petra`,
+          PETRA_WAVE6_TAXONOMY_GUIDE_RESET_EVIDENCE_OUTPUT: resolve(
+            root,
+            process.env.PETRA_WAVE6_TAXONOMY_GUIDE_RESET_EVIDENCE_OUTPUT,
+          ),
+        },
+      },
+    );
+    process.stdout.write(taxonomyGuideResetEvidence.stdout);
+  }
   const postgresTestArgs = ["test", "--workspace", "@petra/postgres"];
   if (process.env.PETRA_WAVE6_ACTIONS_ONLY === "1") {
     postgresTestArgs.push(

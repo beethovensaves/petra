@@ -346,19 +346,12 @@
       "persistence": "Device-local persistence only; cross-device synchronization is explicitly outside the accepted Wave 6 backend boundary.",
       "recovery": "Scoped reset returns to product defaults without changing Project controls or domain records."
     },
-    "client-guide-missing": {
-      "kind": "missing",
-      "production_owner": "",
-      "authorization": "The guide is browser-owned and may link only to supported routes/actions; no visible production owner currently exists.",
-      "persistence": "No server persistence is required for the guide itself.",
-      "recovery": "It must retain the stable URL, starting state, expected outcomes, safe mutations, reset action, and known limits."
-    },
-    "application-reset-partial": {
-      "kind": "partial",
-      "production_owner": "POST /api/commands/projects/:projectId/reset -> PostgresProjectProfileRuntime",
-      "authorization": "Bearer authentication plus the server-configured registered human, exact current Project revision, and creator ownership.",
-      "persistence": "Reset atomically archives the selected Project and creates a new Project/definition/objective from one exact registered profile while preserving unrelated Projects.",
-      "recovery": "An immutable idempotent receipt supplies the resulting Brief destination; the design-owned representative-data setup and stable-URL reset control remain incomplete."
+    "client-guide": {
+      "kind": "client",
+      "production_owner": "Production React /guide route over authenticated GET /api/queries/projects and GET /api/queries/project-profiles production reads",
+      "authorization": "The guide performs no authority effect and may link only to supported routes and actions bound to server-returned Project and profile identities.",
+      "persistence": "No separate guide persistence is required; PostgreSQL Project/profile reads supply the representative starting state and the stable browser route retains local task progress.",
+      "recovery": "The guide retains its stable route, starting state, expected outcomes, safe mutations, exact reset destination, and known limits without implying a command result."
     }
   },
   "operations": [
@@ -934,15 +927,15 @@
     },
     {
       "operation_id": "application.guide",
-      "owner": "client-guide-missing",
-      "owner_status": "missing",
-      "missing_owner": "Visible in-product guide owner on the stable production URL (design-owned; no backend contract required)."
+      "owner": "client-guide",
+      "owner_status": "client_owned",
+      "missing_owner": ""
     },
     {
       "operation_id": "application.reset",
-      "owner": "application-reset-partial",
-      "owner_status": "partial",
-      "missing_owner": "Representative-data setup plus the stable-URL reset control and exact guide return remain design/integration owned."
+      "owner": "project-profile-command",
+      "owner_status": "owned",
+      "missing_owner": ""
     }
   ]
 }

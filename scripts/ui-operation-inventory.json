@@ -267,7 +267,13 @@
       "route": "/projects/:projectId",
       "control": "Project map",
       "interaction": "navigation",
-      "evidence": [],
+      "evidence": [
+        {
+          "command": "npm run test:wave6:taxonomy-guide-reset",
+          "artifact": "reports/WAVE6-TAXONOMY-GUIDE-RESET-AUTHORITY.json",
+          "boundary": "Fresh PostgreSQL, the production HTTP server, bearer authentication, ProjectShellClient, and ProjectProfileClient bind one exact Project shell and ProjectDefinition to the same versioned taxonomy before an additive reset, then retain the replacement binding after restart. This backend trace does not activate the visible Project map, perform browser navigation, or claim either design-owned named scenario."
+        }
+      ],
       "runtime_owner": "GET /api/queries/projects/:projectId/taxonomy -> PostgresProjectProfileRuntime",
       "paths": ["UX-PATH-01", "UX-PATH-02", "UX-PATH-03", "UX-PATH-04"]
     },
@@ -1960,7 +1966,13 @@
       "route": "/projects/:projectId/profile",
       "control": "Project profile",
       "interaction": "query",
-      "evidence": [],
+      "evidence": [
+        {
+          "command": "npm run test:wave6:taxonomy-guide-reset",
+          "artifact": "reports/WAVE6-TAXONOMY-GUIDE-RESET-AUTHORITY.json",
+          "boundary": "Fresh PostgreSQL and the authenticated production taxonomy query return exact, complete, and visibly distinct scientific-evidence and controlled-writing profile purposes, sections, terminology, supported places, and unavailable operations through ProjectProfileClient, while an unknown selection fails without fallback semantics. This backend trace does not inspect the visible taxonomy surface or claim UX1.6-TAXONOMY/usable-profile-ui."
+        }
+      ],
       "runtime_owner": "GET /api/queries/projects/:projectId/taxonomy -> PostgresProjectProfileRuntime",
       "paths": ["UX-PATH-03"]
     },
@@ -1975,7 +1987,13 @@
       "route": "/",
       "control": "Choose profile",
       "interaction": "command",
-      "evidence": [],
+      "evidence": [
+        {
+          "command": "npm run test:wave6:taxonomy-guide-reset",
+          "artifact": "reports/WAVE6-TAXONOMY-GUIDE-RESET-AUTHORITY.json",
+          "boundary": "Fresh PostgreSQL, authenticated production commands, and ProjectProfileClient select exact registered scientific and controlled-writing profile references for initial Project creation and additive replacement, persist Project-owned definition and Objective authority, reject an unknown profile without creating fallback state, and replay the same receipts before and after restart. This backend trace does not activate the visible profile-choice control or claim UX1.6-TAXONOMY/usable-profile-ui."
+        }
+      ],
       "runtime_owner": "POST /api/commands/projects and POST /api/commands/projects/:projectId/reset -> PostgresProjectProfileRuntime",
       "paths": ["UX-PATH-03"]
     },
@@ -2633,7 +2651,13 @@
       "route": "/guide",
       "control": "Test guide",
       "interaction": "navigation",
-      "evidence": [],
+      "evidence": [
+        {
+          "command": "npm run test:wave6:taxonomy-guide-reset",
+          "artifact": "reports/WAVE6-TAXONOMY-GUIDE-RESET-AUTHORITY.json",
+          "boundary": "Fresh PostgreSQL, authenticated GET /api/queries/projects, and GET /api/queries/project-profiles expose a retained active representative Project, its exact Brief destination, and paired registered profiles after server restart—the production data prerequisites consumed by /guide. This backend trace does not open the React guide, follow its task links, prove a stable browser URL, or claim USER-TESTABLE-01/stable-url-clean-start-reset."
+        }
+      ],
       "runtime_owner": "Production React /guide route over GET /api/queries/projects and GET /api/queries/project-profiles",
       "paths": ["UX-PATH-01", "UX-PATH-03", "UX-PATH-04"]
     },
@@ -2648,7 +2672,13 @@
       "route": "/settings?project=:projectId",
       "control": "Choose replacement profile",
       "interaction": "command",
-      "evidence": [],
+      "evidence": [
+        {
+          "command": "npm run test:wave6:taxonomy-guide-reset",
+          "artifact": "reports/WAVE6-TAXONOMY-GUIDE-RESET-AUTHORITY.json",
+          "boundary": "Fresh PostgreSQL and the authenticated production reset/recovery routes archive the exact expected Project revision, create one registered-profile replacement and exact Brief destination, preserve the unknown-effect recovery path, and replay one retained receipt before and after server restart without duplication. This backend trace does not activate the visible reset control, return through the guide, prove a stable browser URL, or claim USER-TESTABLE-01/stable-url-clean-start-reset."
+        }
+      ],
       "runtime_owner": "POST /api/commands/projects/:projectId/reset -> PostgresProjectProfileRuntime",
       "paths": ["UX-PATH-01", "UX-PATH-03", "UX-PATH-04"]
     }
