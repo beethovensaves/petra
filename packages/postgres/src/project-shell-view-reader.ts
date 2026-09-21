@@ -9,9 +9,11 @@ import type {
   PetraProjectShellCollectionView,
   PetraProjectShellViewV11,
   PetraProjectShellViewV12,
+  PetraProjectShellViewV13,
   PetraProjectionCheckpoint,
   ProjectShellContentV11,
   ProjectShellContentV12,
+  ProjectShellContentV13,
   ProjectShellPlaceSummary,
   ProjectShellProjectionSummary,
 } from "@petra/contracts";
@@ -27,6 +29,7 @@ import { canonicalize } from "json-canonicalize";
 import type { Pool, PoolClient } from "pg";
 
 import { PostgresProjectObjectLocationViewReader } from "./project-object-location-view-reader.js";
+import { PostgresProjectWorkViewReader } from "./project-work-view-reader.js";
 
 export type PostgresProjectShellViewErrorCode =
   | "PROJECT_SHELL_COLLECTION_REQUEST_INVALID"
@@ -124,7 +127,7 @@ export class PostgresProjectShellViewReader implements ProjectShellViewReader {
       const projects: PetraProjectShellViewV12[] = [];
       for (const row of selected) {
         projects.push(
-          await this.#compose(client, row, readAt, undefined, true),
+          await this.#compose(client, row, readAt, undefined, true, false),
         );
       }
       const totalCount = await this.#collectionTotalCount(client, query);
@@ -155,7 +158,9 @@ export class PostgresProjectShellViewReader implements ProjectShellViewReader {
       const rows = await this.#selectShellRows(client);
       const views: PetraProjectShellViewV12[] = [];
       for (const row of rows) {
-        views.push(await this.#compose(client, row, readAt, undefined, true));
+        views.push(
+          await this.#compose(client, row, readAt, undefined, true, false),
+        );
       }
       return views;
     });
@@ -164,13 +169,13 @@ export class PostgresProjectShellViewReader implements ProjectShellViewReader {
   async getProjectShellView(
     projectId: string,
     selection?: ProjectShellSelectionRequest,
-  ): Promise<PetraProjectShellViewV12 | undefined> {
+  ): Promise<PetraProjectShellViewV13 | undefined> {
     return this.#readTransaction(async (client, readAt) => {
       const rows = await this.#selectShellRows(client, projectId);
       const row = rows[0];
       return row === undefined
         ? undefined
-        : await this.#compose(client, row, readAt, selection, true);
+        : await this.#compose(client, row, readAt, selection, true, true);
     });
   }
 
@@ -185,7 +190,7 @@ export class PostgresProjectShellViewReader implements ProjectShellViewReader {
     const row = rows[0];
     return row === undefined
       ? undefined
-      : await this.#compose(client, row, readAt, selection, false);
+      : await this.#compose(client, row, readAt, selection, false, false);
   }
 
   #collectionQuery(
@@ -395,6 +400,15 @@ export class PostgresProjectShellViewReader implements ProjectShellViewReader {
     readAt: string,
     selection: ProjectShellSelectionRequest | undefined,
     includeResume: true,
+    includeAttentionWork: true,
+  ): Promise<PetraProjectShellViewV13>;
+  async #compose(
+    client: PoolClient,
+    row: ShellRow,
+    readAt: string,
+    selection: ProjectShellSelectionRequest | undefined,
+    includeResume: true,
+    includeAttentionWork: false,
   ): Promise<PetraProjectShellViewV12>;
   async #compose(
     client: PoolClient,
@@ -402,6 +416,7 @@ export class PostgresProjectShellViewReader implements ProjectShellViewReader {
     readAt: string,
     selection: ProjectShellSelectionRequest | undefined,
     includeResume: false,
+    includeAttentionWork: false,
   ): Promise<PetraProjectShellViewV11>;
   async #compose(
     client: PoolClient,
@@ -409,7 +424,12 @@ export class PostgresProjectShellViewReader implements ProjectShellViewReader {
     readAt: string,
     selection?: ProjectShellSelectionRequest,
     includeResume = true,
-  ): Promise<PetraProjectShellViewV11 | PetraProjectShellViewV12> {
+    includeAttentionWork = includeResume,
+  ): Promise<
+    | PetraProjectShellViewV11
+    | PetraProjectShellViewV12
+    | PetraProjectShellViewV13
+  > {
     const project = this.#project(row.project_payload);
     if (row.definition_payload === null) {
       throw new PostgresProjectShellViewError(
@@ -516,6 +536,28 @@ export class PostgresProjectShellViewReader implements ProjectShellViewReader {
     }
     const resume = await this.#resumeContext(client, project, definition);
     const contentWithResume: ProjectShellContentV12 = { ...content, resume };
+    if (includeAttentionWork) {
+      const attentionWork = await this.#attentionWork(
+        client,
+        readAt,
+        project.project_id,
+        definition,
+      );
+      const contentWithAttentionWork: ProjectShellContentV13 = {
+        ...contentWithResume,
+        attention_work: attentionWork,
+      };
+      const view: PetraProjectShellViewV13 = {
+        schema_name: "petra.project-shell-view",
+        schema_version: "1.3.0",
+        project_id: project.project_id,
+        content: contentWithAttentionWork,
+        content_hash: canonicalHash(contentWithAttentionWork),
+        read_at: readAt,
+      };
+      this.#contracts.assertValid("project-shell-view", "1.3.0", view);
+      return view;
+    }
     const view: PetraProjectShellViewV12 = {
       schema_name: "petra.project-shell-view",
       schema_version: "1.2.0",
@@ -526,6 +568,50 @@ export class PostgresProjectShellViewReader implements ProjectShellViewReader {
     };
     this.#contracts.assertValid("project-shell-view", "1.2.0", view);
     return view;
+  }
+
+  async #attentionWork(
+    client: PoolClient,
+    readAt: string,
+    projectId: string,
+    definition: PetraProjectDefinition,
+  ): Promise<ProjectShellContentV13["attention_work"]> {
+    if (!definition.content.supported_places.includes("work")) {
+      return {
+        state: "unavailable",
+        reason:
+          "This ProjectDefinition does not register Work as a supported place.",
+      };
+    }
+    const observation = await new PostgresProjectWorkViewReader(
+      this.#pool,
+      this.#contracts,
+      this.#objectLocations,
+    ).readAttentionWorkInSnapshot(client, readAt, projectId);
+    if (observation === undefined) {
+      throw new PostgresProjectShellViewError(
+        "PROJECT_SHELL_STORED_RECORD_CORRUPT",
+        "The Project shell lost its canonical Work attention owner.",
+      );
+    }
+    const partial = observation.totalCount > observation.tasks.length;
+    const tasks = observation.tasks as Extract<
+      ProjectShellContentV13["attention_work"],
+      { state: "available" }
+    >["tasks"];
+    return {
+      state: "available",
+      coverage: partial ? "partial" : "complete",
+      tasks,
+      returned_count: tasks.length,
+      total_count: observation.totalCount,
+      ...(partial
+        ? {
+            limitation:
+              "The shell returns the first 20 canonical Work tasks that are active or need attention; open Work for the complete collection.",
+          }
+        : {}),
+    };
   }
 
   async #resumeContext(
@@ -757,7 +843,9 @@ export class PostgresProjectShellViewReader implements ProjectShellViewReader {
               ON revision.work_unit_id = head.work_unit_id
              AND revision.revision = head.current_revision
            WHERE head.project_id = $1
-             AND revision.state IN ('queued', 'running'))::text
+             AND (revision.state IN ('requested', 'queued', 'running', 'checkpointed') OR
+                  (revision.state = 'completed' AND
+                   revision.terminal_outcome <> 'succeeded')))::text
            AS work_attention_count,
          (SELECT count(*) FROM petra.project_threads
            WHERE project_id = $1)::text AS thread_count,
@@ -865,7 +953,7 @@ export class PostgresProjectShellViewReader implements ProjectShellViewReader {
         role: "work",
         coverage: "complete",
         label: "Work",
-        summary: `${phrase(counts.work, "WorkUnit is", "WorkUnits are")} registered; ${phrase(counts.workAttention, "is", "are")} active.`,
+        summary: `${phrase(counts.work, "WorkUnit is", "WorkUnits are")} registered; ${phrase(counts.workAttention, "requires attention or is", "require attention or are")} active.`,
         item_count: counts.work,
         attention_count: counts.workAttention,
       }),

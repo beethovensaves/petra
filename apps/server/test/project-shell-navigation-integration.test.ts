@@ -107,8 +107,8 @@ describePostgres("Wave 6 Project shell navigation context", () => {
     const beforePlaceChange = await client.open(project.project_id);
     const afterPlaceChange = await client.open(project.project_id);
     if (
-      beforePlaceChange.schema_version !== "1.2.0" ||
-      afterPlaceChange.schema_version !== "1.2.0"
+      beforePlaceChange.schema_version !== "1.3.0" ||
+      afterPlaceChange.schema_version !== "1.3.0"
     ) {
       throw new Error(
         "Project navigation requires the current retained-context shell view.",

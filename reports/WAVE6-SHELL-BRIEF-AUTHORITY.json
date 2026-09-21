@@ -1,0 +1,194 @@
+{
+  "schema_name": "petra.wave6-shell-brief-authority-evidence",
+  "schema_version": "1.0.0",
+  "status": "passed",
+  "operation_ids": [
+    "shell.inspect-context",
+    "shell.attention-work",
+    "brief.orient",
+    "brief.attention",
+    "brief.change"
+  ],
+  "executed_at": "2026-09-21T04:11:35.519Z",
+  "command": "npm run test:wave6:shell-brief",
+  "database": "fresh disposable PostgreSQL 18.6 with Flyway V001-V058",
+  "runtime_owners": {
+    "shell": "GET /api/queries/projects/:projectId/shell -> ProjectShellViewReader.getProjectShellView -> PostgresProjectShellViewReader -> PostgresProjectWorkViewReader",
+    "brief": "GET /api/queries/projects/:projectId/brief -> ProjectBriefViewReader.getProjectBriefView -> PostgresProjectBriefViewReader"
+  },
+  "production_boundary": {
+    "server": "startPetraServer over an ephemeral TCP port",
+    "clients": ["ProjectShellClient.open", "ProjectBriefClient.read"],
+    "authentication": "Bearer middleware at /api/*",
+    "persistence": "Project, ProjectDefinition, Objective, exact Work summary/destination, inquiry link, shell context, Brief attention, and current-only comparison composed in PostgreSQL REPEATABLE READ READ ONLY transactions",
+    "companion_comparison_test": "The same command executes the existing PostgreSQL test that applies canonical changes and reads an exact successful recent-History baseline interval."
+  },
+  "observations": {
+    "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+    "definition_ref": {
+      "project_definition_id": "project_definition_01K4C000000000000000000001",
+      "revision": 1,
+      "content_hash": "sha256:3906a710cffc2976c2299bbdb5dc199838e3321cab13c2308106993323fc9b06",
+      "definition_family": "petra.scientific-evidence",
+      "label": "Scientific evidence inquiry",
+      "description": "Organizes research questions, claims, relationships, literature, review, and provenance without changing Petra's shared authority rules.",
+      "kernel_compatibility": "petra.project-kernel@1.0.0",
+      "terms": [
+        {
+          "plural": "Research questions",
+          "singular": "Research question",
+          "definition": "A bounded question the Project is trying to answer.",
+          "semantic_key": "scientific.research-question",
+          "generic_family": "focus"
+        },
+        {
+          "plural": "Claims",
+          "singular": "Claim",
+          "definition": "A proposition with explicit scope, basis, and authority state.",
+          "semantic_key": "scientific.claim",
+          "generic_family": "finding"
+        },
+        {
+          "plural": "Sources",
+          "singular": "Source",
+          "definition": "A versioned and rights-governed basis available to the Project.",
+          "semantic_key": "scientific.literature",
+          "generic_family": "reference"
+        }
+      ],
+      "supported_places": [
+        "brief",
+        "sources",
+        "review",
+        "graph",
+        "work",
+        "petra",
+        "composition",
+        "history",
+        "settings"
+      ]
+    },
+    "objective_ref": {
+      "objective_id": "objective_01K4C000000000000000000005",
+      "revision": 1,
+      "content_hash": "sha256:335ccee3cdd67d50a07b0e3acef369fb57ee6b2d83b0397a4bdddd48b97358f7",
+      "objective_kind": "scientific.research-question",
+      "statement": "Determine which claims in the selected source are supported by exact inspectable passages.",
+      "status": "active"
+    },
+    "shell_content_hash": "sha256:71228dbb7aac2773e2a789205945a7bcd9e03303a1095f3afa4d5bef57dff476",
+    "shell_replay_content_hash": "sha256:71228dbb7aac2773e2a789205945a7bcd9e03303a1095f3afa4d5bef57dff476",
+    "attention_work": {
+      "state": "available",
+      "coverage": "complete",
+      "tasks": [
+        {
+          "work_unit_ref": {
+            "work_unit_id": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+            "revision": 1,
+            "spec_hash": "sha256:7977b277b5ffca63a397d8317e37677800ac811489148ed2962f5beb0b018de0",
+            "record_hash": "sha256:b52a45bdf8a3f928e19206b8cddd314eee94b77427374ba18c5dda7641994dde"
+          },
+          "task_label": "Work task",
+          "objective": "Parse the exact registered PDF into a candidate Petra ParsedDocument without mutating authority.",
+          "work_mode": "background",
+          "priority": "normal",
+          "workflow": {
+            "workflow_name": "petra.ingestion.parse",
+            "workflow_version": "1.0.0",
+            "task_family": "document_processing",
+            "task_name": "petra.document.parse",
+            "task_version": "1.0.0"
+          },
+          "execution": {
+            "state": "requested",
+            "attempt": 0,
+            "requested_at": "2026-08-29T14:00:00.000Z",
+            "updated_at": "2026-08-29T14:00:00.000Z"
+          },
+          "attention": {
+            "state": "needs_attention",
+            "reason_code": "requested",
+            "reason": "The WorkUnit is registered but has not entered the queue."
+          },
+          "elapsed": {
+            "state": "unavailable",
+            "reason": "The WorkUnit has no recorded start time."
+          },
+          "resource_coverage": "limits_only",
+          "reported_output_count": 0,
+          "stage_plan": {
+            "state": "unavailable",
+            "reason": "No registered workflow stage plan is available for this task."
+          },
+          "destination": {
+            "role": "work",
+            "target_ref": {
+              "work_unit_id": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+              "revision": 1,
+              "spec_hash": "sha256:7977b277b5ffca63a397d8317e37677800ac811489148ed2962f5beb0b018de0",
+              "record_hash": "sha256:b52a45bdf8a3f928e19206b8cddd314eee94b77427374ba18c5dda7641994dde"
+            }
+          }
+        }
+      ],
+      "returned_count": 1,
+      "total_count": 1
+    },
+    "brief_snapshot_hash": "sha256:5ed036cb73862ef1ecfe1cf4aefbdc7d61236b1fd16eaedc0dd0a883d180e40d",
+    "brief_replay_snapshot_hash": "sha256:5ed036cb73862ef1ecfe1cf4aefbdc7d61236b1fd16eaedc0dd0a883d180e40d",
+    "brief_orientation": {
+      "statement": "Determine which claims in the selected source are supported by exact inspectable passages.",
+      "basis": "exact_current_objective"
+    },
+    "brief_attention": [
+      {
+        "item_id": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+        "owner": "work",
+        "owner_content_hash": "sha256:dc5b39489966dfd9b0d2f8abe3c7d942e3a0be4aed9f94ce866717889a3176ec",
+        "consequence_class": "work_interruption",
+        "reason": "The WorkUnit is registered but has not entered the queue.",
+        "resolution": "inspect_canonical_owner",
+        "deferral": "preserves_underlying_condition",
+        "acknowledgment": "client_local"
+      }
+    ],
+    "brief_comparison": {
+      "state": "current_only",
+      "reason": "No comparison baseline was requested. This view records current observations only."
+    },
+    "unauthorized_shell_status": 401,
+    "unauthorized_brief_status": 401,
+    "unregistered_shell_control_status": 422,
+    "unavailable_baseline_status": 422,
+    "read_only_cardinality_preserved": true,
+    "calls": [
+      {
+        "method": "GET",
+        "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/shell",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/shell",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/brief",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/brief?expected_snapshot_hash=sha256%3A5ed036cb73862ef1ecfe1cf4aefbdc7d61236b1fd16eaedc0dd0a883d180e40d",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/brief?expected_snapshot_hash=sha256%3Affffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "status": 409
+      }
+    ]
+  },
+  "boundary": "Real disposable PostgreSQL, the production HTTP server, bearer authentication, renderer-neutral typed clients, canonical Work view composition, and exact Project inquiry linkage prove the server-owned shell context, bounded active/attention Work identities and destinations, Brief orientation, one exact Work attention observation, current-only comparison, repeatable recovery, and fail-closed unauthorized, unregistered, stale, and unavailable-baseline outcomes. The same command separately executes the existing successful canonical event-interval comparison test. This evidence does not invoke visible shell or Brief controls, choose a browser baseline, preserve browser focus or return, or claim a named Wave 6 evidence-plan scenario; those boundaries remain design-owned."
+}

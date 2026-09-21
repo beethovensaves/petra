@@ -416,7 +416,7 @@ describePostgres("Wave 6 Project switch production read", () => {
     });
 
     const priorBefore = await client.open(priorProject.project_id);
-    if (priorBefore.schema_version !== "1.2.0") {
+    if (priorBefore.schema_version !== "1.3.0") {
       throw new Error("Project switch requires the retained-task shell view.");
     }
     expect(priorBefore.content.resume.state).toBe("available");
@@ -436,7 +436,7 @@ describePostgres("Wave 6 Project switch production read", () => {
     }
     expect(targetListed.project_id).not.toBe(priorProject.project_id);
     const targetOpened = await client.open(targetListed.project_id);
-    if (targetOpened.schema_version !== "1.2.0") {
+    if (targetOpened.schema_version !== "1.3.0") {
       throw new Error(
         "Project switch requires the server-owned Brief fallback.",
       );
@@ -473,7 +473,7 @@ describePostgres("Wave 6 Project switch production read", () => {
     );
 
     const priorAfter = await client.open(priorProject.project_id);
-    if (priorAfter.schema_version !== "1.2.0") {
+    if (priorAfter.schema_version !== "1.3.0") {
       throw new Error("The prior Project lost its retained-task shell view.");
     }
     expect(priorAfter.content.resume).toStrictEqual(priorBefore.content.resume);
@@ -541,7 +541,7 @@ describePostgres("Wave 6 Project switch production read", () => {
           targetProject.project_id !== priorProject.project_id,
         target_destination: targetDestination,
         target_destination_owner:
-          "project-shell-view@1.2.0 resume.recovery open_brief",
+          "project-shell-view@1.3.0 resume.recovery open_brief",
         prior_retained_task_state_before: priorBefore.content.resume.state,
         prior_retained_task_state_after: priorAfter.content.resume.state,
         prior_retained_task_request_hash: hash(

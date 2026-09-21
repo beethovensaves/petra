@@ -3,6 +3,7 @@ import type {
   PetraProjectShellView,
   PetraProjectShellViewV11,
   PetraProjectShellViewV12,
+  PetraProjectShellViewV13,
 } from "@petra/contracts";
 import { PetraContractRegistry } from "@petra/contracts/validator";
 import type { ProjectShellCollectionRequest } from "@petra/core";
@@ -27,7 +28,10 @@ export class ProjectShellClientError extends Error {
 }
 
 export type ProjectShellReadView =
-  PetraProjectShellView | PetraProjectShellViewV11 | PetraProjectShellViewV12;
+  | PetraProjectShellView
+  | PetraProjectShellViewV11
+  | PetraProjectShellViewV12
+  | PetraProjectShellViewV13;
 
 const digest = async (value: unknown): Promise<string> => {
   const bytes = await crypto.subtle.digest(
@@ -187,7 +191,8 @@ export class ProjectShellClient {
       !("schema_version" in body) ||
       (body.schema_version !== "1.0.0" &&
         body.schema_version !== "1.1.0" &&
-        body.schema_version !== "1.2.0")
+        body.schema_version !== "1.2.0" &&
+        body.schema_version !== "1.3.0")
     ) {
       throw new ProjectShellClientError(
         "PROJECT_SHELL_RESPONSE_INVALID",

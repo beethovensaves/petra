@@ -15,12 +15,49 @@ export interface ProjectBriefClientOptions {
   readonly fetch?: typeof fetch;
   readonly contracts?: PetraContractRegistry;
 }
+
+export class ProjectBriefClientError extends Error {
+  constructor(
+    readonly code: string,
+    readonly status: number,
+    message: string,
+  ) {
+    super(message);
+    this.name = "ProjectBriefClientError";
+  }
+}
+
 const digest = async (value: unknown): Promise<string> => {
   const bytes = await crypto.subtle.digest(
     "SHA-256",
     new TextEncoder().encode(canonicalize(value)),
   );
   return `sha256:${Array.from(new Uint8Array(bytes), (byte) => byte.toString(16).padStart(2, "0")).join("")}`;
+};
+
+const responseFailure = async (response: Response): Promise<never> => {
+  let code = "PROJECT_BRIEF_READ_FAILED";
+  let message = `Project Brief read failed (${response.status}).`;
+  try {
+    const body: unknown = await response.json();
+    if (
+      typeof body === "object" &&
+      body !== null &&
+      "error" in body &&
+      typeof body.error === "object" &&
+      body.error !== null
+    ) {
+      if ("code" in body.error && typeof body.error.code === "string") {
+        code = body.error.code;
+      }
+      if ("message" in body.error && typeof body.error.message === "string") {
+        message = body.error.message;
+      }
+    }
+  } catch {
+    // Keep the stable status-based fallback for non-JSON failures.
+  }
+  throw new ProjectBriefClientError(code, response.status, message);
 };
 
 /** Renderer-neutral authenticated read. No retry or mutation is performed. */
@@ -60,8 +97,7 @@ export class ProjectBriefClient {
       method: "GET",
       headers: { authorization: `Bearer ${this.options.token}` },
     });
-    if (!response.ok)
-      throw new Error(`Project Brief read failed (${response.status}).`);
+    if (!response.ok) return responseFailure(response);
     const body: unknown = await response.json();
     const contracts = this.options.contracts ?? new PetraContractRegistry();
     const version = (body as { schema_version?: unknown } | null)

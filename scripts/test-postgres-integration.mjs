@@ -182,6 +182,28 @@ try {
     );
     process.stdout.write(shellNavigationEvidence.stdout);
   }
+  if (process.env.PETRA_WAVE6_SHELL_BRIEF_EVIDENCE_OUTPUT !== undefined) {
+    const shellBriefEvidence = await requireRun(
+      "npm",
+      [
+        "test",
+        "--workspace",
+        "@petra/server",
+        "--",
+        "project-shell-brief-integration.test.ts",
+      ],
+      {
+        env: {
+          PETRA_TEST_POSTGRES_URL: `postgresql://petra:petra-m12-integration-only@127.0.0.1:${port}/petra`,
+          PETRA_WAVE6_SHELL_BRIEF_EVIDENCE_OUTPUT: resolve(
+            root,
+            process.env.PETRA_WAVE6_SHELL_BRIEF_EVIDENCE_OUTPUT,
+          ),
+        },
+      },
+    );
+    process.stdout.write(shellBriefEvidence.stdout);
+  }
   if (process.env.PETRA_WAVE6_PROJECT_CREATE_EVIDENCE_OUTPUT !== undefined) {
     const projectCreateEvidence = await requireRun(
       "npm",
@@ -219,6 +241,14 @@ try {
       "project-definition-authority-repository.test.ts",
       "--testNamePattern",
       "executes bounded server-owned Project search across paired project-authored definitions",
+    );
+  }
+  if (process.env.PETRA_WAVE6_SHELL_BRIEF_ONLY === "1") {
+    postgresTestArgs.push(
+      "--",
+      "review-session-authority-repository.test.ts",
+      "--testNamePattern",
+      "updates Brief and canonical event comparison after an atomic application",
     );
   }
   const test = await requireRun("npm", postgresTestArgs, {

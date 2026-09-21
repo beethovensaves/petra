@@ -458,9 +458,9 @@ describePostgres("PostgreSQL Document authority repository", () => {
       },
       task_intent: "inspect",
     });
-    expect(shell?.schema_version).toBe("1.2.0");
-    if (shell?.schema_version !== "1.2.0") {
-      throw new Error("Expected the Project shell 1.2 view.");
+    expect(shell?.schema_version).toBe("1.3.0");
+    if (shell?.schema_version !== "1.3.0") {
+      throw new Error("Expected the Project shell 1.3 view.");
     }
     expect(shell.content.selection?.resolution.state).toBe("current");
     expect(shell.content.selection?.primary_destination.role).toBe("sources");

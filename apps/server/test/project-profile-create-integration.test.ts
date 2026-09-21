@@ -276,7 +276,7 @@ describePostgres("Wave 6 Project creation production command", () => {
     );
 
     const opened = await shellClient.open(receipt.project_ref.project_id);
-    if (opened.schema_version !== "1.2.0") {
+    if (opened.schema_version !== "1.3.0") {
       throw new Error(
         "Project creation requires the production retained-task shell view.",
       );

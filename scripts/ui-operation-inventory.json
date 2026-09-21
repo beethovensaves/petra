@@ -240,8 +240,14 @@
       "route": "/projects/:projectId",
       "control": "Project context",
       "interaction": "query",
-      "evidence": [],
-      "runtime_owner": "",
+      "evidence": [
+        {
+          "command": "npm run test:wave6:shell-brief",
+          "artifact": "reports/WAVE6-SHELL-BRIEF-AUTHORITY.json",
+          "boundary": "Real disposable PostgreSQL, the production HTTP server, bearer authentication, and ProjectShellClient prove one repeatable-read Project shell context binding the exact Project, ProjectDefinition, current Objective, authority position, projection observation, Work orientation, and retained-task recovery. Unauthorized and unregistered shell controls fail closed, and repeated reads retain the same content identity. This backend trace does not invoke the visible context bar, navigate the browser, preserve browser focus, or claim a named Wave 6 evidence-plan scenario."
+        }
+      ],
+      "runtime_owner": "GET /api/queries/projects/:projectId/shell -> ProjectShellViewReader.getProjectShellView -> PostgresProjectShellViewReader (authenticated REPEATABLE READ current Project, ProjectDefinition, Objective, authority, projection, bounded Work orientation, and retained-task context)",
       "paths": ["UX-PATH-01", "UX-PATH-02", "UX-PATH-03", "UX-PATH-04"]
     },
     {
@@ -270,8 +276,14 @@
       "route": "/projects/:projectId",
       "control": "Attention Work",
       "interaction": "query",
-      "evidence": [],
-      "runtime_owner": "",
+      "evidence": [
+        {
+          "command": "npm run test:wave6:shell-brief",
+          "artifact": "reports/WAVE6-SHELL-BRIEF-AUTHORITY.json",
+          "boundary": "Real disposable PostgreSQL and the authenticated production shell route return project-shell-view@1.3.0 with a bounded canonical Work attention collection. The executed trace proves exact Work revision/spec/record identity, canonical active-or-needs-attention state and reason, semantic Work destination, honest complete coverage, and a matching shell Work count without mutation. The visible shell currently exposes only the count, so browser inspection and exact return remain design-owned; this trace claims no named Wave 6 evidence-plan scenario."
+        }
+      ],
+      "runtime_owner": "GET /api/queries/projects/:projectId/shell -> PostgresProjectShellViewReader -> PostgresProjectWorkViewReader.readAttentionWorkInSnapshot (authenticated REPEATABLE READ bounded canonical active-or-needs-attention Work summaries with exact destinations)",
       "paths": ["UX-PATH-01", "UX-PATH-02", "UX-PATH-03", "UX-PATH-04"]
     },
     {
@@ -285,8 +297,14 @@
       "route": "/projects/:projectId/brief",
       "control": "Current focus",
       "interaction": "query",
-      "evidence": [],
-      "runtime_owner": "",
+      "evidence": [
+        {
+          "command": "npm run test:wave6:shell-brief",
+          "artifact": "reports/WAVE6-SHELL-BRIEF-AUTHORITY.json",
+          "boundary": "Real disposable PostgreSQL, the production Brief route, bearer authentication, and ProjectBriefClient prove the exact current Objective statement and ProjectDefinition binding, explicit partial coverage and limitations, stable snapshot replay, and stale/unauthorized recovery without read-side mutation. This backend trace does not execute or evaluate the visible Brief hierarchy and claims no named Wave 6 evidence-plan scenario."
+        }
+      ],
+      "runtime_owner": "GET /api/queries/projects/:projectId/brief -> ProjectBriefViewReader.getProjectBriefView -> PostgresProjectBriefViewReader (authenticated REPEATABLE READ ProjectDefinition, current Objective orientation, owner observations, coverage, and limitations)",
       "paths": ["UX-PATH-01", "UX-PATH-03"]
     },
     {
@@ -327,8 +345,14 @@
       "route": "/projects/:projectId/brief",
       "control": "Needs your attention",
       "interaction": "navigation",
-      "evidence": [],
-      "runtime_owner": "",
+      "evidence": [
+        {
+          "command": "npm run test:wave6:shell-brief",
+          "artifact": "reports/WAVE6-SHELL-BRIEF-AUTHORITY.json",
+          "boundary": "Real disposable PostgreSQL and the authenticated production Brief query return an exact linked Work observation needing attention, its owner content hash, consequence class, reason, inspection-only resolution, non-resolving deferral, client-local acknowledgment boundary, and canonical Work destination. The visible Brief does not yet open that destination, so control execution, recovery presentation, and exact return remain design-owned; this trace claims no named Wave 6 evidence-plan scenario."
+        }
+      ],
+      "runtime_owner": "GET /api/queries/projects/:projectId/brief -> PostgresProjectBriefViewReader -> canonical shell, Review, and linked PostgresProjectWorkViewReader observations (server-ordered consequence class, exact owner hash, inspection boundary, deferral, and acknowledgment semantics)",
       "paths": ["UX-PATH-01", "UX-PATH-03", "UX-PATH-04"]
     },
     {
@@ -342,8 +366,14 @@
       "route": "/projects/:projectId/brief",
       "control": "What changed",
       "interaction": "query",
-      "evidence": [],
-      "runtime_owner": "",
+      "evidence": [
+        {
+          "command": "npm run test:wave6:shell-brief",
+          "artifact": "reports/WAVE6-SHELL-BRIEF-AUTHORITY.json",
+          "boundary": "The command executes the authenticated production Brief read on real disposable PostgreSQL for current-only state, explicit unavailable-baseline recovery, stable snapshot replay, and stale-snapshot failure, then executes the existing PostgreSQL comparison test that applies canonical changes and returns the exact successful recent-History event interval with both endpoints and its limitation. The visible Brief offers no baseline selector yet, so browser selection, historical return, and material presentation remain design-owned; this trace claims no named Wave 6 evidence-plan scenario."
+        }
+      ],
+      "runtime_owner": "GET /api/queries/projects/:projectId/brief?baseline_event_id&baseline_record_hash -> ProjectBriefViewReader.getProjectBriefView -> PostgresProjectBriefViewReader + PostgresProjectHistoryViewReader (exact recent-History interval, current authority endpoint, limitation, and explicit unavailable/stale recovery)",
       "paths": ["UX-PATH-01", "UX-PATH-03", "UX-PATH-04"]
     },
     {

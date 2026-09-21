@@ -373,7 +373,7 @@ describePostgres("PostgreSQL ProjectInquiry save authority", () => {
     const shellReader = new PostgresProjectShellViewReader(pool, contracts);
     const shell = await shellReader.getProjectShellView(project.project_id);
     if (shell === undefined) throw new Error("Expected a Project shell view.");
-    expect(shell.schema_version).toBe("1.2.0");
+    expect(shell.schema_version).toBe("1.3.0");
     expect(shell.content.resume).toStrictEqual({
       state: "available",
       retained_task: {

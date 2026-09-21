@@ -58,6 +58,7 @@ import type {
   PetraProjectShellView,
   PetraProjectShellViewV11,
   PetraProjectShellViewV12,
+  PetraProjectShellViewV13,
   PetraSuggestedActionView,
   PetraProjectSourceView,
   PetraProjectSourceLifecycleReceipt,
@@ -575,7 +576,10 @@ const historyOperationalGroupIsValid = (
 };
 
 type ProjectShellView =
-  PetraProjectShellView | PetraProjectShellViewV11 | PetraProjectShellViewV12;
+  | PetraProjectShellView
+  | PetraProjectShellViewV11
+  | PetraProjectShellViewV12
+  | PetraProjectShellViewV13;
 
 const shellView = (value: unknown): ProjectShellView => {
   if (
@@ -583,7 +587,8 @@ const shellView = (value: unknown): ProjectShellView => {
     value.schema_name !== "petra.project-shell-view" ||
     (value.schema_version !== "1.0.0" &&
       value.schema_version !== "1.1.0" &&
-      value.schema_version !== "1.2.0") ||
+      value.schema_version !== "1.2.0" &&
+      value.schema_version !== "1.3.0") ||
     typeof value.project_id !== "string" ||
     !isRecord(value.content) ||
     typeof value.content_hash !== "string" ||
@@ -4022,9 +4027,12 @@ export const loadProjectResume = async (
     `/api/queries/projects/${encodeURIComponent(projectId)}/shell`,
   );
   const view = shellView(value);
-  if (view.project_id !== projectId || view.schema_version !== "1.2.0") {
+  if (
+    view.project_id !== projectId ||
+    (view.schema_version !== "1.2.0" && view.schema_version !== "1.3.0")
+  ) {
     throw new ProjectDataError(
-      "Project resume requires the exact project-shell-view@1.2.0 read.",
+      "Project resume requires a Project shell read with exact retained-task context.",
       502,
     );
   }

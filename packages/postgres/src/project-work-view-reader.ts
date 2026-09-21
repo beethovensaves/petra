@@ -120,6 +120,11 @@ interface RegisteredStagePlan {
   registered_at: string;
 }
 
+export interface ProjectAttentionWorkRead {
+  readonly tasks: ProjectWorkTaskSummaryV11[];
+  readonly totalCount: number;
+}
+
 const WORK_UNIT_ID = /^work_unit_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const CURSOR = /^offset:([0-9]{1,9})$/u;
 const STATES: readonly ProjectWorkStateFilter[] = [
@@ -202,6 +207,41 @@ export class PostgresProjectWorkViewReader implements ProjectWorkViewReader {
       };
       return this.#view(projectId, content, readAt);
     });
+  }
+
+  /** Internal shell-composition seam; caller owns a REPEATABLE READ READ ONLY transaction. */
+  async readAttentionWorkInSnapshot(
+    client: PoolClient,
+    readAt: string,
+    projectId: string,
+    limit = 20,
+  ): Promise<ProjectAttentionWorkRead | undefined> {
+    if (!Number.isSafeInteger(limit) || limit < 1 || limit > 20) {
+      throw new PostgresProjectWorkViewError(
+        "PROJECT_WORK_VIEW_REQUEST_INVALID",
+        "Project shell Work attention limit must be an integer from 1 through 20.",
+      );
+    }
+    const definition = await this.#definition(client, projectId);
+    if (definition === undefined) return undefined;
+    this.#assertWorkPlace(definition);
+    const rows = await this.#selectWorkRows(client, projectId, {
+      limit,
+      offset: 0,
+      attentionOnly: true,
+    });
+    const tasks = rows.map((row) =>
+      this.#taskSummary(this.#composeRow(row), definition, readAt),
+    );
+    if (tasks.some((task) => task.attention.state === "settled")) {
+      throw this.#corrupt(
+        "The Project shell Work attention query returned a settled task.",
+      );
+    }
+    return {
+      tasks,
+      totalCount: await this.#totalAttentionCount(client, projectId),
+    };
   }
 
   async getProjectWorkView(
@@ -527,6 +567,7 @@ export class PostgresProjectWorkViewReader implements ProjectWorkViewReader {
       offset: number;
       state?: ProjectWorkStateFilter;
       workUnitId?: string;
+      attentionOnly?: boolean;
     },
   ): Promise<WorkRow[]> {
     const result = await client.query<WorkRow>(
@@ -571,6 +612,10 @@ export class PostgresProjectWorkViewReader implements ProjectWorkViewReader {
         WHERE head.project_id = $1
           AND ($2::text IS NULL OR revision.state = $2)
           AND ($3::text IS NULL OR head.work_unit_id = $3)
+          AND ($4::boolean = false OR
+               revision.state IN ('requested', 'queued', 'running', 'checkpointed') OR
+               (revision.state = 'completed' AND
+                revision.terminal_outcome <> 'succeeded'))
         ORDER BY
           CASE
             WHEN revision.state IN ('requested', 'queued') THEN 0
@@ -581,16 +626,39 @@ export class PostgresProjectWorkViewReader implements ProjectWorkViewReader {
           END,
           revision.updated_at DESC,
           head.work_unit_id
-        LIMIT $4 OFFSET $5`,
+        LIMIT $5 OFFSET $6`,
       [
         projectId,
         request.state ?? null,
         request.workUnitId ?? null,
+        request.attentionOnly ?? false,
         request.limit,
         request.offset,
       ],
     );
     return result.rows;
+  }
+
+  async #totalAttentionCount(
+    client: PoolClient,
+    projectId: string,
+  ): Promise<number> {
+    const result = await client.query<CountRow>(
+      `SELECT count(*)::text AS total_count
+         FROM petra.work_units AS head
+         JOIN petra.work_unit_revisions AS revision
+           ON revision.work_unit_id = head.work_unit_id
+          AND revision.revision = head.current_revision
+        WHERE head.project_id = $1
+          AND (revision.state IN ('requested', 'queued', 'running', 'checkpointed') OR
+               (revision.state = 'completed' AND
+                revision.terminal_outcome <> 'succeeded'))`,
+      [projectId],
+    );
+    return this.#safePosition(
+      result.rows[0]?.total_count,
+      "Work attention total",
+    );
   }
 
   async #totalCount(
