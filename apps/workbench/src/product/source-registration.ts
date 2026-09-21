@@ -255,6 +255,7 @@ export const projectSourceRegistrationClient =
     new ProjectSourceRegistrationClient({
       baseUrl: apiBaseUrl(),
       token: apiToken(),
+      fetch: (input, init) => fetch(input, init),
     });
 
 export const executeSourceRegistration = (

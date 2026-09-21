@@ -84,6 +84,7 @@ export const projectSourceLinkRemovalClient =
     new ProjectSourceLinkRemovalClient({
       baseUrl: apiBaseUrl(),
       token: apiToken(),
+      fetch: (input, init) => fetch(input, init),
     });
 
 export const sourceLinkRemovalOutcomeUnknown = (error: unknown): boolean =>

@@ -98,6 +98,7 @@ export const projectSourceReuseClient = (): ProjectSourceReuseClient =>
   new ProjectSourceReuseClient({
     baseUrl: apiBaseUrl(),
     token: apiToken(),
+    fetch: (input, init) => fetch(input, init),
   });
 
 export const loadSourceReuseOptions = (

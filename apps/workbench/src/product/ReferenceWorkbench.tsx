@@ -1733,6 +1733,15 @@ export const BriefRoute = (): React.JSX.Element => {
 const sourceSearchText = (source: SourceRecord): string =>
   `${source.title} ${source.kind} ${source.role} ${source.creator}`.toLocaleLowerCase();
 
+const sourceInspectionPath = (
+  sourceId: string,
+  sourceQuery: string,
+): string => {
+  const query = new URLSearchParams({ from: "sources" });
+  if (sourceQuery.trim().length > 0) query.set("sourceQuery", sourceQuery);
+  return `${encodeURIComponent(sourceId)}?${query}`;
+};
+
 export const SourcesSurface = ({
   project,
   registration,
@@ -1815,7 +1824,7 @@ export const SourcesSurface = ({
         />
       ) : null}
 
-      <div className="reference-source-toolbar">
+      <div className="reference-source-toolbar" id="source-reuse-return">
         <PetraTextField
           label={`Find ${project.profile.terms.referencePlural}`}
           placeholder="Title, kind, role, or creator"
@@ -1861,7 +1870,9 @@ export const SourcesSurface = ({
                 <div className="reference-source-row__identity">
                   <p>{source.kind}</p>
                   <h2>
-                    <Link to={source.id}>{source.title}</Link>
+                    <Link to={sourceInspectionPath(source.id, query)}>
+                      {source.title}
+                    </Link>
                   </h2>
                   <span>{source.role}</span>
                 </div>
@@ -1879,7 +1890,10 @@ export const SourcesSurface = ({
                     <dd>{source.rights}</dd>
                   </div>
                 </dl>
-                <Link className="reference-text-link" to={source.id}>
+                <Link
+                  className="reference-text-link"
+                  to={sourceInspectionPath(source.id, query)}
+                >
                   Inspect{" "}
                   <span className="visually-hidden">{source.title}</span>
                   <span aria-hidden="true">→</span>
@@ -1908,10 +1922,6 @@ export const SourcesRoute = (): React.JSX.Element => {
         await revalidator.revalidate();
         const destinationQuery = new URLSearchParams({
           from: "sources",
-          semanticKey: "petra.project-source",
-          selected: completion.projectSourceId,
-          revision: String(completion.receipt.project_source_ref.revision),
-          recordHash: completion.receipt.project_source_ref.record_hash,
         });
         if (sourceQuery.trim().length > 0) {
           destinationQuery.set("sourceQuery", sourceQuery);

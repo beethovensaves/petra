@@ -5,6 +5,7 @@ import {
   ProjectBriefClientError,
   ProjectModelClient,
   ProjectProfileClient,
+  ProjectSourceDiscoveryClient,
   ProjectWorkClient,
 } from "@petra/adapters";
 import {
@@ -182,6 +183,13 @@ const apiToken = (): string => {
 
 const apiBaseUrl = (): string =>
   typeof window === "undefined" ? "http://petra.local" : window.location.origin;
+
+const projectSourceDiscoveryClient = (): ProjectSourceDiscoveryClient =>
+  new ProjectSourceDiscoveryClient({
+    baseUrl: apiBaseUrl(),
+    token: apiToken(),
+    fetch: (input, init) => fetch(input, init),
+  });
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -1457,25 +1465,6 @@ const projectHistoryCompensationExecutionView = (
     );
   }
   return value as unknown as PetraProjectHistoryCompensationExecutionView;
-};
-
-const sourceView = (value: unknown): PetraProjectSourceView => {
-  if (
-    !isRecord(value) ||
-    value.schema_name !== "petra.project-source-view" ||
-    value.schema_version !== "1.0.0" ||
-    typeof value.project_id !== "string" ||
-    typeof value.project_source_id !== "string" ||
-    !isRecord(value.content) ||
-    typeof value.content_hash !== "string" ||
-    typeof value.read_at !== "string"
-  ) {
-    throw new ProjectDataError(
-      "Petra returned an invalid Project source view.",
-      502,
-    );
-  }
-  return value as unknown as PetraProjectSourceView;
 };
 
 type ReviewCandidateBasisRevisionSourceRef = NonNullable<
@@ -4911,27 +4900,12 @@ export const loadProjectSourceCollection = async ({
 }: LoaderFunctionArgs): Promise<ProjectSourceCollectionData> => {
   const projectId = requiredRouteIdentity(params.projectId, "A Project ID");
   const encoded = encodeURIComponent(projectId);
-  const [value, shellValue, controlsValue] = await Promise.all([
-    requestJson(`/api/queries/projects/${encoded}/sources`),
+  const [sourceViews, shellValue, controlsValue] = await Promise.all([
+    projectSourceDiscoveryClient().list(projectId),
     requestJson(`/api/queries/projects/${encoded}/shell`),
     requestJson(`/api/queries/projects/${encoded}/effective-controls`),
   ]);
-  if (!isRecord(value) || !Array.isArray(value.sources)) {
-    throw new ProjectDataError(
-      "Petra returned an invalid Project source collection.",
-      502,
-    );
-  }
-  const sources = value.sources.map((source) => {
-    const view = sourceView(source);
-    if (view.project_id !== projectId) {
-      throw new ProjectDataError(
-        "Petra returned a source from another Project.",
-        502,
-      );
-    }
-    return sourceRecordFromView(view);
-  });
+  const sources = sourceViews.map(sourceRecordFromView);
   const shell = shellView(shellValue);
   const controls = effectiveControlsView(controlsValue);
   const taxonomy = await projectProfileClient().readProjectTaxonomy(
@@ -5723,16 +5697,7 @@ export const loadProjectSourceRecord = async ({
 }: LoaderFunctionArgs): Promise<ProjectSourceRecordData> => {
   const projectId = requiredRouteIdentity(params.projectId, "A Project ID");
   const sourceId = requiredRouteIdentity(params.sourceId, "A ProjectSource ID");
-  const value = await requestJson(
-    `/api/queries/projects/${encodeURIComponent(projectId)}/sources/${encodeURIComponent(sourceId)}`,
-  );
-  const view = sourceView(value);
-  if (view.project_id !== projectId || view.project_source_id !== sourceId) {
-    throw new ProjectDataError(
-      "Petra returned a different Project source identity.",
-      502,
-    );
-  }
+  const view = await projectSourceDiscoveryClient().open(projectId, sourceId);
   const source = sourceRecordFromView(view);
   if (view.content.binding.status !== "active") {
     return {

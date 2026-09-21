@@ -56,6 +56,12 @@ import projectSourceRegistrationRecoveryViewSchema from "../../../../packages/co
 import projectSourceRevisionRequestSchema from "../../../../packages/contracts/schemas/project-source-revision-request/1.0.0/schema.json";
 import projectSourceRevisionReceiptSchema from "../../../../packages/contracts/schemas/project-source-revision-receipt/1.0.0/schema.json";
 import projectSourceRevisionRecoveryViewSchema from "../../../../packages/contracts/schemas/project-source-revision-recovery-view/1.0.0/schema.json";
+import projectSourceLifecycleReceiptSchema from "../../../../packages/contracts/schemas/project-source-lifecycle-receipt/1.0.0/schema.json";
+import projectSourceLifecycleViewSchema from "../../../../packages/contracts/schemas/project-source-lifecycle-view/1.0.0/schema.json";
+import projectSourceLinkRemovalRequestSchema from "../../../../packages/contracts/schemas/project-source-link-removal-request/1.0.0/schema.json";
+import projectSourceLinkRemovalPreviewSchema from "../../../../packages/contracts/schemas/project-source-link-removal-preview/1.0.0/schema.json";
+import projectSourceLinkRemovalReceiptSchema from "../../../../packages/contracts/schemas/project-source-link-removal-receipt/1.0.0/schema.json";
+import projectSourceLinkRemovalRecoveryViewSchema from "../../../../packages/contracts/schemas/project-source-link-removal-recovery-view/1.0.0/schema.json";
 import projectSourceProcessingRequestSchema from "../../../../packages/contracts/schemas/project-source-processing-request/1.0.0/schema.json";
 import projectSourceProcessingReceiptSchema from "../../../../packages/contracts/schemas/project-source-processing-receipt/1.0.0/schema.json";
 import projectSourceProcessingRecoveryViewSchema from "../../../../packages/contracts/schemas/project-source-processing-recovery-view/1.0.0/schema.json";
@@ -98,6 +104,8 @@ import addFormats from "ajv-formats";
 
 import claimSchema from "../../../../packages/contracts/schemas/claim/1.0.0/schema.json";
 import commandEnvelopeSchema from "../../../../packages/contracts/schemas/command-envelope/1.0.0/schema.json";
+import commandEnvelopeV11Schema from "../../../../packages/contracts/schemas/command-envelope/1.1.0/schema.json";
+import commandEnvelopeV12Schema from "../../../../packages/contracts/schemas/command-envelope/1.2.0/schema.json";
 import commandEnvelopeV18Schema from "../../../../packages/contracts/schemas/command-envelope/1.8.0/schema.json";
 import commonSchema from "../../../../packages/contracts/schemas/common/1.0.0/schema.json";
 import correctionReceiptSchema from "../../../../packages/contracts/schemas/review-candidate-correction-receipt/1.0.0/schema.json";
@@ -175,12 +183,18 @@ type BrowserContractName =
   | "project-work-resume-receipt@1.0.0"
   | "project-work-start-again-request@1.0.0"
   | "project-work-start-again-receipt@1.0.0"
+  | "project-source@1.0.0"
+  | "project-source-view@1.0.0"
   | "project-source-registration-request@1.0.0"
   | "project-source-registration-receipt@1.0.0"
   | "project-source-registration-recovery-view@1.0.0"
   | "project-source-revision-request@1.0.0"
   | "project-source-revision-receipt@1.0.0"
   | "project-source-revision-recovery-view@1.0.0"
+  | "project-source-link-removal-request@1.0.0"
+  | "project-source-link-removal-preview@1.0.0"
+  | "project-source-link-removal-receipt@1.0.0"
+  | "project-source-link-removal-recovery-view@1.0.0"
   | "project-source-processing-request@1.0.0"
   | "project-source-processing-receipt@1.0.0"
   | "project-source-processing-recovery-view@1.0.0"
@@ -193,6 +207,8 @@ type BrowserContractName =
   | "project-source-local-copy-deletion-preview@1.0.0"
   | "project-source-local-copy-deletion-receipt@1.0.0"
   | "project-source-local-copy-deletion-recovery-view@1.0.0"
+  | "work-unit@1.0.0"
+  | "worker-input-manifest@1.0.0"
   | "worker-output-manifest@1.0.0"
   | "working-candidate@1.0.0"
   | "working-relationship@1.0.0";
@@ -289,6 +305,12 @@ const schemas = [
   projectSourceRevisionRequestSchema,
   projectSourceRevisionReceiptSchema,
   projectSourceRevisionRecoveryViewSchema,
+  projectSourceLifecycleReceiptSchema,
+  projectSourceLifecycleViewSchema,
+  projectSourceLinkRemovalRequestSchema,
+  projectSourceLinkRemovalPreviewSchema,
+  projectSourceLinkRemovalReceiptSchema,
+  projectSourceLinkRemovalRecoveryViewSchema,
   projectSourceProcessingRequestSchema,
   projectSourceProcessingReceiptSchema,
   projectSourceProcessingRecoveryViewSchema,
@@ -322,6 +344,8 @@ const schemas = [
   focusedGraphAnalysisViewV100Schema,
   commonSchema,
   commandEnvelopeSchema,
+  definitionDependency(commandEnvelopeV11Schema),
+  definitionDependency(commandEnvelopeV12Schema),
   definitionDependency(commandEnvelopeV18Schema),
   claimSchema,
   workingCandidateSchema,
@@ -399,6 +423,8 @@ const contractIds: Record<BrowserContractName, string> = {
     projectWorkStartAgainRequestSchema.$id,
   "project-work-start-again-receipt@1.0.0":
     projectWorkStartAgainReceiptSchema.$id,
+  "project-source@1.0.0": projectSourceSchema.$id,
+  "project-source-view@1.0.0": briefProjectSourceViewV100Schema.$id,
   "project-source-registration-request@1.0.0":
     projectSourceRegistrationRequestSchema.$id,
   "project-source-registration-receipt@1.0.0":
@@ -411,6 +437,14 @@ const contractIds: Record<BrowserContractName, string> = {
     projectSourceRevisionReceiptSchema.$id,
   "project-source-revision-recovery-view@1.0.0":
     projectSourceRevisionRecoveryViewSchema.$id,
+  "project-source-link-removal-request@1.0.0":
+    projectSourceLinkRemovalRequestSchema.$id,
+  "project-source-link-removal-preview@1.0.0":
+    projectSourceLinkRemovalPreviewSchema.$id,
+  "project-source-link-removal-receipt@1.0.0":
+    projectSourceLinkRemovalReceiptSchema.$id,
+  "project-source-link-removal-recovery-view@1.0.0":
+    projectSourceLinkRemovalRecoveryViewSchema.$id,
   "project-source-processing-request@1.0.0":
     projectSourceProcessingRequestSchema.$id,
   "project-source-processing-receipt@1.0.0":
@@ -432,6 +466,8 @@ const contractIds: Record<BrowserContractName, string> = {
     projectSourceLocalCopyDeletionReceiptSchema.$id,
   "project-source-local-copy-deletion-recovery-view@1.0.0":
     projectSourceLocalCopyDeletionRecoveryViewSchema.$id,
+  "work-unit@1.0.0": briefWorkUnitV100Schema.$id,
+  "worker-input-manifest@1.0.0": briefWorkerInputManifestV100Schema.$id,
   "worker-output-manifest@1.0.0": briefWorkerOutputManifestV100Schema.$id,
   "working-candidate@1.0.0": workingCandidateSchema.$id,
   "working-relationship@1.0.0": workingRelationshipSchema.$id,
@@ -645,6 +681,18 @@ export class PetraContractRegistry {
         "sha256:056fec8e90396d2a7eb8a8c8e5fbfaf1942c3e89e09b28e3fcd39f0c92331a84",
     },
     {
+      name: "project-source",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:2bb24bb14f56bfb9606f7fc4730642ae23404177724048922982dbba425fd3bb",
+    },
+    {
+      name: "project-source-view",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:996d4426d3aeba0a640347385696568d4ac50368c801d1aac8bf6f27b9c97ace",
+    },
+    {
       name: "project-source-registration-request",
       version: "1.0.0",
       canonical_sha256:
@@ -679,6 +727,30 @@ export class PetraContractRegistry {
       version: "1.0.0",
       canonical_sha256:
         "sha256:483a6fbfa97bec988e20d460ddd50a6044d0586eda909ddfc3d138ebc4fb20d7",
+    },
+    {
+      name: "project-source-link-removal-request",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:792e57ff0027a4d2042a9e42c27cfd0c47de3a0a825adcfaeefae22dc999cacc",
+    },
+    {
+      name: "project-source-link-removal-preview",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:3cd1c6a01b92858f54c3667b88afcac9a81ea4d26b439c6b7880f95f7f6a1f12",
+    },
+    {
+      name: "project-source-link-removal-receipt",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:fb0d4b9a9e260389833c12d9cd89095f0dd2828e5d6ddf907d2e72a7374a3e0d",
+    },
+    {
+      name: "project-source-link-removal-recovery-view",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:358b6cce0cf1b1fefc31d621c1ee207a20b9a2a9adc276637810f23cfbbc4730",
     },
     {
       name: "project-source-processing-request",
@@ -751,6 +823,18 @@ export class PetraContractRegistry {
       version: "1.0.0",
       canonical_sha256:
         "sha256:2aa1e357697f59c2751e189101ef7a963e7247d3a2be04531a2b98516cbb5639",
+    },
+    {
+      name: "work-unit",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:6009a3c4ec45df4f7073189f8ef111e59428392a9c8fec1ee14508aeca04c316",
+    },
+    {
+      name: "worker-input-manifest",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:af13674bd5ef8f101f192f70de5d46f5fee9d9e38421451aaacbe203fa4c2d0b",
     },
     {
       name: "worker-output-manifest",

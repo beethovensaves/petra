@@ -353,10 +353,6 @@ export const SourceRevisionReceiptPanel = ({
   const outcome = recovered ? "recovered" : applied ? "applied" : "replayed";
   const destinationQuery = new URLSearchParams({
     from: "sources",
-    semanticKey: "petra.project-source",
-    selected: receipt.successor_source_ref.project_source_id,
-    revision: String(receipt.successor_source_ref.revision),
-    recordHash: receipt.successor_source_ref.record_hash,
   });
 
   return (

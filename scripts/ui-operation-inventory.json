@@ -465,7 +465,7 @@
       "surfaces": ["SP04"],
       "flows": ["UX-FLOW-04"],
       "requests": ["UX-REQ-009"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/sources",
       "control": "Find sources",
       "interaction": "query",
@@ -474,6 +474,11 @@
           "command": "npm run test:wave6:sources",
           "artifact": "reports/WAVE6-SOURCE-DISCOVERY-LIFECYCLE-AUTHORITY.json",
           "boundary": "Real disposable PostgreSQL composes one exact Project-scoped source collection after registration and a distinct target collection after reuse. ProjectSourceDiscoveryClient verifies the authenticated collection transport, unique ProjectSource identities, exact Project binding, and content hashes; the visible Find control still performs presentation-only filtering over that server-owned collection. This backend prerequisite does not execute the visible filter or the named UX1.6-SOURCES browser scenario."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:sources-ui",
+          "artifact": "reports/WAVE6-SOURCES-LIFECYCLE-BROWSER.json",
+          "boundary": "Isolated Chrome invoked the visible Find sources control over the production server-owned collection and retained the filtered task context through exact source inspection and return. The same fresh PostgreSQL/S3 trace executed the complete named UX1.6-SOURCES lifecycle."
         }
       ],
       "runtime_owner": "ProjectSourceDiscoveryClient.list -> GET /api/queries/projects/:projectId/sources -> ProjectSourceViewReader.listProjectSourceViews -> PostgresProjectSourceViewReader; visible filtering is presentation state over the exact returned collection",
@@ -486,7 +491,7 @@
       "surfaces": ["SP04"],
       "flows": ["UX-FLOW-04"],
       "requests": ["UX-REQ-009"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/sources",
       "control": "Open source",
       "interaction": "navigation",
@@ -495,6 +500,11 @@
           "command": "npm run test:wave6:sources",
           "artifact": "reports/WAVE6-SOURCE-DISCOVERY-LIFECYCLE-AUTHORITY.json",
           "boundary": "Real disposable PostgreSQL resolves registered and reused collection members through exact ProjectSource detail reads and refuses cross-Project substitution. ProjectSourceDiscoveryClient proves canonical route identity, bearer transport, schema validation, and content-hash binding. This backend prerequisite does not invoke the visible Open source link, preserve browser focus, or execute the named UX1.6-SOURCES browser scenario."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:sources-ui",
+          "artifact": "reports/WAVE6-SOURCES-LIFECYCLE-BROWSER.json",
+          "boundary": "Isolated Chrome invoked the visible Open source control, validated the exact production ProjectSource read through ProjectSourceDiscoveryClient, and returned to the preserved filtered collection. The same fresh PostgreSQL/S3 trace executed the complete named UX1.6-SOURCES lifecycle."
         }
       ],
       "runtime_owner": "ProjectSourceDiscoveryClient.open -> GET /api/queries/projects/:projectId/sources/:projectSourceId -> ProjectSourceViewReader.getProjectSourceView -> PostgresProjectSourceViewReader",
@@ -507,7 +517,7 @@
       "surfaces": ["SP04"],
       "flows": ["UX-FLOW-04", "UX-FLOW-18"],
       "requests": ["UX-REQ-005", "UX-REQ-009", "UX-REQ-010"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/sources",
       "control": "Add source",
       "interaction": "command",
@@ -516,6 +526,11 @@
           "command": "npm run test:wave6:sources",
           "artifact": "reports/WAVE6-SOURCE-DISCOVERY-LIFECYCLE-AUTHORITY.json",
           "boundary": "Real disposable PostgreSQL executes exact registered-profile source intake, retains content-addressed material, identity, rights, Project membership, and one immutable receipt, safely replays the command, and reconciles confirmed or unknown effect. Focused client and server tests prove strict authenticated production transport. This backend prerequisite does not submit the visible Add source form or execute the named UX1.6-SOURCES browser scenario."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:sources-ui",
+          "artifact": "reports/WAVE6-SOURCES-LIFECYCLE-BROWSER.json",
+          "boundary": "Isolated Chrome submitted the visible Add source workflow through authenticated live HTTP, retaining reviewed identity, exact bytes, rights, Project role, and the resulting exact-source destination in fresh PostgreSQL/S3. The trace executed the complete named UX1.6-SOURCES lifecycle."
         }
       ],
       "runtime_owner": "ProjectSourceRegistrationClient -> POST /api/commands/projects/:projectId/sources/register + POST /api/queries/projects/:projectId/source-registration-recovery -> PostgresProjectSourceRegistrationAuthority + ArtifactStore",
@@ -528,7 +543,7 @@
       "surfaces": ["SP04"],
       "flows": ["UX-FLOW-04", "UX-FLOW-18"],
       "requests": ["UX-REQ-005", "UX-REQ-009", "UX-REQ-010"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/sources",
       "control": "Use existing source",
       "interaction": "command",
@@ -537,6 +552,11 @@
           "command": "npm run test:wave6:sources",
           "artifact": "reports/WAVE6-SOURCE-DISCOVERY-LIFECYCLE-AUTHORITY.json",
           "boundary": "Real disposable PostgreSQL selects a permitted retained copy for a paired registered profile, links only a new ProjectSource membership without cloning canonical identity or bytes, safely replays the exact request, and reconciles confirmed or unknown effect. Focused client and server tests prove strict authenticated option, command, and recovery transport. This backend prerequisite does not invoke the visible Use existing source flow or execute the named UX1.6-SOURCES browser scenario."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:sources-ui",
+          "artifact": "reports/WAVE6-SOURCES-LIFECYCLE-BROWSER.json",
+          "boundary": "Isolated Chrome invoked the visible Use existing source workflow for the paired registered profile, linked the retained identity and bytes without cloning them, and opened the exact reused ProjectSource. The fresh PostgreSQL/S3 trace executed the complete named UX1.6-SOURCES lifecycle."
         }
       ],
       "runtime_owner": "ProjectSourceReuseClient -> GET /api/queries/projects/:projectId/source-reuse-options -> PostgresProjectSourceReuseOptionsReader; POST /api/commands/projects/:projectId/sources/reuse + POST /api/queries/projects/:projectId/source-reuse-recovery -> PostgresProjectSourceReuseAuthority",
@@ -558,6 +578,11 @@
           "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH PETRA_WAVE6_SOURCE_PROCESSING_BROWSER_OUTPUT=reports/WAVE6-SOURCE-PROCESSING-BROWSER.json npm run test:wave6:source-processing-ui",
           "artifact": "reports/WAVE6-SOURCE-PROCESSING-BROWSER.json",
           "boundary": "Isolated Chrome executed the production Source Details processing component and renderer-neutral ProjectSourceProcessingClient boundary with deterministic typed transport. It verified server-composed exact requests, stable retry identity, recovery assessment, durable receipt, ready/unavailable/active/terminal states, bindings, representation, limitations, Work destination, exact task/focus return, keyboard semantics, and responsive reflow. The exact backend counterpart separately proves live server and PostgreSQL ownership; this artifact does not claim the complete named UX1.6-SOURCES scenario."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:sources-ui",
+          "artifact": "reports/WAVE6-SOURCES-LIFECYCLE-BROWSER.json",
+          "boundary": "Isolated Chrome invoked the visible Process source control through authenticated live HTTP and started bounded durable processing Work against the newly registered ProjectSource in fresh PostgreSQL. The trace executed the complete named UX1.6-SOURCES lifecycle."
         }
       ],
       "runtime_owner": "GET /api/queries/projects/:projectId/sources/:projectSourceId/processing + POST /api/commands/projects/:projectId/sources/:projectSourceId/processing + POST /api/queries/projects/:projectId/sources/:projectSourceId/processing-recovery",
@@ -579,6 +604,11 @@
           "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH PETRA_WAVE6_SOURCE_PROCESSING_BROWSER_OUTPUT=reports/WAVE6-SOURCE-PROCESSING-BROWSER.json npm run test:wave6:source-processing-ui",
           "artifact": "reports/WAVE6-SOURCE-PROCESSING-BROWSER.json",
           "boundary": "Isolated Chrome executed the production Source Details processing component and renderer-neutral ProjectSourceProcessingClient boundary with deterministic typed transport. It verified server-composed exact requests, stable retry identity, recovery assessment, durable receipt, ready/unavailable/active/terminal states, bindings, representation, limitations, Work destination, exact task/focus return, keyboard semantics, and responsive reflow. The exact backend counterpart separately proves live server and PostgreSQL ownership; this artifact does not claim the complete named UX1.6-SOURCES scenario."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:sources-ui",
+          "artifact": "reports/WAVE6-SOURCES-LIFECYCLE-BROWSER.json",
+          "boundary": "Isolated Chrome inspected the durable active Work, source-processing state, exact ProjectSource binding, and visible return destination after invoking production processing. The fresh PostgreSQL/S3 trace executed the complete named UX1.6-SOURCES lifecycle; it does not claim external worker completion."
         }
       ],
       "runtime_owner": "GET /api/queries/projects/:projectId/sources/:projectSourceId/processing -> PostgresProjectSourceProcessingAuthority",
@@ -591,7 +621,7 @@
       "surfaces": ["SP04", "SP12"],
       "flows": ["UX-FLOW-07"],
       "requests": ["UX-REQ-008", "UX-REQ-009", "UX-REQ-022"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/sources/:sourceId",
       "control": "Inspect exact source",
       "interaction": "query",
@@ -600,6 +630,11 @@
           "command": "npm run test:wave6:sources",
           "artifact": "reports/WAVE6-SOURCE-DISCOVERY-LIFECYCLE-AUTHORITY.json",
           "boundary": "Real disposable PostgreSQL composes exact identity, copy location, content hash, rights, representation extent, downstream use, and authority position for a registered ProjectSource, while ProjectSourceDiscoveryClient rejects crossed identities and invalid hashes. The newly registered trace is honestly identity-only until processing; existing complete-source fixtures and processing suites cover parsed exact spans. This backend prerequisite does not inspect the visible source reader or execute the named UX1.6-SOURCES browser scenario."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:sources-ui",
+          "artifact": "reports/WAVE6-SOURCES-LIFECYCLE-BROWSER.json",
+          "boundary": "Isolated Chrome inspected the complete representative source and lifecycle-created ProjectSources through the production exact reader, showing server-composed identity, rights, representation, limitations, downstream use, and authority position. The fresh PostgreSQL/S3 trace executed the complete named UX1.6-SOURCES lifecycle."
         }
       ],
       "runtime_owner": "ProjectSourceDiscoveryClient.open -> GET /api/queries/projects/:projectId/sources/:projectSourceId -> ProjectSourceViewReader.getProjectSourceView -> PostgresProjectSourceViewReader (exact identity, copy location, rights, representation preview/limitation, downstream use, and authority position)",
@@ -621,6 +656,11 @@
           "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH PETRA_WAVE6_SOURCE_REVISION_BROWSER_OUTPUT=reports/WAVE6-SOURCE-REVISION-BROWSER.json npm run test:wave6:source-revision-ui",
           "artifact": "reports/WAVE6-SOURCE-REVISION-BROWSER.json",
           "boundary": "Isolated Chrome executed the production SourceRevisionPanel and renderer-neutral ProjectSourceRevisionClient boundary with deterministic typed transport. It verified exact Project, ProjectDefinition, and active predecessor binding; immutable bytes, metadata, copy-rights, and replacement review; pending, applied, replayed, conflict, authorization, rejected, and unknown-effect recovery states; stable exact retry; preserved input and task return; distinct receipt-bound exclusion and replacement controls; keyboard semantics; and responsive reflow. The exact backend counterpart separately proves live server and PostgreSQL ownership; this artifact does not claim the complete named UX1.6-SOURCES scenario."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:sources-ui",
+          "artifact": "reports/WAVE6-SOURCES-LIFECYCLE-BROWSER.json",
+          "boundary": "Isolated Chrome added a new immutable source revision through the visible production control, then separately excluded the predecessor and recorded the replacement relationship through their receipt-bound controls. The fresh PostgreSQL/S3 trace executed the complete named UX1.6-SOURCES lifecycle."
         }
       ],
       "runtime_owner": "POST /api/commands/projects/:projectId/sources/:projectSourceId/revisions + POST /api/queries/projects/:projectId/source-revision-recovery -> PostgresProjectSourceRevisionAuthority; receipt hands off exact ExcludeProjectSource and CreateProjectSourceReplacement owners",
@@ -642,6 +682,11 @@
           "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH PETRA_WAVE6_SOURCE_LINK_REMOVAL_BROWSER_OUTPUT=reports/WAVE6-SOURCE-LINK-REMOVAL-BROWSER.json npm run test:wave6:source-link-removal-ui",
           "artifact": "reports/WAVE6-SOURCE-LINK-REMOVAL-BROWSER.json",
           "boundary": "Isolated Chrome executed the production Source Details SourceLinkRemovalActions and renderer-neutral ProjectSourceLinkRemovalClient boundary with deterministic typed transport. It verified authenticated preview invocation, exact Project/definition/source/role freshness, registered dependency impact, retained global identity and immutable revisions, required reason, applied and replayed results, conflicts, permission and rejected failures, exact-request unknown-effect recovery, a visibly distinct local-copy deletion control without invoking its separate owner, exact task/selection and focus return, and responsive keyboard/browser semantics. The exact backend counterpart separately proves the live server and PostgreSQL owners; this artifact does not claim the complete named UX1.6-SOURCES scenario."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:sources-ui",
+          "artifact": "reports/WAVE6-SOURCES-LIFECYCLE-BROWSER.json",
+          "boundary": "Isolated Chrome invoked the distinct visible Remove from Project control for the reused ProjectSource and confirmed the Project membership was removed while identity, bytes, dependencies, and provenance remained retained. The fresh PostgreSQL/S3 trace executed the complete named UX1.6-SOURCES lifecycle."
         }
       ],
       "runtime_owner": "GET /api/queries/projects/:projectId/sources/:projectSourceId/link-removal + POST /api/commands/projects/:projectId/sources/:projectSourceId/link-removal + POST /api/queries/projects/:projectId/sources/:projectSourceId/link-removal-recovery -> PostgresProjectSourceLifecycleViewReader + PostgresProjectSourceLifecycleAuthorityRepository",
@@ -663,6 +708,11 @@
           "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH PETRA_WAVE6_SOURCE_LOCAL_COPY_DELETION_BROWSER_OUTPUT=reports/WAVE6-SOURCE-LOCAL-COPY-DELETION-BROWSER.json npm run test:wave6:source-local-copy-deletion-production-ui",
           "artifact": "reports/WAVE6-SOURCE-LOCAL-COPY-DELETION-BROWSER.json",
           "boundary": "Isolated Chrome used the stable production workbench URL and production Source Details route over authenticated live server routes backed by disposable PostgreSQL and S3 services. It inspected the documented reset path, invoked the distinct Delete local copy control for the eligible representative source, exposed the exact content-addressed S3 identity and preservation consequences, retained the reviewed request across a deliberately interrupted browser response, reconciled the durable effect through the visible recovery control, replayed the exact request safely, and confirmed the Project link, source authority, rights, selectors, provenance, canonical History, and exact return remained usable. The focused browser suite separately covers blocked, conflict, permission, rejected, responsive, keyboard, and browser-semantic states. This evidence does not claim the complete named UX1.6-SOURCES lifecycle."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:sources-ui",
+          "artifact": "reports/WAVE6-SOURCES-LIFECYCLE-BROWSER.json",
+          "boundary": "Isolated Chrome invoked the distinct visible Delete local copy control against fresh S3, deliberately interrupted the response, and used the visible recovery control to confirm the durable exact effect without false success while retaining the ProjectSource and exact return. The trace executed the complete named UX1.6-SOURCES lifecycle."
         }
       ],
       "runtime_owner": "GET /api/queries/projects/:projectId/sources/:projectSourceId/local-copy-deletion + POST /api/commands/projects/:projectId/sources/:projectSourceId/local-copy-deletion + POST /api/queries/projects/:projectId/sources/:projectSourceId/local-copy-deletion-recovery -> PostgresProjectSourceLocalCopyDeletionAuthority + S3ArtifactStore.deleteByHash",

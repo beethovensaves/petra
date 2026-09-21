@@ -20,3 +20,4 @@ export * from "../../../packages/adapters/src/project-source-revision-client.js"
 export * from "../../../packages/adapters/src/project-source-link-removal-client.js";
 export * from "../../../packages/adapters/src/project-source-local-copy-deletion-client.js";
 export * from "../../../packages/adapters/src/project-source-registration-client.js";
+export * from "../../../packages/adapters/src/project-source-discovery-client.js";

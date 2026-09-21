@@ -76,6 +76,7 @@ export const projectSourceProcessingClient =
     new ProjectSourceProcessingClient({
       baseUrl: apiBaseUrl(),
       token: apiToken(),
+      fetch: (input, init) => fetch(input, init),
     });
 
 export const loadSourceProcessing = (
