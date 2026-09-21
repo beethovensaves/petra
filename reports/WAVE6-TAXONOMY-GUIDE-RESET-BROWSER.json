@@ -1,0 +1,234 @@
+{
+  "schema_name": "petra.wave6-taxonomy-guide-reset-browser-evidence",
+  "schema_version": "1.0.0",
+  "status": "passed",
+  "scenarios": [
+    {
+      "evidence_id": "USER-TESTABLE-01",
+      "scenario_id": "stable-url-clean-start-reset",
+      "status": "passed"
+    },
+    {
+      "evidence_id": "UX1.6-TAXONOMY",
+      "scenario_id": "usable-profile-ui",
+      "status": "passed"
+    }
+  ],
+  "operation_ids": [
+    "shell.project-map",
+    "taxonomy.inspect-profile",
+    "taxonomy.bind-project",
+    "application.guide",
+    "application.reset"
+  ],
+  "executed_at": "2026-09-21T18:06:47.240Z",
+  "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:taxonomy-guide-reset-ui",
+  "environment": {
+    "stable_url": "http://127.0.0.1:4311/guide?project=project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+    "browser": {
+      "product": "Chrome/153.0.8010.48",
+      "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "protocol_version": "1.3"
+    },
+    "persistence": "fresh disposable PostgreSQL, Neo4j, and S3 stores created by the cumulative production harness",
+    "transport": "production React Router and authenticated Petra HTTP routes through the stable Vite proxy"
+  },
+  "observations": {
+    "documented_start": {
+      "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+      "project_name": "Competing explanations",
+      "guide_path": "/guide?project=project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+      "guide_sections": [
+        "purpose",
+        "starting state",
+        "guided task",
+        "expected outcomes",
+        "safe optional mutations",
+        "reset",
+        "known limits"
+      ]
+    },
+    "profile_choice": {
+      "selected_families": [
+        "petra.scientific-evidence",
+        "petra.controlled-writing"
+      ],
+      "created_project_id": "project_2KG9JN0ERCHYX7G38JS51RVKB8",
+      "created_project_name": "Wave 6 controlled-writing orientation Project",
+      "bound_profile_id": "project_template_01K6P000000000000000000002"
+    },
+    "scientific_profile": {
+      "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+      "resolution": "project_authored",
+      "complete_taxonomy_sections": true,
+      "project_map_used": true,
+      "core_surface_checks": [
+        {
+          "place": "Sources",
+          "path": "/sources"
+        },
+        {
+          "place": "Graph",
+          "path": "/graph"
+        },
+        {
+          "place": "Review",
+          "path": "/review"
+        },
+        {
+          "place": "Work",
+          "path": "/work"
+        },
+        {
+          "place": "Ask Petra",
+          "path": "/petra"
+        },
+        {
+          "place": "History",
+          "path": "/history"
+        }
+      ]
+    },
+    "reset": {
+      "prior_project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+      "replacement_project_id": "project_7BGBKTR7JW7R266SCSFZ2AFWNW",
+      "replacement_project_name": "Wave 6 controlled-writing reset Project",
+      "bound_profile_id": "project_template_01K6P000000000000000000002",
+      "exact_brief_path": "/projects/project_7BGBKTR7JW7R266SCSFZ2AFWNW/brief",
+      "exact_guide_path": "/guide?project=project_7BGBKTR7JW7R266SCSFZ2AFWNW",
+      "additive": true
+    },
+    "controlled_writing_profile": {
+      "project_id": "project_7BGBKTR7JW7R266SCSFZ2AFWNW",
+      "complete_taxonomy_sections": true,
+      "unavailable_operations_visible": [
+        "Ask a controlled-writing model",
+        "Start controlled-writing Work",
+        "Delete local copy"
+      ]
+    },
+    "unsupported_profile_boundary": {
+      "production_command_rejection": "reports/WAVE6-TAXONOMY-GUIDE-RESET-AUTHORITY.json",
+      "visible_fail_closed_presentation": "apps/workbench/src/product/project-profile.test.tsx",
+      "fallback_semantics_used": false
+    }
+  },
+  "requests": [
+    {
+      "method": "GET",
+      "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/model-readiness",
+      "status": 200,
+      "response_schema": "petra.project-model-readiness-view"
+    },
+    {
+      "method": "GET",
+      "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/threads/project_thread_1TVS320FP5Z477P8NY46FXAZF9",
+      "status": 200,
+      "response_schema": "petra.project-thread-view"
+    },
+    {
+      "method": "GET",
+      "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/history/events?limit=50",
+      "status": 200,
+      "response_schema": "petra.project-history-retained-view"
+    },
+    {
+      "method": "GET",
+      "path": "/health",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/effective-controls",
+      "status": 200,
+      "response_schema": "petra.project-effective-controls-view"
+    },
+    {
+      "method": "GET",
+      "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/shell",
+      "status": 200,
+      "response_schema": "petra.project-shell-view"
+    },
+    {
+      "method": "GET",
+      "path": "/api/queries/project-profiles",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/taxonomy?definition_revision=3",
+      "status": 200,
+      "response_schema": "petra.project-profile-taxonomy-view"
+    },
+    {
+      "method": "POST",
+      "path": "/api/commands/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/reset",
+      "status": 200,
+      "request_schema": "petra.project-profile-command-request",
+      "response_schema": "petra.project-profile-command-receipt"
+    },
+    {
+      "method": "GET",
+      "path": "/health",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/queries/projects/project_7BGBKTR7JW7R266SCSFZ2AFWNW/effective-controls",
+      "status": 200,
+      "response_schema": "petra.project-effective-controls-view"
+    },
+    {
+      "method": "GET",
+      "path": "/api/queries/projects/project_7BGBKTR7JW7R266SCSFZ2AFWNW/brief",
+      "status": 422,
+      "error_code": "PROJECT_BRIEF_UNSUPPORTED"
+    },
+    {
+      "method": "GET",
+      "path": "/api/queries/projects/project_7BGBKTR7JW7R266SCSFZ2AFWNW/shell",
+      "status": 200,
+      "response_schema": "petra.project-shell-view"
+    },
+    {
+      "method": "GET",
+      "path": "/api/queries/projects/project_7BGBKTR7JW7R266SCSFZ2AFWNW/shell",
+      "status": 200,
+      "response_schema": "petra.project-shell-view"
+    },
+    {
+      "method": "GET",
+      "path": "/health",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/queries/project-profiles",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/queries/projects?limit=12",
+      "status": 200,
+      "response_schema": "petra.project-shell-collection-view"
+    },
+    {
+      "method": "GET",
+      "path": "/health",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/queries/projects/project_7BGBKTR7JW7R266SCSFZ2AFWNW/taxonomy",
+      "status": 200,
+      "response_schema": "petra.project-profile-taxonomy-view"
+    },
+    {
+      "method": "GET",
+      "path": "/api/queries/projects/project_7BGBKTR7JW7R266SCSFZ2AFWNW/shell",
+      "status": 200,
+      "response_schema": "petra.project-shell-view"
+    }
+  ],
+  "boundary": "Fresh disposable stores, the production Petra server, authenticated HTTP, the production React routes, and isolated Chromium executed one stable-URL workflow: the in-product guide, both complete registered profile choices, a controlled-writing profile-owned Project and map, the retained scientific Project-authored map and all applicable core task destinations, exact taxonomy resolution, the supported additive reset, the replacement Brief, and the Project-pinned guide return. No browser response, Project, taxonomy, command receipt, or reset outcome was mocked. The same command also invokes the focused fail-closed unsupported-profile presentation test; the retained backend authority artifact separately proves production unknown-profile rejection without fallback semantics."
+}

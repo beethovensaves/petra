@@ -1,4 +1,4 @@
-import { Link, useLoaderData } from "react-router";
+import { Link, useLoaderData, useSearchParams } from "react-router";
 
 import { PetraMark } from "../design-system/brand.js";
 import type { ProjectRecord } from "./model.js";
@@ -18,7 +18,9 @@ const projectCoverageScore = (project: ProjectRecord): number => {
 
 export const selectRepresentativeProject = (
   projects: readonly ProjectRecord[],
+  preferredProjectId?: string,
 ): ProjectRecord | undefined =>
+  projects.find((project) => project.id === preferredProjectId) ??
   [...projects].sort(
     (left, right) =>
       projectCoverageScore(right) - projectCoverageScore(left) ||
@@ -57,8 +59,11 @@ const GuideAction = ({
 export const CheckpointGuideSurface = ({
   projects,
   profiles,
-}: ProjectCollectionData): React.JSX.Element => {
-  const project = selectRepresentativeProject(projects);
+  preferredProjectId,
+}: ProjectCollectionData & {
+  preferredProjectId?: string;
+}): React.JSX.Element => {
+  const project = selectRepresentativeProject(projects, preferredProjectId);
   const projectRoot =
     project === undefined
       ? undefined
@@ -347,6 +352,13 @@ export const CheckpointGuideSurface = ({
   );
 };
 
-export const CheckpointGuideRoute = (): React.JSX.Element => (
-  <CheckpointGuideSurface {...useLoaderData<ProjectCollectionData>()} />
-);
+export const CheckpointGuideRoute = (): React.JSX.Element => {
+  const [searchParams] = useSearchParams();
+  const preferredProjectId = searchParams.get("project") ?? undefined;
+  return (
+    <CheckpointGuideSurface
+      {...useLoaderData<ProjectCollectionData>()}
+      {...(preferredProjectId === undefined ? {} : { preferredProjectId })}
+    />
+  );
+};

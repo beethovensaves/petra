@@ -95,4 +95,14 @@ describe("Wave 6 in-product checkpoint guide", () => {
       selectRepresentativeProject([writing, productionScientific])?.id,
     ).toBe(productionScientific.id);
   });
+
+  it("keeps an exact routed Project selected after reset", () => {
+    if (productionScientific === undefined || writing === undefined) {
+      throw new Error("Representative Projects missing.");
+    }
+    expect(
+      selectRepresentativeProject([productionScientific, writing], writing.id)
+        ?.id,
+    ).toBe(writing.id);
+  });
 });

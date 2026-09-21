@@ -171,7 +171,13 @@ const SourceExtentLabel = ({ source }: { source: SourceRecord }) => (
 
 export const ProductFrame = (): React.JSX.Element => {
   const health = useLoaderData<EngineState>();
+  const location = useLocation();
   const servicesReady = health.ok && health.accepting;
+  const projectMatch = /^\/projects\/([^/]+)/u.exec(location.pathname);
+  const guideTarget =
+    projectMatch?.[1] === undefined
+      ? "/guide"
+      : `/guide?project=${encodeURIComponent(projectMatch[1])}`;
 
   return (
     <div className="reference-app">
@@ -188,7 +194,7 @@ export const ProductFrame = (): React.JSX.Element => {
           role="status"
           aria-live="polite"
         >
-          <Link className="reference-guide-link" to="/guide">
+          <Link className="reference-guide-link" to={guideTarget}>
             Test guide
           </Link>
           <span className="reference-scope">Local · private</span>
@@ -862,8 +868,10 @@ export const ProjectShell = (): React.JSX.Element => {
 
       <div className="reference-project-layout">
         <aside className="reference-project-nav" id="project-navigation">
-          <p className="reference-nav-label">Project workflow</p>
-          <nav ref={projectNav} aria-label={`${project.title} places`}>
+          <p className="reference-nav-label" id="project-map-title">
+            Project map
+          </p>
+          <nav ref={projectNav} aria-labelledby="project-map-title">
             {[
               { place: "brief" as const, to: "brief", label: "Brief" },
               {
@@ -1668,6 +1676,77 @@ export const BriefRoute = (): React.JSX.Element => {
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const resumeOutcome = searchParams.get("projectResume");
+  if (data.profileStartingBrief !== undefined) {
+    return (
+      <main
+        className="reference-surface live-project-brief"
+        id="reference-main"
+      >
+        <header className="brief-heading">
+          <div>
+            <p className="reference-eyebrow">{project.title}</p>
+            <h1>Brief</h1>
+            <p className="reference-lede">
+              Start from this Project’s registered profile and current focus.
+            </p>
+          </div>
+        </header>
+        <div className="brief-position" aria-label="Current Brief position">
+          <span>{project.profile.label}</span>
+          <span data-state="partial">Profile starting state</span>
+        </div>
+        <section
+          className="brief-section brief-focus"
+          aria-labelledby="brief-focus"
+        >
+          <p className="reference-panel-kicker">Orientation</p>
+          <h2 id="brief-focus" tabIndex={-1}>
+            Current {project.profile.terms.focus.toLocaleLowerCase()}
+          </h2>
+          <p className="brief-focus__statement">{project.objective}</p>
+          <p>
+            This registered profile does not supply composed Brief sections for
+            this starting state. Petra did not substitute scientific content,
+            actions, or meaning.
+          </p>
+          <div className="reference-surface-actions">
+            <Link
+              className="reference-primary-link"
+              to={`/projects/${project.id}/profile`}
+            >
+              Inspect Project profile
+            </Link>
+            <Link
+              className="reference-text-link"
+              to={`/guide?project=${encodeURIComponent(project.id)}`}
+            >
+              Return to test guide
+            </Link>
+          </div>
+          <details className="brief-technical">
+            <summary>Why composed Brief sections are unavailable</summary>
+            <p>{data.profileStartingBrief.limitation}</p>
+            <dl>
+              <div>
+                <dt>Project revision</dt>
+                <dd>{data.profileStartingBrief.projectRef.revision}</dd>
+              </div>
+              <div>
+                <dt>Profile definition revision</dt>
+                <dd>
+                  {data.profileStartingBrief.projectDefinitionRef.revision}
+                </dd>
+              </div>
+              <div>
+                <dt>Focus revision</dt>
+                <dd>{data.profileStartingBrief.objectiveRef.revision}</dd>
+              </div>
+            </dl>
+          </details>
+        </section>
+      </main>
+    );
+  }
   if (data.objectiveCommandContext === undefined)
     throw new Error("The reviewed Project Objective boundary is unavailable.");
   const state = location.state as {

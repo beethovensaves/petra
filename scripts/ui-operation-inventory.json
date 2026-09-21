@@ -263,7 +263,7 @@
       "surfaces": ["SP02", "SP12"],
       "flows": ["UX-FLOW-07", "UX-FLOW-09"],
       "requests": ["UX-REQ-001", "UX-REQ-014"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId",
       "control": "Project map",
       "interaction": "navigation",
@@ -272,6 +272,11 @@
           "command": "npm run test:wave6:taxonomy-guide-reset",
           "artifact": "reports/WAVE6-TAXONOMY-GUIDE-RESET-AUTHORITY.json",
           "boundary": "Fresh PostgreSQL, the production HTTP server, bearer authentication, ProjectShellClient, and ProjectProfileClient bind one exact Project shell and ProjectDefinition to the same versioned taxonomy before an additive reset, then retain the replacement binding after restart. This backend trace does not activate the visible Project map, perform browser navigation, or claim either design-owned named scenario."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:taxonomy-guide-reset-ui",
+          "artifact": "reports/WAVE6-TAXONOMY-GUIDE-RESET-BROWSER.json",
+          "boundary": "Isolated Chromium used the visible Project map for the controlled-writing profile-owned Project and the retained scientific Project-authored definition, then navigated Sources, Graph, Review, Work, Petra, and History through the production React routes while retaining the exact Project and task labels."
         }
       ],
       "runtime_owner": "GET /api/queries/projects/:projectId/taxonomy -> PostgresProjectProfileRuntime",
@@ -1962,7 +1967,7 @@
       "surfaces": ["SP02", "SP11", "SP12"],
       "flows": ["UX-FLOW-01", "UX-FLOW-17"],
       "requests": ["UX-REQ-004", "UX-REQ-021"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/projects/:projectId/profile",
       "control": "Project profile",
       "interaction": "query",
@@ -1971,6 +1976,11 @@
           "command": "npm run test:wave6:taxonomy-guide-reset",
           "artifact": "reports/WAVE6-TAXONOMY-GUIDE-RESET-AUTHORITY.json",
           "boundary": "Fresh PostgreSQL and the authenticated production taxonomy query return exact, complete, and visibly distinct scientific-evidence and controlled-writing profile purposes, sections, terminology, supported places, and unavailable operations through ProjectProfileClient, while an unknown selection fails without fallback semantics. This backend trace does not inspect the visible taxonomy surface or claim UX1.6-TAXONOMY/usable-profile-ui."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:taxonomy-guide-reset-ui",
+          "artifact": "reports/WAVE6-TAXONOMY-GUIDE-RESET-BROWSER.json",
+          "boundary": "The production profile choices exposed every taxonomy group, registered terminology, supported place, and unavailable operation for both profile families; Chromium then inspected the exact Project-authored scientific resolution and the registered controlled-writing replacement without client fallback semantics."
         }
       ],
       "runtime_owner": "GET /api/queries/projects/:projectId/taxonomy -> PostgresProjectProfileRuntime",
@@ -1983,7 +1993,7 @@
       "surfaces": ["SP01", "SP14"],
       "flows": ["UX-FLOW-01"],
       "requests": ["UX-REQ-004"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/",
       "control": "Choose profile",
       "interaction": "command",
@@ -1992,6 +2002,11 @@
           "command": "npm run test:wave6:taxonomy-guide-reset",
           "artifact": "reports/WAVE6-TAXONOMY-GUIDE-RESET-AUTHORITY.json",
           "boundary": "Fresh PostgreSQL, authenticated production commands, and ProjectProfileClient select exact registered scientific and controlled-writing profile references for initial Project creation and additive replacement, persist Project-owned definition and Objective authority, reject an unknown profile without creating fallback state, and replay the same receipts before and after restart. This backend trace does not activate the visible profile-choice control or claim UX1.6-TAXONOMY/usable-profile-ui."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:taxonomy-guide-reset-ui",
+          "artifact": "reports/WAVE6-TAXONOMY-GUIDE-RESET-BROWSER.json",
+          "boundary": "Chromium inspected and selected both server-returned profile families, submitted the visible controlled-writing Project form to the authenticated production command, and verified the receipt-bound profile, profile-owned map, exact starting focus, and safe profile-starting Brief."
         }
       ],
       "runtime_owner": "POST /api/commands/projects and POST /api/commands/projects/:projectId/reset -> PostgresProjectProfileRuntime",
@@ -2647,7 +2662,7 @@
       "surfaces": ["SP01", "SP14"],
       "flows": ["UX-FLOW-01", "UX-FLOW-16"],
       "requests": ["UX-REQ-008", "UX-REQ-023"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/guide",
       "control": "Test guide",
       "interaction": "navigation",
@@ -2656,6 +2671,11 @@
           "command": "npm run test:wave6:taxonomy-guide-reset",
           "artifact": "reports/WAVE6-TAXONOMY-GUIDE-RESET-AUTHORITY.json",
           "boundary": "Fresh PostgreSQL, authenticated GET /api/queries/projects, and GET /api/queries/project-profiles expose a retained active representative Project, its exact Brief destination, and paired registered profiles after server restart—the production data prerequisites consumed by /guide. This backend trace does not open the React guide, follow its task links, prove a stable browser URL, or claim USER-TESTABLE-01/stable-url-clean-start-reset."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:taxonomy-guide-reset-ui",
+          "artifact": "reports/WAVE6-TAXONOMY-GUIDE-RESET-BROWSER.json",
+          "boundary": "Chromium opened the stable Project-pinned production guide, verified purpose, starting state, actions, expected outcomes, optional mutations, reset, and known limits, followed its visible links, and returned after reset to the exact replacement Project and Brief."
         }
       ],
       "runtime_owner": "Production React /guide route over GET /api/queries/projects and GET /api/queries/project-profiles",
@@ -2668,7 +2688,7 @@
       "surfaces": ["SP01", "SP14"],
       "flows": ["UX-FLOW-01", "UX-FLOW-16"],
       "requests": ["UX-REQ-008", "UX-REQ-023"],
-      "current_state": "partial",
+      "current_state": "live",
       "route": "/settings?project=:projectId",
       "control": "Choose replacement profile",
       "interaction": "command",
@@ -2677,6 +2697,11 @@
           "command": "npm run test:wave6:taxonomy-guide-reset",
           "artifact": "reports/WAVE6-TAXONOMY-GUIDE-RESET-AUTHORITY.json",
           "boundary": "Fresh PostgreSQL and the authenticated production reset/recovery routes archive the exact expected Project revision, create one registered-profile replacement and exact Brief destination, preserve the unknown-effect recovery path, and replay one retained receipt before and after server restart without duplication. This backend trace does not activate the visible reset control, return through the guide, prove a stable browser URL, or claim USER-TESTABLE-01/stable-url-clean-start-reset."
+        },
+        {
+          "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:taxonomy-guide-reset-ui",
+          "artifact": "reports/WAVE6-TAXONOMY-GUIDE-RESET-BROWSER.json",
+          "boundary": "Chromium opened Settings from the retained representative Project, inspected both replacement profiles, confirmed the stated additive archive-and-replace consequence, submitted the production reset, and verified the distinct replacement identity, controlled-writing profile, exact focus, Brief, and Project-pinned guide return."
         }
       ],
       "runtime_owner": "POST /api/commands/projects/:projectId/reset -> PostgresProjectProfileRuntime",

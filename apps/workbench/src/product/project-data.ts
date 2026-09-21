@@ -4327,10 +4327,29 @@ export const loadProjectRecord = async ({
 export interface ProjectBriefData {
   readonly briefView?: PetraProjectBriefReadView;
   readonly objectiveCommandContext?: ProjectObjectiveCommandContext;
+  readonly profileStartingBrief?: ProjectProfileStartingBrief;
   readonly comparisonRecovery?: ProjectBriefComparisonRecovery;
   readonly suggestedAction?: PetraSuggestedActionView;
   readonly suggestedWorkAction?: PetraSuggestedActionViewV11;
   readonly invokedInquiry?: PetraProjectInquiryView;
+}
+
+export interface ProjectProfileStartingBrief {
+  readonly projectRef: {
+    readonly projectId: string;
+    readonly revision: number;
+  };
+  readonly projectDefinitionRef: {
+    readonly projectDefinitionId: string;
+    readonly revision: number;
+    readonly contentHash: string;
+  };
+  readonly objectiveRef: {
+    readonly objectiveId: string;
+    readonly revision: number;
+    readonly contentHash: string;
+  };
+  readonly limitation: string;
 }
 
 export interface ProjectBriefComparisonRecovery {
@@ -4453,6 +4472,51 @@ const objectiveCommandContextFromEmptyShell = (
       objectiveKind: term.semantic_key,
       term: term.singular,
     },
+  };
+};
+
+const profileStartingBriefFromCurrentShell = (
+  projectId: string,
+  shell: ProjectShellView,
+  controls: PetraProjectEffectiveControlsView,
+  limitation: string,
+): ProjectProfileStartingBrief => {
+  const project = shell.content.project;
+  const definition = shell.content.definition;
+  const objective = shell.content.current_objective;
+  const definitionRef = controls.content.project_definition_ref;
+  if (
+    shell.project_id !== projectId ||
+    project.project_id !== projectId ||
+    objective === undefined ||
+    controls.project_id !== projectId ||
+    controls.content.project_ref.record_id !== projectId ||
+    controls.content.project_ref.revision !== project.revision ||
+    definitionRef.project_definition_id !== definition.project_definition_id ||
+    definitionRef.revision !== definition.revision ||
+    definitionRef.content_hash !== definition.content_hash ||
+    !definition.terms.some(
+      (term) => term.semantic_key === objective.objective_kind,
+    )
+  ) {
+    throw new ProjectDataError(
+      "The profile starting Brief cannot bind one exact current Project, definition, and focus.",
+      409,
+    );
+  }
+  return {
+    projectRef: { projectId, revision: project.revision },
+    projectDefinitionRef: {
+      projectDefinitionId: definition.project_definition_id,
+      revision: definition.revision,
+      contentHash: definition.content_hash,
+    },
+    objectiveRef: {
+      objectiveId: objective.objective_id,
+      revision: objective.revision,
+      contentHash: objective.content_hash,
+    },
+    limitation,
   };
 };
 
@@ -4659,7 +4723,22 @@ export const loadProjectBrief = async (
       ]);
       const controls = effectiveControlsView(controlsValue);
       const shell = shellView(shellValue);
-      if (shell.content.current_objective !== undefined) throw error;
+      if (shell.content.current_objective !== undefined) {
+        if (
+          error instanceof ProjectBriefClientError &&
+          error.code === "PROJECT_BRIEF_UNSUPPORTED"
+        ) {
+          return {
+            profileStartingBrief: profileStartingBriefFromCurrentShell(
+              projectId,
+              shell,
+              controls,
+              error.message,
+            ),
+          };
+        }
+        throw error;
+      }
       return {
         objectiveCommandContext: objectiveCommandContextFromEmptyShell(
           projectId,

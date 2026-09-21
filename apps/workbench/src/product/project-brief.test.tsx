@@ -202,6 +202,62 @@ describe("Project Brief browser boundary", () => {
     expect(fetch).toHaveBeenCalledTimes(3);
   });
 
+  it("keeps a registered non-scientific starting Brief useful without substituting scientific sections", async () => {
+    const shell = structuredClone(fixture.content.shell);
+    const fetch = vi.fn<typeof globalThis.fetch>((input) => {
+      const path = fetchUrl(input);
+      return Promise.resolve(
+        path.endsWith("/effective-controls")
+          ? Response.json(controls())
+          : path.endsWith("/shell")
+            ? Response.json(shell)
+            : Response.json(
+                {
+                  error: {
+                    code: "PROJECT_BRIEF_UNSUPPORTED",
+                    message:
+                      "No exact registered controlled-writing Brief payload is available for this ProjectDefinition and Objective.",
+                  },
+                },
+                { status: 422 },
+              ),
+      );
+    });
+    vi.stubGlobal("fetch", fetch);
+    const url = new URL(
+      `http://petra.test/projects/${fixture.project_id}/brief`,
+    );
+    const result = await loadProjectBrief({
+      request: new Request(url),
+      url,
+      params: { projectId: fixture.project_id },
+      pattern: "/projects/:projectId/brief",
+      context: new RouterContextProvider(),
+    });
+
+    expect(result.briefView).toBeUndefined();
+    expect(result.objectiveCommandContext).toBeUndefined();
+    expect(result.profileStartingBrief).toMatchObject({
+      projectRef: {
+        projectId: fixture.project_id,
+        revision: shell.content.project.revision,
+      },
+      projectDefinitionRef: {
+        projectDefinitionId: shell.content.definition.project_definition_id,
+        revision: shell.content.definition.revision,
+        contentHash: shell.content.definition.content_hash,
+      },
+      objectiveRef: {
+        objectiveId: shell.content.current_objective?.objective_id,
+        revision: shell.content.current_objective?.revision,
+        contentHash: shell.content.current_objective?.content_hash,
+      },
+      limitation:
+        "No exact registered controlled-writing Brief payload is available for this ProjectDefinition and Objective.",
+    });
+    expect(fetch).toHaveBeenCalledTimes(3);
+  });
+
   it("keeps an explicitly selected current preview separate from the captured Brief", async () => {
     const fetch = vi.fn<typeof globalThis.fetch>((input) => {
       const url = input instanceof Request ? input.url : String(input);
