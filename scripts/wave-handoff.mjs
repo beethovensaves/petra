@@ -418,12 +418,84 @@ export function mergeOperationInventoryDocuments(
   const baseOperations = index(base, "Base");
   const oursOperations = index(ours, "Design");
   const theirsOperations = index(theirs, "Backend");
-  const mergedOperations = mergeJsonValue(
-    baseOperations,
-    oursOperations,
-    theirsOperations,
-    "ui-operation-inventory.operations",
-  );
+  const operationIds = new Set([
+    ...Object.keys(baseOperations),
+    ...Object.keys(oursOperations),
+    ...Object.keys(theirsOperations),
+  ]);
+  const mergedOperations = {};
+  for (const id of operationIds) {
+    const baseOperation = baseOperations[id] ?? missingJsonValue;
+    const oursOperation = oursOperations[id] ?? missingJsonValue;
+    const theirsOperation = theirsOperations[id] ?? missingJsonValue;
+    if (
+      isPlainObject(baseOperation) &&
+      isPlainObject(oursOperation) &&
+      isPlainObject(theirsOperation)
+    ) {
+      const mergedOperation = {};
+      const keys = new Set([
+        ...Object.keys(baseOperation),
+        ...Object.keys(oursOperation),
+        ...Object.keys(theirsOperation),
+      ]);
+      for (const key of keys) {
+        const baseValue = Object.hasOwn(baseOperation, key)
+          ? baseOperation[key]
+          : missingJsonValue;
+        const oursValue = Object.hasOwn(oursOperation, key)
+          ? oursOperation[key]
+          : missingJsonValue;
+        const theirsValue = Object.hasOwn(theirsOperation, key)
+          ? theirsOperation[key]
+          : missingJsonValue;
+        let value;
+        if (
+          key === "evidence" &&
+          Array.isArray(oursValue) &&
+          Array.isArray(theirsValue)
+        ) {
+          const unique = new Map(
+            [...oursValue, ...theirsValue].map((record) => [
+              JSON.stringify(record),
+              record,
+            ]),
+          );
+          value = [...unique.values()];
+        } else if (
+          key === "runtime_owner" &&
+          !isDeepStrictEqual(oursValue, baseValue) &&
+          !isDeepStrictEqual(theirsValue, baseValue) &&
+          !isDeepStrictEqual(oursValue, theirsValue)
+        ) {
+          value = theirsValue;
+        } else if (
+          key === "current_state" &&
+          !isDeepStrictEqual(oursValue, baseValue) &&
+          !isDeepStrictEqual(theirsValue, baseValue) &&
+          !isDeepStrictEqual(oursValue, theirsValue)
+        ) {
+          value = oursValue;
+        } else {
+          value = mergeJsonValue(
+            baseValue,
+            oursValue,
+            theirsValue,
+            `ui-operation-inventory.operations.${id}.${key}`,
+          );
+        }
+        if (value !== missingJsonValue) mergedOperation[key] = value;
+      }
+      mergedOperations[id] = mergedOperation;
+    } else {
+      mergedOperations[id] = mergeJsonValue(
+        baseOperation,
+        oursOperation,
+        theirsOperation,
+        `ui-operation-inventory.operations.${id}`,
+      );
+    }
+  }
   const withoutOperations = (document) => {
     const copy = { ...document };
     delete copy.operations;
@@ -1529,21 +1601,27 @@ function stateSummary(state) {
       state.slice_count >= 96 &&
       state.status !== "complete"
     ) {
-      const inventory = JSON.parse(
-        readFileSync(
-          join(designRoot, "scripts/ui-operation-inventory.json"),
-          "utf8",
-        ),
-      );
-      const closureBundle = selectWave6ClosureBundle(
-        (inventory.operations ?? []).filter(
-          (operation) => operation.milestone === 6,
-        ),
-        missing,
-      );
-      lines.push(
-        `Next closure bundle: ${closureBundle.id} (${closureBundle.remainingOperationIds.length} incomplete operations)`,
-      );
+      try {
+        const inventory = JSON.parse(
+          readFileSync(
+            join(designRoot, "scripts/ui-operation-inventory.json"),
+            "utf8",
+          ),
+        );
+        const closureBundle = selectWave6ClosureBundle(
+          (inventory.operations ?? []).filter(
+            (operation) => operation.milestone === 6,
+          ),
+          missing,
+        );
+        lines.push(
+          `Next closure bundle: ${closureBundle.id} (${closureBundle.remainingOperationIds.length} incomplete operations)`,
+        );
+      } catch (error) {
+        lines.push(
+          `Next closure bundle unavailable: ${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
     }
   }
   const latest = state.history.at(-1);
