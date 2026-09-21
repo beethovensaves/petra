@@ -852,7 +852,13 @@ export class PostgresProjectSourceLifecycleViewReader
     idField: string,
     recordId: string,
   ): Value {
-    this.#contracts.assertValid(contractName, "1.0.0", payload);
+    const version = (payload as { schema_version?: unknown }).schema_version;
+    if (typeof version !== "string") {
+      throw this.#corrupt(
+        `The stored ${contractName} record has no schema version.`,
+      );
+    }
+    this.#contracts.assertValid(contractName, version, payload);
     const record = clone(payload as Record<string, unknown>);
     if (record[idField] !== recordId || canonicalHash(record) !== recordHash) {
       throw this.#corrupt(

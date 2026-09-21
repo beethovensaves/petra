@@ -5076,6 +5076,30 @@ const exerciseItem53Trace = async ({
         token,
         registeredProfileSchemaHash: scientific.briefSchemaHash,
       }).read(scientificProjectId);
+      const sourceLifecycleResponse = await nativeFetch(
+        new URL(
+          `/api/queries/projects/${scientificProjectId}/sources/${scientific.projectSource.project_source_id}/lifecycle?requested_action=exclude_project_source`,
+          active.url,
+        ),
+        { headers: { authorization: `Bearer ${token}` } },
+      );
+      const sourceLifecycle = await sourceLifecycleResponse.json();
+      const openReviews = sourceLifecycle.content?.impact?.groups?.find(
+        (group) => group.group_kind === "open_reviews",
+      );
+      assert(
+        sourceLifecycleResponse.status === 200 &&
+          sourceLifecycle.schema_name ===
+            "petra.project-source-lifecycle-view" &&
+          openReviews?.refs?.some(
+            (ref) =>
+              ref.record_kind === "review_session" &&
+              ref.record_id === scientific.session.review_session_id &&
+              ref.revision === scientific.session.revision &&
+              ref.record_hash === hash(scientific.session),
+          ),
+        `The production source lifecycle route did not compose its exact review-session@${scientific.session.schema_version} dependency: ${JSON.stringify(sourceLifecycle)}`,
+      );
       const evidenceView =
         await projectData.loadProjectRelationshipOverlay(scientificProjectId);
       const workResponse = await nativeFetch(
@@ -5248,7 +5272,7 @@ const exerciseItem53Trace = async ({
         },
       };
       progress(
-        "production typed clients retained cross-view identity and five separate relationship meanings",
+        "production Brief, Review, and source lifecycle routes retained cross-view identity and five separate relationship meanings",
       );
     }
     const crossProjectReview = await nativeFetch(
