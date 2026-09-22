@@ -1,0 +1,1077 @@
+{
+  "schema_name": "petra.ui-operation-presentation-map",
+  "schema_version": "1.0.0",
+  "decision": "D024",
+  "milestone": "FE-A1",
+  "layout": {
+    "desktop_agent": 30,
+    "desktop_workspace": 70
+  },
+  "entry_definitions": {
+    "agent": "Initiated in the persistent left agent panel.",
+    "workspace": "Initiated by direct manipulation in the active workspace.",
+    "system": "Performed or restored automatically by an authoritative owner.",
+    "settings": "Available in secondary settings rather than the primary task flow.",
+    "test_harness": "Used only for test setup or acceptance infrastructure."
+  },
+  "result_definitions": {
+    "agent": "Reported inline in the agent panel.",
+    "workspace": "Rendered as the active outcome or task in the workspace.",
+    "inspector": "Rendered in the on-demand workspace inspector.",
+    "none": "Has no customer-facing result surface."
+  },
+  "exposure_definitions": {
+    "primary": "Part of the normal agentic task flow.",
+    "contextual": "Appears only when the selected task or state makes it relevant.",
+    "on_demand": "Available through Inspect; absent from the default composition.",
+    "automatic": "Runs without a routine user control and reports material state changes.",
+    "secondary": "Available through a compact switcher, menu, or Settings.",
+    "internal": "Absent from the customer-facing product."
+  },
+  "operations": [
+    {
+      "id": "project.search",
+      "milestone": 6,
+      "label": "Find a Project",
+      "entry": "workspace",
+      "result": "workspace",
+      "exposure": "secondary",
+      "presentation": "Search and filter Projects from the compact Project switcher."
+    },
+    {
+      "id": "project.open",
+      "milestone": 6,
+      "label": "Open a Project",
+      "entry": "workspace",
+      "result": "workspace",
+      "exposure": "primary",
+      "presentation": "Open a Project into the persistent agent and outcome workspace."
+    },
+    {
+      "id": "project.switch",
+      "milestone": 6,
+      "label": "Switch Projects",
+      "entry": "workspace",
+      "result": "workspace",
+      "exposure": "secondary",
+      "presentation": "Switch Project from the shell switcher while retaining the prior task return."
+    },
+    {
+      "id": "project.resume",
+      "milestone": 6,
+      "label": "Resume a Project at its retained task",
+      "entry": "system",
+      "result": "workspace",
+      "exposure": "automatic",
+      "presentation": "Restore the last meaningful Project task and tell the agent what was resumed."
+    },
+    {
+      "id": "project.create",
+      "milestone": 6,
+      "label": "Create a Project with a registered profile",
+      "entry": "agent",
+      "result": "workspace",
+      "exposure": "primary",
+      "presentation": "Create a Project from a natural-language outcome; no template or profile choice is required."
+    },
+    {
+      "id": "project.import",
+      "milestone": 6,
+      "label": "Import or reuse a Project with preserved ancestry",
+      "entry": "agent",
+      "result": "workspace",
+      "exposure": "contextual",
+      "presentation": "Import material or a Project checkpoint from the agent composer and show the exact admitted result."
+    },
+    {
+      "id": "project.recover",
+      "milestone": 6,
+      "label": "Recover an unresolved Project entry",
+      "entry": "agent",
+      "result": "workspace",
+      "exposure": "contextual",
+      "presentation": "Present unresolved creation or import recovery inline when it is needed."
+    },
+    {
+      "id": "shell.navigate",
+      "milestone": 6,
+      "label": "Navigate to a Project place with context",
+      "entry": "workspace",
+      "result": "workspace",
+      "exposure": "contextual",
+      "presentation": "Use workspace breadcrumbs, object links, and result links instead of a permanent module menu."
+    },
+    {
+      "id": "shell.return",
+      "milestone": 6,
+      "label": "Return to the exact originating task and focus",
+      "entry": "workspace",
+      "result": "workspace",
+      "exposure": "contextual",
+      "presentation": "Return to the exact originating object, selection, and focus."
+    },
+    {
+      "id": "shell.inspect-context",
+      "milestone": 6,
+      "label": "Inspect Project, profile, objective, snapshot, and projection context",
+      "entry": "workspace",
+      "result": "inspector",
+      "exposure": "on_demand",
+      "presentation": "Open Project definition, objective, snapshot, projection, and capability context in Inspect."
+    },
+    {
+      "id": "shell.project-map",
+      "milestone": 6,
+      "label": "Open and use the profile-owned Project map",
+      "entry": "workspace",
+      "result": "workspace",
+      "exposure": "secondary",
+      "presentation": "Show a domain-neutral Project plan and object map; definition-specific language is data, not global navigation."
+    },
+    {
+      "id": "shell.attention-work",
+      "milestone": 6,
+      "label": "Inspect attention-bearing Work from the shell",
+      "entry": "agent",
+      "result": "workspace",
+      "exposure": "contextual",
+      "presentation": "Surface Work needing attention in the agent and open its exact workspace state."
+    },
+    {
+      "id": "brief.orient",
+      "milestone": 6,
+      "label": "Understand current focus, state, and limitations",
+      "entry": "system",
+      "result": "workspace",
+      "exposure": "automatic",
+      "presentation": "Render a concise Project overview for the current objective and outcome state."
+    },
+    {
+      "id": "brief.frame-objective",
+      "milestone": 6,
+      "label": "Frame or revise the Project objective through an exact reviewed command",
+      "entry": "agent",
+      "result": "workspace",
+      "exposure": "primary",
+      "presentation": "Frame or revise the objective conversationally, then show the exact proposed change in the workspace."
+    },
+    {
+      "id": "brief.attention",
+      "milestone": 6,
+      "label": "Inspect and open a material attention item",
+      "entry": "agent",
+      "result": "workspace",
+      "exposure": "contextual",
+      "presentation": "Raise only material attention items in the agent and open their owning workspace object."
+    },
+    {
+      "id": "brief.change",
+      "milestone": 6,
+      "label": "Inspect what changed from the selected baseline",
+      "entry": "workspace",
+      "result": "inspector",
+      "exposure": "on_demand",
+      "presentation": "Explain what changed from a selected baseline through Inspect."
+    },
+    {
+      "id": "brief.suggested-preview",
+      "milestone": 6,
+      "label": "Inspect a SuggestedAction and its basis",
+      "entry": "agent",
+      "result": "workspace",
+      "exposure": "contextual",
+      "presentation": "Present a ready next action inline with purpose, basis, consequence, and limits."
+    },
+    {
+      "id": "brief.suggested-invoke",
+      "milestone": 6,
+      "label": "Invoke a SuggestedAction",
+      "entry": "agent",
+      "result": "workspace",
+      "exposure": "contextual",
+      "presentation": "Invoke an accepted next action through the same registered command path."
+    },
+    {
+      "id": "brief.recent-decisions",
+      "milestone": 6,
+      "label": "Inspect recent decisions and open History",
+      "entry": "workspace",
+      "result": "inspector",
+      "exposure": "on_demand",
+      "presentation": "Open recent decisions and their causal History from Inspect."
+    },
+    {
+      "id": "source.find",
+      "milestone": 6,
+      "label": "Find a Project source",
+      "entry": "agent",
+      "result": "workspace",
+      "exposure": "contextual",
+      "presentation": "Ask Petra to find sources or open the source workspace when direct browsing is useful."
+    },
+    {
+      "id": "source.open",
+      "milestone": 6,
+      "label": "Open a Project source",
+      "entry": "workspace",
+      "result": "workspace",
+      "exposure": "contextual",
+      "presentation": "Open the exact source or source collection in the workspace."
+    },
+    {
+      "id": "source.register",
+      "milestone": 6,
+      "label": "Register and link a new source revision",
+      "entry": "agent",
+      "result": "workspace",
+      "exposure": "contextual",
+      "presentation": "Attach or name a source conversationally and show admission, rights, and scope in the workspace."
+    },
+    {
+      "id": "source.reuse",
+      "milestone": 6,
+      "label": "Reuse an existing source identity or revision in the Project",
+      "entry": "agent",
+      "result": "workspace",
+      "exposure": "contextual",
+      "presentation": "Let Petra identify reusable source identity and ask only when the choice is material."
+    },
+    {
+      "id": "source.start-processing",
+      "milestone": 6,
+      "label": "Start bounded source-processing Work",
+      "entry": "agent",
+      "result": "workspace",
+      "exposure": "contextual",
+      "presentation": "Start bounded processing from the agent and keep progress attached to the source."
+    },
+    {
+      "id": "source.inspect-processing",
+      "milestone": 6,
+      "label": "Inspect processing state, representations, and limitations",
+      "entry": "workspace",
+      "result": "inspector",
+      "exposure": "on_demand",
+      "presentation": "Inspect processing stages, representations, and limitations."
+    },
+    {
+      "id": "source.inspect-exact",
+      "milestone": 6,
+      "label": "Inspect exact source content and location",
+      "entry": "workspace",
+      "result": "inspector",
+      "exposure": "on_demand",
+      "presentation": "Inspect exact content, location, origin, and source revision."
+    },
+    {
+      "id": "source.add-revision",
+      "milestone": 6,
+      "label": "Add a new immutable source revision",
+      "entry": "workspace",
+      "result": "workspace",
+      "exposure": "contextual",
+      "presentation": "Add a new immutable revision from the active source workspace."
+    },
+    {
+      "id": "source.remove-project-link",
+      "milestone": 6,
+      "label": "Remove a source link from the Project",
+      "entry": "workspace",
+      "result": "workspace",
+      "exposure": "contextual",
+      "presentation": "Offer unlink only in the selected source context with its exact consequence."
+    },
+    {
+      "id": "source.delete-local-copy",
+      "milestone": 6,
+      "label": "Delete an eligible local source copy with a retained receipt",
+      "entry": "workspace",
+      "result": "workspace",
+      "exposure": "contextual",
+      "presentation": "Offer eligible local-copy deletion only after retention and recovery are explained."
+    },
+    {
+      "id": "review.queue",
+      "milestone": 6,
+      "label": "Inspect the exception-led Review queue",
+      "entry": "system",
+      "result": "workspace",
+      "exposure": "automatic",
+      "presentation": "Maintain Review as an exception queue and notify the agent only when a decision is needed."
+    },
+    {
+      "id": "review.open-session",
+      "milestone": 6,
+      "label": "Open a Review session",
+      "entry": "agent",
+      "result": "workspace",
+      "exposure": "contextual",
+      "presentation": "Open the exact Review session from an agent interrupt or affected object."
+    },
+    {
+      "id": "review.select-member",
+      "milestone": 6,
+      "label": "Select an exact Review member",
+      "entry": "workspace",
+      "result": "workspace",
+      "exposure": "contextual",
+      "presentation": "Select a Review member inside the Review workspace."
+    },
+    {
+      "id": "review.correct-candidate",
+      "milestone": 6,
+      "label": "Correct a Review candidate",
+      "entry": "workspace",
+      "result": "workspace",
+      "exposure": "contextual",
+      "presentation": "Correct the selected candidate in the Review workspace."
+    },
+    {
+      "id": "review.revise-basis",
+      "milestone": 6,
+      "label": "Revise the candidate basis",
+      "entry": "workspace",
+      "result": "workspace",
+      "exposure": "contextual",
+      "presentation": "Revise the selected candidate basis beside its evidence."
+    },
+    {
+      "id": "review.separate",
+      "milestone": 6,
+      "label": "Separate independently decidable changes",
+      "entry": "workspace",
+      "result": "workspace",
+      "exposure": "contextual",
+      "presentation": "Separate independently decidable changes within the active Review."
+    },
+    {
+      "id": "review.prepare-apply",
+      "milestone": 6,
+      "label": "Prepare and inspect the exact ChangeSet",
+      "entry": "workspace",
+      "result": "inspector",
+      "exposure": "contextual",
+      "presentation": "Show the exact ChangeSet, validation, and affected objects before Apply."
+    },
+    {
+      "id": "review.apply",
+      "milestone": 6,
+      "label": "Apply the displayed ChangeSet",
+      "entry": "agent",
+      "result": "workspace",
+      "exposure": "contextual",
+      "presentation": "Request approval in the agent and apply the displayed ChangeSet through its owning command."
+    },
+    {
+      "id": "review.reject",
+      "milestone": 6,
+      "label": "Reject a candidate",
+      "entry": "agent",
+      "result": "workspace",
+      "exposure": "contextual",
+      "presentation": "Reject the active candidate from the decision interrupt while retaining its record."
+    },
+    {
+      "id": "review.defer",
+      "milestone": 6,
+      "label": "Defer a Review decision",
+      "entry": "agent",
+      "result": "workspace",
+      "exposure": "contextual",
+      "presentation": "Defer the active decision with a visible consequence and return path."
+    },
+    {
+      "id": "review.reopen",
+      "milestone": 6,
+      "label": "Reopen a deferred Review decision",
+      "entry": "agent",
+      "result": "workspace",
+      "exposure": "contextual",
+      "presentation": "Reopen a deferred decision from agent context or Review History."
+    },
+    {
+      "id": "review.refresh",
+      "milestone": 6,
+      "label": "Refresh a stale Review",
+      "entry": "system",
+      "result": "workspace",
+      "exposure": "automatic",
+      "presentation": "Refresh stale Review state before permitting a consequential decision."
+    },
+    {
+      "id": "graph.open",
+      "milestone": 6,
+      "label": "Open a named relationship task in Graph",
+      "entry": "workspace",
+      "result": "inspector",
+      "exposure": "on_demand",
+      "presentation": "Open a task-focused graph explanation in Inspect; never make the whole graph the default workspace."
+    },
+    {
+      "id": "graph.return",
+      "milestone": 6,
+      "label": "Return from Graph to the originating question and focus",
+      "entry": "workspace",
+      "result": "workspace",
+      "exposure": "contextual",
+      "presentation": "Return from graph inspection to the exact originating task and focus."
+    },
+    {
+      "id": "graph.layer-position",
+      "milestone": 6,
+      "label": "Move among Current, Working, and Historical positions",
+      "entry": "workspace",
+      "result": "inspector",
+      "exposure": "on_demand",
+      "presentation": "Choose Current, Working, or Historical position inside graph inspection."
+    },
+    {
+      "id": "graph.select",
+      "milestone": 6,
+      "label": "Select an exact graph object or relationship",
+      "entry": "workspace",
+      "result": "inspector",
+      "exposure": "on_demand",
+      "presentation": "Select an exact graph object or relationship inside the focused view."
+    },
+    {
+      "id": "graph.open-details",
+      "milestone": 6,
+      "label": "Open Details for the graph selection",
+      "entry": "workspace",
+      "result": "inspector",
+      "exposure": "on_demand",
+      "presentation": "Open identity, state, policy, and provenance for the selected graph item."
+    },
+    {
+      "id": "graph.open-source",
+      "milestone": 6,
+      "label": "Open exact source basis for the graph selection",
+      "entry": "workspace",
+      "result": "inspector",
+      "exposure": "on_demand",
+      "presentation": "Open the exact source basis from the selected graph item."
+    },
+    {
+      "id": "graph.expand",
+      "milestone": 6,
+      "label": "Expand a bounded graph question",
+      "entry": "workspace",
+      "result": "inspector",
+      "exposure": "on_demand",
+      "presentation": "Expand only the bounded relationship question currently under inspection."
+    },
+    {
+      "id": "graph.filter",
+      "milestone": 6,
+      "label": "Filter a bounded graph question",
+      "entry": "workspace",
+      "result": "inspector",
+      "exposure": "on_demand",
+      "presentation": "Filter the focused relationship view without changing authoritative state."
+    },
+    {
+      "id": "graph.save-question",
+      "milestone": 6,
+      "label": "Save an exact relationship question",
+      "entry": "workspace",
+      "result": "inspector",
+      "exposure": "contextual",
+      "presentation": "Save a useful relationship question from Inspect."
+    },
+    {
+      "id": "graph.compare",
+      "milestone": 6,
+      "label": "Compare exact graph positions",
+      "entry": "workspace",
+      "result": "inspector",
+      "exposure": "on_demand",
+      "presentation": "Compare exact graph positions in Inspect."
+    },
+    {
+      "id": "graph.impact",
+      "milestone": 6,
+      "label": "Inspect graph impact",
+      "entry": "workspace",
+      "result": "inspector",
+      "exposure": "on_demand",
+      "presentation": "Trace downstream impact from the selected object or transition."
+    },
+    {
+      "id": "graph.time",
+      "milestone": 6,
+      "label": "Inspect the graph at an exact historical time",
+      "entry": "workspace",
+      "result": "inspector",
+      "exposure": "on_demand",
+      "presentation": "Inspect the graph at an exact historical time."
+    },
+    {
+      "id": "graph.correct-through-review",
+      "milestone": 6,
+      "label": "Preview a graph correction through Review",
+      "entry": "agent",
+      "result": "workspace",
+      "exposure": "contextual",
+      "presentation": "Turn a requested graph correction into a governed Review, surfaced by the agent."
+    },
+    {
+      "id": "work.list",
+      "milestone": 6,
+      "label": "Inspect the Project Work collection",
+      "entry": "agent",
+      "result": "workspace",
+      "exposure": "contextual",
+      "presentation": "Summarize active and attention-bearing Work in the agent; open the collection only on request."
+    },
+    {
+      "id": "work.open",
+      "milestone": 6,
+      "label": "Open an exact Work task",
+      "entry": "agent",
+      "result": "workspace",
+      "exposure": "contextual",
+      "presentation": "Open exact Work details in the workspace from agent status or an outcome link."
+    },
+    {
+      "id": "work.start",
+      "milestone": 6,
+      "label": "Start bounded Work",
+      "entry": "agent",
+      "result": "workspace",
+      "exposure": "contextual",
+      "presentation": "Start bounded Work from a proposed plan or explicit user request."
+    },
+    {
+      "id": "work.answer-input",
+      "milestone": 6,
+      "label": "Answer required Work input",
+      "entry": "agent",
+      "result": "workspace",
+      "exposure": "contextual",
+      "presentation": "Ask for required input inline and bind the answer to the exact Work checkpoint."
+    },
+    {
+      "id": "work.steer",
+      "milestone": 6,
+      "label": "Steer active Work within its declared boundary",
+      "entry": "agent",
+      "result": "workspace",
+      "exposure": "contextual",
+      "presentation": "Steer active Work conversationally within its declared boundary."
+    },
+    {
+      "id": "work.prioritize",
+      "milestone": 6,
+      "label": "Prioritize an eligible Project line of inquiry",
+      "entry": "agent",
+      "result": "workspace",
+      "exposure": "contextual",
+      "presentation": "Prioritize an eligible line of work through the agent with its scheduling consequence."
+    },
+    {
+      "id": "work.detach",
+      "milestone": 6,
+      "label": "Detach from Work without cancelling it",
+      "entry": "agent",
+      "result": "agent",
+      "exposure": "secondary",
+      "presentation": "Let the user leave an active run without implying cancellation."
+    },
+    {
+      "id": "work.reconnect",
+      "milestone": 6,
+      "label": "Reconnect to canonical Work state",
+      "entry": "system",
+      "result": "agent",
+      "exposure": "automatic",
+      "presentation": "Reconnect to canonical Work state and report any changed status."
+    },
+    {
+      "id": "work.replay",
+      "milestone": 6,
+      "label": "Replay Work delivery without duplicate execution",
+      "entry": "system",
+      "result": "agent",
+      "exposure": "automatic",
+      "presentation": "Replay retained delivery without duplicating execution."
+    },
+    {
+      "id": "work.cancel",
+      "milestone": 6,
+      "label": "Cancel running Work",
+      "entry": "agent",
+      "result": "agent",
+      "exposure": "contextual",
+      "presentation": "Cancel only the exact running Work selected in the agent."
+    },
+    {
+      "id": "work.retry",
+      "milestone": 6,
+      "label": "Retry an eligible failed Work attempt",
+      "entry": "agent",
+      "result": "workspace",
+      "exposure": "contextual",
+      "presentation": "Offer retry only when the owning recovery assessment permits it."
+    },
+    {
+      "id": "work.resume",
+      "milestone": 6,
+      "label": "Resume Work from an eligible checkpoint",
+      "entry": "agent",
+      "result": "workspace",
+      "exposure": "contextual",
+      "presentation": "Offer resume only from a registered compatible checkpoint."
+    },
+    {
+      "id": "work.start-again",
+      "milestone": 6,
+      "label": "Start Work again as a new attempt",
+      "entry": "agent",
+      "result": "workspace",
+      "exposure": "contextual",
+      "presentation": "Start a distinct attempt when fresh input or lineage is required."
+    },
+    {
+      "id": "work.open-result",
+      "milestone": 6,
+      "label": "Open a Work result at its exact destination",
+      "entry": "agent",
+      "result": "workspace",
+      "exposure": "contextual",
+      "presentation": "Open the exact result in the workspace rather than reproducing it in chat."
+    },
+    {
+      "id": "petra.open",
+      "milestone": 6,
+      "label": "Open Petra in exact task context",
+      "entry": "system",
+      "result": "agent",
+      "exposure": "automatic",
+      "presentation": "Keep the agent persistently present on desktop; opening it is only a responsive-layout concern."
+    },
+    {
+      "id": "petra.resume-thread",
+      "milestone": 6,
+      "label": "Resume a retained Petra thread and draft",
+      "entry": "system",
+      "result": "agent",
+      "exposure": "automatic",
+      "presentation": "Restore the retained Project thread and local draft automatically."
+    },
+    {
+      "id": "petra.ask",
+      "milestone": 6,
+      "label": "Ask Petra in exact Project context",
+      "entry": "agent",
+      "result": "workspace",
+      "exposure": "primary",
+      "presentation": "Accept the user request in the agent and render durable outcomes in the workspace."
+    },
+    {
+      "id": "petra.inspect-context",
+      "milestone": 6,
+      "label": "Inspect Petra's exact Project and task context",
+      "entry": "agent",
+      "result": "inspector",
+      "exposure": "on_demand",
+      "presentation": "Inspect the exact Project, objective, selection, snapshot, and capability context used by Petra."
+    },
+    {
+      "id": "petra.inspect-references",
+      "milestone": 6,
+      "label": "Inspect Petra response origin, force, references, and limitations",
+      "entry": "agent",
+      "result": "inspector",
+      "exposure": "on_demand",
+      "presentation": "Inspect response origin, force, references, limitations, and graph path."
+    },
+    {
+      "id": "petra.preview-action",
+      "milestone": 6,
+      "label": "Preview a Petra-mediated registered action",
+      "entry": "agent",
+      "result": "workspace",
+      "exposure": "contextual",
+      "presentation": "Preview a registered operation inline, with detailed effects in the workspace."
+    },
+    {
+      "id": "petra.invoke-action",
+      "milestone": 6,
+      "label": "Invoke the previewed action through its owning command",
+      "entry": "agent",
+      "result": "workspace",
+      "exposure": "contextual",
+      "presentation": "Invoke the accepted preview through the operation owner; model prose carries no authority."
+    },
+    {
+      "id": "petra.respond-interrupt",
+      "milestone": 6,
+      "label": "Respond to a durable Review or Work interrupt",
+      "entry": "agent",
+      "result": "workspace",
+      "exposure": "contextual",
+      "presentation": "Resolve Review, approval, missing-input, and Work interrupts inline."
+    },
+    {
+      "id": "model.inspect-readiness",
+      "milestone": 6,
+      "label": "Inspect certified model-role readiness and provider status",
+      "entry": "system",
+      "result": "inspector",
+      "exposure": "on_demand",
+      "presentation": "Keep model routing quiet when healthy; expose certification and provider readiness in Inspect or on failure."
+    },
+    {
+      "id": "model.use",
+      "milestone": 6,
+      "label": "Use a certified model role through the production Petra UI",
+      "entry": "system",
+      "result": "workspace",
+      "exposure": "automatic",
+      "presentation": "Route an agent request through an eligible certified role without making provider choice the normal task."
+    },
+    {
+      "id": "taxonomy.inspect-profile",
+      "milestone": 6,
+      "label": "Inspect the registered profile taxonomy and terminology",
+      "entry": "workspace",
+      "result": "inspector",
+      "exposure": "on_demand",
+      "presentation": "Inspect the Project-owned definition, terminology, admitted types, validators, and extensions."
+    },
+    {
+      "id": "taxonomy.bind-project",
+      "milestone": 6,
+      "label": "Choose and bind a usable profile when creating a Project",
+      "entry": "system",
+      "result": "agent",
+      "exposure": "automatic",
+      "presentation": "Bind the exact Project-owned definition created from the objective; optional templates may seed it but never gate entry."
+    },
+    {
+      "id": "history.list",
+      "milestone": 6,
+      "label": "Inspect causal History episodes",
+      "entry": "workspace",
+      "result": "inspector",
+      "exposure": "on_demand",
+      "presentation": "List causal Project History in Inspect."
+    },
+    {
+      "id": "history.filter",
+      "milestone": 6,
+      "label": "Filter History by exact scope",
+      "entry": "workspace",
+      "result": "inspector",
+      "exposure": "on_demand",
+      "presentation": "Filter History inside the inspection context."
+    },
+    {
+      "id": "history.open",
+      "milestone": 6,
+      "label": "Open an exact History episode",
+      "entry": "workspace",
+      "result": "inspector",
+      "exposure": "on_demand",
+      "presentation": "Open an exact event, command, receipt, or transition."
+    },
+    {
+      "id": "history.compare",
+      "milestone": 6,
+      "label": "Compare exact historical state",
+      "entry": "workspace",
+      "result": "inspector",
+      "exposure": "on_demand",
+      "presentation": "Compare exact historical and current state."
+    },
+    {
+      "id": "history.impact",
+      "milestone": 6,
+      "label": "Inspect causal impact and recovery relationships",
+      "entry": "workspace",
+      "result": "inspector",
+      "exposure": "on_demand",
+      "presentation": "Inspect affected downstream objects and recovery relationships."
+    },
+    {
+      "id": "history.preview-revert",
+      "milestone": 6,
+      "label": "Preview and reconcile a governed Revert",
+      "entry": "agent",
+      "result": "inspector",
+      "exposure": "contextual",
+      "presentation": "Preview an eligible compensating change from a user request or inspected event."
+    },
+    {
+      "id": "history.execute-revert",
+      "milestone": 6,
+      "label": "Execute an eligible governed Revert",
+      "entry": "agent",
+      "result": "workspace",
+      "exposure": "contextual",
+      "presentation": "Execute the confirmed governed Revert and show its receipt and new state."
+    },
+    {
+      "id": "details.open",
+      "milestone": 6,
+      "label": "Open Details for the exact selection",
+      "entry": "workspace",
+      "result": "inspector",
+      "exposure": "on_demand",
+      "presentation": "Open a structurally consistent inspector for the exact selected object."
+    },
+    {
+      "id": "details.return",
+      "milestone": 6,
+      "label": "Close Details and restore exact origin and focus",
+      "entry": "workspace",
+      "result": "workspace",
+      "exposure": "contextual",
+      "presentation": "Close inspection and restore the exact origin and focus."
+    },
+    {
+      "id": "feedback.confirm",
+      "milestone": 6,
+      "label": "Confirm a consequential action after exact preview",
+      "entry": "agent",
+      "result": "workspace",
+      "exposure": "contextual",
+      "presentation": "Confirm a consequential preview in the agent while retaining the detailed effect in the workspace."
+    },
+    {
+      "id": "feedback.retry",
+      "milestone": 6,
+      "label": "Retry an eligible failed owning action",
+      "entry": "agent",
+      "result": "workspace",
+      "exposure": "contextual",
+      "presentation": "Offer exact retry only for an eligible failed owning action."
+    },
+    {
+      "id": "feedback.dismiss",
+      "milestone": 6,
+      "label": "Dismiss transient feedback safely",
+      "entry": "agent",
+      "result": "agent",
+      "exposure": "contextual",
+      "presentation": "Dismiss transient presentation feedback without implying a state change."
+    },
+    {
+      "id": "feedback.return",
+      "milestone": 6,
+      "label": "Return focus to the owning control",
+      "entry": "system",
+      "result": "agent",
+      "exposure": "automatic",
+      "presentation": "Restore focus to the owning agent control after transient feedback closes."
+    },
+    {
+      "id": "settings.personal-change",
+      "milestone": 6,
+      "label": "Change a personal appearance, layout, editor, or accessibility preference",
+      "entry": "settings",
+      "result": "workspace",
+      "exposure": "secondary",
+      "presentation": "Change personal appearance, layout, editor, or accessibility preferences in secondary Settings."
+    },
+    {
+      "id": "settings.personal-reset",
+      "milestone": 6,
+      "label": "Reset a scoped personal preference",
+      "entry": "settings",
+      "result": "workspace",
+      "exposure": "secondary",
+      "presentation": "Reset a scoped personal preference without touching Project state."
+    },
+    {
+      "id": "composition.list",
+      "milestone": 7,
+      "label": "Find a Composition artifact",
+      "entry": "workspace",
+      "result": "workspace",
+      "exposure": "secondary",
+      "presentation": "Find Project artifacts from the workspace artifact switcher."
+    },
+    {
+      "id": "composition.create",
+      "milestone": 7,
+      "label": "Create a Composition artifact",
+      "entry": "agent",
+      "result": "workspace",
+      "exposure": "contextual",
+      "presentation": "Ask Petra to create an artifact for the current outcome and open it in the workspace."
+    },
+    {
+      "id": "composition.open",
+      "milestone": 7,
+      "label": "Open an exact Composition artifact",
+      "entry": "workspace",
+      "result": "workspace",
+      "exposure": "primary",
+      "presentation": "Open the exact artifact as the primary workspace object."
+    },
+    {
+      "id": "composition.edit",
+      "milestone": 7,
+      "label": "Edit an exact document revision while preserving local work",
+      "entry": "workspace",
+      "result": "workspace",
+      "exposure": "primary",
+      "presentation": "Edit the active artifact directly while Petra retains selection context."
+    },
+    {
+      "id": "composition.save",
+      "milestone": 7,
+      "label": "Durably save an exact document revision",
+      "entry": "system",
+      "result": "workspace",
+      "exposure": "automatic",
+      "presentation": "Persist explicit revisions with clear save state and recovery; avoid a forest of save controls."
+    },
+    {
+      "id": "composition.ask-petra",
+      "milestone": 7,
+      "label": "Ask Petra in passage, section, or artifact context",
+      "entry": "agent",
+      "result": "workspace",
+      "exposure": "primary",
+      "presentation": "Ask Petra about the selected passage, section, or artifact from the persistent agent."
+    },
+    {
+      "id": "composition.inspect-provenance",
+      "milestone": 7,
+      "label": "Inspect exact document provenance and support",
+      "entry": "workspace",
+      "result": "inspector",
+      "exposure": "on_demand",
+      "presentation": "Inspect exact support and provenance for the selected artifact content."
+    },
+    {
+      "id": "composition.inspect-findings",
+      "milestone": 7,
+      "label": "Inspect validation findings and limitations",
+      "entry": "workspace",
+      "result": "inspector",
+      "exposure": "on_demand",
+      "presentation": "Inspect validation findings and limitations for the active revision."
+    },
+    {
+      "id": "composition.compare",
+      "milestone": 7,
+      "label": "Compare exact document revisions",
+      "entry": "workspace",
+      "result": "inspector",
+      "exposure": "on_demand",
+      "presentation": "Compare exact artifact revisions in Inspect."
+    },
+    {
+      "id": "composition.restore",
+      "milestone": 7,
+      "label": "Restore an eligible prior revision without losing local work",
+      "entry": "workspace",
+      "result": "workspace",
+      "exposure": "contextual",
+      "presentation": "Restore an eligible prior revision without discarding unsaved local work."
+    },
+    {
+      "id": "composition.validate",
+      "milestone": 7,
+      "label": "Validate an exact document revision",
+      "entry": "agent",
+      "result": "inspector",
+      "exposure": "contextual",
+      "presentation": "Request validation from the agent and inspect findings against the exact revision."
+    },
+    {
+      "id": "composition.render",
+      "milestone": 7,
+      "label": "Render an exact document revision",
+      "entry": "agent",
+      "result": "workspace",
+      "exposure": "contextual",
+      "presentation": "Request an eligible rendering and open the produced artifact."
+    },
+    {
+      "id": "composition.copy",
+      "milestone": 7,
+      "label": "Copy a marked working copy and observe the outcome",
+      "entry": "workspace",
+      "result": "workspace",
+      "exposure": "secondary",
+      "presentation": "Copy a marked working copy from the artifact context with visible delivery feedback."
+    },
+    {
+      "id": "composition.download",
+      "milestone": 7,
+      "label": "Download a marked working copy and observe delivery",
+      "entry": "workspace",
+      "result": "workspace",
+      "exposure": "secondary",
+      "presentation": "Download a marked working copy from the artifact context with visible delivery feedback."
+    },
+    {
+      "id": "composition.promote-review",
+      "milestone": 7,
+      "label": "Promote an exact artifact revision through Review",
+      "entry": "agent",
+      "result": "workspace",
+      "exposure": "contextual",
+      "presentation": "Promote the exact revision into governed Review from the agent or artifact context."
+    },
+    {
+      "id": "settings.inspect-project-control",
+      "milestone": 8,
+      "label": "Inspect an effective governed Project control and its origin",
+      "entry": "settings",
+      "result": "inspector",
+      "exposure": "on_demand",
+      "presentation": "Inspect an effective governed Project control, origin, scope, and current value."
+    },
+    {
+      "id": "settings.change-project-control",
+      "milestone": 8,
+      "label": "Propose and apply an eligible Project-control change",
+      "entry": "agent",
+      "result": "workspace",
+      "exposure": "contextual",
+      "presentation": "Propose a governed Project-control change through the agent and show its exact impact before Apply."
+    },
+    {
+      "id": "profile-tool.open",
+      "milestone": 8,
+      "label": "Open a registered profile tool",
+      "entry": "agent",
+      "result": "workspace",
+      "exposure": "contextual",
+      "presentation": "Open a capability supplied by the Project definition only when the current task calls for it."
+    },
+    {
+      "id": "profile-tool.run",
+      "milestone": 8,
+      "label": "Run a registered profile operation",
+      "entry": "agent",
+      "result": "workspace",
+      "exposure": "contextual",
+      "presentation": "Run a registered Project-definition capability through its owning command and show its outcome."
+    },
+    {
+      "id": "application.guide",
+      "milestone": 6,
+      "label": "Follow the in-product guided test task",
+      "entry": "test_harness",
+      "result": "none",
+      "exposure": "internal",
+      "presentation": "Keep scripted acceptance guidance outside customer navigation; product onboarding belongs in the agent."
+    },
+    {
+      "id": "application.reset",
+      "milestone": 6,
+      "label": "Reset the representative Project safely",
+      "entry": "test_harness",
+      "result": "none",
+      "exposure": "internal",
+      "presentation": "Keep representative-fixture reset outside the customer product; ordinary Project changes remain governed operations."
+    }
+  ]
+}

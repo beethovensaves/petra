@@ -72,9 +72,9 @@
     },
     {
       "evidence_id": "UX1.7-REGRESSION",
-      "scenario_id": "wave6-core-path-retained",
+      "scenario_id": "fea1-agent-workspace-retained",
       "owner": "design",
-      "description": "Repeat the accepted Wave 6 guided path on the Wave 7 tree and show no lost core operation or visual regression."
+      "description": "Repeat the accepted FE-A1 Agent–Workspace outcome path on the Wave 7 tree and show no lost operation, inspectability, context, or visual hierarchy."
     },
     {
       "evidence_id": "UX1.7-CRITIC",

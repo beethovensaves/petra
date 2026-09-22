@@ -8,23 +8,28 @@ or evidence reports alone.
 ## Outcome
 
 > Petra operates as one coherent application across every accepted surface and
-> end-to-end path. All 116 user operations are discoverable, live, recoverable,
-> visually coherent, contract-backed, and evidenced through the stable URL; the
-> user accepts the complete M1 application.
+> end-to-end path. All 116 operations are live, recoverable, contract-backed,
+> evidenced, and presented as primary, contextual, inspectable, automatic,
+> secondary, or test-only according to D024; the user accepts the complete M1
+> application.
 
 ## Binding gates
 
 - `gate:wave6:user-testable`, `gate:wave7:composition`, and
   `gate:wave8:application` all pass on the same final tree.
-- Every DB18 surface, flow, state dimension, profile slot, direct/Petra parity
-  path, and recovery return is exercised in a task, not merely rendered.
-- Governed Project controls and at least one registered profile tool are fully
-  operable through production commands.
+- `npm run audit:ui-presentation` passes, and every operation conforms to its
+  accepted entry, result surface, and exposure.
+- The D024 Agent–Workspace paths, state dimensions, Project-definition slots,
+  direct/Agent parity, inspection, and recovery return are exercised in a task,
+  not merely rendered.
+- Governed Project controls and at least one registered Project-definition
+  capability are fully operable through production commands.
 - The complete application receives a module-by-module and cross-flow visual
   pass, responsive/text-scale review, task evaluation, visual-regression
   baseline, Felicity review, and adversarial product-engineering audit.
-- The stable URL starts and resets without hidden manual seeding or developer
-  knowledge. The in-product guide covers the four accepted end-to-end paths.
+- The stable URL starts without hidden manual seeding or developer knowledge.
+  Product onboarding occurs through the Agent; acceptance setup and reset stay
+  outside customer navigation.
 - Native screen-reader evaluation remains excluded by user direction. Required
   browser semantics, keyboard, focus, reflow, non-color meaning, motion, and
   touch behavior remain blocking.
@@ -32,12 +37,12 @@ or evidence reports alone.
 
 ## Slices 1–20: complete-application hardening
 
-1–4 close the remaining Project-control and profile-tool operations and rerun
+1–4 close the remaining Project-control and definition-capability operations and rerun
 the complete inventory. Slices 5–8 perform module visual passes and eliminate
 fixture copy, diagnostic hierarchy, dead controls, and inconsistent navigation.
 Slices 9–12 execute every shared state and adverse recovery path. Slices 13–16
-run all four DB18 end-to-end paths across scientific, controlled-writing, and
-one unrelated admitted profile. Slices 17–19 complete responsive, performance,
+run the accepted Agent–Workspace outcome paths across scientific,
+controlled-writing, and one unrelated Project definition. Slices 17–19 complete responsive, performance,
 visual-regression, language, security/privacy, and clean-start work. Slice 20
 performs the mandatory whole-product evidence and design-debt inventory audit.
 
