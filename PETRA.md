@@ -6,15 +6,15 @@ Implementation companion: [Minimum Viable Graph and Event Model](PETRA_GRAPH_MOD
 
 Development sequence: [Petra Roadmap](ROADMAP.md)
 
-Interaction and runtime contracts: [Trusted-graph review](decisions/D005-trusted-graph-review-and-direct-editing.md), [Petra language and reference](decisions/D006-petra-language-and-reference-contract.md), [model gateway and routing](decisions/D007-model-gateway-role-registry-and-routing.md), [graph-guided execution](decisions/D008-graph-guided-execution-context-and-cost.md), [object-centered research workspace](decisions/D009-object-centered-research-workspace.md), [Hypothesis assessment and posture](decisions/D010-hypothesis-assessment-posture-and-obligations.md), the [AG-UI SDK interaction boundary](decisions/D013-ag-ui-sdk-interaction-boundary.md), the [Hono-first React/Vite workbench shell](decisions/D014-hono-react-vite-workbench-shell.md), and the [language-neutral runtime contract](decisions/D015-language-neutral-runtime-contracts.md)
+Interaction and runtime contracts: [Trusted-graph review](decisions/D005-trusted-graph-review-and-direct-editing.md), [Petra language and reference](decisions/D006-petra-language-and-reference-contract.md), [model gateway and routing](decisions/D007-model-gateway-role-registry-and-routing.md), [graph-guided execution](decisions/D008-graph-guided-execution-context-and-cost.md), [object-centered research workspace](decisions/D009-object-centered-research-workspace.md), [Hypothesis assessment and posture](decisions/D010-hypothesis-assessment-posture-and-obligations.md), the [AG-UI SDK interaction boundary](decisions/D013-ag-ui-sdk-interaction-boundary.md), the [Hono-first React/Vite workbench shell](decisions/D014-hono-react-vite-workbench-shell.md), the [language-neutral runtime contract](decisions/D015-language-neutral-runtime-contracts.md), [use-agnostic Project definitions](decisions/D018-project-definition-and-checkpoint-boundary.md), and the [agentic split workspace](decisions/D024-agentic-split-workspace.md)
 
 ## Product brief and founding design
 
-Petra is a graph-native scientific research workbench powered by multiple language models. It helps an individual researcher move from a rough question to a traceable body of literature, explicit hypotheses, reproducible experiments, and defensible conclusions.
+Petra is a graph-native agentic project workspace powered by language models and deterministic control. It helps an individual move from a rough outcome to an explicit plan, governed work, inspectable evidence, durable artifacts, and traceable decisions. Scientific research is the first demanding application domain, not a mandatory Project category or the limit of the product.
 
 The graph is not a visualization added after the work is done. It is the work's shared state. Papers, source passages, claims, disagreements, hypotheses, decisions, code, experiments, results, and model actions all become typed, inspectable objects. The interface lets the researcher see why Petra is making a suggestion, which evidence it depends on, what would change if that evidence changed, and what the system is permitted to do next.
 
-Petra begins as a private research workbench. Its immediate outward products are scoped research artifacts—prose, provenance explanations, citations, bibliographies, methods, code, and experimental records—and controlled integration with researchers' existing tools. Public or collaborative graph sharing remains possible, but Petra will not design a wholesale project-publication workflow without a demonstrated use case.
+Petra begins as a private project workspace. Its immediate outward products are scoped artifacts—prose, provenance explanations, citations, plans, methods, code, experimental records, and definition-specific outputs—and controlled integration with a user's existing tools. Public or collaborative graph sharing remains possible, but Petra will not design a wholesale project-publication workflow without a demonstrated use case.
 
 The initial users are researchers working in computational linguistics, psychology, machine learning, agentic systems, and AI evaluation. The underlying evidence model must remain sufficiently general for other scientific fields.
 
@@ -342,16 +342,15 @@ Before an answer is accepted, an auditor should:
 
 Good scientific behavior depends on good interaction design. If provenance is technically available but difficult to inspect, users will rely on fluent summaries and the safety model will fail in practice.
 
-Petra uses an object-centered workspace rather than a chat-first or graph-first shell. A project opens to a living Research Brief for the active question. It shows the live hypotheses, evidence frontier, central disagreements, scientific standing, alternative landscape, active work, and useful next scientific actions before the researcher opens a conversation.
+Petra uses an agent-directed, object-grounded workspace rather than a transcript-only or graph-first shell. The persistent Agent occupies the left 30 percent on desktop; the active outcome, artifact, task, Review, source, or inspection occupies the remaining 70 percent. Conversation is the primary control surface, while durable Project objects and authoritative state remain in the workspace and graph.
 
-The main workspace integrates four synchronized functions:
+The frontend integrates three synchronized functions:
 
-1. **Research map:** stable navigation among questions, hypotheses, evidence inbox, experiments, and outputs.
-2. **Main research surface:** Brief, Evidence, focused Graph, Papers, and later Experiments views over the same selected objects.
-3. **Selected-object inspector:** source passage, provenance, scope, processing depth, review state, history, downstream impact, and typed actions.
-4. **Petra assistant and activity:** an explanatory research partner, progressive WorkUnits, recommendations, typed action previews, and interrupts.
+1. **Agent:** outcome framing, conversation, plan and progress, required input, approvals, registered actions, Work control, and recovery.
+2. **Workspace:** direct reading, editing, comparison, Review, and outcome presentation over the exact active object.
+3. **Inspect:** on-demand source, evidence, graph, provenance, scope, policy, validation, history, downstream impact, and recovery detail inside the workspace.
 
-Selecting an object in any surface updates the others without making interface state authoritative. Selecting a sentence in the assistant highlights its graph path and sources. Selecting a graph edge shows who or what created it, the supporting passage or run, its review status, and downstream dependents.
+Selecting an object in any surface updates the others without making interface state authoritative. Selecting an agent result can open its durable workspace object or complete Inspect path. Selecting a graph edge shows who or what created it, the supporting material or run, its review status, and downstream dependents.
 
 The graph is a focused explanatory mode, not the default whole-project view. Evidence matrices, tables, timelines, document views, and graph paths render the same objects according to the scientific relationship a researcher needs to understand.
 

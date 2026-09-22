@@ -1,16 +1,26 @@
 # Petra UX design brief
 
-Status: frozen at `UX-DESIGN-FREEZE-01`; neutral reference-UX implementation authorized; contextual demos remain gated
+Status: semantic and authority content retained; frontend composition amended by D024 and FE-A1 after the 2026-09-21 user evaluation rejected the frozen reference UX
 Date: 2026-09-07
 Authority: design specification subordinate to `PETRA.md`, accepted decisions, runtime contracts, and coordinated architecture amendments
+
+> **Controlling frontend amendment — 2026-09-21:**
+> [D024](../decisions/D024-agentic-split-workspace.md) and
+> [FE-A1](FRONTEND-ADAPTATION-MILESTONE.md) replace this brief's map-first shell,
+> right-side assistant, mandatory profile entry, fourteen-surface navigation,
+> and operation-led control presentation. The brief remains authoritative for
+> graph control, object identity, state distinctions, provenance, Review,
+> recovery, accessibility, and language unless D024 or FE-A1 changes the
+> presentation. Scientific and controlled-writing examples are conformance
+> cases, not required Project categories.
 
 ## Purpose
 
 This is the master product-design brief for Petra. It defines the complete,
 use-agnostic experience before implementation is shaped by a demonstration
-corpus. Scientific research and complex controlled writing are required Project
-profiles, but no particular research program, manuscript, directory structure,
-terminology set, or pre-existing workflow defines the product.
+corpus. Scientific research and complex controlled writing are illustrative
+Project definitions used to pressure-test the shared shell. They do not define
+the product's categories, required entry choices, navigation, or limits.
 
 The brief is complete only when Petra can be implemented as a coherent product
 from this specification without opening a demo corpus to discover what a
@@ -39,9 +49,9 @@ Earlier design work inspected the future scientific and controlled-writing
 contexts as pressure tests and referred to them in product fixtures. That was
 premature. Those observations are quarantined from the product-design basis and
 no longer establish shared requirements, rationale, fixture content,
-information hierarchy, terminology, or acceptance criteria. The requirement to
-support scientific research and complex controlled writing remains because the
-user stated it directly as Petra's intended product scope.
+information hierarchy, terminology, or acceptance criteria. Their scenarios
+remain useful conformance evidence, while Project entry and the shared frontend
+remain domain-agnostic under D018 and D024.
 
 Existing shell, graph, and fixture code remains historical calibration and
 design-debt evidence. It is not the reference UX, does not close a brief
@@ -67,9 +77,9 @@ It does not derive from:
 - an existing frontend component or backend payload;
 - a demo deadline or presentation narrative.
 
-Scientific research and complex controlled writing are the first two required
-Project-profile conformance examples. They are not Petra's profile catalogue or
-an exhaustive classification of Projects. Their exact demo contexts are not
+Scientific research and complex controlled writing are two useful
+Project-definition conformance examples. They are not Petra's catalogue or an
+exhaustive classification of Projects. Their exact demo contexts are not
 product requirements. Petra may admit many other versioned profiles and
 taxonomies when they fit its governed knowledge-work purpose and functions.
 

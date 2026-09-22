@@ -1,19 +1,17 @@
 # Petra Implementation Roadmap
 
-Status: M1.9 and its scoped scientific evidence spine complete; UX design frozen; the Wave 1 neutral read foundation and paired project-authored definition conformance pass while M1.7 Wave 2 neutral-interface implementation and broader product validation remain open
-Last updated: 2026-09-08
+Status: M1.9 and its scoped scientific evidence spine complete; graph-controlled mechanics retained; the frozen reference frontend was rejected in user evaluation and FE-A1 now blocks Composition and whole-application closure
+Last updated: 2026-09-21
 Scope: turn Petra's accepted product and architecture decisions into tested vertical slices without reopening them as speculative platform work
 
-Delivery correction, 2026-09-18: automated Waves 3–5 established substantial
-production authority and browser-path evidence but did not produce a coherent
-user-testable application. Waves 6–8 are now governed by the executable
-116-operation atomic inventory in `scripts/ui-operation-inventory.json`. Wave 6
-cannot close without a usable registered taxonomy, an actual certified model
-operated through the UI, a stable resettable application URL, a guided core
-workflow, product-design and Felicity reviews, and explicit user acceptance.
-Wave 7 adds complete Composition without regressing that core. Wave 8 requires
-every contracted operation and end-to-end path to pass as one application and
-requires final user acceptance.
+Delivery correction, 2026-09-21: automated Wave 6 established substantial
+production authority, operation, recovery, and browser-path evidence, but its
+user checkpoint failed as a frontend. [D024](decisions/D024-agentic-split-workspace.md)
+and [FE-A1](reports/FRONTEND-ADAPTATION-MILESTONE.md) now govern the replacement:
+a 30/70 Agent–Workspace shell, outcome-first Project entry, progressive graph
+inspection, and explicit presentation mapping for all 116 operations. Wave 7
+cannot begin until FE-A1 receives explicit user acceptance. Wave 8 requires
+every operation to remain live and conform to that presentation contract.
 
 Companion documents:
 
@@ -800,6 +798,12 @@ Compile one immutable ContextPacket and composition-specific EvidencePacket with
 - **Builds:** the first object-centered workbench surface for orientation, evidence inspection, graph explanation, and review.
 - **Why:** scientific traceability is only useful when a researcher can understand and correct it without reconstructing the database manually.
 - **Depends on:** `M1.5`, `M1.6`.
+
+Frontend amendment: the capability rows below remain implementation inputs, but
+D024 and FE-A1 control their hierarchy and placement. The Agent is the primary
+control surface on the left; Outcome, Source, Review, Work, Artifact, and Inspect
+renderers occupy the workspace. Scientific names appear only when supplied by a
+Project definition.
 
 ### Minimum interface
 

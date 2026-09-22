@@ -5,22 +5,22 @@
     "evidence_id": "WAVE8-APPLICATION-CONTROL",
     "scenario_id": "whole-product-inventory-audit",
     "owner": "design",
-    "description": "Reconcile all 116 atomic operations, 14 surfaces, 18 flows, four end-to-end paths, evidence, visual findings, and design debt before remediation.",
+    "description": "Reconcile all 116 operations against the D024 presentation map, accepted Agent–Workspace outcome paths, evidence, visual findings, and design debt before remediation.",
     "required_by_completed_slice": 20
   },
   "remediation_reserve_slices": 44,
   "required": [
     {
       "evidence_id": "UX1.8-EV01",
-      "scenario_id": "all-four-end-to-end-paths",
+      "scenario_id": "agent-workspace-outcome-paths",
       "owner": "either",
-      "description": "Execute all four DB18 end-to-end paths through the stable application URL and production owners."
+      "description": "Execute the accepted Agent–Workspace outcome paths, including agnostic creation, agentic completion, direct artifact work, and full inspection, through the stable application URL and production owners."
     },
     {
       "evidence_id": "UX1.8-EV01",
-      "scenario_id": "fourteen-surface-task-recording",
+      "scenario_id": "operation-presentation-task-recording",
       "owner": "design",
-      "description": "Record every accepted surface as part of a user task with discoverable entry, completion, recovery, and return."
+      "description": "Record every operation in its accepted primary, contextual, inspectable, automatic, secondary, or test-only presentation with completion, recovery, and exact return."
     },
     {
       "evidence_id": "UX1.8-EV02",
@@ -47,10 +47,10 @@
       "description": "Retain the final visual-regression baseline and a design-debt register with no unowned critical item."
     },
     {
-      "evidence_id": "UX1.8-PROFILES",
-      "scenario_id": "three-profile-operation-conformance",
+      "evidence_id": "UX1.8-DEFINITIONS",
+      "scenario_id": "three-definition-operation-conformance",
       "owner": "either",
-      "description": "Execute shared mechanics across scientific, controlled-writing, and unrelated admitted profiles with usable taxonomy and safe unsupported behavior."
+      "description": "Execute the shared shell and mechanics across scientific, controlled-writing, and unrelated Project-owned definitions without mandatory categories, shell forks, or unsafe unsupported behavior."
     },
     {
       "evidence_id": "UX1.8-MODEL",
@@ -60,21 +60,21 @@
     },
     {
       "evidence_id": "UX1.8-CONTROLS",
-      "scenario_id": "project-controls-and-profile-tool",
+      "scenario_id": "project-controls-and-definition-capability",
       "owner": "design",
-      "description": "Execute governed Project control and one registered profile tool through production commands, Review or History where required, and exact return."
+      "description": "Execute governed Project control and one registered Project-definition capability through production commands, Review or History where required, and exact return."
     },
     {
       "evidence_id": "UX1.8-LANGUAGE",
       "scenario_id": "whole-product-felicity-review",
       "owner": "design",
-      "description": "Apply Felicity to the complete product language, guide, results, errors, and recovery while retaining profile and authority meaning."
+      "description": "Apply Felicity to the complete product language, Agent onboarding, results, errors, and recovery while retaining Project-definition and authority meaning."
     },
     {
       "evidence_id": "UX1.8-OPERATIONS",
       "scenario_id": "all-operation-gates",
       "owner": "either",
-      "description": "Run all three cumulative operation gates with every inventory entry live and bound to executed evidence."
+      "description": "Run all three cumulative operation gates and the presentation-map audit with every inventory entry live, evidenced, and correctly exposed."
     },
     {
       "evidence_id": "UX1.8-CRITIC",

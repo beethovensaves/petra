@@ -183,12 +183,13 @@ assertions no longer count as product completion.
 
 | Automated milestone | Required product result | Blocking exit gate |
 | --- | --- | --- |
-| Wave 6 | `UX1.6` plus an integrated, user-testable `UX1.1`–`UX1.6` core application | Every milestone-6 entry in `scripts/ui-operation-inventory.json` is live and evidenced; usable registered taxonomy; actual certified model through the Petra UI; stable URL, in-product guide, clean reset, product-design review, Felicity review, and explicit `USER-TESTABLE-01` user acceptance |
-| Wave 7 | `UX1.7` document-first Composition in the accepted Wave 6 application | Cumulative Wave 6 operations remain live; every milestone-7 operation is live and evidenced; actual scoped model use, durable editing, provenance, revision, validation, render, export, promotion, product-design/Felicity review, and explicit `USER-TESTABLE-02` user acceptance |
-| Wave 8 | `UX1.8` whole-workbench validation and M1 closure | All 116 atomic operations, 14 surfaces, 18 flows, four end-to-end paths, profile/control boundaries, visual and interaction validation, adverse recovery, and zero critical design debt pass; explicit `USER-TESTABLE-03` user acceptance |
+| Wave 6 | `UX1.6` graph-controlled mechanical baseline | Every milestone-6 operation remains live and evidenced, including actual model, Work, Review, provenance, recovery, and clean pushed integration. The 2026-09-21 checkpoint did not receive frontend acceptance and cannot satisfy the former product exit claim. |
+| `FE-A1` | [Agentic frontend adaptation](reports/FRONTEND-ADAPTATION-MILESTONE.md) under [D024](decisions/D024-agentic-split-workspace.md) | Accepted 30/70 Agent–Workspace shell; outcome-first Project creation without mandatory profiles; all 116 operations mapped; all Wave 6 operations adapted; complete inspect path; task-based visual, interaction, accessibility, adverse-state, and recovery evidence; explicit replacement frontend acceptance |
+| Wave 7 | `UX1.7` document-first Composition in the accepted `FE-A1` application | `FE-A1` remains conformant; every milestone-7 operation is live and evidenced inside the Artifact workspace; actual scoped model use, durable editing, provenance, revision, validation, render, export, promotion, product-design/Felicity review, and explicit `USER-TESTABLE-02` user acceptance |
+| Wave 8 | `UX1.8` whole-workbench validation and M1 closure | All 116 operations conform to `scripts/ui-operation-presentation-map.json`; integrated outcome tasks, definition/control boundaries, visual and interaction validation, adverse recovery, and zero critical design debt pass; explicit `USER-TESTABLE-03` user acceptance |
 
 The automated controller treats each final acceptance record as user-owned.
-Backend and design workers cannot self-certify it. Each wave must reach
+Backend and design workers cannot self-certify it. Each wave or adaptation milestone must reach
 `needs_user`, publish the stable URL and guided task, and remain incomplete until
 the user accepts that checkpoint.
 
@@ -294,12 +295,13 @@ A polished prototype is not integrated. Integrated code is not validated. A modu
 | `UX1.6` | `in_progress` | Petra interaction system, contextual answers, SuggestedActions, durable Work, review, reconnect, branching, and governed reversal | Project authors need fast collaboration and recoverable exploration without surrendering domain authority | `M1.5`, `M1.6`, `M1.7` |
 | `UX1.7` | `in_progress` | DraftArtifact, provenance, revision, citations, BibTeX, and LaTeX | Scientific writing should be useful immediately and remain inspectable | `M1.8` |
 | `UX1.8` | `in_progress` | Whole-product information architecture, flow coherence, accessibility, responsiveness, recovery, and visual hardening | The modules count only when they behave as one dependable workbench | `M1.9` |
+| `FE-A1` | `planned` | D024 30/70 Agent–Workspace adaptation, use-agnostic Project entry, progressive inspection, and operation-presentation migration | The proven graph-controlled mechanics need a coherent frontend before Composition and closure can continue | `M1.7`, `M1.8`, `M1.9` |
 
 ## Design principles
 
 | ID | Principle | Interface consequence |
 | --- | --- | --- |
-| `UX-DP01` | Object-centered, not chat-first. | Conversation stays synchronized with durable scientific objects and never becomes their sole representation. |
+| `UX-DP01` | Agent-directed and object-grounded. | The persistent Agent is the primary control surface; the Workspace retains durable objects and never reduces Project state to a transcript. |
 | `UX-DP02` | The graph is state, not decoration. | Graph views answer a task, expose provenance, and control bounded work. |
 | `UX-DP03` | Rock first, graph second. | The mark reads as a durable black rock; graph structure appears subtly in facets and product semantics. |
 | `UX-DP04` | Evidence first. | Material scientific prose has an immediate path to sources, scope, origin, and review state. |
