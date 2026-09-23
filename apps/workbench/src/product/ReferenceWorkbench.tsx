@@ -864,11 +864,7 @@ export const ProjectShell = (): React.JSX.Element => {
       (candidate) => candidate.role === place,
     );
     return (
-      <NavLink
-        key={place}
-        to={to}
-        onClick={() => setMobilePane("workspace")}
-      >
+      <NavLink key={place} to={to} onClick={() => setMobilePane("workspace")}>
         <span>{label}</span>
         {summary === undefined || summary.attentionCount === 0 ? null : (
           <span
@@ -946,10 +942,7 @@ export const ProjectShell = (): React.JSX.Element => {
         </div>
       </div>
 
-      <div
-        className="reference-project-layout"
-        data-mobile-pane={mobilePane}
-      >
+      <div className="reference-project-layout" data-mobile-pane={mobilePane}>
         <aside
           className="reference-project-nav reference-agent-panel"
           id="project-agent"
@@ -1055,9 +1048,7 @@ export const ProjectShell = (): React.JSX.Element => {
               data-state={project.attentionWork.state}
             >
               <p className="reference-panel-kicker">Needs your attention</p>
-              <h2 id="shell-attention-work-title">
-                Active or waiting on you
-              </h2>
+              <h2 id="shell-attention-work-title">Active or waiting on you</h2>
               {project.attentionWork.state === "unavailable" ? (
                 <p>{project.attentionWork.reason}</p>
               ) : (
@@ -1839,12 +1830,6 @@ export const BriefRoute = (): React.JSX.Element => {
               to={`/projects/${project.id}/profile`}
             >
               Inspect Project profile
-            </Link>
-            <Link
-              className="reference-text-link"
-              to={`/guide?project=${encodeURIComponent(project.id)}`}
-            >
-              Return to test guide
             </Link>
           </div>
           <details className="brief-technical">
