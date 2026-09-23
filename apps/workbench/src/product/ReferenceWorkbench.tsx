@@ -57,6 +57,11 @@ import { searchProjectCollection } from "./project-data.js";
 import type { ProjectShellCollectionRequest } from "@petra/core";
 import type { SourceRevisionContext } from "./source-revision.js";
 import { SuggestedWorkAction } from "./SuggestedAction.js";
+import {
+  AgentControlPlaneProvider,
+  AgentControlPortal,
+  AgentConversation,
+} from "./AgentControlPlane.js";
 import { projectWorkDestinationPath } from "./project-work-destination.js";
 import { usePersonalPreferences } from "./use-personal-preferences.js";
 import type {
@@ -746,6 +751,8 @@ export const ProjectShell = (): React.JSX.Element => {
   const [mobilePane, setMobilePane] = useState<"agent" | "workspace">(
     "workspace",
   );
+  const [agentControlTarget, setAgentControlTarget] =
+    useState<HTMLDivElement | null>(null);
   const currentPlace = placeFromPath(location.pathname);
   const currentWorkspaceLabel: Record<ProjectPlace, string> = {
     brief: "Overview",
@@ -893,179 +900,189 @@ export const ProjectShell = (): React.JSX.Element => {
         </div>
       </div>
 
-      <div className="reference-project-layout" data-mobile-pane={mobilePane}>
-        <aside
-          className="reference-project-nav reference-agent-panel"
-          id="project-agent"
-          aria-labelledby="project-agent-title"
-        >
-          <header className="reference-agent-heading">
-            <span className="reference-agent-mark" aria-hidden="true">
-              <PetraMark />
-            </span>
-            <div>
-              <p className="reference-panel-kicker">Agent</p>
-              <h2 id="project-agent-title">Petra</h2>
-            </div>
-          </header>
+      <AgentControlPlaneProvider target={agentControlTarget}>
+        <div className="reference-project-layout" data-mobile-pane={mobilePane}>
+          <aside
+            className="reference-project-nav reference-agent-panel"
+            id="project-agent"
+            aria-labelledby="project-agent-title"
+            onClickCapture={(event) => {
+              if ((event.target as HTMLElement).closest("a") !== null) {
+                setMobilePane("workspace");
+              }
+            }}
+          >
+            <header className="reference-agent-heading">
+              <span className="reference-agent-mark" aria-hidden="true">
+                <PetraMark />
+              </span>
+              <div>
+                <p className="reference-panel-kicker">Agent</p>
+                <h2 id="project-agent-title">Petra</h2>
+              </div>
+            </header>
+
+            <section
+              className="reference-agent-outcome"
+              aria-labelledby="current-outcome-title"
+            >
+              <p className="reference-nav-label" id="current-outcome-title">
+                Current outcome
+              </p>
+              <strong>{project.title}</strong>
+              <p>{project.objective}</p>
+              <ProjectStateLabel project={project} />
+            </section>
+
+            <AgentConversation
+              key={project.id}
+              project={project}
+              returnContext={{
+                path: currentSwitchOrigin.href,
+                label: currentWorkspaceLabel[currentPlace],
+              }}
+              onControlTarget={setAgentControlTarget}
+            />
+
+            <nav
+              ref={projectNav}
+              aria-label={`${project.title} workspace destinations`}
+            >
+              <div className="reference-workspace-destinations">
+                <p className="reference-nav-label">Workspace</p>
+                {[
+                  { place: "brief" as const, to: "brief", label: "Overview" },
+                  {
+                    place: "sources" as const,
+                    to: "sources",
+                    label: "Sources",
+                  },
+                  { place: "review" as const, to: "review", label: "Review" },
+                  {
+                    place: "composition" as const,
+                    to: "composition",
+                    label: "Outputs",
+                  },
+                ].map(destinationLink)}
+              </div>
+
+              <details className="reference-project-inspection">
+                <summary>Inspect project</summary>
+                <div className="reference-project-inspection__content">
+                  <p>
+                    See the retained work, graph, history, and project
+                    definition that Petra is using.
+                  </p>
+                  <div className="reference-project-inspection__state">
+                    <span>
+                      <strong>{project.snapshot.label}</strong>
+                      <small>{project.snapshot.asOf}</small>
+                    </span>
+                    <ProjectionLabel project={project} />
+                  </div>
+                  <div className="reference-project-inspection__links">
+                    {[
+                      { place: "work" as const, to: "work", label: "Work" },
+                      { place: "graph" as const, to: "graph", label: "Graph" },
+                      {
+                        place: "history" as const,
+                        to: "history",
+                        label: "History",
+                      },
+                      {
+                        place: "profile_tool" as const,
+                        to: "profile",
+                        label: "Project definition",
+                      },
+                    ].map(destinationLink)}
+                  </div>
+                  <p className="reference-project-inspection__definition">
+                    <strong>{project.profile.label}</strong>
+                    <span>{project.profile.description}</span>
+                  </p>
+                </div>
+              </details>
+            </nav>
+
+            {project.attentionWork === undefined ? null : (
+              <aside
+                className="reference-attention-work"
+                id="shell-attention-work"
+                tabIndex={-1}
+                aria-labelledby="shell-attention-work-title"
+                data-state={project.attentionWork.state}
+              >
+                <p className="reference-panel-kicker">Needs your attention</p>
+                <h2 id="shell-attention-work-title">
+                  Active or waiting on you
+                </h2>
+                {project.attentionWork.state === "unavailable" ? (
+                  <p>{project.attentionWork.reason}</p>
+                ) : (
+                  <>
+                    <p>
+                      {project.attentionWork.total_count === 0
+                        ? "Nothing needs your attention right now."
+                        : `${project.attentionWork.total_count} ${project.attentionWork.total_count === 1 ? "task needs" : "tasks need"} attention.`}
+                    </p>
+                    {project.attentionWork.tasks.length === 0 ? null : (
+                      <ul>
+                        {project.attentionWork.tasks.map((task) => (
+                          <li key={task.work_unit_ref.work_unit_id}>
+                            <Link
+                              to={projectWorkDestinationPath(
+                                project.id,
+                                task.destination.target_ref,
+                                {
+                                  path: `${location.pathname}${location.search}#shell-attention-work`,
+                                  label: "Needs your attention",
+                                  focusId: "shell-attention-work",
+                                },
+                              )}
+                              onClick={() => setMobilePane("workspace")}
+                            >
+                              <strong>{task.task_label}</strong>
+                              <span>{task.objective}</span>
+                              <small data-state={task.attention.state}>
+                                {presentationLabel(task.execution.state)} ·{" "}
+                                {task.attention.reason}
+                              </small>
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    {project.attentionWork.coverage === "partial" ? (
+                      <p className="reference-attention-work__limit">
+                        {project.attentionWork.limitation}
+                      </p>
+                    ) : null}
+                  </>
+                )}
+              </aside>
+            )}
+          </aside>
 
           <section
-            className="reference-agent-outcome"
-            aria-labelledby="current-outcome-title"
+            className="reference-workspace-panel"
+            id="project-workspace"
+            aria-labelledby="project-workspace-title"
           >
-            <p className="reference-nav-label" id="current-outcome-title">
-              Current outcome
-            </p>
-            <strong>{project.title}</strong>
-            <p>{project.objective}</p>
-            <ProjectStateLabel project={project} />
-          </section>
-
-          <nav
-            ref={projectNav}
-            aria-label={`${project.title} workspace destinations`}
-          >
-            <NavLink
-              className="reference-agent-action"
-              to="petra"
-              onClick={() => setMobilePane("workspace")}
-            >
-              <span>Work with Petra</span>
-              <span aria-hidden="true">→</span>
-            </NavLink>
-
-            <div className="reference-workspace-destinations">
-              <p className="reference-nav-label">Workspace</p>
-              {[
-                { place: "brief" as const, to: "brief", label: "Overview" },
-                {
-                  place: "sources" as const,
-                  to: "sources",
-                  label: "Sources",
-                },
-                { place: "review" as const, to: "review", label: "Review" },
-                {
-                  place: "composition" as const,
-                  to: "composition",
-                  label: "Outputs",
-                },
-              ].map(destinationLink)}
-            </div>
-
-            <details className="reference-project-inspection">
-              <summary>Inspect project</summary>
-              <div className="reference-project-inspection__content">
-                <p>
-                  See the retained work, graph, history, and project definition
-                  that Petra is using.
-                </p>
-                <div className="reference-project-inspection__state">
-                  <span>
-                    <strong>{project.snapshot.label}</strong>
-                    <small>{project.snapshot.asOf}</small>
-                  </span>
-                  <ProjectionLabel project={project} />
-                </div>
-                <div className="reference-project-inspection__links">
-                  {[
-                    { place: "work" as const, to: "work", label: "Work" },
-                    { place: "graph" as const, to: "graph", label: "Graph" },
-                    {
-                      place: "history" as const,
-                      to: "history",
-                      label: "History",
-                    },
-                    {
-                      place: "profile_tool" as const,
-                      to: "profile",
-                      label: "Project definition",
-                    },
-                  ].map(destinationLink)}
-                </div>
-                <p className="reference-project-inspection__definition">
-                  <strong>{project.profile.label}</strong>
-                  <span>{project.profile.description}</span>
-                </p>
+            <header className="reference-workspace-heading">
+              <div>
+                <p className="reference-panel-kicker">Workspace</p>
+                <h2 id="project-workspace-title">
+                  {currentWorkspaceLabel[currentPlace]}
+                </h2>
               </div>
-            </details>
-          </nav>
-
-          {project.attentionWork === undefined ? null : (
-            <aside
-              className="reference-attention-work"
-              id="shell-attention-work"
-              tabIndex={-1}
-              aria-labelledby="shell-attention-work-title"
-              data-state={project.attentionWork.state}
-            >
-              <p className="reference-panel-kicker">Needs your attention</p>
-              <h2 id="shell-attention-work-title">Active or waiting on you</h2>
-              {project.attentionWork.state === "unavailable" ? (
-                <p>{project.attentionWork.reason}</p>
-              ) : (
-                <>
-                  <p>
-                    {project.attentionWork.total_count === 0
-                      ? "Nothing needs your attention right now."
-                      : `${project.attentionWork.total_count} ${project.attentionWork.total_count === 1 ? "task needs" : "tasks need"} attention.`}
-                  </p>
-                  {project.attentionWork.tasks.length === 0 ? null : (
-                    <ul>
-                      {project.attentionWork.tasks.map((task) => (
-                        <li key={task.work_unit_ref.work_unit_id}>
-                          <Link
-                            to={projectWorkDestinationPath(
-                              project.id,
-                              task.destination.target_ref,
-                              {
-                                path: `${location.pathname}${location.search}#shell-attention-work`,
-                                label: "Needs your attention",
-                                focusId: "shell-attention-work",
-                              },
-                            )}
-                            onClick={() => setMobilePane("workspace")}
-                          >
-                            <strong>{task.task_label}</strong>
-                            <span>{task.objective}</span>
-                            <small data-state={task.attention.state}>
-                              {presentationLabel(task.execution.state)} ·{" "}
-                              {task.attention.reason}
-                            </small>
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                  {project.attentionWork.coverage === "partial" ? (
-                    <p className="reference-attention-work__limit">
-                      {project.attentionWork.limitation}
-                    </p>
-                  ) : null}
-                </>
-              )}
-            </aside>
-          )}
-        </aside>
-
-        <section
-          className="reference-workspace-panel"
-          id="project-workspace"
-          aria-labelledby="project-workspace-title"
-        >
-          <header className="reference-workspace-heading">
-            <div>
-              <p className="reference-panel-kicker">Workspace</p>
-              <h2 id="project-workspace-title">
-                {currentWorkspaceLabel[currentPlace]}
-              </h2>
+              <ProjectStateLabel project={project} />
+            </header>
+            <div className="reference-project-main" data-place={currentPlace}>
+              <Outlet context={{ project } satisfies ProjectOutletContext} />
             </div>
-            <ProjectStateLabel project={project} />
-          </header>
-          <div className="reference-project-main" data-place={currentPlace}>
-            <Outlet context={{ project } satisfies ProjectOutletContext} />
-          </div>
-        </section>
-      </div>
+          </section>
+        </div>
+      </AgentControlPlaneProvider>
     </div>
   );
 };
@@ -1608,13 +1625,20 @@ export const BriefSurface = ({
       </section>
 
       {suggestedAction === undefined ? null : (
-        <SuggestedActionPreview
-          actionView={suggestedAction}
-          {...(suggestedWorkAction === undefined
-            ? {}
-            : { workActionView: suggestedWorkAction })}
-          {...(invokedInquiry === undefined ? {} : { invokedInquiry })}
-        />
+        <AgentControlPortal
+          title="Proposed next action"
+          description="Review the proposed action here. Its progress and result open in the Workspace."
+          operationIds={["brief.suggested-preview", "brief.suggested-invoke"]}
+          objectRef={suggestedAction.content.action_ref.suggested_action_id}
+        >
+          <SuggestedActionPreview
+            actionView={suggestedAction}
+            {...(suggestedWorkAction === undefined
+              ? {}
+              : { workActionView: suggestedWorkAction })}
+            {...(invokedInquiry === undefined ? {} : { invokedInquiry })}
+          />
+        </AgentControlPortal>
       )}
 
       <section className="reference-section" aria-labelledby="decisions-title">
@@ -1843,25 +1867,48 @@ export const BriefRoute = (): React.JSX.Element => {
       {...(data.suggestedAction !== undefined
         ? {
             selectedAction: (
-              <SuggestedActionPreview
-                actionView={data.suggestedAction}
-                {...(data.suggestedWorkAction === undefined
-                  ? {}
-                  : { workActionView: data.suggestedWorkAction })}
-                {...(data.invokedInquiry === undefined
-                  ? {}
-                  : { invokedInquiry: data.invokedInquiry })}
-              />
+              <AgentControlPortal
+                title="Proposed next action"
+                description="Review the proposed action here. Its progress and result open in the Workspace."
+                operationIds={[
+                  "brief.suggested-preview",
+                  "brief.suggested-invoke",
+                  "work.start",
+                ]}
+                objectRef={
+                  data.suggestedAction.content.action_ref.suggested_action_id
+                }
+              >
+                <SuggestedActionPreview
+                  actionView={data.suggestedAction}
+                  {...(data.suggestedWorkAction === undefined
+                    ? {}
+                    : { workActionView: data.suggestedWorkAction })}
+                  {...(data.invokedInquiry === undefined
+                    ? {}
+                    : { invokedInquiry: data.invokedInquiry })}
+                />
+              </AgentControlPortal>
             ),
           }
         : data.suggestedWorkAction !== undefined
           ? {
               selectedAction: (
-                <SuggestedWorkAction
-                  projectId={data.suggestedWorkAction.project_id}
-                  actionView={data.suggestedWorkAction}
-                  presentationPath="direct"
-                />
+                <AgentControlPortal
+                  title="Start proposed Work"
+                  description="Start this proposed action here. Its progress and result open in the Workspace."
+                  operationIds={["work.start"]}
+                  objectRef={
+                    data.suggestedWorkAction.content.action_ref
+                      .suggested_action_id
+                  }
+                >
+                  <SuggestedWorkAction
+                    projectId={data.suggestedWorkAction.project_id}
+                    actionView={data.suggestedWorkAction}
+                    presentationPath="direct"
+                  />
+                </AgentControlPortal>
               ),
             }
           : {})}

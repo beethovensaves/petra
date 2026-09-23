@@ -3,7 +3,7 @@
   "schema_version": "1.0.0",
   "status": "passed",
   "operation_id": "shell.navigate",
-  "executed_at": "2026-09-23T03:20:44.716Z",
+  "executed_at": "2026-09-23T05:34:14.351Z",
   "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:shell-navigation-ui",
   "browser": {
     "product": "Chrome/154.0.8037.57",
@@ -26,11 +26,6 @@
     "snapshot": "Authority event 3",
     "projection": "Projection catching up",
     "visited_places": [
-      {
-        "route": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/petra",
-        "current_place": "petra",
-        "active_control": "Work with Petra"
-      },
       {
         "route": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/work",
         "current_place": "work",
@@ -73,7 +68,9 @@
     },
     "narrow_pane_switch_preserved_task": true,
     "graph_controls_progressively_disclosed": true,
-    "shell_reads": 1,
+    "shell_reads": 3,
+    "agent_request_operation": "petra.ask",
+    "agent_thread_operation": "petra.resume-thread",
     "authenticated_requests": true,
     "command_requests": 0,
     "context_stable": true
@@ -83,7 +80,17 @@
       "method": "GET",
       "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/shell",
       "authorization": "Bearer browser-shell-navigation-token"
+    },
+    {
+      "method": "GET",
+      "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/model-readiness",
+      "authorization": "Bearer browser-shell-navigation-token"
+    },
+    {
+      "method": "GET",
+      "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/threads?limit=1&lifecycle=open",
+      "authorization": "Bearer browser-shell-navigation-token"
     }
   ],
-  "boundary": "Isolated Chromium opened one representative Project through the production loadProjectRecord and ProjectShellClient path. It measured the desktop Agent and Workspace regions at 30/70, confirmed graph controls begin behind a closed Inspect disclosure, deliberately opened that disclosure, and keyboard-activated every retained destination. At each destination, exact Project, Objective, route, current place, active control, authority snapshot, and projection stayed coherent. At 420 px it switched Agent to Workspace without changing the route or unmounting the task. Deterministic schema-valid authenticated HTTP supplied browser transport. The child route body is a context observer, so this record proves the structural FE-A1.1 shell and shell.navigate; it does not prove Project creation, Agent conversation or Work control, destination task renderers, the complete Inspect experience, or final frontend acceptance."
+  "boundary": "Isolated Chromium opened one representative Project through the production loadProjectRecord and ProjectShellClient path. It measured the desktop Agent and Workspace regions at 30/70, confirmed the persistent Agent owns petra.ask and retained-thread presentation, confirmed graph controls begin behind a closed Inspect disclosure, deliberately opened that disclosure, and keyboard-activated every retained Workspace destination. At each destination, exact Project, Objective, route, current place, active control, authority snapshot, and projection stayed coherent. At 420 px it switched Agent to Workspace without changing the route or unmounting the task. Deterministic authenticated HTTP supplied browser transport. The child route body remains a context observer, so this record proves the structural shell and persistent Agent boundary; contextual Work, Review, and recovery commands require their FE-A1.3 task test."
 }

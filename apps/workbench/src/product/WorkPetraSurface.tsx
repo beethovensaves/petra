@@ -56,7 +56,7 @@ import {
 } from "./project-data.js";
 import { useProjectRecord } from "./ReferenceWorkbench.js";
 import { SuggestedWorkAction } from "./SuggestedAction.js";
-import { PetraModelInteraction } from "./PetraModelInteraction.js";
+import { AgentControlPortal } from "./AgentControlPlane.js";
 import {
   FocusedGraphEntryLink,
   focusedGraphDefinitionRef,
@@ -1549,7 +1549,25 @@ export const WorkDetailSurface = ({
       )}
 
       {operations !== undefined ? (
-        <WorkOperationControls project={project} initialView={operations} />
+        <AgentControlPortal
+          title="Control this Work"
+          description="Supply required input, steer, stop, reconnect, retry, or resume this task. Progress and results remain in the Workspace."
+          operationIds={[
+            "work.answer-input",
+            "work.steer",
+            "work.prioritize",
+            "work.cancel",
+            "work.reconnect",
+            "work.replay",
+            "work.retry",
+            "work.resume",
+            "work.start-again",
+            "work.open-result",
+          ]}
+          objectRef={operations.work_unit_ref.work_unit_id}
+        >
+          <WorkOperationControls project={project} initialView={operations} />
+        </AgentControlPortal>
       ) : unit.requiredInput === undefined ? null : (
         <section
           className="work-required-input"
@@ -2667,45 +2685,20 @@ export const PetraSurface = ({
               </>
             )}
 
-            {modelReadiness === undefined ? (
-              <form
-                className="petra-composer"
-                onSubmit={(event) => event.preventDefault()}
-              >
-                <PetraTextArea
-                  label="Message Petra"
-                  hint="Your unsent text remains local to this page."
-                  rows={4}
-                  value=""
-                  onChange={() => undefined}
-                />
-                <div>
-                  <span id="petra-send-boundary">
-                    The model response boundary is unavailable. No prompt will
-                    be sent.
-                  </span>
-                  <PetraButton
-                    type="submit"
-                    variant="primary"
-                    aria-disabled="true"
-                    aria-describedby="petra-send-boundary"
-                  >
-                    Send
-                  </PetraButton>
-                </div>
-              </form>
-            ) : (
-              <PetraModelInteraction
-                projectId={project.id}
-                readiness={modelReadiness}
-                returnContext={
-                  returnContext ?? {
-                    path: `/projects/${encodeURIComponent(project.id)}/brief`,
-                    label: "Brief",
-                  }
-                }
-              />
-            )}
+            <section className="petra-agent-handoff" role="status">
+              <p className="reference-panel-kicker">Agent control</p>
+              <h2>Continue this request in the Agent</h2>
+              <p>
+                The persistent left panel owns requests, delivery recovery, and
+                consequential interruptions. This Workspace keeps the recorded
+                thread or response available for reading.
+              </p>
+              <span>
+                {modelReadiness?.readiness.state === "ready"
+                  ? "Registered operation: petra.ask"
+                  : "No registered model command is currently available."}
+              </span>
+            </section>
           </section>
 
           <aside
@@ -2809,29 +2802,36 @@ export const PetraSurface = ({
       )}
 
       {suggestedWorkAction === undefined ? null : (
-        <section
-          className="petra-suggested-action"
-          aria-labelledby="petra-suggested-action-region-title"
+        <AgentControlPortal
+          title="Continue this proposed action"
+          description="Start this proposed action here. Its Work and result remain in the Workspace."
+          operationIds={["petra.preview-action", "petra.invoke-action"]}
+          objectRef={suggestedWorkAction.content.action_ref.suggested_action_id}
         >
-          <header>
-            <p className="reference-panel-kicker">Suggested action</p>
-            <h2 id="petra-suggested-action-region-title">
-              Continue this exact Project action
-            </h2>
-            <p>
-              This conversational presentation submits the same exact Petra
-              invocation command as Brief.
-            </p>
-          </header>
-          <SuggestedWorkAction
-            projectId={project.id}
-            actionView={suggestedWorkAction}
-            {...(suggestedActionInvocation === undefined
-              ? {}
-              : { initialInvocation: suggestedActionInvocation })}
-            presentationPath="conversational"
-          />
-        </section>
+          <section
+            className="petra-suggested-action"
+            aria-labelledby="petra-suggested-action-region-title"
+          >
+            <header>
+              <p className="reference-panel-kicker">Suggested action</p>
+              <h2 id="petra-suggested-action-region-title">
+                Continue this exact Project action
+              </h2>
+              <p>
+                This presentation submits the same exact Petra invocation
+                command as the direct Brief path.
+              </p>
+            </header>
+            <SuggestedWorkAction
+              projectId={project.id}
+              actionView={suggestedWorkAction}
+              {...(suggestedActionInvocation === undefined
+                ? {}
+                : { initialInvocation: suggestedActionInvocation })}
+              presentationPath="conversational"
+            />
+          </section>
+        </AgentControlPortal>
       )}
     </main>
   );

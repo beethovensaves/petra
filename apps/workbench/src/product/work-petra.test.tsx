@@ -556,12 +556,14 @@ describe("reference Work and Petra packets", () => {
     );
   });
 
-  it("keeps message drafting local when the model boundary is absent", () => {
+  it("keeps unavailable request controls in the persistent Agent", () => {
     const markup = render(<PetraSurface project={project} thread={thread} />);
 
-    expect(markup).toContain("Your unsent text remains local to this page");
-    expect(markup).toContain("No prompt will be sent");
-    expect(markup).toContain('aria-disabled="true"');
+    expect(markup).toContain("Continue this request in the Agent");
+    expect(markup).toContain(
+      "No registered model command is currently available",
+    );
+    expect(markup).not.toContain("petra-composer");
     expect(markup).toContain("only the Work input adapter can resolve it");
   });
 
@@ -669,7 +671,11 @@ describe("reference Work and Petra packets", () => {
 
     expect(markup).toContain("Continue this exact Project action");
     expect(markup).toContain(
-      "This conversational presentation submits the same exact Petra invocation command as Brief",
+      "This presentation submits the same exact Petra invocation command as the direct Brief path",
+    );
+    expect(markup).toContain("Continue this proposed action");
+    expect(markup).toContain(
+      'data-operation-ids="petra.preview-action petra.invoke-action"',
     );
     expect(markup).toContain('data-presentation-path="conversational"');
     expect(markup).toContain(
@@ -715,7 +721,9 @@ describe("reference Work and Petra packets", () => {
     expect(markup).toContain("metadata-only Project read");
     expect(markup).toContain("Linked Work");
     expect(markup).toContain("Open linked Work");
-    expect(markup).toContain("No prompt will be sent");
+    expect(markup).toContain(
+      "No registered model command is currently available",
+    );
     expect(markup).not.toContain("measurable improvement on its evaluation");
   });
 

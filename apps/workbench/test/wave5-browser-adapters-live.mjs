@@ -2,6 +2,7 @@
 export * from "../../../packages/adapters/src/focused-graph-client.js";
 export * from "../../../packages/adapters/src/project-brief-client.js";
 export * from "../../../packages/adapters/src/project-profile-client.js";
+export * from "../../../packages/adapters/src/project-definition-draft-client.js";
 export * from "../../../packages/adapters/src/project-model-client.js";
 export * from "../../../packages/adapters/src/project-work-client.js";
 export * from "../../../packages/adapters/src/project-shell-client.js";

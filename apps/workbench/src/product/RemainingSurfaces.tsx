@@ -47,6 +47,7 @@ import {
   ProjectDataError,
 } from "./project-data.js";
 import { useProjectRecord } from "./ReferenceWorkbench.js";
+import { AgentControlPortal } from "./AgentControlPlane.js";
 import { Observation } from "./ReviewRecovery.js";
 import { ProjectResetPanel } from "./ProjectProfileSurface.js";
 import {
@@ -1361,212 +1362,228 @@ export const HistoryEventSurface = ({
         </aside>
       </div>
 
-      <section
-        className="history-event__revert"
-        aria-labelledby="governed-revert-title"
+      <AgentControlPortal
+        title="Request a governed Revert"
+        description="Preview and confirm this Revert here. The original event, impact, and resulting History remain in the Workspace."
+        operationIds={["history.preview-revert", "history.execute-revert"]}
+        objectRef={episode.event_id}
       >
-        <p className="reference-panel-kicker">Separate authority path</p>
-        <h2 id="governed-revert-title">Governed Revert</h2>
-        <p>
-          Read the exact preview first. A confirmed reason and Approval
-          rationale compose one new compensating ChangeSet. Execution is a
-          separate explicit action and rechecks authority at every command.
-        </p>
-        {canPreview ? (
-          <PetraButton
-            variant="secondary"
-            onClick={() => void readPreview()}
-            busy={revert.kind === "reading_preview"}
-            busyLabel="Reading governed Revert preview…"
-            aria-disabled={revert.kind !== "idle" && revert.kind !== "failed"}
-          >
-            Read governed Revert preview
-          </PetraButton>
-        ) : (
-          <PetraButton
-            variant="secondary"
-            unavailable={{
-              reason: statusText,
-              prerequisite:
-                "A current eligible single-ChangeSet recovery assessment.",
-            }}
-          >
-            Revert unavailable
-          </PetraButton>
-        )}
-
         <section
-          ref={notice}
-          className="history-event__revert-state"
-          tabIndex={-1}
-          aria-live={revert.kind === "failed" ? "assertive" : "polite"}
-          role={revert.kind === "failed" ? "alert" : "status"}
+          className="history-event__revert"
+          aria-labelledby="governed-revert-title"
         >
-          {revert.kind === "idle" ? (
-            <p>
-              No compensation preview, plan, or execution has been requested.
-            </p>
-          ) : revert.kind === "reading_preview" ? (
-            <p>
-              Reading the exact current preview. No ChangeSet, Approval, or
-              command has been composed or executed.
-            </p>
-          ) : revert.kind === "failed" ? (
-            <p>{revert.message}</p>
-          ) : revert.kind === "composing_plan" ? (
-            <p>
-              Revalidating the preview and composing the confirmed command plan.
-              Nothing is shown as executed.
-            </p>
-          ) : revert.kind === "executing" ? (
-            <p>
-              Executing the exact confirmed plan. Completion and effects are not
-              yet established.
-            </p>
-          ) : revert.kind === "result" ? (
-            <>
-              <h3>
-                {revert.result.content.outcome === "completed"
-                  ? "Governed Revert completed"
-                  : "Governed Revert stopped"}
-              </h3>
+          <p className="reference-panel-kicker">Separate authority path</p>
+          <h2 id="governed-revert-title">Governed Revert</h2>
+          <p>
+            Read the exact preview first. A confirmed reason and Approval
+            rationale compose one new compensating ChangeSet. Execution is a
+            separate explicit action and rechecks authority at every command.
+          </p>
+          {canPreview ? (
+            <PetraButton
+              variant="secondary"
+              onClick={() => void readPreview()}
+              busy={revert.kind === "reading_preview"}
+              busyLabel="Reading governed Revert preview…"
+              aria-disabled={revert.kind !== "idle" && revert.kind !== "failed"}
+            >
+              Read governed Revert preview
+            </PetraButton>
+          ) : (
+            <PetraButton
+              variant="secondary"
+              unavailable={{
+                reason: statusText,
+                prerequisite:
+                  "A current eligible single-ChangeSet recovery assessment.",
+              }}
+            >
+              Revert unavailable
+            </PetraButton>
+          )}
+
+          <section
+            ref={notice}
+            className="history-event__revert-state"
+            tabIndex={-1}
+            aria-live={revert.kind === "failed" ? "assertive" : "polite"}
+            role={revert.kind === "failed" ? "alert" : "status"}
+          >
+            {revert.kind === "idle" ? (
               <p>
-                Completed prefix: {revert.result.content.completed_prefix} of{" "}
-                {revert.result.content.steps.length}. Authority effect:{" "}
-                {revert.result.content.authoritative_effect.state.replaceAll(
-                  "_",
-                  " ",
-                )}
-                . The original action and this compensation both remain in
-                History.
+                No compensation preview, plan, or execution has been requested.
+              </p>
+            ) : revert.kind === "reading_preview" ? (
+              <p>
+                Reading the exact current preview. No ChangeSet, Approval, or
+                command has been composed or executed.
+              </p>
+            ) : revert.kind === "failed" ? (
+              <p>{revert.message}</p>
+            ) : revert.kind === "composing_plan" ? (
+              <p>
+                Revalidating the preview and composing the confirmed command
+                plan. Nothing is shown as executed.
+              </p>
+            ) : revert.kind === "executing" ? (
+              <p>
+                Executing the exact confirmed plan. Completion and effects are
+                not yet established.
+              </p>
+            ) : revert.kind === "result" ? (
+              <>
+                <h3>
+                  {revert.result.content.outcome === "completed"
+                    ? "Governed Revert completed"
+                    : "Governed Revert stopped"}
+                </h3>
+                <p>
+                  Completed prefix: {revert.result.content.completed_prefix} of{" "}
+                  {revert.result.content.steps.length}. Authority effect:{" "}
+                  {revert.result.content.authoritative_effect.state.replaceAll(
+                    "_",
+                    " ",
+                  )}
+                  . The original action and this compensation both remain in
+                  History.
+                </p>
+                <ol>
+                  {revert.result.content.steps.map((step) => (
+                    <li key={step.command_ref.command_id}>
+                      {step.command_name}: {step.state.replaceAll("_", " ")} ·{" "}
+                      <code>{step.command_ref.command_id}</code>
+                      {!("event_ref" in step) ||
+                      step.event_ref === undefined ? null : (
+                        <>
+                          {" "}
+                          · <code>{step.event_ref.event_id}</code>
+                        </>
+                      )}
+                    </li>
+                  ))}
+                </ol>
+                <details>
+                  <summary>Complete governed Revert execution record</summary>
+                  <Observation value={revert.result} />
+                </details>
+                <p>
+                  <Link
+                    className="reference-primary-link"
+                    to={`/projects/${project.id}/brief`}
+                  >
+                    Return to updated Brief
+                  </Link>
+                </p>
+              </>
+            ) : (
+              <p>
+                {revert.kind === "preview"
+                  ? "Read-only compensation preview loaded. No ChangeSet, Approval, or command has been composed or executed."
+                  : "Confirmed compensation plan composed. It is not persisted or executed until the separate execution action."}
+              </p>
+            )}
+          </section>
+
+          {activePreview === undefined ? null : (
+            <div className="history-event__preview">
+              <h3>Read-only preview</h3>
+              <p>
+                {activePreview.content.operation_preview.length} operations ·{" "}
+                {activePreview.content.command_sequence.length} commands · valid
+                through {activePreview.content.freshness.valid_through}
               </p>
               <ol>
-                {revert.result.content.steps.map((step) => (
-                  <li key={step.command_ref.command_id}>
-                    {step.command_name}: {step.state.replaceAll("_", " ")} ·{" "}
-                    <code>{step.command_ref.command_id}</code>
-                    {!("event_ref" in step) ||
-                    step.event_ref === undefined ? null : (
-                      <>
-                        {" "}
-                        · <code>{step.event_ref.event_id}</code>
-                      </>
-                    )}
+                {activePreview.content.operation_preview.map((operation) => (
+                  <li
+                    key={`${operation.operation_kind}:${operation.target_id}`}
+                  >
+                    {operation.operation_kind.replaceAll("_", " ")} ·{" "}
+                    <code>{operation.target_id}</code> · base revision{" "}
+                    {operation.base_revision}
                   </li>
                 ))}
               </ol>
               <details>
-                <summary>Complete governed Revert execution record</summary>
-                <Observation value={revert.result} />
+                <summary>
+                  Complete preview, results, and command sequence
+                </summary>
+                <Observation value={activePreview} />
               </details>
+            </div>
+          )}
+
+          {revert.kind !== "preview" ? null : (
+            <div className="history-event__confirmation">
+              <PetraTextArea
+                label="Reason for governed Revert"
+                hint="Explain why this exact authoritative change should be compensated."
+                rows={3}
+                value={reason}
+                onChange={(event) => setReason(event.currentTarget.value)}
+              />
+              <PetraTextArea
+                label="Approval rationale"
+                hint="State why the complete compensating ChangeSet is approved."
+                rows={3}
+                value={approvalRationale}
+                onChange={(event) =>
+                  setApprovalRationale(event.currentTarget.value)
+                }
+              />
+              <PetraButton
+                variant="primary"
+                onClick={() => void composePlan()}
+                aria-disabled={
+                  reason.trim().length === 0 ||
+                  approvalRationale.trim().length === 0
+                }
+              >
+                Confirm and compose Revert plan
+              </PetraButton>
+            </div>
+          )}
+
+          {activePlan === undefined ? null : (
+            <div className="history-event__plan">
+              <h3>Confirmed command plan</h3>
               <p>
-                <Link
-                  className="reference-primary-link"
-                  to={`/projects/${project.id}/brief`}
-                >
-                  Return to updated Brief
-                </Link>
+                ChangeSet{" "}
+                <code>{activePlan.content.change_set.change_set_id}</code>{" "}
+                compensates{" "}
+                <code>
+                  {
+                    activePlan.content.change_set.content
+                      .compensates_change_set_id
+                  }
+                </code>
+                . Persistence and execution remain not performed.
               </p>
-            </>
-          ) : (
-            <p>
-              {revert.kind === "preview"
-                ? "Read-only compensation preview loaded. No ChangeSet, Approval, or command has been composed or executed."
-                : "Confirmed compensation plan composed. It is not persisted or executed until the separate execution action."}
-            </p>
+              <ol>
+                {activePlan.content.commands.map((step) => (
+                  <li key={step.envelope.command_id}>
+                    {step.position}. {step.command_name} ·{" "}
+                    {step.state.replaceAll("_", " ")}
+                  </li>
+                ))}
+              </ol>
+              <details>
+                <summary>
+                  Complete ChangeSet, Approval, and command plan
+                </summary>
+                <Observation value={activePlan} />
+              </details>
+              {revert.kind === "plan" ? (
+                <PetraButton
+                  variant="primary"
+                  onClick={() => void executePlan()}
+                >
+                  Execute governed Revert
+                </PetraButton>
+              ) : null}
+            </div>
           )}
         </section>
-
-        {activePreview === undefined ? null : (
-          <div className="history-event__preview">
-            <h3>Read-only preview</h3>
-            <p>
-              {activePreview.content.operation_preview.length} operations ·{" "}
-              {activePreview.content.command_sequence.length} commands · valid
-              through {activePreview.content.freshness.valid_through}
-            </p>
-            <ol>
-              {activePreview.content.operation_preview.map((operation) => (
-                <li key={`${operation.operation_kind}:${operation.target_id}`}>
-                  {operation.operation_kind.replaceAll("_", " ")} ·{" "}
-                  <code>{operation.target_id}</code> · base revision{" "}
-                  {operation.base_revision}
-                </li>
-              ))}
-            </ol>
-            <details>
-              <summary>Complete preview, results, and command sequence</summary>
-              <Observation value={activePreview} />
-            </details>
-          </div>
-        )}
-
-        {revert.kind !== "preview" ? null : (
-          <div className="history-event__confirmation">
-            <PetraTextArea
-              label="Reason for governed Revert"
-              hint="Explain why this exact authoritative change should be compensated."
-              rows={3}
-              value={reason}
-              onChange={(event) => setReason(event.currentTarget.value)}
-            />
-            <PetraTextArea
-              label="Approval rationale"
-              hint="State why the complete compensating ChangeSet is approved."
-              rows={3}
-              value={approvalRationale}
-              onChange={(event) =>
-                setApprovalRationale(event.currentTarget.value)
-              }
-            />
-            <PetraButton
-              variant="primary"
-              onClick={() => void composePlan()}
-              aria-disabled={
-                reason.trim().length === 0 ||
-                approvalRationale.trim().length === 0
-              }
-            >
-              Confirm and compose Revert plan
-            </PetraButton>
-          </div>
-        )}
-
-        {activePlan === undefined ? null : (
-          <div className="history-event__plan">
-            <h3>Confirmed command plan</h3>
-            <p>
-              ChangeSet{" "}
-              <code>{activePlan.content.change_set.change_set_id}</code>{" "}
-              compensates{" "}
-              <code>
-                {
-                  activePlan.content.change_set.content
-                    .compensates_change_set_id
-                }
-              </code>
-              . Persistence and execution remain not performed.
-            </p>
-            <ol>
-              {activePlan.content.commands.map((step) => (
-                <li key={step.envelope.command_id}>
-                  {step.position}. {step.command_name} ·{" "}
-                  {step.state.replaceAll("_", " ")}
-                </li>
-              ))}
-            </ol>
-            <details>
-              <summary>Complete ChangeSet, Approval, and command plan</summary>
-              <Observation value={activePlan} />
-            </details>
-            {revert.kind === "plan" ? (
-              <PetraButton variant="primary" onClick={() => void executePlan()}>
-                Execute governed Revert
-              </PetraButton>
-            ) : null}
-          </div>
-        )}
-      </section>
+      </AgentControlPortal>
     </main>
   );
 };

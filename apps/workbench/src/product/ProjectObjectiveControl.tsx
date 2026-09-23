@@ -15,6 +15,7 @@ import {
   type ProjectObjectiveCommandContext,
   type ProjectObjectiveCommandFailureKind,
 } from "./project-objective-command.js";
+import { AgentControlPortal } from "./AgentControlPlane.js";
 
 export interface ProjectObjectiveReturnOutcome {
   readonly state: "applied" | "replayed" | "recovered";
@@ -427,7 +428,14 @@ export const ProjectObjectiveEmptyBrief = ({
         Frame exact wording through the reviewed command below. Profile terms
         and Project authority remain server-owned.
       </p>
-      <ProjectObjectiveControl context={context} />
+      <AgentControlPortal
+        title="Frame the Project outcome"
+        description="Review the wording here. Petra creates the Project outcome shown in the Workspace."
+        operationIds={["brief.frame-objective"]}
+        objectRef={context.projectId}
+      >
+        <ProjectObjectiveControl context={context} />
+      </AgentControlPortal>
     </section>
   </main>
 );

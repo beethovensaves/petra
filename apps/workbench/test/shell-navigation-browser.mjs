@@ -142,7 +142,8 @@ try {
         layoutRect && agentRect ? agentRect.width / layoutRect.width : 0,
       workspaceRatio:
         layoutRect && workspaceRect ? workspaceRect.width / layoutRect.width : 0,
-      primaryAction: document.querySelector('.reference-agent-action span')?.textContent?.trim(),
+      agentRequestOperation: document.querySelector('.reference-agent-composer')?.dataset.operationId,
+      agentThreadOperation: document.querySelector('.reference-agent-thread')?.dataset.operationId,
       inspectionOpen: document.querySelector('.reference-project-inspection')?.hasAttribute('open'),
       guideVisible: document.body.innerText.includes('Test guide'),
     };
@@ -155,7 +156,8 @@ try {
   assert.ok(
     desktopFrame.workspaceRatio >= 0.69 && desktopFrame.workspaceRatio <= 0.71,
   );
-  assert.equal(desktopFrame.primaryAction, "Work with Petra");
+  assert.equal(desktopFrame.agentRequestOperation, "petra.ask");
+  assert.equal(desktopFrame.agentThreadOperation, "petra.resume-thread");
   assert.equal(desktopFrame.inspectionOpen, false);
   assert.equal(desktopFrame.guideVisible, false);
   if (screenshotOutput !== undefined) {
@@ -299,13 +301,36 @@ try {
   }
 
   const calls = await evaluate("structuredClone(window.shellNavigationCalls)");
-  assert.deepEqual(calls, [
-    {
-      method: "GET",
-      path: `/api/queries/projects/${expected.projectId}/shell`,
-      authorization: "Bearer browser-shell-navigation-token",
-    },
-  ]);
+  assert.ok(
+    calls.some(
+      (call) =>
+        call.method === "GET" &&
+        call.path === `/api/queries/projects/${expected.projectId}/shell` &&
+        call.authorization === "Bearer browser-shell-navigation-token",
+    ),
+  );
+  assert.ok(
+    calls.some(
+      (call) =>
+        call.method === "GET" &&
+        call.path ===
+          `/api/queries/projects/${expected.projectId}/model-readiness` &&
+        call.authorization === "Bearer browser-shell-navigation-token",
+    ),
+  );
+  assert.ok(
+    calls.some(
+      (call) =>
+        call.method === "GET" &&
+        call.path ===
+          `/api/queries/projects/${expected.projectId}/threads?limit=1&lifecycle=open` &&
+        call.authorization === "Bearer browser-shell-navigation-token",
+    ),
+  );
+  assert.equal(
+    calls.some((call) => call.method !== "GET"),
+    false,
+  );
   assert.deepEqual(browserFailures, []);
 
   const browserVersion = await send("Browser.getVersion");
@@ -349,13 +374,15 @@ try {
       narrow_pane_switch_preserved_task: true,
       graph_controls_progressively_disclosed: true,
       shell_reads: calls.length,
+      agent_request_operation: desktopFrame.agentRequestOperation,
+      agent_thread_operation: desktopFrame.agentThreadOperation,
       authenticated_requests: true,
       command_requests: 0,
       context_stable: true,
     },
     calls,
     boundary:
-      "Isolated Chromium opened one representative Project through the production loadProjectRecord and ProjectShellClient path. It measured the desktop Agent and Workspace regions at 30/70, confirmed graph controls begin behind a closed Inspect disclosure, deliberately opened that disclosure, and keyboard-activated every retained destination. At each destination, exact Project, Objective, route, current place, active control, authority snapshot, and projection stayed coherent. At 420 px it switched Agent to Workspace without changing the route or unmounting the task. Deterministic schema-valid authenticated HTTP supplied browser transport. The child route body is a context observer, so this record proves the structural FE-A1.1 shell and shell.navigate; it does not prove Project creation, Agent conversation or Work control, destination task renderers, the complete Inspect experience, or final frontend acceptance.",
+      "Isolated Chromium opened one representative Project through the production loadProjectRecord and ProjectShellClient path. It measured the desktop Agent and Workspace regions at 30/70, confirmed the persistent Agent owns petra.ask and retained-thread presentation, confirmed graph controls begin behind a closed Inspect disclosure, deliberately opened that disclosure, and keyboard-activated every retained Workspace destination. At each destination, exact Project, Objective, route, current place, active control, authority snapshot, and projection stayed coherent. At 420 px it switched Agent to Workspace without changing the route or unmounting the task. Deterministic authenticated HTTP supplied browser transport. The child route body remains a context observer, so this record proves the structural shell and persistent Agent boundary; contextual Work, Review, and recovery commands require their FE-A1.3 task test.",
   };
   writeFileSync(output, `${JSON.stringify(artifact, null, 2)}\n`);
   process.stdout.write(`${JSON.stringify(artifact, null, 2)}\n`);

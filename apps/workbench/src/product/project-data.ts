@@ -8441,12 +8441,24 @@ export const loadProjectPetraThread = async ({
     }
     return petraThreadFromView(detail);
   }
+  return getLatestProjectPetraThread(projectId);
+};
+
+/**
+ * Reads the latest open Project thread for the persistent Agent rail. The
+ * returned thread is still composed from the authoritative Project-thread
+ * query; the browser does not rebuild conversation or operation identity.
+ */
+export const getLatestProjectPetraThread = async (
+  projectId: string,
+): Promise<PetraThread | undefined> => {
+  const exactProjectId = requiredRouteIdentity(projectId, "A Project ID");
   const collectionValue = await requestJson(
-    `/api/queries/projects/${encodeURIComponent(projectId)}/threads?limit=1&lifecycle=open`,
+    `/api/queries/projects/${encodeURIComponent(exactProjectId)}/threads?limit=1&lifecycle=open`,
   );
   const collection = projectThreadView(collectionValue);
   if (
-    collection.project_id !== projectId ||
+    collection.project_id !== exactProjectId ||
     collection.content.view_kind !== "collection"
   ) {
     throw new ProjectDataError(
@@ -8458,11 +8470,11 @@ export const loadProjectPetraThread = async ({
   if (selected === undefined) return undefined;
   const threadId = selected.thread_ref.project_thread_id;
   const detailValue = await requestJson(
-    `/api/queries/projects/${encodeURIComponent(projectId)}/threads/${encodeURIComponent(threadId)}`,
+    `/api/queries/projects/${encodeURIComponent(exactProjectId)}/threads/${encodeURIComponent(threadId)}`,
   );
   const detail = projectThreadView(detailValue);
   if (
-    detail.project_id !== projectId ||
+    detail.project_id !== exactProjectId ||
     detail.content.view_kind !== "detail" ||
     detail.content.summary.thread_ref.project_thread_id !== threadId ||
     detail.content.summary.thread_ref.revision !==

@@ -114,8 +114,16 @@ assert.deepEqual(
   ],
 );
 assert.equal(
-  await evaluate('document.querySelectorAll("main a[href*=history]").length'),
-  0,
+  await evaluate(
+    '[...document.querySelectorAll("main a[href*=history]")].filter(link=>link.closest(".reference-agent-control")===null).length',
+  ),
+  1,
+);
+assert.equal(
+  await evaluate(
+    '[...document.querySelectorAll("main a[href*=history]")].find(link=>link.closest(".reference-agent-control")===null)?.textContent.trim()',
+  ),
+  "View all Project History",
 );
 const summary =
   '[...document.querySelectorAll("summary")].find(e=>e.textContent.startsWith("Complete original ContextPacket"))';

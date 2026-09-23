@@ -10,11 +10,14 @@ import {
 } from "../src/product/ReferenceWorkbench.js";
 import { loadProjectRecord } from "../src/product/project-data.js";
 import type { ProjectPlace } from "../src/product/model.js";
+import { AgentControlPortal } from "../src/product/AgentControlPlane.js";
 import briefFixture from "../src/product/project-brief.fixture.json";
 import "../src/design-system/tokens.css";
 import "../src/design-system/primitives.css";
 import "../src/styles.css";
 import "../src/product/reference-workbench.css";
+import "../src/product/work-petra.css";
+import "../src/product/agent-control-plane.css";
 
 type RecordedCall = {
   readonly method: string;
@@ -56,7 +59,6 @@ if (objective === undefined) {
 }
 
 const navigation: readonly NavigationTarget[] = [
-  { place: "petra", route: "petra", label: "Work with Petra" },
   { place: "work", route: "work", label: "Work" },
   { place: "sources", route: "sources", label: "Sources" },
   { place: "graph", route: "graph", label: "Graph" },
@@ -131,33 +133,99 @@ const ShellPlaceTrace = ({
   label: string;
 }): React.JSX.Element => {
   const project = useProjectRecord();
-  return (
-    <main
-      className="reference-surface shell-navigation-trace"
-      id="reference-main"
-      data-trace-place={place}
-      data-project-id={project.id}
-      data-definition-id={project.profile.id}
-    >
-      <p className="reference-eyebrow">{project.title}</p>
-      <h1>{label}</h1>
-      <dl>
-        <div>
-          <dt>Registered profile</dt>
-          <dd>{project.profile.label}</dd>
-        </div>
-        <div>
-          <dt>Current objective</dt>
-          <dd
-            data-objective-id={
-              project.importBinding?.focusedObjectiveRef.objectiveId
+  const contextualControl =
+    place === "work"
+      ? {
+          title: "Control this Work",
+          operationIds: [
+            "work.answer-input",
+            "work.steer",
+            "work.prioritize",
+            "work.cancel",
+            "work.reconnect",
+            "work.replay",
+            "work.retry",
+            "work.resume",
+            "work.start-again",
+            "work.open-result",
+          ],
+          button: "Steer work",
+          objectRef: "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+        }
+      : place === "review"
+        ? {
+            title: "Decide this Review",
+            operationIds: [
+              "review.apply",
+              "review.reject",
+              "review.defer",
+              "review.reopen",
+            ],
+            button: "Apply displayed ChangeSet",
+            objectRef: "review_session_01ARZ3NDEKTSV4RRFFQ69G5FC3",
+          }
+        : place === "history"
+          ? {
+              title: "Request a governed Revert",
+              operationIds: [
+                "history.preview-revert",
+                "history.execute-revert",
+              ],
+              button: "Read governed Revert preview",
+              objectRef: "event_01ARZ3NDEKTSV4RRFFQ69G5FC4",
             }
-          >
-            {project.objective}
-          </dd>
-        </div>
-      </dl>
-    </main>
+          : place === "brief"
+            ? {
+                title: "Proposed next action",
+                operationIds: [
+                  "brief.frame-objective",
+                  "brief.suggested-preview",
+                  "brief.suggested-invoke",
+                  "work.start",
+                ],
+                button: "Start proposed Work",
+                objectRef: objective.objective_id,
+              }
+            : undefined;
+  return (
+    <>
+      <main
+        className="reference-surface shell-navigation-trace"
+        id="reference-main"
+        data-trace-place={place}
+        data-project-id={project.id}
+        data-definition-id={project.profile.id}
+      >
+        <p className="reference-eyebrow">{project.title}</p>
+        <h1>{label}</h1>
+        <dl>
+          <div>
+            <dt>Registered profile</dt>
+            <dd>{project.profile.label}</dd>
+          </div>
+          <div>
+            <dt>Current objective</dt>
+            <dd
+              data-objective-id={
+                project.importBinding?.focusedObjectiveRef.objectiveId
+              }
+            >
+              {project.objective}
+            </dd>
+          </div>
+        </dl>
+      </main>
+      {contextualControl === undefined ? null : (
+        <AgentControlPortal
+          title={contextualControl.title}
+          description="The route-owned typed controller remains mounted while the Agent presents its action."
+          operationIds={contextualControl.operationIds}
+          objectRef={contextualControl.objectRef}
+        >
+          <button type="button">{contextualControl.button}</button>
+        </AgentControlPortal>
+      )}
+    </>
   );
 };
 

@@ -2,7 +2,12 @@
   "schema_name": "petra.wave6-shell-brief-browser-evidence",
   "schema_version": "1.0.0",
   "state": "passed",
-  "operation_ids": ["shell.attention-work", "brief.attention", "brief.change"],
+  "operation_ids": [
+    "shell.attention-work",
+    "brief.attention",
+    "brief.change",
+    "brief.frame-objective"
+  ],
   "browser": "Chrome via CDP",
   "transport": "deterministic schema-valid HTTP at the production UI boundary",
   "checks": [
@@ -15,9 +20,10 @@
     "unavailable baseline recovery without a substituted comparison",
     "stale comparison replay recovery without false success",
     "Project context and current Objective orientation remained visible",
+    "route-owned Objective control rendered in Agent with exact operation identity",
     "375px width, 200% text reflow, reduced motion, and 44px Work target"
   ],
   "verified_not_credited": ["shell.inspect-context", "brief.orient"],
   "named_scenario": null,
-  "boundary": "Isolated Chrome keyboard-invoked the production ProjectShell, ProjectBriefSurface, WorkDetailSurface, React Router controls, ProjectShellClient, ProjectBriefClient, exact Work destination checks, comparison success, unavailable recovery, stale recovery, and focused returns using deterministic schema-valid authenticated HTTP. The exact backend counterpart separately proves the live server and PostgreSQL owners. This artifact does not claim live server transport, PostgreSQL persistence, a complete guided workflow, or any frozen Wave 6 evidence-plan scenario."
+  "boundary": "Isolated Chrome keyboard-invoked the production ProjectShell, ProjectBriefSurface, WorkDetailSurface, React Router controls, ProjectShellClient, ProjectBriefClient, exact Work destination checks, comparison success, unavailable recovery, stale recovery, and focused returns using deterministic schema-valid authenticated HTTP. It also confirmed that the route-owned Objective controller renders inside the persistent Agent, stays out of the Workspace, and survives the constrained-width pane switch. The exact backend counterpart separately proves the live server and PostgreSQL owners. This artifact does not claim live server transport, PostgreSQL persistence, a complete guided workflow, or any frozen Wave 6 evidence-plan scenario."
 }

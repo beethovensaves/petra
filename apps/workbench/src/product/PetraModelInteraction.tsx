@@ -518,10 +518,14 @@ export const PetraModelInteraction = ({
   projectId,
   readiness,
   returnContext,
+  mode = "workspace",
+  onResult,
 }: {
   projectId: string;
   readiness: PetraProjectModelReadinessView;
   returnContext: ProjectPetraReturnContext;
+  mode?: "agent" | "workspace";
+  onResult?: (result: PetraInteractionResult) => void;
 }): React.JSX.Element => {
   const [draft, setDraft] = useState(() => initialDraft(projectId, readiness));
   const [activity, setActivity] = useState<ModelActivity>("idle");
@@ -606,6 +610,7 @@ export const PetraModelInteraction = ({
     }
     setPresentation(next);
     setTransportError(undefined);
+    onResult?.(result);
   };
 
   const submit = async (forceNewRun = false): Promise<void> => {
@@ -658,7 +663,19 @@ export const PetraModelInteraction = ({
 
   return (
     <>
-      <ModelReadiness readiness={readiness} />
+      {mode === "agent" ? (
+        <details className="reference-agent-readiness">
+          <summary>
+            <span>Petra</span>
+            <span data-state={ready ? "ready" : "unavailable"}>
+              {ready ? "Ready" : "Unavailable"}
+            </span>
+          </summary>
+          <ModelReadiness readiness={readiness} />
+        </details>
+      ) : (
+        <ModelReadiness readiness={readiness} />
+      )}
       {presentation === undefined ? null : (
         <ModelResponse projectId={projectId} presentation={presentation} />
       )}
@@ -694,17 +711,24 @@ export const PetraModelInteraction = ({
       )}
       <form
         className="petra-composer"
+        data-operation-id="petra.ask"
         onSubmit={(event) => {
           event.preventDefault();
           void submit();
         }}
       >
         <PetraTextArea
-          label="Certified Project question"
+          label={
+            mode === "agent" ? "Project request" : "Certified Project question"
+          }
           hint={
             ready
-              ? "This role accepts the exact Project-bound prompt registered by readiness. Your draft is retained in this browser through failure and reconnect."
-              : "Your unsent text remains local. No prompt can be sent until the server returns a ready certified role, provider, and context."
+              ? mode === "agent"
+                ? "Petra can run this Project request. Your draft stays here if the connection is interrupted."
+                : "This role accepts the exact Project-bound prompt registered by readiness. Your draft is retained in this browser through failure and reconnect."
+              : mode === "agent"
+                ? "Your draft stays here until Petra is available."
+                : "Your unsent text remains local. No prompt can be sent until the server returns a ready certified role, provider, and context."
           }
           rows={5}
           value={draft}
@@ -719,8 +743,12 @@ export const PetraModelInteraction = ({
         <div>
           <span id="petra-send-boundary">
             {ready
-              ? "The certified response is advisory. Work and Review outcomes remain separate."
-              : "The selected Project has no usable certified model command."}
+              ? mode === "agent"
+                ? "Petra will keep results and decisions in the Workspace."
+                : "The certified response is advisory. Work and Review outcomes remain separate."
+              : mode === "agent"
+                ? "Petra is unavailable for this Project."
+                : "The selected Project has no usable certified model command."}
           </span>
           <div className="petra-composer__actions">
             {ready && !promptMatches ? (
@@ -776,14 +804,16 @@ export const PetraModelInteraction = ({
           </div>
         </div>
       </form>
-      <footer className="petra-model-return">
-        <Link className="reference-context-back" to={returnContext.path}>
-          <span aria-hidden="true">←</span> Return to {returnContext.label}
-        </Link>
-        <span>
-          The local draft remains scoped to this Project when you return.
-        </span>
-      </footer>
+      {mode === "agent" ? null : (
+        <footer className="petra-model-return">
+          <Link className="reference-context-back" to={returnContext.path}>
+            <span aria-hidden="true">←</span> Return to {returnContext.label}
+          </Link>
+          <span>
+            The local draft remains scoped to this Project when you return.
+          </span>
+        </footer>
+      )}
     </>
   );
 };

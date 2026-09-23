@@ -1,6 +1,6 @@
 # FE-A1: Agentic frontend adaptation
 
-- **Status:** In progress; FE-A1.0 through FE-A1.2 complete; blocks Wave 7
+- **Status:** In progress; FE-A1.0 through FE-A1.3 complete; blocks Wave 7
 - **Decision:** [D024](../decisions/D024-agentic-split-workspace.md)
 - **Operation map:** [ui-operation-presentation-map.json](../scripts/ui-operation-presentation-map.json)
 - **Inventory:** [ui-operation-inventory.json](../scripts/ui-operation-inventory.json)
@@ -13,8 +13,9 @@
 | FE-A1.0 | Complete | D024 and the audited 116-operation presentation map establish the frontend boundary. |
 | FE-A1.1 | Complete | The production Project shell now uses a persistent 30/70 Agent–Workspace frame, starts technical controls behind **Inspect project**, and switches panes on narrow screens without unmounting the active task. |
 | FE-A1.2 | Complete | Project creation now starts from the user's exact outcome, reviews a server-owned definition draft, keeps examples optional, and creates the Project, definition, objective, focus, and receipt atomically. |
-| FE-A1.3 | Next | Make the Agent panel the control plane for requests, Work, input, approvals, steering, cancellation, and recovery. |
-| FE-A1.4–FE-A1.7 | Pending | Workspace renderers, inspection, migration, and product evaluation follow in order. |
+| FE-A1.3 | Complete | The persistent Agent now owns Project requests and presents the exact route-owned objective, SuggestedAction, Work, Review, recovery, and governed Revert controllers with registered operation and object identities. |
+| FE-A1.4 | Next | Render durable Outcome, Artifact, Source, Review, Work, comparison, and Inspect objects through one server-directed Workspace host. |
+| FE-A1.5–FE-A1.7 | Pending | Unified inspection, operation migration, and product evaluation follow in order. |
 
 FE-A1.1 is proven by
 [`FRONTEND-STEP2-AGENT-WORKSPACE.json`](FRONTEND-STEP2-AGENT-WORKSPACE.json).
@@ -33,6 +34,21 @@ unsupported behavior before creation, and carries an optional initial file into
 the existing source and rights review. The isolated database run applies all 59
 migrations and proves exact draft replay, explicit optional examples, initial
 material plans, and rejection of changed drafts or unaccepted assumptions.
+
+FE-A1.3 is proven by
+[`FRONTEND-STEP4-AGENT-CONTROL-PLANE.json`](FRONTEND-STEP4-AGENT-CONTROL-PLANE.json),
+the production controller tests, and the retained shell browser trace. The
+Agent persistently owns `petra.ask` and the retained Project thread. Objective
+framing, SuggestedAction invocation and Work start, required input, steering,
+priority, cancellation, reconnect, replay, retry, Resume, Start again, result
+opening, Review decisions, command recovery, and governed Revert
+are presented in the Agent through their existing typed owners. Each contextual
+presentation carries its mapped operation IDs and exact object identity. The
+browser trace confirms that each sampled route-owned controller remains mounted,
+appears inside the Agent rather than the Workspace, and survives the responsive
+Agent/Workspace switch without changing the task route. ChangeSet preparation,
+candidate editing, comparison, and other detailed Review work remain in the
+Workspace, as required by the operation map.
 
 ## Result required from this milestone
 
@@ -271,6 +287,8 @@ existing command/query owners.
   review is submitted.
 
 ### FE-A1.3 — Consolidate control in the agent
+
+**Complete — 2026-09-23.**
 
 - Route ask, objective framing, SuggestedActions, Work controls, required input,
   Review interrupts, approvals, recovery, and Revert requests through AgentRail.
