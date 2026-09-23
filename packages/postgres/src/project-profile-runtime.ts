@@ -4,6 +4,10 @@ import type {
   ActorRef,
   PetraProject,
   PetraProjectDefinition,
+  PetraProjectDefinitionDraftCommandReceipt,
+  PetraProjectDefinitionDraftCommandRequest,
+  PetraProjectDefinitionDraftRequest,
+  PetraProjectDefinitionDraftView,
   PetraProjectObjective,
   PetraProjectProfileCommandReceipt,
   PetraProjectProfileCommandRecoveryView,
@@ -15,8 +19,11 @@ import type {
 } from "@petra/contracts";
 import { PetraContractRegistry } from "@petra/contracts/validator";
 import {
+  ProjectDefinitionDraftError,
   ProjectProfileRuntimeError,
   derivePetraId,
+  type ProjectDefinitionDraftCommandAuthority,
+  type ProjectDefinitionDraftReader,
   type ProjectProfileCommandAuthority,
   type ProjectProfileCommandRecoveryReader,
   type ProjectProfileRuntimeReader,
@@ -55,6 +62,76 @@ const canonicalHash = (value: unknown): string =>
   `sha256:${createHash("sha256").update(canonicalize(value)).digest("hex")}`;
 
 const clone = <Value>(value: Value): Value => structuredClone(value);
+
+const DRAFT_STOP_WORDS = new Set([
+  "a",
+  "an",
+  "and",
+  "as",
+  "at",
+  "be",
+  "by",
+  "for",
+  "from",
+  "in",
+  "into",
+  "is",
+  "it",
+  "of",
+  "on",
+  "or",
+  "project",
+  "the",
+  "this",
+  "to",
+  "with",
+]);
+
+const vocabulary = (value: string): Set<string> =>
+  new Set(
+    value
+      .normalize("NFKD")
+      .toLocaleLowerCase()
+      .split(/[^a-z0-9]+/u)
+      .filter((token) => token.length >= 3 && !DRAFT_STOP_WORDS.has(token)),
+  );
+
+const proposedProjectName = (outcome: string): string => {
+  const firstLine = outcome.split(/\r?\n/u)[0]?.trim() ?? outcome;
+  const firstSentence = firstLine.split(/(?<=[.!?])\s/u)[0] ?? firstLine;
+  return firstSentence.length <= 120
+    ? firstSentence
+    : `${firstSentence.slice(0, 119).trimEnd()}…`;
+};
+
+const profileVocabulary = (
+  profile: PetraRegisteredProjectProfile,
+): Set<string> =>
+  vocabulary(
+    [
+      profile.definition_family,
+      profile.content.label,
+      profile.content.purpose,
+      profile.content.definition.label,
+      profile.content.definition.description,
+      ...profile.content.definition.terms.flatMap((term) => [
+        term.singular,
+        term.plural,
+        term.definition,
+      ]),
+    ].join(" "),
+  );
+
+const profileMatchScore = (
+  outcome: string,
+  profile: PetraRegisteredProjectProfile,
+): number => {
+  const outcomeVocabulary = vocabulary(outcome);
+  const candidateVocabulary = profileVocabulary(profile);
+  return [...outcomeVocabulary].filter((token) =>
+    candidateVocabulary.has(token),
+  ).length;
+};
 
 const unavailableSection = (
   limitation: string,
@@ -144,7 +221,9 @@ export class PostgresProjectProfileRuntime
   implements
     ProjectProfileRuntimeReader,
     ProjectProfileCommandAuthority,
-    ProjectProfileCommandRecoveryReader
+    ProjectProfileCommandRecoveryReader,
+    ProjectDefinitionDraftReader,
+    ProjectDefinitionDraftCommandAuthority
 {
   readonly #pool: Pool;
   readonly #principal: ProjectProfileRuntimePrincipal | undefined;
@@ -386,6 +465,223 @@ export class PostgresProjectProfileRuntime
     }
     this.#contracts.assertValid("project-profile-taxonomy-view", "1.0.0", view);
     return clone(view);
+  }
+
+  async draftProjectDefinition(
+    request: PetraProjectDefinitionDraftRequest,
+  ): Promise<PetraProjectDefinitionDraftView> {
+    this.#contracts.assertValid(
+      "project-definition-draft-request",
+      "1.0.0",
+      request,
+    );
+    this.#assertDraftRequest(request);
+    return this.#readTransaction(async (client) =>
+      this.#composeDefinitionDraft(client, request, this.#now()),
+    );
+  }
+
+  async executeProjectDefinitionDraftCommand(
+    request: PetraProjectDefinitionDraftCommandRequest,
+  ): Promise<PetraProjectDefinitionDraftCommandReceipt> {
+    this.#contracts.assertValid(
+      "project-definition-draft-command-request",
+      "1.0.0",
+      request,
+    );
+    const requestHash = canonicalHash(request);
+    return this.#transaction(async (client) => {
+      const lockKeys = [
+        `project-definition-draft-command:command:${request.command_id}`,
+        `project-definition-draft-command:idempotency:${request.idempotency_key}`,
+      ].sort();
+      for (const lockKey of lockKeys) {
+        await client.query(
+          "SELECT pg_advisory_xact_lock(hashtextextended($1, 0))",
+          [lockKey],
+        );
+      }
+      const retained = await client.query<StoredReceiptRow>(
+        `SELECT request_hash, payload
+           FROM petra.project_definition_draft_command_receipts
+          WHERE command_id = $1 OR idempotency_key = $2
+          ORDER BY command_id`,
+        [request.command_id, request.idempotency_key],
+      );
+      if (retained.rows.length > 0) {
+        const exact = retained.rows.find(
+          (row) => row.request_hash === requestHash,
+        );
+        if (retained.rows.length !== 1 || exact === undefined) {
+          throw new ProjectDefinitionDraftError(
+            "PROJECT_DEFINITION_DRAFT_COMMAND_CONFLICT",
+            "The command or idempotency identity is already bound to a different definition-draft request.",
+          );
+        }
+        return this.#draftReceiptFrom(exact.payload);
+      }
+
+      await this.#requireDraftPrincipal(client);
+      this.#assertDraftRequest(request.draft.content.request);
+      const currentDraft = await this.#composeDefinitionDraft(
+        client,
+        request.draft.content.request,
+        this.#now(),
+      );
+      if (
+        currentDraft.draft_id !== request.draft.draft_id ||
+        currentDraft.content_hash !== request.draft.content_hash ||
+        canonicalize(currentDraft.content) !==
+          canonicalize(request.draft.content)
+      ) {
+        throw new ProjectDefinitionDraftError(
+          "PROJECT_DEFINITION_DRAFT_STALE",
+          "The reviewed Project definition draft no longer matches current registered capabilities. Review a fresh draft before creating the Project.",
+        );
+      }
+      const requiredAssumptions = new Set(
+        currentDraft.content.assumptions.map((assumption) => assumption.code),
+      );
+      const acceptedAssumptions = new Set(request.accepted_assumption_codes);
+      if (
+        requiredAssumptions.size !== acceptedAssumptions.size ||
+        [...requiredAssumptions].some((code) => !acceptedAssumptions.has(code))
+      ) {
+        throw new ProjectDefinitionDraftError(
+          "PROJECT_DEFINITION_DRAFT_ASSUMPTIONS_UNACCEPTED",
+          "Project creation requires acceptance of every assumption in the exact reviewed draft and no unregistered assumption.",
+        );
+      }
+
+      const recordedAt = this.#now();
+      const projectId = derivePetraId("project", request.command_id);
+      const projectDefinitionId = derivePetraId(
+        "project_definition",
+        request.command_id,
+      );
+      const objectiveId = derivePetraId("objective", request.command_id);
+      const receiptId = derivePetraId(
+        "definition_draft_receipt",
+        request.command_id,
+      );
+      const actor = { ...this.#principal } as ProjectProfileRuntimePrincipal;
+      const content = currentDraft.content;
+      const project: PetraProject = {
+        schema_name: "petra.project",
+        schema_version: "1.0.0",
+        project_id: projectId,
+        revision: 1,
+        name: content.project.name,
+        description: content.project.description,
+        status: "active",
+        visibility: "private",
+        enabled_evidence_namespaces: clone(content.enabled_evidence_namespaces),
+        created_by: actor,
+        created_at: recordedAt,
+        updated_at: recordedAt,
+      };
+      const definitionContent = clone(content.definition_content);
+      const definitionHash = canonicalHash(definitionContent);
+      const definition: PetraProjectDefinition = {
+        schema_name: "petra.project-definition",
+        schema_version: "1.0.0",
+        project_definition_id: projectDefinitionId,
+        revision: 1,
+        project_id: projectId,
+        definition_family: content.definition_family,
+        origin: clone(content.definition_origin),
+        content: definitionContent,
+        content_hash: definitionHash,
+        created_by: actor,
+        created_at: recordedAt,
+      };
+      const objectiveContent = {
+        objective_kind: content.objective.objective_kind,
+        statement: content.objective.statement,
+        status: "active" as const,
+        dependency_refs: [],
+      };
+      const objectiveHash = canonicalHash(objectiveContent);
+      const objective: PetraProjectObjective = {
+        schema_name: "petra.project-objective",
+        schema_version: "1.0.0",
+        objective_id: objectiveId,
+        revision: 1,
+        project_id: projectId,
+        project_definition_ref: {
+          project_definition_id: projectDefinitionId,
+          revision: 1,
+          content_hash: definitionHash,
+        },
+        content: objectiveContent,
+        content_hash: objectiveHash,
+        created_by: actor,
+        created_at: recordedAt,
+        updated_at: recordedAt,
+      };
+      const receipt: PetraProjectDefinitionDraftCommandReceipt = {
+        schema_name: "petra.project-definition-draft-command-receipt",
+        schema_version: "1.0.0",
+        receipt_id: receiptId,
+        command_id: request.command_id,
+        idempotency_key: request.idempotency_key,
+        actor,
+        draft_ref: {
+          draft_id: currentDraft.draft_id,
+          content_hash: currentDraft.content_hash,
+        },
+        project_ref: { project_id: projectId, revision: 1 },
+        project_definition_ref: {
+          project_definition_id: projectDefinitionId,
+          revision: 1,
+          content_hash: definitionHash,
+        },
+        objective_ref: {
+          objective_id: objectiveId,
+          revision: 1,
+          content_hash: objectiveHash,
+        },
+        initial_material_plan: clone(content.initial_material_plan),
+        destination: { place_role: "brief", project_id: projectId },
+        recorded_at: recordedAt,
+      };
+      this.#contracts.assertValid("project", "1.0.0", project);
+      this.#contracts.assertValid("project-definition", "1.0.0", definition);
+      this.#contracts.assertValid("project-objective", "1.0.0", objective);
+      this.#contracts.assertValid(
+        "project-definition-draft-command-receipt",
+        "1.0.0",
+        receipt,
+      );
+      await this.#insertCreatedProject(client, project, definition, objective);
+      await client.query(
+        `INSERT INTO petra.project_definition_draft_command_receipts (
+           receipt_id, command_id, idempotency_key, request_hash, draft_id,
+           draft_content_hash, actor_id, actor_kind, resulting_project_id,
+           schema_name, schema_version, record_hash, payload, recorded_at
+         ) VALUES (
+           $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,
+           $13::jsonb, $14::timestamptz
+         )`,
+        [
+          receipt.receipt_id,
+          receipt.command_id,
+          receipt.idempotency_key,
+          requestHash,
+          currentDraft.draft_id,
+          currentDraft.content_hash,
+          actor.actor_id,
+          actor.actor_kind,
+          projectId,
+          receipt.schema_name,
+          receipt.schema_version,
+          canonicalHash(receipt),
+          JSON.stringify(receipt),
+          recordedAt,
+        ],
+      );
+      return clone(receipt);
+    }, "READ COMMITTED");
   }
 
   async executeProjectProfileCommand(
@@ -872,6 +1168,337 @@ export class PostgresProjectProfileRuntime
     );
   }
 
+  #assertDraftRequest(request: PetraProjectDefinitionDraftRequest): void {
+    if (
+      request.outcome !== request.outcome.trim() ||
+      (request.project_name !== undefined &&
+        request.project_name !== request.project_name.trim())
+    ) {
+      throw new ProjectDefinitionDraftError(
+        "PROJECT_DEFINITION_DRAFT_INVALID",
+        "The outcome and optional Project name must not contain leading or trailing whitespace.",
+      );
+    }
+    const materialIds = (request.initial_material ?? []).map(
+      (material) => material.material_id,
+    );
+    if (new Set(materialIds).size !== materialIds.length) {
+      throw new ProjectDefinitionDraftError(
+        "PROJECT_DEFINITION_DRAFT_INVALID",
+        "Every initial material must have a distinct material identity.",
+      );
+    }
+  }
+
+  async #composeDefinitionDraft(
+    client: PoolClient,
+    request: PetraProjectDefinitionDraftRequest,
+    readAt: string,
+  ): Promise<PetraProjectDefinitionDraftView> {
+    const available = await client.query<PayloadRow>(
+      `SELECT latest.payload
+         FROM (
+           SELECT DISTINCT ON (profile_id) profile_id, payload
+             FROM petra.registered_project_profiles
+            WHERE status = 'active'
+            ORDER BY profile_id,
+                     string_to_array(profile_version, '.')::int[] DESC
+         ) AS latest
+        ORDER BY latest.profile_id`,
+    );
+    const profiles = available.rows.map((row) =>
+      this.#profileFrom(row.payload),
+    );
+    let profile: PetraRegisteredProjectProfile | undefined;
+    if (request.example_ref !== undefined) {
+      profile = profiles.find(
+        (candidate) =>
+          candidate.profile_id === request.example_ref?.profile_id &&
+          candidate.profile_version === request.example_ref.profile_version &&
+          candidate.content_hash === request.example_ref.content_hash,
+      );
+      if (profile === undefined) {
+        throw new ProjectDefinitionDraftError(
+          "PROJECT_DEFINITION_DRAFT_EXAMPLE_UNAVAILABLE",
+          "The exact optional example is no longer registered. Review the outcome without it or select a current example.",
+        );
+      }
+    } else {
+      const ranked = profiles
+        .map((candidate) => ({
+          profile: candidate,
+          score: profileMatchScore(request.outcome, candidate),
+        }))
+        .sort(
+          (left, right) =>
+            right.score - left.score ||
+            left.profile.profile_id.localeCompare(right.profile.profile_id),
+        );
+      if (
+        (ranked[0]?.score ?? 0) >= 2 &&
+        ranked[0]!.score > (ranked[1]?.score ?? 0)
+      ) {
+        profile = ranked[0]!.profile;
+      }
+    }
+
+    const objectiveContract = this.#contracts.entries.find(
+      (entry) =>
+        entry.name === "project-objective" && entry.version === "1.0.0",
+    );
+    const rightsDecisionContract = this.#contracts.entries.find(
+      (entry) => entry.name === "rights-decision" && entry.version === "1.0.0",
+    );
+    if (
+      objectiveContract === undefined ||
+      rightsDecisionContract === undefined
+    ) {
+      throw new ProjectDefinitionDraftError(
+        "PROJECT_DEFINITION_DRAFT_RUNTIME_CORRUPT",
+        "The authoritative Project objective contract is unavailable.",
+      );
+    }
+
+    const definitionContent: PetraProjectDefinition["content"] = profile
+      ?.content.definition ?? {
+      label: "Outcome-led Project",
+      description:
+        "A domain-neutral Project definition that preserves the stated outcome and uses Petra's shared graph, evidence, Work, Review, and History capabilities.",
+      kernel_compatibility: "petra.project-kernel@1.0.0",
+      registrations: [
+        {
+          registration_kind: "objective_schema",
+          semantic_key: "project.outcome",
+          contract: {
+            name: "petra.project-objective",
+            version: objectiveContract.version,
+            content_hash: objectiveContract.canonical_sha256,
+          },
+        },
+        {
+          registration_kind: "source_role",
+          semantic_key: "project.reference",
+          contract: {
+            name: "petra.rights-decision",
+            version: rightsDecisionContract.version,
+            content_hash: rightsDecisionContract.canonical_sha256,
+          },
+        },
+      ],
+      terms: [
+        {
+          semantic_key: "project.outcome",
+          singular: "Outcome",
+          plural: "Outcomes",
+          definition: "The exact result this Project is trying to produce.",
+          generic_family: "focus",
+        },
+        {
+          semantic_key: "project.result",
+          singular: "Result",
+          plural: "Results",
+          definition:
+            "A durable Project object produced while pursuing the outcome.",
+          generic_family: "finding",
+        },
+        {
+          semantic_key: "project.reference",
+          singular: "Reference",
+          plural: "References",
+          definition:
+            "A retained source or other exact basis available to the Project.",
+          generic_family: "reference",
+        },
+        {
+          semantic_key: "project.relationship",
+          singular: "Relationship",
+          plural: "Relationships",
+          definition: "An explicit graph connection between Project objects.",
+          generic_family: "relationship",
+        },
+      ],
+      supported_places: [
+        "brief",
+        "sources",
+        "review",
+        "graph",
+        "work",
+        "petra",
+        "composition",
+        "history",
+        "settings",
+      ],
+      omitted_flows: [
+        "Domain-specific automation not selected",
+        "External filesystem editing",
+        "Multi-user collaboration",
+      ],
+    };
+    const terms = new Map(
+      definitionContent.terms.map((term) => [term.semantic_key, term]),
+    );
+    const profileRef =
+      profile === undefined
+        ? undefined
+        : {
+            profile_id: profile.profile_id,
+            profile_version: profile.profile_version,
+            content_hash: profile.content_hash,
+          };
+    const selectedCapabilities =
+      profile === undefined
+        ? definitionContent.registrations.map((registration) => ({
+            capability_id: registration.semantic_key,
+            label:
+              terms.get(registration.semantic_key)?.singular ??
+              registration.semantic_key,
+            source: "petra_kernel" as const,
+            reason:
+              registration.registration_kind === "source_role"
+                ? "The shared Petra rights boundary can register user-supplied references after explicit copy-specific review."
+                : "The shared Petra kernel can hold the exact objective, durable results, graph relationships, evidence, Work, Review, and History without a domain template.",
+          }))
+        : definitionContent.registrations.map((registration) => ({
+            capability_id: registration.semantic_key,
+            label:
+              terms.get(registration.semantic_key)?.singular ??
+              registration.semantic_key,
+            source: "registered_template" as const,
+            reason: `Selected from the exact optional capability example ${profile.content.label}.`,
+            profile_ref: profileRef!,
+          }));
+    const assumptions = [
+      {
+        code: "project.private",
+        statement: "The new Project is private to its creating actor.",
+        consequence:
+          "Only the authenticated Project owner receives creation authority in this step.",
+      },
+      {
+        code: "objective.exact-wording",
+        statement:
+          "The stated outcome becomes the first objective without rewriting.",
+        consequence:
+          "Petra preserves the user's wording as the authoritative starting objective.",
+      },
+      ...(profile === undefined
+        ? [
+            {
+              code: "definition.domain-neutral",
+              statement:
+                "No registered domain example was selected with enough confidence.",
+              consequence:
+                "The Project starts with a domain-neutral definition; specific capabilities can be registered later.",
+            },
+          ]
+        : [
+            {
+              code: "definition.example-seed",
+              statement: `The exact ${profile.content.label} example seeds the Project-owned definition.`,
+              consequence:
+                "The Project receives an immutable copy and does not depend on later changes to the example.",
+            },
+          ]),
+      ...((request.initial_material?.length ?? 0) === 0
+        ? []
+        : [
+            {
+              code: "material.register-after-create",
+              statement:
+                "Selected initial files are identified in this draft but their bytes are not part of the Project creation transaction.",
+              consequence:
+                "Each file must pass the existing source registration and rights flow immediately after Project creation.",
+            },
+          ]),
+    ];
+    const content: PetraProjectDefinitionDraftView["content"] = {
+      request: clone(request),
+      project: {
+        name: request.project_name ?? proposedProjectName(request.outcome),
+        description:
+          "Outcome-first Project created from the user's exact stated objective.",
+      },
+      definition_family: profile?.definition_family ?? "petra.project-authored",
+      definition_origin:
+        profile === undefined
+          ? { origin_kind: "project_authored" }
+          : {
+              origin_kind: "template_seed",
+              template_id: profile.profile_id,
+              template_version: profile.profile_version,
+              template_hash: profile.content_hash,
+            },
+      definition_content: clone(definitionContent),
+      objective: {
+        objective_kind: profile?.content.objective_kind ?? "project.outcome",
+        statement: request.outcome,
+      },
+      enabled_evidence_namespaces: clone(
+        profile?.content.enabled_evidence_namespaces ?? ["personal"],
+      ),
+      selected_capabilities:
+        selectedCapabilities as PetraProjectDefinitionDraftView["content"]["selected_capabilities"],
+      assumptions:
+        assumptions as PetraProjectDefinitionDraftView["content"]["assumptions"],
+      unsupported_capabilities: definitionContent.omitted_flows.map(
+        (capability) => ({
+          capability,
+          reason:
+            "This capability is not registered by the proposed Project definition and will not be implied by the agent.",
+        }),
+      ),
+      initial_material_plan: (request.initial_material ?? []).map(
+        (material) => ({
+          material_id: material.material_id,
+          disposition: "register_after_project_creation" as const,
+          reason:
+            "The existing source authority must validate bytes, rights, and Project linkage after the Project exists.",
+        }),
+      ) as PetraProjectDefinitionDraftView["content"]["initial_material_plan"],
+    };
+    const contentHash = canonicalHash(content);
+    const view: PetraProjectDefinitionDraftView = {
+      schema_name: "petra.project-definition-draft-view",
+      schema_version: "1.0.0",
+      draft_id: derivePetraId("project_definition_draft", contentHash),
+      content,
+      content_hash: contentHash,
+      read_at: readAt,
+    };
+    this.#contracts.assertValid("project-definition-draft-view", "1.0.0", view);
+    return clone(view);
+  }
+
+  async #requireDraftPrincipal(client: PoolClient): Promise<void> {
+    if (this.#principal === undefined) {
+      throw new ProjectDefinitionDraftError(
+        "PROJECT_DEFINITION_DRAFT_COMMAND_DENIED",
+        "The server-authenticated Project creator is not configured.",
+      );
+    }
+    const actor = await client.query(
+      `SELECT 1 FROM petra.actors WHERE actor_id = $1 AND actor_kind = $2`,
+      [this.#principal.actor_id, this.#principal.actor_kind],
+    );
+    if (actor.rowCount !== 1) {
+      throw new ProjectDefinitionDraftError(
+        "PROJECT_DEFINITION_DRAFT_COMMAND_DENIED",
+        "The server-authenticated Project creator is not registered.",
+      );
+    }
+  }
+
+  #draftReceiptFrom(
+    payload: unknown,
+  ): PetraProjectDefinitionDraftCommandReceipt {
+    this.#contracts.assertValid(
+      "project-definition-draft-command-receipt",
+      "1.0.0",
+      payload,
+    );
+    return clone(payload as PetraProjectDefinitionDraftCommandReceipt);
+  }
+
   async #requirePrincipal(client: PoolClient): Promise<void> {
     if (this.#principal === undefined) {
       throw new ProjectProfileRuntimeError(
@@ -1191,11 +1818,12 @@ export class PostgresProjectProfileRuntime
 
   async #transaction<Value>(
     operation: (client: PoolClient) => Promise<Value>,
+    isolation: "READ COMMITTED" | "SERIALIZABLE" = "SERIALIZABLE",
   ): Promise<Value> {
     const client = await this.#pool.connect();
     try {
       await client.query("BEGIN");
-      await client.query("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE");
+      await client.query(`SET TRANSACTION ISOLATION LEVEL ${isolation}`);
       const value = await operation(client);
       await client.query("COMMIT");
       return value;

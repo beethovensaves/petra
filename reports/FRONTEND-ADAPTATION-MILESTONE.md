@@ -1,6 +1,6 @@
 # FE-A1: Agentic frontend adaptation
 
-- **Status:** In progress; FE-A1.0 and FE-A1.1 complete; blocks Wave 7
+- **Status:** In progress; FE-A1.0 through FE-A1.2 complete; blocks Wave 7
 - **Decision:** [D024](../decisions/D024-agentic-split-workspace.md)
 - **Operation map:** [ui-operation-presentation-map.json](../scripts/ui-operation-presentation-map.json)
 - **Inventory:** [ui-operation-inventory.json](../scripts/ui-operation-inventory.json)
@@ -12,8 +12,9 @@
 | --- | --- | --- |
 | FE-A1.0 | Complete | D024 and the audited 116-operation presentation map establish the frontend boundary. |
 | FE-A1.1 | Complete | The production Project shell now uses a persistent 30/70 Agent–Workspace frame, starts technical controls behind **Inspect project**, and switches panes on narrow screens without unmounting the active task. |
-| FE-A1.2 | Next | Replace profile-first creation with the use-agnostic outcome and definition-draft flow. |
-| FE-A1.3–FE-A1.7 | Pending | Agent control, workspace renderers, inspection, migration, and product evaluation follow in order. |
+| FE-A1.2 | Complete | Project creation now starts from the user's exact outcome, reviews a server-owned definition draft, keeps examples optional, and creates the Project, definition, objective, focus, and receipt atomically. |
+| FE-A1.3 | Next | Make the Agent panel the control plane for requests, Work, input, approvals, steering, cancellation, and recovery. |
+| FE-A1.4–FE-A1.7 | Pending | Workspace renderers, inspection, migration, and product evaluation follow in order. |
 
 FE-A1.1 is proven by
 [`FRONTEND-STEP2-AGENT-WORKSPACE.json`](FRONTEND-STEP2-AGENT-WORKSPACE.json).
@@ -22,6 +23,16 @@ retained destination, confirms inspection begins closed, and switches between
 Agent and Workspace at 420 px while preserving the current route and mounted
 task. The Agent conversation, composer, and Work controls remain FE-A1.3 scope;
 their absence does not make the structural shell a simulated interaction.
+
+FE-A1.2 is proven by
+[`FRONTEND-STEP3-AGNOSTIC-PROJECT-CREATION.json`](FRONTEND-STEP3-AGNOSTIC-PROJECT-CREATION.json)
+and the disposable PostgreSQL integration suite. The live Chromium run creates
+scientific, controlled-writing, and unrelated general Projects from the same
+outcome-first surface. It reviews selected capabilities, assumptions, and
+unsupported behavior before creation, and carries an optional initial file into
+the existing source and rights review. The isolated database run applies all 59
+migrations and proves exact draft replay, explicit optional examples, initial
+material plans, and rejection of changed drafts or unaccepted assumptions.
 
 ## Result required from this milestone
 
@@ -248,11 +259,16 @@ existing command/query owners.
 
 ### FE-A1.2 — Add agnostic Project creation
 
+**Complete — 2026-09-23.**
+
 - Add the definition-draft query and validated create command required by D018.
 - Replace mandatory profile selection with the outcome-first entry.
 - Keep examples optional and verify one scientific, one writing, and one
   unrelated Project through the same shell.
 - Render limitations when a requested capability is unavailable.
+- Carry optional initial files into the existing source and copy-rights review
+  after atomic Project creation; file bytes remain browser-local until that
+  review is submitted.
 
 ### FE-A1.3 — Consolidate control in the agent
 

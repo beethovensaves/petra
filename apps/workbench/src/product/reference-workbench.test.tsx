@@ -99,7 +99,7 @@ describe("neutral Petra reference workbench", () => {
     throw new Error("The inlet-cycle conformance Project is missing.");
   }
 
-  it("renders three compatible taxonomies through one Projects surface", () => {
+  it("renders unrelated Projects through one definition-neutral collection", () => {
     const markup = render(
       <ProjectsSurface
         projects={REFERENCE_PROJECTS}
@@ -117,13 +117,11 @@ describe("neutral Petra reference workbench", () => {
     expect(markup).toContain("Decision analysis");
     expect(markup.match(/Open Brief/g)).toHaveLength(3);
     expect(markup).toContain(
-      "Profiles supply compatible domain terms and tasks",
-    );
-    expect(markup).toContain(
-      "Petra searches the current Project name, Objective statement, and registered profile label.",
+      "Petra searches the current Project name, Objective statement, and definition label.",
     );
     expect(markup).toContain("Any status");
-    expect(markup).toContain("Any registered profile");
+    expect(markup).toContain("Any definition");
+    expect(markup).not.toContain("How profiles fit");
     expect(markup).not.toContain("projects/demo");
   });
 

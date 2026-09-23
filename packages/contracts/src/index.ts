@@ -102,6 +102,20 @@ export type {
   Term as ProjectDefinitionTerm,
 } from "./generated/project-definition.js";
 export type {
+  InitialMaterial as ProjectDefinitionDraftInitialMaterial,
+  PetraProjectDefinitionDraftRequest,
+} from "./generated/project-definition-draft-request.js";
+export type {
+  Assumption as ProjectDefinitionDraftAssumption,
+  DraftContent as ProjectDefinitionDraftContent,
+  InitialMaterialPlan as ProjectDefinitionDraftInitialMaterialPlan,
+  PetraProjectDefinitionDraftView,
+  SelectedCapability as ProjectDefinitionDraftSelectedCapability,
+  UnsupportedCapability as ProjectDefinitionDraftUnsupportedCapability,
+} from "./generated/project-definition-draft-view.js";
+export type { PetraProjectDefinitionDraftCommandRequest } from "./generated/project-definition-draft-command-request.js";
+export type { PetraProjectDefinitionDraftCommandReceipt } from "./generated/project-definition-draft-command-receipt.js";
+export type {
   ObjectiveContent as ProjectObjectiveContent,
   ObjectiveRef as ProjectObjectiveRef,
   PetraProjectObjective,

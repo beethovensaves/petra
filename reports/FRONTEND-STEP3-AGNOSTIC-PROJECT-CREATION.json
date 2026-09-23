@@ -1,0 +1,36 @@
+{
+  "schema_name": "petra.frontend-step3-agnostic-project-creation",
+  "schema_version": "1.0.0",
+  "status": "passed",
+  "executed_at": "2026-09-23T04:15:43.267Z",
+  "application_url": "http://127.0.0.1:4311/",
+  "projects": [
+    {
+      "projectId": "project_6C6D2WGYNQPWDD96A30MGPYE9J",
+      "definition": "Scientific evidence inquiry",
+      "name": "Step 3 scientific inquiry",
+      "outcome": "Compare scientific claims against scholarly evidence and retained sources."
+    },
+    {
+      "projectId": "project_62629ZX1ZR3R7GKVJ3XWZE274Q",
+      "definition": "Controlled writing",
+      "name": "Step 3 controlled procedure",
+      "outcome": "Prepare a controlled writing procedure governed by auditable requirements."
+    },
+    {
+      "projectId": "project_0Z3JSA09BNKEQPXRPE1DZA71BW",
+      "definition": "Outcome-led Project",
+      "name": "Step 3 neighborhood gathering",
+      "outcome": "Plan a neighborhood block party with a budget, volunteer shifts, and a rain date.",
+      "initialFileRetained": "neighborhood-plan.txt"
+    }
+  ],
+  "verified": {
+    "same_shell": true,
+    "mandatory_profile_selection_absent": true,
+    "reviewed_definition_before_creation": true,
+    "assumptions_and_limits_visible": true,
+    "receipt_bound_destination": true,
+    "initial_file_retained_for_source_rights_review": true
+  }
+}

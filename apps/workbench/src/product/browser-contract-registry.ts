@@ -83,6 +83,10 @@ import projectModelReadinessViewSchema from "../../../../packages/contracts/sche
 import projectProfileCommandRequestSchema from "../../../../packages/contracts/schemas/project-profile-command-request/1.0.0/schema.json";
 import projectProfileCommandReceiptSchema from "../../../../packages/contracts/schemas/project-profile-command-receipt/1.0.0/schema.json";
 import projectProfileCommandRecoveryViewSchema from "../../../../packages/contracts/schemas/project-profile-command-recovery-view/1.0.0/schema.json";
+import projectDefinitionDraftRequestSchema from "../../../../packages/contracts/schemas/project-definition-draft-request/1.0.0/schema.json";
+import projectDefinitionDraftViewSchema from "../../../../packages/contracts/schemas/project-definition-draft-view/1.0.0/schema.json";
+import projectDefinitionDraftCommandRequestSchema from "../../../../packages/contracts/schemas/project-definition-draft-command-request/1.0.0/schema.json";
+import projectDefinitionDraftCommandReceiptSchema from "../../../../packages/contracts/schemas/project-definition-draft-command-receipt/1.0.0/schema.json";
 import projectImportCommandRequestSchema from "../../../../packages/contracts/schemas/project-import-command-request/1.0.0/schema.json";
 import projectImportCommandReceiptSchema from "../../../../packages/contracts/schemas/project-import-command-receipt/1.0.0/schema.json";
 import projectImportCommandRecoveryViewSchema from "../../../../packages/contracts/schemas/project-import-command-recovery-view/1.0.0/schema.json";
@@ -173,6 +177,10 @@ type BrowserContractName =
   | "project-profile-command-request@1.0.0"
   | "project-profile-command-receipt@1.0.0"
   | "project-profile-command-recovery-view@1.0.0"
+  | "project-definition-draft-request@1.0.0"
+  | "project-definition-draft-view@1.0.0"
+  | "project-definition-draft-command-request@1.0.0"
+  | "project-definition-draft-command-receipt@1.0.0"
   | "project-import-command-request@1.0.0"
   | "project-import-command-receipt@1.0.0"
   | "project-import-command-recovery-view@1.0.0"
@@ -289,6 +297,10 @@ const schemas = [
   projectProfileCommandRequestSchema,
   projectProfileCommandReceiptSchema,
   projectProfileCommandRecoveryViewSchema,
+  projectDefinitionDraftRequestSchema,
+  projectDefinitionDraftViewSchema,
+  projectDefinitionDraftCommandRequestSchema,
+  projectDefinitionDraftCommandReceiptSchema,
   projectImportCommandRequestSchema,
   projectImportCommandReceiptSchema,
   projectImportCommandRecoveryViewSchema,
@@ -410,6 +422,13 @@ const contractIds: Record<BrowserContractName, string> = {
     projectProfileCommandReceiptSchema.$id,
   "project-profile-command-recovery-view@1.0.0":
     projectProfileCommandRecoveryViewSchema.$id,
+  "project-definition-draft-request@1.0.0":
+    projectDefinitionDraftRequestSchema.$id,
+  "project-definition-draft-view@1.0.0": projectDefinitionDraftViewSchema.$id,
+  "project-definition-draft-command-request@1.0.0":
+    projectDefinitionDraftCommandRequestSchema.$id,
+  "project-definition-draft-command-receipt@1.0.0":
+    projectDefinitionDraftCommandReceiptSchema.$id,
   "project-import-command-request@1.0.0": projectImportCommandRequestSchema.$id,
   "project-import-command-receipt@1.0.0": projectImportCommandReceiptSchema.$id,
   "project-import-command-recovery-view@1.0.0":
@@ -619,6 +638,30 @@ export class PetraContractRegistry {
       version: "1.0.0",
       canonical_sha256:
         "sha256:77534795a71219fd9974160e547455966389f642f85c0e26fa3b44e2295c195e",
+    },
+    {
+      name: "project-definition-draft-request",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:43f38da042dd99c22831aa9fee53c45149601c4c647987493f4cda7047bfe3bc",
+    },
+    {
+      name: "project-definition-draft-view",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:326a66d4150ea406e865737f5299ff560ebe14b07cd16afe22e2cfc4c28f5217",
+    },
+    {
+      name: "project-definition-draft-command-request",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:6e9b426d1fd12898bf1bbc9e59dc804c3edca6a23a5a7047e3e6b03d85b24dda",
+    },
+    {
+      name: "project-definition-draft-command-receipt",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:49f30e9a5706da542a35e354b57b092e3281a96489620ffd3d5ed3086838809b",
     },
     {
       name: "project-import-command-request",

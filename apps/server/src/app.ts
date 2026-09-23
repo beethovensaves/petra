@@ -66,6 +66,8 @@ import {
 } from "@petra/adapters/server";
 import type {
   PetraClaim,
+  PetraProjectDefinitionDraftCommandRequest,
+  PetraProjectDefinitionDraftRequest,
   PetraProjectImportCommandRequest,
   PetraProjectInquirySaveRequest,
   PetraProjectObjectiveCommandRequest,
@@ -106,6 +108,7 @@ import {
   ProjectSourceProcessingError,
   ProjectSourceReuseError,
   ProjectProfileRuntimeError,
+  ProjectDefinitionDraftError,
   ProjectModelReadinessError,
   ProjectWorkOperationError,
   ProjectSourceLifecycleAuthorityError,
@@ -139,6 +142,8 @@ import {
   type ProjectProfileCommandAuthority,
   type ProjectProfileCommandRecoveryReader,
   type ProjectProfileRuntimeReader,
+  type ProjectDefinitionDraftCommandAuthority,
+  type ProjectDefinitionDraftReader,
   type ProjectModelReadinessReader,
   type ProjectInquiryViewReader,
   type ProjectObjectLocationViewReader,
@@ -204,6 +209,8 @@ export interface PetraAppOptions {
   projectProfileReads?: ProjectProfileRuntimeReader;
   projectProfileCommands?: ProjectProfileCommandAuthority;
   projectProfileRecovery?: ProjectProfileCommandRecoveryReader;
+  projectDefinitionDrafts?: ProjectDefinitionDraftReader;
+  projectDefinitionDraftCommands?: ProjectDefinitionDraftCommandAuthority;
   projectImportCommands?: ProjectImportCommandAuthority;
   projectImportRecovery?: ProjectImportCommandRecoveryReader;
   projectImportAncestry?: ProjectImportAncestryReader;
@@ -842,6 +849,45 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
         : "The registered Project profile runtime is unavailable.",
     );
   };
+  const projectDefinitionDraftError = (
+    context: Context<{ Variables: Variables }>,
+    error: unknown,
+  ): Response => {
+    if (error instanceof ProjectDefinitionDraftError) {
+      const status =
+        error.code === "PROJECT_DEFINITION_DRAFT_COMMAND_DENIED"
+          ? 403
+          : error.code === "PROJECT_DEFINITION_DRAFT_RUNTIME_CORRUPT"
+            ? 503
+            : error.code === "PROJECT_DEFINITION_DRAFT_STALE" ||
+                error.code === "PROJECT_DEFINITION_DRAFT_COMMAND_CONFLICT"
+              ? 409
+              : 422;
+      return jsonError(context, status, error.code, error.message);
+    }
+    if (
+      error instanceof ContractRegistryError ||
+      error instanceof InteractionInputError ||
+      error instanceof SyntaxError
+    ) {
+      return jsonError(
+        context,
+        422,
+        "PROJECT_DEFINITION_DRAFT_INVALID",
+        error instanceof Error
+          ? error.message
+          : "The Project definition draft request is invalid.",
+      );
+    }
+    return jsonError(
+      context,
+      503,
+      "PROJECT_DEFINITION_DRAFT_RUNTIME_FAILED",
+      error instanceof Error
+        ? error.message
+        : "The Project definition draft runtime is unavailable.",
+    );
+  };
   const projectImportError = (
     context: Context<{ Variables: Variables }>,
     error: unknown,
@@ -1426,6 +1472,44 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
     }),
   );
 
+  app.post("/api/queries/project-definition-drafts", async (context) => {
+    if (options.projectDefinitionDrafts === undefined) {
+      return jsonError(
+        context,
+        503,
+        "PROJECT_DEFINITION_DRAFT_RUNTIME_UNAVAILABLE",
+        "The outcome-first Project definition draft boundary is not configured.",
+      );
+    }
+    try {
+      const request = (await readBoundedJson(
+        context,
+        maxBodyBytes,
+      )) as PetraProjectDefinitionDraftRequest;
+      contracts.assertValid(
+        "project-definition-draft-request",
+        "1.0.0",
+        request,
+      );
+      const draft =
+        await options.projectDefinitionDrafts.draftProjectDefinition(request);
+      contracts.assertValid("project-definition-draft-view", "1.0.0", draft);
+      if (
+        draft.content.request.request_id !== request.request_id ||
+        draft.content.request.outcome !== request.outcome
+      ) {
+        throw new ProjectDefinitionDraftError(
+          "PROJECT_DEFINITION_DRAFT_RUNTIME_CORRUPT",
+          "The definition draft did not preserve the exact request identity and outcome.",
+        );
+      }
+      context.header("Cache-Control", "no-store");
+      return context.json(draft);
+    } catch (error) {
+      return projectDefinitionDraftError(context, error);
+    }
+  });
+
   app.get("/api/queries/project-profiles", async (context) => {
     if (options.projectProfileReads === undefined) {
       return jsonError(
@@ -1572,6 +1656,53 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
       return context.json(receipt, 201);
     } catch (error) {
       return projectProfileError(context, error);
+    }
+  });
+
+  app.post("/api/commands/projects/from-definition-draft", async (context) => {
+    if (options.projectDefinitionDraftCommands === undefined) {
+      return jsonError(
+        context,
+        503,
+        "PROJECT_DEFINITION_DRAFT_RUNTIME_UNAVAILABLE",
+        "The outcome-first Project creation boundary is not configured.",
+      );
+    }
+    try {
+      const request = (await readBoundedJson(
+        context,
+        maxBodyBytes,
+      )) as PetraProjectDefinitionDraftCommandRequest;
+      contracts.assertValid(
+        "project-definition-draft-command-request",
+        "1.0.0",
+        request,
+      );
+      const receipt =
+        await options.projectDefinitionDraftCommands.executeProjectDefinitionDraftCommand(
+          request,
+        );
+      contracts.assertValid(
+        "project-definition-draft-command-receipt",
+        "1.0.0",
+        receipt,
+      );
+      if (
+        receipt.command_id !== request.command_id ||
+        receipt.idempotency_key !== request.idempotency_key ||
+        receipt.draft_ref.draft_id !== request.draft.draft_id ||
+        receipt.draft_ref.content_hash !== request.draft.content_hash ||
+        receipt.destination.project_id !== receipt.project_ref.project_id
+      ) {
+        throw new ProjectDefinitionDraftError(
+          "PROJECT_DEFINITION_DRAFT_RUNTIME_CORRUPT",
+          "The Project creation receipt does not identify the exact reviewed draft and resulting Project.",
+        );
+      }
+      context.header("Cache-Control", "no-store");
+      return context.json(receipt, 201);
+    } catch (error) {
+      return projectDefinitionDraftError(context, error);
     }
   });
 

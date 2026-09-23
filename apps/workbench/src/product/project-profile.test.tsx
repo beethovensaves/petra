@@ -89,7 +89,7 @@ const taxonomyView = (
 });
 
 describe("usable Project profile UI", () => {
-  it("distinguishes both registered profile families using exact supplied terms and availability", () => {
+  it("starts from an agnostic outcome and keeps registered examples optional", () => {
     const markup = render(
       <ProjectCreationPanel
         profiles={[scientific, writing]}
@@ -97,18 +97,13 @@ describe("usable Project profile UI", () => {
       />,
     );
 
-    expect(markup).toContain('data-family="petra.scientific-evidence"');
-    expect(markup).toContain('data-family="petra.controlled-writing"');
+    expect(markup).toContain("What are you trying to accomplish?");
+    expect(markup).toContain("Start from an example (optional)");
+    expect(markup).toContain("Let Petra choose only when unambiguous");
     expect(markup).toContain("Scientific evidence inquiry");
-    expect(markup).toContain("Research questions · Claims · Sources");
-    expect(markup).toContain("Grounded synthesist");
     expect(markup).toContain("Controlled writing");
-    expect(markup).toContain(
-      "Document purposes · Requirements · Authority sources",
-    );
-    expect(markup).toContain("Ask a controlled-writing model");
-    expect(markup).toContain("Start controlled-writing Work");
-    expect(markup).toContain("Choose one registered profile first");
+    expect(markup).toContain("Review Project");
+    expect(markup).not.toContain("Choose one registered profile first");
   });
 
   it("presents every taxonomy category and supplied operation limitation", () => {

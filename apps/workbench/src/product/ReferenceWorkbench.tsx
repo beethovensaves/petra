@@ -296,29 +296,6 @@ export const ProjectsSurface = ({
       ),
     [profiles],
   );
-  const profileSummaries = useMemo(
-    () =>
-      profileOptions.length > 0
-        ? profileOptions.map((registered) => ({
-            id: registered.definition_family,
-            label: registered.content.label,
-            detail: registered.content.purpose,
-          }))
-        : Array.from(
-            new Map(
-              results.projects.map((project) => [
-                project.profile.definitionFamily,
-                {
-                  id: project.profile.definitionFamily,
-                  label: project.profile.label,
-                  detail: `${project.profile.terms.focusPlural}, ${project.profile.terms.findingPlural}, and ${project.profile.terms.referencePlural}`,
-                },
-              ]),
-            ).values(),
-          ),
-    [profileOptions, results.projects],
-  );
-
   useEffect(() => {
     setResults({ projects, query: initialQuery, page: initialPage });
     setSearchText(initialQuery.search ?? "");
@@ -404,8 +381,8 @@ export const ProjectsSurface = ({
           <p className="reference-eyebrow">Projects</p>
           <h1 id="projects-title">Choose where to continue</h1>
           <p className="reference-lede">
-            Each Project keeps its own profile, history, work, and authoritative
-            state. Petra stores this workspace locally.
+            Each Project keeps its own definition, history, work, and
+            authoritative state. Petra stores this workspace locally.
           </p>
         </div>
         <div className="reference-page-heading__actions">
@@ -427,14 +404,6 @@ export const ProjectsSurface = ({
               setImporting(false);
               setCreating(true);
             }}
-            {...(profiles.length === 0
-              ? {
-                  unavailable: {
-                    reason: "No registered Project profile is available.",
-                    prerequisite: "A registered profile from Petra services.",
-                  },
-                }
-              : {})}
           >
             New Project
           </PetraButton>
@@ -495,8 +464,8 @@ export const ProjectsSurface = ({
       >
         <PetraTextField
           label="Find a Project"
-          hint="Petra searches the current Project name, Objective statement, and registered profile label."
-          placeholder="Name, Objective, or registered profile"
+          hint="Petra searches the current Project name, Objective statement, and definition label."
+          placeholder="Name, Objective, or definition"
           type="search"
           maxLength={241}
           value={searchText}
@@ -519,14 +488,14 @@ export const ProjectsSurface = ({
           </select>
         </label>
         <label className="petra-field">
-          <span className="petra-field__label">Profile</span>
+          <span className="petra-field__label">Starting definition</span>
           <select
             className="petra-field__control"
             name="profile"
             value={profile}
             onChange={(event) => setProfile(event.currentTarget.value)}
           >
-            <option value="">Any registered profile</option>
+            <option value="">Any definition</option>
             {profileOptions.map((registered) => (
               <option
                 key={registered.definition_family}
@@ -722,24 +691,6 @@ export const ProjectsSurface = ({
           </PetraButton>
         </nav>
       ) : null}
-
-      <aside
-        className="reference-disclosure"
-        aria-labelledby="profiles-heading"
-      >
-        <h2 id="profiles-heading">How profiles fit</h2>
-        <p>
-          Profiles supply compatible domain terms and tasks. Petra continues to
-          own navigation, authority, provenance, status, recovery, and history.
-        </p>
-        <ul>
-          {profileSummaries.map((registered) => (
-            <li key={registered.id}>
-              <strong>{registered.label}</strong>: {registered.detail}
-            </li>
-          ))}
-        </ul>
-      </aside>
     </main>
   );
 };
@@ -1935,6 +1886,8 @@ export const SourcesSurface = ({
   registration,
   initialQuery = "",
   onSourceReuseComplete,
+  initialFiles = [],
+  onInitialFileRegistered,
 }: {
   project: ProjectRecord;
   registration?: ProjectSourceCollectionData["registration"];
@@ -1943,9 +1896,14 @@ export const SourcesSurface = ({
     completion: SourceReuseCompletion,
     sourceQuery: string,
   ) => void | Promise<void>;
+  initialFiles?: readonly File[];
+  onInitialFileRegistered?: () => void | Promise<void>;
 }) => {
   const [query, setQuery] = useState(initialQuery);
-  const [adding, setAdding] = useState(false);
+  const [pendingInitialFiles, setPendingInitialFiles] = useState<File[]>(() => [
+    ...initialFiles,
+  ]);
+  const [adding, setAdding] = useState(initialFiles.length > 0);
   const [reusing, setReusing] = useState(false);
   const normalizedQuery = query.trim().toLocaleLowerCase();
   const sources = project.sources.filter((source) =>
@@ -1963,6 +1921,7 @@ export const SourcesSurface = ({
             <PetraButton
               variant="primary"
               onClick={() => {
+                setPendingInitialFiles([]);
                 setReusing(false);
                 setAdding(true);
               }}
@@ -1994,9 +1953,27 @@ export const SourcesSurface = ({
 
       {adding && registration !== undefined ? (
         <SourceRegistrationPanel
+          key={
+            pendingInitialFiles[0] === undefined
+              ? "manual-source-registration"
+              : `${pendingInitialFiles[0].name}:${pendingInitialFiles[0].size}:${pendingInitialFiles[0].lastModified}`
+          }
           context={registration}
           sourceTerm={project.profile.terms.reference.toLocaleLowerCase()}
-          onCancel={() => setAdding(false)}
+          {...(pendingInitialFiles[0] === undefined
+            ? {}
+            : {
+                initialFile: pendingInitialFiles[0],
+                onContinue: async () => {
+                  await onInitialFileRegistered?.();
+                  setPendingInitialFiles((current) => current.slice(1));
+                  if (pendingInitialFiles.length <= 1) setAdding(false);
+                },
+              })}
+          onCancel={() => {
+            setPendingInitialFiles([]);
+            setAdding(false);
+          }}
         />
       ) : null}
 
@@ -2101,11 +2078,22 @@ export const SourcesRoute = (): React.JSX.Element => {
   const navigate = useNavigate();
   const revalidator = useRevalidator();
   const [searchParams] = useSearchParams();
+  const location = useLocation();
+  const initialFiles =
+    typeof location.state === "object" &&
+    location.state !== null &&
+    Array.isArray(Reflect.get(location.state, "initialSourceFiles"))
+      ? (Reflect.get(location.state, "initialSourceFiles") as unknown[]).filter(
+          (value): value is File => value instanceof File,
+        )
+      : [];
   return (
     <SourcesSurface
       project={{ ...project, sources: data.sources }}
       registration={data.registration}
       initialQuery={searchParams.get("query") ?? ""}
+      initialFiles={initialFiles}
+      onInitialFileRegistered={() => revalidator.revalidate()}
       onSourceReuseComplete={async (completion, sourceQuery) => {
         await revalidator.revalidate();
         const destinationQuery = new URLSearchParams({

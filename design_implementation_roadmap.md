@@ -295,7 +295,7 @@ A polished prototype is not integrated. Integrated code is not validated. A modu
 | `UX1.6` | `in_progress` | Petra interaction system, contextual answers, SuggestedActions, durable Work, review, reconnect, branching, and governed reversal | Project authors need fast collaboration and recoverable exploration without surrendering domain authority | `M1.5`, `M1.6`, `M1.7` |
 | `UX1.7` | `in_progress` | DraftArtifact, provenance, revision, citations, BibTeX, and LaTeX | Scientific writing should be useful immediately and remain inspectable | `M1.8` |
 | `UX1.8` | `in_progress` | Whole-product information architecture, flow coherence, accessibility, responsiveness, recovery, and visual hardening | The modules count only when they behave as one dependable workbench | `M1.9` |
-| `FE-A1` | `planned` | D024 30/70 Agent–Workspace adaptation, use-agnostic Project entry, progressive inspection, and operation-presentation migration | The proven graph-controlled mechanics need a coherent frontend before Composition and closure can continue | `M1.7`, `M1.8`, `M1.9` |
+| `FE-A1` | `in_progress` | D024 30/70 Agent–Workspace adaptation; FE-A1.0 contract, FE-A1.1 shell, and FE-A1.2 use-agnostic Project entry complete; Agent control, renderers, inspection, migration, and evaluation remain | The proven graph-controlled mechanics need a coherent frontend before Composition and closure can continue | `M1.7`, `M1.8`, `M1.9` |
 
 ## Design principles
 

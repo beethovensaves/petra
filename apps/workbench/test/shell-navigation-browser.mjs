@@ -271,7 +271,9 @@ try {
   );
   assert.equal(await evaluate(route), routeBeforeMobileSwitch);
   assert.equal(
-    await evaluate("document.querySelector('.shell-navigation-trace') !== null"),
+    await evaluate(
+      "document.querySelector('.shell-navigation-trace') !== null",
+    ),
     true,
     "switching panes must preserve the mounted task",
   );

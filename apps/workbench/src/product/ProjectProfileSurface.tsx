@@ -1,5 +1,7 @@
 import { useRef, useState, type FormEvent } from "react";
 import type {
+  PetraProjectDefinitionDraftCommandRequest,
+  PetraProjectDefinitionDraftView,
   PetraProjectProfileCommandRecoveryView,
   PetraProjectProfileCommandRequest,
   PetraProjectProfileTaxonomyView,
@@ -15,9 +17,14 @@ import {
 import type { ProjectRecord } from "./model.js";
 import {
   assessProjectProfileCommandRecovery,
+  createProjectDefinitionDraftCommandRequest,
+  createProjectDefinitionDraftRequest,
+  createProjectFromDefinitionDraft,
   createProjectProfileCommandRequest,
   createProjectProfileCommandIdentity,
+  draftProjectDefinition,
   executeProjectProfileCommandRequest,
+  projectDefinitionInitialMaterialFromFiles,
 } from "./project-data.js";
 import { useProjectRecord } from "./ReferenceWorkbench.js";
 
@@ -480,58 +487,71 @@ export const ProjectCreationPanel = ({
   onCancel: () => void;
 }): React.JSX.Element => {
   const navigate = useNavigate();
-  const [selectedId, setSelectedId] = useState("");
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [objective, setObjective] = useState("");
+  const [outcome, setOutcome] = useState("");
+  const [projectName, setProjectName] = useState("");
+  const [exampleId, setExampleId] = useState("");
+  const [files, setFiles] = useState<File[]>([]);
+  const [draft, setDraft] = useState<PetraProjectDefinitionDraftView>();
+  const [confirmed, setConfirmed] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
-  const [retainedRequest, setRetainedRequest] =
-    useState<PetraProjectProfileCommandRequest>();
-  const retainedCommand = useRef<RetainedCommand | undefined>(undefined);
-  const selected = profiles.find(
-    (profile) => profile.profile_id === selectedId,
-  );
-  const selectedFocusTerm = selected?.content.taxonomy.terminology.find(
-    (term) => term.generic_family === "focus",
+  const [retainedCommand, setRetainedCommand] =
+    useState<PetraProjectDefinitionDraftCommandRequest>();
+  const selectedExample = profiles.find(
+    (profile) => profile.profile_id === exampleId,
   );
 
-  const submit = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
+  const revise = (): void => {
+    setDraft(undefined);
+    setConfirmed(false);
+    setRetainedCommand(undefined);
+    setError(undefined);
+  };
+
+  const review = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
-    if (selected === undefined || selectedFocusTerm === undefined) return;
+    const exactOutcome = outcome.trim();
+    if (exactOutcome.length === 0) return;
     setBusy(true);
     setError(undefined);
-    const profileRef = {
-      profileId: selected.profile_id,
-      profileVersion: selected.profile_version,
-      contentHash: selected.content_hash,
-    };
-    const command = retainedCommandFor(
-      retainedCommand,
-      "create",
-      JSON.stringify({
-        profileRef,
-        name: name.trim(),
-        description: description.trim(),
-        objective: objective.trim(),
-      }),
-    );
-    const request = createProjectProfileCommandRequest("create", {
-      profile: selected,
-      project: {
-        name: name.trim(),
-        ...(description.trim().length === 0
-          ? {}
-          : { description: description.trim() }),
-      },
-      objective: objective.trim(),
-      commandId: command.commandId,
-      idempotencyKey: command.idempotencyKey,
-    });
-    setRetainedRequest(request);
     try {
-      const receipt = await executeProjectProfileCommandRequest(request);
-      await navigate(`/projects/${receipt.destination.project_id}/brief`);
+      const material = await projectDefinitionInitialMaterialFromFiles(files);
+      const request = createProjectDefinitionDraftRequest({
+        outcome: exactOutcome,
+        ...(projectName.trim().length === 0
+          ? {}
+          : { projectName: projectName.trim() }),
+        ...(selectedExample === undefined ? {} : { example: selectedExample }),
+        ...(material.length === 0 ? {} : { initialMaterial: material }),
+      });
+      const reviewed = await draftProjectDefinition(request);
+      setDraft(reviewed);
+      setConfirmed(false);
+      setRetainedCommand(undefined);
+    } catch (caught) {
+      setError(errorMessage(caught));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const create = async (): Promise<void> => {
+    if (draft === undefined || !confirmed) return;
+    setBusy(true);
+    setError(undefined);
+    const command =
+      retainedCommand ?? createProjectDefinitionDraftCommandRequest(draft);
+    setRetainedCommand(command);
+    try {
+      const receipt = await createProjectFromDefinitionDraft(command);
+      await navigate(
+        files.length === 0
+          ? `/projects/${receipt.destination.project_id}/brief`
+          : `/projects/${receipt.destination.project_id}/sources`,
+        files.length === 0
+          ? undefined
+          : { state: { initialSourceFiles: files } },
+      );
     } catch (caught) {
       setError(errorMessage(caught));
     } finally {
@@ -545,91 +565,200 @@ export const ProjectCreationPanel = ({
       aria-labelledby="new-project-title"
     >
       <header>
-        <p className="reference-panel-kicker">Registered starting point</p>
+        <p className="reference-panel-kicker">New Project</p>
         <h2 id="new-project-title">Create a Project</h2>
         <p>
-          Name the task, choose its exact registered profile, and set the first
-          focus. The resulting definition belongs to the new Project.
+          Describe the outcome in your own words. Petra will propose a Project
+          definition, show its assumptions and limits, and wait for your review.
         </p>
       </header>
-      <form onSubmit={(event) => void submit(event)}>
-        <ProfileChoice
-          profiles={profiles}
-          selectedId={selectedId}
-          onSelect={setSelectedId}
-        />
+      <form onSubmit={(event) => void review(event)}>
         <div className="project-profile-command__fields">
+          <PetraTextArea
+            label="What are you trying to accomplish?"
+            hint="Use the words you want Petra to preserve as the first objective."
+            required
+            rows={5}
+            maxLength={4_000}
+            value={outcome}
+            disabled={draft !== undefined}
+            onChange={(event) => {
+              revise();
+              setOutcome(event.currentTarget.value);
+            }}
+          />
           <PetraTextField
             label="Project name"
-            required
-            maxLength={160}
-            value={name}
-            onChange={(event) => setName(event.currentTarget.value)}
+            hint="Optional. Petra can propose one from the outcome."
+            maxLength={240}
+            value={projectName}
+            disabled={draft !== undefined}
+            onChange={(event) => {
+              revise();
+              setProjectName(event.currentTarget.value);
+            }}
           />
-          <PetraTextArea
-            label="Project description"
-            hint="Optional context for recognizing this workspace."
-            rows={3}
-            maxLength={2_000}
-            value={description}
-            onChange={(event) => setDescription(event.currentTarget.value)}
-          />
-          <PetraTextArea
-            label="First focus"
-            hint={
-              selected === undefined
-                ? "Choose a registered profile first."
-                : selectedFocusTerm === undefined
-                  ? "This profile supplies no focus terminology. Petra will not substitute a label."
-                  : `This becomes the first ${selectedFocusTerm.singular.toLocaleLowerCase()}.`
-            }
-            required
-            rows={3}
-            maxLength={4_000}
-            value={objective}
-            onChange={(event) => setObjective(event.currentTarget.value)}
-          />
+          <label className="project-definition-files">
+            <span>
+              Initial files <small>Optional</small>
+            </span>
+            <input
+              type="file"
+              multiple
+              disabled={draft !== undefined}
+              onChange={(event) => {
+                revise();
+                setFiles(Array.from(event.currentTarget.files ?? []));
+              }}
+            />
+            <small>
+              Up to 12 files, 32 MiB each. Petra identifies them now and keeps
+              them in this browser for source and rights review after creation.
+            </small>
+          </label>
+          <details className="project-definition-example">
+            <summary>Start from an example (optional)</summary>
+            <p>
+              Examples can seed registered capabilities. Your outcome remains
+              the objective and the resulting definition belongs to the Project.
+            </p>
+            <label>
+              <span>Capability example</span>
+              <select
+                value={exampleId}
+                disabled={draft !== undefined}
+                onChange={(event) => {
+                  revise();
+                  setExampleId(event.currentTarget.value);
+                }}
+              >
+                <option value="">Let Petra choose only when unambiguous</option>
+                {profiles.map((profile) => (
+                  <option key={profile.profile_id} value={profile.profile_id}>
+                    {profile.content.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </details>
         </div>
-        {error === undefined || retainedRequest === undefined ? null : (
-          <ProjectRecoveryPanel
-            key={retainedRequest.command_id}
-            request={retainedRequest}
-            failureTitle="Project not created."
-            failureMessage={error}
-          />
-        )}
-        <div className="project-profile-command__actions">
-          <PetraButton
-            type="submit"
-            variant="primary"
-            busy={busy}
-            {...(profiles.length === 0
-              ? {
-                  unavailable: {
-                    reason: "No registered Project profiles are available.",
-                  },
-                }
-              : selected === undefined
-                ? {
-                    unavailable: {
-                      reason: "Choose one registered profile first.",
-                    },
-                  }
-                : selectedFocusTerm === undefined
+        {draft === undefined ? (
+          <div className="project-profile-command__actions">
+            <PetraButton
+              type="submit"
+              variant="primary"
+              busy={busy}
+              {...(outcome.trim().length === 0
+                ? { unavailable: { reason: "Describe the outcome first." } }
+                : {})}
+            >
+              Review Project
+            </PetraButton>
+            <PetraButton type="button" variant="quiet" onClick={onCancel}>
+              Cancel
+            </PetraButton>
+          </div>
+        ) : (
+          <section className="project-definition-review" aria-live="polite">
+            <header>
+              <p className="reference-panel-kicker">Proposed Project</p>
+              <h3>{draft.content.project.name}</h3>
+              <p>{draft.content.objective.statement}</p>
+            </header>
+            <dl className="project-definition-review__summary">
+              <div>
+                <dt>Definition</dt>
+                <dd>{draft.content.definition_content.label}</dd>
+              </div>
+              <div>
+                <dt>Starting capabilities</dt>
+                <dd>
+                  {draft.content.selected_capabilities
+                    .map((capability) => capability.label)
+                    .join(", ")}
+                </dd>
+              </div>
+            </dl>
+            <section>
+              <h4>Assumptions</h4>
+              <ul>
+                {draft.content.assumptions.map((assumption) => (
+                  <li key={assumption.code}>
+                    <strong>{assumption.statement}</strong>
+                    <span>{assumption.consequence}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+            <section>
+              <h4>Not available in this definition</h4>
+              <ul>
+                {draft.content.unsupported_capabilities.map((item) => (
+                  <li key={item.capability}>
+                    <strong>{item.capability}</strong>
+                    <span>{item.reason}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+            {draft.content.initial_material_plan.length === 0 ? null : (
+              <section>
+                <h4>Initial files</h4>
+                <p>
+                  {draft.content.initial_material_plan.length} file
+                  {draft.content.initial_material_plan.length === 1 ? "" : "s"}
+                  will open in Sources for source and rights review after
+                  creation.
+                </p>
+              </section>
+            )}
+            <label className="project-profile-command__confirmation">
+              <input
+                type="checkbox"
+                checked={confirmed}
+                onChange={(event) => setConfirmed(event.currentTarget.checked)}
+              />
+              <span>I reviewed these assumptions and capability limits.</span>
+            </label>
+            <div className="project-profile-command__actions">
+              <PetraButton
+                type="button"
+                variant="primary"
+                busy={busy}
+                onClick={() => void create()}
+                {...(!confirmed
                   ? {
                       unavailable: {
-                        reason:
-                          "The selected profile supplies no focus terminology.",
+                        reason: "Review and accept the assumptions first.",
                       },
                     }
                   : {})}
-          >
-            Create Project
-          </PetraButton>
-          <PetraButton type="button" variant="quiet" onClick={onCancel}>
-            Cancel
-          </PetraButton>
-        </div>
+              >
+                Create Project
+              </PetraButton>
+              <PetraButton
+                type="button"
+                variant="secondary"
+                onClick={() => {
+                  revise();
+                }}
+              >
+                Revise
+              </PetraButton>
+              <PetraButton type="button" variant="quiet" onClick={onCancel}>
+                Cancel
+              </PetraButton>
+            </div>
+          </section>
+        )}
+        {error === undefined ? null : (
+          <p className="project-profile-command__error" role="alert">
+            <strong>Project creation did not finish.</strong> {error}
+            {retainedCommand === undefined
+              ? " Review the request and try again."
+              : " The exact command identity is retained; Create Project safely retries it."}
+          </p>
+        )}
       </form>
     </section>
   );

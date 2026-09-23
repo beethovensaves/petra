@@ -2396,6 +2396,50 @@
       "canonical_sha256": "sha256:2aa1e357697f59c2751e189101ef7a963e7247d3a2be04531a2b98516cbb5639",
       "generate_typescript": true,
       "typescript_path": "src/generated/project-source-local-copy-deletion-recovery-view.ts"
+    },
+    {
+      "name": "project-definition-draft-request",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-definition-draft-request/1.0.0/schema.json",
+      "path": "schemas/project-definition-draft-request/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-use-agnostic-project-definition-draft",
+      "canonical_sha256": "sha256:43f38da042dd99c22831aa9fee53c45149601c4c647987493f4cda7047bfe3bc",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-definition-draft-request.ts"
+    },
+    {
+      "name": "project-definition-draft-view",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-definition-draft-view/1.0.0/schema.json",
+      "path": "schemas/project-definition-draft-view/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-use-agnostic-project-definition-draft",
+      "canonical_sha256": "sha256:326a66d4150ea406e865737f5299ff560ebe14b07cd16afe22e2cfc4c28f5217",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-definition-draft-view.ts"
+    },
+    {
+      "name": "project-definition-draft-command-request",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-definition-draft-command-request/1.0.0/schema.json",
+      "path": "schemas/project-definition-draft-command-request/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-use-agnostic-project-definition-draft",
+      "canonical_sha256": "sha256:6e9b426d1fd12898bf1bbc9e59dc804c3edca6a23a5a7047e3e6b03d85b24dda",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-definition-draft-command-request.ts"
+    },
+    {
+      "name": "project-definition-draft-command-receipt",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/project-definition-draft-command-receipt/1.0.0/schema.json",
+      "path": "schemas/project-definition-draft-command-receipt/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-use-agnostic-project-definition-draft",
+      "canonical_sha256": "sha256:49f30e9a5706da542a35e354b57b092e3281a96489620ffd3d5ed3086838809b",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-definition-draft-command-receipt.ts"
     }
   ]
 }

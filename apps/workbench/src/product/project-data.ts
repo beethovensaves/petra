@@ -3,6 +3,7 @@ import {
   FocusedGraphClient,
   FocusedGraphClientError,
   ProjectBriefClientError,
+  ProjectDefinitionDraftClient,
   ProjectModelClient,
   ProjectProfileClient,
   ProjectSourceDiscoveryClient,
@@ -42,6 +43,11 @@ import type {
   PetraProjectModelReadinessView,
   PetraProjectObjectLocationView,
   PetraProjectDefinition,
+  PetraProjectDefinitionDraftCommandReceipt,
+  PetraProjectDefinitionDraftCommandRequest,
+  ProjectDefinitionDraftInitialMaterial,
+  PetraProjectDefinitionDraftRequest,
+  PetraProjectDefinitionDraftView,
   PetraProjectProfileCommandReceipt,
   PetraProjectProfileCommandRecoveryView,
   PetraProjectProfileCommandRequest,
@@ -4113,6 +4119,13 @@ const projectProfileClient = (): ProjectProfileClient =>
     fetch: (input, init) => fetch(input, init),
   });
 
+const projectDefinitionDraftClient = (): ProjectDefinitionDraftClient =>
+  new ProjectDefinitionDraftClient({
+    baseUrl: apiBaseUrl(),
+    token: apiToken(),
+    fetch: (input, init) => fetch(input, init),
+  });
+
 export interface ProjectCollectionData extends ProjectCollectionPage {
   readonly profiles: PetraRegisteredProjectProfile[];
 }
@@ -4124,10 +4137,99 @@ export const loadProjectProfiles = async (): Promise<
 export const loadProjectsHome = async (): Promise<ProjectCollectionData> => {
   const [collection, profiles] = await Promise.all([
     searchProjectCollection({ limit: 12 }),
-    loadProjectProfiles(),
+    loadProjectProfiles().catch(() => []),
   ]);
   return { ...collection, profiles };
 };
+
+export interface ProjectDefinitionDraftInput {
+  readonly outcome: string;
+  readonly projectName?: string;
+  readonly example?: PetraRegisteredProjectProfile;
+  readonly initialMaterial?: readonly ProjectDefinitionDraftInitialMaterial[];
+}
+
+export const projectDefinitionInitialMaterialFromFiles = async (
+  files: readonly File[],
+): Promise<ProjectDefinitionDraftInitialMaterial[]> =>
+  Promise.all(
+    files.map(async (file) => {
+      if (file.size === 0 || file.size > 32 * 1024 * 1024) {
+        throw new ProjectDataError(
+          `${file.name || "An initial file"} must contain bytes and be no larger than 32 MiB.`,
+          400,
+        );
+      }
+      const digest = new Uint8Array(
+        await globalThis.crypto.subtle.digest(
+          "SHA-256",
+          await file.arrayBuffer(),
+        ),
+      );
+      return {
+        material_id: `initial_material_${randomUlidPayload()}`,
+        filename: file.name,
+        media_type: file.type || "application/octet-stream",
+        byte_size: file.size,
+        content_hash: `sha256:${Array.from(digest, (byte) => byte.toString(16).padStart(2, "0")).join("")}`,
+      };
+    }),
+  );
+
+export const createProjectDefinitionDraftRequest = (
+  input: ProjectDefinitionDraftInput,
+): PetraProjectDefinitionDraftRequest => ({
+  schema_name: "petra.project-definition-draft-request",
+  schema_version: "1.0.0",
+  request_id: `definition_draft_request_${randomUlidPayload()}`,
+  outcome: input.outcome,
+  ...(input.projectName === undefined || input.projectName.length === 0
+    ? {}
+    : { project_name: input.projectName }),
+  ...(input.example === undefined
+    ? {}
+    : {
+        example_ref: {
+          profile_id: input.example.profile_id,
+          profile_version: input.example.profile_version,
+          content_hash: input.example.content_hash,
+        },
+      }),
+  ...(input.initialMaterial === undefined
+    ? {}
+    : {
+        initial_material: structuredClone(input.initialMaterial) as Exclude<
+          PetraProjectDefinitionDraftRequest["initial_material"],
+          undefined
+        >,
+      }),
+});
+
+export const draftProjectDefinition = async (
+  request: PetraProjectDefinitionDraftRequest,
+): Promise<PetraProjectDefinitionDraftView> =>
+  projectDefinitionDraftClient().draft(request);
+
+export const createProjectDefinitionDraftCommandRequest = (
+  draft: PetraProjectDefinitionDraftView,
+): PetraProjectDefinitionDraftCommandRequest => {
+  const identity = randomUlidPayload();
+  return {
+    schema_name: "petra.project-definition-draft-command-request",
+    schema_version: "1.0.0",
+    command_id: `command_${identity}`,
+    idempotency_key: `project-definition-draft:create:${identity}`,
+    draft: structuredClone(draft),
+    accepted_assumption_codes: draft.content.assumptions.map(
+      (assumption) => assumption.code,
+    ) as PetraProjectDefinitionDraftCommandRequest["accepted_assumption_codes"],
+  };
+};
+
+export const createProjectFromDefinitionDraft = async (
+  request: PetraProjectDefinitionDraftCommandRequest,
+): Promise<PetraProjectDefinitionDraftCommandReceipt> =>
+  projectDefinitionDraftClient().create(request);
 
 export const loadProjectTaxonomy = async ({
   params,

@@ -127,6 +127,92 @@
   margin-top: var(--petra-space-4);
 }
 
+.project-definition-files,
+.project-definition-example label {
+  display: grid;
+  gap: var(--petra-space-2);
+}
+
+.project-definition-files > span,
+.project-definition-example label > span {
+  font-weight: var(--petra-weight-semibold);
+}
+
+.project-definition-files small,
+.project-definition-example > p {
+  color: var(--petra-text-secondary);
+}
+
+.project-definition-files input,
+.project-definition-example select {
+  min-height: var(--petra-target-min);
+}
+
+.project-definition-example {
+  padding: var(--petra-space-3) 0;
+  border-top: var(--petra-rule-thin) solid var(--petra-border-subtle);
+}
+
+.project-definition-example summary {
+  min-height: var(--petra-target-min);
+  cursor: pointer;
+  color: var(--petra-text-link);
+  font-weight: var(--petra-weight-medium);
+}
+
+.project-definition-review {
+  display: grid;
+  gap: var(--petra-space-4);
+  margin-top: var(--petra-space-5);
+  padding: var(--petra-space-4);
+  border: var(--petra-rule-thin) solid var(--petra-border-default);
+  border-inline-start: 0.25rem solid var(--petra-tone-positive);
+  border-radius: var(--petra-radius-medium);
+  background: var(--petra-surface-canvas);
+}
+
+.project-definition-review > header,
+.project-definition-review > section {
+  max-width: 54rem;
+}
+
+.project-definition-review h4 {
+  margin-bottom: var(--petra-space-2);
+}
+
+.project-definition-review ul {
+  display: grid;
+  gap: var(--petra-space-2);
+  margin-bottom: 0;
+}
+
+.project-definition-review li span {
+  display: block;
+  color: var(--petra-text-secondary);
+}
+
+.project-definition-review__summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--petra-space-3);
+  margin: 0;
+}
+
+.project-definition-review__summary > div {
+  padding: var(--petra-space-3);
+  border: var(--petra-rule-thin) solid var(--petra-border-subtle);
+  border-radius: var(--petra-radius-small);
+}
+
+.project-definition-review__summary dt {
+  font-weight: var(--petra-weight-semibold);
+}
+
+.project-definition-review__summary dd {
+  margin: var(--petra-space-1) 0 0;
+  color: var(--petra-text-secondary);
+}
+
 .project-import-source-choice {
   margin: 0;
   padding: 0;
@@ -539,6 +625,10 @@
   .project-recovery__preservation,
   .project-import-source-choice > div,
   .project-import-material {
+    grid-template-columns: 1fr;
+  }
+
+  .project-definition-review__summary {
     grid-template-columns: 1fr;
   }
 }

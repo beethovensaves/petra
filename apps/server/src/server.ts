@@ -255,6 +255,25 @@ export const startPetraServer = async (
               projectProfileRecovery:
                 options.projectShellPersistence.profileRecovery,
             }),
+      ...(options.projectDefinitionDrafts !== undefined
+        ? { projectDefinitionDrafts: options.projectDefinitionDrafts }
+        : options.projectShellPersistence === undefined
+          ? {}
+          : {
+              projectDefinitionDrafts:
+                options.projectShellPersistence.definitionDrafts,
+            }),
+      ...(options.projectDefinitionDraftCommands !== undefined
+        ? {
+            projectDefinitionDraftCommands:
+              options.projectDefinitionDraftCommands,
+          }
+        : options.projectShellPersistence === undefined
+          ? {}
+          : {
+              projectDefinitionDraftCommands:
+                options.projectShellPersistence.definitionDraftCommands,
+            }),
       ...(options.projectImportCommands !== undefined
         ? { projectImportCommands: options.projectImportCommands }
         : options.projectShellPersistence === undefined

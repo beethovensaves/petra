@@ -64,6 +64,8 @@ import type {
   ProjectProfileCommandAuthority,
   ProjectProfileCommandRecoveryReader,
   ProjectProfileRuntimeReader,
+  ProjectDefinitionDraftCommandAuthority,
+  ProjectDefinitionDraftReader,
   ProjectHistoryViewReader,
   ProjectHistoryCompensationExecutionBoundary,
   ProjectImportAncestryReader,
@@ -157,6 +159,8 @@ export interface ProjectShellPersistence {
   readonly profileReads: ProjectProfileRuntimeReader;
   readonly profileCommands: ProjectProfileCommandAuthority;
   readonly profileRecovery: ProjectProfileCommandRecoveryReader;
+  readonly definitionDrafts: ProjectDefinitionDraftReader;
+  readonly definitionDraftCommands: ProjectDefinitionDraftCommandAuthority;
   readonly importCommands: ProjectImportCommandAuthority;
   readonly importRecovery: ProjectImportCommandRecoveryReader;
   readonly importAncestry: ProjectImportAncestryReader;
@@ -687,6 +691,8 @@ export const createProjectShellPersistenceFromEnvironment = async (
         profileReads: profileRuntime,
         profileCommands: profileRuntime,
         profileRecovery: profileRuntime,
+        definitionDrafts: profileRuntime,
+        definitionDraftCommands: profileRuntime,
         importCommands: importRuntime,
         importRecovery: importRuntime,
         importAncestry: importRuntime,
@@ -794,6 +800,8 @@ export const createProjectShellPersistenceFromEnvironment = async (
     profileReads: profileRuntime,
     profileCommands: profileRuntime,
     profileRecovery: profileRuntime,
+    definitionDrafts: profileRuntime,
+    definitionDraftCommands: profileRuntime,
     importCommands: importRuntime,
     importRecovery: importRuntime,
     importAncestry: importRuntime,
