@@ -283,9 +283,9 @@ export class PostgresProjectShellViewReader implements ProjectShellViewReader {
          JOIN petra.project_revisions AS project_revision
            ON project_revision.project_id = project.project_id
           AND project_revision.revision = project.current_revision
-         LEFT JOIN petra.project_definitions AS definition
+         JOIN petra.project_definitions AS definition
            ON definition.project_id = project.project_id
-         LEFT JOIN petra.project_definition_revisions AS definition_revision
+         JOIN petra.project_definition_revisions AS definition_revision
            ON definition_revision.project_definition_id =
                 definition.project_definition_id
           AND definition_revision.revision = definition.current_revision
@@ -331,9 +331,9 @@ export class PostgresProjectShellViewReader implements ProjectShellViewReader {
          JOIN petra.project_revisions AS project_revision
            ON project_revision.project_id = project.project_id
           AND project_revision.revision = project.current_revision
-         LEFT JOIN petra.project_definitions AS definition
+         JOIN petra.project_definitions AS definition
            ON definition.project_id = project.project_id
-         LEFT JOIN petra.project_definition_revisions AS definition_revision
+         JOIN petra.project_definition_revisions AS definition_revision
            ON definition_revision.project_definition_id =
                 definition.project_definition_id
           AND definition_revision.revision = definition.current_revision

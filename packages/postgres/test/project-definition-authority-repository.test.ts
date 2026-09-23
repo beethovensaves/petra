@@ -534,6 +534,10 @@ describePostgres("PostgreSQL ProjectDefinition authority repository", () => {
 
   it("executes bounded server-owned Project search across paired project-authored definitions", async () => {
     const { actor, project: scientificProject } = await registerScope();
+    const shellReader = new PostgresProjectShellViewReader(pool);
+    const beforeDefinition = await shellReader.searchProjectShellViews();
+    expect(beforeDefinition.content.projects).toEqual([]);
+    expect(beforeDefinition.content.page.total_count).toBe(0);
     const scientificDefinition = readFixture<PetraProjectDefinition>(
       "project-definition-scientific",
     );
@@ -575,7 +579,6 @@ describePostgres("PostgreSQL ProjectDefinition authority repository", () => {
       changed_at: "2026-09-08T15:11:00.000Z",
     });
 
-    const shellReader = new PostgresProjectShellViewReader(pool);
     const shells = await shellReader.listProjectShellViews();
     expect(shells).toHaveLength(2);
     const scientificShell = shells.find(
