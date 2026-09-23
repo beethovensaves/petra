@@ -17,6 +17,7 @@ const output = resolve(
   process.env.PETRA_SHELL_NAVIGATION_BROWSER_OUTPUT ??
     "reports/WAVE6-SHELL-NAVIGATION-BROWSER.json",
 );
+const screenshotOutput = process.env.PETRA_SHELL_NAVIGATION_SCREENSHOT_OUTPUT;
 const vite = await createViteServer({
   root: resolve(root, "apps/workbench"),
   configFile: false,
@@ -125,12 +126,56 @@ try {
   const expected = await evaluate(
     "structuredClone(window.shellNavigationExpected)",
   );
+  const desktopFrame = await evaluate(`(() => {
+    const layout = document.querySelector('.reference-project-layout');
+    const agent = document.querySelector('.reference-agent-panel');
+    const workspace = document.querySelector('.reference-workspace-panel');
+    const layoutRect = layout?.getBoundingClientRect();
+    const agentRect = agent?.getBoundingClientRect();
+    const workspaceRect = workspace?.getBoundingClientRect();
+    return {
+      agentLabel: agent?.getAttribute('aria-labelledby'),
+      agentTitle: document.querySelector('#project-agent-title')?.textContent,
+      workspaceLabel: workspace?.getAttribute('aria-labelledby'),
+      workspaceTitle: document.querySelector('#project-workspace-title')?.textContent,
+      agentRatio:
+        layoutRect && agentRect ? agentRect.width / layoutRect.width : 0,
+      workspaceRatio:
+        layoutRect && workspaceRect ? workspaceRect.width / layoutRect.width : 0,
+      primaryAction: document.querySelector('.reference-agent-action span')?.textContent?.trim(),
+      inspectionOpen: document.querySelector('.reference-project-inspection')?.hasAttribute('open'),
+      guideVisible: document.body.innerText.includes('Test guide'),
+    };
+  })()`);
+  assert.equal(desktopFrame.agentLabel, "project-agent-title");
+  assert.equal(desktopFrame.agentTitle, "Petra");
+  assert.equal(desktopFrame.workspaceLabel, "project-workspace-title");
+  assert.equal(desktopFrame.workspaceTitle, "Overview");
+  assert.ok(desktopFrame.agentRatio >= 0.29 && desktopFrame.agentRatio <= 0.31);
+  assert.ok(
+    desktopFrame.workspaceRatio >= 0.69 && desktopFrame.workspaceRatio <= 0.71,
+  );
+  assert.equal(desktopFrame.primaryAction, "Work with Petra");
+  assert.equal(desktopFrame.inspectionOpen, false);
+  assert.equal(desktopFrame.guideVisible, false);
+  if (screenshotOutput !== undefined) {
+    const screenshot = await send("Page.captureScreenshot", {
+      format: "png",
+      captureBeyondViewport: false,
+    });
+    writeFileSync(resolve(root, screenshotOutput), screenshot.data, "base64");
+  }
+  await evaluate(
+    "document.querySelector('.reference-project-inspection').open = true",
+  );
+
   const navAccessibility = await send("Accessibility.getFullAXTree");
   assert.ok(
     navAccessibility.nodes.some(
-      (node) => node.name?.value === `${expected.projectTitle} places`,
+      (node) =>
+        node.name?.value === `${expected.projectTitle} workspace destinations`,
     ),
-    "the named Project-place navigation must be present in the accessibility tree",
+    "the named Workspace navigation must be present in the accessibility tree",
   );
   for (const target of expected.navigation) {
     assert.ok(
@@ -164,9 +209,12 @@ try {
     const context = await evaluate(`(() => {
       const trace = document.querySelector('.shell-navigation-trace');
       const objective = trace?.querySelector('[data-objective-id]');
-      const profile = document.querySelector('.reference-context-bar__identity a[href$="/profile"]');
-      const snapshot = document.querySelector('.reference-context-bar__state > span:first-child');
-      const projection = document.querySelector('.reference-context-bar__state .reference-status');
+      const profile = document.querySelector('.reference-project-inspection__definition strong');
+      const profileLink = [...document.querySelectorAll('.reference-project-inspection a')].find(
+        (candidate) => candidate.textContent?.trim() === 'Project definition',
+      );
+      const snapshot = document.querySelector('.reference-project-inspection__state > span:first-child');
+      const projection = document.querySelector('.reference-project-inspection__state .reference-status');
       return {
         route: window.shellNavigationRouter.state.location.pathname,
         currentPlace: document.querySelector('.reference-project-main')?.dataset.place,
@@ -175,7 +223,7 @@ try {
         projectTitle: document.querySelector('.reference-context-bar__identity strong')?.textContent,
         definitionId: trace?.dataset.definitionId,
         profileLabel: profile?.textContent,
-        profileHref: profile?.getAttribute('href'),
+        profileHref: profileLink?.getAttribute('href'),
         objectiveId: objective?.dataset.objectiveId,
         objective: objective?.textContent?.trim(),
         snapshot: snapshot?.querySelector('strong')?.textContent,
@@ -201,6 +249,53 @@ try {
     contexts.push(context);
   }
 
+  const routeBeforeMobileSwitch = await evaluate(route);
+  await send("Emulation.setDeviceMetricsOverride", {
+    width: 420,
+    height: 820,
+    deviceScaleFactor: 1,
+    mobile: false,
+  });
+  await until(
+    `getComputedStyle(document.querySelector('.reference-agent-panel')).display === 'none'`,
+    "Workspace-first narrow layout",
+  );
+  await evaluate(`(() => {
+    const control = [...document.querySelectorAll('.reference-mobile-pane-switcher button')]
+      .find((candidate) => candidate.textContent?.trim() === 'Agent');
+    control?.click();
+  })()`);
+  await until(
+    `getComputedStyle(document.querySelector('.reference-agent-panel')).display !== 'none' && getComputedStyle(document.querySelector('.reference-workspace-panel')).display === 'none'`,
+    "narrow Agent pane",
+  );
+  assert.equal(await evaluate(route), routeBeforeMobileSwitch);
+  assert.equal(
+    await evaluate("document.querySelector('.shell-navigation-trace') !== null"),
+    true,
+    "switching panes must preserve the mounted task",
+  );
+  await evaluate(`(() => {
+    const control = [...document.querySelectorAll('.reference-mobile-pane-switcher button')]
+      .find((candidate) => candidate.textContent?.trim() === 'Workspace');
+    control?.click();
+  })()`);
+  await until(
+    `getComputedStyle(document.querySelector('.reference-workspace-panel')).display !== 'none'`,
+    "restored narrow Workspace pane",
+  );
+  assert.equal(await evaluate(route), routeBeforeMobileSwitch);
+  if (screenshotOutput !== undefined) {
+    const screenshot = await send("Page.captureScreenshot", {
+      format: "png",
+      captureBeyondViewport: false,
+    });
+    const mobileOutput = screenshotOutput.endsWith(".png")
+      ? screenshotOutput.slice(0, -4) + "-mobile.png"
+      : screenshotOutput + "-mobile.png";
+    writeFileSync(resolve(root, mobileOutput), screenshot.data, "base64");
+  }
+
   const calls = await evaluate("structuredClone(window.shellNavigationCalls)");
   assert.deepEqual(calls, [
     {
@@ -213,7 +308,7 @@ try {
 
   const browserVersion = await send("Browser.getVersion");
   artifact = {
-    schema_name: "petra.wave6-shell-navigation-browser-evidence",
+    schema_name: "petra.frontend-step2-agent-workspace-browser-evidence",
     schema_version: "1.0.0",
     status: "passed",
     operation_id: "shell.navigate",
@@ -226,7 +321,7 @@ try {
       protocol_version: browserVersion.protocolVersion,
     },
     verified: {
-      visible_control: "Project navigation",
+      visible_control: "Agent and Workspace shell",
       keyboard_activation: true,
       project_id: expected.projectId,
       project_title: expected.projectTitle,
@@ -245,6 +340,12 @@ try {
         current_place: currentPlace,
         active_control: activeLabel,
       })),
+      desktop_split: {
+        agent: desktopFrame.agentRatio,
+        workspace: desktopFrame.workspaceRatio,
+      },
+      narrow_pane_switch_preserved_task: true,
+      graph_controls_progressively_disclosed: true,
       shell_reads: calls.length,
       authenticated_requests: true,
       command_requests: 0,
@@ -252,7 +353,7 @@ try {
     },
     calls,
     boundary:
-      "Isolated Chromium opened one representative Project through the production loadProjectRecord and ProjectShellClient path, then keyboard-activated every visible persistent Project workflow navigation control in the production ProjectShell. At each destination the React Router path, shell current-place state, active control, exact Project, registered ProjectDefinition label, current Objective, authority snapshot, and projection label remained coherent. Deterministic schema-valid authenticated HTTP supplied the browser transport; reports/WAVE6-SHELL-NAVIGATION-AUTHORITY.json separately proves the same ProjectShellClient owner and context against real PostgreSQL and the production server. The child route body is a trace-only context observer, so this record proves shell.navigate only: it does not prove any destination task surface, shell.return, exact return or focus preservation, UX1.6-GRAPH, a named evidence-plan scenario, or the complete guided workflow.",
+      "Isolated Chromium opened one representative Project through the production loadProjectRecord and ProjectShellClient path. It measured the desktop Agent and Workspace regions at 30/70, confirmed graph controls begin behind a closed Inspect disclosure, deliberately opened that disclosure, and keyboard-activated every retained destination. At each destination, exact Project, Objective, route, current place, active control, authority snapshot, and projection stayed coherent. At 420 px it switched Agent to Workspace without changing the route or unmounting the task. Deterministic schema-valid authenticated HTTP supplied browser transport. The child route body is a context observer, so this record proves the structural FE-A1.1 shell and shell.navigate; it does not prove Project creation, Agent conversation or Work control, destination task renderers, the complete Inspect experience, or final frontend acceptance.",
   };
   writeFileSync(output, `${JSON.stringify(artifact, null, 2)}\n`);
   process.stdout.write(`${JSON.stringify(artifact, null, 2)}\n`);

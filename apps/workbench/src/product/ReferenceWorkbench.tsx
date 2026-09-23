@@ -180,15 +180,9 @@ const SourceExtentLabel = ({ source }: { source: SourceRecord }) => (
 
 export const ProductFrame = (): React.JSX.Element => {
   const health = useLoaderData<EngineState>();
-  const location = useLocation();
   const { receipt: personalPreferences } = usePersonalPreferences();
   const preferences = personalPreferences.preferences;
   const servicesReady = health.ok && health.accepting;
-  const projectMatch = /^\/projects\/([^/]+)/u.exec(location.pathname);
-  const guideTarget =
-    projectMatch?.[1] === undefined
-      ? "/guide"
-      : `/guide?project=${encodeURIComponent(projectMatch[1])}`;
 
   return (
     <div
@@ -215,15 +209,12 @@ export const ProductFrame = (): React.JSX.Element => {
         <Link to="/" className="reference-brand" aria-label="Petra Projects">
           <PetraLockup variant="compact" />
         </Link>
-        <p>Projects</p>
+        <p>Agent workspace</p>
         <div
           className="reference-global-status"
           role="status"
           aria-live="polite"
         >
-          <Link className="reference-guide-link" to={guideTarget}>
-            Test guide
-          </Link>
           <span className="reference-scope">Local · private</span>
           <span>
             <span
@@ -801,15 +792,30 @@ export const ProjectShell = (): React.JSX.Element => {
   const project = useLoaderData<ProjectRecord>();
   const location = useLocation();
   const projectNav = useRef<HTMLElement>(null);
+  const [mobilePane, setMobilePane] = useState<"agent" | "workspace">(
+    "workspace",
+  );
   const currentPlace = placeFromPath(location.pathname);
+  const currentWorkspaceLabel: Record<ProjectPlace, string> = {
+    brief: "Overview",
+    petra: "Conversation",
+    work: "Work",
+    sources: "Sources",
+    graph: "Graph",
+    review: "Review",
+    history: "History",
+    composition: "Outputs",
+    profile_tool: "Project definition",
+    settings: "Settings",
+  };
   const incomingSwitchOrigin = projectSwitchOriginFromState(location.state);
   const currentTaskLabel =
     location.pathname.endsWith("/resume") &&
     project.resume?.state === "available"
       ? (project.resume.retained_task?.label ?? "the retained Graph task")
       : currentPlace === "profile_tool"
-        ? "the Project profile"
-        : `the Project ${currentPlace}`;
+        ? "the Project definition"
+        : `the Project ${currentWorkspaceLabel[currentPlace]}`;
   const currentSwitchOrigin: ProjectSwitchOrigin = {
     href: `${location.pathname}${location.search}${location.hash}`,
     projectId: project.id,
@@ -845,13 +851,45 @@ export const ProjectShell = (): React.JSX.Element => {
     return () => window.cancelAnimationFrame(frame);
   }, [location.hash, location.key]);
 
+  const destinationLink = ({
+    place,
+    to,
+    label,
+  }: {
+    place: ProjectPlace;
+    to: string;
+    label: string;
+  }): React.JSX.Element => {
+    const summary = project.placeSummaries?.find(
+      (candidate) => candidate.role === place,
+    );
+    return (
+      <NavLink
+        key={place}
+        to={to}
+        onClick={() => setMobilePane("workspace")}
+      >
+        <span>{label}</span>
+        {summary === undefined || summary.attentionCount === 0 ? null : (
+          <span
+            className="reference-nav-attention"
+            aria-label={`${summary.attentionCount} ${summary.attentionCount === 1 ? "item" : "items"} need attention`}
+          >
+            <span aria-hidden="true">!</span>
+            {summary.attentionCount}
+          </span>
+        )}
+      </NavLink>
+    );
+  };
+
   return (
     <div className="reference-project-shell">
       <a
         className="reference-skip-link reference-skip-link--project"
-        href="#project-navigation"
+        href="#project-agent"
       >
-        Skip to Project navigation
+        Skip to Agent
       </a>
       <div
         className="reference-context-bar"
@@ -867,15 +905,10 @@ export const ProjectShell = (): React.JSX.Element => {
           </Link>
           <div>
             <strong>{project.title}</strong>
-            <Link to="profile">{project.profile.label}</Link>
+            <span>{currentWorkspaceLabel[currentPlace]}</span>
           </div>
         </div>
         <div className="reference-context-bar__state">
-          <span>
-            <strong>{project.snapshot.label}</strong>
-            <small>{project.snapshot.asOf}</small>
-          </span>
-          <ProjectionLabel project={project} />
           {returnSwitchOrigin === undefined ? null : (
             <Link
               className="reference-context-action"
@@ -884,6 +917,26 @@ export const ProjectShell = (): React.JSX.Element => {
               Return to {returnSwitchOrigin.projectTitle}
             </Link>
           )}
+          <div
+            className="reference-mobile-pane-switcher"
+            role="group"
+            aria-label="Choose project pane"
+          >
+            <button
+              type="button"
+              aria-pressed={mobilePane === "agent"}
+              onClick={() => setMobilePane("agent")}
+            >
+              Agent
+            </button>
+            <button
+              type="button"
+              aria-pressed={mobilePane === "workspace"}
+              onClick={() => setMobilePane("workspace")}
+            >
+              Workspace
+            </button>
+          </div>
           <Link
             className="reference-context-action"
             to={`/settings?project=${project.id}`}
@@ -893,59 +946,106 @@ export const ProjectShell = (): React.JSX.Element => {
         </div>
       </div>
 
-      <div className="reference-project-layout">
-        <aside className="reference-project-nav" id="project-navigation">
-          <p className="reference-nav-label" id="project-map-title">
-            Project map
-          </p>
-          <nav ref={projectNav} aria-labelledby="project-map-title">
-            {[
-              { place: "brief" as const, to: "brief", label: "Brief" },
-              {
-                place: "petra" as const,
-                to: "petra",
-                label: "Ask Petra",
-                primary: true,
-              },
-              { place: "work" as const, to: "work", label: "Work" },
-              {
-                place: "sources" as const,
-                to: "sources",
-                label: project.profile.terms.referencePlural,
-              },
-              { place: "graph" as const, to: "graph", label: "Graph" },
-              { place: "review" as const, to: "review", label: "Review" },
-              { place: "history" as const, to: "history", label: "History" },
-              {
-                place: "composition" as const,
-                to: "composition",
-                label: "Composition",
-              },
-            ].map(({ place, to, label, primary = false }) => {
-              const summary = project.placeSummaries?.find(
-                (candidate) => candidate.role === place,
-              );
-              return (
-                <NavLink
-                  key={place}
-                  to={to}
-                  {...(primary ? { "data-primary": "true" } : {})}
-                >
-                  <span>{label}</span>
-                  {summary === undefined ||
-                  summary.attentionCount === 0 ? null : (
-                    <span
-                      className="reference-nav-attention"
-                      aria-label={`${summary.attentionCount} ${summary.attentionCount === 1 ? "item" : "items"} need attention`}
-                    >
-                      <span aria-hidden="true">!</span>
-                      {summary.attentionCount}
-                    </span>
-                  )}
-                </NavLink>
-              );
-            })}
+      <div
+        className="reference-project-layout"
+        data-mobile-pane={mobilePane}
+      >
+        <aside
+          className="reference-project-nav reference-agent-panel"
+          id="project-agent"
+          aria-labelledby="project-agent-title"
+        >
+          <header className="reference-agent-heading">
+            <span className="reference-agent-mark" aria-hidden="true">
+              <PetraMark />
+            </span>
+            <div>
+              <p className="reference-panel-kicker">Agent</p>
+              <h2 id="project-agent-title">Petra</h2>
+            </div>
+          </header>
+
+          <section
+            className="reference-agent-outcome"
+            aria-labelledby="current-outcome-title"
+          >
+            <p className="reference-nav-label" id="current-outcome-title">
+              Current outcome
+            </p>
+            <strong>{project.title}</strong>
+            <p>{project.objective}</p>
+            <ProjectStateLabel project={project} />
+          </section>
+
+          <nav
+            ref={projectNav}
+            aria-label={`${project.title} workspace destinations`}
+          >
+            <NavLink
+              className="reference-agent-action"
+              to="petra"
+              onClick={() => setMobilePane("workspace")}
+            >
+              <span>Work with Petra</span>
+              <span aria-hidden="true">→</span>
+            </NavLink>
+
+            <div className="reference-workspace-destinations">
+              <p className="reference-nav-label">Workspace</p>
+              {[
+                { place: "brief" as const, to: "brief", label: "Overview" },
+                {
+                  place: "sources" as const,
+                  to: "sources",
+                  label: "Sources",
+                },
+                { place: "review" as const, to: "review", label: "Review" },
+                {
+                  place: "composition" as const,
+                  to: "composition",
+                  label: "Outputs",
+                },
+              ].map(destinationLink)}
+            </div>
+
+            <details className="reference-project-inspection">
+              <summary>Inspect project</summary>
+              <div className="reference-project-inspection__content">
+                <p>
+                  See the retained work, graph, history, and project definition
+                  that Petra is using.
+                </p>
+                <div className="reference-project-inspection__state">
+                  <span>
+                    <strong>{project.snapshot.label}</strong>
+                    <small>{project.snapshot.asOf}</small>
+                  </span>
+                  <ProjectionLabel project={project} />
+                </div>
+                <div className="reference-project-inspection__links">
+                  {[
+                    { place: "work" as const, to: "work", label: "Work" },
+                    { place: "graph" as const, to: "graph", label: "Graph" },
+                    {
+                      place: "history" as const,
+                      to: "history",
+                      label: "History",
+                    },
+                    {
+                      place: "profile_tool" as const,
+                      to: "profile",
+                      label: "Project definition",
+                    },
+                  ].map(destinationLink)}
+                </div>
+                <p className="reference-project-inspection__definition">
+                  <strong>{project.profile.label}</strong>
+                  <span>{project.profile.description}</span>
+                </p>
+              </div>
+            </details>
           </nav>
+
           {project.attentionWork === undefined ? null : (
             <aside
               className="reference-attention-work"
@@ -954,16 +1054,18 @@ export const ProjectShell = (): React.JSX.Element => {
               aria-labelledby="shell-attention-work-title"
               data-state={project.attentionWork.state}
             >
-              <p className="reference-panel-kicker">Attention Work</p>
-              <h2 id="shell-attention-work-title">Active or waiting on you</h2>
+              <p className="reference-panel-kicker">Needs your attention</p>
+              <h2 id="shell-attention-work-title">
+                Active or waiting on you
+              </h2>
               {project.attentionWork.state === "unavailable" ? (
                 <p>{project.attentionWork.reason}</p>
               ) : (
                 <>
                   <p>
                     {project.attentionWork.total_count === 0
-                      ? "No active or attention-bearing Work was returned."
-                      : `${project.attentionWork.total_count} ${project.attentionWork.total_count === 1 ? "task is" : "tasks are"} active or need attention.`}
+                      ? "Nothing needs your attention right now."
+                      : `${project.attentionWork.total_count} ${project.attentionWork.total_count === 1 ? "task needs" : "tasks need"} attention.`}
                   </p>
                   {project.attentionWork.tasks.length === 0 ? null : (
                     <ul>
@@ -975,10 +1077,11 @@ export const ProjectShell = (): React.JSX.Element => {
                               task.destination.target_ref,
                               {
                                 path: `${location.pathname}${location.search}#shell-attention-work`,
-                                label: "Attention Work",
+                                label: "Needs your attention",
                                 focusId: "shell-attention-work",
                               },
                             )}
+                            onClick={() => setMobilePane("workspace")}
                           >
                             <strong>{task.task_label}</strong>
                             <span>{task.objective}</span>
@@ -1000,32 +1103,26 @@ export const ProjectShell = (): React.JSX.Element => {
               )}
             </aside>
           )}
-          <details className="reference-profile-details">
-            <summary>Profile terms</summary>
-            <p>{project.profile.description}</p>
-            <dl>
-              <div>
-                <dt>Focus</dt>
-                <dd>{project.profile.terms.focusPlural}</dd>
-              </div>
-              <div>
-                <dt>Material</dt>
-                <dd>{project.profile.terms.findingPlural}</dd>
-              </div>
-              <div>
-                <dt>Basis</dt>
-                <dd>{project.profile.terms.referencePlural}</dd>
-              </div>
-            </dl>
-            <Link className="reference-text-link" to="profile">
-              Inspect Project profile
-            </Link>
-          </details>
         </aside>
 
-        <div className="reference-project-main" data-place={currentPlace}>
-          <Outlet context={{ project } satisfies ProjectOutletContext} />
-        </div>
+        <section
+          className="reference-workspace-panel"
+          id="project-workspace"
+          aria-labelledby="project-workspace-title"
+        >
+          <header className="reference-workspace-heading">
+            <div>
+              <p className="reference-panel-kicker">Workspace</p>
+              <h2 id="project-workspace-title">
+                {currentWorkspaceLabel[currentPlace]}
+              </h2>
+            </div>
+            <ProjectStateLabel project={project} />
+          </header>
+          <div className="reference-project-main" data-place={currentPlace}>
+            <Outlet context={{ project } satisfies ProjectOutletContext} />
+          </div>
+        </section>
       </div>
     </div>
   );

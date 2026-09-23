@@ -949,13 +949,19 @@ describe("neutral Petra reference workbench", () => {
     expect(referenceWorkbenchCss).toContain("overflow-wrap: anywhere");
   });
 
-  it("keeps the Project workflow persistent and gives Petra one primary place", () => {
+  it("keeps a persistent 30/70 Agent–Workspace frame with inspection on demand", () => {
     expect(referenceWorkbenchCss).toContain("position: sticky");
     expect(referenceWorkbenchCss).toContain(
-      '.reference-project-nav nav a[data-primary="true"]',
+      "grid-template-columns: minmax(18rem, 3fr) minmax(0, 7fr)",
     );
-    expect(referenceWorkbenchCss).toContain(".reference-nav-attention");
-    expect(referenceWorkbenchCss).toContain("position: static");
+    expect(referenceWorkbenchCss).toContain(".reference-agent-action");
+    expect(referenceWorkbenchCss).toContain(".reference-project-inspection");
+    expect(referenceWorkbenchCss).toContain(
+      '.reference-project-layout[data-mobile-pane="agent"]',
+    );
+    expect(referenceWorkbenchCss).toContain(
+      '.reference-project-layout[data-mobile-pane="workspace"]',
+    );
   });
 
   it("separates source identity, extent, rights, and downstream use", () => {

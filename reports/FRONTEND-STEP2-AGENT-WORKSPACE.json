@@ -1,0 +1,89 @@
+{
+  "schema_name": "petra.frontend-step2-agent-workspace-browser-evidence",
+  "schema_version": "1.0.0",
+  "status": "passed",
+  "operation_id": "shell.navigate",
+  "executed_at": "2026-09-23T01:09:43.505Z",
+  "command": "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:shell-navigation-ui",
+  "browser": {
+    "product": "Chrome/154.0.8037.57",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/154.0.0.0 Safari/537.36",
+    "protocol_version": "1.3"
+  },
+  "verified": {
+    "visible_control": "Agent and Workspace shell",
+    "keyboard_activation": true,
+    "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+    "project_title": "Competing explanations",
+    "registered_profile": {
+      "project_definition_id": "project_definition_01K4C000000000000000000001",
+      "label": "Scientific evidence inquiry"
+    },
+    "current_objective": {
+      "objective_id": "objective_01K4C000000000000000000005",
+      "statement": "Determine which claims in the selected source are supported by exact inspectable passages."
+    },
+    "snapshot": "Authority event 3",
+    "projection": "Projection catching up",
+    "visited_places": [
+      {
+        "route": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/petra",
+        "current_place": "petra",
+        "active_control": "Work with Petra"
+      },
+      {
+        "route": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/work",
+        "current_place": "work",
+        "active_control": "Work"
+      },
+      {
+        "route": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/sources",
+        "current_place": "sources",
+        "active_control": "Sources"
+      },
+      {
+        "route": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/graph",
+        "current_place": "graph",
+        "active_control": "Graph"
+      },
+      {
+        "route": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/review",
+        "current_place": "review",
+        "active_control": "Review"
+      },
+      {
+        "route": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/history",
+        "current_place": "history",
+        "active_control": "History"
+      },
+      {
+        "route": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/composition",
+        "current_place": "composition",
+        "active_control": "Outputs"
+      },
+      {
+        "route": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/brief",
+        "current_place": "brief",
+        "active_control": "Overview"
+      }
+    ],
+    "desktop_split": {
+      "agent": 0.3,
+      "workspace": 0.7
+    },
+    "narrow_pane_switch_preserved_task": true,
+    "graph_controls_progressively_disclosed": true,
+    "shell_reads": 1,
+    "authenticated_requests": true,
+    "command_requests": 0,
+    "context_stable": true
+  },
+  "calls": [
+    {
+      "method": "GET",
+      "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/shell",
+      "authorization": "Bearer browser-shell-navigation-token"
+    }
+  ],
+  "boundary": "Isolated Chromium opened one representative Project through the production loadProjectRecord and ProjectShellClient path. It measured the desktop Agent and Workspace regions at 30/70, confirmed graph controls begin behind a closed Inspect disclosure, deliberately opened that disclosure, and keyboard-activated every retained destination. At each destination, exact Project, Objective, route, current place, active control, authority snapshot, and projection stayed coherent. At 420 px it switched Agent to Workspace without changing the route or unmounting the task. Deterministic schema-valid authenticated HTTP supplied browser transport. The child route body is a context observer, so this record proves the structural FE-A1.1 shell and shell.navigate; it does not prove Project creation, Agent conversation or Work control, destination task renderers, the complete Inspect experience, or final frontend acceptance."
+}

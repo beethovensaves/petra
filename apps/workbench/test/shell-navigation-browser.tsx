@@ -56,21 +56,14 @@ if (objective === undefined) {
 }
 
 const navigation: readonly NavigationTarget[] = [
-  { place: "petra", route: "petra", label: "Ask Petra" },
+  { place: "petra", route: "petra", label: "Work with Petra" },
   { place: "work", route: "work", label: "Work" },
-  {
-    place: "sources",
-    route: "sources",
-    label:
-      shell.content.definition.terms.find(
-        (term) => term.generic_family === "reference",
-      )?.plural ?? "Sources",
-  },
+  { place: "sources", route: "sources", label: "Sources" },
   { place: "graph", route: "graph", label: "Graph" },
   { place: "review", route: "review", label: "Review" },
   { place: "history", route: "history", label: "History" },
-  { place: "composition", route: "composition", label: "Composition" },
-  { place: "brief", route: "brief", label: "Brief" },
+  { place: "composition", route: "composition", label: "Outputs" },
+  { place: "brief", route: "brief", label: "Overview" },
 ];
 
 window.shellNavigationCalls = [];
