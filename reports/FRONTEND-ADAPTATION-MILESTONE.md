@@ -1,10 +1,27 @@
 # FE-A1: Agentic frontend adaptation
 
-- **Status:** Planned; blocks Wave 7
+- **Status:** In progress; FE-A1.0 and FE-A1.1 complete; blocks Wave 7
 - **Decision:** [D024](../decisions/D024-agentic-split-workspace.md)
 - **Operation map:** [ui-operation-presentation-map.json](../scripts/ui-operation-presentation-map.json)
 - **Inventory:** [ui-operation-inventory.json](../scripts/ui-operation-inventory.json)
 - **Trigger:** The Wave 6 checkpoint proved its graph-controlled mechanisms but failed user evaluation as a frontend. It exposed the operation inventory as product navigation, lacked a coherent agent-first composition, and presented two example profiles as the apparent limits of Petra.
+
+## Delivery ledger
+
+| Step | State | Result |
+| --- | --- | --- |
+| FE-A1.0 | Complete | D024 and the audited 116-operation presentation map establish the frontend boundary. |
+| FE-A1.1 | Complete | The production Project shell now uses a persistent 30/70 Agent–Workspace frame, starts technical controls behind **Inspect project**, and switches panes on narrow screens without unmounting the active task. |
+| FE-A1.2 | Next | Replace profile-first creation with the use-agnostic outcome and definition-draft flow. |
+| FE-A1.3–FE-A1.7 | Pending | Agent control, workspace renderers, inspection, migration, and product evaluation follow in order. |
+
+FE-A1.1 is proven by
+[`FRONTEND-STEP2-AGENT-WORKSPACE.json`](FRONTEND-STEP2-AGENT-WORKSPACE.json).
+The Chromium run measures the split at 0.30/0.70, keyboard-activates every
+retained destination, confirms inspection begins closed, and switches between
+Agent and Workspace at 420 px while preserving the current route and mounted
+task. The Agent conversation, composer, and Work controls remain FE-A1.3 scope;
+their absence does not make the structural shell a simulated interaction.
 
 ## Result required from this milestone
 
@@ -219,6 +236,8 @@ existing command/query owners.
 - Make D024 and the 116-operation presentation map binding.
 
 ### FE-A1.1 — Build the shell and interaction foundation
+
+**Complete — 2026-09-22.**
 
 - Implement the desktop 30/70 shell and task-preserving responsive variant.
 - Establish restrained tokens, typography, spacing, density, focus, motion, and

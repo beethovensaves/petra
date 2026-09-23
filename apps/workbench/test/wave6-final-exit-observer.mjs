@@ -12,6 +12,8 @@ const button = (label) =>
   `[...document.querySelectorAll('button')].find((element) => element.textContent.trim() === ${JSON.stringify(label)})`;
 const exactLink = (label) =>
   `[...document.querySelectorAll('a')].find((element) => element.textContent.trim() === ${JSON.stringify(label)})`;
+const askPetraControl =
+  'document.querySelector(".petra-composer button[type=submit]")';
 const fieldControl = (label) => `(()=>{
   const field=[...document.querySelectorAll("label.petra-field")].find((candidate)=>candidate.querySelector(".petra-field__label")?.textContent.startsWith(${JSON.stringify(label)}));
   return field?.querySelector("input, textarea, select");
@@ -260,7 +262,30 @@ export const createWave4EvidenceObserver = async ({ root }) => {
     const postsBefore = calls.filter(
       (call) => call.method === "POST" && call.path === "/api/interactions/run",
     ).length;
-    await evaluate(`${button("Ask Petra")}.click()`);
+    await until(
+      `(() => {
+        const control = ${askPetraControl};
+        return control instanceof HTMLButtonElement &&
+          control.getAttribute("aria-disabled") !== "true" &&
+          control.getAttribute("aria-busy") !== "true";
+      })()`,
+      "enabled Ask Petra action",
+    );
+    await evaluate(`${askPetraControl}.focus()`);
+    assert.equal(
+      await evaluate(`document.activeElement === ${askPetraControl}`),
+      true,
+    );
+    await evaluate(`${askPetraControl}.click()`);
+    await until(
+      `(() => {
+        const control = ${askPetraControl};
+        return control?.getAttribute("aria-busy") === "true" ||
+          document.querySelector(".petra-model-response") !== null ||
+          document.body.innerText.includes("Response delivery was not confirmed");
+      })()`,
+      "Ask Petra submission feedback",
+    );
     let modelState;
     for (let attempt = 0; attempt < 1_800; attempt += 1) {
       modelState = await evaluate(
@@ -269,7 +294,29 @@ export const createWave4EvidenceObserver = async ({ root }) => {
       if (modelState === "completed" || modelState === "failed") break;
       await wait(100);
     }
-    assert.equal(modelState, "completed");
+    assert.equal(
+      modelState,
+      "completed",
+      `The certified Petra response did not complete. Composer: ${JSON.stringify(
+        await evaluate(`(() => {
+          const control = ${askPetraControl};
+          return {
+            label: control?.textContent.trim(),
+            ariaDisabled: control?.getAttribute("aria-disabled"),
+            ariaBusy: control?.getAttribute("aria-busy"),
+            notices: [...document.querySelectorAll("[role=alert], [role=status]")]
+              .map((node) => node.textContent.trim()),
+          };
+        })()`),
+      )}. Calls: ${JSON.stringify(
+        calls.slice(-12).map((call) => ({
+          method: call.method,
+          path: call.path,
+          status: call.status,
+          error: call.json?.error,
+        })),
+      )}`,
+    );
     const modelText = await assertText(
       [
         "Grounded answer",

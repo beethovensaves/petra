@@ -77,6 +77,11 @@
   gap: var(--petra-space-4);
 }
 
+.checkpoint-guide .reference-primary-link:focus {
+  outline: 2px solid var(--petra-focus-ring);
+  outline-offset: 2px;
+}
+
 .checkpoint-guide__sequence {
   margin-top: var(--petra-space-7);
 }
@@ -194,6 +199,17 @@
 }
 
 @media (forced-colors: active) {
+  .checkpoint-guide .reference-primary-link {
+    outline: 2px solid ButtonText;
+    outline-offset: -2px;
+  }
+
+  .checkpoint-guide .reference-primary-link:focus,
+  .checkpoint-guide .reference-primary-link:focus-visible {
+    outline-color: Highlight;
+    outline-offset: 2px;
+  }
+
   .checkpoint-guide__sequence > ol > li > span {
     color: Canvas;
     background: CanvasText;
