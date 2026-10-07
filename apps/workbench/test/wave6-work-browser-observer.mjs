@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
@@ -51,6 +51,17 @@ export const createWave4EvidenceObserver = async ({ root }) => {
         "reports/WAVE6-WORK-BROWSER-OBSERVATION.json",
     );
     writeFileSync(output, `${JSON.stringify(observation, null, 2)}\n`);
+  };
+
+  const capture = async (name) => {
+    const directory = process.env.PETRA_FRONTEND_VISUAL_CAPTURE_DIR;
+    if (directory === undefined) return;
+    mkdirSync(directory, { recursive: true });
+    const screenshot = await cdp.send("Page.captureScreenshot", {
+      format: "png",
+      captureBeyondViewport: false,
+    });
+    writeFileSync(resolve(directory, `${name}.png`), screenshot.data, "base64");
   };
 
   const readReviewSelection = async (reviewSessionId) => {
@@ -130,11 +141,15 @@ export const createWave4EvidenceObserver = async ({ root }) => {
   };
 
   const navigate = async (path, ready, label) => {
+    const destination = new URL(path, workbench.url);
     const result = await cdp.send("Page.navigate", {
-      url: new URL(path, workbench.url).href,
+      url: destination.href,
     });
     assert.equal(result.errorText, undefined, `Could not open ${label}.`);
-    await cdp.until(ready, label);
+    await cdp.until(
+      `window.location.pathname === ${JSON.stringify(destination.pathname)} && (${ready})`,
+      label,
+    );
     await cdp.evaluate("document.fonts.ready");
   };
 
@@ -163,6 +178,7 @@ export const createWave4EvidenceObserver = async ({ root }) => {
       'document.querySelector(".work-units") !== null',
       "Project Work collection",
     );
+    await capture("work-collection-desktop");
     const collectionText = await cdp.evaluate("document.body.innerText");
     assert.ok(
       collectionText.includes("Research question"),
@@ -193,6 +209,27 @@ export const createWave4EvidenceObserver = async ({ root }) => {
       'document.querySelector(".work-controls") !== null',
       "checkpointed Work task",
     );
+    await capture("work-checkpoint-desktop");
+    assert.equal(
+      await cdp.evaluate(
+        'document.querySelector("#work-execution-controls button")?.textContent.trim()',
+      ),
+      "Resume work",
+      "The available Resume action did not lead the execution controls.",
+    );
+    await cdp.evaluate(
+      `document.querySelector('a[href="#work-execution-controls"]')?.click()`,
+    );
+    const jump = await cdp.evaluate(`(() => {
+      const first = document.querySelector('#work-execution-controls button');
+      const composer = document.querySelector('.reference-agent-composer');
+      return { firstTop: first?.getBoundingClientRect().top, composerTop: composer?.getBoundingClientRect().top };
+    })()`);
+    assert.ok(
+      jump.firstTop < jump.composerTop,
+      "The Work control jump left the available action behind the composer.",
+    );
+    await capture("work-controls-jump-desktop");
     const assessedResume = calls.findLast(
       (call) =>
         call.method === "GET" &&
@@ -289,6 +326,58 @@ export const createWave4EvidenceObserver = async ({ root }) => {
     );
     execution.completed_checks.push(
       "registered checkpoint resumed through exact visible control",
+    );
+    const workListPath = `/projects/${scientificProjectId}/work`;
+    await cdp.evaluate(
+      `document.querySelector('.work-detail__heading a[href=${JSON.stringify(workListPath)}]')?.click()`,
+    );
+    await cdp.until(
+      `window.location.pathname === ${JSON.stringify(workListPath)} && document.querySelector('.work-units') !== null`,
+      "Work collection after Resume",
+    );
+    await cdp.evaluate(
+      `[...document.querySelectorAll('a')].find((item) => item.getAttribute('href') === ${JSON.stringify(resumePath)})?.click()`,
+    );
+    await cdp.until(
+      `window.location.pathname === ${JSON.stringify(resumePath)} && document.querySelector('.work-operation-result')?.textContent.includes('Resumed attempt 1')`,
+      "retained Resume receipt after Workspace route change",
+    );
+    await cdp.evaluate(
+      "document.querySelector('.reference-workspace-inspect')?.click()",
+    );
+    await cdp.until(
+      `window.location.pathname.endsWith('/inspect') && document.querySelector('.reference-inspect')?.textContent.includes(${JSON.stringify(resumeCall.json.receipt_id)}) && document.querySelector('.reference-inspect')?.textContent.includes('Server-assessed Work controls')`,
+      "exact Resume receipt in Work Inspect",
+    );
+    await capture("work-inspect-desktop");
+    await cdp.send("Page.reload", { ignoreCache: true });
+    await cdp.until(
+      `performance.getEntriesByType('navigation')[0]?.type === 'reload' && document.readyState === 'complete' && window.location.pathname.endsWith('/inspect') && ${link("Return to task")} !== undefined`,
+      "fresh Inspect with a return link",
+    );
+    await cdp.evaluate(`(() => {
+      const summary = [...document.querySelectorAll('.reference-inspect summary')]
+        .find((item) => item.textContent.trim() === 'Control and identity');
+      summary?.click();
+    })()`);
+    await cdp.until(
+      `document.querySelector('.reference-inspect')?.textContent.includes(${JSON.stringify(resumeCall.json.receipt_id)}) && document.querySelector('.reference-inspect')?.textContent.includes('Recent retained command receipts')`,
+      "retained Resume receipt after full browser reload",
+    );
+    const reloadReturn = await cdp.evaluate(
+      `(() => { const target = ${link("Return to task")}; const href = target?.getAttribute('href'); target?.click(); return href; })()`,
+    );
+    assert.ok(
+      reloadReturn === resumePath ||
+        reloadReturn === `${resumePath}#work-control-boundary`,
+      `Inspect lost the exact Work return after full reload: ${reloadReturn}`,
+    );
+    await cdp.until(
+      `window.location.pathname === ${JSON.stringify(resumePath)} && document.querySelector('.work-detail__heading') !== null && document.querySelector('.work-controls') !== null`,
+      "exact Work return after receipt inspection",
+    );
+    execution.completed_checks.push(
+      "exact Resume receipt survived navigation and full reload in Inspect",
     );
 
     assert.ok(
@@ -427,12 +516,12 @@ export const createWave4EvidenceObserver = async ({ root }) => {
 
     await navigate(
       attentionPath,
-      'document.querySelector("#required-input") !== null',
+      'document.querySelector(".reference-agent-control #required-input")?.getClientRects().length > 0',
       "Work required input",
     );
     const inputText = await cdp.evaluate("document.body.innerText");
+    assert.match(inputText, /required input/i);
     for (const value of [
-      "Required input",
       "Manage this task",
       "Project authority remains unchanged",
     ]) {
@@ -491,6 +580,69 @@ export const createWave4EvidenceObserver = async ({ root }) => {
       selectSetter.call(select, "user_blocking");
       select.dispatchEvent(new Event("change", { bubbles: true }));
     })()`);
+    await cdp.evaluate(
+      `document.querySelector('.reference-workspace-destinations a[href=${JSON.stringify(`/projects/${scientificProjectId}/review`)}]')?.click()`,
+    );
+    await cdp.until(
+      `window.location.pathname === ${JSON.stringify(`/projects/${scientificProjectId}/review`)}`,
+      "Review Workspace while Work instruction is drafted",
+    );
+    await cdp.evaluate("window.history.back()");
+    await cdp.until(
+      `window.location.pathname.endsWith(${JSON.stringify(`/work/${inputWorkUnitId}`)}) && document.querySelector('.work-steering textarea')?.value === ${JSON.stringify(steeringInstruction)} && document.querySelector('.work-steering select')?.value === 'user_blocking'`,
+      "Work instruction and priority after Review Workspace return",
+    );
+    await cdp.send("Emulation.setDeviceMetricsOverride", {
+      width: 420,
+      height: 820,
+      deviceScaleFactor: 1,
+      mobile: false,
+    });
+    await cdp.evaluate(`(() => {
+      const button = [...document.querySelectorAll('.reference-mobile-pane-switcher button')]
+        .find((item) => item.textContent.trim() === 'Agent');
+      button?.click();
+    })()`);
+    await cdp.until(
+      `getComputedStyle(document.querySelector('.reference-agent-panel')).display !== 'none' && document.querySelector('.work-steering textarea')?.value === ${JSON.stringify(steeringInstruction)} && document.querySelector('.work-steering select')?.value === 'user_blocking'`,
+      "live Work draft in narrow Agent pane",
+    );
+    const agentScale = await cdp.evaluate(`(() => {
+      document.documentElement.style.fontSize = '200%';
+      const panel = document.querySelector('.reference-agent-panel');
+      return { client: panel.clientWidth, content: panel.scrollWidth };
+    })()`);
+    assert.ok(
+      agentScale.content <= agentScale.client + 1,
+      `The live Work Agent clips at 200% text scale: ${JSON.stringify(agentScale)}`,
+    );
+    await cdp.evaluate(`(() => {
+      const button = [...document.querySelectorAll('.reference-mobile-pane-switcher button')]
+        .find((item) => item.textContent.trim() === 'Workspace');
+      button?.click();
+    })()`);
+    await cdp.until(
+      "getComputedStyle(document.querySelector('.reference-workspace-panel')).display !== 'none'",
+      "live Work Workspace after narrow pane switch",
+    );
+    const workspaceScale = await cdp.evaluate(`(() => {
+      const panel = document.querySelector('.reference-workspace-panel');
+      return { client: panel.clientWidth, content: panel.scrollWidth };
+    })()`);
+    assert.ok(
+      workspaceScale.content <= workspaceScale.client + 1,
+      `The live Work Workspace clips at 200% text scale: ${JSON.stringify(workspaceScale)}`,
+    );
+    await cdp.evaluate("document.documentElement.style.fontSize = ''");
+    await cdp.send("Emulation.setDeviceMetricsOverride", {
+      width: 1280,
+      height: 900,
+      deviceScaleFactor: 1,
+      mobile: false,
+    });
+    execution.completed_checks.push(
+      "Work instruction survived Review route change and narrow pane switches; both panes fit 420 px at 200% text scale",
+    );
     await cdp.until(
       `${button("Steer work")}.getAttribute("aria-disabled") !== "true"`,
       "active Work steering input",
@@ -594,11 +746,9 @@ export const createWave4EvidenceObserver = async ({ root }) => {
       retryCall?.requestJson?.expected_work_unit_ref?.work_unit_id,
       retryWorkUnitId,
     );
-    assert.ok(
-      (await cdp.evaluate("document.body.innerText")).includes(
-        "Canonical execution\nrunning",
-      ),
-      "Retried Work did not render its next running attempt.",
+    await cdp.until(
+      'document.querySelector(".work-state")?.textContent.includes("Running") === true',
+      "visible running Work state after retry",
     );
     execution.completed_checks.push(
       "retryable failed Work entered its next retained attempt",
@@ -617,8 +767,6 @@ export const createWave4EvidenceObserver = async ({ root }) => {
       "Open exact results",
       "grounded response",
       "worker output manifest",
-      "Reconnect",
-      "Replay delivery",
     ]) {
       assert.ok(
         completedText.includes(value),
@@ -628,18 +776,47 @@ export const createWave4EvidenceObserver = async ({ root }) => {
     execution.completed_checks.push(
       "completed Work stages, resources, and result destinations rendered",
     );
-    await cdp.evaluate(`${button("Reconnect")}.click()`);
-    await cdp.until(
-      'document.querySelector(".work-operation-result")?.textContent.includes("retained") === true',
-      "reconnected Work delivery",
+    const completedWorkPath = `/projects/${scientificProjectId}/work/${completedWorkUnitId}`;
+    const completedInspectPath = await cdp.evaluate(`(() => {
+      const link = document.querySelector('.reference-workspace-inspect');
+      if (!link) return undefined;
+      const url = new URL(link.href);
+      return url.pathname + url.search;
+    })()`);
+    assert.ok(
+      completedInspectPath?.includes(
+        `/projects/${scientificProjectId}/inspect?`,
+      ),
     );
-    await cdp.evaluate(`${button("Replay delivery")}.click()`);
+    await cdp.evaluate(
+      "document.querySelector('.reference-workspace-inspect').click()",
+    );
     await cdp.until(
-      'document.querySelector(".work-operation-result")?.textContent.toLocaleLowerCase().includes("replayed") === true',
-      "replayed Work delivery",
+      `window.location.pathname.endsWith('/inspect') && document.querySelector('.reference-workspace-panel')?.dataset.workspaceObjectRef === ${JSON.stringify(completedWorkUnitId)} && document.querySelector('.reference-inspect')?.textContent.includes('Authorized limit') && document.querySelector('.reference-inspect')?.textContent.includes('Server-assessed Work controls')`,
+      "exact Work inspection",
+    );
+    assert.equal(
+      await cdp.evaluate(
+        "document.querySelector('.reference-inspect__intro a')?.getAttribute('href')",
+      ),
+      completedWorkPath,
+    );
+    await cdp.evaluate(
+      "document.querySelector('.reference-inspect__intro a').click()",
+    );
+    await cdp.until(
+      `window.location.pathname === ${JSON.stringify(completedWorkPath)} && document.querySelector('.work-results--destinations') !== null`,
+      "exact Work return from Inspect",
     );
     execution.completed_checks.push(
-      "durable delivery reconnected and replayed",
+      "single Inspect entry resolved exact Work and returned to its task",
+    );
+    await cdp.until(
+      '[...document.querySelectorAll(".work-operation-result")].some((item) => item.textContent.includes("Canonical Work delivery")) && [...document.querySelectorAll(".work-operation-result")].some((item) => item.textContent.toLocaleLowerCase().includes("replayed"))',
+      "automatic Work delivery restoration",
+    );
+    execution.completed_checks.push(
+      "durable delivery reconnected and replayed automatically",
     );
 
     const resultIdentities = await cdp.evaluate(`
@@ -842,6 +1019,8 @@ export const createWave4EvidenceObserver = async ({ root }) => {
       replay_exercised: true,
       resume_exercised: true,
       start_again_exercised: true,
+      inspector_exact_work_return: true,
+      work_draft_survived_review_and_narrow_panes: true,
       retried_work: {
         work_unit_id: retryWorkUnitId,
         resulting_revision: retryCall.json.resulting_work_unit_ref.revision,

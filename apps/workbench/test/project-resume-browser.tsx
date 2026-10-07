@@ -24,6 +24,7 @@ import {
   loadProjectResume,
 } from "../src/product/project-data.js";
 import briefFixture from "../src/product/project-brief.fixture.json";
+import collectionFixture from "../../../packages/contracts/fixtures/accepted/project-shell-collection-view.json";
 import shellFixture from "../../../packages/contracts/fixtures/accepted/project-shell-view-v1-1.json";
 import "../src/design-system/tokens.css";
 import "../src/design-system/primitives.css";
@@ -261,7 +262,20 @@ window.fetch = (input, init): Promise<Response> => {
     ...(body === undefined ? {} : { body }),
   });
   if (url.pathname === "/api/queries/projects") {
-    return Promise.resolve(json({ projects: [shellForMode()] }));
+    return Promise.resolve(
+      json({
+        ...structuredClone(collectionFixture),
+        content: {
+          ...structuredClone(collectionFixture.content),
+          projects: [shellForMode()],
+          page: {
+            ...structuredClone(collectionFixture.content.page),
+            returned_count: 1,
+            total_count: 1,
+          },
+        },
+      }),
+    );
   }
   if (url.pathname.endsWith(`/projects/${projectId}/shell`)) {
     return Promise.resolve(json(shellForMode()));
@@ -299,6 +313,8 @@ const router = createMemoryRouter(
       loader: async () => ({
         projects: await loadProjectCollection(),
         profiles: [],
+        query: { limit: 12 },
+        page: { returned_count: 1, total_count: 1, has_more: false },
       }),
       element: <ProjectsRoute />,
       errorElement: <RouteError />,

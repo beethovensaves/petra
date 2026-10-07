@@ -1,4 +1,5 @@
 import type {
+  AuthenticatedActorResolution,
   AuthenticatedCommandPrincipalResolution,
   AuthenticatedCommandPrincipalResolver,
   CommandAuthorizationRequest,
@@ -26,6 +27,21 @@ export class PostgresSingleUserCommandPrincipalResolver implements Authenticated
   constructor(pool: Pool, principal: SingleUserCommandPrincipal) {
     this.#pool = pool;
     this.#principal = { ...principal };
+  }
+
+  async resolveAuthenticatedActor(): Promise<AuthenticatedActorResolution> {
+    const result = await this.#pool.query<{
+      readonly actor_registered: boolean;
+    }>(
+      `SELECT EXISTS (
+         SELECT 1 FROM petra.actors
+          WHERE actor_id = $1 AND actor_kind = $2
+       ) AS actor_registered`,
+      [this.#principal.actor_id, this.#principal.actor_kind],
+    );
+    return result.rows[0]?.actor_registered === true
+      ? { state: "resolved", actor: { ...this.#principal } }
+      : { state: "denied", reason: "actor_not_registered" };
   }
 
   async resolveCommandPrincipal(input: {

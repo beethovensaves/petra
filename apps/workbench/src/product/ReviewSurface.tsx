@@ -40,6 +40,7 @@ import {
 } from "./project-data.js";
 import { useProjectRecord } from "./ReferenceWorkbench.js";
 import { AgentControlPortal } from "./AgentControlPlane.js";
+import { useWorkspaceDraftState } from "./workspace-drafts.js";
 
 import {
   createReviewApplyController,
@@ -1251,7 +1252,11 @@ export const ReviewCollectionSurface = ({
             <span aria-hidden="true">!</span>
             <div>
               <h2 id="review-summary-title">
-                {needsDecision.length} decision needs your attention
+                {needsDecision.length === 0
+                  ? "No decisions need your attention"
+                  : needsDecision.length === 1
+                    ? "1 decision needs your attention"
+                    : `${needsDecision.length} decisions need your attention`}
               </h2>
               <p>
                 {waiting.length + completed.length} other Review{" "}
@@ -1312,10 +1317,6 @@ const ReviewGroup = ({
                 <span>{review.objective}</span>
               </div>
               <dl>
-                <div>
-                  <dt>Bound to</dt>
-                  <dd>{review.snapshot}</dd>
-                </div>
                 <div>
                   <dt>Responsible</dt>
                   <dd>{review.responsible}</dd>
@@ -1494,25 +1495,60 @@ const ReviewSessionMemberSurface = ({
   initialCandidateEditOpen?: boolean;
   initialBasisEditOpen?: boolean;
 }): React.JSX.Element => {
-  const [rationale, setRationale] = useState("");
-  const [rejectRationale, setRejectRationale] = useState("");
+  const draftKey = `review-decision:${project.id}:${review.id}`;
+  const [rationale, setRationale] = useWorkspaceDraftState(
+    `${draftKey}:apply-rationale`,
+    "",
+  );
+  const [rejectRationale, setRejectRationale] = useWorkspaceDraftState(
+    `${draftKey}:reject-rationale`,
+    "",
+  );
+  const editorDraftKey = `${draftKey}:${review.exactRef.revision}:${review.candidate.id}:${review.candidate.revision}`;
+  const [candidateDraft, setCandidateDraft, clearCandidateDraft] =
+    useWorkspaceDraftState(
+      `${editorDraftKey}:candidate`,
+      review.candidate.proposed,
+    );
+  const [basisDraft, setBasisDraft, clearBasisDraft] =
+    useWorkspaceDraftState<ReviewCandidateBasisDraftState>(
+      `${editorDraftKey}:basis`,
+      emptyBasisDraft,
+    );
   const [lifecycle, setLifecycle] = useState<ReviewLifecyclePresentationState>({
     state: "idle",
   });
   const [refresh, setRefresh] = useState<ReviewRefreshPresentationState>({
     state: "idle",
   });
-  const [candidateEditor, dispatchCandidateEditor] = useReducer(
+  const automaticRefreshAttempted = useRef<string | undefined>(undefined);
+  const [candidateEditor, reduceCandidateEditor] = useReducer(
     reviewCandidateEditorReducer,
-    createReviewCandidateEditorState(
-      review.candidate.proposed,
-      initialCandidateEditOpen,
-    ),
+    createReviewCandidateEditorState(candidateDraft, initialCandidateEditOpen),
   );
-  const [basisEditor, dispatchBasisEditor] = useReducer(
+  const [basisEditor, reduceBasisEditor] = useReducer(
     reviewCandidateBasisEditorReducer,
-    createReviewCandidateBasisEditorState(initialBasisEditOpen),
+    {
+      ...createReviewCandidateBasisEditorState(initialBasisEditOpen),
+      draft: basisDraft,
+    },
   );
+  const dispatchCandidateEditor = (
+    action: ReviewCandidateEditorAction,
+  ): void => {
+    if (action.type === "draft_changed") setCandidateDraft(action.draft);
+    if (action.type === "correction_succeeded" && action.applied)
+      clearCandidateDraft();
+    reduceCandidateEditor(action);
+  };
+  const dispatchBasisEditor = (
+    action: ReviewCandidateBasisEditorAction,
+  ): void => {
+    if (action.type === "draft_changed") setBasisDraft(action.draft);
+    if (action.type === "revision_succeeded" && action.applied)
+      clearBasisDraft();
+    reduceBasisEditor(action);
+  };
   const decisionRef = useRef<HTMLElement>(null);
   const correctionRef = useRef<HTMLElement>(null);
   const correctionToggleRef = useRef<HTMLDivElement>(null);
@@ -1574,9 +1610,6 @@ const ReviewSessionMemberSurface = ({
     lifecycle.state !== "success";
   const reopenPresented =
     review.lifecycle === "deferred" && lifecycle.state !== "success";
-  const refreshControlPresented =
-    review.snapshotState === "stale" &&
-    (refresh.state === "idle" || refresh.state === "pending");
   const refreshAvailable =
     !applyLocked &&
     !rejectLocked &&
@@ -1756,6 +1789,28 @@ const ReviewSessionMemberSurface = ({
     runRefreshCommand(createReviewSessionRefreshCommandInput(review));
   };
 
+  useEffect(() => {
+    if (
+      !refreshAvailable ||
+      candidateEditor.draft !== review.candidate.proposed ||
+      basisDraftHasInput
+    )
+      return;
+    const key = `${project.id}:${review.id}:${review.exactRef.revision}:${review.exactRef.contentHash}`;
+    if (automaticRefreshAttempted.current === key) return;
+    automaticRefreshAttempted.current = key;
+    refreshReview();
+  }, [
+    basisDraftHasInput,
+    candidateEditor.draft,
+    project.id,
+    refreshAvailable,
+    review.candidate.proposed,
+    review.exactRef.contentHash,
+    review.exactRef.revision,
+    review.id,
+  ]);
+
   const runCandidateCorrection = (
     input: ReviewCandidateCorrectionCommandInput,
   ): void => {
@@ -1925,6 +1980,18 @@ const ReviewSessionMemberSurface = ({
         ? " Separate changes sends this exact Review revision and selected member to Petra. The server rechecks authority and existing ChangeSet boundaries. Separation changes only Review membership; it does not validate, approve, reject, apply, recover, or establish semantic compatibility."
         : " Separate changes is unavailable because this authenticated Review read does not supply an exact open multi-member lifecycle.";
   const decisionBoundary = `${lifecycleBoundary}${refreshBoundary}${separationBoundary}`;
+  const decisionSummary =
+    review.snapshotState === "stale"
+      ? "This comparison is stale. Petra must recheck the exact Review before a decision."
+      : review.validation.state === "blocked"
+        ? `Material validation is blocked: ${review.validation.detail} Petra will recheck any decision against current authority.`
+        : !review.commitment.available
+          ? `Apply and reject are unavailable: ${review.commitment.reason} Decide later changes only Review coordination.`
+          : review.lifecycle === "deferred"
+            ? "This Review is deferred. Reopen asks Petra to recheck the exact Review and current authority."
+            : review.status === "needs_decision"
+              ? "Apply and reject each require a fresh server-prepared commitment and your explicit confirmation. Decide later records no approval."
+              : lifecycleBoundary;
 
   return (
     <main className="reference-surface review-session" id="reference-main">
@@ -1937,30 +2004,34 @@ const ReviewSessionMemberSurface = ({
         </Link>
         <div className="review-session__orientation">
           <div>
-            <p className="reference-eyebrow">
-              Review session · {review.snapshot}
-            </p>
+            <p className="reference-eyebrow">Review session</p>
             <h1>{review.title}</h1>
             <p className="reference-lede">{review.objective}</p>
+            <p className="review-session__responsible">
+              Responsible author: {review.responsible}
+            </p>
           </div>
           <ReviewState review={review} />
         </div>
-        <dl className="review-session__identity">
-          <div>
-            <dt>Review identity</dt>
-            <dd>
-              <code>{review.id}</code>
-            </dd>
-          </div>
-          <div>
-            <dt>Responsible author</dt>
-            <dd>{review.responsible}</dd>
-          </div>
-          <div>
-            <dt>Return</dt>
-            <dd>{review.returnLabel}</dd>
-          </div>
-        </dl>
+        <details className="review-session__record-details">
+          <summary>Review record details</summary>
+          <dl className="review-session__identity">
+            <div>
+              <dt>Authority snapshot</dt>
+              <dd>{review.snapshot}</dd>
+            </div>
+            <div>
+              <dt>Review identity</dt>
+              <dd>
+                <code>{review.id}</code>
+              </dd>
+            </div>
+            <div>
+              <dt>Return</dt>
+              <dd>{review.returnLabel}</dd>
+            </div>
+          </dl>
+        </details>
       </header>
 
       {memberNavigation}
@@ -1970,7 +2041,13 @@ const ReviewSessionMemberSurface = ({
         data-state={review.validation.state}
         aria-labelledby="review-validation-title"
       >
-        <span aria-hidden="true">×</span>
+        <span aria-hidden="true">
+          {review.validation.state === "passed"
+            ? "✓"
+            : review.validation.state === "blocked"
+              ? "×"
+              : "!"}
+        </span>
         <div>
           <div className="review-validation__title">
             <h2 id="review-validation-title">Material validation state</h2>
@@ -2690,7 +2767,7 @@ const ReviewSessionMemberSurface = ({
 
       <AgentControlPortal
         title="Decide this Review"
-        description="Approve or reject the displayed change, defer or reopen the decision, or recover an interrupted command here. Preparation, editing, and comparison remain in the Workspace."
+        description="Decide the displayed change here. Comparison and preparation remain in the Workspace."
         operationIds={[
           "review.apply",
           "review.reject",
@@ -2709,16 +2786,19 @@ const ReviewSessionMemberSurface = ({
             <h2 id="review-decision-title" tabIndex={-1}>
               Decision
             </h2>
-            <p id="review-decision-boundary">
-              {review.validation.state === "blocked"
-                ? `${review.validation.detail} `
-                : ""}
-              {decisionBoundary}
-            </p>
+            <a className="reference-text-link" href="#review-decision-actions">
+              Go to decision controls
+            </a>
+            <p id="review-decision-boundary">{decisionSummary}</p>
           </div>
           {review.status === "needs_decision" &&
           lifecycle.state !== "success" ? (
-            <div className="review-decision__defer-input">
+            <details className="review-decision__defer-input">
+              <summary>
+                {rationale.trim().length > 0
+                  ? "Edit saved reason for deciding later"
+                  : "Add a reason for deciding later (optional)"}
+              </summary>
               <PetraTextArea
                 label="Reason for deciding later (optional)"
                 hint="Petra retains this reason with the deferral. It grants no approval. A scheduled revisit time is not supported yet."
@@ -2728,7 +2808,7 @@ const ReviewSessionMemberSurface = ({
                 disabled={commandPending}
                 onChange={(event) => setRationale(event.currentTarget.value)}
               />
-            </div>
+            </details>
           ) : null}
           {rejectState.kind === "ready" ? (
             <div className="review-decision__reject-input">
@@ -2748,7 +2828,11 @@ const ReviewSessionMemberSurface = ({
               />
             </div>
           ) : null}
-          <PetraButtonGroup label="Review decision">
+          <PetraButtonGroup
+            label="Review decision"
+            id="review-decision-actions"
+            tabIndex={-1}
+          >
             <PetraButton
               variant="primary"
               aria-disabled={applyState.kind !== "ready"}
@@ -2836,22 +2920,14 @@ const ReviewSessionMemberSurface = ({
             >
               {reopenPresented ? "Reopen review" : "Decide later"}
             </PetraButton>
-            {refreshControlPresented ? (
-              <PetraButton
-                variant="secondary"
-                busy={refreshPending}
-                busyLabel="Refreshing Review…"
-                aria-disabled={!refreshAvailable}
-                aria-describedby="review-decision-boundary"
-                data-operation={
-                  review.lifecycle === "open"
-                    ? "refresh_review_session"
-                    : undefined
-                }
-                onClick={refreshReview}
-              >
-                Refresh Review
-              </PetraButton>
+            {review.snapshotState === "stale" &&
+            refresh.state === "idle" &&
+            (candidateEditor.draft !== review.candidate.proposed ||
+              basisDraftHasInput) ? (
+              <p role="status">
+                Review changed while you have an unfinished edit. Keep or
+                discard that draft before Petra refreshes the comparison.
+              </p>
             ) : null}
             {separationControlPresented ? (
               <PetraButton
@@ -2871,6 +2947,10 @@ const ReviewSessionMemberSurface = ({
               </PetraButton>
             ) : null}
           </PetraButtonGroup>
+          <details className="review-decision__conditions">
+            <summary>Exact decision and recovery conditions</summary>
+            <p>{decisionBoundary}</p>
+          </details>
           <ReviewApplyNotice state={applyState} onReload={onReviewChange} />
           <ReviewRejectNotice
             review={review}
@@ -2998,7 +3078,8 @@ export const ReviewSessionSurface = ({
       reloadApplyRef.current?.(),
     ),
   );
-  const [activeMemberId, setActiveMemberId] = useState(
+  const [activeMemberId, setActiveMemberId] = useWorkspaceDraftState(
+    `review-selection:${project.id}:${review.id}:${review.exactRef.revision}:${initialMemberId ?? "default"}`,
     initialMemberId ??
       review.reviewMemberId ??
       review.members?.[0]?.reviewMemberId ??
@@ -3087,7 +3168,7 @@ export const ReviewSessionSurface = ({
 
   return (
     <ReviewSessionMemberSurface
-      key={selectedReview.reviewMemberId ?? selectedReview.id}
+      key={`${selectedReview.reviewMemberId ?? selectedReview.id}:${selectedReview.exactRef.revision}:${selectedReview.candidate.id}:${selectedReview.candidate.revision}`}
       project={project}
       review={selectedReview}
       applyState={applyState}
@@ -3145,7 +3226,7 @@ export const ReviewSessionRoute = (): React.JSX.Element => {
     : undefined;
   return (
     <ReviewSessionSurface
-      key={`${project.id}:${review.id}`}
+      key={`${project.id}:${review.id}:${review.exactRef.revision}:${initialMemberId ?? "default"}`}
       project={project}
       review={review}
       {...(initialMemberId === undefined ? {} : { initialMemberId })}

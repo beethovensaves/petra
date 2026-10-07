@@ -4,6 +4,7 @@ import {
   useLoaderData,
   useLocation,
   useNavigate,
+  useRevalidator,
   useSearchParams,
 } from "react-router";
 
@@ -57,6 +58,7 @@ import {
 import { useProjectRecord } from "./ReferenceWorkbench.js";
 import { SuggestedWorkAction } from "./SuggestedAction.js";
 import { AgentControlPortal } from "./AgentControlPlane.js";
+import { useWorkspaceDraftState } from "./workspace-drafts.js";
 import {
   FocusedGraphEntryLink,
   focusedGraphDefinitionRef,
@@ -210,8 +212,7 @@ export const WorkCollectionSurface = ({
           <p className="reference-eyebrow">Work · current Project</p>
           <h1>Work</h1>
           <p className="reference-lede">
-            Follow durable tasks, required input, results, and operational
-            limits without collapsing them into the Project's inquiry paths.
+            Follow tasks that need input, active Work, and completed results.
           </p>
         </div>
       </header>
@@ -267,6 +268,31 @@ export const WorkCollectionSurface = ({
             </section>
           )}
 
+          <section className="work-units" aria-labelledby="work-units-title">
+            <header>
+              <div>
+                <p className="reference-panel-kicker">Operational records</p>
+                <h2 id="work-units-title">Work tasks</h2>
+              </div>
+              <span>
+                {units.length}
+                {work?.page === undefined ? "" : ` of ${work.page.totalCount}`}
+              </span>
+            </header>
+            <WorkGroup
+              label="Needs attention"
+              units={attention}
+              project={project}
+            />
+            <WorkGroup label="Active" units={active} project={project} />
+            <WorkGroup label="Completed" units={terminal} project={project} />
+            {nextPage === undefined ? null : (
+              <Link className="reference-text-link" to={`?${nextPage}`}>
+                Next Work page
+              </Link>
+            )}
+          </section>
+
           {work.branches.length === 0 ? null : (
             <section
               className="inquiry-branches"
@@ -296,31 +322,6 @@ export const WorkCollectionSurface = ({
               </div>
             </section>
           )}
-
-          <section className="work-units" aria-labelledby="work-units-title">
-            <header>
-              <div>
-                <p className="reference-panel-kicker">Operational records</p>
-                <h2 id="work-units-title">Work tasks</h2>
-              </div>
-              <span>
-                {units.length}
-                {work?.page === undefined ? "" : ` of ${work.page.totalCount}`}
-              </span>
-            </header>
-            <WorkGroup
-              label="Needs attention"
-              units={attention}
-              project={project}
-            />
-            <WorkGroup label="Active" units={active} project={project} />
-            <WorkGroup label="Completed" units={terminal} project={project} />
-            {nextPage === undefined ? null : (
-              <Link className="reference-text-link" to={`?${nextPage}`}>
-                Next Work page
-              </Link>
-            )}
-          </section>
         </>
       )}
     </main>
@@ -581,27 +582,42 @@ const WorkStartAgainOutcome = ({
 const WorkOperationControls = ({
   project,
   initialView,
+  onOperationApplied,
 }: {
   project: ProjectRecord;
   initialView: PetraProjectWorkOperationsView;
+  onOperationApplied?: () => void;
 }): React.JSX.Element => {
   const navigate = useNavigate();
   const [view, setView] = useState(initialView);
-  const [instruction, setInstruction] = useState("");
-  const [priority, setPriority] = useState<
+  const draftKey = `work-operation:${project.id}:${initialView.work_unit_ref.work_unit_id}`;
+  const [instruction, setInstruction] = useWorkspaceDraftState(
+    `${draftKey}:instruction`,
+    "",
+  );
+  const [priority, setPriority] = useWorkspaceDraftState<
     NonNullable<PetraProjectWorkOperationRequest["priority"]>
-  >(initialView.plan.selected_priority);
-  const [cancelReason, setCancelReason] = useState(
+  >(`${draftKey}:priority`, initialView.plan.selected_priority);
+  const [cancelReason, setCancelReason] = useWorkspaceDraftState(
+    `${draftKey}:cancel-reason`,
     "This task is no longer needed for the current Project decision.",
   );
   const [confirmingCancel, setConfirmingCancel] = useState(false);
   const [pending, setPending] = useState<string>();
-  const [receipt, setReceipt] = useState<PetraProjectWorkOperationReceipt>();
-  const [resumeReceipt, setResumeReceipt] =
-    useState<PetraProjectWorkResumeReceipt>();
-  const [startAgainReceipt, setStartAgainReceipt] =
-    useState<PetraProjectWorkStartAgainReceipt>();
-  const [delivery, setDelivery] = useState<ProjectWorkDeliveryObservation>();
+  const [receipt, setReceipt] = useWorkspaceDraftState<
+    PetraProjectWorkOperationReceipt | undefined
+  >(`${draftKey}:last-operation-receipt`, undefined);
+  const [resumeReceipt, setResumeReceipt] = useWorkspaceDraftState<
+    PetraProjectWorkResumeReceipt | undefined
+  >(`${draftKey}:last-resume-receipt`, undefined);
+  const [startAgainReceipt, setStartAgainReceipt] = useWorkspaceDraftState<
+    PetraProjectWorkStartAgainReceipt | undefined
+  >(`${draftKey}:last-start-again-receipt`, undefined);
+  const [delivery, setDelivery] = useState<
+    readonly ProjectWorkDeliveryObservation[]
+  >([]);
+  const [deliveryError, setDeliveryError] = useState<string>();
+  const deliveryAttempted = useRef<string | undefined>(undefined);
   const [error, setError] = useState<{
     message: string;
     recovery: string;
@@ -616,8 +632,7 @@ const WorkOperationControls = ({
 
   useEffect(() => {
     setView(initialView);
-    setPriority(initialView.plan.selected_priority);
-  }, [initialView.content_hash, initialView.plan.selected_priority]);
+  }, [initialView.content_hash]);
 
   const execute = async (
     operation: ProjectWorkCommandOperation,
@@ -637,7 +652,7 @@ const WorkOperationControls = ({
     retained.current = { fingerprint, request };
     setPending(operation);
     setError(undefined);
-    setDelivery(undefined);
+    setDelivery([]);
     setResumeReceipt(undefined);
     setStartAgainReceipt(undefined);
     try {
@@ -652,6 +667,10 @@ const WorkOperationControls = ({
       );
       setReceipt(nextReceipt);
       setView(refreshed);
+      onOperationApplied?.();
+      if (operation === "prioritize" || operation === "steer") {
+        setPriority(refreshed.plan.selected_priority);
+      }
       setInstruction("");
       setConfirmingCancel(false);
       retained.current = undefined;
@@ -696,7 +715,7 @@ const WorkOperationControls = ({
     setPending("resume");
     setError(undefined);
     setReceipt(undefined);
-    setDelivery(undefined);
+    setDelivery([]);
     setStartAgainReceipt(undefined);
     try {
       const nextReceipt = await executeProjectWorkResume(
@@ -710,6 +729,7 @@ const WorkOperationControls = ({
       );
       setResumeReceipt(nextReceipt);
       setView(refreshed);
+      onOperationApplied?.();
       retainedResume.current = undefined;
     } catch (caught) {
       let refreshed = view;
@@ -765,7 +785,7 @@ const WorkOperationControls = ({
     setError(undefined);
     setReceipt(undefined);
     setResumeReceipt(undefined);
-    setDelivery(undefined);
+    setDelivery([]);
     setStartAgainReceipt(undefined);
     try {
       const nextReceipt = await executeProjectWorkStartAgain(
@@ -811,20 +831,15 @@ const WorkOperationControls = ({
     }
   };
 
-  const inspectDelivery = async (
-    operation: "reconnect" | "replay",
-  ): Promise<void> => {
-    setPending(operation);
-    setError(undefined);
-    setReceipt(undefined);
-    setResumeReceipt(undefined);
-    setStartAgainReceipt(undefined);
+  const restoreDelivery = async (): Promise<void> => {
+    if (view.delivery.state !== "durable") return;
+    setPending("delivery");
+    setDeliveryError(undefined);
     try {
-      const observation =
-        operation === "reconnect"
-          ? await reconnectProjectWorkDelivery(view)
-          : await replayProjectWorkDelivery(view);
-      setDelivery(observation);
+      const reconnected = await reconnectProjectWorkDelivery(view);
+      setDelivery([reconnected]);
+      const replayed = await replayProjectWorkDelivery(view);
+      setDelivery([reconnected, replayed]);
       setView(
         await readProjectWorkOperations(
           view.project_id,
@@ -832,18 +847,23 @@ const WorkOperationControls = ({
         ),
       );
     } catch (caught) {
-      setError({
-        message:
-          caught instanceof Error
-            ? caught.message
-            : "Petra could not restore this exact Work delivery.",
-        recovery:
-          "The current Work view remains unchanged. Resolve the stated condition, then retry the same delivery read.",
-      });
+      setDeliveryError(
+        caught instanceof Error
+          ? caught.message
+          : "Petra could not restore this exact Work delivery.",
+      );
     } finally {
       setPending(undefined);
     }
   };
+
+  useEffect(() => {
+    if (view.delivery.state !== "durable") return;
+    const key = `${view.project_id}:${view.work_unit_ref.work_unit_id}:${view.delivery.protocol_run_id}`;
+    if (deliveryAttempted.current === key) return;
+    deliveryAttempted.current = key;
+    void restoreDelivery();
+  }, [view]);
 
   const pendingInputs = view.required_inputs.filter(
     (input) => input.state === "pending",
@@ -862,6 +882,53 @@ const WorkOperationControls = ({
     });
     return `/projects/${encodeURIComponent(project.id)}/locate?${query}`;
   };
+
+  const executionActions = [
+    {
+      operation: "start",
+      label: "Start work",
+      busyLabel: "Starting work",
+      unavailable: unavailableFor(view, "start"),
+      onClick: () => void execute("start"),
+    },
+    {
+      operation: "retry",
+      label: "Retry failed work",
+      busyLabel: "Retrying work",
+      unavailable: unavailableFor(view, "retry"),
+      onClick: () => void execute("retry"),
+    },
+    {
+      operation: "resume",
+      label: "Resume work",
+      busyLabel: "Resuming work",
+      unavailable: unavailableForResume(view),
+      onClick: () => void executeResume(),
+    },
+    {
+      operation: "start_again",
+      label:
+        retainedStartAgain.current === undefined
+          ? "Start again"
+          : "Retry Start again",
+      busyLabel: "Starting again",
+      unavailable:
+        retainedStartAgain.current === undefined
+          ? unavailableForStartAgain(view)
+          : undefined,
+      onClick: () => void executeStartAgain(),
+    },
+  ].sort(
+    (left, right) =>
+      Number(left.unavailable !== undefined) -
+      Number(right.unavailable !== undefined),
+  );
+  const availableExecutionActions = executionActions.filter(
+    (action) => action.unavailable === undefined,
+  );
+  const unavailableExecutionActions = executionActions.filter(
+    (action) => action.unavailable !== undefined,
+  );
 
   return (
     <>
@@ -913,81 +980,53 @@ const WorkOperationControls = ({
         <div className="work-controls__heading">
           <p className="reference-panel-kicker">Operational controls</p>
           <h2 id="work-controls-title">Manage this task</h2>
+          <a className="reference-text-link" href="#work-execution-controls">
+            Go to execution controls
+          </a>
           <p id="work-control-boundary" tabIndex={-1}>
-            Availability comes from the current server-owned Work assessment.
-            Commands change operational state only; they cannot accept a finding
-            or apply a Review. Project authority remains unchanged.
+            Commands change Work state only. Project authority remains
+            unchanged.
           </p>
         </div>
 
-        <dl className="work-controls__snapshot">
-          <div>
-            <dt>Canonical execution</dt>
-            <dd>{view.execution_state.replaceAll("_", " ")}</dd>
-          </div>
-          <div>
-            <dt>Plan</dt>
-            <dd>
-              Revision {view.plan.revision} ·{" "}
-              {priorityLabel[view.plan.selected_priority]}
-            </dd>
-          </div>
-          <div>
-            <dt>Observed</dt>
-            <dd>{view.read_at}</dd>
-          </div>
-          <div>
-            <dt>Delivery</dt>
-            <dd>
-              {view.delivery.state === "durable"
-                ? "Durable reconnect and replay available"
-                : view.delivery.reason}
-            </dd>
-          </div>
-        </dl>
-
         <div className="work-controls__commands">
-          <PetraButtonGroup label="Execution controls">
-            <PetraButton
-              variant="primary"
-              busy={pending === "start"}
-              busyLabel="Starting work"
-              {...withUnavailable(unavailableFor(view, "start"))}
-              onClick={() => void execute("start")}
-            >
-              Start work
-            </PetraButton>
-            <PetraButton
-              busy={pending === "retry"}
-              busyLabel="Retrying work"
-              {...withUnavailable(unavailableFor(view, "retry"))}
-              onClick={() => void execute("retry")}
-            >
-              Retry failed work
-            </PetraButton>
-            <PetraButton
-              busy={pending === "resume"}
-              busyLabel="Resuming work"
-              {...withUnavailable(unavailableForResume(view))}
-              onClick={() => void executeResume()}
-            >
-              Resume work
-            </PetraButton>
-            <PetraButton
-              busy={pending === "start_again"}
-              busyLabel="Starting again"
-              {...withUnavailable(
-                retainedStartAgain.current === undefined
-                  ? unavailableForStartAgain(view)
-                  : undefined,
-              )}
-              onClick={() => void executeStartAgain()}
-            >
-              {retainedStartAgain.current === undefined
-                ? "Start again"
-                : "Retry Start again"}
-            </PetraButton>
+          <PetraButtonGroup
+            id="work-execution-controls"
+            tabIndex={-1}
+            label="Execution controls"
+          >
+            {availableExecutionActions.map((action, index) => (
+              <PetraButton
+                key={action.operation}
+                variant={index === 0 ? "primary" : "secondary"}
+                busy={pending === action.operation}
+                busyLabel={action.busyLabel}
+                onClick={action.onClick}
+              >
+                {action.label}
+              </PetraButton>
+            ))}
           </PetraButtonGroup>
+          {unavailableExecutionActions.length === 0 ? null : (
+            <details className="work-controls__unavailable">
+              <summary>
+                Other execution actions and reasons (
+                {unavailableExecutionActions.length})
+              </summary>
+              <PetraButtonGroup label="Unavailable execution controls">
+                {unavailableExecutionActions.map((action) => (
+                  <PetraButton
+                    key={action.operation}
+                    variant="secondary"
+                    {...withUnavailable(action.unavailable)}
+                    onClick={action.onClick}
+                  >
+                    {action.label}
+                  </PetraButton>
+                ))}
+              </PetraButtonGroup>
+            </details>
+          )}
 
           <form
             className="work-steering"
@@ -1049,33 +1088,34 @@ const WorkOperationControls = ({
           </form>
 
           <div className="work-delivery-controls">
-            <PetraButtonGroup label="Delivery controls">
-              {workControl(view, "detach")?.state === "client_owned" ? (
-                <Link
-                  className="reference-primary-link"
-                  to={`/projects/${project.id}/brief`}
-                >
-                  Leave running
-                </Link>
-              ) : null}
-              <PetraButton
-                busy={pending === "reconnect"}
-                busyLabel="Reconnecting"
-                {...withUnavailable(unavailableFor(view, "reconnect"))}
-                onClick={() => void inspectDelivery("reconnect")}
+            {workControl(view, "detach")?.state === "client_owned" ? (
+              <Link
+                className="reference-primary-link"
+                to={`/projects/${project.id}/brief`}
               >
-                Reconnect
-              </PetraButton>
-              <PetraButton
-                busy={pending === "replay"}
-                busyLabel="Replaying delivery"
-                {...withUnavailable(unavailableFor(view, "replay"))}
-                onClick={() => void inspectDelivery("replay")}
-              >
-                Replay delivery
-              </PetraButton>
-            </PetraButtonGroup>
+                Leave running
+              </Link>
+            ) : null}
             <p>{workControl(view, "detach")?.reason}</p>
+            {pending === "delivery" ? (
+              <p role="status">Restoring retained Work delivery…</p>
+            ) : null}
+            {deliveryError === undefined ? null : (
+              <StateNotice
+                notice={{
+                  tone: "caution",
+                  title: "Delivery could not be restored",
+                  message: deliveryError,
+                  recovery:
+                    "The Work task remains available. Retry the exact delivery read when the connection is ready.",
+                }}
+              />
+            )}
+            {deliveryError === undefined ? null : (
+              <PetraButton onClick={() => void restoreDelivery()}>
+                Retry delivery read
+              </PetraButton>
+            )}
           </div>
 
           {!confirmingCancel ? (
@@ -1120,6 +1160,39 @@ const WorkOperationControls = ({
             </div>
           )}
         </div>
+
+        <details className="work-controls__assessment">
+          <summary>Current Work assessment</summary>
+          <p>
+            Availability comes from the server's exact Work assessment. These
+            commands cannot accept a finding or apply a Review.
+          </p>
+          <dl className="work-controls__snapshot">
+            <div>
+              <dt>Canonical execution</dt>
+              <dd>{view.execution_state.replaceAll("_", " ")}</dd>
+            </div>
+            <div>
+              <dt>Plan</dt>
+              <dd>
+                Revision {view.plan.revision} ·{" "}
+                {priorityLabel[view.plan.selected_priority]}
+              </dd>
+            </div>
+            <div>
+              <dt>Observed</dt>
+              <dd>{view.read_at}</dd>
+            </div>
+            <div>
+              <dt>Delivery</dt>
+              <dd>
+                {view.delivery.state === "durable"
+                  ? "Durable reconnect and replay available"
+                  : view.delivery.reason}
+              </dd>
+            </div>
+          </dl>
+        </details>
 
         <details className="work-operation-availability">
           <summary>Why each Work operation is or is not available</summary>
@@ -1204,15 +1277,19 @@ const WorkOperationControls = ({
             </Link>
           </div>
         )}
-        {delivery === undefined ? null : (
-          <div className="work-operation-result" role="status">
-            <strong>{delivery.summary}</strong>
+        {delivery.map((observation) => (
+          <div
+            className="work-operation-result"
+            role="status"
+            key={observation.kind}
+          >
+            <strong>{observation.summary}</strong>
             <p>
-              InteractionRun {delivery.interactionRunId} · protocol run{" "}
-              {delivery.protocolRunId}
+              InteractionRun {observation.interactionRunId} · protocol run{" "}
+              {observation.protocolRunId}
             </p>
           </div>
-        )}
+        ))}
 
         <div className="work-controls__returns">
           <Link
@@ -1475,6 +1552,7 @@ export const WorkDetailSurface = ({
   selectedResult,
   returnTo,
   startAgain,
+  onOperationApplied,
 }: {
   project: ProjectRecord;
   unit: WorkUnit;
@@ -1483,6 +1561,7 @@ export const WorkDetailSurface = ({
   selectedResult?: ProjectWorkerOutputSelection;
   returnTo?: { path: string; label: string };
   startAgain?: ProjectWorkStartAgainOutcome;
+  onOperationApplied?: () => void;
 }): React.JSX.Element => {
   const branches = work.branches.filter((branch) =>
     unit.branchIds.includes(branch.id),
@@ -1506,26 +1585,29 @@ export const WorkDetailSurface = ({
           </div>
           <WorkState unit={unit} />
         </div>
-        <dl className="work-detail__identity">
-          <div>
-            <dt>Work identity</dt>
-            <dd>
-              <code>{unit.id}</code>
-            </dd>
-          </div>
-          <div>
-            <dt>Origin</dt>
-            <dd>{unit.origin}</dd>
-          </div>
-          <div>
-            <dt>Observed</dt>
-            <dd>{unit.observedAt}</dd>
-          </div>
-          <div>
-            <dt>Review state</dt>
-            <dd>{unit.reviewState}</dd>
-          </div>
-        </dl>
+        <details className="work-detail__record">
+          <summary>Work record details</summary>
+          <dl className="work-detail__identity">
+            <div>
+              <dt>Work identity</dt>
+              <dd>
+                <code>{unit.id}</code>
+              </dd>
+            </div>
+            <div>
+              <dt>Origin</dt>
+              <dd>{unit.origin}</dd>
+            </div>
+            <div>
+              <dt>Observed</dt>
+              <dd>{unit.observedAt}</dd>
+            </div>
+            <div>
+              <dt>Review state</dt>
+              <dd>{unit.reviewState}</dd>
+            </div>
+          </dl>
+        </details>
       </header>
 
       {startAgain === undefined ? null : (
@@ -1566,7 +1648,13 @@ export const WorkDetailSurface = ({
           ]}
           objectRef={operations.work_unit_ref.work_unit_id}
         >
-          <WorkOperationControls project={project} initialView={operations} />
+          <WorkOperationControls
+            project={project}
+            initialView={operations}
+            {...(onOperationApplied === undefined
+              ? {}
+              : { onOperationApplied })}
+          />
         </AgentControlPortal>
       ) : unit.requiredInput === undefined ? null : (
         <section
@@ -1886,6 +1974,7 @@ export const workDetailReturnContext = (
 
 export const WorkDetailRoute = (): React.JSX.Element => {
   const project = useProjectRecord();
+  const revalidator = useRevalidator();
   const { work, unit, operations, selectedResult } =
     useLoaderData<ProjectWorkDetailData>();
   const location = useLocation();
@@ -1901,10 +1990,12 @@ export const WorkDetailRoute = (): React.JSX.Element => {
       : undefined;
   return (
     <WorkDetailSurface
+      key={unit.id}
       project={project}
       unit={unit}
       work={work}
       operations={operations}
+      onOperationApplied={() => void revalidator.revalidate()}
       {...(selectedResult === undefined ? {} : { selectedResult })}
       {...(returnTo === undefined ? {} : { returnTo })}
       {...(startAgain === undefined ? {} : { startAgain })}
@@ -2548,9 +2639,10 @@ export const PetraSurface = ({
   const focusedSnapshot =
     communicationPlan?.content.evidence_packet.snapshot_ref;
   const communicationReturn =
-    communicationPlan === undefined
+    returnContext ??
+    (communicationPlan === undefined
       ? undefined
-      : (returnContext ?? {
+      : {
           path: `/projects/${encodeURIComponent(project.id)}/brief`,
           label: "Brief",
         });

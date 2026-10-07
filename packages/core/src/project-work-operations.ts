@@ -32,6 +32,19 @@ export interface ProjectWorkCommandPrincipal {
   readonly capabilityGrantId: string;
 }
 
+export type ProjectWorkReceipt =
+  | PetraProjectWorkOperationReceipt
+  | PetraProjectWorkResumeReceipt
+  | PetraProjectWorkStartAgainReceipt;
+
+export interface ProjectWorkReceiptReader {
+  readRecentProjectWorkReceipts(
+    projectId: string,
+    workUnitId: string,
+    actor: PetraProjectWorkOperationReceipt["actor"],
+  ): Promise<readonly ProjectWorkReceipt[]>;
+}
+
 export interface RegisterProjectWorkRequiredInput {
   readonly inputRequestId: string;
   readonly projectId: string;

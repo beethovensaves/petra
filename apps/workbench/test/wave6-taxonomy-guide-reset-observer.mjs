@@ -429,9 +429,13 @@ export const createWave4EvidenceObserver = async ({ root }) => {
         "Project controls",
         "Scientific evidence inquiry",
         "Project-authored definition",
-        "Reset with a registered profile",
       ],
       "Settings",
+    );
+    await navigate(
+      `/guide?project=${encodeURIComponent(context.scientificProjectId)}`,
+      'document.querySelector(".settings-project-reset") !== null',
+      "acceptance guide reset",
     );
     await click(button("Choose replacement profile"), "reset profile choice");
     await until(

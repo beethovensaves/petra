@@ -9,6 +9,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router";
 
 import { PetraButton } from "../design-system/primitives.js";
+import { AgentControlPortal } from "./AgentControlPlane.js";
 import {
   createSourceProcessingRequest,
   projectSourceProcessingClient,
@@ -578,26 +579,33 @@ export const SourceProcessingPanel = ({
                   unchanged.
                 </p>
               )}
-              <div className="source-processing-actions">
-                <PetraButton
-                  variant="secondary"
-                  busy={assessing}
-                  busyLabel="Checking processing effect"
-                  onClick={() => void assess()}
-                >
-                  Check processing effect
-                </PetraButton>
-                {assessment?.effect.state === "outcome_unknown" ? (
+              <AgentControlPortal
+                title="Recover source processing"
+                description="Check the retained command effect before an exact retry."
+                operationIds={["source.start-processing"]}
+                objectRef={projectSourceId}
+              >
+                <div className="source-processing-actions">
                   <PetraButton
-                    variant="primary"
-                    busy={retrying}
-                    busyLabel="Retrying exact request"
-                    onClick={() => void retry()}
+                    variant="secondary"
+                    busy={assessing}
+                    busyLabel="Checking processing effect"
+                    onClick={() => void assess()}
                   >
-                    Retry exact processing request
+                    Check processing effect
                   </PetraButton>
-                ) : null}
-              </div>
+                  {assessment?.effect.state === "outcome_unknown" ? (
+                    <PetraButton
+                      variant="primary"
+                      busy={retrying}
+                      busyLabel="Retrying exact request"
+                      onClick={() => void retry()}
+                    >
+                      Retry exact processing request
+                    </PetraButton>
+                  ) : null}
+                </div>
+              </AgentControlPortal>
               {recoveryError === undefined ? null : (
                 <p className="source-processing-recovery__error" role="alert">
                   {recoveryError}
@@ -619,17 +627,24 @@ export const SourceProcessingPanel = ({
               </h3>
               <p>
                 Petra will bind one durable Work task to this exact copy,
-                current Project profile, source role, and registered processing
-                family. Processing does not endorse source meaning.
+                current Project definition, source role, and registered
+                processing family. Processing does not endorse source meaning.
               </p>
-              <PetraButton
-                variant="primary"
-                busy={starting}
-                busyLabel="Starting processing Work"
-                onClick={() => void start()}
+              <AgentControlPortal
+                title="Process this source"
+                description="Start one bounded Work task from the selected copy and registered source role."
+                operationIds={["source.start-processing"]}
+                objectRef={projectSourceId}
               >
-                Process source
-              </PetraButton>
+                <PetraButton
+                  variant="primary"
+                  busy={starting}
+                  busyLabel="Starting processing Work"
+                  onClick={() => void start()}
+                >
+                  Process source
+                </PetraButton>
+              </AgentControlPortal>
             </section>
           ) : (
             <ProcessingState view={view} taskReturnPath={taskReturnPath} />

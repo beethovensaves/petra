@@ -278,6 +278,63 @@ export const startWave6HistoryRecoveryBrowser = async ({
     recovery?.json?.content?.assessment?.state,
     "eligible_for_preview",
   );
+  await activate(
+    `document.querySelector('a[aria-label="Inspect Request a governed Revert"]')`,
+  );
+  await until(
+    `window.location.pathname.endsWith('/inspect') && document.querySelector('.reference-inspect')?.textContent.includes(${JSON.stringify(applied.event_ref.event_id)}) && document.querySelector('.reference-inspect')?.textContent.includes('eligible_for_preview')`,
+    "unified exact event inspection",
+  );
+  await activate(summary("Basis and limitations"));
+  await activate(summary("Control and identity"));
+  await activate(summary("Graph and History"));
+  const inspectionText = await evaluate(
+    "document.querySelector('.reference-inspect').innerText",
+  );
+  for (const value of [
+    "Recorded actor",
+    "Historical Project definition",
+    "Command fingerprint",
+    "Original capability grant",
+    "Current recovery command assessment",
+    "Causal command",
+    "Recorded downstream impact",
+  ]) {
+    assert.ok(inspectionText.includes(value), `Inspect omitted ${value}.`);
+  }
+  assert.equal(
+    await evaluate(
+      "document.querySelector('.reference-inspect__intro a')?.getAttribute('href')",
+    ),
+    eventPath,
+  );
+  await until(
+    'document.querySelector(".reference-inspect__events li a") !== null',
+    "retained History events in Inspect",
+  );
+  const eventInspectionHref = await evaluate(
+    'document.querySelector(".reference-inspect__events li a").getAttribute("href")',
+  );
+  const eventInspectionUrl = new URL(eventInspectionHref, workbench.url);
+  const eventInspectionId = eventInspectionUrl.searchParams.get("object");
+  assert.equal(eventInspectionUrl.pathname, `/projects/${projectId}/inspect`);
+  assert.match(eventInspectionId ?? "", /^event_[0-9A-HJKMNP-TV-Z]{26}$/u);
+  await activate('document.querySelector(".reference-inspect__events li a")');
+  await until(
+    `window.location.search.includes(${JSON.stringify(`object=${eventInspectionId}`)}) && document.querySelector('.reference-inspect')?.textContent.includes(${JSON.stringify(eventInspectionId)})`,
+    "exact retained History event inside Inspect",
+  );
+  assert.equal(
+    await evaluate(
+      "document.querySelector('.reference-inspect__intro a')?.getAttribute('href')",
+    ),
+    eventPath,
+  );
+  await activate("document.querySelector('.reference-inspect__intro a')");
+  await until(
+    `window.location.pathname === ${JSON.stringify(eventPath)} && document.querySelector('.history-event') !== null`,
+    "exact History task return from Inspect",
+  );
   await activate(summary("Compare recorded state"));
   await until(
     'document.querySelector(".history-event__comparison").open === true',
@@ -286,7 +343,7 @@ export const startWave6HistoryRecoveryBrowser = async ({
   let text = await evaluate("document.body.innerText");
   for (const value of [
     "Historical position and current read",
-    "exact retained Project profile definition revision",
+    "exact retained Project definition revision",
     "Impact and recovery boundary",
   ]) {
     assert.ok(text.includes(value), `Missing History comparison: ${value}`);
@@ -428,6 +485,9 @@ export const startWave6HistoryRecoveryBrowser = async ({
     episode_hash: episode.json.content_hash,
     impact_hash: impact.json.content_hash,
     recovery_hash: recovery.json.content_hash,
+    inspector_exact_event_return: true,
+    inspector_event_authority_detail: true,
+    inspector_retained_event_drill_in: true,
     plan_hash: plan.json.content_hash,
     execution_hash: execution.json.content_hash,
     compensation_event_ids: compensationEventIds,

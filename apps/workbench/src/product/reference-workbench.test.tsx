@@ -950,8 +950,9 @@ describe("neutral Petra reference workbench", () => {
   it("keeps a persistent 30/70 Agent–Workspace frame with inspection on demand", () => {
     expect(referenceWorkbenchCss).toContain("position: sticky");
     expect(referenceWorkbenchCss).toContain(
-      "grid-template-columns: minmax(18rem, 3fr) minmax(0, 7fr)",
+      "grid-template-columns: minmax(18rem, var(--petra-agent-share, 30%))",
     );
+    expect(referenceWorkbenchCss).toContain(".reference-agent-resize");
     expect(referenceWorkbenchCss).toContain(".reference-agent-action");
     expect(referenceWorkbenchCss).toContain(".reference-project-inspection");
     expect(referenceWorkbenchCss).toContain(
@@ -1014,6 +1015,9 @@ describe("neutral Petra reference workbench", () => {
     expect(markup).toContain("The closing interval shortened");
     expect(markup).toContain('id="source-details-title"');
     expect(markup).toContain(">Details<");
+    expect(markup).toContain(
+      '<details class="reference-source-record-details"><summary>Record and copy identity</summary>',
+    );
     expect(markup).toContain(
       "Basis for 3 findings and 1 unresolved comparison",
     );

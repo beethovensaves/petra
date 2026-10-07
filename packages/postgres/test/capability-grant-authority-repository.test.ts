@@ -214,6 +214,11 @@ describePostgres("PostgreSQL CapabilityGrant authority", () => {
       commandName: "ExcludeProjectSource" as const,
     };
 
+    await expect(resolver.resolveAuthenticatedActor()).resolves.toEqual({
+      state: "resolved",
+      actor: { actor_id: actor.actor_id, actor_kind: "human" },
+    });
+
     await expect(resolver.resolveCommandPrincipal(request)).resolves.toEqual({
       state: "denied",
       reason: "active_grant_not_found",
@@ -271,6 +276,11 @@ describePostgres("PostgreSQL CapabilityGrant authority", () => {
     const resolver = new PostgresSingleUserCommandPrincipalResolver(pool, {
       actor_id: "actor_01K4C000000000000000000057",
       actor_kind: "human",
+    });
+
+    await expect(resolver.resolveAuthenticatedActor()).resolves.toEqual({
+      state: "denied",
+      reason: "actor_not_registered",
     });
 
     await expect(

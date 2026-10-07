@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import type {
   PetraProjectObjectiveCommandReceipt,
   PetraProjectObjectiveCommandRecoveryView,
@@ -84,8 +84,10 @@ export const ProjectObjectiveOutcome = ({
 
 export const ProjectObjectiveControl = ({
   context,
+  suggestedStatement,
 }: {
   context: ProjectObjectiveCommandContext;
+  suggestedStatement?: string;
 }): React.JSX.Element => {
   const navigate = useNavigate();
   const operation = context.focus.state === "none" ? "frame" : "revise";
@@ -93,9 +95,17 @@ export const ProjectObjectiveControl = ({
     context.focus.state === "focused"
       ? context.focus.objective.content.statement
       : "";
-  const [open, setOpen] = useState(false);
-  const [roughStatement, setRoughStatement] = useState(currentStatement);
-  const [proposedStatement, setProposedStatement] = useState(currentStatement);
+  const agentSuggestion =
+    suggestedStatement === undefined ? undefined : suggestedStatement.trim();
+  const [open, setOpen] = useState(Boolean(agentSuggestion));
+  const [roughStatement, setRoughStatement] = useState(
+    operation === "frame"
+      ? (agentSuggestion ?? currentStatement)
+      : currentStatement,
+  );
+  const [proposedStatement, setProposedStatement] = useState(
+    agentSuggestion ?? currentStatement,
+  );
   const [reviewed, setReviewed] = useState(false);
   const [busy, setBusy] = useState<"apply" | "assess" | "retry">();
   const [retainedRequest, setRetainedRequest] =
@@ -106,6 +116,14 @@ export const ProjectObjectiveControl = ({
   }>();
   const [recovery, setRecovery] =
     useState<PetraProjectObjectiveCommandRecoveryView>();
+
+  useEffect(() => {
+    if (agentSuggestion === undefined || agentSuggestion.length === 0) return;
+    setOpen(true);
+    setProposedStatement(agentSuggestion);
+    if (operation === "frame") setRoughStatement(agentSuggestion);
+    setReviewed(false);
+  }, [agentSuggestion, operation]);
 
   const edited = (): void => {
     setReviewed(false);
@@ -241,6 +259,12 @@ export const ProjectObjectiveControl = ({
               the active {context.focus.term.toLocaleLowerCase()}. Petra will
               recheck the Project, profile, and current focus when you apply it.
             </p>
+            {agentSuggestion === undefined ? null : (
+              <p role="status">
+                Your Agent draft is here for review. It has not changed the
+                Project objective or sent a model request.
+              </p>
+            )}
           </header>
           <div className="brief-objective-control__fields">
             <PetraTextArea
@@ -391,9 +415,11 @@ export const ProjectObjectiveControl = ({
 export const ProjectObjectiveEmptyBrief = ({
   context,
   outcome,
+  suggestedStatement,
 }: {
   context: ProjectObjectiveCommandContext;
   outcome?: ProjectObjectiveReturnOutcome;
+  suggestedStatement?: string;
 }): React.JSX.Element => (
   <main className="reference-surface live-project-brief" id="reference-main">
     <header className="brief-heading">
@@ -434,7 +460,10 @@ export const ProjectObjectiveEmptyBrief = ({
         operationIds={["brief.frame-objective"]}
         objectRef={context.projectId}
       >
-        <ProjectObjectiveControl context={context} />
+        <ProjectObjectiveControl
+          context={context}
+          {...(suggestedStatement === undefined ? {} : { suggestedStatement })}
+        />
       </AgentControlPortal>
     </section>
   </main>

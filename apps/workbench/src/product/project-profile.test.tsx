@@ -181,12 +181,12 @@ describe("usable Project profile UI", () => {
       />,
     );
 
-    expect(registered).toContain("Registered profile · version 1.0.0");
+    expect(registered).toContain("Registered definition · version 1.0.0");
     expect(projectAuthored).toContain("Project-authored definition");
     expect(projectAuthored).toContain("has no registered template origin");
-    expect(unsupported).toContain("Project profile unsupported");
+    expect(unsupported).toContain("Project definition unsupported");
     expect(unsupported).toContain(
-      "No substitute terms, actions, or profile defaults were applied",
+      "No substitute terms, actions, or definition defaults were applied",
     );
     expect(unsupported).not.toContain("Terms used in this Project");
   });

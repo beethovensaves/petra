@@ -308,9 +308,7 @@ describe("reference Work and Petra packets", () => {
       />,
     );
 
-    expect(markup).toContain(
-      "Availability comes from the current server-owned",
-    );
+    expect(markup).toContain("Availability comes from the server");
     expect(markup).toContain("Start work");
     expect(markup).toContain("Steer work");
     expect(markup).toContain("Set priority");
@@ -443,7 +441,7 @@ describe("reference Work and Petra packets", () => {
     expect(markup).toContain("Prior outputs, history, and incurred use remain");
   });
 
-  it("enables server-assessed query-only reconnect and replay controls", () => {
+  it("keeps server-assessed query-only reconnect and replay off the routine control surface", () => {
     const queryOnly = structuredClone(workOperations);
     for (const operation of ["reconnect", "replay"] as const) {
       const control = queryOnly.controls.find(
@@ -465,22 +463,10 @@ describe("reference Work and Petra packets", () => {
         operations={queryOnly}
       />,
     );
-    const buttonMarkup = (label: string): string | undefined => {
-      const labelIndex = markup.indexOf(`>${label}</span>`);
-      if (labelIndex < 0) return undefined;
-      const start = markup.lastIndexOf("<button", labelIndex);
-      const end = markup.indexOf("</button>", labelIndex);
-      return start < 0 || end < 0
-        ? undefined
-        : markup.slice(start, end + "</button>".length);
-    };
-    const reconnectButton = buttonMarkup("Reconnect");
-    const replayButton = buttonMarkup("Replay delivery");
-
-    expect(reconnectButton).toBeDefined();
-    expect(reconnectButton).not.toContain("aria-disabled");
-    expect(replayButton).toBeDefined();
-    expect(replayButton).not.toContain("aria-disabled");
+    expect(markup).toContain("The exact reconnect query is available.");
+    expect(markup).toContain("The exact replay query is available.");
+    expect(markup).not.toContain(">Reconnect</span></button>");
+    expect(markup).not.toContain(">Replay delivery</span></button>");
   });
 
   it("renders a selected manifest under its producing Work with its exact empty diagnostics array", () => {

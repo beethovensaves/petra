@@ -57,6 +57,11 @@
   list-style: none;
 }
 
+.reference-agent-thread__representation {
+  color: var(--petra-text-secondary);
+  font-size: var(--petra-font-size-caption);
+}
+
 .reference-agent-thread > ol li {
   padding-left: var(--petra-space-3);
   border-left: 2px solid var(--petra-border-default);
@@ -152,6 +157,17 @@
   max-width: none;
 }
 
+.reference-agent-control__body .reference-source-actions .petra-action {
+  width: auto;
+  max-width: 100%;
+}
+
+@media (max-width: 38rem) {
+  .reference-agent-control__body .reference-source-actions .petra-action {
+    width: 100%;
+  }
+}
+
 .reference-agent-control__body code,
 .reference-agent-thread code {
   overflow-wrap: anywhere;
@@ -160,8 +176,19 @@
 .reference-agent-composer {
   display: grid;
   gap: var(--petra-space-3);
-  padding-top: var(--petra-space-3);
+  position: sticky;
+  top: 0;
+  bottom: calc(-1 * var(--petra-space-4));
+  z-index: 2;
+  padding: var(--petra-space-3) 0 var(--petra-space-4);
   border-top: var(--petra-rule-thin) solid var(--petra-border-default);
+  background: var(--petra-surface-chrome);
+}
+
+@media (max-width: 64rem) {
+  .reference-agent-composer {
+    position: static;
+  }
 }
 
 .reference-agent-composer .petra-model-readiness {
@@ -226,6 +253,12 @@
   padding: 0;
   border: 0;
   background: transparent;
+}
+
+.reference-agent-composer .petra-field__textarea {
+  min-height: 4.5rem;
+  height: 4.5rem;
+  max-height: 40vh;
 }
 
 .reference-agent-composer .petra-composer > div:last-child,

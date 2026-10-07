@@ -149,15 +149,21 @@ export const PetraButtonGroup = ({
   label,
   children,
   className,
+  id,
+  tabIndex,
 }: {
   label: string;
   children: ReactNode;
   className?: string;
+  id?: string;
+  tabIndex?: number;
 }): React.JSX.Element => (
   <div
     className={["petra-button-group", className].filter(Boolean).join(" ")}
     role="group"
     aria-label={label}
+    id={id}
+    tabIndex={tabIndex}
   >
     {children}
   </div>

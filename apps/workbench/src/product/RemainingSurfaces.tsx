@@ -48,8 +48,8 @@ import {
 } from "./project-data.js";
 import { useProjectRecord } from "./ReferenceWorkbench.js";
 import { AgentControlPortal } from "./AgentControlPlane.js";
+import { useWorkspaceDraftState } from "./workspace-drafts.js";
 import { Observation } from "./ReviewRecovery.js";
-import { ProjectResetPanel } from "./ProjectProfileSurface.js";
 import {
   PERSONAL_LAYOUT_PRESETS,
   PERSONAL_PANEL_LIMITS,
@@ -166,7 +166,10 @@ export const CompositionArtifactSurface = ({
   initialMode?: CompositionMode;
 }): React.JSX.Element => {
   const [mode, setMode] = useState<CompositionMode>(initialMode);
-  const [draft, setDraft] = useState(artifact.workingText);
+  const [draft, setDraft] = useWorkspaceDraftState(
+    `artifact-text:${project.id}:${artifact.id}:${artifact.workingRevision}`,
+    artifact.workingText,
+  );
   const [exportPreviewOpen, setExportPreviewOpen] = useState(false);
   const locallyChanged = draft !== artifact.workingText;
 
@@ -441,15 +444,36 @@ export const CompositionArtifactRoute = (): React.JSX.Element => {
   const artifact = getReferenceArtifact(project.id, artifactId);
 
   if (artifact === undefined) {
+    const selectedArtifact =
+      project.selection?.destination === "composition" &&
+      project.selection.semanticKey === "petra.draft-artifact" &&
+      project.selection.objectId === artifactId &&
+      (project.selection.state === "current" ||
+        project.selection.state === "historical" ||
+        project.selection.state === "superseded")
+        ? project.selection
+        : undefined;
     return (
       <main className="reference-route-error" id="reference-main">
         <PetraMark />
         <p className="reference-eyebrow">Artifact unavailable</p>
-        <h1>This artifact cannot be opened</h1>
-        <p>
-          The identity does not resolve inside {project.title}. No newer
-          document was substituted.
-        </p>
+        <h1>
+          {selectedArtifact === undefined
+            ? "This artifact cannot be opened"
+            : "The Artifact workspace is not available yet"}
+        </h1>
+        {selectedArtifact === undefined ? (
+          <p>
+            The identity does not resolve inside {project.title}. No newer
+            document was substituted.
+          </p>
+        ) : (
+          <p>
+            Petra resolved {selectedArtifact.label ?? "this artifact"} at
+            revision {selectedArtifact.resolvedRevision}, but live document
+            reading and editing are not available in this workspace yet.
+          </p>
+        )}
         <Link
           className="reference-text-link"
           to={`/projects/${project.id}/composition`}
@@ -460,7 +484,13 @@ export const CompositionArtifactRoute = (): React.JSX.Element => {
     );
   }
 
-  return <CompositionArtifactSurface project={project} artifact={artifact} />;
+  return (
+    <CompositionArtifactSurface
+      key={artifact.id}
+      project={project}
+      artifact={artifact}
+    />
+  );
 };
 
 const historyFilterChoices = {
@@ -1183,7 +1213,7 @@ export const HistoryEventSurface = ({
               <>
                 <p>
                   Petra interpreted the event with the exact retained Project
-                  profile definition revision{" "}
+                  definition revision{" "}
                   {graphDefinitionAuthority.project_definition_ref.revision},
                   effective before this event.
                 </p>
@@ -1195,9 +1225,8 @@ export const HistoryEventSurface = ({
               </>
             ) : (
               <p>
-                No exact retained Project profile definition is available for
-                historical interpretation. Petra did not substitute the current
-                profile.
+                No exact retained Project definition is available for historical
+                interpretation. Petra did not substitute the current definition.
               </p>
             )}
           </details>
@@ -2307,7 +2336,6 @@ const PersonalSettingsPanel = ({
 export const SettingsSurface = ({
   selectedProject,
   controls,
-  profiles = [],
   taxonomy,
 }: {
   selectedProject?: ProjectRecord | undefined;
@@ -2398,14 +2426,14 @@ export const SettingsSurface = ({
                   <dd>{selectedProject.title}</dd>
                 </div>
                 <div>
-                  <dt>Profile</dt>
+                  <dt>Project definition</dt>
                   <dd>
                     {selectedProject.profile.label} ·{" "}
                     {selectedProject.profile.version}
                   </dd>
                 </div>
                 <div>
-                  <dt>Profile origin</dt>
+                  <dt>Definition origin</dt>
                   <dd>
                     ProjectDefinition revision {selectedProject.profile.version}
                   </dd>
@@ -2415,10 +2443,10 @@ export const SettingsSurface = ({
                     <dt>Taxonomy resolution</dt>
                     <dd>
                       {taxonomy.resolution.state === "registered"
-                        ? `Registered profile · version ${taxonomy.resolution.profile_ref.profile_version}`
+                        ? `Registered definition · version ${taxonomy.resolution.profile_ref.profile_version}`
                         : taxonomy.resolution.state === "project_authored"
                           ? `Project-authored definition · ${taxonomy.resolution.limitation}`
-                          : `Unsupported profile · ${taxonomy.resolution.message}`}
+                          : `Unsupported definition · ${taxonomy.resolution.message}`}
                     </dd>
                   </div>
                 )}
@@ -2475,14 +2503,11 @@ export const SettingsSurface = ({
                 className="reference-primary-link"
                 to={`/projects/${selectedProject.id}/profile`}
               >
-                Inspect Project profile
+                Inspect Project definition
               </Link>
             </>
           )}
         </section>
-        {selectedProject === undefined ? null : (
-          <ProjectResetPanel project={selectedProject} profiles={profiles} />
-        )}
       </div>
     </main>
   );
@@ -2511,7 +2536,9 @@ export const ProfileToolSurface = ({
   <main className="reference-surface profile-tool" id="reference-main">
     <header className="reference-surface-heading">
       <div>
-        <p className="reference-eyebrow">Profile tool · {tool.profileLabel}</p>
+        <p className="reference-eyebrow">
+          Project capability · {tool.profileLabel}
+        </p>
         <h1>{tool.label}</h1>
         <p className="reference-lede">{tool.objective}</p>
       </div>
@@ -2522,7 +2549,7 @@ export const ProfileToolSurface = ({
       aria-labelledby="profile-tool-inputs-title"
     >
       <header>
-        <p className="reference-panel-kicker">Typed profile inputs</p>
+        <p className="reference-panel-kicker">Registered inputs</p>
         <h2 id="profile-tool-inputs-title">Check scope</h2>
       </header>
       <dl>
@@ -2562,7 +2589,7 @@ export const ProfileToolSurface = ({
     </section>
     <footer className="reference-reader-return">
       <p>
-        Profile terms and validation come from the registered tool; Petra owns
+        Terms and validation come from the registered capability; Petra owns
         Work, recovery, and return.
       </p>
       <Link
@@ -2583,10 +2610,10 @@ export const ProfileToolRoute = (): React.JSX.Element => {
     return (
       <main className="reference-route-error" id="reference-main">
         <PetraMark />
-        <p className="reference-eyebrow">Profile tool unavailable</p>
-        <h1>This tool is not registered for the active profile</h1>
+        <p className="reference-eyebrow">Project capability unavailable</p>
+        <h1>This capability is not registered for this Project</h1>
         <p>
-          Petra did not substitute another profile's task or generic controls.
+          Petra did not substitute another Project’s task or generic controls.
         </p>
         <Link
           className="reference-text-link"

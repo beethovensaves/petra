@@ -103,7 +103,7 @@ export const ProfileTaxonomyPresentation = ({
   return (
     <article className="profile-taxonomy" data-profile-label={label}>
       <header className="profile-taxonomy__heading">
-        <p className="reference-panel-kicker">Project profile</p>
+        <p className="reference-panel-kicker">Project definition</p>
         <Heading>{label}</Heading>
         <p>{purpose}</p>
       </header>
@@ -148,7 +148,7 @@ export const ProfileTaxonomyPresentation = ({
         <section aria-labelledby={`${prefix}-unavailable-title`}>
           <h3 id={`${prefix}-unavailable-title`}>Unavailable operations</h3>
           {taxonomy.unavailable_operations.length === 0 ? (
-            <p>No unavailable operation was supplied by this profile.</p>
+            <p>No unavailable operation was supplied by this definition.</p>
           ) : (
             <ul>
               {taxonomy.unavailable_operations.map((operation) => (
@@ -953,14 +953,14 @@ export const ProjectProfileSurface = ({
           className="profile-resolution__unsupported"
           aria-labelledby="unsupported-profile-title"
         >
-          <p className="reference-eyebrow">Project profile unsupported</p>
+          <p className="reference-eyebrow">Project definition unsupported</p>
           <h1 id="unsupported-profile-title">
-            Petra cannot resolve this Project’s exact profile
+            Petra cannot resolve this Project’s exact definition
           </h1>
           <p>{resolution.message}</p>
           <p>
-            No substitute terms, actions, or profile defaults were applied. The
-            Project remains unchanged.
+            No substitute terms, actions, or definition defaults were applied.
+            The Project remains unchanged.
           </p>
           <Link className="reference-primary-link" to="/">
             Return to Projects
@@ -974,19 +974,18 @@ export const ProjectProfileSurface = ({
     <main className="reference-surface profile-resolution" id="reference-main">
       <header className="reference-surface-heading">
         <div>
-          <p className="reference-eyebrow">Profile · current Project</p>
+          <p className="reference-eyebrow">Definition · current Project</p>
           <h1>How {project.title} is organized</h1>
           <p className="reference-lede">
-            These server-supplied terms and operation boundaries apply across
-            Brief, Sources, Review, Graph, Work, Petra, Details, History, and
-            Settings.
+            These server-supplied terms and operation boundaries apply
+            throughout this Project.
           </p>
         </div>
         <Link
           className="reference-context-back"
           to={`/projects/${project.id}/brief`}
         >
-          Return to Brief
+          Return to outcome
         </Link>
       </header>
       {resolution.state === "project_authored" ? (
@@ -996,7 +995,8 @@ export const ProjectProfileSurface = ({
         </aside>
       ) : (
         <p className="profile-resolution__origin">
-          Registered profile · version {resolution.profile_ref.profile_version}
+          Registered definition · version{" "}
+          {resolution.profile_ref.profile_version}
         </p>
       )}
       <ProfileTaxonomyPresentation

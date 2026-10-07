@@ -101,6 +101,7 @@ import type {
   ProjectThreadViewReader,
   ProjectWorkOperationAuthority,
   ProjectWorkOperationsViewReader,
+  ProjectWorkReceiptReader,
   ProjectWorkResumeAuthority,
   ProjectWorkStartAgainAuthority,
   ProjectWorkerOutputManifestReader,
@@ -197,6 +198,7 @@ export interface ProjectShellPersistence {
   readonly workViews: ProjectWorkViewReader;
   readonly workerOutputManifests: ProjectWorkerOutputManifestReader;
   readonly workOperations: ProjectWorkOperationsViewReader;
+  readonly workReceipts: ProjectWorkReceiptReader;
   readonly workOperationAuthority: ProjectWorkOperationAuthority;
   readonly workResumeAuthority: ProjectWorkResumeAuthority;
   readonly workStartAgainAuthority: ProjectWorkStartAgainAuthority;
@@ -741,6 +743,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
           contracts,
         ),
         workOperations,
+        workReceipts: workOperations,
         workOperationAuthority: workOperations,
         workResumeAuthority: workOperations,
         workStartAgainAuthority: workOperations,
@@ -847,6 +850,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
       contracts,
     ),
     workOperations,
+    workReceipts: workOperations,
     workOperationAuthority: workOperations,
     workResumeAuthority: workOperations,
     workStartAgainAuthority: workOperations,

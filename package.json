@@ -137,6 +137,7 @@
     "test:wave6:project-create-ui": "npm run build:packages && node apps/workbench/test/project-create-browser.mjs",
     "test:frontend:step3-live": "npm run build:packages && node apps/workbench/test/frontend-step3-live-browser.mjs",
     "test:frontend:step4-agent": "npm run build:packages && node apps/workbench/test/frontend-step4-agent-control-browser.mjs",
+    "test:frontend:step5-workspace-host": "npm run build:packages && PETRA_WORKSPACE_HOST_OUTPUT=reports/FRONTEND-STEP5-WORKSPACE-HOST.json node apps/workbench/test/shell-navigation-browser.mjs",
     "test:wave6:shell-brief-ui": "npm run build:packages && node apps/workbench/test/run-shell-brief-browser.mjs",
     "test:wave6:sources-ui": "npm run build:packages && PETRA_WAVE4_TRACE=wave5-cumulative PETRA_WAVE4_EVIDENCE_OBSERVER=./apps/workbench/test/wave6-sources-lifecycle-observer.mjs PETRA_WAVE4_RESULT_OUTPUT=/tmp/petra-wave6-sources-lifecycle-backend.json PETRA_WAVE6_SOURCES_BROWSER_OUTPUT=reports/WAVE6-SOURCES-LIFECYCLE-BROWSER.json node apps/workbench/test/run-wave6-sources-lifecycle-browser.mjs",
     "test:wave6:graph-details-ui": "npm run build:packages && PETRA_WAVE4_TRACE=wave5-cumulative PETRA_WAVE4_EVIDENCE_OBSERVER=./apps/workbench/test/wave6-graph-details-observer.mjs PETRA_WAVE4_RESULT_OUTPUT=/tmp/petra-wave6-graph-details-backend.json PETRA_WAVE6_GRAPH_DETAILS_BROWSER_OUTPUT=reports/WAVE6-GRAPH-DETAILS-BROWSER.json node scripts/test-wave4-cumulative-integration.mjs",

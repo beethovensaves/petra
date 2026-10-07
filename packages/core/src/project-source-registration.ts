@@ -32,6 +32,10 @@ export interface ProjectSourceRegistrationPrincipal {
   readonly capabilityGrantId: string;
 }
 
+export interface ProjectSourceRegistrationReadPrincipal {
+  readonly actor: PetraProjectSourceRegistrationReceipt["actor"];
+}
+
 export interface ProjectSourceRegistrationResult {
   readonly receipt: PetraProjectSourceRegistrationReceipt;
   readonly projectSource: PetraProjectSource;
@@ -45,6 +49,11 @@ export interface ProjectSourceRegistrationResult {
  * identity is intentionally a separate command boundary.
  */
 export interface ProjectSourceRegistrationAuthority {
+  readProjectSourceRegistrationReceipt(
+    projectId: string,
+    projectSourceId: string,
+    principal: ProjectSourceRegistrationReadPrincipal,
+  ): Promise<PetraProjectSourceRegistrationReceipt | undefined>;
   executeProjectSourceRegistration(
     projectId: string,
     request: PetraProjectSourceRegistrationRequest,

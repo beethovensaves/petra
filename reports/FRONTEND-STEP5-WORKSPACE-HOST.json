@@ -1,0 +1,161 @@
+{
+  "schema_name": "petra.frontend-step5-workspace-host-browser-evidence",
+  "schema_version": "1.0.0",
+  "status": "passed",
+  "operation_id": "shell.navigate",
+  "executed_at": "2026-09-29T08:00:05.421Z",
+  "command": "npm run test:frontend:step5-workspace-host",
+  "browser": {
+    "product": "Chrome/154.0.8037.57",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/154.0.0.0 Safari/537.36",
+    "protocol_version": "1.3"
+  },
+  "verified": {
+    "visible_control": "Agent and Workspace shell",
+    "keyboard_activation": true,
+    "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+    "project_title": "Competing explanations",
+    "registered_profile": {
+      "project_definition_id": "project_definition_01K4C000000000000000000001",
+      "label": "Scientific evidence inquiry"
+    },
+    "current_objective": {
+      "objective_id": "objective_01K4C000000000000000000005",
+      "statement": "Determine which claims in the selected source are supported by exact inspectable passages."
+    },
+    "snapshot": "Authority event 3",
+    "projection": "Projection catching up",
+    "visited_places": [
+      {
+        "route": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/work",
+        "current_place": "work",
+        "active_control": "Work",
+        "workspace_role": "work",
+        "workspace_snapshot": "authority-event-3"
+      },
+      {
+        "route": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/sources",
+        "current_place": "sources",
+        "active_control": "Sources",
+        "workspace_role": "source",
+        "workspace_snapshot": "authority-event-3"
+      },
+      {
+        "route": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/graph",
+        "current_place": "graph",
+        "active_control": "Graph",
+        "workspace_role": "inspect",
+        "workspace_snapshot": "authority-event-3"
+      },
+      {
+        "route": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/review",
+        "current_place": "review",
+        "active_control": "Review",
+        "workspace_role": "review",
+        "workspace_snapshot": "authority-event-3"
+      },
+      {
+        "route": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/history",
+        "current_place": "history",
+        "active_control": "History",
+        "workspace_role": "inspect",
+        "workspace_snapshot": "authority-event-3"
+      },
+      {
+        "route": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/composition",
+        "current_place": "composition",
+        "active_control": "Outputs",
+        "workspace_role": "artifact",
+        "workspace_snapshot": "authority-event-3"
+      },
+      {
+        "route": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/brief",
+        "current_place": "brief",
+        "active_control": "Overview",
+        "workspace_role": "outcome",
+        "workspace_snapshot": "authority-event-3"
+      }
+    ],
+    "desktop_split": {
+      "agent": 0.3,
+      "workspace": 0.7
+    },
+    "keyboard_resize_agent_ratio": 0.3199951171875,
+    "pointer_resize_agent_ratio": 0.35999755859375,
+    "narrow_pane_switch_preserved_task": true,
+    "route_focus_restored_to_workspace": true,
+    "workspace_draft_preserved_across_renderers": true,
+    "direct_source_path": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/sources/project_source_01K4C000000000000000000007",
+    "direct_source_exact_identity": "project_source_01K4C000000000000000000007",
+    "direct_source_server_resolved": true,
+    "inspect_exact_source_and_return": true,
+    "inspect_agent_review_from_authoritative_read": true,
+    "inspect_200_percent_text_scale_no_horizontal_overflow": true,
+    "inspect_reduced_motion_mode": true,
+    "graph_controls_progressively_disclosed": true,
+    "shell_reads": 11,
+    "agent_request_operation": "petra.ask",
+    "agent_thread_operation": "petra.resume-thread",
+    "authenticated_requests": true,
+    "command_requests": 0,
+    "context_stable": true
+  },
+  "calls": [
+    {
+      "method": "GET",
+      "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/shell",
+      "authorization": "Bearer browser-shell-navigation-token"
+    },
+    {
+      "method": "GET",
+      "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/model-readiness",
+      "authorization": "Bearer browser-shell-navigation-token"
+    },
+    {
+      "method": "GET",
+      "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/threads?limit=1&lifecycle=open",
+      "authorization": "Bearer browser-shell-navigation-token"
+    },
+    {
+      "method": "GET",
+      "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/shell?semanticKey=petra.project-source&objectId=project_source_01K4C000000000000000000007&taskIntent=inspect",
+      "authorization": "Bearer browser-shell-navigation-token"
+    },
+    {
+      "method": "GET",
+      "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/shell?semanticKey=petra.project-source&objectId=project_source_01K4C000000000000000000007&revision=1&taskIntent=inspect",
+      "authorization": "Bearer browser-shell-navigation-token"
+    },
+    {
+      "method": "GET",
+      "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/sources/project_source_01K4C000000000000000000007",
+      "authorization": "Bearer browser-shell-navigation-token"
+    },
+    {
+      "method": "GET",
+      "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/sources/project_source_01K4C000000000000000000007/processing",
+      "authorization": "Bearer browser-shell-navigation-token"
+    },
+    {
+      "method": "GET",
+      "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/shell?semanticKey=petra.project-source&objectId=project_source_01K4C000000000000000000007&taskIntent=inspect",
+      "authorization": "Bearer browser-shell-navigation-token"
+    },
+    {
+      "method": "GET",
+      "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/shell",
+      "authorization": "Bearer browser-shell-navigation-token"
+    },
+    {
+      "method": "GET",
+      "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/shell",
+      "authorization": "Bearer browser-shell-navigation-token"
+    },
+    {
+      "method": "GET",
+      "path": "/api/queries/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/reviews/review_session_01K4D000000000000000000001",
+      "authorization": "Bearer browser-shell-navigation-token"
+    }
+  ],
+  "boundary": "Isolated Chromium opened one representative Project using the production shell read and Workspace host. It keyboard-activated each registered destination and confirmed the renderer role and authority snapshot remained bound to the same Project. A draft survived a Source-to-Review-to-Source renderer change. A direct Source URL resolved its exact object and revision through a server shell read. The single Inspect action carried that identity and snapshot into the Workspace and returned to the exact Source task with focus restored. The 30/70 frame and narrow Agent/Workspace switch preserved the mounted task. Deterministic authenticated HTTP supplied browser transport; child route bodies were context observers. Live Source, Review, Work, and Artifact content remain outside this structural trace."
+}

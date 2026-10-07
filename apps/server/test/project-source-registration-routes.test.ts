@@ -223,11 +223,16 @@ const resolver = {
       capabilityGrantId: GRANT_ID,
     }),
   ),
+  resolveAuthenticatedActor: vi.fn(() =>
+    Promise.resolve({ state: "resolved" as const, actor: principal.actor }),
+  ),
 };
 
 describe("project source registration routes", () => {
   it("authenticates, resolves server authority, registers, and reconciles exact return", async () => {
+    const readReceipt = vi.fn(() => Promise.resolve(receipt));
     const authority: ProjectSourceRegistrationAuthority = {
+      readProjectSourceRegistrationReceipt: readReceipt,
       executeProjectSourceRegistration: vi.fn(
         (
           projectId: string,
@@ -269,6 +274,18 @@ describe("project source registration routes", () => {
     );
     expect(recoveryResponse.status).toBe(200);
     expect(await recoveryResponse.json()).toStrictEqual(recovery);
+    const readResponse = await petra.app.request(
+      `/api/queries/projects/${PROJECT_ID}/sources/${projectSource.project_source_id}/registration-receipt`,
+      { headers },
+    );
+    expect(readResponse.status).toBe(200);
+    expect(await readResponse.json()).toStrictEqual(receipt);
+    expect(readReceipt).toHaveBeenCalledWith(
+      PROJECT_ID,
+      projectSource.project_source_id,
+      { actor: principal.actor },
+    );
+    expect(resolver.resolveAuthenticatedActor).toHaveBeenCalled();
     expect(resolver.resolveCommandPrincipal).toHaveBeenCalledWith({
       projectId: PROJECT_ID,
       commandName: "RegisterProjectSource",
@@ -277,7 +294,9 @@ describe("project source registration routes", () => {
 
   it("fails closed for crossed Project bindings and missing authentication", async () => {
     const executeProjectSourceRegistration = vi.fn();
+    const readReceipt = vi.fn();
     const authority: ProjectSourceRegistrationAuthority = {
+      readProjectSourceRegistrationReceipt: readReceipt,
       executeProjectSourceRegistration,
       assessProjectSourceRegistrationRecovery: vi.fn(),
     };
@@ -317,5 +336,96 @@ describe("project source registration routes", () => {
       const unauthorized = await petra.app.request(path, { method: "POST" });
       expect(unauthorized.status).toBe(401);
     }
+    const unreadable = await petra.app.request(
+      `/api/queries/projects/${PROJECT_ID}/sources/${projectSource.project_source_id}/registration-receipt`,
+    );
+    expect(unreadable.status).toBe(401);
+    expect(readReceipt).not.toHaveBeenCalled();
+  });
+
+  it("distinguishes a Source with no new-registration receipt", async () => {
+    const authority: ProjectSourceRegistrationAuthority = {
+      readProjectSourceRegistrationReceipt: vi.fn(() =>
+        Promise.resolve(undefined),
+      ),
+      executeProjectSourceRegistration: vi.fn(),
+      assessProjectSourceRegistrationRecovery: vi.fn(),
+    };
+    const petra = createPetraApp({
+      authToken: TOKEN,
+      commandPrincipalResolver: resolver,
+      projectSourceRegistrationAuthority: authority,
+    });
+    const response = await petra.app.request(
+      `/api/queries/projects/${PROJECT_ID}/sources/${projectSource.project_source_id}/registration-receipt`,
+      { headers: { authorization: `Bearer ${TOKEN}` } },
+    );
+    expect(response.status).toBe(404);
+    const body = (await response.json()) as { error: { code: string } };
+    expect(body.error.code).toBe(
+      "PROJECT_SOURCE_REGISTRATION_RECEIPT_NOT_FOUND",
+    );
+  });
+
+  it("reads the owning actor's retained receipt without a current registration grant", async () => {
+    const readReceipt = vi.fn(() => Promise.resolve(receipt));
+    const petra = createPetraApp({
+      authToken: TOKEN,
+      commandPrincipalResolver: {
+        resolveCommandPrincipal: vi.fn(() =>
+          Promise.resolve({
+            state: "denied" as const,
+            reason: "active_grant_not_found" as const,
+          }),
+        ),
+        resolveAuthenticatedActor: () =>
+          Promise.resolve({
+            state: "resolved" as const,
+            actor: principal.actor,
+          }),
+      },
+      projectSourceRegistrationAuthority: {
+        readProjectSourceRegistrationReceipt: readReceipt,
+        executeProjectSourceRegistration: vi.fn(),
+        assessProjectSourceRegistrationRecovery: vi.fn(),
+      },
+    });
+    const response = await petra.app.request(
+      `/api/queries/projects/${PROJECT_ID}/sources/${projectSource.project_source_id}/registration-receipt`,
+      { headers: { authorization: `Bearer ${TOKEN}` } },
+    );
+    expect(response.status).toBe(200);
+    expect(await response.json()).toStrictEqual(receipt);
+    expect(readReceipt).toHaveBeenCalledWith(
+      PROJECT_ID,
+      projectSource.project_source_id,
+      { actor: principal.actor },
+    );
+  });
+
+  it("denies receipt reads when the authenticated actor is no longer registered", async () => {
+    const readReceipt = vi.fn();
+    const petra = createPetraApp({
+      authToken: TOKEN,
+      commandPrincipalResolver: {
+        resolveCommandPrincipal: resolver.resolveCommandPrincipal,
+        resolveAuthenticatedActor: () =>
+          Promise.resolve({
+            state: "denied" as const,
+            reason: "actor_not_registered" as const,
+          }),
+      },
+      projectSourceRegistrationAuthority: {
+        readProjectSourceRegistrationReceipt: readReceipt,
+        executeProjectSourceRegistration: vi.fn(),
+        assessProjectSourceRegistrationRecovery: vi.fn(),
+      },
+    });
+    const response = await petra.app.request(
+      `/api/queries/projects/${PROJECT_ID}/sources/${projectSource.project_source_id}/registration-receipt`,
+      { headers: { authorization: `Bearer ${TOKEN}` } },
+    );
+    expect(response.status).toBe(403);
+    expect(readReceipt).not.toHaveBeenCalled();
   });
 });

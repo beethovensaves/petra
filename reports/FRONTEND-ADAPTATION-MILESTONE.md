@@ -1,6 +1,6 @@
 # FE-A1: Agentic frontend adaptation
 
-- **Status:** In progress; FE-A1.0 through FE-A1.3 complete; blocks Wave 7
+- **Status:** In progress; FE-A1.0 through FE-A1.4 complete; FE-A1.5 through FE-A1.7 underway; blocks Wave 7
 - **Decision:** [D024](../decisions/D024-agentic-split-workspace.md)
 - **Operation map:** [ui-operation-presentation-map.json](../scripts/ui-operation-presentation-map.json)
 - **Inventory:** [ui-operation-inventory.json](../scripts/ui-operation-inventory.json)
@@ -11,18 +11,23 @@
 | Step | State | Result |
 | --- | --- | --- |
 | FE-A1.0 | Complete | D024 and the audited 116-operation presentation map establish the frontend boundary. |
-| FE-A1.1 | Complete | The production Project shell now uses a persistent 30/70 Agent–Workspace frame, starts technical controls behind **Inspect project**, and switches panes on narrow screens without unmounting the active task. |
+| FE-A1.1 | Complete | The production Project shell now uses a persistent 30/70 Agent–Workspace frame, supports bounded pointer and keyboard resizing, starts technical controls behind **Inspect project**, and switches panes on narrow screens without unmounting the active task. |
 | FE-A1.2 | Complete | Project creation now starts from the user's exact outcome, reviews a server-owned definition draft, keeps examples optional, and creates the Project, definition, objective, focus, and receipt atomically. |
 | FE-A1.3 | Complete | The persistent Agent now owns Project requests and presents the exact route-owned objective, SuggestedAction, Work, Review, recovery, and governed Revert controllers with registered operation and object identities. |
-| FE-A1.4 | Next | Render durable Outcome, Artifact, Source, Review, Work, comparison, and Inspect objects through one server-directed Workspace host. |
-| FE-A1.5–FE-A1.7 | Pending | Unified inspection, operation migration, and product evaluation follow in order. |
+| FE-A1.4 | Complete | One Workspace host admits the registered Outcome, Artifact, Source, Review, Work, and Inspect roles, checks server place coverage, and binds direct Source, Work, and Artifact URLs to exact server-resolved identities. Live Source, Work, and Review tasks preserve draft, selection, return, and focus across renderer and narrow-pane changes. Artifact editing remains Wave 7 scope. |
+| FE-A1.5 | In progress | One Inspect action is available from the Workspace header and material agent controls. Exact Source and Work reads, Review and History event reads, Project authority, targeted retained History, and return context meet in one Workspace view. History event inspection includes its recorded actor, definition, command fingerprint, grant, receipt reference, recovery assessment, and bounded causal impact. New-Source registration and recent Work command receipts now use authenticated retained server reads. Complete durable receipt and policy composition for other owning operations remains. |
+| FE-A1.6 | In progress | Source registration, reuse, processing start, and uncertain-effect recovery now enter through the Agent. The primary Project link opens a server-verified retained task; Work delivery, eligible stale Review refresh, and interrupted model response replay run automatically. Open Review sessions are raised in Agent context, and acceptance reset is confined to the direct test guide. Full operation conformance remains. |
+| FE-A1.7 | In progress | The structural Workspace and live Source/Inspector task pass keyboard focus, 420 px continuity, and 200% text scale without horizontal overflow; the structural trace also runs in reduced-motion mode. Whole-task, adversarial design, and user evaluation remain. |
 
 FE-A1.1 is proven by
 [`FRONTEND-STEP2-AGENT-WORKSPACE.json`](FRONTEND-STEP2-AGENT-WORKSPACE.json).
 The Chromium run measures the split at 0.30/0.70, keyboard-activates every
 retained destination, confirms inspection begins closed, and switches between
 Agent and Workspace at 420 px while preserving the current route and mounted
-task. The Agent conversation, composer, and Work controls remain FE-A1.3 scope;
+task. The later
+[`FRONTEND-STEP5-WORKSPACE-HOST.json`](FRONTEND-STEP5-WORKSPACE-HOST.json)
+also verifies keyboard and pointer resizing from the 30 percent default and
+restoration of the default width. The Agent conversation, composer, and Work controls remain FE-A1.3 scope;
 their absence does not make the structural shell a simulated interaction.
 
 FE-A1.2 is proven by
@@ -49,6 +54,154 @@ appears inside the Agent rather than the Workspace, and survives the responsive
 Agent/Workspace switch without changing the task route. ChangeSet preparation,
 candidate editing, comparison, and other detailed Review work remain in the
 Workspace, as required by the operation map.
+
+FE-A1.4's first host slice is evidenced by
+[`FRONTEND-STEP5-WORKSPACE-HOST.json`](FRONTEND-STEP5-WORKSPACE-HOST.json)
+and the Workspace host and direct-object loader tests. The host keeps the six
+renderer roles and authority snapshot visible in the production shell, refuses
+destinations absent from the server Project read, and refuses an exact selection
+whose server destination disagrees with the displayed place. Direct Source,
+Work, and DraftArtifact URLs request server selection in the Project shell
+snapshot before rendering. Exact selections accept the current shell 1.3 read.
+The Chrome trace keyboard-opens every retained destination, preserves the
+mounted task through the narrow Agent/Workspace switch, restores focus to the
+Workspace heading after route changes, and verifies an exact Source URL through
+a fresh server shell read. It also retains an in-memory Source draft while
+switching to Review and back, and opens Inspect for that exact Source before
+returning to its task and focus. The Review Inspector also survives 200% text
+scale at 420 px without horizontal overflow and exposes its exact return in
+reduced-motion mode. The draft cache now covers Source registration
+and revision, Work instructions, Review decisions and candidate/basis edits,
+and Artifact text. Its child route bodies are context observers, supplemented by
+live Source, Work, and Review browser flows. The Work instruction and selected
+priority survive Work → Review → Work and a narrow Agent/Workspace switch. An
+unfinished candidate edit survives Review → Sources → Review. A server-resolved DraftArtifact currently receives an
+explicit live Artifact-unavailable boundary until Wave 7 Composition supplies
+its reader and editor.
+
+FE-A1.5's current Inspect slice uses the Project shell's resolved selection and
+authority snapshot. Explanation and object identity are visible first; basis,
+control, and Graph/History are disclosed on demand. Source and Work detail reads
+must match the selected shell revision; Work also checks its record hash.
+Review sessions and History events opened from agent cards are read from their
+exact Project owners. The event read composes its recorded change, impact, and
+recovery assessment. Opening History requests the authoritative retained event
+read, targeted to the selected object when that exact target type is supported.
+Selecting a retained event in Inspect now keeps the user in Inspect, reads the
+exact event, impact, and recovery, and preserves the originating task return.
+For an exact Source revision, Inspect also reads the server-composed processing
+state, representation extent, verified span counts, and limitations; a changed
+Source revision is rejected instead of being presented as the selected one.
+The inspector refuses destinations absent from the server place map and does
+not present an unresolved agent object as verified. New-Source registration
+receipts are read from the retained authority by exact Project and Source ID,
+checked against the authenticated actor, and remain visible after page reload.
+The read now resolves the registered human independently of current command
+grants, while the retained owner check still rejects another actor. Recent Work
+command receipts use an authenticated retained read with exact task, actor,
+command, and record-hash checks, and remain visible after browser reload. Work
+control availability and reasons come from a separate server assessment that
+must match the selected Work revision. A fresh direct link reads retained
+receipts instead of relying on browser memory. Full durable per-operation evidence, policy, receipt, impact, and
+recovery composition is still required before FE-A1.5 is complete.
+
+The live Sources regression is retained in
+[`FRONTEND-LIVE-SOURCES-BROWSER.json`](FRONTEND-LIVE-SOURCES-BROWSER.json) and
+[`FRONTEND-LIVE-SOURCES-BACKEND.json`](FRONTEND-LIVE-SOURCES-BACKEND.json).
+It ran in Chromium against authenticated HTTP and fresh disposable PostgreSQL,
+Neo4j, and S3 services after all 59 migrations. Registration, processing,
+revision, replacement, reuse, link removal, deletion recovery, exact Source
+and registration-receipt inspection after a full page reload, and exact returns
+passed. The live Source and Inspector also fit the 420 px workspace at 200% text
+scale without horizontal overflow. The environment used Node 24.20.0 and the
+certified Codex CLI 0.154.0 from the cached npm package; the machine's default
+CLI 0.158.0 fails the pinned synthesist certification at startup. This regression
+exercises the live Sources task but does not cover the whole FE-A1 outcome loop.
+Visual inspection of the Source reader moved raw record and copy identity behind
+an on-demand disclosure while leaving revision, creator, rights, role, and
+downstream use visible beside the content.
+
+The live History and governed Revert regression is retained in
+[`FRONTEND-LIVE-HISTORY-BROWSER.json`](FRONTEND-LIVE-HISTORY-BROWSER.json).
+It resolves the exact applied event, opens Inspect from its agent card, verifies
+the recorded actor, Project definition, original command fingerprint and grant,
+receipt reference, recovery state, and bounded direct and semantic impact there,
+drills into another retained event without leaving Inspect, returns to the event task, then previews,
+plans, and executes one governed compensation before observing the updated
+outcome. This proves the event Inspector path and exact return within a live
+task; it does not prove inspection of every material operation.
+
+The live Work regression is retained in
+[`FRONTEND-LIVE-WORK-BROWSER.json`](FRONTEND-LIVE-WORK-BROWSER.json). It opens
+the exact completed Work task in Inspect, verifies the selected Work identity,
+execution details, authorized limit, and server-assessed controls, and returns
+to the same result view. The same run retains the exact Resume receipt through
+an in-app Work route change and displays that receipt in Inspect. The retained
+Work receipt query now reads up to 20 completed commands for the authenticated
+actor and exact task, and validates their contracts and record hashes. Its full
+browser reload check passed in the updated live trace, including the exact
+Work return. The same trace found no horizontal overflow at 420 px and 200%
+text scale in either the Work Agent or Workspace pane.
+The same run exercises required input, steering, priority, cancellation,
+retry, Resume, Start again, reconnect, replay, and exact result destinations.
+It verifies that the owning Work route refreshes after an applied retry: the
+Workspace state advances with the Agent receipt instead of retaining the old
+failed revision. A visual review put Work tasks before optional inquiry paths,
+reduced long task-heading emphasis, moved exact record fields and the full
+assessment behind disclosures, and made the eligible execution action reachable
+above the persistent composer through a keyboard-accessible jump. Ineligible
+execution actions and their reasons remain available on demand. Captures and
+findings are retained in [`fe-a1/VISUAL-REVIEW.md`](fe-a1/VISUAL-REVIEW.md).
+It does not by itself prove the full outcome-first user journey.
+
+The model failure and recovery browser record is retained in
+[`FRONTEND-LIVE-MODEL-RECOVERY-BROWSER.json`](FRONTEND-LIVE-MODEL-RECOVERY-BROWSER.json).
+A deterministic unavailable-provider port interrupts the first response after
+the production runtime records one failed run. The Agent automatically reads
+that exact retained run, preserves the edited draft and Work return across
+navigation, and shows the verified failure without duplicating the provider or
+Work effect. This is an adverse-state trace, not a successful external model
+response. After the user authorized one synthetic-Project call, the
+[`FRONTEND-LIVE-MODEL-SUCCESS-BROWSER.json`](FRONTEND-LIVE-MODEL-SUCCESS-BROWSER.json)
+and
+[`FRONTEND-LIVE-MODEL-SUCCESS-BACKEND.json`](FRONTEND-LIVE-MODEL-SUCCESS-BACKEND.json)
+traces verified a visible grounded answer, one provider ModelCall, one retained
+interaction and delivery record, and no Project authority effect. The success
+trace did not separately read that retained run from a fresh browser; this
+limit and the exact payload are recorded in
+[`fe-a1/MODEL-TRACE-REVIEW.md`](fe-a1/MODEL-TRACE-REVIEW.md).
+
+The live Review regression is retained in
+[`FRONTEND-LIVE-REVIEW-BROWSER.json`](FRONTEND-LIVE-REVIEW-BROWSER.json). It
+retains an unfinished candidate edit across Review → Sources → Review before
+saving one exact correction, then exercises basis revision, member separation,
+defer, reopen, rejection, refresh, and Apply through their live owners.
+Desktop captures of the queue and detail exposed and resolved three presentation
+errors: plural decision counts, raw snapshot and record identity dominating the
+default Review view, and a danger-colored validation banner for passing checks.
+The decision queue now prioritizes title, accountable author, state, and action;
+the detail keeps exact identity and authority snapshot on demand. Passing,
+pending, and blocked validation have distinct text, symbols, and color. A
+keyboard-activated jump from the Agent task card brings the existing decision
+group above the persistent composer; the optional deferral reason and full
+decision boundary remain available on demand.
+The reviewed captures and dispositions are in
+[`fe-a1/VISUAL-REVIEW.md`](fe-a1/VISUAL-REVIEW.md).
+
+The isolated Project resume browser record is retained in
+[`WAVE6-PROJECT-RESUME-BROWSER.json`](WAVE6-PROJECT-RESUME-BROWSER.json).
+It verifies that the primary Project title opens the exact server-retained Graph
+task and selection, and that stale, missing, and unavailable task states follow
+the server's Brief recovery or retry without client-generated task identity.
+The transport in this test is schema-shaped and deterministic; it is not a live
+database trace.
+
+The acceptance reset browser record is retained in
+[`FRONTEND-GUIDE-RESET-BROWSER.json`](FRONTEND-GUIDE-RESET-BROWSER.json).
+It confirms that ordinary Settings has no reset control, then executes the
+registered reset from the direct test guide against disposable live services
+and opens the distinct replacement Project. The direct guide is test
+infrastructure and is absent from customer navigation.
 
 ## Result required from this milestone
 
@@ -297,6 +450,12 @@ existing command/query owners.
 
 ### FE-A1.4 — Build the workspace renderer set
 
+**Complete — 2026-09-29.** The host, role registry, server place check,
+direct-object selection, route focus restoration, and in-memory draft
+continuity are live. Existing route-owned surfaces serve as the content
+renderers under the common Workspace contract. Live Source, Work, and Review
+flows verify task continuity; Artifact editing remains Wave 7 scope.
+
 - Implement Outcome, Source, Review, Work, and Inspect renderers against current
   live contracts.
 - Establish the Artifact renderer boundary that Wave 7 Composition completes.
@@ -304,6 +463,21 @@ existing command/query owners.
   across renderer changes.
 
 ### FE-A1.5 — Integrate inspection
+
+**In progress — 2026-09-29.** The single entry, exact selection, progressive
+sections, targeted History read, exact Source and Work reads, Review and event
+reads, retained Source and recent Work receipts, and exact return are live.
+New-Source registration has an authenticated, actor-bound retained receipt read
+verified after a full browser reload and independent of current command grants.
+Work operation, Resume, and Start again receipts now have a bounded retained
+read with exact Project, task, actor, receipt identity, and record-hash checks.
+The live Resume receipt survived a fresh browser reload and remained available
+in Inspect's Control and identity section, with an exact return to the task.
+Each retained Work receipt now reveals its recorded actor and capability grant,
+requested and resulting task revision, registration when present, and record
+hash under an additional disclosure.
+Complete material action inspection still requires durable receipt and policy
+reads for the other owning operations.
 
 - Add one Inspect entry to every material agent result and workspace object.
 - Compose explanation, basis, control, graph, impact, History, and recovery from
@@ -313,6 +487,25 @@ existing command/query owners.
 
 ### FE-A1.6 — Migrate and remove frontend debt
 
+**In progress — 2026-09-29.** Source intake, reuse, processing start, and
+uncertain-effect recovery use contextual Agent controls while the Workspace
+retains the detailed source task. Shared shell copy now describes the Project
+definition rather than making the optional registered profile the apparent
+entry requirement. The Project collection opens a verified retained task from
+its primary link; Work reconnect and replay, and eligible stale Review refresh,
+are automatic. The Agent surfaces the server's open Review count. Acceptance
+reset now appears only on the direct test guide. A draft that differs from the
+certified role's registered question remains local and can be carried into an
+explicit Objective revision review; no model request or authority change is
+inferred from that draft. The Agent labels the composer as a registered question
+and states this limit before a user edits it. General follow-up questions still
+require a registered backend interaction path before the Agent can honestly
+present them as supported. The retained Project-thread read exposes turn
+metadata and exact Artifact references, not message bytes. The Agent labels
+this limitation and links to all recorded entries when the recent four are
+truncated. Restoring readable conversation content needs an authorized exact
+text read.
+
 - Reconcile every inventory operation against the presentation map.
 - Remove permanent controls that are now automatic, contextual, inspect-only, or
   test-only.
@@ -320,6 +513,17 @@ existing command/query owners.
 - Delete or quarantine obsolete components after their mapped replacement passes.
 
 ### FE-A1.7 — Evaluate the product as a frontend
+
+**In progress — 2026-09-29.** The structural Workspace browser run includes
+keyboard focus and task return, narrow pane continuity, 200% text scale without
+horizontal overflow at 420 px, and reduced-motion mode. The live Source and
+Inspector task and both live Work panes now pass the same narrow 200% width check. Visual inspection
+found and fixed text clipping in Inspect and a five-pixel overflow in the
+Source heading. Review, Source, and Work desktop captures have also been
+inspected and their hierarchy, state, and focus findings corrected. A bounded
+[adversarial review](fe-a1/ADVERSARIAL-REVIEW.md) records observed authority,
+dead-end, hidden-state, and width risks. Complete task and whole-product
+adversarial evaluation remain.
 
 - Run outcome-based tests through the complete interface, rather than one test
   per control.

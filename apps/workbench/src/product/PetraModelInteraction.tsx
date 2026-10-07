@@ -539,6 +539,7 @@ export const PetraModelInteraction = ({
   const retainedIdentity = useRef<ProjectModelRunIdentity | undefined>(
     readProjectModelRunIdentity(projectId),
   );
+  const automaticReplayKey = useRef("");
   const readyState =
     readiness.readiness.state === "ready" ? readiness.readiness : undefined;
   const ready = readyState !== undefined;
@@ -552,7 +553,7 @@ export const PetraModelInteraction = ({
         ? undefined
         : {
             reason:
-              "This exact run already exists. Reconnect and replay it before starting another response.",
+              "This exact run already exists. Review its retained response or retry delivery if it is unavailable.",
           }
       : {
           reason:
@@ -632,20 +633,16 @@ export const PetraModelInteraction = ({
       publish(
         await runProjectModelInteraction(readiness, identity, registeredPrompt),
       );
-    } catch (error) {
-      setTransportError(
-        error instanceof Error
-          ? error.message
-          : "The response connection ended without a confirmed result.",
-      );
+    } catch {
+      await replayIdentity(identity);
     } finally {
       setActivity("idle");
     }
   };
 
-  const replay = async (): Promise<void> => {
-    const identity = retainedIdentity.current;
-    if (identity === undefined || busy) return;
+  const replayIdentity = async (
+    identity: ProjectModelRunIdentity,
+  ): Promise<void> => {
     setActivity("replaying");
     setTransportError(undefined);
     try {
@@ -660,6 +657,21 @@ export const PetraModelInteraction = ({
       setActivity("idle");
     }
   };
+
+  const replay = async (): Promise<void> => {
+    const identity = retainedIdentity.current;
+    if (identity === undefined || busy) return;
+    await replayIdentity(identity);
+  };
+
+  useEffect(() => {
+    const identity = retainedIdentity.current;
+    if (!ready || identity === undefined) return;
+    const key = `${projectId}:${identity.threadId}:${identity.runId}:${identity.connectionId}`;
+    if (automaticReplayKey.current === key) return;
+    automaticReplayKey.current = key;
+    void replayIdentity(identity);
+  }, [projectId, ready]);
 
   return (
     <>
@@ -693,7 +705,7 @@ export const PetraModelInteraction = ({
             title: "Review response unavailable",
             message: interruptError,
             recovery:
-              "Reconnect and replay the exact InteractionRun. Petra will not compose a response without the server-owned interrupt and ChangeSet identities.",
+              "Retry the retained response. Petra will not compose a Review decision without the server-owned interrupt and ChangeSet identities.",
           }}
         />
       )}
@@ -705,7 +717,7 @@ export const PetraModelInteraction = ({
             title: "Response delivery was not confirmed",
             message: transportError,
             recovery:
-              "Your draft and exact run identity are preserved. Reconnect and replay before starting another response; closing this page does not cancel Work.",
+              "Your draft and exact run identity are preserved. Retry the retained response; closing this page does not cancel Work.",
           }}
         />
       )}
@@ -719,29 +731,41 @@ export const PetraModelInteraction = ({
       >
         <PetraTextArea
           label={
-            mode === "agent" ? "Project request" : "Certified Project question"
+            mode === "agent"
+              ? "Registered question"
+              : "Certified Project question"
           }
           hint={
             ready
               ? mode === "agent"
-                ? "Petra can run this Project request. Your draft stays here if the connection is interrupted."
+                ? "Petra can send only this registered question. Edits stay as a draft for Objective review."
                 : "This role accepts the exact Project-bound prompt registered by readiness. Your draft is retained in this browser through failure and reconnect."
               : mode === "agent"
                 ? "Your draft stays here until Petra is available."
                 : "Your unsent text remains local. No prompt can be sent until the server returns a ready certified role, provider, and context."
           }
-          rows={5}
+          rows={mode === "agent" ? 2 : 5}
           value={draft}
           onChange={(event) => setDraft(event.currentTarget.value)}
         />
         {!ready || promptMatches ? null : (
           <p className="petra-composer__prompt-boundary" role="status">
-            This edit is preserved locally, but the certified role can submit
-            only its exact registered Project question.
+            This draft is preserved locally. The certified role can answer only
+            its exact registered Project question.{" "}
+            <Link
+              to={"/projects/" + encodeURIComponent(projectId) + "/brief"}
+              state={{ agentObjectiveDraft: draft }}
+            >
+              Review this draft as a Project objective
+            </Link>
+            .
           </p>
         )}
         <div>
-          <span id="petra-send-boundary">
+          <span
+            id="petra-send-boundary"
+            className={mode === "agent" ? "visually-hidden" : undefined}
+          >
             {ready
               ? mode === "agent"
                 ? "Petra will keep results and decisions in the Workspace."
@@ -760,14 +784,16 @@ export const PetraModelInteraction = ({
                 Restore registered question
               </PetraButton>
             ) : null}
-            {retainedIdentity.current === undefined ? null : (
+            {retainedIdentity.current === undefined ||
+            (transportError === undefined &&
+              interruptError === undefined) ? null : (
               <PetraButton
                 type="button"
                 busy={activity === "replaying"}
                 busyLabel="Replaying exact response…"
                 onClick={() => void replay()}
               >
-                Reconnect and replay
+                Retry delivery read
               </PetraButton>
             )}
             {presentation?.state === "failed" ? (

@@ -55,6 +55,7 @@ export const ProjectBriefSurface = ({
   selectedAction,
   objectiveCommandContext,
   objectiveCommandOutcome,
+  objectiveSuggestion,
   comparisonRecovery,
 }: {
   view: PetraProjectBriefReadView;
@@ -62,6 +63,7 @@ export const ProjectBriefSurface = ({
   selectedAction?: ReactNode;
   objectiveCommandContext: ProjectObjectiveCommandContext;
   objectiveCommandOutcome?: ProjectObjectiveReturnOutcome;
+  objectiveSuggestion?: string;
   comparisonRecovery?: ProjectBriefComparisonRecovery;
 }) => {
   const c = view.content;
@@ -127,7 +129,12 @@ export const ProjectBriefSurface = ({
           operationIds={["brief.frame-objective"]}
           objectRef={objectiveCommandContext.projectId}
         >
-          <ProjectObjectiveControl context={objectiveCommandContext} />
+          <ProjectObjectiveControl
+            context={objectiveCommandContext}
+            {...(objectiveSuggestion === undefined
+              ? {}
+              : { suggestedStatement: objectiveSuggestion })}
+          />
         </AgentControlPortal>
         <Limitations items={c.coverage.limitations} />
         <RecordDetails

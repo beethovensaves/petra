@@ -126,6 +126,16 @@ export const startWave6SourcesLifecycleBrowser = async ({
     }),
   ]);
   const browserVersion = await send("Browser.getVersion");
+  const capture = async (name) => {
+    const directory = process.env.PETRA_FRONTEND_VISUAL_CAPTURE_DIR;
+    if (directory === undefined) return;
+    mkdirSync(directory, { recursive: true });
+    const screenshot = await send("Page.captureScreenshot", {
+      format: "png",
+      captureBeyondViewport: false,
+    });
+    writeFileSync(resolve(directory, `${name}.png`), screenshot.data, "base64");
+  };
 
   const summarizeCalls = () =>
     calls.slice(-20).map((call) => ({
@@ -209,6 +219,37 @@ export const startWave6SourcesLifecycleBrowser = async ({
     initialListCall?.authorization,
     "Bearer petra-local-development",
   );
+  await until(
+    'document.querySelector(".reference-agent-composer .petra-composer") !== null',
+    "ready Agent request composer",
+  );
+  await capture("sources-collection-desktop");
+  const agentLayout = await evaluate(`(() => {
+    const task = document.querySelector(".reference-agent-control-slot .reference-agent-control");
+    const composer = document.querySelector(".reference-agent-composer");
+    const send = [...document.querySelectorAll(".reference-agent-composer button")].find((button) => button.textContent.trim() === "Ask Petra");
+    return {
+      taskBottom: task?.getBoundingClientRect().bottom,
+      composerTop: composer?.getBoundingClientRect().top,
+      sendBottom: send?.getBoundingClientRect().bottom,
+      viewportBottom: window.innerHeight,
+    };
+  })()`);
+  assert.ok(
+    Number(agentLayout.taskBottom) <= Number(agentLayout.composerTop),
+    `The Agent composer covers the current Source task: ${JSON.stringify(agentLayout)}`,
+  );
+  assert.ok(
+    Number(agentLayout.sendBottom) <= Number(agentLayout.viewportBottom),
+    `Ask Petra is outside the first desktop screen: ${JSON.stringify(agentLayout)}`,
+  );
+  assert.equal(
+    await evaluate(
+      `Boolean(${fieldControl("Find Sources")}?.closest('.reference-agent-panel'))`,
+    ),
+    true,
+    "Source discovery must enter through the Agent.",
+  );
   await setField("Find Sources", initialExactTitle);
   await until(
     `document.querySelectorAll(".reference-source-row").length===1 && document.body.innerText.includes(${JSON.stringify(initialExactTitle)})`,
@@ -262,10 +303,24 @@ export const startWave6SourcesLifecycleBrowser = async ({
   assert.equal(await evaluate("window.location.hash"), "#source-reuse-return");
   await setField("Find Sources", "");
 
+  assert.equal(
+    await evaluate(
+      `${button("Add Source")}?.closest('.reference-agent-panel') !== null`,
+    ),
+    true,
+    "Source registration must begin in the persistent Agent",
+  );
   await evaluate(`${button("Add Source")}.click()`);
   await until(
     'document.querySelector(".source-registration-panel")!==null',
     "source registration form",
+  );
+  assert.equal(
+    await evaluate(
+      "document.querySelector('.source-registration-panel')?.closest('.reference-workspace-panel') !== null",
+    ),
+    true,
+    "The reviewed source and rights form must remain in the Workspace",
   );
   await setField("Title", registeredTitle);
   await setField("Authors", "Ada Lifecycle");
@@ -317,8 +372,8 @@ export const startWave6SourcesLifecycleBrowser = async ({
     const url=new URL(${linkContaining("Inspect registered source")}.href);
     return url.pathname+url.search;
   })()`);
-  await navigate(
-    registeredInspectPath,
+  await evaluate(`${linkContaining("Inspect registered source")}.click()`);
+  await until(
     `window.location.pathname.endsWith(${JSON.stringify(`/sources/${registeredSourceId}`)}) && document.body.innerText.includes(${JSON.stringify(registeredTitle)})`,
     "registered exact source",
   );
@@ -338,10 +393,110 @@ export const startWave6SourcesLifecycleBrowser = async ({
       "Only identity is available",
     ),
   );
+  await capture("source-desktop");
+  await send("Emulation.setDeviceMetricsOverride", {
+    width: 420,
+    height: 820,
+    deviceScaleFactor: 1,
+    mobile: false,
+  });
+  await capture("source-mobile");
+  const sourceScale = await evaluate(`(() => {
+    document.documentElement.style.fontSize = '200%';
+    const panel = document.querySelector('.reference-workspace-panel');
+    const right = panel.getBoundingClientRect().right;
+    return {
+      client: panel.clientWidth,
+      content: panel.scrollWidth,
+      protruding: [...panel.querySelectorAll('*')]
+        .filter((element) => element.getBoundingClientRect().right > right + 1)
+        .slice(0, 12)
+        .map((element) => ({
+          tag: element.tagName,
+          className: typeof element.className === 'string' ? element.className : '',
+          right: Math.round(element.getBoundingClientRect().right),
+          scroll: element.scrollWidth,
+          client: element.clientWidth,
+        })),
+    };
+  })()`);
+  await capture("source-mobile-200");
+  assert.ok(
+    sourceScale.content <= sourceScale.client + 1,
+    `The live Source task clips at 200% text scale: ${JSON.stringify(sourceScale)}`,
+  );
+  await evaluate("document.documentElement.style.fontSize = ''");
+  await send("Emulation.setDeviceMetricsOverride", {
+    width: 1280,
+    height: 960,
+    deviceScaleFactor: 1,
+    mobile: false,
+  });
+
+  await evaluate(
+    "document.querySelector('.reference-workspace-inspect')?.click()",
+  );
+  await until(
+    `window.location.pathname.endsWith('/inspect') && document.querySelector('.reference-workspace-panel')?.dataset.workspaceObjectRef === ${JSON.stringify(registeredSourceId)} && document.querySelector('.reference-inspect')?.textContent.includes(${JSON.stringify(registeredTitle)}) && document.querySelector('.reference-inspect')?.textContent.includes(${JSON.stringify(registrationCall.json.receipt.receipt_id)})`,
+    "live exact source inspection",
+  );
+  await until(
+    'document.querySelector(".reference-inspect__processing")?.textContent.includes("Processing state")',
+    "exact Source processing and representation in Inspect",
+  );
+  await send("Page.reload", { ignoreCache: true });
+  await until(
+    `performance.getEntriesByType('navigation')[0]?.type === 'reload' && document.readyState === 'complete' && window.location.pathname.endsWith('/inspect') && document.querySelector('.reference-inspect')?.textContent.includes(${JSON.stringify(registrationCall.json.receipt.receipt_id)}) && document.querySelector('.reference-inspect')?.textContent.includes('Retained registration receipt')`,
+    "retained registration receipt after a fresh page load",
+  );
+  await capture("source-inspect-desktop");
+  await send("Emulation.setDeviceMetricsOverride", {
+    width: 420,
+    height: 820,
+    deviceScaleFactor: 1,
+    mobile: false,
+  });
+  await capture("source-inspect-mobile");
+  const inspectScale = await evaluate(`(() => {
+    document.documentElement.style.fontSize = '200%';
+    const panel = document.querySelector('.reference-inspect');
+    return { client: panel.clientWidth, content: panel.scrollWidth };
+  })()`);
+  assert.ok(
+    inspectScale.content <= inspectScale.client + 1,
+    `Live Source Inspect clips at 200% text scale: ${JSON.stringify(inspectScale)}`,
+  );
+  await evaluate("document.documentElement.style.fontSize = ''");
+  await send("Emulation.setDeviceMetricsOverride", {
+    width: 1280,
+    height: 960,
+    deviceScaleFactor: 1,
+    mobile: false,
+  });
+  assert.equal(
+    await evaluate(
+      "document.querySelector('.reference-inspect__intro a')?.getAttribute('href')",
+    ),
+    registeredInspectPath,
+  );
+  await evaluate(
+    "document.querySelector('.reference-inspect__intro a')?.click()",
+  );
+  await until(
+    `window.location.pathname.endsWith(${JSON.stringify(`/sources/${registeredSourceId}`)}) && document.querySelector('#source-processing') !== null`,
+    "live exact source return from Inspect",
+  );
 
   await until(
     `${button("Process source")} !== undefined`,
     "processing command availability",
+  );
+  assert.equal(
+    await evaluate(
+      `${button("Process source")}?.closest('.reference-agent-panel') !== null`,
+    ),
+    true,
+    "Source processing must begin in the persistent Agent",
   );
   await evaluate(`${button("Process source")}.click()`);
   await until(
@@ -469,6 +624,7 @@ export const startWave6SourcesLifecycleBrowser = async ({
   await evaluate(`(()=>{
     const control=[...document.querySelectorAll("button")].find((candidate)=>candidate.textContent.trim().startsWith("Use existing"));
     if(!control) throw new Error("Missing existing-source control");
+    if(!control.closest('.reference-agent-panel')) throw new Error("Source reuse did not begin in the Agent");
     control.click();
   })()`);
   await until(
@@ -653,6 +809,18 @@ export const startWave6SourcesLifecycleBrowser = async ({
       delete_local_copy: summarize(deletionCall),
       recover_local_copy_effect: summarize(deletionRecoveryCall),
     },
+    presentation: {
+      find_entry: "agent",
+      registration_entry: "agent",
+      registration_review: "workspace",
+      processing_entry: "agent",
+      reuse_entry: "agent",
+      inspect_exact_source_and_return: true,
+      inspect_registration_receipt_after_reload: true,
+      inspect_source_processing_and_representation: true,
+      source_and_inspect_200_percent_text_scale: true,
+      agent_composer_visible_without_covering_source_controls: true,
+    },
     exact_return: {
       initial_filtered_collection: `${scientificSources}?query=${encodeURIComponent(initialExactTitle)}#source-reuse-return`,
       processing_work_to_source: true,
@@ -661,8 +829,13 @@ export const startWave6SourcesLifecycleBrowser = async ({
     },
     checks: [
       "Find filtered a renderer-neutral, server-owned Project collection",
+      "Source discovery entered through the Agent while results stayed in Workspace",
+      "Ask Petra stayed in the first desktop screen without covering the Source task",
       "Open inspected complete exact content and returned to the preserved filter",
       "registration retained reviewed identity, exact bytes, rights, and Project role",
+      "Agent entry opened the detailed registration and rights review in Workspace",
+      "single Inspect entry resolved the retained registration receipt after reload and returned to the exact source task",
+      "live Source and Inspector fit the 420 px workspace at 200% text scale",
       "processing started bounded durable Work and returned to the exact source task",
       "new revision intake retained a distinct successor",
       "predecessor exclusion and version-replacement relationship remained separate visible commands",
@@ -680,7 +853,8 @@ export const startWave6SourcesLifecycleBrowser = async ({
     status: "passed",
     recorded_at: new Date().toISOString(),
     command:
-      "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:sources-ui",
+      process.env.PETRA_EVIDENCE_COMMAND ??
+      "node apps/workbench/test/run-wave6-sources-lifecycle-browser.mjs",
     environment: {
       node: process.versions.node,
       browser: observation.browser,

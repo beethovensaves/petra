@@ -18,6 +18,7 @@ import {
   type CreateProjectSourceReplacementResponse,
   type ProjectSourceLifecycleCommandResponse,
 } from "./project-data.js";
+import { useWorkspaceDraftState } from "./workspace-drafts.js";
 import {
   sourceRegistrationMaterialFromFile,
   type SourceRegistrationMaterial,
@@ -567,8 +568,16 @@ export const SourceRevisionPanel = ({
   const [resolvedClient] = useState<RevisionClient>(
     () => client ?? projectSourceRevisionClient(),
   );
-  const [fields, setFields] = useState<SourceRevisionFields>(initialFields);
-  const [file, setFile] = useState<File>();
+  const draftKey = `source-revision:${context.projectId}:${context.currentSourceRef.project_source_id}:${context.currentSourceRef.revision}`;
+  const [fields, setFields, clearFields] =
+    useWorkspaceDraftState<SourceRevisionFields>(
+      `${draftKey}:fields`,
+      initialFields,
+    );
+  const [file, setFile, clearFile] = useWorkspaceDraftState<File | undefined>(
+    `${draftKey}:file`,
+    undefined,
+  );
   const [submitting, setSubmitting] = useState(false);
   const [activeRequest, setActiveRequest] =
     useState<PetraProjectSourceRevisionRequest>();
@@ -643,6 +652,8 @@ export const SourceRevisionPanel = ({
         request,
       );
       setResult({ receipt: next.receipt, applied: next.applied });
+      clearFields();
+      clearFile();
       setRecovered(false);
     } catch (error) {
       setFailure(revisionFailure(error));
@@ -664,6 +675,8 @@ export const SourceRevisionPanel = ({
       setAssessment(next);
       if (next.effect.state === "effect_confirmed") {
         setResult({ receipt: next.effect.receipt, applied: false });
+        clearFields();
+        clearFile();
         setRecovered(true);
       }
     } catch (error) {
@@ -684,6 +697,8 @@ export const SourceRevisionPanel = ({
         activeRequest,
       );
       setResult({ receipt: next.receipt, applied: next.applied });
+      clearFields();
+      clearFile();
       setRecovered(false);
     } catch (error) {
       const nextFailure = revisionFailure(error);

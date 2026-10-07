@@ -240,6 +240,17 @@ describe("reference Review and Graph packets", () => {
     expect(markup).toContain("Needs your decision");
     expect(markup).toContain("Waiting");
     expect(markup).toContain("Completed");
+    expect(markup).not.toContain("<dt>Bound to</dt>");
+  });
+
+  it("uses the correct decision count language for multiple open Reviews", () => {
+    const second = structuredClone(review);
+    second.id = "review-second-decision";
+    const markup = render(
+      <ReviewCollectionSurface project={project} reviews={[review, second]} />,
+    );
+
+    expect(markup).toContain("2 decisions need your attention");
   });
 
   it("presents Current, Candidate, origin, basis, consequence, and exact ChangeSet", () => {
@@ -247,6 +258,13 @@ describe("reference Review and Graph packets", () => {
       <ReviewSessionSurface project={project} review={review} />,
     );
 
+    expect(markup).toContain("Responsible author: Project author");
+    expect(markup).toContain('<p class="reference-eyebrow">Review session</p>');
+    expect(markup).toContain(
+      '<details class="review-session__record-details"><summary>Review record details</summary>',
+    );
+    expect(markup).toContain("<dt>Authority snapshot</dt><dd>Snapshot 18</dd>");
+    expect(markup).toContain('class="review-validation" data-state="');
     expect(markup).toContain("Current · authoritative");
     expect(markup).toContain('<h2 id="review-comparison-title" tabindex="-1">');
     expect(markup).toContain("No accepted relationship");
@@ -263,6 +281,32 @@ describe("reference Review and Graph packets", () => {
     expect(markup).toContain("No accepted finding is replaced or removed");
     expect(markup).toContain(
       "?from=review&amp;reviewId=review-service-link&amp;basisId=basis-maintenance-note",
+    );
+  });
+
+  it("uses the validation state's own symbol for passed and pending material checks", () => {
+    const passed = structuredClone(review);
+    passed.validation = {
+      state: "passed",
+      label: "Applicable checks passed",
+      detail: "The exact working checks passed.",
+    };
+    const pending = structuredClone(review);
+    pending.validation = {
+      state: "needs_judgment",
+      label: "Needs source judgment",
+      detail: "The basis requires a responsible decision.",
+    };
+
+    expect(
+      render(<ReviewSessionSurface project={project} review={passed} />),
+    ).toContain(
+      'class="review-validation" data-state="passed" aria-labelledby="review-validation-title"><span aria-hidden="true">✓</span>',
+    );
+    expect(
+      render(<ReviewSessionSurface project={project} review={pending} />),
+    ).toContain(
+      'class="review-validation" data-state="needs_judgment" aria-labelledby="review-validation-title"><span aria-hidden="true">!</span>',
     );
   });
 
@@ -326,8 +370,17 @@ describe("reference Review and Graph packets", () => {
     expect(markup).toContain("Apply unavailable");
     expect(markup).toContain("Reject candidate");
     expect(markup).toContain("Decide later");
+    expect(markup).toContain('href="#review-decision-actions"');
+    expect(markup).toContain('id="review-decision-actions" tabindex="-1"');
+    expect(markup).toContain("Material validation is blocked:");
+    expect(markup).toContain(
+      '<details class="review-decision__conditions"><summary>Exact decision and recovery conditions</summary>',
+    );
     expect(markup).toContain('data-operation="defer_review_session"');
     expect(markup).toContain("Reason for deciding later (optional)");
+    expect(markup).toContain(
+      '<details class="review-decision__defer-input"><summary>Add a reason for deciding later (optional)</summary>',
+    );
     expect(markup).toContain("A scheduled revisit time is not supported yet");
     expect(markup).toContain(
       'href="/projects/inlet-cycle/brief#attention-source-depth"',
@@ -1090,7 +1143,7 @@ describe("reference Review and Graph packets", () => {
     expect(markup).not.toContain("Reason for deciding later (optional)");
   });
 
-  it("presents Refresh only from the runtime-supplied stale and open state", () => {
+  it("keeps stale Review refresh automatic and bound to the runtime-supplied open lifecycle", () => {
     const stale = structuredClone(review);
     stale.snapshotState = "stale";
     stale.lifecycle = "open";
@@ -1099,7 +1152,7 @@ describe("reference Review and Graph packets", () => {
     );
 
     expect(markup).toContain("Refresh Review");
-    expect(markup).toContain('data-operation="refresh_review_session"');
+    expect(markup).not.toContain('data-operation="refresh_review_session"');
     expect(markup).toContain(
       "sends only the exact Review identity, revision, content hash, and open lifecycle",
     );

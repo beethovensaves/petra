@@ -6,7 +6,7 @@ import {
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
-import { Link } from "react-router";
+import { Link, useLocation } from "react-router";
 import type { PetraProjectModelReadinessView } from "@petra/contracts";
 
 import { PetraModelInteraction } from "./PetraModelInteraction.js";
@@ -16,17 +16,55 @@ import {
   type ProjectPetraReturnContext,
 } from "./project-data.js";
 import type { PetraThread, ProjectRecord } from "./model.js";
+import { projectInspectPath } from "./WorkspaceHost.js";
 
-const AgentControlTargetContext = createContext<HTMLElement | null>(null);
+const AgentControlTargetContext = createContext<{
+  target: HTMLElement | null;
+  project?: ProjectRecord;
+}>({ target: null });
+
+const AgentInspectLink = ({
+  project,
+  title,
+  operationIds,
+  objectRef,
+}: {
+  project: ProjectRecord;
+  title: string;
+  operationIds: readonly string[];
+  objectRef?: string;
+}): React.JSX.Element => {
+  const location = useLocation();
+  const from = `${location.pathname}${location.search}${location.hash}`;
+  return (
+    <Link
+      to={projectInspectPath(
+        project.id,
+        from,
+        project.selection,
+        operationIds,
+        objectRef,
+      )}
+      data-operation-id="shell.inspect-context"
+      aria-label={`Inspect ${title}`}
+    >
+      Inspect
+    </Link>
+  );
+};
 
 export const AgentControlPlaneProvider = ({
   target,
+  project,
   children,
 }: {
   target: HTMLElement | null;
+  project?: ProjectRecord;
   children: ReactNode;
 }): React.JSX.Element => (
-  <AgentControlTargetContext.Provider value={target}>
+  <AgentControlTargetContext.Provider
+    value={{ target, ...(project === undefined ? {} : { project }) }}
+  >
     {children}
   </AgentControlTargetContext.Provider>
 );
@@ -50,7 +88,7 @@ export const AgentControlPortal = ({
   objectRef?: string;
   children: ReactNode;
 }): React.JSX.Element => {
-  const target = useContext(AgentControlTargetContext);
+  const { target, project } = useContext(AgentControlTargetContext);
   const content = (
     <section
       className="reference-agent-control"
@@ -66,6 +104,14 @@ export const AgentControlPortal = ({
           {title}
         </h2>
         <p>{description}</p>
+        {project === undefined ? null : (
+          <AgentInspectLink
+            project={project}
+            title={title}
+            operationIds={operationIds}
+            {...(objectRef === undefined ? {} : { objectRef })}
+          />
+        )}
       </header>
       <div className="reference-agent-control__body">{children}</div>
       <details className="reference-agent-control__identity">
@@ -160,75 +206,6 @@ export const AgentConversation = ({
 
   return (
     <>
-      <section
-        className="reference-agent-thread"
-        aria-labelledby="agent-thread-title"
-        data-operation-id="petra.resume-thread"
-        {...(thread === undefined ? {} : { "data-object-ref": thread.id })}
-      >
-        <header>
-          <div>
-            <p className="reference-panel-kicker">Working thread</p>
-            <h2 id="agent-thread-title">
-              {thread?.title ?? "Start with the outcome"}
-            </h2>
-          </div>
-          {thread === undefined ? null : <span>{thread.messages.length}</span>}
-        </header>
-        {state.state === "loading" ? (
-          <p role="status">Reading the exact Project thread…</p>
-        ) : state.state === "unavailable" ? (
-          <p role="alert">{state.message}</p>
-        ) : thread === undefined ? (
-          <p>
-            Tell Petra what should happen next. Petra will ask before taking an
-            action that needs your confirmation.
-          </p>
-        ) : (
-          <>
-            <ol>
-              {recentMessages(thread).map((message) => (
-                <li key={message.id} data-force={message.force}>
-                  <article>
-                    <header>
-                      <strong>{message.speaker}</strong>
-                      <span>{message.forceLabel}</span>
-                    </header>
-                    <p>{message.content}</p>
-                    {message.references.map((reference) => (
-                      <Link
-                        key={reference.destination}
-                        to={reference.destination}
-                      >
-                        {reference.label}
-                      </Link>
-                    ))}
-                  </article>
-                </li>
-              ))}
-            </ol>
-            <details>
-              <summary>Thread context</summary>
-              <p>
-                <code>{thread.id}</code>
-              </p>
-              <p>{thread.snapshot}</p>
-              <ul>
-                {thread.context.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-            </details>
-          </>
-        )}
-        {state.state === "ready" && state.threadWarning !== undefined ? (
-          <details className="reference-agent-technical-note">
-            <summary>Thread could not be refreshed</summary>
-            <p role="status">{state.threadWarning}</p>
-          </details>
-        ) : null}
-      </section>
-
       <div
         className="reference-agent-control-slot"
         ref={onControlTarget}
@@ -266,6 +243,84 @@ export const AgentConversation = ({
             onResult={() => setReloadKey((key) => key + 1)}
           />
         )}
+      </section>
+
+      <section
+        className="reference-agent-thread"
+        aria-labelledby="agent-thread-title"
+        data-operation-id="petra.resume-thread"
+        {...(thread === undefined ? {} : { "data-object-ref": thread.id })}
+      >
+        <header>
+          <div>
+            <p className="reference-panel-kicker">Working thread</p>
+            <h2 id="agent-thread-title">
+              {thread?.title ?? "Start with the outcome"}
+            </h2>
+          </div>
+          {thread === undefined ? null : <span>{thread.messages.length}</span>}
+        </header>
+        {state.state === "loading" ? (
+          <p role="status">Reading the exact Project thread…</p>
+        ) : state.state === "unavailable" ? (
+          <p role="alert">{state.message}</p>
+        ) : thread === undefined ? (
+          <p>
+            Tell Petra what should happen next. Petra will ask before taking an
+            action that needs your confirmation.
+          </p>
+        ) : (
+          <>
+            <p className="reference-agent-thread__representation">
+              This retained read shows turn records. Exact message text is not
+              available in this view.
+            </p>
+            <ol>
+              {recentMessages(thread).map((message) => (
+                <li key={message.id} data-force={message.force}>
+                  <article>
+                    <header>
+                      <strong>{message.speaker}</strong>
+                      <span>{message.forceLabel}</span>
+                    </header>
+                    <p>{message.content}</p>
+                    {message.references.map((reference) => (
+                      <Link
+                        key={reference.destination}
+                        to={reference.destination}
+                      >
+                        {reference.label}
+                      </Link>
+                    ))}
+                  </article>
+                </li>
+              ))}
+            </ol>
+            {thread.messages.length <= 4 ? null : (
+              <Link to={`/projects/${encodeURIComponent(project.id)}/petra`}>
+                Open all {thread.messages.length} recorded entries
+              </Link>
+            )}
+            <details>
+              <summary>Thread context</summary>
+              <p>
+                <code>{thread.id}</code>
+              </p>
+              <p>{thread.snapshot}</p>
+              <ul>
+                {thread.context.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </details>
+          </>
+        )}
+        {state.state === "ready" && state.threadWarning !== undefined ? (
+          <details className="reference-agent-technical-note">
+            <summary>Thread could not be refreshed</summary>
+            <p role="status">{state.threadWarning}</p>
+          </details>
+        ) : null}
       </section>
     </>
   );

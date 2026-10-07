@@ -138,7 +138,7 @@ export const createWave4EvidenceObserver = async ({ root }) => {
       'document.querySelector("#petra-model-effects-title")?.parentElement?.textContent',
     );
     const returnDestination = await evaluate(
-      'document.querySelector(".petra-model-return a")?.getAttribute("href")',
+      'document.querySelector(".petra-focus .reference-context-back")?.getAttribute("href")',
     );
     const post = calls.find(
       (call) => call.method === "POST" && call.path === "/api/interactions/run",

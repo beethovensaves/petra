@@ -3058,6 +3058,44 @@ export const workProjectFromView = (
   };
 };
 
+export const getProjectWorkInspection = async (
+  projectId: string,
+  workUnitId: string,
+  revision: number,
+  recordHash: string,
+): Promise<{
+  readonly work: WorkUnit;
+  readonly operations: PetraProjectWorkOperationsView;
+}> => {
+  const [value, operations] = await Promise.all([
+    requestJson(
+      `/api/queries/projects/${encodeURIComponent(projectId)}/work/${encodeURIComponent(workUnitId)}`,
+    ),
+    readProjectWorkOperations(projectId, workUnitId),
+  ]);
+  const view = projectWorkView(value);
+  if (
+    view.project_id !== projectId ||
+    view.content.view_kind !== "detail" ||
+    view.content.summary.work_unit_ref.work_unit_id !== workUnitId ||
+    view.content.summary.work_unit_ref.revision !== revision ||
+    view.content.summary.work_unit_ref.record_hash !== recordHash ||
+    operations.project_id !== projectId ||
+    operations.work_unit_ref.work_unit_id !== workUnitId ||
+    operations.work_unit_ref.revision !== revision
+  ) {
+    throw new ProjectDataError(
+      "The current Work read does not match the selected Project shell revision.",
+      409,
+    );
+  }
+  const work = workProjectFromView(view).units[0];
+  if (work === undefined) {
+    throw new ProjectDataError("Petra returned no exact Work task.", 502);
+  }
+  return { work, operations };
+};
+
 export const sourceRecordFromView = (
   view: PetraProjectSourceView,
 ): SourceRecord => {
@@ -3105,6 +3143,25 @@ export const sourceRecordFromView = (
           },
         }),
   };
+};
+
+export const getProjectSourceInspection = async (
+  projectId: string,
+  sourceId: string,
+  revision: number,
+): Promise<SourceRecord> => {
+  const view = await projectSourceDiscoveryClient().open(projectId, sourceId);
+  if (
+    view.project_id !== projectId ||
+    view.project_source_id !== sourceId ||
+    view.content.binding.revision !== revision
+  ) {
+    throw new ProjectDataError(
+      "The current Source read does not match the selected Project shell revision.",
+      409,
+    );
+  }
+  return sourceRecordFromView(view);
 };
 
 const reviewReturnPath = (view: PetraProjectReviewViewRecord): string => {
@@ -4346,21 +4403,16 @@ export const loadProjectRecord = async ({
   const requestUrl = new URL(request.url);
   const incoming = requestUrl.searchParams;
   const semanticKey = incoming.get("semanticKey");
-  const objectPathSegment =
-    semanticKey === "petra.project-source"
-      ? "sources"
-      : semanticKey === "petra.work-unit"
-        ? "work"
-        : semanticKey === "petra.draft-artifact"
-          ? "composition"
-          : undefined;
   const pathParts = requestUrl.pathname.split("/").filter(Boolean);
-  const objectPathIndex =
-    objectPathSegment === undefined
-      ? -1
-      : pathParts.lastIndexOf(objectPathSegment);
+  const objectPathSegment =
+    pathParts.length === 4 &&
+    (pathParts[2] === "sources" ||
+      pathParts[2] === "work" ||
+      pathParts[2] === "composition")
+      ? pathParts[2]
+      : undefined;
   const pathObjectId =
-    objectPathIndex < 0 ? undefined : pathParts[objectPathIndex + 1];
+    objectPathSegment === undefined ? undefined : pathParts[3];
   const selected =
     incoming.get("selected") ??
     params.sourceId ??
@@ -4383,31 +4435,71 @@ export const loadProjectRecord = async ({
       400,
     );
   }
+  if (
+    hasExactSelection &&
+    pathObjectId !== undefined &&
+    selected !== pathObjectId
+  ) {
+    throw new ProjectDataError(
+      "The exact Workspace selection does not match the object in this Project URL.",
+      400,
+    );
+  }
+  const automaticSelection =
+    !hasExactSelectionMetadata && pathObjectId !== undefined
+      ? objectPathSegment === "sources" &&
+        /^project_source_[0-9A-HJKMNP-TV-Z]{26}$/u.test(pathObjectId)
+        ? {
+            semanticKey: "petra.project-source",
+            objectId: pathObjectId,
+            role: "sources",
+          }
+        : objectPathSegment === "work" &&
+            /^work_unit_[0-9A-HJKMNP-TV-Z]{26}$/u.test(pathObjectId)
+          ? {
+              semanticKey: "petra.work-unit",
+              objectId: pathObjectId,
+              role: "work",
+            }
+          : objectPathSegment === "composition" &&
+              /^draft_artifact_[0-9A-HJKMNP-TV-Z]{26}$/u.test(pathObjectId)
+            ? {
+                semanticKey: "petra.draft-artifact",
+                objectId: pathObjectId,
+                role: "composition",
+              }
+            : undefined
+      : undefined;
   const query = new URLSearchParams();
   if (hasExactSelection) {
     query.set("semanticKey", semanticKey);
     query.set("objectId", selected);
     query.set("revision", revision);
     query.set("taskIntent", "inspect");
+  } else if (automaticSelection !== undefined) {
+    query.set("semanticKey", automaticSelection.semanticKey);
+    query.set("objectId", automaticSelection.objectId);
+    query.set("taskIntent", "inspect");
   }
   const suffix = query.size === 0 ? "" : `?${query}`;
-  const view = hasExactSelection
-    ? shellView(
-        await requestJson(
-          `/api/queries/projects/${encodeURIComponent(params.projectId)}/shell${suffix}`,
-        ),
-      )
-    : await (async (): Promise<ProjectShellView> => {
-        const { ProjectShellClient } = await import("@petra/adapters");
-        return new ProjectShellClient({
-          baseUrl: apiBaseUrl(),
-          token: apiToken(),
-          fetch: (input, init) => fetch(input, init),
-        }).open(projectId);
-      })();
+  const view =
+    query.size > 0
+      ? shellView(
+          await requestJson(
+            `/api/queries/projects/${encodeURIComponent(params.projectId)}/shell${suffix}`,
+          ),
+        )
+      : await (async (): Promise<ProjectShellView> => {
+          const { ProjectShellClient } = await import("@petra/adapters");
+          return new ProjectShellClient({
+            baseUrl: apiBaseUrl(),
+            token: apiToken(),
+            fetch: (input, init) => fetch(input, init),
+          }).open(projectId);
+        })();
   if (hasExactSelection) {
     if (
-      view.schema_version !== "1.1.0" ||
+      view.schema_version === "1.0.0" ||
       view.content.selection === undefined ||
       !("resolved_ref" in view.content.selection.resolution) ||
       view.content.selection.resolution.resolved_ref.semantic_key !==
@@ -4420,6 +4512,24 @@ export const loadProjectRecord = async ({
       throw new ProjectDataError(
         "Petra could not reproduce the exact selected object in the Project shell snapshot.",
         502,
+      );
+    }
+  }
+  if (automaticSelection !== undefined) {
+    if (
+      view.schema_version === "1.0.0" ||
+      view.content.selection === undefined ||
+      view.content.selection.primary_destination.role !==
+        automaticSelection.role ||
+      view.content.selection.resolution.requested_ref.semantic_key !==
+        automaticSelection.semanticKey ||
+      view.content.selection.resolution.requested_ref.object_id !==
+        automaticSelection.objectId ||
+      !("resolved_ref" in view.content.selection.resolution)
+    ) {
+      throw new ProjectDataError(
+        "Petra could not verify this Workspace object and its server-owned destination in the Project shell snapshot.",
+        409,
       );
     }
   }
@@ -5260,11 +5370,10 @@ export interface ProjectHistoryEventData {
  * assessments. Compensation remains separately previewed, confirmed, and
  * executed by the owning production routes.
  */
-export const loadProjectHistoryEvent = async ({
-  params,
-}: LoaderFunctionArgs): Promise<ProjectHistoryEventData> => {
-  const projectId = requiredRouteIdentity(params.projectId, "A Project ID");
-  const eventId = requiredRouteIdentity(params.episodeId, "A History event ID");
+export const getProjectHistoryEvent = async (
+  projectId: string,
+  eventId: string,
+): Promise<ProjectHistoryEventData> => {
   const [episode, impact, recovery] = await Promise.all([
     getProjectHistoryEpisode(projectId, eventId),
     getProjectHistoryImpact(projectId, eventId),
@@ -5272,6 +5381,14 @@ export const loadProjectHistoryEvent = async ({
   ]);
   return { episode, impact, recovery };
 };
+
+export const loadProjectHistoryEvent = async ({
+  params,
+}: LoaderFunctionArgs): Promise<ProjectHistoryEventData> =>
+  getProjectHistoryEvent(
+    requiredRouteIdentity(params.projectId, "A Project ID"),
+    requiredRouteIdentity(params.episodeId, "A History event ID"),
+  );
 
 export interface ProjectHistoryCompensationPlanInput {
   readonly projectId: string;
@@ -6211,14 +6328,10 @@ export const loadProjectReviewCollection = async ({
   });
 };
 
-export const loadProjectReviewSession = async ({
-  params,
-}: LoaderFunctionArgs): Promise<ReviewSession> => {
-  const projectId = requiredRouteIdentity(params.projectId, "A Project ID");
-  const reviewSessionId = requiredRouteIdentity(
-    params.reviewId,
-    "A ReviewSession ID",
-  );
+export const getProjectReviewSession = async (
+  projectId: string,
+  reviewSessionId: string,
+): Promise<ReviewSession> => {
   const value = await requestJson(
     `/api/queries/projects/${encodeURIComponent(projectId)}/reviews/${encodeURIComponent(reviewSessionId)}`,
   );
@@ -6285,6 +6398,14 @@ export const loadProjectReviewSession = async ({
     ...(first.changeSet === undefined ? {} : { changeSet: first.changeSet }),
   };
 };
+
+export const loadProjectReviewSession = async ({
+  params,
+}: LoaderFunctionArgs): Promise<ReviewSession> =>
+  getProjectReviewSession(
+    requiredRouteIdentity(params.projectId, "A Project ID"),
+    requiredRouteIdentity(params.reviewId, "A ReviewSession ID"),
+  );
 
 const WORK_INQUIRY_MAPPING_UNAVAILABLE =
   "The current Project profile has no active inquiry-path mapping. Exact Work remains available, but Petra cannot show how these tasks relate to authored inquiry paths.";
@@ -6741,6 +6862,17 @@ export const readProjectWorkOperations = async (
   workUnitId: string,
 ): Promise<PetraProjectWorkOperationsView> =>
   projectWorkClient().readOperations(projectId, workUnitId);
+
+export const readProjectWorkReceipts = async (
+  projectId: string,
+  workUnitId: string,
+): Promise<
+  readonly (
+    | PetraProjectWorkOperationReceipt
+    | PetraProjectWorkResumeReceipt
+    | PetraProjectWorkStartAgainReceipt
+  )[]
+> => projectWorkClient().readReceipts(projectId, workUnitId);
 
 export const executeProjectWorkOperation = async (
   projectId: string,

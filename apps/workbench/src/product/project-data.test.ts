@@ -2044,6 +2044,14 @@ describe("Project shell workbench adapter", () => {
       "/shell?semanticKey=petra.project-source&objectId=project_source_01K4C000000000000000000007&revision=1&taskIntent=inspect",
     );
 
+    fetch.mockResolvedValueOnce(Response.json(shellV13View));
+    await expect(loadProjectRecord(args)).resolves.toMatchObject({
+      selection: {
+        objectId: "project_source_01K4C000000000000000000007",
+        destination: "sources",
+      },
+    });
+
     const incompleteUrl = new URL(url);
     incompleteUrl.searchParams.delete("recordHash");
     await expect(
@@ -2053,7 +2061,61 @@ describe("Project shell workbench adapter", () => {
         url: incompleteUrl,
       }),
     ).rejects.toMatchObject({ status: 400 });
-    expect(fetch).toHaveBeenCalledOnce();
+    expect(fetch).toHaveBeenCalledTimes(2);
+
+    const crossedUrl = new URL(url);
+    crossedUrl.searchParams.set(
+      "selected",
+      "project_source_01K4C000000000000000000008",
+    );
+    await expect(
+      loadProjectRecord({
+        ...args,
+        request: new Request(crossedUrl),
+        url: crossedUrl,
+      }),
+    ).rejects.toMatchObject({ status: 400 });
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
+
+  it("resolves a direct Source URL through the server-owned Workspace destination", async () => {
+    const projectId = shellV11View.project_id;
+    const sourceId = "project_source_01K4C000000000000000000007";
+    const url = new URL(
+      `http://petra.test/projects/${projectId}/sources/${sourceId}`,
+    );
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValue(Response.json(shellV11View));
+    vi.stubGlobal("fetch", fetch);
+    const args: LoaderFunctionArgs = {
+      request: new Request(url),
+      url,
+      pattern: "/projects/:projectId",
+      params: { projectId },
+      context: new RouterContextProvider(),
+    };
+
+    const project = await loadProjectRecord(args);
+    expect(project.selection).toMatchObject({
+      semanticKey: "petra.project-source",
+      objectId: sourceId,
+      destination: "sources",
+      state: "current",
+    });
+    expect(fetch.mock.calls[0]?.[0]).toContain(
+      `/shell?semanticKey=petra.project-source&objectId=${sourceId}&taskIntent=inspect`,
+    );
+
+    const wrongDestination = structuredClone(shellV11View);
+    if (wrongDestination.content.selection === undefined) {
+      throw new Error("The selected shell fixture is missing its selection.");
+    }
+    wrongDestination.content.selection.primary_destination.role = "work";
+    fetch.mockResolvedValueOnce(Response.json(wrongDestination));
+    await expect(loadProjectRecord(args)).rejects.toMatchObject({
+      status: 409,
+    });
   });
 
   it("loads Settings from one exact Project and definition snapshot", async () => {

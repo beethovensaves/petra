@@ -901,6 +901,25 @@ describePostgres("PostgreSQL bounded WorkUnit authority", () => {
         principal,
       ),
     ).resolves.toStrictEqual(started);
+    const retained = await workOperations.readRecentProjectWorkReceipts(
+      first.workUnit.project_id,
+      first.workUnit.work_unit_id,
+      principal.actor,
+    );
+    expect(retained.map((item) => item.command_id)).toEqual([
+      start.command_id,
+      steered.command_id,
+      prioritized.command_id,
+      answered.command_id,
+    ]);
+    expect(retained[0]).toStrictEqual(started);
+    await expect(
+      workOperations.readRecentProjectWorkReceipts(
+        first.workUnit.project_id,
+        first.workUnit.work_unit_id,
+        { actor_id: "actor_01ARZ3NDEKTSV4RRFFQ69G5FZZ", actor_kind: "human" },
+      ),
+    ).resolves.toEqual([]);
     const running = await workUnits.getWorkUnit(first.workUnit.work_unit_id);
     if (running === undefined) throw new Error("Expected running Work.");
     const cancel = operation("cancel", running, "06", {

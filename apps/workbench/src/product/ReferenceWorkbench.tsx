@@ -63,6 +63,12 @@ import {
   AgentConversation,
 } from "./AgentControlPlane.js";
 import { projectWorkDestinationPath } from "./project-work-destination.js";
+import { WorkspaceHost, type WorkspacePlace } from "./WorkspaceHost.js";
+import { InspectWorkspace } from "./InspectWorkspace.js";
+import {
+  WorkspaceDraftProvider,
+  useWorkspaceDraftState,
+} from "./workspace-drafts.js";
 import { usePersonalPreferences } from "./use-personal-preferences.js";
 import type {
   EngineState,
@@ -577,7 +583,7 @@ export const ProjectsSurface = ({
             <p>
               {hasFilters
                 ? "Change or clear the search to ask Petra for another bounded Project list."
-                : "Create a Project with a registered profile to begin."}
+                : "Describe an outcome to create your first Project."}
             </p>
             {hasFilters ? (
               <PetraButton variant="secondary" onClick={clearSearch}>
@@ -596,7 +602,7 @@ export const ProjectsSurface = ({
                   </div>
                   <h2>
                     <Link
-                      to={`/projects/${project.id}/brief`}
+                      to={`/projects/${project.id}/${project.resume?.state === "available" ? "resume" : "brief"}`}
                       state={targetState}
                     >
                       {project.title}
@@ -624,17 +630,16 @@ export const ProjectsSurface = ({
                       >
                         Open Brief
                       </Link>
-                      {project.resume === undefined ? null : (
+                      {project.resume === undefined ||
+                      project.resume.state === "available" ? null : (
                         <Link
                           className="reference-primary-link"
                           to={`/projects/${project.id}/resume`}
                           state={targetState}
                         >
-                          {project.resume.state === "available"
-                            ? "Resume Project"
-                            : project.resume.state === "unavailable"
-                              ? "Retry Resume"
-                              : "Open Brief recovery"}
+                          {project.resume.state === "unavailable"
+                            ? "Retry Resume"
+                            : "Open Brief recovery"}
                           <span aria-hidden="true">→</span>
                         </Link>
                       )}
@@ -711,28 +716,30 @@ export const useProjectRecord = (): ProjectRecord => {
   return context.project;
 };
 
-const placeFromPath = (pathname: string): ProjectPlace =>
+const placeFromPath = (pathname: string): WorkspacePlace =>
   pathname.includes("/profile")
     ? "profile_tool"
-    : pathname.includes("/resume")
-      ? "graph"
-      : pathname.includes("/sources")
-        ? "sources"
-        : pathname.includes("/review")
-          ? "review"
-          : pathname.includes("/graph")
-            ? "graph"
-            : pathname.includes("/work")
-              ? "work"
-              : pathname.includes("/composition")
-                ? "composition"
-                : pathname.includes("/history")
-                  ? "history"
-                  : pathname.includes("/tools/")
-                    ? "profile_tool"
-                    : pathname.includes("/petra")
-                      ? "petra"
-                      : "brief";
+    : pathname.includes("/inspect")
+      ? "inspect"
+      : pathname.includes("/resume")
+        ? "graph"
+        : pathname.includes("/sources")
+          ? "sources"
+          : pathname.includes("/review")
+            ? "review"
+            : pathname.includes("/graph")
+              ? "graph"
+              : pathname.includes("/work")
+                ? "work"
+                : pathname.includes("/composition")
+                  ? "composition"
+                  : pathname.includes("/history")
+                    ? "history"
+                    : pathname.includes("/tools/")
+                      ? "profile_tool"
+                      : pathname.includes("/petra")
+                        ? "petra"
+                        : "brief";
 
 export const hashFocusTargetId = (hash: string): string | undefined => {
   if (!hash.startsWith("#") || hash.length === 1) return undefined;
@@ -744,17 +751,41 @@ export const hashFocusTargetId = (hash: string): string | undefined => {
   }
 };
 
+const AGENT_WIDTH_STORAGE_KEY = "petra.agent-width-percent";
+const boundedAgentWidth = (value: number): number =>
+  Math.max(30, Math.min(40, Math.round(value)));
+const initialAgentWidth = (): number => {
+  if (typeof window === "undefined") return 30;
+  try {
+    const stored = Number(
+      window.sessionStorage.getItem(AGENT_WIDTH_STORAGE_KEY),
+    );
+    return Number.isFinite(stored) && stored >= 30 && stored <= 40
+      ? boundedAgentWidth(stored)
+      : 30;
+  } catch {
+    return 30;
+  }
+};
+
 export const ProjectShell = (): React.JSX.Element => {
   const project = useLoaderData<ProjectRecord>();
   const location = useLocation();
+  const projectLayout = useRef<HTMLDivElement>(null);
+  const resizingAgent = useRef(false);
+  const [agentWidth, setAgentWidth] = useState(initialAgentWidth);
   const projectNav = useRef<HTMLElement>(null);
+  const previousWorkspacePath = useRef(location.pathname);
   const [mobilePane, setMobilePane] = useState<"agent" | "workspace">(
     "workspace",
   );
   const [agentControlTarget, setAgentControlTarget] =
     useState<HTMLDivElement | null>(null);
   const currentPlace = placeFromPath(location.pathname);
-  const currentWorkspaceLabel: Record<ProjectPlace, string> = {
+  const openReviewCount =
+    project.placeSummaries?.find((summary) => summary.role === "review")
+      ?.attentionCount ?? 0;
+  const currentWorkspaceLabel: Record<WorkspacePlace | "settings", string> = {
     brief: "Overview",
     petra: "Conversation",
     work: "Work",
@@ -765,12 +796,13 @@ export const ProjectShell = (): React.JSX.Element => {
     composition: "Outputs",
     profile_tool: "Project definition",
     settings: "Settings",
+    inspect: "Inspect",
   };
   const incomingSwitchOrigin = projectSwitchOriginFromState(location.state);
   const currentTaskLabel =
     location.pathname.endsWith("/resume") &&
     project.resume?.state === "available"
-      ? (project.resume.retained_task?.label ?? "the retained Graph task")
+      ? (project.resume.retained_task?.label ?? "the retained task")
       : currentPlace === "profile_tool"
         ? "the Project definition"
         : `the Project ${currentWorkspaceLabel[currentPlace]}`;
@@ -792,6 +824,25 @@ export const ProjectShell = (): React.JSX.Element => {
       : undefined;
 
   useEffect(() => {
+    try {
+      window.sessionStorage.setItem(
+        AGENT_WIDTH_STORAGE_KEY,
+        String(agentWidth),
+      );
+    } catch {
+      // The selected width remains available for this mounted workspace.
+    }
+  }, [agentWidth]);
+
+  const resizeAgentTo = (clientX: number): void => {
+    const bounds = projectLayout.current?.getBoundingClientRect();
+    if (bounds === undefined || bounds.width === 0) return;
+    setAgentWidth(
+      boundedAgentWidth(((clientX - bounds.left) / bounds.width) * 100),
+    );
+  };
+
+  useEffect(() => {
     projectNav.current
       ?.querySelector<HTMLElement>('a[aria-current="page"]')
       ?.scrollIntoView({ block: "nearest", inline: "center" });
@@ -808,6 +859,18 @@ export const ProjectShell = (): React.JSX.Element => {
     });
     return () => window.cancelAnimationFrame(frame);
   }, [location.hash, location.key]);
+
+  useEffect(() => {
+    const pathChanged = previousWorkspacePath.current !== location.pathname;
+    previousWorkspacePath.current = location.pathname;
+    if (!pathChanged || hashFocusTargetId(location.hash) !== undefined) return;
+    const frame = window.requestAnimationFrame(() => {
+      document.getElementById("project-workspace-title")?.focus({
+        preventScroll: true,
+      });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [location.pathname, location.hash]);
 
   const destinationLink = ({
     place,
@@ -900,8 +963,13 @@ export const ProjectShell = (): React.JSX.Element => {
         </div>
       </div>
 
-      <AgentControlPlaneProvider target={agentControlTarget}>
-        <div className="reference-project-layout" data-mobile-pane={mobilePane}>
+      <AgentControlPlaneProvider target={agentControlTarget} project={project}>
+        <div
+          ref={projectLayout}
+          className="reference-project-layout"
+          data-mobile-pane={mobilePane}
+          style={{ "--petra-agent-share": `${agentWidth}%` } as CSSProperties}
+        >
           <aside
             className="reference-project-nav reference-agent-panel"
             id="project-agent"
@@ -931,7 +999,20 @@ export const ProjectShell = (): React.JSX.Element => {
               </p>
               <strong>{project.title}</strong>
               <p>{project.objective}</p>
-              <ProjectStateLabel project={project} />
+              <div className="reference-agent-outcome__state">
+                <ProjectStateLabel project={project} />
+                {openReviewCount > 0 ? (
+                  <Link
+                    className="reference-agent-review-attention"
+                    to={`/projects/${project.id}/review`}
+                    data-operation-id="review.queue"
+                    onClick={() => setMobilePane("workspace")}
+                  >
+                    {openReviewCount} open{" "}
+                    {openReviewCount === 1 ? "Review" : "Reviews"}
+                  </Link>
+                ) : null}
+              </div>
             </section>
 
             <AgentConversation
@@ -1063,29 +1144,62 @@ export const ProjectShell = (): React.JSX.Element => {
             )}
           </aside>
 
-          <section
-            className="reference-workspace-panel"
-            id="project-workspace"
-            aria-labelledby="project-workspace-title"
-          >
-            <header className="reference-workspace-heading">
-              <div>
-                <p className="reference-panel-kicker">Workspace</p>
-                <h2 id="project-workspace-title">
-                  {currentWorkspaceLabel[currentPlace]}
-                </h2>
-              </div>
-              <ProjectStateLabel project={project} />
-            </header>
-            <div className="reference-project-main" data-place={currentPlace}>
+          <div
+            className="reference-agent-resize"
+            role="separator"
+            aria-label="Resize Agent and Workspace"
+            aria-orientation="vertical"
+            aria-controls="project-agent project-workspace"
+            aria-valuemin={30}
+            aria-valuemax={40}
+            aria-valuenow={agentWidth}
+            aria-valuetext={`Agent ${agentWidth} percent, Workspace ${100 - agentWidth} percent`}
+            tabIndex={0}
+            onKeyDown={(event) => {
+              if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+                event.preventDefault();
+                setAgentWidth((current) =>
+                  boundedAgentWidth(
+                    current + (event.key === "ArrowRight" ? 2 : -2),
+                  ),
+                );
+              } else if (event.key === "Home" || event.key === "End") {
+                event.preventDefault();
+                setAgentWidth(event.key === "Home" ? 30 : 40);
+              }
+            }}
+            onPointerDown={(event) => {
+              resizingAgent.current = true;
+              event.currentTarget.setPointerCapture(event.pointerId);
+              resizeAgentTo(event.clientX);
+            }}
+            onPointerMove={(event) => {
+              if (resizingAgent.current) resizeAgentTo(event.clientX);
+            }}
+            onPointerUp={(event) => {
+              resizingAgent.current = false;
+              if (event.currentTarget.hasPointerCapture(event.pointerId))
+                event.currentTarget.releasePointerCapture(event.pointerId);
+            }}
+            onPointerCancel={() => {
+              resizingAgent.current = false;
+            }}
+          />
+
+          <WorkspaceDraftProvider key={project.id}>
+            <WorkspaceHost project={project} place={currentPlace}>
               <Outlet context={{ project } satisfies ProjectOutletContext} />
-            </div>
-          </section>
+            </WorkspaceHost>
+          </WorkspaceDraftProvider>
         </div>
       </AgentControlPlaneProvider>
     </div>
   );
 };
+
+export const InspectRoute = (): React.JSX.Element => (
+  <InspectWorkspace project={useProjectRecord()} />
+);
 
 const SurfaceHeading = ({
   eyebrow,
@@ -1527,7 +1641,7 @@ export const BriefSurface = ({
           className="reference-panel reference-project-profile"
           aria-labelledby="profile-title"
         >
-          <p className="reference-panel-kicker">Profile</p>
+          <p className="reference-panel-kicker">Project definition</p>
           <h2 id="profile-title">{project.profile.label}</h2>
           <p>{project.profile.description}</p>
           <span className="reference-contract-label">
@@ -1777,13 +1891,13 @@ export const BriefRoute = (): React.JSX.Element => {
             <p className="reference-eyebrow">{project.title}</p>
             <h1>Brief</h1>
             <p className="reference-lede">
-              Start from this Project’s registered profile and current focus.
+              Start from this Project’s current objective and definition.
             </p>
           </div>
         </header>
         <div className="brief-position" aria-label="Current Brief position">
           <span>{project.profile.label}</span>
-          <span data-state="partial">Profile starting state</span>
+          <span data-state="partial">Definition starting state</span>
         </div>
         <section
           className="brief-section brief-focus"
@@ -1795,16 +1909,16 @@ export const BriefRoute = (): React.JSX.Element => {
           </h2>
           <p className="brief-focus__statement">{project.objective}</p>
           <p>
-            This registered profile does not supply composed Brief sections for
-            this starting state. Petra did not substitute scientific content,
-            actions, or meaning.
+            This Project definition does not supply composed outcome sections
+            for this starting state. Petra has not inferred missing sections or
+            actions.
           </p>
           <div className="reference-surface-actions">
             <Link
               className="reference-primary-link"
               to={`/projects/${project.id}/profile`}
             >
-              Inspect Project profile
+              Inspect Project definition
             </Link>
           </div>
           <details className="brief-technical">
@@ -1816,7 +1930,7 @@ export const BriefRoute = (): React.JSX.Element => {
                 <dd>{data.profileStartingBrief.projectRef.revision}</dd>
               </div>
               <div>
-                <dt>Profile definition revision</dt>
+                <dt>Project definition revision</dt>
                 <dd>
                   {data.profileStartingBrief.projectDefinitionRef.revision}
                 </dd>
@@ -1835,12 +1949,22 @@ export const BriefRoute = (): React.JSX.Element => {
     throw new Error("The reviewed Project Objective boundary is unavailable.");
   const state = location.state as {
     objectiveCommandOutcome?: ProjectObjectiveReturnOutcome;
+    agentObjectiveDraft?: unknown;
   } | null;
   const objectiveCommandOutcome = state?.objectiveCommandOutcome;
+  const objectiveSuggestion =
+    typeof state?.agentObjectiveDraft === "string" &&
+    state.agentObjectiveDraft.trim().length > 0 &&
+    state.agentObjectiveDraft.length <= 4_000
+      ? state.agentObjectiveDraft
+      : undefined;
   if (data.briefView === undefined) {
     return (
       <ProjectObjectiveEmptyBrief
         context={data.objectiveCommandContext}
+        {...(objectiveSuggestion === undefined
+          ? {}
+          : { suggestedStatement: objectiveSuggestion })}
         {...(objectiveCommandOutcome === undefined
           ? {}
           : { outcome: objectiveCommandOutcome })}
@@ -1851,6 +1975,7 @@ export const BriefRoute = (): React.JSX.Element => {
     <ProjectBriefSurface
       view={data.briefView}
       objectiveCommandContext={data.objectiveCommandContext}
+      {...(objectiveSuggestion === undefined ? {} : { objectiveSuggestion })}
       {...(data.comparisonRecovery === undefined
         ? {}
         : { comparisonRecovery: data.comparisonRecovery })}
@@ -1946,12 +2071,21 @@ export const SourcesSurface = ({
   initialFiles?: readonly File[];
   onInitialFileRegistered?: () => void | Promise<void>;
 }) => {
-  const [query, setQuery] = useState(initialQuery);
-  const [pendingInitialFiles, setPendingInitialFiles] = useState<File[]>(() => [
-    ...initialFiles,
-  ]);
-  const [adding, setAdding] = useState(initialFiles.length > 0);
-  const [reusing, setReusing] = useState(false);
+  const [query, setQuery] = useWorkspaceDraftState(
+    `source-collection:${project.id}:query`,
+    initialQuery,
+  );
+  const [pendingInitialFiles, setPendingInitialFiles] = useWorkspaceDraftState<
+    File[]
+  >(`source-collection:${project.id}:initial-files`, () => [...initialFiles]);
+  const [adding, setAdding] = useWorkspaceDraftState(
+    `source-collection:${project.id}:adding`,
+    initialFiles.length > 0,
+  );
+  const [reusing, setReusing] = useWorkspaceDraftState(
+    `source-collection:${project.id}:reusing`,
+    false,
+  );
   const normalizedQuery = query.trim().toLocaleLowerCase();
   const sources = project.sources.filter((source) =>
     sourceSearchText(source).includes(normalizedQuery),
@@ -1963,47 +2097,61 @@ export const SourcesSurface = ({
         eyebrow={`${project.profile.terms.referencePlural} · current Project`}
         title={project.profile.terms.referencePlural}
         description={`Inspect identity, available content, rights, and downstream use for this Project's ${project.profile.terms.referencePlural.toLocaleLowerCase()}.`}
-        actions={
-          <div className="reference-source-actions">
-            <PetraButton
-              variant="primary"
-              onClick={() => {
-                setPendingInitialFiles([]);
-                setReusing(false);
-                setAdding(true);
-              }}
-              {...(registration === undefined ||
-              registration.sourceRoles.length === 0
-                ? {
-                    unavailable: {
-                      reason: `This exact Project profile has no available registered ${project.profile.terms.reference.toLocaleLowerCase()} role.`,
-                      prerequisite:
-                        "A current registered source role with copy-rights governance.",
-                    },
-                  }
-                : {})}
-            >
-              Add {project.profile.terms.reference}
-            </PetraButton>
-            <PetraButton
-              variant="secondary"
-              onClick={() => {
-                setAdding(false);
-                setReusing(true);
-              }}
-            >
-              Use existing {project.profile.terms.reference.toLocaleLowerCase()}
-            </PetraButton>
-          </div>
-        }
       />
+
+      <AgentControlPortal
+        title={`Find or add ${project.profile.terms.referencePlural.toLocaleLowerCase()}`}
+        description="Search this Project’s source collection or start reviewed intake and reuse. Source details stay in the Workspace."
+        operationIds={["source.find", "source.register", "source.reuse"]}
+        objectRef={project.id}
+      >
+        <PetraTextField
+          label={`Find ${project.profile.terms.referencePlural}`}
+          placeholder="Title, kind, role, or creator"
+          type="search"
+          value={query}
+          onChange={(event) => setQuery(event.currentTarget.value)}
+        />
+        <div className="reference-source-actions">
+          <PetraButton
+            variant="primary"
+            onClick={() => {
+              setPendingInitialFiles([]);
+              setReusing(false);
+              setAdding(true);
+            }}
+            {...(registration === undefined ||
+            registration.sourceRoles.length === 0
+              ? {
+                  unavailable: {
+                    reason: `This Project definition has no available registered ${project.profile.terms.reference.toLocaleLowerCase()} role.`,
+                    prerequisite:
+                      "A current registered source role with copy-rights governance.",
+                  },
+                }
+              : {})}
+          >
+            Add {project.profile.terms.reference}
+          </PetraButton>
+          <PetraButton
+            variant="secondary"
+            onClick={() => {
+              setAdding(false);
+              setReusing(true);
+            }}
+          >
+            Use existing {project.profile.terms.reference.toLocaleLowerCase()}
+          </PetraButton>
+        </div>
+      </AgentControlPortal>
 
       {adding && registration !== undefined ? (
         <SourceRegistrationPanel
           key={
-            pendingInitialFiles[0] === undefined
+            `${registration.projectDefinitionRef.revision}:` +
+            (pendingInitialFiles[0] === undefined
               ? "manual-source-registration"
-              : `${pendingInitialFiles[0].name}:${pendingInitialFiles[0].size}:${pendingInitialFiles[0].lastModified}`
+              : `${pendingInitialFiles[0].name}:${pendingInitialFiles[0].size}:${pendingInitialFiles[0].lastModified}`)
           }
           context={registration}
           sourceTerm={project.profile.terms.reference.toLocaleLowerCase()}
@@ -2037,13 +2185,7 @@ export const SourcesSurface = ({
       ) : null}
 
       <div className="reference-source-toolbar" id="source-reuse-return">
-        <PetraTextField
-          label={`Find ${project.profile.terms.referencePlural}`}
-          placeholder="Title, kind, role, or creator"
-          type="search"
-          value={query}
-          onChange={(event) => setQuery(event.currentTarget.value)}
-        />
+        {query.trim() === "" ? null : <span>Filtered by “{query}”</span>}
         <p role="status" aria-live="polite">
           {sources.length} of {project.sources.length}
         </p>
@@ -2186,18 +2328,8 @@ export const SourceDetails = ({
     </div>
     <dl className="reference-detail-list">
       <div>
-        <dt>Identity</dt>
-        <dd>
-          <code>{source.id}</code>
-        </dd>
-      </div>
-      <div>
         <dt>Revision</dt>
         <dd>{source.revision}</dd>
-      </div>
-      <div>
-        <dt>Copy</dt>
-        <dd>{source.copy}</dd>
       </div>
       <div>
         <dt>Creator</dt>
@@ -2216,6 +2348,21 @@ export const SourceDetails = ({
         <dd>{source.downstreamUse}</dd>
       </div>
     </dl>
+    <details className="reference-source-record-details">
+      <summary>Record and copy identity</summary>
+      <dl className="reference-detail-list">
+        <div>
+          <dt>Identity</dt>
+          <dd>
+            <code>{source.id}</code>
+          </dd>
+        </div>
+        <div>
+          <dt>Copy</dt>
+          <dd>{source.copy}</dd>
+        </div>
+      </dl>
+    </details>
     <SourceLinkRemovalActions
       projectId={projectId}
       projectSourceId={source.id}
@@ -2305,6 +2452,7 @@ export const SourceReaderSurface = ({
 
       {addingRevision && revision !== undefined ? (
         <SourceRevisionPanel
+          key={`${revision.currentSourceRef.project_source_id}:${revision.currentSourceRef.revision}`}
           context={revision}
           sourceTitle={source.title}
           sourceRevision={source.revision}

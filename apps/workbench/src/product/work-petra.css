@@ -482,11 +482,22 @@
   gap: var(--petra-space-5);
 }
 
+.work-detail__orientation h1 {
+  font-size: clamp(1.5rem, 2.4vw, 1.875rem);
+  text-wrap: balance;
+}
+
+.work-detail__record {
+  margin: var(--petra-space-4) 0 var(--petra-space-5);
+  color: var(--petra-text-secondary);
+  font-size: var(--petra-font-size-caption);
+}
+
 .work-detail__identity {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--petra-space-3);
-  margin: var(--petra-space-4) 0 var(--petra-space-5);
+  margin: var(--petra-space-3) 0 0;
   padding: var(--petra-space-3) var(--petra-space-4);
   border: var(--petra-rule-thin) solid var(--petra-border-default);
   border-radius: var(--petra-radius-small);
@@ -689,7 +700,7 @@
 }
 
 .work-controls__heading,
-.work-controls__snapshot,
+.work-controls__assessment,
 .work-controls__commands,
 .work-operation-availability,
 .work-controls > .petra-state-notice,
@@ -702,6 +713,11 @@
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--petra-space-3);
   margin: 0;
+}
+
+.work-controls__assessment p {
+  margin: var(--petra-space-3) 0;
+  color: var(--petra-text-secondary);
 }
 
 .work-controls__snapshot > div {
@@ -731,13 +747,39 @@
   border-top: var(--petra-rule-thin) solid var(--petra-border-subtle);
 }
 
+#work-execution-controls {
+  scroll-margin-block: var(--petra-space-5);
+}
+
+.work-controls__unavailable {
+  border-top: var(--petra-rule-thin) solid var(--petra-border-subtle);
+}
+
+.work-controls__unavailable > summary {
+  min-height: var(--petra-target-min);
+  align-content: center;
+  cursor: pointer;
+  color: var(--petra-text-secondary);
+  font-weight: var(--petra-weight-semibold);
+}
+
+.work-controls__unavailable > summary:focus-visible {
+  outline: 2px solid var(--petra-focus-ring);
+  outline-offset: 2px;
+}
+
+.work-controls__unavailable > .petra-button-group {
+  justify-content: flex-start;
+  padding-block: var(--petra-space-2);
+}
+
 .work-controls__commands > .petra-action {
   justify-self: start;
 }
 
 .work-steering {
   display: grid;
-  grid-template-columns: minmax(18rem, 1fr) minmax(12rem, 0.45fr);
+  grid-template-columns: minmax(0, 1fr);
   align-items: end;
   gap: var(--petra-space-3);
 }

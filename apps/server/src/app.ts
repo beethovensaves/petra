@@ -177,6 +177,7 @@ import {
   type ProjectWorkStateFilter,
   type ProjectWorkOperationAuthority,
   type ProjectWorkOperationsViewReader,
+  type ProjectWorkReceiptReader,
   type ProjectWorkResumeAuthority,
   type ProjectWorkStartAgainAuthority,
   type ProjectWorkerOutputManifestReader,
@@ -254,6 +255,7 @@ export interface PetraAppOptions {
   projectWorkViews?: ProjectWorkViewReader;
   projectWorkerOutputManifests?: ProjectWorkerOutputManifestReader;
   projectWorkOperations?: ProjectWorkOperationsViewReader;
+  projectWorkReceipts?: ProjectWorkReceiptReader;
   projectWorkOperationAuthority?: ProjectWorkOperationAuthority;
   projectWorkResumeAuthority?: ProjectWorkResumeAuthority;
   projectWorkStartAgainAuthority?: ProjectWorkStartAgainAuthority;
@@ -2126,6 +2128,32 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
     };
   };
 
+  const sourceRegistrationReadPrincipal = async () => {
+    const resolver = options.commandPrincipalResolver;
+    if (resolver?.resolveAuthenticatedActor === undefined) {
+      throw new ProjectSourceRegistrationError(
+        "PROJECT_SOURCE_REGISTRATION_NOT_AUTHORIZED",
+        "Authenticated source receipt reading is unavailable.",
+      );
+    }
+    const principal = await resolver.resolveAuthenticatedActor();
+    if (
+      principal.state !== "resolved" ||
+      principal.actor.actor_kind !== "human"
+    ) {
+      throw new ProjectSourceRegistrationError(
+        "PROJECT_SOURCE_REGISTRATION_NOT_AUTHORIZED",
+        "The authenticated source receipt reader is not a registered human actor.",
+      );
+    }
+    return {
+      actor: {
+        actor_id: principal.actor.actor_id,
+        actor_kind: "human" as const,
+      },
+    };
+  };
+
   const projectSourceRevisionResponse = (
     context: Context<{ Variables: Variables }>,
     error: unknown,
@@ -2586,6 +2614,64 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
         }
         context.header("Cache-Control", "no-store");
         return context.json(result, result.applied ? 201 : 200);
+      } catch (error) {
+        return projectSourceRegistrationResponse(context, error);
+      }
+    },
+  );
+
+  app.get(
+    "/api/queries/projects/:projectId/sources/:projectSourceId/registration-receipt",
+    async (context) => {
+      if (options.projectSourceRegistrationAuthority === undefined) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_SOURCE_REGISTRATION_RECOVERY_UNAVAILABLE",
+          "The source registration read boundary is not configured.",
+        );
+      }
+      try {
+        const projectId = context.req.param("projectId");
+        const projectSourceId = context.req.param("projectSourceId");
+        if (
+          !PROJECT_ID_PATTERN.test(projectId) ||
+          !PROJECT_SOURCE_ID_PATTERN.test(projectSourceId) ||
+          new URL(context.req.url).searchParams.size !== 0
+        ) {
+          throw new InteractionInputError(
+            "The registration receipt read requires one exact Project source and accepts no query overrides.",
+          );
+        }
+        const receipt =
+          await options.projectSourceRegistrationAuthority.readProjectSourceRegistrationReceipt(
+            projectId,
+            projectSourceId,
+            await sourceRegistrationReadPrincipal(),
+          );
+        if (receipt === undefined) {
+          return jsonError(
+            context,
+            404,
+            "PROJECT_SOURCE_REGISTRATION_RECEIPT_NOT_FOUND",
+            "No new-source registration receipt is retained for this Project source.",
+          );
+        }
+        contracts.assertValid(
+          "project-source-registration-receipt",
+          "1.0.0",
+          receipt,
+        );
+        if (
+          receipt.project_id !== projectId ||
+          receipt.project_source_ref.project_source_id !== projectSourceId
+        ) {
+          throw new Error(
+            "The source registration receipt crossed its exact Project or Source boundary.",
+          );
+        }
+        context.header("Cache-Control", "no-store");
+        return context.json(receipt);
       } catch (error) {
         return projectSourceRegistrationResponse(context, error);
       }
@@ -5616,6 +5702,123 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
           error instanceof Error
             ? error.message
             : "The exact WorkerOutputManifest is unavailable.",
+          error instanceof InteractionInputError ? error.issues : undefined,
+        );
+      }
+    },
+  );
+
+  app.get(
+    "/api/queries/projects/:projectId/work/:workUnitId/receipts",
+    async (context) => {
+      if (options.projectWorkReceipts === undefined) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_WORK_RECEIPTS_UNAVAILABLE",
+          "The retained Work receipt reader is not configured.",
+        );
+      }
+      if (
+        options.commandPrincipalResolver?.resolveAuthenticatedActor ===
+        undefined
+      ) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_WORK_RECEIPTS_UNAVAILABLE",
+          "Authenticated Work receipt reading is unavailable.",
+        );
+      }
+      try {
+        const parameters = new URL(context.req.url).searchParams;
+        if ([...parameters.keys()].length > 0) {
+          throw new InteractionInputError(
+            "Retained Work receipts do not accept query parameters.",
+            [...new Set(parameters.keys())],
+          );
+        }
+        const projectId = context.req.param("projectId");
+        const workUnitId = context.req.param("workUnitId");
+        if (
+          !PROJECT_ID_PATTERN.test(projectId) ||
+          !WORK_UNIT_ID_PATTERN.test(workUnitId)
+        ) {
+          throw new InteractionInputError(
+            "Retained Work receipts require canonical Project and WorkUnit identities.",
+          );
+        }
+        const principal =
+          await options.commandPrincipalResolver.resolveAuthenticatedActor();
+        if (
+          principal.state !== "resolved" ||
+          principal.actor.actor_kind !== "human"
+        ) {
+          return jsonError(
+            context,
+            403,
+            "PROJECT_WORK_RECEIPTS_NOT_AUTHORIZED",
+            "The authenticated Work receipt reader is not a registered human actor.",
+          );
+        }
+        const actor = {
+          actor_id: principal.actor.actor_id,
+          actor_kind: "human" as const,
+        };
+        const receipts =
+          await options.projectWorkReceipts.readRecentProjectWorkReceipts(
+            projectId,
+            workUnitId,
+            actor,
+          );
+        if (
+          receipts.length > 20 ||
+          new Set(receipts.map((receipt) => receipt.receipt_id)).size !==
+            receipts.length
+        ) {
+          throw new Error(
+            "The retained Work receipt list exceeded its bounded identity contract.",
+          );
+        }
+        for (const receipt of receipts) {
+          const schemaName =
+            receipt.schema_name === "petra.project-work-operation-receipt"
+              ? "project-work-operation-receipt"
+              : receipt.schema_name === "petra.project-work-resume-receipt"
+                ? "project-work-resume-receipt"
+                : "project-work-start-again-receipt";
+          contracts.assertValid(schemaName, "1.0.0", receipt);
+          const { record_hash: recordHash, ...base } = receipt;
+          const requestedId =
+            "requested_prior_work_unit_ref" in receipt
+              ? receipt.requested_prior_work_unit_ref.work_unit_id
+              : receipt.requested_work_unit_ref.work_unit_id;
+          if (
+            receipt.project_id !== projectId ||
+            requestedId !== workUnitId ||
+            receipt.actor.actor_id !== actor.actor_id ||
+            receipt.actor.actor_kind !== actor.actor_kind ||
+            recordHash !== communicationHash(base)
+          ) {
+            throw new Error(
+              "A retained Work receipt crossed its authenticated Project or WorkUnit boundary.",
+            );
+          }
+        }
+        context.header("Cache-Control", "no-store");
+        return context.json(receipts);
+      } catch (error) {
+        return jsonError(
+          context,
+          error instanceof InteractionInputError ? 422 : 503,
+          error instanceof InteractionInputError
+            ? "PROJECT_WORK_RECEIPTS_QUERY_INVALID"
+            : error instanceof ProjectWorkOperationError
+              ? error.code
+              : "PROJECT_WORK_RECEIPTS_READ_FAILED",
+          error instanceof Error
+            ? error.message
+            : "The retained Work receipts are unavailable.",
           error instanceof InteractionInputError ? error.issues : undefined,
         );
       }
