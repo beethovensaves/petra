@@ -1,0 +1,170 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/hypothesis/1.0.0/schema.json",
+  "title": "PetraHypothesis",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "hypothesis_id",
+    "revision",
+    "project_id",
+    "content",
+    "content_hash",
+    "created_by",
+    "created_at"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.hypothesis"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "hypothesis_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+    },
+    "revision": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+    },
+    "project_id": {
+      "type": "string",
+      "pattern": "^project_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "content": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ordinal",
+        "descriptor",
+        "target_claim_ref",
+        "rationale",
+        "falsification_conditions",
+        "development",
+        "lifecycle",
+        "supersedes_ref"
+      ],
+      "properties": {
+        "ordinal": {
+          "type": "string",
+          "pattern": "^H[1-9][0-9]*$"
+        },
+        "descriptor": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "target_claim_ref": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "schema_name",
+            "schema_version",
+            "record_id",
+            "revision",
+            "record_hash"
+          ],
+          "properties": {
+            "schema_name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            },
+            "schema_version": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 30
+            },
+            "record_id": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+            },
+            "revision": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+            },
+            "record_hash": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+            }
+          }
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8000
+        },
+        "falsification_conditions": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 50,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          }
+        },
+        "development": {
+          "type": "string",
+          "enum": [
+            "seed",
+            "articulated",
+            "structured",
+            "test_ready",
+            "developed"
+          ]
+        },
+        "lifecycle": {
+          "type": "string",
+          "enum": ["active", "paused", "retired", "superseded"]
+        },
+        "supersedes_ref": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "schema_name",
+                "schema_version",
+                "record_id",
+                "revision",
+                "record_hash"
+              ],
+              "properties": {
+                "schema_name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                "schema_version": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 30
+                },
+                "record_id": {
+                  "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+                },
+                "revision": {
+                  "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+                },
+                "record_hash": {
+                  "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+                }
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "created_by": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef"
+    },
+    "created_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  }
+}

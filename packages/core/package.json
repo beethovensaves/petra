@@ -11,6 +11,14 @@
     "./project-brief-view": {
       "types": "./dist/project-brief-view.d.ts",
       "default": "./dist/project-brief-view.js"
+    },
+    "./examination-command": {
+      "types": "./dist/project-examination-command.d.ts",
+      "default": "./dist/project-examination-command.js"
+    },
+    "./graph-presentation": {
+      "types": "./dist/graph-presentation.d.ts",
+      "default": "./dist/graph-presentation.js"
     }
   },
   "scripts": {

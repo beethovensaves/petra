@@ -1,0 +1,29 @@
+{
+  "schema_name": "petra.graph-presentation-context",
+  "schema_version": "1.0.0",
+  "content": {
+    "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+    "graph_content_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "parameters": {
+      "renderer": "native_working",
+      "mode": "graph",
+      "semantic_content_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "selected_keys": [],
+      "excluded_kinds": []
+    },
+    "layout_version": "petra.graph-layout@1.0.0",
+    "viewport": {
+      "width": 880,
+      "height": 280
+    },
+    "nodes": [],
+    "relationships": [],
+    "omitted_nodes": 0,
+    "omitted_relationships": 0,
+    "has_more_history": false,
+    "legend": [],
+    "peer_content_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "authority": "verify_claim"
+  },
+  "content_hash": "sha256:50f355c37c7269e2da724dfb341b01c8b7ed45b65b376d08cd9d7445b9c32fec"
+}

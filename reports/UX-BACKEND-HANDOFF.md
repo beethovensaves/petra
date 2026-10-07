@@ -1,10 +1,32 @@
 # UX-to-implementation requirements handoff
 
 Status: accepted requirements with implementation dispositions and integration handoffs
-Date: 2026-09-11
+Date: 2026-09-11; A1 execution reconciliation: 2026-10-07
 Source: [Petra user-flow architecture](UX-FLOW-ARCHITECTURE.md)
 Design-freeze source: [Petra UX design brief](PETRA-UX-DESIGN-BRIEF.md)
 Design freeze: `UX-DESIGN-FREEZE-01` closed against baseline `655d094`
+
+## Current A1 implementation ownership
+
+The [A1 function implementation ledger](FE-A1-CONTRACT-IMPLEMENTATION-LEDGER.md)
+assigns each of the 23 requests below to specific A1 work IDs and an explicit
+scope boundary. It controls current execution after the user rejected the
+frontend candidate on 2026-10-07. Historical dispositions and retained backend
+evidence remain valid within their stated coverage; they do not close the
+required conversational, Workspace, graph and cyclic-examination functions.
+
+In particular, UX-REQ-006 exact turns/context, UX-REQ-011 working structure,
+UX-REQ-012 examination/Review, UX-REQ-013 graph queries, UX-REQ-016 inquiry and
+cyclic assessment, UX-REQ-021 communication, UX-REQ-022 shared scene and
+UX-REQ-023 recovery are required A1 constructions wherever needed by those
+functions. Proposed runtime shapes must be resolved and implemented under their
+own IDs. Native scientific, writing and unrelated compatible definitions must
+compose through the shared contracts. Full document Composition and remaining
+governed control/capability operations retain their named later-wave boundaries.
+
+Completion is based on each required function's criteria and evidence. The
+sixteen supplementary scenario groupings are optional near the end of A1 and
+are excluded from the later-wave gate.
 
 ## Purpose
 

@@ -1,0 +1,51 @@
+{
+  "schema_name": "petra.project-examination-view",
+  "schema_version": "1.0.0",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "graph": {
+    "schema_name": "petra.project-semantic-graph-view",
+    "schema_version": "1.0.0",
+    "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+    "content": {
+      "project_label": "Empty Project",
+      "definition_family": "scientific",
+      "definition_ref": {
+        "record_id": "project_definition_01K4C000000000000000000001",
+        "revision": 1,
+        "content_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+      },
+      "authority": {
+        "event_position": 0,
+        "stream_revision": 0
+      },
+      "query": {
+        "kind": "current_registered_working_heads",
+        "max_candidates": 50,
+        "max_relationships": 100,
+        "authority_effect": "none"
+      },
+      "nodes": [],
+      "relationships": [],
+      "omitted_candidates": 0,
+      "omitted_relationships": 0,
+      "limitations": [
+        "The query contains only current working heads; it supplies no authoritative projection or inferred relationships."
+      ]
+    },
+    "content_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+    "read_at": "2026-10-07T14:00:00.000Z"
+  },
+  "profile": null,
+  "policy": null,
+  "records": [],
+  "freshness": [],
+  "has_more": false,
+  "authorization": {
+    "state": "unavailable",
+    "reason": "No registered profile or exact command grant is represented in this fixture."
+  },
+  "limitations": [
+    "Fixture-only unavailable boundary; no live examination authority."
+  ],
+  "receipts": []
+}

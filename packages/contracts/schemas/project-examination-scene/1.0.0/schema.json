@@ -1,0 +1,167 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-examination-scene/1.0.0/schema.json",
+  "title": "PetraProjectExaminationScene",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "project_id",
+    "content",
+    "content_hash"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.project-examination-scene"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "content": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "graph_content_hash",
+        "nodes",
+        "relationships",
+        "omitted_nodes",
+        "omitted_relationships",
+        "has_more_history",
+        "limitations"
+      ],
+      "properties": {
+        "graph_content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "nodes": {
+          "type": "array",
+          "maxItems": 250,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "key",
+              "record_ref",
+              "kind",
+              "label",
+              "state",
+              "affected_axes"
+            ],
+            "properties": {
+              "key": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "record_ref": {
+                "$ref": "../../hypothesis/1.0.0/schema.json#/properties/content/properties/target_claim_ref"
+              },
+              "kind": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              "state": {
+                "enum": [
+                  "working",
+                  "reference",
+                  "current",
+                  "stale",
+                  "invalidated",
+                  "profile_unavailable",
+                  "unassessed"
+                ]
+              },
+              "affected_axes": {
+                "type": "array",
+                "maxItems": 8,
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                }
+              }
+            }
+          }
+        },
+        "relationships": {
+          "type": "array",
+          "maxItems": 500,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "key",
+              "subject_key",
+              "object_key",
+              "predicate"
+            ],
+            "properties": {
+              "key": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 300
+              },
+              "subject_key": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "object_key": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "predicate": {
+                "enum": [
+                  "targets",
+                  "assesses",
+                  "uses_evidence",
+                  "has_posture",
+                  "concludes",
+                  "supersedes",
+                  "prior_disposition",
+                  "pins_profile",
+                  "pins_policy",
+                  "satisfies"
+                ]
+              }
+            }
+          }
+        },
+        "omitted_nodes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "omitted_relationships": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "has_more_history": {
+          "type": "boolean"
+        },
+        "limitations": {
+          "type": "array",
+          "maxItems": 10,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          }
+        }
+      }
+    },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    }
+  }
+}

@@ -1,4 +1,6 @@
 import { readProjectBrief } from "./brief-read.js";
+import { ProjectSemanticGraphClient } from "@petra/adapters";
+import type { PetraProjectSemanticGraphView } from "@petra/contracts";
 import {
   FocusedGraphClient,
   FocusedGraphClientError,
@@ -9154,7 +9156,7 @@ export const focusedGraphAnalysisRequestFromEntry = async (
 
 export const loadProjectGraph = async (
   args: LoaderFunctionArgs,
-): Promise<GraphQuestion | FocusedGraphRouteData | undefined> => {
+): Promise<GraphQuestion | FocusedGraphRouteData | PetraProjectSemanticGraphView | undefined> => {
   const projectId = requiredRouteIdentity(
     args.params.projectId,
     "A Project ID",
@@ -9163,7 +9165,10 @@ export const loadProjectGraph = async (
     projectId,
     new URL(args.request.url).searchParams,
   );
-  if (entry === undefined) return loadProjectRelationshipOverlayGraph(args);
+  if (entry === undefined) {
+    if (new URL(args.request.url).searchParams.get("query") === "authority-path") return loadProjectRelationshipOverlayGraph(args);
+    return new ProjectSemanticGraphClient({ baseUrl: apiBaseUrl(), token: apiToken() }).read(projectId, args.request.signal);
+  }
 
   const brief = await readProjectBrief({
     projectId,

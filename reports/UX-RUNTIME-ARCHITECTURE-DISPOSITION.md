@@ -1,5 +1,14 @@
 # UX runtime architecture disposition and implementation sequence
 
+Current execution amendment — 2026-10-07: the
+[A1 function ledger](FE-A1-CONTRACT-IMPLEMENTATION-LEDGER.md) controls remaining
+implementation order, dependencies and completion. All required A1 functions
+must complete before product delivery Wave 7 or Wave 8. The architecture waves
+described historically below are subsystem sequencing, not permission to
+advance those product delivery waves. Retained backend evidence is preserved;
+the inspected frontend remains rejected. The sixteen supplementary scenario
+groupings are optional during FE-A1.7 and do not control release.
+
 Status: implementation-track review complete; M1.9 cumulative trace, six live
 presentation reads, interface recovery gate, semantic-location foundation,
 expanded Project-shell context, initial Project Work read, durable Project
@@ -1051,6 +1060,17 @@ requests; it does not relabel M1's scientific proof as full `UX-REQ-001`
 through `UX-REQ-023` conformance.
 
 ## Immediate next implementation task
+
+Resolve FE-A1.3-W01's registered conversational interaction contracts and
+FE-A1.3-W02/W03's eligible model routes and exact text retention/read boundaries,
+alongside the FE-A1.1 copilot components and FE-A1.2 definition/empty-entry
+construction. Continue through the ledger's prerequisite graph to reactive
+Workspace, native claim/object examiners, functioning graph/scene guidance,
+scoped cyclic Hypothesis assessment/closure/invalidation, complete progressive
+Inspect and adapted operation conformance. Verification attaches to each
+function. Optional end-of-A1 groupings do not add required capabilities.
+
+### Retained earlier implementation handoff
 
 Treat the completed M1.9 cumulative result, Wave 1 neutral read foundation, the
 passed Project Work and inquiry composition, the live ProjectThread

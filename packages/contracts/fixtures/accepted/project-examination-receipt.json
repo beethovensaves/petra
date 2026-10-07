@@ -1,0 +1,50 @@
+{
+  "schema_name": "petra.project-examination-receipt",
+  "schema_version": "1.0.0",
+  "project_examination_receipt_id": "project_examination_receipt_01K4E000000000000000000108",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "revision": 1,
+  "content": {
+    "command_id": "command_01K4E000000000000000000107",
+    "idempotency_key": "examination-register-fixture",
+    "request_hash": "sha256:60bfe873f6169db5afd5eaf99c8e54ecb511d2ab54902b7313b2ee19588d610c",
+    "operation": "register_hypothesis",
+    "actor": {
+      "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+      "actor_kind": "human"
+    },
+    "capability_grant_id": "capability_grant_01K4E000000000000000000109",
+    "graph_content_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+    "profile_ref": {
+      "schema_name": "petra.assessment-profile",
+      "schema_version": "1.0.0",
+      "record_id": "assessment_profile_01K4E000000000000000000105",
+      "revision": 1,
+      "record_hash": "sha256:8404cd4d02e6aabc01aed498a1aa791a9c7e30a8b1dedabeffc6d67ddf5fd291"
+    },
+    "policy_ref": {
+      "schema_name": "petra.assessment-policy",
+      "schema_version": "1.0.0",
+      "record_id": "assessment_policy_01K4E000000000000000000106",
+      "revision": 1,
+      "record_hash": "sha256:737b74b3524fd80315baad0c3013b13225dc0c25b73ab7a18c45a6e3393b4a70"
+    },
+    "record_ref": {
+      "schema_name": "petra.hypothesis",
+      "schema_version": "1.0.0",
+      "record_id": "hypothesis_01K4E000000000000000000101",
+      "revision": 1,
+      "record_hash": "sha256:ae4e8925eff9ceb0f08e270ef30f4bda356396359666c0e51446af0dad31f066"
+    },
+    "prior_ref": null,
+    "review": {
+      "content_hash": "sha256:a75c45a25b148eb2b3bba97bba921b277c6b5e2486c0cbd76180ff56bf7ebc9e",
+      "reviewed_at": "2026-10-07T16:00:00.000Z",
+      "rationale": "Explicit human review of this exact proposed Hypothesis and its scope."
+    },
+    "authority_effect": "project_scoped_examination",
+    "projection_effect": "none",
+    "recorded_at": "2026-10-07T16:00:00.000Z"
+  },
+  "content_hash": "sha256:31c961f2423c50e056342ed6d33c1098e6d4fcf2abc7792b2391c8f5e1d6c5ff"
+}

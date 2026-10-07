@@ -1,0 +1,779 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/hypothesis-assessment/1.0.0/schema.json",
+  "title": "PetraHypothesisAssessment",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "hypothesis_assessment_id",
+    "revision",
+    "project_id",
+    "content",
+    "content_hash",
+    "created_by",
+    "created_at"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.hypothesis-assessment"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "hypothesis_assessment_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+    },
+    "revision": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+    },
+    "project_id": {
+      "type": "string",
+      "pattern": "^project_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "content": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "subject_ref",
+        "target_claim_ref",
+        "basis",
+        "as_of",
+        "perspective",
+        "scope",
+        "profile_ref",
+        "policy_ref",
+        "criteria",
+        "findings",
+        "axes",
+        "coverage",
+        "conflicting_refs",
+        "material_unknowns",
+        "origin",
+        "review_state",
+        "prior_assessment_ref",
+        "trigger"
+      ],
+      "properties": {
+        "subject_ref": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "schema_name",
+            "schema_version",
+            "record_id",
+            "revision",
+            "record_hash"
+          ],
+          "properties": {
+            "schema_name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            },
+            "schema_version": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 30
+            },
+            "record_id": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+            },
+            "revision": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+            },
+            "record_hash": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+            }
+          }
+        },
+        "target_claim_ref": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "schema_name",
+            "schema_version",
+            "record_id",
+            "revision",
+            "record_hash"
+          ],
+          "properties": {
+            "schema_name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            },
+            "schema_version": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 30
+            },
+            "record_id": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+            },
+            "revision": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+            },
+            "record_hash": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+            }
+          }
+        },
+        "basis": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "definition_ref",
+            "graph_content_hash",
+            "event_position",
+            "stream_revision",
+            "query_kind"
+          ],
+          "properties": {
+            "definition_ref": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "record_id",
+                "revision",
+                "content_hash"
+              ],
+              "properties": {
+                "record_id": {
+                  "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+                },
+                "revision": {
+                  "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+                },
+                "content_hash": {
+                  "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+                }
+              }
+            },
+            "graph_content_hash": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+            },
+            "event_position": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "stream_revision": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "query_kind": {
+              "const": "current_registered_working_heads"
+            },
+            "objective_ref": {
+              "oneOf": [
+                {
+                  "$ref": "../../hypothesis/1.0.0/schema.json#/properties/content/properties/target_claim_ref"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          }
+        },
+        "as_of": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "perspective": {
+          "type": "string",
+          "enum": [
+            "present_day",
+            "historical"
+          ]
+        },
+        "scope": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ScientificScope"
+        },
+        "profile_ref": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "schema_name",
+            "schema_version",
+            "record_id",
+            "revision",
+            "record_hash"
+          ],
+          "properties": {
+            "schema_name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            },
+            "schema_version": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 30
+            },
+            "record_id": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+            },
+            "revision": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+            },
+            "record_hash": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+            }
+          }
+        },
+        "policy_ref": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "schema_name",
+            "schema_version",
+            "record_id",
+            "revision",
+            "record_hash"
+          ],
+          "properties": {
+            "schema_name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            },
+            "schema_version": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 30
+            },
+            "record_id": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+            },
+            "revision": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+            },
+            "record_hash": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+            }
+          }
+        },
+        "criteria": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 50,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "criterion_key",
+              "result",
+              "method",
+              "evidence_refs",
+              "explanation",
+              "origin",
+              "limitations"
+            ],
+            "properties": {
+              "criterion_key": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "result": {
+                "type": "string",
+                "enum": [
+                  "passed",
+                  "failed",
+                  "unknown"
+                ]
+              },
+              "method": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 2000
+              },
+              "evidence_refs": {
+                "type": "array",
+                "minItems": 0,
+                "maxItems": 30,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "schema_name",
+                    "schema_version",
+                    "record_id",
+                    "revision",
+                    "record_hash"
+                  ],
+                  "properties": {
+                    "schema_name": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 100
+                    },
+                    "schema_version": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 30
+                    },
+                    "record_id": {
+                      "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+                    },
+                    "revision": {
+                      "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+                    },
+                    "record_hash": {
+                      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+                    }
+                  }
+                }
+              },
+              "explanation": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 8000
+              },
+              "origin": {
+                "type": "string",
+                "enum": [
+                  "deterministic_rule",
+                  "human_judgment",
+                  "model_proposal"
+                ]
+              },
+              "limitations": {
+                "type": "array",
+                "minItems": 0,
+                "maxItems": 50,
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 2000
+                }
+              }
+            }
+          }
+        },
+        "findings": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 50,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "finding_key",
+              "type_key",
+              "axis",
+              "explanation",
+              "evidence_refs",
+              "criterion_keys",
+              "origin",
+              "review_state",
+              "material_unknowns",
+              "limitations"
+            ],
+            "properties": {
+              "finding_key": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "type_key": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "axis": {
+                "type": "string",
+                "enum": [
+                  "development",
+                  "activity",
+                  "warrant",
+                  "lifecycle",
+                  "scientific_standing",
+                  "alternative_coverage",
+                  "project_dependence",
+                  "research_stakes"
+                ]
+              },
+              "explanation": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 8000
+              },
+              "evidence_refs": {
+                "type": "array",
+                "minItems": 0,
+                "maxItems": 50,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "schema_name",
+                    "schema_version",
+                    "record_id",
+                    "revision",
+                    "record_hash"
+                  ],
+                  "properties": {
+                    "schema_name": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 100
+                    },
+                    "schema_version": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 30
+                    },
+                    "record_id": {
+                      "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+                    },
+                    "revision": {
+                      "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+                    },
+                    "record_hash": {
+                      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+                    }
+                  }
+                }
+              },
+              "criterion_keys": {
+                "type": "array",
+                "minItems": 0,
+                "maxItems": 50,
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                }
+              },
+              "origin": {
+                "type": "string",
+                "enum": [
+                  "deterministic_rule",
+                  "human_judgment",
+                  "model_proposal",
+                  "policy_derivation"
+                ]
+              },
+              "review_state": {
+                "type": "string",
+                "enum": [
+                  "partial",
+                  "provisional",
+                  "reviewed",
+                  "disputed"
+                ]
+              },
+              "material_unknowns": {
+                "type": "array",
+                "minItems": 0,
+                "maxItems": 50,
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 2000
+                }
+              },
+              "limitations": {
+                "type": "array",
+                "minItems": 0,
+                "maxItems": 50,
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 2000
+                }
+              }
+            }
+          }
+        },
+        "axes": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 8,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "axis",
+              "summary",
+              "finding_keys",
+              "material_unknowns",
+              "dependency_refs"
+            ],
+            "properties": {
+              "axis": {
+                "type": "string",
+                "enum": [
+                  "development",
+                  "activity",
+                  "warrant",
+                  "lifecycle",
+                  "scientific_standing",
+                  "alternative_coverage",
+                  "project_dependence",
+                  "research_stakes"
+                ]
+              },
+              "summary": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "finding_keys": {
+                "type": "array",
+                "minItems": 0,
+                "maxItems": 50,
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                }
+              },
+              "material_unknowns": {
+                "type": "array",
+                "minItems": 0,
+                "maxItems": 50,
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 2000
+                }
+              },
+              "dependency_refs": {
+                "type": "array",
+                "minItems": 0,
+                "maxItems": 50,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "schema_name",
+                    "schema_version",
+                    "record_id",
+                    "revision",
+                    "record_hash"
+                  ],
+                  "properties": {
+                    "schema_name": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 100
+                    },
+                    "schema_version": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 30
+                    },
+                    "record_id": {
+                      "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+                    },
+                    "revision": {
+                      "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+                    },
+                    "record_hash": {
+                      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "coverage": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "protocol",
+            "source_set_refs",
+            "limitations"
+          ],
+          "properties": {
+            "state": {
+              "type": "string",
+              "enum": [
+                "unsearched",
+                "seeded",
+                "bounded_search",
+                "broad_search",
+                "provisionally_saturated"
+              ]
+            },
+            "protocol": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 8000
+            },
+            "source_set_refs": {
+              "type": "array",
+              "minItems": 0,
+              "maxItems": 50,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "schema_name",
+                  "schema_version",
+                  "record_id",
+                  "revision",
+                  "record_hash"
+                ],
+                "properties": {
+                  "schema_name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "schema_version": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 30
+                  },
+                  "record_id": {
+                    "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+                  },
+                  "revision": {
+                    "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+                  },
+                  "record_hash": {
+                    "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+                  }
+                }
+              }
+            },
+            "limitations": {
+              "type": "array",
+              "minItems": 0,
+              "maxItems": 50,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 2000
+              }
+            }
+          }
+        },
+        "conflicting_refs": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 50,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "schema_name",
+              "schema_version",
+              "record_id",
+              "revision",
+              "record_hash"
+            ],
+            "properties": {
+              "schema_name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "schema_version": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 30
+              },
+              "record_id": {
+                "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+              },
+              "revision": {
+                "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+              },
+              "record_hash": {
+                "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+              }
+            }
+          }
+        },
+        "material_unknowns": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 50,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          }
+        },
+        "origin": {
+          "type": "string",
+          "enum": [
+            "deterministic_rule",
+            "human_judgment",
+            "model_proposal",
+            "policy_derivation"
+          ]
+        },
+        "review_state": {
+          "type": "string",
+          "enum": [
+            "partial",
+            "provisional",
+            "reviewed",
+            "disputed"
+          ]
+        },
+        "prior_assessment_ref": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "schema_name",
+                "schema_version",
+                "record_id",
+                "revision",
+                "record_hash"
+              ],
+              "properties": {
+                "schema_name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                "schema_version": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 30
+                },
+                "record_id": {
+                  "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+                },
+                "revision": {
+                  "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+                },
+                "record_hash": {
+                  "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+                }
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "trigger": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        }
+      }
+    },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "created_by": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef"
+    },
+    "created_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  }
+}

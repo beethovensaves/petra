@@ -1,0 +1,8 @@
+{
+  "schema_name": "petra.copilot-request",
+  "schema_version": "1.1.0",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "context_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+  "parent_run_id": null,
+  "focus_keys": []
+}

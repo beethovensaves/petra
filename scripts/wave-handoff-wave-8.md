@@ -15,6 +15,9 @@ or evidence reports alone.
 
 ## Binding gates
 
+- `npm run gate:frontend-a1` remains a prerequisite: complete required A1
+  functions, their retained evidence and explicit user acceptance. The sixteen
+  supplementary scenarios remain optional and do not release or block a wave.
 - `gate:wave6:user-testable`, `gate:wave7:composition`, and
   `gate:wave8:application` all pass on the same final tree.
 - `npm run audit:ui-presentation` passes, and every operation conforms to its

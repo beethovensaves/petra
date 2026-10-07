@@ -1,0 +1,27 @@
+{
+  "schema_name": "petra.intake-project-binding",
+  "schema_version": "1.0.0",
+  "content": {
+    "intake_session_ref": {
+      "record_id": "intake_session_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+      "revision": 1,
+      "record_hash": "sha256:e2fe4c7ed90d6a02268ef1b018b332420f7912fc19005de998a30f283b039434"
+    },
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "definition_draft_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "creation_command_id": "command_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+    "creation_receipt_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "project_id": "other_project",
+    "project_thread_id": "thread_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+    "original_turns": [
+      {
+        "run_id": "run_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+        "record_hash": "sha256:badb42a5852bac580c3fd3a532420746a1a3ef2dc72e35090d9705a35753ad7e",
+        "terminal_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      }
+    ],
+    "bound_at": "2026-10-07T21:00:00.000Z",
+    "authority": "human_reviewed_creation_binding"
+  },
+  "content_hash": "sha256:a4bc487693cec1dfa3a0bc314f7fda7d6c4183bdbc499467ac212a2946dd5dd8"
+}

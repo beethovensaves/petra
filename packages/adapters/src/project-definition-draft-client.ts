@@ -66,7 +66,7 @@ export class ProjectDefinitionDraftClient {
   ): Promise<PetraProjectDefinitionDraftCommandReceipt> {
     this.#contracts.assertValid(
       "project-definition-draft-command-request",
-      "1.0.0",
+      request.schema_version,
       request,
     );
     const body = await this.#post(

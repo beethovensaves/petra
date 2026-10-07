@@ -1,0 +1,141 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/intake-copilot-input-manifest/1.0.0/schema.json",
+  "title": "PetraIntakeCopilotInputManifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "content",
+    "content_hash"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.intake-copilot-input-manifest"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "content": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "run_id",
+        "intake_session_id",
+        "thread_id",
+        "actor_id",
+        "context_hash",
+        "profile_hash",
+        "input_payload_hash",
+        "input_bytes",
+        "history_bytes",
+        "retained_history_count",
+        "included_history_count",
+        "history",
+        "prepared_at",
+        "authority"
+      ],
+      "properties": {
+        "run_id": {
+          "type": "string",
+          "pattern": "^run_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "intake_session_id": {
+          "type": "string",
+          "pattern": "^intake_session_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "thread_id": {
+          "type": "string",
+          "pattern": "^thread_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "actor_id": {
+          "type": "string",
+          "pattern": "^actor_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "context_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "profile_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "input_payload_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "input_bytes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "history_bytes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "retained_history_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 20
+        },
+        "included_history_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 12
+        },
+        "history": {
+          "type": "array",
+          "maxItems": 20,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "run_id",
+              "context_hash",
+              "question_hash",
+              "answer_hash",
+              "disclosure"
+            ],
+            "properties": {
+              "run_id": {
+                "type": "string",
+                "pattern": "^run_[0-9A-HJKMNP-TV-Z]{26}$"
+              },
+              "context_hash": {
+                "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+              },
+              "question_hash": {
+                "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+              },
+              "answer_hash": {
+                "oneOf": [
+                  {
+                    "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "disclosure": {
+                "enum": [
+                  "included_same_session",
+                  "withheld_changed_policy",
+                  "excluded_history_budget"
+                ]
+              }
+            }
+          }
+        },
+        "prepared_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "authority": {
+          "const": "advisory_input_only"
+        }
+      }
+    },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    }
+  }
+}

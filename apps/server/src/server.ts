@@ -1,3 +1,5 @@
+import { createIntakeCopilotService } from "./intake-copilot-model.js";
+import { readFile } from "node:fs/promises";
 import type { ServerType } from "@hono/node-server";
 import { serve } from "@hono/node-server";
 
@@ -16,6 +18,7 @@ import {
 } from "@petra/core";
 
 import { createPetraApp, type PetraAppOptions } from "./app.js";
+import { createProjectCopilotService } from "./project-copilot-model.js";
 import type { GroundedSynthesisPersistence } from "./grounded-synthesis-persistence.js";
 import type { ProjectShellPersistence } from "./project-shell-persistence.js";
 import { ProjectModelReadinessService } from "./project-model-readiness.js";
@@ -57,6 +60,7 @@ export const startPetraServer = async (
   const codexProvider = options.codexProvider ?? ownedCodexProvider;
   const codexWorkspaceRoot =
     options.codexWorkspaceRoot ?? options.codexSidecar?.cwd;
+  let ownedCopilotProvider: CodexSubscriptionProviderPort | undefined;
   let petra: ReturnType<typeof createPetraApp>;
   let server: ServerType;
   try {
@@ -213,8 +217,63 @@ export const startPetraServer = async (
               },
             },
           );
+    if (
+      options.projectCopilot === undefined &&
+      options.projectShellPersistence !== undefined &&
+      codexProvider !== undefined &&
+      codexWorkspaceRoot !== undefined
+    ) {
+      try {
+        const certificate = JSON.parse(
+          await readFile(
+            new URL(
+              "../../../reports/model-certifications/codex-project-copilot-1.0.0.json",
+              import.meta.url,
+            ),
+            "utf8",
+          ),
+        ) as { provider_model?: unknown };
+        if (typeof certificate.provider_model === "string")
+          ownedCopilotProvider = await CodexSubscriptionProvider.startSidecar({
+            ...(options.codexSidecar?.command === undefined
+              ? {}
+              : { command: options.codexSidecar.command }),
+            advisoryModel: certificate.provider_model,
+          });
+      } catch {
+        // The copilot reports role unavailability; other configured model roles
+        // keep their original provider and authority.
+      }
+    }
+    const projectCopilot =
+      options.projectCopilot ??
+      (options.projectShellPersistence === undefined
+        ? undefined
+        : await createProjectCopilotService(
+            options.projectShellPersistence,
+            ownedCopilotProvider,
+            codexWorkspaceRoot,
+            options.codexSidecar?.command ?? "codex",
+          ));
+    const intakeCopilot = options.intakeCopilot ?? (options.projectShellPersistence === undefined ? undefined : await createIntakeCopilotService(options.projectShellPersistence, projectCopilot, codexWorkspaceRoot));
     petra = createPetraApp({
       ...options,
+      ...((options.projectExaminations ??
+        options.projectShellPersistence?.examinations) === undefined
+        ? {}
+        : {
+            projectExaminations: (options.projectExaminations ??
+              options.projectShellPersistence?.examinations)!,
+          }),
+      ...((options.projectSemanticGraphs ??
+        options.projectShellPersistence?.semanticGraphs) === undefined
+        ? {}
+        : {
+            projectSemanticGraphs: (options.projectSemanticGraphs ??
+              options.projectShellPersistence?.semanticGraphs)!,
+          }),
+      ...(projectCopilot === undefined ? {} : { projectCopilot }),
+      ...(intakeCopilot === undefined ? {} : { intakeCopilot }),
       ...(runtime === undefined ? {} : { runtime }),
       ...(reviewBoundary === undefined ? {} : { reviewBoundary }),
       ...(codexProvider === undefined ? {} : { codexProvider }),
@@ -773,6 +832,7 @@ export const startPetraServer = async (
   } catch (error) {
     await Promise.all([
       ownedCodexProvider?.close(),
+      ownedCopilotProvider?.close(),
       options.groundedSynthesisPersistence?.close?.(),
       options.projectShellPersistence?.close(),
     ]);
@@ -800,6 +860,7 @@ export const startPetraServer = async (
       } finally {
         await Promise.all([
           ownedCodexProvider?.close(),
+          ownedCopilotProvider?.close(),
           options.groundedSynthesisPersistence?.close?.(),
           options.projectShellPersistence?.close(),
         ]);

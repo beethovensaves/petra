@@ -1,4 +1,11 @@
-import { useRef, useState, type FormEvent } from "react";
+import { ProjectDefinitionDraftClientError } from "@petra/adapters";
+import { useIntakeWorkspace } from "./IntakeWorkspace.js";
+import { intakeClient } from "./IntakeCopilotConversation.js";
+import {
+  intakeBrowserHash,
+  intakeCreationKey,
+} from "./intake-browser-state.js";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import type {
   PetraProjectDefinitionDraftCommandRequest,
   PetraProjectDefinitionDraftView,
@@ -487,21 +494,63 @@ export const ProjectCreationPanel = ({
   onCancel: () => void;
 }): React.JSX.Element => {
   const navigate = useNavigate();
-  const [outcome, setOutcome] = useState("");
+  const intakeWorkspace = useIntakeWorkspace();
+  const intake =
+    intakeWorkspace?.read?.binding === undefined
+      ? intakeWorkspace?.read
+      : undefined;
+  const [reviewBasis, setReviewBasis] = useState(intake);
+  const creationKey =
+    intake === undefined
+      ? undefined
+      : intakeCreationKey(intake.session.content.intake_session_id);
+
+  const [outcome, setOutcome] = useState(
+    intake?.draft?.content.request.outcome ?? "",
+  );
   const [projectName, setProjectName] = useState("");
   const [exampleId, setExampleId] = useState("");
   const [files, setFiles] = useState<File[]>([]);
-  const [draft, setDraft] = useState<PetraProjectDefinitionDraftView>();
+  const [draft, setDraft] = useState<
+    PetraProjectDefinitionDraftView | undefined
+  >(intake?.draft);
   const [confirmed, setConfirmed] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
-  const [retainedCommand, setRetainedCommand] =
-    useState<PetraProjectDefinitionDraftCommandRequest>();
+  const [retainedCommand, setRetainedCommand] = useState<
+    PetraProjectDefinitionDraftCommandRequest | undefined
+  >(() => {
+    if (creationKey === undefined) return undefined;
+    try {
+      const value = sessionStorage.getItem(creationKey);
+      return value === null
+        ? undefined
+        : (JSON.parse(value) as PetraProjectDefinitionDraftCommandRequest);
+    } catch {
+      return undefined;
+    }
+  });
+  useEffect(() => {
+    if (retainedCommand !== undefined)
+      intakeWorkspace?.setCreationPending(true);
+  }, [retainedCommand, intakeWorkspace?.setCreationPending]);
+  useEffect(() => {
+    if (retainedCommand !== undefined || intake === undefined) return;
+    if (
+      intake.draft?.content_hash !== reviewBasis?.draft?.content_hash ||
+      intake.turns.at(-1)?.run_id !== reviewBasis?.turns.at(-1)?.run_id
+    ) {
+      setDraft(intake.draft);
+      setReviewBasis(intake);
+      setConfirmed(false);
+    }
+  }, [intake, draft?.content_hash, reviewBasis?.turns, retainedCommand]);
   const selectedExample = profiles.find(
     (profile) => profile.profile_id === exampleId,
   );
 
   const revise = (): void => {
+    if (retainedCommand !== undefined) return;
     setDraft(undefined);
     setConfirmed(false);
     setRetainedCommand(undefined);
@@ -524,7 +573,20 @@ export const ProjectCreationPanel = ({
         ...(selectedExample === undefined ? {} : { example: selectedExample }),
         ...(material.length === 0 ? {} : { initialMaterial: material }),
       });
-      const reviewed = await draftProjectDefinition(request);
+      const reviewed =
+        intake === undefined
+          ? await draftProjectDefinition(request)
+          : await intakeClient().prepareDraft(
+              intake.session.content.intake_session_id,
+              request,
+            );
+      if (intake !== undefined) {
+        const current = await intakeClient().read(
+          intake.session.content.intake_session_id,
+        );
+        intakeWorkspace?.select(current);
+        setReviewBasis(current);
+      }
       setDraft(reviewed);
       setConfirmed(false);
       setRetainedCommand(undefined);
@@ -536,14 +598,72 @@ export const ProjectCreationPanel = ({
   };
 
   const create = async (): Promise<void> => {
-    if (draft === undefined || !confirmed) return;
+    if (draft === undefined || (!confirmed && retainedCommand === undefined))
+      return;
     setBusy(true);
     setError(undefined);
-    const command =
-      retainedCommand ?? createProjectDefinitionDraftCommandRequest(draft);
-    setRetainedCommand(command);
     try {
+      let command = retainedCommand;
+      if (command === undefined) {
+        const base = createProjectDefinitionDraftCommandRequest(draft);
+        command =
+          reviewBasis === undefined
+            ? base
+            : {
+                ...base,
+                schema_version: "1.1.0",
+                intake_ref: {
+                  intake_session_id:
+                    reviewBasis.session.content.intake_session_id,
+                  session_record_hash: await intakeBrowserHash(
+                    reviewBasis.session,
+                  ),
+                  definition_draft_hash: await intakeBrowserHash(draft),
+                  last_run_id: reviewBasis.turns.at(-1)?.run_id ?? null,
+                },
+              };
+        setRetainedCommand(command);
+        if (creationKey !== undefined)
+          sessionStorage.setItem(creationKey, JSON.stringify(command));
+      }
+      intakeWorkspace?.setCreationPending(true);
+      if (command.schema_version === "1.1.0") {
+        const current = await intakeClient().read(
+          command.intake_ref.intake_session_id,
+        );
+        if (current.binding !== undefined) {
+          if (
+            current.binding.content.creation_command_id !== command.command_id
+          )
+            throw new ProjectDefinitionDraftClientError(
+              409,
+              "PROJECT_DEFINITION_DRAFT_COMMAND_CONFLICT",
+              "This intake already belongs to another exact creation outcome. Open its created Project.",
+            );
+          if (creationKey !== undefined) sessionStorage.removeItem(creationKey);
+          intakeWorkspace?.setCreationPending(false);
+          await navigate(
+            `/projects/${current.binding.content.project_id}/brief`,
+          );
+          return;
+        }
+        if (
+          current.turns.some((turn) => turn.terminal === undefined) ||
+          (current.turns.at(-1)?.run_id ?? null) !==
+            command.intake_ref.last_run_id ||
+          current.draft === undefined ||
+          (await intakeBrowserHash(current.draft)) !==
+            command.intake_ref.definition_draft_hash
+        )
+          throw new ProjectDefinitionDraftClientError(
+            409,
+            "PROJECT_DEFINITION_DRAFT_STALE",
+            "The discussion or selected draft changed. Read and review the current proposal before creating the Project.",
+          );
+      }
       const receipt = await createProjectFromDefinitionDraft(command);
+      if (creationKey !== undefined) sessionStorage.removeItem(creationKey);
+      intakeWorkspace?.setCreationPending(false);
       await navigate(
         files.length === 0
           ? `/projects/${receipt.destination.project_id}/brief`
@@ -553,6 +673,22 @@ export const ProjectCreationPanel = ({
           : { state: { initialSourceFiles: files } },
       );
     } catch (caught) {
+      if (
+        caught instanceof ProjectDefinitionDraftClientError &&
+        [
+          "PROJECT_DEFINITION_DRAFT_STALE",
+          "PROJECT_DEFINITION_DRAFT_INVALID",
+          "PROJECT_DEFINITION_DRAFT_ASSUMPTIONS_UNACCEPTED",
+          "PROJECT_DEFINITION_DRAFT_COMMAND_CONFLICT",
+          "PROJECT_DEFINITION_DRAFT_COMMAND_DENIED",
+        ].includes(caught.code)
+      ) {
+        if (creationKey !== undefined) sessionStorage.removeItem(creationKey);
+        setRetainedCommand(undefined);
+        setConfirmed(false);
+        intakeWorkspace?.setCreationPending(false);
+        intakeWorkspace?.refresh();
+      }
       setError(errorMessage(caught));
     } finally {
       setBusy(false);
@@ -581,7 +717,7 @@ export const ProjectCreationPanel = ({
             rows={5}
             maxLength={4_000}
             value={outcome}
-            disabled={draft !== undefined}
+            disabled={draft !== undefined || retainedCommand !== undefined}
             onChange={(event) => {
               revise();
               setOutcome(event.currentTarget.value);
@@ -592,7 +728,7 @@ export const ProjectCreationPanel = ({
             hint="Optional. Petra can propose one from the outcome."
             maxLength={240}
             value={projectName}
-            disabled={draft !== undefined}
+            disabled={draft !== undefined || retainedCommand !== undefined}
             onChange={(event) => {
               revise();
               setProjectName(event.currentTarget.value);
@@ -605,7 +741,7 @@ export const ProjectCreationPanel = ({
             <input
               type="file"
               multiple
-              disabled={draft !== undefined}
+              disabled={draft !== undefined || retainedCommand !== undefined}
               onChange={(event) => {
                 revise();
                 setFiles(Array.from(event.currentTarget.files ?? []));
@@ -626,7 +762,7 @@ export const ProjectCreationPanel = ({
               <span>Capability example</span>
               <select
                 value={exampleId}
-                disabled={draft !== undefined}
+                disabled={draft !== undefined || retainedCommand !== undefined}
                 onChange={(event) => {
                   revise();
                   setExampleId(event.currentTarget.value);
@@ -715,6 +851,7 @@ export const ProjectCreationPanel = ({
             <label className="project-profile-command__confirmation">
               <input
                 type="checkbox"
+                disabled={retainedCommand !== undefined || busy}
                 checked={confirmed}
                 onChange={(event) => setConfirmed(event.currentTarget.checked)}
               />
@@ -726,7 +863,7 @@ export const ProjectCreationPanel = ({
                 variant="primary"
                 busy={busy}
                 onClick={() => void create()}
-                {...(!confirmed
+                {...(!confirmed && retainedCommand === undefined
                   ? {
                       unavailable: {
                         reason: "Review and accept the assumptions first.",
@@ -734,11 +871,21 @@ export const ProjectCreationPanel = ({
                     }
                   : {})}
               >
-                Create Project
+                {retainedCommand === undefined
+                  ? "Create Project"
+                  : "Read creation outcome and retry"}
               </PetraButton>
               <PetraButton
                 type="button"
                 variant="secondary"
+                {...(retainedCommand !== undefined || busy
+                  ? {
+                      unavailable: {
+                        reason:
+                          "Read the pending creation outcome before revising.",
+                      },
+                    }
+                  : {})}
                 onClick={() => {
                   revise();
                 }}
@@ -756,7 +903,7 @@ export const ProjectCreationPanel = ({
             <strong>Project creation did not finish.</strong> {error}
             {retainedCommand === undefined
               ? " Review the request and try again."
-              : " The exact command identity is retained; Create Project safely retries it."}
+              : " The exact command remains pending. Read creation outcome and retry checks the retained binding before resending this same command."}
           </p>
         )}
       </form>

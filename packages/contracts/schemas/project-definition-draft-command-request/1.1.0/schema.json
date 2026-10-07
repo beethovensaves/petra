@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-definition-draft-command-request/1.1.0/schema.json",
+  "title": "PetraProjectDefinitionDraftCommandRequestV11",
+  "description": "Exact human-reviewed Project creation with an acknowledged intake, immutable proposed draft and settled original discussion bound atomically to the resulting Project.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "command_id",
+    "idempotency_key",
+    "draft",
+    "accepted_assumption_codes",
+    "intake_ref"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.project-definition-draft-command-request"
+    },
+    "schema_version": {
+      "const": "1.1.0"
+    },
+    "command_id": {
+      "allOf": [
+        {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        },
+        {
+          "type": "string",
+          "pattern": "^command_"
+        }
+      ]
+    },
+    "idempotency_key": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,511}$"
+    },
+    "draft": {
+      "$ref": "../../project-definition-draft-view/1.0.0/schema.json"
+    },
+    "accepted_assumption_codes": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 30,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9._-]{1,99}$"
+      }
+    },
+    "intake_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "intake_session_id",
+        "session_record_hash",
+        "definition_draft_hash",
+        "last_run_id"
+      ],
+      "properties": {
+        "intake_session_id": {
+          "type": "string",
+          "pattern": "^intake_session_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "session_record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "definition_draft_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "last_run_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^run_[0-9A-HJKMNP-TV-Z]{26}$"
+        }
+      }
+    }
+  }
+}

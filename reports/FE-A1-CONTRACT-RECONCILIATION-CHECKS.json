@@ -1,0 +1,52 @@
+{
+  "schema_name": "petra.frontend-a1-contract-reconciliation-checks",
+  "schema_version": "1.0.0",
+  "captured_at": "2026-10-07T14:30:58.120232+00:00",
+  "scope": "Documentation, ledger accounting, and delivery-controller checks only. No copilot, Workspace, graph, cyclic examination or product acceptance is established by this report.",
+  "base_commit": "d3a5869fe65c6bb8b6f79203d218f710e9d2b4ae",
+  "checkout_state": "Uncommitted roadmap and delivery-control changes at verification time.",
+  "test_command": "node --test scripts/audit-frontend-a1.test.mjs scripts/wave-handoff.test.mjs",
+  "test_result": {
+    "tests": 53,
+    "pass": 53,
+    "fail": 0,
+    "skipped": 0
+  },
+  "test_output": "\u2714 the actual functional ledger covers the retained inventory and matches its report (170.218458ms)\n\u2714 required work cannot be deleted or deferred to release A1 (0.986584ms)\n\u2714 completed work requires completed prerequisites and retained evidence (0.637709ms)\n\u2714 dependency cycles cannot produce an executable work sequence (0.554625ms)\n\u2714 operations cannot be omitted, duplicated or moved out of A1 (1.413542ms)\n\u2714 accepted requirement and flow dispositions cannot become orphans (0.979917ms)\n\u2714 optional scenarios remain late checks and cannot be promoted to requirements (0.836542ms)\n\u2714 optional checks that were not run or selected do not block completed functions (0.628459ms)\n\u2714 optional scenario content is excluded from the functional acceptance fingerprint (36.123667ms)\n\u2714 engineering completion cannot substitute for user acceptance or accept changed code (0.423459ms)\n\u2714 the read-only CLI reports functional completion without requiring optional checks (247.815584ms)\n\u2714 later-wave execution paths are blocked before workers or state mutation (58.05175ms)\nSwitched to branch 'backend'\nSwitched to branch 'design/m1-ux'\nSwitched to branch 'backend'\nSwitched to branch 'design/m1-ux'\n\u2714 uses automatic approval review without a conflicting sandbox flag (0.47275ms)\n\u2714 parses explicit user acceptance without treating it as worker authority (0.355292ms)\n\u2714 selects the first incomplete Wave 6 workflow bundle (0.160042ms)\n\u2714 extends only a wave stopped exactly at its protected slice ceiling (0.268625ms)\n\u2714 normalizes only an exact concatenated frozen evidence key (0.101916ms)\n\u2714 retries only unchanged transient worker failures with a bounded attempt count (0.192917ms)\n\u2714 extracts terminal Codex failures from JSON events (0.0645ms)\n\u2714 continues a transient failure from only the owning fingerprinted worktree (0.107167ms)\n\u2714 operator recovery restores the repaired slice retry budget (0.06475ms)\n\u2714 operator recovery can resume an unchanged fingerprinted partial worktree (0.095375ms)\n\u2714 fingerprints exact tracked and untracked partial worktree bytes (93.875458ms)\n\u2714 three-way merges compatible package.json changes (0.190709ms)\n\u2714 three-way package merge preserves one-sided deletion and rejects competition (0.152625ms)\n\u2714 merges independent operation ownership and UI-state changes by id (0.176416ms)\n\u2714 merges concurrent design evidence with the precise backend runtime owner (0.07225ms)\n\u2714 merges disjoint Wave coverage sections without conflict markers (10.670375ms)\n\u2714 automatic conflict recovery stays inside the package.json boundary (0.088792ms)\n\u2714 resolves and commits a real additive package.json merge conflict (318.840625ms)\n\u2714 retains ordinary source conflicts for the visible design worker (237.944542ms)\n\u2714 parses worker options with a bounded slice count (0.249167ms)\n\u2714 builds a wave-specific initial handoff without prior-wave instructions (0.089541ms)\n\u2714 requires the preceding automated wave to be complete (0.092083ms)\n\u2714 permits only the two exact untracked design assets (0.079583ms)\n\u2714 rejects an incomplete or cross-commit worker handoff (0.155166ms)\n\u2714 retains clean blocked work without accepting stopped work changes (0.072333ms)\n\u2714 continues actionable repository blockers and stops only external blockers (0.065917ms)\n\u2714 the handoff output schema accepts the complete result (17.634083ms)\n\u2714 validates the frozen evidence plan and enforces its audit reserve (0.134125ms)\n\u2714 Wave 5 freezes its complete inventory before the eight-slice reserve (0.4385ms)\n\u2714 Waves 6 through 8 require operation gates and explicit user acceptance (0.8955ms)\n\u2714 Wave 6 backend launcher identifies its role and extended remediation budget (0.189333ms)\n\u2714 Wave 6 reserves grouped completion through its final slice 96 boundary (0.091667ms)\n\u2714 Wave 5 packet fixes 32 alternating slices and the closure reserve (0.319667ms)\n\u2714 Wave 5 worktree launcher identifies its role and fixed budget (10.70125ms)\n\u2714 tracks scenario execution and rejects premature completion (0.132584ms)\n\u2714 ignores already-recorded evidence repeated by the non-owning role (0.122375ms)\n\u2714 worker evidence requires an invoked command, artifact, and boundary (0.079625ms)\n\u2714 worker prompt fixes one-slice, commit, role, and stop boundaries (0.155834ms)\n\u2714 worker prompt makes the Wave 6 workflow bundle override a narrow handoff (0.044959ms)\n\u2714 worker prompt distinguishes planned helpers from executed evidence (0.039833ms)\n\u2714 worker prompt preserves fingerprinted partial work after a transient failure (0.034959ms)\n\u2139 tests 53\n\u2139 suites 0\n\u2139 pass 53\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 776.895792\n",
+  "other_observed_checks": [
+    {
+      "command": "npx eslint scripts/audit-frontend-a1.mjs scripts/audit-frontend-a1.test.mjs scripts/wave-handoff.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "node scripts/audit-ui-operation-presentation-map.mjs",
+      "exit_code": 0,
+      "result": "116/116 operations mapped; 7 primary operations."
+    },
+    {
+      "command": "node scripts/audit-ui-operation-coverage.mjs",
+      "exit_code": 0,
+      "result": "116-operation inventory valid; existing mechanical states retained."
+    },
+    {
+      "command": "node scripts/audit-frontend-a1.mjs --require-complete",
+      "exit_code": 1,
+      "expected_failure": true,
+      "result": "81 required work items incomplete; explicit user acceptance missing. Optional scenarios excluded."
+    },
+    {
+      "command": "Local ledger link and roadmap-reference check",
+      "exit_code": 0,
+      "result": "432 ledger links resolve; 7 roadmap/handoff references agree; optional checks follow the release gate."
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ],
+  "verified_code_sha256": {
+    "scripts/audit-frontend-a1.mjs": "e67e2aec6958461c846532148bdc353e23439aa719c055af525b2d71b22ee462",
+    "scripts/audit-frontend-a1.test.mjs": "ac51454c74f7df5b5e4045b7e408133c35f18d812aabd547745bbf477b1e7966",
+    "scripts/wave-handoff.mjs": "fdf19f81f170862dc1c50dc2c3b2ddc4bca6d2a106153c5bdde3d896bb3b8acf"
+  }
+}

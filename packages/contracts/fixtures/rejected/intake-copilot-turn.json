@@ -1,0 +1,32 @@
+{
+  "schema_name": "petra.intake-copilot-turn",
+  "schema_version": "1.0.0",
+  "run_id": "run_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "intake_session_id": "intake_session_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "thread_id": "thread_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+  "parent_run_id": null,
+  "question": "Help me frame an outcome before creating a Project.",
+  "context": {
+    "schema_name": "petra.intake-copilot-context",
+    "schema_version": "1.0.0",
+    "content": {
+      "intake_session_id": "intake_session_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+      "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+      "session_record_hash": "sha256:e2fe4c7ed90d6a02268ef1b018b332420f7912fc19005de998a30f283b039434",
+      "policy_hash": "sha256:b5e5a35398db04e17589a0440afcc9a38951d765869f8fbfa6f9c6f7f3e1f3f4",
+      "outcome_wording": null,
+      "definition_draft_ref": null,
+      "records": [],
+      "limitations": [
+        "No Project exists in this intake. No sources or domain authority are implied."
+      ],
+      "authority": "pre_project_advice_only"
+    },
+    "content_hash": "sha256:0815b075a79d77ca22ddef2e1e2244d0a213792d4cbafe07d86be14df80b9614"
+  },
+  "request_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "started_at": "2026-10-07T21:00:00.000Z",
+  "instance_id": "copilot_instance_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW"
+}

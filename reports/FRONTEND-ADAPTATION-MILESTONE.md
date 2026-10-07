@@ -1,25 +1,66 @@
 # FE-A1: Agentic frontend adaptation
 
-- **Status:** In progress; FE-A1.0 through FE-A1.4 complete; FE-A1.5 through FE-A1.7 underway; blocks Wave 7
+- **Status:** `in_progress`; FE-A1.0 complete; FE-A1.1 through FE-A1.7 incomplete; the inspected frontend was rejected on 2026-10-07; blocks Wave 7 and Wave 8
 - **Decision:** [D024](../decisions/D024-agentic-split-workspace.md)
 - **Operation map:** [ui-operation-presentation-map.json](../scripts/ui-operation-presentation-map.json)
 - **Inventory:** [ui-operation-inventory.json](../scripts/ui-operation-inventory.json)
+- **Required implementation ledger:** [FE-A1-CONTRACT-IMPLEMENTATION-LEDGER.md](FE-A1-CONTRACT-IMPLEMENTATION-LEDGER.md)
+- **Canonical work/status register:** [frontend-a1-work-inventory.json](../scripts/frontend-a1-work-inventory.json)
 - **Trigger:** The Wave 6 checkpoint proved its graph-controlled mechanisms but failed user evaluation as a frontend. It exposed the operation inventory as product navigation, lacked a coherent agent-first composition, and presented two example profiles as the apparent limits of Petra.
 
 ## Delivery ledger
 
+The granular ledger now controls implementation order and completion. It assigns
+89 required construction and verification items across the eight A1 stages,
+with exact prerequisites, accountable roles, contract references, observable
+criteria, and evidence slots. Eight items are complete: five documentation and
+execution-control items plus three retained creation mechanics. The remaining
+81 are incomplete. This count does not estimate product completion or time.
+
+The 16 supplementary scenarios are optional checks near the end of A1. They
+add no contracted functions and do not control the release gate. Each required
+function must still satisfy its own criteria and evidence before later waves.
+
 | Step | State | Result |
 | --- | --- | --- |
-| FE-A1.0 | Complete | D024 and the audited 116-operation presentation map establish the frontend boundary. |
-| FE-A1.1 | Complete | The production Project shell now uses a persistent 30/70 Agent–Workspace frame, supports bounded pointer and keyboard resizing, starts technical controls behind **Inspect project**, and switches panes on narrow screens without unmounting the active task. |
-| FE-A1.2 | Complete | Project creation now starts from the user's exact outcome, reviews a server-owned definition draft, keeps examples optional, and creates the Project, definition, objective, focus, and receipt atomically. |
-| FE-A1.3 | Complete | The persistent Agent now owns Project requests and presents the exact route-owned objective, SuggestedAction, Work, Review, recovery, and governed Revert controllers with registered operation and object identities. |
-| FE-A1.4 | Complete | One Workspace host admits the registered Outcome, Artifact, Source, Review, Work, and Inspect roles, checks server place coverage, and binds direct Source, Work, and Artifact URLs to exact server-resolved identities. Live Source, Work, and Review tasks preserve draft, selection, return, and focus across renderer and narrow-pane changes. Artifact editing remains Wave 7 scope. |
+| FE-A1.0 | `complete` | Contract reconciliation, granular work/dependency tracking, all-operation ownership, roadmap alignment, and the later-wave prerequisite gate. |
+| FE-A1.1 | `in_progress` | Seven items cover the normal conversational copilot, hierarchy, components, visual system, resizing, accessibility, navigation, and empty states. Existing structural mechanics remain retained evidence. |
+| FE-A1.2 | `in_progress` | Three of seven items are complete: definition drafting, atomic creation, and optional material handoff. Conversational zero/empty-Project entry, restoration, and complete definition composition remain open. |
+| FE-A1.3 | `in_progress` | Eighteen items cover registered ordinary Q&A/follow-ups, eligible model routes, readable durable turns, bounded context, functioning AG-UI, proposals/interrupts, recovery, communication validation, working candidates/relations, correction, and retention. Control placement alone is insufficient. |
+| FE-A1.4 | `in_progress` | Twenty-three items cover reactive Workspace, compositional object/claim examiners, native Project adapters, Review, inquiry and Hypothesis assessment, posture/obligations, cyclic verification, exact closure/invalidation, graph queries/display/scenes/guidance, and task return. Full document editing remains Wave 7 scope. |
 | FE-A1.5 | In progress | One Inspect action is available from the Workspace header and material agent controls. Exact Source and Work reads, Review and History event reads, Project authority, targeted retained History, and return context meet in one Workspace view. History event inspection includes its recorded actor, definition, command fingerprint, grant, receipt reference, recovery assessment, and bounded causal impact. New-Source registration and recent Work command receipts now use authenticated retained server reads. Complete durable receipt and policy composition for other owning operations remains. |
 | FE-A1.6 | In progress | Source registration, reuse, processing start, and uncertain-effect recovery now enter through the Agent. The primary Project link opens a server-verified retained task; Work delivery, eligible stale Review refresh, and interrupted model response replay run automatically. Open Review sessions are raised in Agent context, and acceptance reset is confined to the direct test guide. Full operation conformance remains. |
-| FE-A1.7 | In progress | The structural Workspace and live Source/Inspector task pass keyboard focus, 420 px continuity, and 200% text scale without horizontal overflow; the structural trace also runs in reduced-motion mode. Whole-task, adversarial design, and user evaluation remain. |
+| FE-A1.7 | `in_progress` | Thirteen items verify the required functions, real integration, visual/accessibility/recovery behavior, adversarial boundaries, and the complete reviewable candidate. Explicit user acceptance remains required. The 16 supplementary scenarios may be used here and remain optional. |
 
-FE-A1.1 is proven by
+### User inspection correction — 2026-10-07
+
+The user rejected the current candidate: the left panel does not provide a
+conversational evidence-review copilot, the Workspace does not respond to that
+conversation, and the graph is not discoverable in the intended interaction.
+The earlier completion labels for FE-A1.1, FE-A1.3, and FE-A1.4 described
+mechanical implementation evidence and overstated product delivery. Those stages
+are reopened; their retained structural and command evidence remains valid.
+
+The next delivery must prove one connected evidence-review task:
+
+1. Ask a normal evidence question and a follow-up in a readable conversation.
+2. Open and select the cited source, passage, claim, or Review object in the
+   Workspace from that conversation.
+3. Show and interact with the relevant graph in the Workspace while retaining
+   the conversation and exact evidence selection.
+4. Prepare a governed Review proposal, observe the exact decision and result,
+   and restore readable conversation and task context after reload.
+
+The current certified synthesis route remains limited to its exact registered
+question. General evidence discussion requires a registered backend interaction
+contract, applicable model eligibility and grounding checks, and durable text
+reads. Changing the composer alone cannot supply that capability. The model
+result callback currently refreshes Agent readiness and thread metadata; it
+does not provide the required conversation-to-Workspace interaction.
+
+No replacement frontend acceptance has been recorded. Wave 7 remains blocked.
+
+FE-A1.1's implemented structural mechanics are evidenced by
 [`FRONTEND-STEP2-AGENT-WORKSPACE.json`](FRONTEND-STEP2-AGENT-WORKSPACE.json).
 The Chromium run measures the split at 0.30/0.70, keyboard-activates every
 retained destination, confirms inspection begins closed, and switches between
@@ -30,7 +71,7 @@ also verifies keyboard and pointer resizing from the 30 percent default and
 restoration of the default width. The Agent conversation, composer, and Work controls remain FE-A1.3 scope;
 their absence does not make the structural shell a simulated interaction.
 
-FE-A1.2 is proven by
+FE-A1.2's retained creation mechanics are proven by
 [`FRONTEND-STEP3-AGNOSTIC-PROJECT-CREATION.json`](FRONTEND-STEP3-AGNOSTIC-PROJECT-CREATION.json)
 and the disposable PostgreSQL integration suite. The live Chromium run creates
 scientific, controlled-writing, and unrelated general Projects from the same
@@ -40,7 +81,7 @@ the existing source and rights review. The isolated database run applies all 59
 migrations and proves exact draft replay, explicit optional examples, initial
 material plans, and rejection of changed drafts or unaccepted assumptions.
 
-FE-A1.3 is proven by
+FE-A1.3's implemented control placement is evidenced by
 [`FRONTEND-STEP4-AGENT-CONTROL-PLANE.json`](FRONTEND-STEP4-AGENT-CONTROL-PLANE.json),
 the production controller tests, and the retained shell browser trace. The
 Agent persistently owns `petra.ask` and the retained Project thread. Objective
@@ -417,7 +458,8 @@ existing command/query owners.
 
 ### FE-A1.1 — Build the shell and interaction foundation
 
-**Complete — 2026-09-22.**
+**Reopened — 2026-10-07.** The structural shell completed on 2026-09-22;
+the requested visual and conversational interaction redesign remains open.
 
 - Implement the desktop 30/70 shell and task-preserving responsive variant.
 - Establish restrained tokens, typography, spacing, density, focus, motion, and
@@ -426,9 +468,13 @@ existing command/query owners.
   destinations, object links, and exact return.
 - Provide the Agent, Workspace, Inspect, and interrupt component primitives.
 
-### FE-A1.2 — Add agnostic Project creation
+### FE-A1.2 — Complete conversational zero/empty Project entry
 
-**Complete — 2026-09-23.**
+**In progress — scope clarified on 2026-10-07.** The definition-draft,
+atomic-create, and optional-file handoff mechanics completed on 2026-09-23.
+Normal conversational entry before Project creation, no-evidence Q&A after
+creation, intake restoration, and complete compositional definition resolution
+remain required in FE-A1.2-W04 through W07.
 
 - Add the definition-draft query and validated create command required by D018.
 - Replace mandatory profile selection with the outcome-first entry.
@@ -441,7 +487,9 @@ existing command/query owners.
 
 ### FE-A1.3 — Consolidate control in the agent
 
-**Complete — 2026-09-23.**
+**Reopened — 2026-10-07.** Control placement completed on 2026-09-23;
+grounded conversational questions, follow-ups, and readable durable history
+remain open.
 
 - Route ask, objective framing, SuggestedActions, Work controls, required input,
   Review interrupts, approvals, recovery, and Revert requests through AgentRail.
@@ -450,11 +498,12 @@ existing command/query owners.
 
 ### FE-A1.4 — Build the workspace renderer set
 
-**Complete — 2026-09-29.** The host, role registry, server place check,
+**Reopened — 2026-10-07.** The host, role registry, server place check,
 direct-object selection, route focus restoration, and in-memory draft
 continuity are live. Existing route-owned surfaces serve as the content
 renderers under the common Workspace contract. Live Source, Work, and Review
-flows verify task continuity; Artifact editing remains Wave 7 scope.
+flows verify task continuity. Conversation-driven Workspace updates and
+discoverable graph interaction remain open; Artifact editing remains Wave 7 scope.
 
 - Implement Outcome, Source, Review, Work, and Inspect renderers against current
   live contracts.
@@ -533,10 +582,12 @@ adversarial evaluation remain.
   checks on the complete task.
 - Require explicit user acceptance before Wave 7 resumes.
 
-## Acceptance scenarios
+## Functional acceptance criteria
 
 The milestone cannot exit on route coverage or automated element assertions
-alone. It requires retained execution of these scenarios:
+alone. These functional criteria remain binding; verification evidence attaches
+to the granular implementation items. The sixteen optional scenario groupings
+at the end of the implementation ledger are not additional release criteria.
 
 1. **Agnostic creation:** Create three unrelated Projects from natural-language
    outcomes without using a mandatory profile or template picker.
@@ -566,12 +617,21 @@ FE-A1 exits only when:
 
 - all 116 inventory operations pass the presentation-map audit;
 - all 97 currently live Wave 6 operations conform to their mapped presentation;
+- every required granular A1 item has completed prerequisites, satisfied
+  functional criteria, and retained completion evidence;
+- normal conversational empty entry, grounded Q&A/follow-ups, compositional
+  object examination, reactive Workspace, progressive AG-UI disclosure, and
+  graph-guided cyclic assessment, closure, and invalidation are implemented;
 - the outcome-first Project creation path is live against a Project-owned
   definition;
 - the complete 30/70 task passes visual, interaction, accessibility, adverse
   state, and recovery review;
 - the old checkpoint is no longer the customer entry point; and
 - the user explicitly accepts the new frontend.
+
+`npm run gate:frontend-a1` checks this prerequisite before later-wave worker
+execution, resume, extension, and acceptance. It intentionally fails while A1
+is incomplete. Optional scenario completion is excluded from the gate.
 
 Wave 7 then completes the 15 Composition operations inside the accepted
 Artifact workspace. Wave 8 completes the four remaining governed Settings and

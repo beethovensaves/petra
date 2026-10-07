@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/intake-copilot-context/1.0.0/schema.json",
+  "title": "PetraIntakeCopilotContext",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "content",
+    "content_hash"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.intake-copilot-context"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "content": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "intake_session_id",
+        "actor_id",
+        "session_record_hash",
+        "policy_hash",
+        "outcome_wording",
+        "definition_draft_ref",
+        "records",
+        "limitations",
+        "authority"
+      ],
+      "properties": {
+        "intake_session_id": {
+          "type": "string",
+          "pattern": "^intake_session_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "actor_id": {
+          "type": "string",
+          "pattern": "^actor_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "session_record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "policy_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "outcome_wording": {
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 8000
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "definition_draft_ref": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "record_id",
+                "revision",
+                "record_hash"
+              ],
+              "properties": {
+                "record_id": {
+                  "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+                },
+                "revision": {
+                  "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+                },
+                "record_hash": {
+                  "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+                }
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "records": {
+          "type": "array",
+          "maxItems": 0
+        },
+        "limitations": {
+          "type": "array",
+          "maxItems": 20,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "minItems": 1
+        },
+        "authority": {
+          "const": "pre_project_advice_only"
+        }
+      }
+    },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    }
+  }
+}

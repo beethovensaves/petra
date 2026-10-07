@@ -1,4 +1,21 @@
+import { PostgresIntakeCopilotRepository } from "@petra/postgres";
+import type { IntakeCopilotRepository } from "@petra/core";
+import {
+  PostgresProjectExaminationCommandAuthority,
+  PostgresProjectExaminationOwnerAuthority,
+  PostgresProjectExaminationRegistry,
+  PostgresProjectExaminationRepository,
+} from "@petra/postgres";
+import type {
+  PetraAssessmentProfile,
+  PetraAssessmentPolicy,
+} from "@petra/contracts";
+import { ProjectExaminationService } from "./project-examination.js";
 import { PostgresCommunicationPlanReader } from "@petra/postgres";
+import { PostgresCopilotTurnRepository } from "@petra/postgres";
+import { PostgresProjectSemanticGraphReader } from "@petra/postgres";
+import type { ProjectSemanticGraphReader } from "@petra/core";
+import type { CopilotTurnRepository } from "@petra/core";
 import {
   CreateBucketCommand,
   HeadBucketCommand,
@@ -124,6 +141,10 @@ const { Pool } = pg;
 
 const BUILT_IN_PROFILE_URLS = [
   new URL(
+    "../../../packages/contracts/fixtures/accepted/registered-project-profile-scientific-v1-5.json",
+    import.meta.url,
+  ),
+  new URL(
     "../../../packages/contracts/fixtures/accepted/registered-project-profile-scientific.json",
     import.meta.url,
   ),
@@ -156,6 +177,11 @@ const readBuiltInProfiles = async (): Promise<
   );
 
 export interface ProjectShellPersistence {
+  readonly examinations?: ProjectExaminationService;
+  readonly copilotTurns: CopilotTurnRepository;
+  readonly intakeCopilot?: IntakeCopilotRepository;
+  readonly semanticGraphs?: ProjectSemanticGraphReader;
+  readonly localActorId?: string;
   readonly modelContexts: ProjectModelAuthorityReader;
   readonly profileReads: ProjectProfileRuntimeReader;
   readonly profileCommands: ProjectProfileCommandAuthority;
@@ -406,6 +432,50 @@ export const createProjectShellPersistenceFromEnvironment = async (
     artifactStore,
   );
   const contracts = new PetraContractRegistry();
+  const semanticGraphs = new PostgresProjectSemanticGraphReader(
+    pool,
+    contracts,
+  );
+  const examinationRegistry = new PostgresProjectExaminationRegistry(
+    pool,
+    contracts,
+  );
+  const examinationRecords = new PostgresProjectExaminationRepository(
+    pool,
+    semanticGraphs,
+    async (projectId, graph, transaction) =>
+      (await examinationRegistry.resolve(projectId, graph, transaction))
+        ?.kernel,
+    contracts,
+  );
+  const examinationCommands = new PostgresProjectExaminationCommandAuthority(
+    pool,
+    examinationRecords,
+    semanticGraphs,
+    examinationRegistry,
+    new PostgresCapabilityGrantCommandAuthorizer(contracts),
+    contracts,
+  );
+  const examinations =
+    configuredActorId === undefined || configuredActorId === ""
+      ? undefined
+      : new ProjectExaminationService(
+          semanticGraphs,
+          examinationRecords,
+          examinationRegistry,
+          examinationCommands,
+          new PostgresSingleUserCommandPrincipalResolver(pool, {
+            actor_id: configuredActorId,
+            actor_kind: "human",
+          }),
+          contracts,
+          new PostgresProjectExaminationOwnerAuthority(
+            pool,
+            semanticGraphs,
+            examinationRegistry,
+            contracts,
+          ),
+        );
   const profileRuntime = new PostgresProjectProfileRuntime(
     pool,
     configuredActorId === undefined || configuredActorId === ""
@@ -593,6 +663,11 @@ export const createProjectShellPersistenceFromEnvironment = async (
           AND to_regclass('petra.suggested_action_invocations') IS NOT NULL
           AND to_regclass('petra.working_candidate_revisions') IS NOT NULL
           AND to_regclass('petra.review_session_lifecycle_receipts') IS NOT NULL
+          AND to_regclass('petra.project_copilot_input_manifests') IS NOT NULL
+          AND to_regclass('petra.intake_project_bindings') IS NOT NULL
+          AND to_regclass('petra.project_examination_authority_receipts') IS NOT NULL
+          AND to_regclass('petra.assessment_catalog_records') IS NOT NULL
+          AND to_regclass('petra.project_examination_command_receipts') IS NOT NULL
           AND to_regclass('petra.registered_project_profiles') IS NOT NULL
           AND to_regclass('petra.project_profile_command_receipts') IS NOT NULL
           AND to_regclass('petra.project_source_link_removal_receipts') IS NOT NULL
@@ -626,7 +701,21 @@ export const createProjectShellPersistenceFromEnvironment = async (
     );
     if (schema.rows[0]?.ready !== true) {
       throw new ProjectShellPersistenceConfigurationError(
-        "PostgreSQL is reachable, but the V050 Objective command runtime is unavailable.",
+        "PostgreSQL is reachable, but the required Project runtime through V065 intake and examination authority is unavailable.",
+      );
+    }
+    for (const name of ["assessment-profile", "assessment-policy"]) {
+      const record: unknown = JSON.parse(
+        await readFile(
+          new URL(
+            `../../../packages/contracts/fixtures/accepted/${name}.json`,
+            import.meta.url,
+          ),
+          "utf8",
+        ),
+      );
+      await examinationRegistry.register(
+        record as PetraAssessmentProfile | PetraAssessmentPolicy,
       );
     }
     await ensureBucket(s3Client, s3Bucket);
@@ -689,6 +778,13 @@ export const createProjectShellPersistenceFromEnvironment = async (
           contracts,
         );
       return {
+        copilotTurns: new PostgresCopilotTurnRepository(pool),
+        intakeCopilot: new PostgresIntakeCopilotRepository(pool),
+        semanticGraphs,
+        ...(examinations === undefined ? {} : { examinations }),
+        ...(configuredActorId === undefined
+          ? {}
+          : { localActorId: configuredActorId }),
         modelContexts: new PostgresProjectModelReadinessReader(pool, contracts),
         profileReads: profileRuntime,
         profileCommands: profileRuntime,
@@ -799,6 +895,13 @@ export const createProjectShellPersistenceFromEnvironment = async (
   }
 
   return {
+    copilotTurns: new PostgresCopilotTurnRepository(pool),
+        intakeCopilot: new PostgresIntakeCopilotRepository(pool),
+    semanticGraphs,
+    ...(examinations === undefined ? {} : { examinations }),
+    ...(configuredActorId === undefined
+      ? {}
+      : { localActorId: configuredActorId }),
     modelContexts: new PostgresProjectModelReadinessReader(pool, contracts),
     profileReads: profileRuntime,
     profileCommands: profileRuntime,

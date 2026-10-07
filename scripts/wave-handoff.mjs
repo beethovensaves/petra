@@ -15,9 +15,24 @@ import { dirname, join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 import { isDeepStrictEqual } from "node:util";
+import { assertFrontendA1Complete } from "./audit-frontend-a1.mjs";
 
 const scriptPath = fileURLToPath(import.meta.url);
 const backendRoot = resolve(dirname(scriptPath), "..");
+
+export function assertDeliveryWavePrerequisites(
+  wave,
+  command,
+  root = backendRoot,
+) {
+  if (
+    Number.parseInt(wave, 10) >= 7 &&
+    ["worker", "resume", "extend", "accept"].includes(command)
+  ) {
+    assertFrontendA1Complete(root);
+  }
+}
+
 const designRoot = resolve(backendRoot, "../petra-design");
 const stateBase = join(backendRoot, ".codex-wave-handoff");
 const resultSchemaPath = join(
@@ -2124,6 +2139,7 @@ async function workerLoop({ role, wave, maxSlices }) {
   let announcedWait = false;
 
   for (;;) {
+    assertDeliveryWavePrerequisites(wave, "worker");
     const state = await initializeIfNeeded(wave, maxSlices, role);
     if (!state) {
       if (!announcedWait) {
@@ -2527,6 +2543,7 @@ Runtime state and logs are written under .codex-wave-handoff/ and are ignored by
 
 async function main() {
   const options = parseArguments(process.argv.slice(2));
+  assertDeliveryWavePrerequisites(options.wave, options.command);
   if (options.command === "worker") {
     process.exitCode = await workerLoop(options);
   } else if (options.command === "doctor") {

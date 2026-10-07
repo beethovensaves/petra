@@ -1,0 +1,19 @@
+{
+  "schema_name": "petra.copilot-request",
+  "schema_version": "1.1.0",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "context_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+  "parent_run_id": null,
+  "focus_keys": [],
+  "shared_scene": {
+    "parameters": {
+      "renderer": "native_working",
+      "mode": "graph",
+      "semantic_content_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "selected_keys": [],
+      "excluded_kinds": []
+    },
+    "content_hash": "sha256:50f355c37c7269e2da724dfb341b01c8b7ed45b65b376d08cd9d7445b9c32fec",
+    "peer_content_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  }
+}

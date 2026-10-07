@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Link, useLocation } from "react-router";
+import type { PetraProjectSemanticGraphView } from "@petra/contracts";
 
 import type { ProjectPlace, ProjectRecord } from "./model.js";
 
@@ -61,24 +62,27 @@ export const resolveWorkspaceDestination = (
   project: ProjectRecord,
   place: WorkspacePlace,
   selectionRequested: boolean,
+  nativeGraphAvailable = false,
 ): WorkspaceDestination => {
   const registered = workspaceRegistry[place];
   const summary = project.placeSummaries?.find((entry) => entry.role === place);
   const selection = selectionRequested ? project.selection : undefined;
   const conflict =
-    selection !== undefined &&
-    place !== "inspect" &&
-    selection.destination !== place
-      ? `The selected object belongs in ${selection.destination}, not ${place}. Return to the Project outcome and open it from its current destination.`
-      : project.placeSummaries !== undefined &&
-          place !== "profile_tool" &&
+    nativeGraphAvailable && place === "graph"
+      ? undefined
+      : selection !== undefined &&
           place !== "inspect" &&
-          summary === undefined
-        ? `This Workspace destination is not registered for ${project.title}. Return to the Project outcome.`
-        : summary?.coverage === "unavailable"
-          ? (summary.limitation ??
-            `This Workspace destination is unavailable for ${project.title}.`)
-          : undefined;
+          selection.destination !== place
+        ? `The selected object belongs in ${selection.destination}, not ${place}. Return to the Project outcome and open it from its current destination.`
+        : project.placeSummaries !== undefined &&
+            place !== "profile_tool" &&
+            place !== "inspect" &&
+            summary === undefined
+          ? `This Workspace destination is not registered for ${project.title}. Return to the Project outcome.`
+          : summary?.coverage === "unavailable"
+            ? (summary.limitation ??
+              `This Workspace destination is unavailable for ${project.title}.`)
+            : undefined;
   return {
     role: registered.role,
     place,
@@ -215,16 +219,27 @@ export const WorkspaceHost = ({
   project,
   place,
   children,
+  nativeGraph,
 }: {
   project: ProjectRecord;
+  nativeGraph?: PetraProjectSemanticGraphView;
   place: WorkspacePlace;
   children: ReactNode;
 }): React.JSX.Element => {
   const location = useLocation();
+  const graph = nativeGraph;
+  // The native working reader has its own registered authority basis. A stale
+  // Neo4j projection summary cannot hide a successfully validated native view.
+  const nativeGraphAvailable =
+    graph?.schema_name === "petra.project-semantic-graph-view" &&
+    graph.project_id === project.id &&
+    graph.content.definition_ref.record_id === project.profile.id &&
+    String(graph.content.definition_ref.revision) === project.profile.version;
   const destination = resolveWorkspaceDestination(
     project,
     place,
     hasExactWorkspaceSelection(location.pathname, location.search),
+    nativeGraphAvailable,
   );
   return (
     <WorkspaceRenderer destination={destination} project={project}>

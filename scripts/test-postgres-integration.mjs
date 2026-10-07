@@ -276,6 +276,18 @@ try {
       "updates Brief and canonical event comparison after an atomic application",
     );
   }
+  if (process.env.PETRA_TEST_A1_BROWSER_ONLY === "1") {
+    if (process.env.PETRA_TEST_A1_BROWSER !== "1")
+      throw new Error(
+        "A1 browser-only verification requires the connected function checks to be enabled.",
+      );
+    postgresTestArgs.push(
+      "--",
+      "working-state-authority-repository.test.ts",
+      "--testNamePattern",
+      "executes examination functions through production browser controls",
+    );
+  }
   const test = await requireRun("npm", postgresTestArgs, {
     env: {
       PETRA_TEST_POSTGRES_URL: `postgresql://petra:petra-m12-integration-only@127.0.0.1:${port}/petra`,

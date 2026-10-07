@@ -1,0 +1,404 @@
+{
+  "schema_name": "petra.registered-project-profile",
+  "schema_version": "1.0.0",
+  "profile_id": "project_template_01K6P000000000000000000001",
+  "profile_version": "1.5.0",
+  "definition_family": "petra.scientific-evidence",
+  "status": "active",
+  "content": {
+    "label": "Scientific evidence inquiry",
+    "purpose": "Compare bounded research questions and claims against exact, rights-governed sources while keeping proposals, review, and authority distinct.",
+    "enabled_evidence_namespaces": ["scholarly", "personal"],
+    "objective_kind": "scientific.research-question",
+    "definition": {
+      "label": "Scientific evidence inquiry",
+      "description": "Organizes research questions, claims, source relationships, grounded Work, Review, and provenance without changing Petra's shared authority rules.",
+      "kernel_compatibility": "petra.project-kernel@1.0.0",
+      "registrations": [
+        {
+          "registration_kind": "objective_schema",
+          "semantic_key": "scientific.research-question",
+          "contract": {
+            "name": "petra.project-objective",
+            "version": "1.0.0",
+            "content_hash": "sha256:fc8a37e66cfd29feb5613f744497b3b82f6623372a2a19dda9ff0ada02fab792"
+          }
+        },
+        {
+          "registration_kind": "object_schema",
+          "semantic_key": "scientific.claim",
+          "contract": {
+            "name": "petra.claim",
+            "version": "1.0.0",
+            "content_hash": "sha256:1cb1f7910202af21e0f8e610c0dcab605db50f8c8466a9c38f0acf69778db196"
+          }
+        },
+        {
+          "registration_kind": "relationship_schema",
+          "semantic_key": "scientific.assertion",
+          "contract": {
+            "name": "petra.assertion",
+            "version": "1.0.0",
+            "content_hash": "sha256:2c58656a9a93052112b26a9080c37811e570000de35d0f9240180da1742c8c91"
+          }
+        },
+        {
+          "registration_kind": "source_role",
+          "semantic_key": "scientific.literature",
+          "contract": {
+            "name": "petra.rights-decision",
+            "version": "1.0.0",
+            "content_hash": "sha256:460d2ca3f9d3b9fff92f2b4280cf223c37ba3781b416b3a8c414b4ca44d93e94"
+          }
+        },
+        {
+          "registration_kind": "workflow",
+          "semantic_key": "scientific.grounded-synthesis",
+          "contract": {
+            "name": "petra.work-unit",
+            "version": "1.0.0",
+            "content_hash": "sha256:6009a3c4ec45df4f7073189f8ef111e59428392a9c8fec1ee14508aeca04c316"
+          }
+        },
+        {
+          "registration_kind": "model_role",
+          "semantic_key": "scientific.grounded-synthesist",
+          "contract": {
+            "name": "petra.model-role-certification",
+            "version": "1.1.0",
+            "content_hash": "sha256:7bab65763e37fc2bec0b9fa64d178ae37e769882717a445bb2a5f0fb650a40f1"
+          }
+        },
+        {
+          "registration_kind": "workflow",
+          "semantic_key": "scientific.claim-review",
+          "contract": {
+            "name": "petra.review-session",
+            "version": "1.1.0",
+            "content_hash": "sha256:e563139dcc0b87024354900e709e96bd749b5550e1a1c1a2661f71ddd7fab627"
+          }
+        },
+        {
+          "registration_kind": "extension",
+          "semantic_key": "petra.focused-graph",
+          "contract": {
+            "name": "petra.focused-graph-view",
+            "version": "1.0.0",
+            "content_hash": "sha256:bc8e4cb6693778872d3d6806a0d809191cf039bec121069a2d940eba36f36ca6"
+          }
+        },
+        {
+          "registration_kind": "extension",
+          "semantic_key": "scientific.graph.return",
+          "contract": {
+            "name": "petra.focused-graph-view",
+            "version": "1.0.0",
+            "content_hash": "sha256:bc8e4cb6693778872d3d6806a0d809191cf039bec121069a2d940eba36f36ca6"
+          }
+        },
+        {
+          "registration_kind": "extension",
+          "semantic_key": "scientific.graph.show-downstream",
+          "contract": {
+            "name": "petra.focused-graph-view",
+            "version": "1.1.0",
+            "content_hash": "sha256:9074cdf0cb7eae9e5717808cd6cb69b554407b485d00d87f5f360f735d45c4a1"
+          }
+        },
+        {
+          "registration_kind": "extension",
+          "semantic_key": "scientific.hypothesis",
+          "contract": {
+            "name": "petra.hypothesis",
+            "version": "1.0.0",
+            "content_hash": "sha256:39cee3646fc7a1a0f9f604774a74d893c754e2dcc9edb9ea9be2648a02f2bfef"
+          }
+        },
+        {
+          "registration_kind": "extension",
+          "semantic_key": "scientific.hypothesis-assessment",
+          "contract": {
+            "name": "petra.hypothesis-assessment",
+            "version": "1.0.0",
+            "content_hash": "sha256:e92132c64e31579974354d506394239c4f8de51a8d44294a4b4e8b8d64a16c05"
+          }
+        },
+        {
+          "registration_kind": "extension",
+          "semantic_key": "scientific.posture",
+          "contract": {
+            "name": "petra.posture-decision",
+            "version": "1.0.0",
+            "content_hash": "sha256:636ad244800382c55b8ba1017958cbe8537933e32b0220365a2ee0b45a57bd85"
+          }
+        },
+        {
+          "registration_kind": "extension",
+          "semantic_key": "scientific.cycle-disposition",
+          "contract": {
+            "name": "petra.cycle-disposition",
+            "version": "1.0.0",
+            "content_hash": "sha256:1dbffc7ce8776913feda8b51898f9e72ed696c49be1170ae9535ff308a732ac8"
+          }
+        },
+        {
+          "registration_kind": "validator",
+          "semantic_key": "scientific.scoped-examination-v1",
+          "contract": {
+            "name": "petra.assessment-profile",
+            "version": "1.0.0",
+            "content_hash": "sha256:fc3c6ac2f779191eb7d3a59c0a436cc29a61e53fbf5278b96162f6f12993cdb5"
+          }
+        },
+        {
+          "registration_kind": "extension",
+          "semantic_key": "scientific.scoped-examination-policy-v1",
+          "contract": {
+            "name": "petra.assessment-policy",
+            "version": "1.0.0",
+            "content_hash": "sha256:2dd733aa6a232164001ecdd1cac9b857325739c874485b6b1dc65a355350b713"
+          }
+        }
+      ],
+      "terms": [
+        {
+          "semantic_key": "scientific.research-question",
+          "singular": "Research question",
+          "plural": "Research questions",
+          "definition": "A bounded question the Project is trying to answer.",
+          "generic_family": "focus"
+        },
+        {
+          "semantic_key": "scientific.claim",
+          "singular": "Claim",
+          "plural": "Claims",
+          "definition": "A proposition with explicit scope, basis, and authority state.",
+          "generic_family": "finding"
+        },
+        {
+          "semantic_key": "scientific.literature",
+          "singular": "Source",
+          "plural": "Sources",
+          "definition": "A versioned and rights-governed basis available to the Project.",
+          "generic_family": "reference"
+        },
+        {
+          "semantic_key": "scientific.assertion",
+          "singular": "Evidence link",
+          "plural": "Evidence links",
+          "definition": "An exact relationship connecting a Claim to its retained source basis.",
+          "generic_family": "relationship"
+        },
+        {
+          "semantic_key": "scientific.graph.return",
+          "singular": "Return to evidence",
+          "plural": "Return to evidence",
+          "definition": "Return to the exact originating evidence object.",
+          "generic_family": "task"
+        },
+        {
+          "semantic_key": "scientific.graph.show-downstream",
+          "singular": "Show downstream effects",
+          "plural": "Show downstream effects",
+          "definition": "Reveal recorded downstream relationships within an exact bounded query.",
+          "generic_family": "task"
+        }
+      ],
+      "supported_places": [
+        "brief",
+        "sources",
+        "review",
+        "graph",
+        "work",
+        "petra",
+        "composition",
+        "history",
+        "settings"
+      ],
+      "omitted_flows": [
+        "External filesystem editing",
+        "Multi-user collaboration"
+      ]
+    },
+    "taxonomy": {
+      "object_kinds": {
+        "state": "available",
+        "items": [
+          {
+            "semantic_key": "scientific.claim",
+            "label": "Claim",
+            "meaning": "A proposition whose exact wording, basis, revision, and authority state remain inspectable.",
+            "availability": "available",
+            "contract": {
+              "name": "petra.claim",
+              "version": "1.0.0",
+              "content_hash": "sha256:1cb1f7910202af21e0f8e610c0dcab605db50f8c8466a9c38f0acf69778db196"
+            }
+          }
+        ]
+      },
+      "relationship_meanings": {
+        "state": "available",
+        "items": [
+          {
+            "semantic_key": "scientific.assertion",
+            "label": "Evidence link",
+            "meaning": "Connects one Claim revision to exact retained evidence and does not imply acceptance by itself.",
+            "availability": "available",
+            "contract": {
+              "name": "petra.assertion",
+              "version": "1.0.0",
+              "content_hash": "sha256:2c58656a9a93052112b26a9080c37811e570000de35d0f9240180da1742c8c91"
+            }
+          }
+        ]
+      },
+      "source_roles": {
+        "state": "available",
+        "items": [
+          {
+            "semantic_key": "scientific.literature",
+            "label": "Source",
+            "meaning": "A versioned, rights-governed basis that may support or limit scientific claims.",
+            "availability": "available",
+            "contract": {
+              "name": "petra.rights-decision",
+              "version": "1.0.0",
+              "content_hash": "sha256:460d2ca3f9d3b9fff92f2b4280cf223c37ba3781b416b3a8c414b4ca44d93e94"
+            }
+          }
+        ]
+      },
+      "validators": {
+        "state": "available",
+        "items": [
+          {
+            "semantic_key": "scientific.scoped-examination-v1",
+            "label": "Scoped evidence examination",
+            "meaning": "Human review of exact represented source fidelity, scope compatibility and bounded contrary evidence. This establishes a Project judgment within the declared scope, never universal truth or independent replication.",
+            "availability": "available",
+            "contract": {
+              "name": "petra.assessment-profile",
+              "version": "1.0.0",
+              "content_hash": "sha256:fc3c6ac2f779191eb7d3a59c0a436cc29a61e53fbf5278b96162f6f12993cdb5"
+            }
+          }
+        ],
+        "limitation": "Only this registered scoped human examination is executable. Independent experimentation and waivers have no registered owner."
+      },
+      "work_families": {
+        "state": "partially_available",
+        "items": [
+          {
+            "semantic_key": "scientific.grounded-synthesis",
+            "label": "Grounded synthesis",
+            "meaning": "Produces a bounded response from exact Project context without applying scientific authority.",
+            "availability": "available",
+            "contract": {
+              "name": "petra.work-unit",
+              "version": "1.0.0",
+              "content_hash": "sha256:6009a3c4ec45df4f7073189f8ef111e59428392a9c8fec1ee14508aeca04c316"
+            }
+          }
+        ],
+        "limitation": "Retry is available only for an exact retryable failure with retained input and remaining attempts. Checkpoint resume requires an exact retained checkpoint and a trusted compatible-transition registration from the owning workflow. A workflow-specific start-again command is not registered."
+      },
+      "model_roles": {
+        "state": "available",
+        "items": [
+          {
+            "semantic_key": "scientific.grounded-synthesist",
+            "label": "Grounded synthesist",
+            "meaning": "A certified advisory model role bound to exact Project context; its output is not domain authority.",
+            "availability": "available",
+            "contract": {
+              "name": "petra.model-role-certification",
+              "version": "1.1.0",
+              "content_hash": "sha256:7bab65763e37fc2bec0b9fa64d178ae37e769882717a445bb2a5f0fb650a40f1"
+            }
+          }
+        ]
+      },
+      "review_destinations": {
+        "state": "available",
+        "items": [
+          {
+            "semantic_key": "scientific.claim-review",
+            "label": "Claim Review",
+            "meaning": "The governed destination for correcting, deciding, and applying exact Claim candidates.",
+            "availability": "available",
+            "contract": {
+              "name": "petra.review-session",
+              "version": "1.1.0",
+              "content_hash": "sha256:e563139dcc0b87024354900e709e96bd749b5550e1a1c1a2661f71ddd7fab627"
+            }
+          }
+        ]
+      },
+      "terminology": [
+        {
+          "semantic_key": "scientific.research-question",
+          "singular": "Research question",
+          "plural": "Research questions",
+          "definition": "A bounded question the Project is trying to answer.",
+          "generic_family": "focus"
+        },
+        {
+          "semantic_key": "scientific.claim",
+          "singular": "Claim",
+          "plural": "Claims",
+          "definition": "A proposition with explicit scope, basis, and authority state.",
+          "generic_family": "finding"
+        },
+        {
+          "semantic_key": "scientific.literature",
+          "singular": "Source",
+          "plural": "Sources",
+          "definition": "A versioned and rights-governed basis available to the Project.",
+          "generic_family": "reference"
+        },
+        {
+          "semantic_key": "scientific.assertion",
+          "singular": "Evidence link",
+          "plural": "Evidence links",
+          "definition": "An exact relationship connecting a Claim to its retained source basis.",
+          "generic_family": "relationship"
+        },
+        {
+          "semantic_key": "scientific.graph.return",
+          "singular": "Return to evidence",
+          "plural": "Return to evidence",
+          "definition": "Return to the exact originating evidence object.",
+          "generic_family": "task"
+        },
+        {
+          "semantic_key": "scientific.graph.show-downstream",
+          "singular": "Show downstream effects",
+          "plural": "Show downstream effects",
+          "definition": "Reveal recorded downstream relationships within an exact bounded query.",
+          "generic_family": "task"
+        }
+      ],
+      "supported_places": [
+        "brief",
+        "sources",
+        "review",
+        "graph",
+        "work",
+        "petra",
+        "composition",
+        "history",
+        "settings"
+      ],
+      "unavailable_operations": [
+        {
+          "operation_id": "source.delete-local-copy",
+          "label": "Delete local copy",
+          "reason": "Physical deletion has no accepted retention owner."
+        }
+      ]
+    }
+  },
+  "content_hash": "sha256:c077577b685363d084ff896bd30c45b1c5b64bacd9d34c5a953d0488929911e0",
+  "registered_at": "2026-10-07T16:00:00.000Z"
+}

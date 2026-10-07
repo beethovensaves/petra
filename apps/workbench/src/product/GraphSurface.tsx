@@ -1,4 +1,7 @@
 import { useMemo, useState } from "react";
+import { useCopilotWorkspace } from "./CopilotWorkspace.js";
+import { SemanticGraphSurface } from "./SemanticGraphSurface.js";
+import type { PetraProjectSemanticGraphView } from "@petra/contracts";
 import { Link, useLoaderData, useSearchParams } from "react-router";
 
 import { PetraMark } from "../design-system/brand.js";
@@ -124,6 +127,7 @@ export const GraphSurface = ({
   const [layer, setLayer] = useState<GraphLayer>(() =>
     layerAvailable(graph, initialLayer) ? initialLayer : "current",
   );
+  const copilot = useCopilotWorkspace();
   const [viewMode, setViewMode] = useState<GraphViewMode>(initialViewMode);
   const [layout, setLayout] = useState<GraphLayout>("neighborhood");
   const [history, setHistory] = useState<string[]>([
@@ -171,6 +175,7 @@ export const GraphSurface = ({
   );
 
   const selectNode = (nodeId: string): void => {
+    copilot?.focus([nodeId]);
     if (nodeId === selectedNode?.id) return;
     setHistory((current) => [...current.slice(0, historyIndex + 1), nodeId]);
     setHistoryIndex((current) => current + 1);
@@ -769,12 +774,27 @@ export const GraphSurface = ({
   );
 };
 
+const isSemanticGraph = (
+  value:
+    | GraphQuestion
+    | FocusedGraphRouteData
+    | PetraProjectSemanticGraphView
+    | undefined,
+): value is PetraProjectSemanticGraphView =>
+  value !== undefined &&
+  "schema_name" in value &&
+  value.schema_name === "petra.project-semantic-graph-view";
+
 export const GraphRoute = (): React.JSX.Element => {
   const project = useProjectRecord();
   const graph = useLoaderData<
-    GraphQuestion | FocusedGraphRouteData | undefined
+    | GraphQuestion
+    | FocusedGraphRouteData
+    | PetraProjectSemanticGraphView
+    | undefined
   >();
   const [searchParams] = useSearchParams();
+  if (isSemanticGraph(graph)) return <SemanticGraphSurface view={graph} />;
   if (isFocusedGraphRouteData(graph)) {
     return <FocusedGraphOrientationSurface data={graph} />;
   }

@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/copilot-request/1.1.0/schema.json",
+  "title": "PetraCopilotRequestV11",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "project_id",
+    "context_hash",
+    "parent_run_id",
+    "focus_keys",
+    "shared_scene"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.copilot-request"
+    },
+    "schema_version": {
+      "const": "1.1.0"
+    },
+    "project_id": {
+      "type": "string",
+      "pattern": "^project_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "context_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "parent_run_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^run_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "focus_keys": {
+      "type": "array",
+      "maxItems": 8,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 200
+      }
+    },
+    "shared_scene": {
+      "$ref": "../../graph-presentation-context/1.0.0/schema.json#/$defs/Binding"
+    }
+  }
+}

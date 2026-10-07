@@ -1,0 +1,60 @@
+{
+  "schema_name": "petra.assessment-policy",
+  "schema_version": "1.0.0",
+  "assessment_policy_id": "assessment_policy_01K4E000000000000000000106",
+  "revision": 1,
+  "content": {
+    "semantic_key": "scientific.scoped-examination-policy-v1",
+    "label": "Human-reviewed scoped cycle policy",
+    "profile_ref": {
+      "schema_name": "petra.assessment-profile",
+      "schema_version": "1.0.0",
+      "record_id": "assessment_profile_01K4E000000000000000000105",
+      "revision": 1,
+      "record_hash": "sha256:8404cd4d02e6aabc01aed498a1aa791a9c7e30a8b1dedabeffc6d67ddf5fd291"
+    },
+    "activation": "authorized_human_review",
+    "allowed_dispositions": [
+      "supporting_within_scope",
+      "challenging_within_scope",
+      "mixed",
+      "insufficient",
+      "deferred",
+      "further_cycle"
+    ],
+    "obligation_types": [
+      {
+        "key": "scientific.examine_source_fidelity",
+        "label": "Examine source fidelity",
+        "criterion_keys": [
+          "source_fidelity"
+        ],
+        "enforcement": "required_for_transition"
+      },
+      {
+        "key": "scientific.examine_scope_compatibility",
+        "label": "Examine scope",
+        "criterion_keys": [
+          "scope_compatibility"
+        ],
+        "enforcement": "required_for_transition"
+      },
+      {
+        "key": "scientific.examine_contrary_basis_review",
+        "label": "Examine contrary basis",
+        "criterion_keys": [
+          "contrary_basis_review"
+        ],
+        "enforcement": "required_for_transition"
+      }
+    ],
+    "waiver_policy": "unavailable",
+    "numerical_rules": "unavailable",
+    "limitations": [
+      "This profile grants no waiver or numerical threshold authority.",
+      "Work success and model prose cannot satisfy a named criterion."
+    ]
+  },
+  "registered_at": "2026-10-07T16:00:00.000Z",
+  "content_hash": "sha256:3a5757ddf19fcd69f4413dc016c99d70d15efd35bec86084621487d63a3fdf40"
+}

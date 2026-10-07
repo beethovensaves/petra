@@ -1,7 +1,7 @@
 # Petra Design Implementation Roadmap
 
-Status: `UX-DESIGN-FREEZE-01` accepted against baseline `655d094`; initial Phase 2 neutral reference packet set implemented through `bfdcecf`
-Last updated: 2026-09-10
+Status: FE-A1 function implementation incomplete after 2026-10-07 user inspection; Wave 7 and Wave 8 blocked. Historical `UX-DESIGN-FREEZE-01` baseline `655d094` and reference packet evidence through `bfdcecf` retained.
+Last updated: 2026-10-07
 Scope: deliver Petra's M1 experience module by module while implementation continues, without creating a second authority for architecture or feature completion
 
 Companion documents:
@@ -10,6 +10,7 @@ Companion documents:
 - [Logical graph and event model](PETRA_GRAPH_MODEL.md)
 - [Decision and milestone roadmap](ROADMAP.md)
 - [Implementation roadmap](implementation_roadmap.md)
+- [Binding A1 function and implementation ledger](reports/FE-A1-CONTRACT-IMPLEMENTATION-LEDGER.md)
 - [Design terminal handoff](DESIGN_TERMINAL_HANDOFF.md)
 - [Object-centered workspace decision](decisions/D009-object-centered-research-workspace.md)
 - [Petra language and reference contract](decisions/D006-petra-language-and-reference-contract.md)
@@ -184,7 +185,7 @@ assertions no longer count as product completion.
 | Automated milestone | Required product result | Blocking exit gate |
 | --- | --- | --- |
 | Wave 6 | `UX1.6` graph-controlled mechanical baseline | Every milestone-6 operation remains live and evidenced, including actual model, Work, Review, provenance, recovery, and clean pushed integration. The 2026-09-21 checkpoint did not receive frontend acceptance and cannot satisfy the former product exit claim. |
-| `FE-A1` | [Agentic frontend adaptation](reports/FRONTEND-ADAPTATION-MILESTONE.md) under [D024](decisions/D024-agentic-split-workspace.md) | Accepted 30/70 Agent–Workspace shell; outcome-first Project creation without mandatory profiles; all 116 operations mapped; all Wave 6 operations adapted; complete inspect path; task-based visual, interaction, accessibility, adverse-state, and recovery evidence; explicit replacement frontend acceptance |
+| `FE-A1` | [Granular function implementation](reports/FE-A1-CONTRACT-IMPLEMENTATION-LEDGER.md) under [D024](decisions/D024-agentic-split-workspace.md) | Every required A1 item complete with its own functional criteria and evidence; conversational zero/empty entry, normal Q&A, functional AG-UI, compositional examination, reactive Workspace, graph-guided cyclic verification and invalidation, complete Inspect, 116 mappings and 97 adapted operations; visual/accessibility/recovery checks; explicit user acceptance. The 16 end-of-A1 scenario groupings are optional. |
 | Wave 7 | `UX1.7` document-first Composition in the accepted `FE-A1` application | `FE-A1` remains conformant; every milestone-7 operation is live and evidenced inside the Artifact workspace; actual scoped model use, durable editing, provenance, revision, validation, render, export, promotion, product-design/Felicity review, and explicit `USER-TESTABLE-02` user acceptance |
 | Wave 8 | `UX1.8` whole-workbench validation and M1 closure | All 116 operations conform to `scripts/ui-operation-presentation-map.json`; integrated outcome tasks, definition/control boundaries, visual and interaction validation, adverse recovery, and zero critical design debt pass; explicit `USER-TESTABLE-03` user acceptance |
 
@@ -290,12 +291,12 @@ A polished prototype is not integrated. Integrated code is not validated. A modu
 | `UX1.1` | `in_progress` | Profile-resolved Project shell, navigation, selection, Details, assistant frame, and responsive behavior | Project authors must remain oriented while moving among synchronized views | `M1.1`, `M1.2`, `M1.7` |
 | `UX1.2` | `in_progress` | Profile-resolved Project Brief, consequence-led attention, supported current state, snapshot comparison, relevant Work, next actions, and history | The default surface must support the next profile-valid decision without becoming a dashboard | `M1.3`, `M1.6`, `M1.7` |
 | `UX1.3` | `in_progress` | Profile-resolved Sources, reusable identity, immutable revisions, rights, inspection capability, processing, exact reading, provenance, and local-copy lifecycle | Project authors must know exactly what Petra can inspect, used, cannot use, and would change | `M1.2`, `M1.4`, `M1.7` |
-| `UX1.4` | `complete` | Conversation-derived working graph, basis and provenance, profile-resolved comparison, exception-led Review, exact change preview, decision, recovery, and reversal | Natural interaction needs quiet structuring and visible, reversible authority boundaries | `M1.5`, `M1.6`, `M1.7` |
+| `UX1.4` | `in_progress` | Conversation-derived working graph, basis and provenance, profile-resolved comparison, exception-led Review, exact change preview, decision, recovery, and reversal. Prior specification/mechanical closure does not complete the A1 interaction. | Natural interaction needs quiet structuring and visible, reversible authority boundaries | `M1.5`, `M1.6`, `M1.7`; FE-A1.3 and FE-A1.4 |
 | `UX1.5` | `in_progress` | Focused graph, evidence paths, edge semantics, projection state, and textual equivalents | The graph must explain and control work rather than decorate it | `M1.3`, `M1.5`, `M1.6`, `M1.7` |
 | `UX1.6` | `in_progress` | Petra interaction system, contextual answers, SuggestedActions, durable Work, review, reconnect, branching, and governed reversal | Project authors need fast collaboration and recoverable exploration without surrendering domain authority | `M1.5`, `M1.6`, `M1.7` |
 | `UX1.7` | `in_progress` | DraftArtifact, provenance, revision, citations, BibTeX, and LaTeX | Scientific writing should be useful immediately and remain inspectable | `M1.8` |
 | `UX1.8` | `in_progress` | Whole-product information architecture, flow coherence, accessibility, responsiveness, recovery, and visual hardening | The modules count only when they behave as one dependable workbench | `M1.9` |
-| `FE-A1` | `in_progress` | D024 30/70 Agent–Workspace adaptation; FE-A1.0 through FE-A1.4 complete with live Source, Work, and Review continuity; FE-A1.5 exact Inspect has richer event authority and impact plus actor-bound retained Source registration and recent Work receipts verified after reload; retained identity reads do not require a current command grant; FE-A1.6 automatic Project resume, Work delivery, eligible Review refresh, Agent Review attention, and test-only reset underway; FE-A1.7 responsive and visual Source/Review/Work checks underway. One authorized synthetic-Project call verified the live certified model success path with one retained provider effect and no authority effect. Durable action inspection for other operations, general Agent questions, success replay from a fresh browser, 97-operation presentation conformance, whole-task evaluation, and user acceptance remain | The proven graph-controlled mechanics need a coherent frontend before Composition and closure can continue | `M1.7`, `M1.8`, `M1.9` |
+| `FE-A1` | `in_progress` | [89 required work items](reports/FE-A1-CONTRACT-IMPLEMENTATION-LEDGER.md) across FE-A1.0–7. FE-A1.0 is complete; all product stages remain incomplete, including expanded conversational empty entry in FE-A1.2. Eight documentation/creation items are complete and 81 remain open. Existing structural/command evidence is retained with its limits. Sixteen supplementary scenarios remain optional near the end. | Deliver the contracted copilot, reactive Workspace, compositional examination, progressive AG-UI and graph-guided cyclic verification before further waves | `M1.7`, `M1.8`, `M1.9` |
 
 ## Design principles
 
@@ -819,7 +820,7 @@ This checkpoint did not itself record the later product-design freeze.
 
 ## `UX1.4` — basis, candidates, review, and trusted changes
 
-- **Status:** `complete`
+- **Status:** `in_progress`; accepted specification and retained mechanics remain valid, while conversational working structure and compositional examination are incomplete under A1
 - **Builds:** the use-agnostic working-candidate and accountable-decision layer
   across natural conversation, optional graph inspection, profile validation,
   exact change preview, application, recovery, and Revert.
@@ -1529,23 +1530,24 @@ only after the full reference UX stands independently.
 
 ## Immediate sequence
 
-Backend implementation of already accepted architecture may continue. The
-design track should now:
+Follow the prerequisite graph in the [A1 implementation ledger](reports/FE-A1-CONTRACT-IMPLEMENTATION-LEDGER.md).
 
-1. use frozen baseline `655d094` and treat later changes through the named
-   revisit and generalized-failure process;
-2. obtain architecture dispositions for `UX-REQ-001`–`UX-REQ-023` while keeping
-   unavailable runtime facts explicit and preventing backend convenience from
-   redefining the frozen UX;
-3. broaden the implemented fourteen-packet neutral reference presentation across
-   the complete synthetic `UX-FX01`–`UX-FX46` state and flow matrix;
-4. validate every packet, flow, end-to-end trace, responsive/assistive peer,
-   language role, adverse state, recovery path, and no-demo clean start through
-   the five evidence gates; and
-5. plan and produce scientific, controlled-writing, and later profile
-   integrations as separate efforts after the product baseline stands
-   independently.
+1. Build the conversational copilot components and resolve the new Q&A,
+   model-role, exact-text and bounded-context runtime contracts.
+2. Complete zero/empty-Project entry and durable AG-UI conversation,
+   proposals, interrupts, working structure and recovery.
+3. Connect Workspace selection/results, compositional domain examiners,
+   exact Review, the discoverable graph and its bound semantic scene.
+4. Complete graph-guided inquiry/Hypothesis examination, assessment,
+   obligations, scoped cycle closure and dependency invalidation.
+5. Complete all progressive Inspect levels and retained authority receipts;
+   migrate and verify every adapted operation.
+6. Verify the required functions, visual/accessibility/adverse behavior and
+   inspectable candidate; optionally use the sixteen supplementary scenario
+   groupings during FE-A1.7.
+7. Obtain explicit user acceptance before Wave 7 starts. Wave 8 follows Wave 7
+   and preserves the accepted A1 functional contract.
 
-This sequence turns the accepted visual, language, accessibility, and recovery
-systems into a task-complete product one flow at a time while keeping
-implementation contracts and domain authority explicit.
+The historical freeze, surface packets, fixtures and design evidence remain
+reference inputs. Their completion labels cannot replace live functional
+criteria or release an incomplete A1 item.

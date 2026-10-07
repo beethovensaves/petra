@@ -1,0 +1,460 @@
+.copilot-conversation {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 24rem;
+  gap: 1rem;
+}
+.copilot-transcript {
+  flex: 1;
+  max-height: 52vh;
+  min-height: 12rem;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  padding: 0.5rem 0.25rem;
+}
+.copilot-welcome {
+  padding: 2rem 0.5rem;
+}
+.copilot-welcome > strong {
+  font-size: 1.25rem;
+  line-height: 1.5;
+}
+.copilot-welcome > p,
+.copilot-advisory-note,
+.copilot-progress {
+  color: var(--petra-text-secondary);
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+.copilot-starters {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+}
+.copilot-starters button,
+.copilot-citations button {
+  text-align: left;
+  border: 1px solid var(--petra-border-default);
+  background: var(--petra-surface-panel);
+  color: var(--petra-text-primary);
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.7rem;
+  font: inherit;
+  cursor: pointer;
+}
+.copilot-exchange {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+}
+.copilot-message {
+  min-width: 0;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+.copilot-message > strong {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--petra-text-secondary);
+  margin-bottom: 0.4rem;
+}
+.copilot-message p {
+  white-space: pre-wrap;
+  margin: 0 0 0.6rem;
+}
+.copilot-message--user {
+  padding: 0.8rem 1rem;
+  border-radius: 0.85rem;
+  background: var(--petra-surface-inset);
+  margin-left: 1rem;
+}
+.copilot-message--assistant {
+  padding: 0.25rem 0.3rem;
+}
+.copilot-message small,
+.copilot-answer-block small {
+  color: var(--petra-text-secondary);
+  font-size: 0.75rem;
+}
+.copilot-citations {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0.4rem 0 0.8rem;
+}
+.copilot-citations button {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+}
+.copilot-open-answer,
+.copilot-refresh {
+  border: 0;
+  padding: 0.3rem 0;
+  background: transparent;
+  color: var(--petra-action-primary);
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.copilot-compose-area {
+  position: sticky;
+  bottom: 0;
+  background: var(--petra-surface-panel);
+  padding-top: 0.4rem;
+}
+.copilot-compose-area form {
+  border: 1px solid var(--petra-border-strong);
+  border-radius: 0.85rem;
+  padding: 0.8rem;
+  background: var(--petra-surface-panel);
+  box-shadow: 0 2px 10px rgb(0 0 0 / 3%);
+}
+.copilot-compose-area form:focus-within {
+  outline: 2px solid var(--petra-action-primary);
+  outline-offset: 2px;
+}
+.copilot-input-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+.copilot-compose-area textarea {
+  display: block;
+  width: 100%;
+  resize: vertical;
+  border: 0;
+  min-height: 4rem;
+  max-height: 12rem;
+  background: transparent;
+  color: var(--petra-text-primary);
+  font: inherit;
+  line-height: 1.5;
+  padding: 0;
+}
+.copilot-compose-area textarea:focus {
+  outline: none;
+}
+.copilot-compose-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+}
+.copilot-compose-actions small {
+  font-size: 0.66rem;
+  color: var(--petra-text-secondary);
+}
+.copilot-compose-actions button {
+  border: 0;
+  border-radius: 0.45rem;
+  background: var(--petra-action-primary);
+  color: var(--petra-text-on-action, white);
+  padding: 0.45rem 0.75rem;
+  font: inherit;
+  cursor: pointer;
+}
+.copilot-compose-actions button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.copilot-run-controls {
+  display: flex;
+  gap: 0.5rem;
+  padding-top: 0.5rem;
+}
+.copilot-context-chip {
+  font-size: 0.75rem;
+  margin: 0 0 0.6rem;
+  color: var(--petra-text-secondary);
+}
+.copilot-error {
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+.copilot-registered-synthesis {
+  color: var(--petra-text-secondary);
+  font-size: 0.8rem;
+  border-top: 1px solid var(--petra-border-default);
+  padding-top: 0.7rem;
+}
+.copilot-registered-synthesis[open] > section {
+  margin-top: 1rem;
+}
+.copilot-workspace-result {
+  padding: clamp(1rem, 3vw, 2.5rem);
+  max-width: 64rem;
+  margin-inline: auto;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+.copilot-workspace-result > header {
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 1px solid var(--petra-border-default);
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+}
+.copilot-workspace-result h2 {
+  font-size: 1.5rem;
+  line-height: 1.4;
+  margin: 0;
+}
+.copilot-answer-block {
+  padding: 0.8rem 0;
+}
+.copilot-answer-block p,
+.copilot-evidence-text {
+  white-space: pre-wrap;
+}
+.copilot-workspace-result details {
+  border-top: 1px solid var(--petra-border-default);
+  padding-top: 1rem;
+  margin-top: 1.5rem;
+  font-size: 0.8rem;
+}
+.copilot-workspace-result dd {
+  margin: 0 0 0.6rem;
+}
+.copilot-workspace-result button,
+.copilot-run-controls button {
+  font: inherit;
+  cursor: pointer;
+}
+@media (prefers-reduced-motion: reduce) {
+  .copilot-transcript {
+    scroll-behavior: auto;
+  }
+}
+@media (max-width: 720px) {
+  .copilot-transcript {
+    max-height: 48vh;
+  }
+  .copilot-workspace-result > header {
+    flex-direction: column;
+  }
+}
+
+.semantic-graph-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.semantic-graph-toolbar button {
+  font: inherit;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--petra-border-strong);
+  border-radius: 0.5rem;
+  background: var(--petra-surface-panel);
+  cursor: pointer;
+}
+.semantic-graph-toolbar button[aria-pressed="true"] {
+  color: var(--petra-action-primary);
+  border-color: var(--petra-action-primary);
+}
+.semantic-graph-toolbar span {
+  font-size: 0.8rem;
+  color: var(--petra-text-secondary);
+}
+.semantic-graph-body {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(16rem, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+.semantic-graph-scene {
+  overflow: auto;
+  min-height: 20rem;
+  border: 1px solid var(--petra-border-default);
+  border-radius: 0.75rem;
+  background: var(--petra-surface-inset);
+  color: var(--petra-text-primary);
+}
+.semantic-graph-scene svg {
+  display: block;
+  min-width: 40rem;
+  width: 100%;
+}
+.semantic-graph-node {
+  cursor: pointer;
+}
+.semantic-graph-node:focus {
+  outline: none;
+}
+.semantic-graph-node:focus rect {
+  stroke: var(--petra-action-primary);
+  stroke-width: 3;
+}
+.semantic-graph-scene text {
+  fill: currentColor;
+}
+.semantic-graph-scene ol,
+.semantic-graph-scene ul {
+  padding: 1rem 1rem 1rem 2.5rem;
+}
+.semantic-graph-body > aside {
+  display: grid;
+  gap: 1rem;
+  padding: 1.25rem;
+  border: 1px solid var(--petra-border-default);
+  border-radius: 0.75rem;
+  background: var(--petra-surface-panel);
+  overflow-wrap: anywhere;
+}
+.native-material-examiner {
+  line-height: 1.7;
+}
+.native-material-examiner h2 {
+  margin-top: 0;
+  font-size: 1.2rem;
+}
+.native-material-examiner details {
+  margin: 1rem 0;
+  font-size: 0.85rem;
+}
+.native-material-examiner pre {
+  max-height: 24rem;
+  overflow: auto;
+  font-size: 0.72rem;
+}
+.native-material-examiner dd {
+  margin: 0 0 0.5rem;
+}
+.semantic-graph-limits {
+  margin-top: 1.5rem;
+  font-size: 0.8rem;
+  color: var(--petra-text-secondary);
+}
+@media (max-width: 1100px) {
+  .semantic-graph-body {
+    grid-template-columns: 1fr;
+  }
+  .semantic-graph-scene svg {
+    min-width: 32rem;
+  }
+}
+
+.hypothesis-cycles {
+  border-top: 1px solid var(--reference-border, #ddd);
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+}
+.hypothesis-cycles fieldset {
+  border: 1px solid var(--reference-border, #ddd);
+  border-radius: 0.6rem;
+  margin: 0.75rem 0;
+  padding: 1rem;
+  min-width: 0;
+}
+.hypothesis-cycles label {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0.8rem 0;
+}
+.hypothesis-cycles label:has(input[type="checkbox"]) {
+  display: flex;
+  align-items: baseline;
+  overflow-wrap: anywhere;
+}
+.hypothesis-cycles input:not([type="checkbox"]),
+.hypothesis-cycles textarea,
+.hypothesis-cycles select {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 0.55rem;
+  font: inherit;
+  border-radius: 0.35rem;
+  border: 1px solid #bbc5c0;
+  background: var(--reference-paper, #fff);
+}
+.hypothesis-cycles textarea {
+  min-height: 4.5rem;
+  resize: vertical;
+}
+.cycle-criterion {
+  border-bottom: 1px solid #ddd;
+  padding: 0.6rem 0;
+}
+.cycle-review {
+  background: #eef3ed;
+  padding: 1rem;
+  border: 1px solid #899c89;
+  border-radius: 0.6rem;
+  margin-top: 1rem;
+}
+.cycle-review button {
+  margin-right: 0.5rem;
+}
+.cycle-record {
+  border-bottom: 1px solid #ddd;
+  padding: 0.75rem 0;
+}
+.cycle-exact-reference {
+  overflow-wrap: anywhere;
+}
+.cycle-exact-reference code {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.hypothesis-cycles pre {
+  max-height: 20rem;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.examination-graph-scene {
+  max-height: 30rem;
+  overflow: auto;
+  border: 1px solid var(--petra-border-strong);
+  border-radius: 0.7rem;
+}
+.examination-graph-scene svg {
+  width: 100%;
+  min-width: 700px;
+  display: block;
+  color: var(--petra-text-primary);
+}
+.examination-graph-scene g[role="button"] {
+  cursor: pointer;
+}
+.examination-graph-scene g[role="button"]:focus-visible rect {
+  stroke: var(--petra-action-primary);
+  stroke-width: 3px;
+}
+.examination-authority-setup {
+  padding: 0.8rem;
+  border: 1px solid var(--petra-border-strong);
+  border-radius: 0.7rem;
+}
+.examination-authority-setup textarea {
+  display: block;
+  width: 100%;
+  min-height: 5rem;
+}
+.examination-graph pre,
+.examination-authority-setup pre {
+  max-height: 20rem;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.examination-graph-peer ol {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 0.6rem;
+}
+
+.reference-intake-layout { grid-template-columns: minmax(300px, 30%) minmax(0, 1fr); --petra-agent-share: 30%; }
+.reference-intake-panel { padding: 1.4rem; min-width: 0; border-right: 1px solid var(--borderColor-default, #dedbd2); }
+.reference-intake-workspace { min-width: 0; }
+.reference-intake-panel select { max-width: 100%; }
+@media (max-width: 760px) { .reference-intake-layout { display: flex; flex-direction: column; } .reference-intake-panel { border-right: 0; border-bottom: 1px solid var(--borderColor-default, #dedbd2); } }

@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-examination-receipt/1.0.0/schema.json",
+  "title": "PetraProjectExaminationReceipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "project_examination_receipt_id",
+    "revision",
+    "content",
+    "content_hash",
+    "project_id"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.project-examination-receipt"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "project_examination_receipt_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+    },
+    "revision": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+    },
+    "content": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "command_id",
+        "idempotency_key",
+        "request_hash",
+        "operation",
+        "actor",
+        "capability_grant_id",
+        "graph_content_hash",
+        "profile_ref",
+        "policy_ref",
+        "record_ref",
+        "prior_ref",
+        "review",
+        "authority_effect",
+        "projection_effect",
+        "recorded_at"
+      ],
+      "properties": {
+        "command_id": {
+          "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/CommandId"
+        },
+        "idempotency_key": {
+          "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/IdempotencyKey"
+        },
+        "request_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "operation": {
+          "type": "string",
+          "enum": [
+            "register_hypothesis",
+            "revise_hypothesis",
+            "assess_hypothesis",
+            "decide_posture",
+            "conclude_cycle"
+          ]
+        },
+        "actor": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef"
+        },
+        "capability_grant_id": {
+          "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/CapabilityGrantId"
+        },
+        "graph_content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "profile_ref": {
+          "$ref": "../../hypothesis/1.0.0/schema.json#/properties/content/properties/target_claim_ref"
+        },
+        "policy_ref": {
+          "$ref": "../../hypothesis/1.0.0/schema.json#/properties/content/properties/target_claim_ref"
+        },
+        "record_ref": {
+          "$ref": "../../hypothesis/1.0.0/schema.json#/properties/content/properties/target_claim_ref"
+        },
+        "prior_ref": {
+          "oneOf": [
+            {
+              "$ref": "../../hypothesis/1.0.0/schema.json#/properties/content/properties/target_claim_ref"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "review": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "content_hash",
+            "reviewed_at",
+            "rationale"
+          ],
+          "properties": {
+            "content_hash": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+            },
+            "reviewed_at": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+            },
+            "rationale": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4000
+            }
+          }
+        },
+        "authority_effect": {
+          "const": "project_scoped_examination"
+        },
+        "projection_effect": {
+          "const": "none"
+        },
+        "recorded_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        }
+      }
+    },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    }
+  }
+}

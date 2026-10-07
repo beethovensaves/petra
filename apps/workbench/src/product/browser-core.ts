@@ -20,3 +20,5 @@ export const parseFocusedGraphActionPreviewViewRequest = (
 export const parseFocusedGraphViewRequest = (
   value: unknown,
 ): FocusedGraphReadRequest => structuredClone(value) as FocusedGraphReadRequest;
+
+export { examinationAuthorityProposal } from "@petra/core/examination-command";

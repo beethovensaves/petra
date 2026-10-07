@@ -1,4 +1,9 @@
 import { HttpAgent } from "@ag-ui/client";
+export {
+  ProjectCopilotClient,
+  CopilotRequestRejected,
+  type CopilotDeliveryState,
+} from "./project-copilot-ag-ui.js";
 import {
   EventType,
   RunAgentInputSchema,
@@ -714,3 +719,5 @@ export class PetraInteractionClient {
     });
   }
 }
+
+export * from "./intake-copilot-ag-ui.js";

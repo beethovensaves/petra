@@ -1,3 +1,6 @@
+import { mkdtemp, readFile, realpath, rm, writeFile } from "node:fs/promises";
+import { homedir, tmpdir } from "node:os";
+import { join } from "node:path";
 import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
 import {
   createInterface,
@@ -21,6 +24,10 @@ export interface CodexSidecarOptions {
   cwd?: string;
   requestTimeoutMs?: number;
   maxMessageBytes?: number;
+  /** Dedicated startup catalog; never applied to shared or existing threads. */
+  advisoryModel?: string;
+  codexHome?: string;
+  modelCatalogPath?: string;
 }
 
 export interface CodexAccountSummary {
@@ -64,6 +71,8 @@ export interface CodexThreadStartRequest {
   baseInstructions?: string;
   developerInstructions?: string;
   ephemeral?: boolean;
+  /** Server-owned advisory role: disable provider tools before exposing input. */
+  advisoryOnly?: boolean;
 }
 
 export interface CodexThreadSummary {
@@ -71,6 +80,7 @@ export interface CodexThreadSummary {
   model: string | null;
   modelProvider: string | null;
   cwd: string;
+  advisoryIsolation?: "petra.codex-no-tools@1.0.0";
 }
 
 export interface CodexTurnStartRequest {
@@ -158,6 +168,99 @@ interface PendingServerRequest {
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
+// These overrides are supported by the certified 0.154.0 ConfigToml schema.
+// They apply to one ephemeral thread; user/provider configuration is never written.
+const advisoryConfiguration = (
+  configuration: Record<string, unknown>,
+): Record<string, unknown> => {
+  const disabledFeatures = [
+    "shell_tool",
+    "unified_exec",
+    "experimental_use_unified_exec_tool",
+    "apply_patch_freeform",
+    "apps",
+    "connectors",
+    "plugins",
+    "remote_plugin",
+    "plugin_hooks",
+    "hooks",
+    "codex_hooks",
+    "workspace_dependencies",
+    "multi_agent",
+    "multi_agent_v2",
+    "multi_agent_mode",
+    "collab",
+    "collaboration_modes",
+    "enable_fanout",
+    "browser_use",
+    "browser_use_external",
+    "browser_use_full_cdp_access",
+    "computer_use",
+    "in_app_browser",
+    "js_repl",
+    "js_repl_tools_only",
+    "code_mode",
+    "code_mode_only",
+    "code_mode_host",
+    "code_mode_prewarm",
+    "deferred_executor",
+    "search_tool",
+    "tool_search",
+    "tool_suggest",
+    "standalone_web_search",
+    "web_search",
+    "web_search_cached",
+    "web_search_request",
+    "view_image",
+    "image_generation",
+    "imagegenext",
+    "memories",
+    "memory_tool",
+    "goals",
+    "request_permissions",
+    "request_permissions_tool",
+    "default_mode_request_user_input",
+    "sleep_tool",
+    "current_time_reminder",
+    "skill_search",
+    "skill_mcp_dependency_install",
+    "skill_env_var_dependency_prompt",
+    "enable_mcp_apps",
+    "token_budget",
+    "unavailable_dummy_tools",
+  ];
+  const result: Record<string, unknown> = {
+    ...Object.fromEntries(
+      disabledFeatures.map((name) => [`features.${name}`, false]),
+    ),
+    "features.skip_host_skill_discovery": true,
+    "agents.enabled": false,
+    "orchestrator.mcp.enabled": false,
+    "orchestrator.skills.enabled": false,
+    "tools.update_plan.enabled": false,
+    "tools.experimental_request_user_input.enabled": false,
+    "skills.include_instructions": false,
+    web_search: "disabled",
+    project_doc_max_bytes: 0,
+    developer_instructions: "",
+  };
+  const servers = configuration.mcp_servers;
+  if (servers !== undefined && servers !== null && !isRecord(servers)) {
+    throw new CodexAppServerProtocolError(
+      "CODEX_TOOL_POLICY_UNAVAILABLE",
+      "The provider MCP configuration is malformed.",
+    );
+  }
+  // Use an object override so server names remain literal keys, including dots.
+  result.mcp_servers = Object.fromEntries(
+    Object.keys(servers ?? {}).map((name) => [
+      name,
+      { enabled: false, required: false },
+    ]),
+  );
+  return result;
+};
+
 const nonEmptyString = (value: unknown, label: string): string => {
   if (typeof value !== "string" || value.length === 0) {
     throw new CodexAppServerProtocolError(
@@ -233,7 +336,17 @@ export class CodexStdioMessagePort implements CodexRpcMessagePort {
     this.#maxMessageBytes = options.maxMessageBytes ?? 8 * 1024 * 1024;
     this.#process = spawn(
       options.command ?? "codex",
-      ["app-server", "--listen", "stdio://"],
+      [
+        "app-server",
+        "--listen",
+        "stdio://",
+        ...(options.modelCatalogPath === undefined
+          ? []
+          : [
+              "--config",
+              `model_catalog_json=${JSON.stringify(options.modelCatalogPath)}`,
+            ]),
+      ],
       {
         cwd: options.cwd,
         shell: false,
@@ -335,6 +448,8 @@ export class CodexStdioMessagePort implements CodexRpcMessagePort {
 export class CodexSubscriptionProvider implements CodexSubscriptionProviderPort {
   readonly #port: CodexRpcMessagePort;
   readonly #requestTimeoutMs: number;
+  readonly #advisoryModel: string | undefined;
+  readonly #cleanup: (() => Promise<void>) | undefined;
   readonly #pending = new Map<string, PendingRequest>();
   readonly #pendingServer = new Map<string, PendingServerRequest>();
   readonly #listeners = new Set<(event: CodexProviderEvent) => void>();
@@ -344,9 +459,15 @@ export class CodexSubscriptionProvider implements CodexSubscriptionProviderPort 
 
   private constructor(
     port: CodexRpcMessagePort,
-    options: { requestTimeoutMs?: number } = {},
+    options: {
+      requestTimeoutMs?: number;
+      advisoryModel?: string;
+      cleanup?: () => Promise<void>;
+    } = {},
   ) {
     this.#port = port;
+    this.#advisoryModel = options.advisoryModel;
+    this.#cleanup = options.cleanup;
     this.#requestTimeoutMs = options.requestTimeoutMs ?? 30_000;
     port.onMessage((message) => this.#receive(message));
     port.onError((error) => this.#failTransport(error));
@@ -354,7 +475,11 @@ export class CodexSubscriptionProvider implements CodexSubscriptionProviderPort 
 
   static async connect(
     port: CodexRpcMessagePort,
-    options: { requestTimeoutMs?: number } = {},
+    options: {
+      requestTimeoutMs?: number;
+      advisoryModel?: string;
+      cleanup?: () => Promise<void>;
+    } = {},
   ): Promise<CodexSubscriptionProvider> {
     const provider = new CodexSubscriptionProvider(port, options);
     try {
@@ -369,13 +494,84 @@ export class CodexSubscriptionProvider implements CodexSubscriptionProviderPort 
   static async startSidecar(
     options: CodexSidecarOptions = {},
   ): Promise<CodexSubscriptionProvider> {
-    const port = new CodexStdioMessagePort(options);
-    return CodexSubscriptionProvider.connect(
-      port,
-      options.requestTimeoutMs === undefined
-        ? {}
-        : { requestTimeoutMs: options.requestTimeoutMs },
-    );
+    let directory: string | undefined;
+    try {
+      let modelCatalogPath = options.modelCatalogPath;
+      if (options.advisoryModel !== undefined) {
+        // model_catalog_json is startup-only in Codex 0.154. A per-thread
+        // feature override cannot remove model-advertised patch/clock/input tools.
+        const cachePath = join(
+          options.codexHome ??
+            process.env.CODEX_HOME ??
+            join(homedir(), ".codex"),
+          "models_cache.json",
+        );
+        const bytes = await readFile(cachePath);
+        if (bytes.byteLength > 2 * 1024 * 1024)
+          throw new CodexAppServerProtocolError(
+            "CODEX_TOOL_POLICY_UNAVAILABLE",
+            "The managed model catalog exceeds its declared budget.",
+          );
+        const cache: unknown = JSON.parse(bytes.toString("utf8"));
+        if (!isRecord(cache) || !Array.isArray(cache.models))
+          throw new CodexAppServerProtocolError(
+            "CODEX_TOOL_POLICY_UNAVAILABLE",
+            "The managed model catalog is unavailable.",
+          );
+        const matches = cache.models.filter(
+          (value: unknown) =>
+            isRecord(value) && value.slug === options.advisoryModel,
+        );
+        if (matches.length !== 1 || !isRecord(matches[0]))
+          throw new CodexAppServerProtocolError(
+            "CODEX_TOOL_POLICY_UNAVAILABLE",
+            "The exact advisory deployment is unavailable in the managed catalog.",
+          );
+        const model = {
+          ...matches[0],
+          shell_type: "disabled",
+          apply_patch_tool_type: null,
+          web_search_tool_type: "text",
+          supports_search_tool: false,
+          experimental_supported_tools: [],
+          tool_mode: "direct",
+          include_skills_usage_instructions: false,
+          include_plugin_usage_instructions: false,
+          include_apps_usage_instructions: false,
+        };
+        directory = await mkdtemp(
+          join(await realpath(tmpdir()), "petra-advisory-catalog-"),
+        );
+        modelCatalogPath = join(directory, "models.json");
+        await writeFile(modelCatalogPath, JSON.stringify({ models: [model] }), {
+          mode: 0o600,
+        });
+      }
+      const ownedDirectory = directory;
+      const port = new CodexStdioMessagePort({
+        ...options,
+        ...(modelCatalogPath === undefined ? {} : { modelCatalogPath }),
+        ...(directory === undefined ? {} : { cwd: directory }),
+      });
+      return await CodexSubscriptionProvider.connect(port, {
+        ...(options.requestTimeoutMs === undefined
+          ? {}
+          : { requestTimeoutMs: options.requestTimeoutMs }),
+        ...(options.advisoryModel === undefined
+          ? {}
+          : { advisoryModel: options.advisoryModel }),
+        ...(ownedDirectory === undefined
+          ? {}
+          : {
+              cleanup: () =>
+                rm(ownedDirectory, { recursive: true, force: true }),
+            }),
+      });
+    } catch (error) {
+      if (directory !== undefined)
+        await rm(directory, { recursive: true, force: true });
+      throw error;
+    }
   }
 
   diagnostics(): CodexProviderDiagnostics {
@@ -579,6 +775,38 @@ export class CodexSubscriptionProvider implements CodexSubscriptionProviderPort 
   async startThread(
     request: CodexThreadStartRequest,
   ): Promise<CodexThreadSummary> {
+    let config: Record<string, unknown> | undefined;
+    if (request.advisoryOnly === true) {
+      if (
+        this.#advisoryModel === undefined ||
+        request.model !== this.#advisoryModel
+      )
+        throw new CodexAppServerProtocolError(
+          "CODEX_TOOL_POLICY_REQUIRED",
+          "Advisory input requires a dedicated startup catalog for this exact deployment.",
+        );
+      if (
+        request.ephemeral !== true ||
+        request.sandbox !== "read-only" ||
+        request.approvalPolicy !== "never"
+      ) {
+        throw new CodexAppServerProtocolError(
+          "CODEX_TOOL_POLICY_REQUIRED",
+          "Advisory threads require ephemeral, read-only execution without approvals.",
+        );
+      }
+      const effective = await this.#request("config/read", {
+        includeLayers: false,
+        cwd: nonEmptyString(request.cwd, "cwd"),
+      });
+      if (!isRecord(effective) || !isRecord(effective.config)) {
+        throw new CodexAppServerProtocolError(
+          "CODEX_TOOL_POLICY_UNAVAILABLE",
+          "The provider did not expose its effective tool configuration.",
+        );
+      }
+      config = advisoryConfiguration(effective.config);
+    }
     const result = await this.#request("thread/start", {
       ...(request.model === undefined ? {} : { model: request.model }),
       cwd: nonEmptyString(request.cwd, "cwd"),
@@ -593,6 +821,7 @@ export class CodexSubscriptionProvider implements CodexSubscriptionProviderPort 
         ? {}
         : { developerInstructions: request.developerInstructions }),
       ephemeral: request.ephemeral ?? false,
+      ...(config === undefined ? {} : { config, developerInstructions: "" }),
     });
     if (!isRecord(result) || !isRecord(result.thread)) {
       throw new CodexAppServerProtocolError(
@@ -600,11 +829,28 @@ export class CodexSubscriptionProvider implements CodexSubscriptionProviderPort 
         "Codex app-server returned an invalid thread response.",
       );
     }
+    if (
+      request.advisoryOnly === true &&
+      (!Array.isArray(result.instructionSources) ||
+        result.instructionSources.length !== 0 ||
+        result.approvalPolicy !== "never" ||
+        !isRecord(result.sandbox) ||
+        result.sandbox.type !== "readOnly" ||
+        result.sandbox.networkAccess === true)
+    ) {
+      throw new CodexAppServerProtocolError(
+        "CODEX_TOOL_POLICY_REFUSED",
+        "The provider did not retain the advisory thread's isolated execution policy.",
+      );
+    }
     return {
       threadId: nonEmptyString(result.thread.id, "thread.id"),
       model: optionalString(result.model),
       modelProvider: optionalString(result.modelProvider),
       cwd: nonEmptyString(result.cwd, "cwd"),
+      ...(request.advisoryOnly === true
+        ? { advisoryIsolation: "petra.codex-no-tools@1.0.0" as const }
+        : {}),
     };
   }
 
@@ -690,6 +936,7 @@ export class CodexSubscriptionProvider implements CodexSubscriptionProviderPort 
       ),
     );
     await this.#port.close();
+    await this.#cleanup?.();
   }
 
   async #initialize(): Promise<void> {

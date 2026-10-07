@@ -1,0 +1,50 @@
+{
+  "schema_name": "petra.cycle-disposition",
+  "schema_version": "1.0.0",
+  "cycle_disposition_id": "cycle_disposition_01K4E000000000000000000104",
+  "revision": 1,
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "content": {
+    "assessment_ref": {
+      "schema_name": "petra.hypothesis-assessment",
+      "schema_version": "1.0.0",
+      "record_id": "hypothesis_assessment_01K4E000000000000000000102",
+      "revision": 1,
+      "record_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+    },
+    "posture_ref": {
+      "schema_name": "petra.posture-decision",
+      "schema_version": "1.0.0",
+      "record_id": "posture_decision_01K4E000000000000000000103",
+      "revision": 1,
+      "record_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+    },
+    "basis": {
+      "definition_ref": {
+        "record_id": "project_definition_01K4E000000000000000000002",
+        "revision": 1,
+        "content_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+      },
+      "graph_content_hash": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+      "event_position": 0,
+      "stream_revision": 0,
+      "query_kind": "current_registered_working_heads"
+    },
+    "disposition": "insufficient",
+    "criterion_keys": [],
+    "finding_keys": [],
+    "unresolved_questions": [
+      "Does the selected evidence bear on this exact scope?"
+    ],
+    "rationale": "No reviewed scoped criteria have established support.",
+    "prior_disposition_ref": null,
+    "authority_effect": "scoped_project_judgment",
+    "unregistered_authority": true
+  },
+  "content_hash": "sha256:4de64d4eabe15e486a82b7dfa18a1cd1042201caa037f478a9d92d58b12ba0c3",
+  "created_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "human"
+  },
+  "created_at": "2026-10-07T16:00:00.000Z"
+}

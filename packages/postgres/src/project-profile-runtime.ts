@@ -1,3 +1,4 @@
+import { prepareIntakeCreationBinding, recordIntakeCreationBinding } from "./intake-copilot-repository.js";
 import { createHash } from "node:crypto";
 
 import type {
@@ -486,7 +487,7 @@ export class PostgresProjectProfileRuntime
   ): Promise<PetraProjectDefinitionDraftCommandReceipt> {
     this.#contracts.assertValid(
       "project-definition-draft-command-request",
-      "1.0.0",
+      request.schema_version,
       request,
     );
     const requestHash = canonicalHash(request);
@@ -522,6 +523,7 @@ export class PostgresProjectProfileRuntime
       }
 
       await this.#requireDraftPrincipal(client);
+      const intake = request.schema_version === "1.1.0" ? await prepareIntakeCreationBinding(client,request,this.#principal!.actor_id) : undefined;
       this.#assertDraftRequest(request.draft.content.request);
       const currentDraft = await this.#composeDefinitionDraft(
         client,
@@ -680,6 +682,7 @@ export class PostgresProjectProfileRuntime
           recordedAt,
         ],
       );
+      if (intake !== undefined) await recordIntakeCreationBinding(client,intake,receipt);
       return clone(receipt);
     }, "READ COMMITTED");
   }

@@ -1,0 +1,51 @@
+{
+  "schema_name": "petra.project-examination-authority-receipt",
+  "schema_version": "1.0.0",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "project_examination_authority_receipt_id": "examination_authority_receipt_01ARZ3NDEKTSV4RRFFQ69G5FD4",
+  "revision": 1,
+  "content": {
+    "command_id": "command_01ARZ3NDEKTSV4RRFFQ69G5FD5",
+    "idempotency_key": "a1-owner-examination-01",
+    "request_hash": "sha256:f61cc6a091f3e80c1de401286f69ac3dbd71d84b0233008ef7e6f9d8760bf749",
+    "graph_content_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "actor": {
+      "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+      "actor_kind": "human"
+    },
+    "grant": {
+      "schema_name": "petra.capability-grant",
+      "schema_version": "1.16.0",
+      "capability_grant_id": "capability_grant_01ARZ3NDEKTSV4RRFFQ69G5FBJ",
+      "revision": 1,
+      "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+      "grantee": {
+        "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+        "actor_kind": "human"
+      },
+      "content": {
+        "scope_kind": "project_commands",
+        "allowed_commands": [
+          "ConductProjectExamination"
+        ],
+        "valid_from": "2026-09-08T00:00:00.000Z",
+        "reason": "Allow the local Project owner to execute the currently registered governed commands."
+      },
+      "content_hash": "sha256:942137ea78ec4427e491793e0176b1f0b99ed9b6d46af604420c54e95023bc3e",
+      "issued_by": {
+        "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+        "actor_kind": "human"
+      },
+      "issued_at": "2026-09-08T00:00:00.000Z"
+    },
+    "review": {
+      "proposed_content_hash": "sha256:d5a4fed26956c9d6238a4d422f8217fe41ac72e34f308f3a112f33f61ce5fa96",
+      "rationale": "Enable my own scoped examinations in this Project using the currently registered profile.",
+      "reviewed_at": "2026-09-08T00:00:00.000Z"
+    },
+    "recorded_at": "2026-09-08T00:00:00.000Z",
+    "authority_effect": "owner_examination_grant",
+    "projection_effect": "none"
+  },
+  "content_hash": "sha256:8149431b41b8b6c9512917006f323c913c8bb36cebab154a6f0dd026a4f84b7f"
+}

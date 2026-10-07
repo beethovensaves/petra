@@ -1,7 +1,7 @@
 # Petra Implementation Roadmap
 
 Status: M1.9 and its scoped scientific evidence spine complete; graph-controlled mechanics retained; the frozen reference frontend was rejected in user evaluation and FE-A1 now blocks Composition and whole-application closure
-Last updated: 2026-09-21
+Last updated: 2026-10-07
 Scope: turn Petra's accepted product and architecture decisions into tested vertical slices without reopening them as speculative platform work
 
 Delivery correction, 2026-09-21: automated Wave 6 established substantial
@@ -12,6 +12,15 @@ a 30/70 Agent–Workspace shell, outcome-first Project entry, progressive graph
 inspection, and explicit presentation mapping for all 116 operations. Wave 7
 cannot begin until FE-A1 receives explicit user acceptance. Wave 8 requires
 every operation to remain live and conform to that presentation contract.
+
+Execution reconciliation, 2026-10-07: the inspected candidate still lacks the
+contracted conversational copilot and connected Workspace/graph examination.
+The [binding A1 implementation ledger](reports/FE-A1-CONTRACT-IMPLEMENTATION-LEDGER.md)
+now assigns 89 required items with owners, dependencies, functional criteria
+and evidence. FE-A1.0 is complete; FE-A1.1 through FE-A1.7 remain incomplete.
+The three retained creation mechanics do not complete conversational empty
+entry. Sixteen end-of-A1 scenario groupings are optional and excluded from
+the release gate.
 
 Companion documents:
 
@@ -24,9 +33,13 @@ Companion documents:
 
 ## Outcome
 
-Petra's next work is the M1 evidence spine. The first useful build will ingest one legitimate scholarly paper, preserve its bytes and structure, propose one source-grounded Claim, promote one reviewed Assertion, project it into Neo4j, answer one bounded question from a named snapshot through the production AG-UI interaction path, and produce one DraftArtifact with provenance and a canonical citation.
+Petra's next work is to complete the required A1 functions before any later
+delivery wave. The scoped M1 evidence spine is retained as the implementation
+baseline: ingestion, source-grounded candidates, exact Review, projection,
+bounded synthesis, AG-UI authority boundaries and provenance-bearing output.
 
-The first build is complete only when a researcher can see and reverse the path:
+The completed scoped spine establishes this path; it does not establish the
+requested frontend or cyclic Hypothesis examination:
 
 ```text
 Project
@@ -42,6 +55,38 @@ Project
 ```
 
 This roadmap uses gates rather than speculative dates. Later stages remain deliberately less detailed until M1 exposes their real constraints.
+
+## Required A1 construction before subsequent waves
+
+The [canonical work register](scripts/frontend-a1-work-inventory.json) owns
+item-level status. The following stages summarize its required construction;
+the linked ledger supplies every item, prerequisite and completion criterion.
+
+| Stage | Required construction | Completion |
+| --- | --- | --- |
+| FE-A1.0 | Contract reconciliation, work/dependency/operation accounting, later-wave gate | 5 of 5 items complete |
+| FE-A1.1 | Conversational 30/70 copilot shell, turn/action components, hierarchy, responsive/accessibility behavior, empty states | 0 of 7 items complete |
+| FE-A1.2 | Outcome-first atomic creation plus conversational zero/empty entry, retention, and compositional definitions | 3 of 7 items complete; creation mechanics only |
+| FE-A1.3 | Registered normal Q&A/follow-ups, new eligible model roles, exact text/context reads, official AG-UI, actions/interrupts, durable working candidates/relations, replay and correction | 0 of 18 items complete |
+| FE-A1.4 | Reactive Workspace, native object/claim examiners, Review, inquiry/Hypothesis assessment, obligations, cyclic verification, closure/invalidation, discoverable graph, scene and agent guidance | 0 of 23 items complete |
+| FE-A1.5 | Progressive explanation/basis/control/graph/History inspection, exact policy/prerequisite and retained receipt reads, impact/compensation and return | 0 of 9 items complete |
+| FE-A1.6 | All 97 adapted operation presentations, 116 mappings, obsolete frontend removal, quiet orchestration, definition-neutral shell, branch/gate integration | 0 of 7 items complete |
+| FE-A1.7 | Evidence for the required functions, visual/accessibility/adverse checks, reviewable candidate and explicit user acceptance | 0 of 13 items complete; 16 supplementary scenario groupings optional here |
+
+New contracts, schemas, persistence, model-role eligibility and native domain
+adapters needed by these functions are A1 work. They cannot be left in an old
+proposed disposition or assigned to a later wave to pass A1. In particular,
+FE-A1.4-W11 through W15 implement scoped Hypothesis assessment, posture and
+obligations, cyclic verification, exact disposition and invalidation required
+by the user's current instruction. Broader agency and assessment libraries
+remain M3 work. Full document editing/export remains Wave 7; general experiment
+execution remains M4.
+
+`npm run audit:frontend-a1` checks the ledger and generated report.
+`npm run gate:frontend-a1` intentionally fails until every required work item
+and explicit user acceptance is complete. The wave controller enforces this
+before later-wave execution/resume/extension/acceptance. Optional scenario
+status is excluded.
 
 ## Work numbering and status
 
@@ -805,6 +850,16 @@ control surface on the left; Outcome, Source, Review, Work, Artifact, and Inspec
 renderers occupy the workspace. Scientific names appear only when supplied by a
 Project definition.
 
+Execution ownership is now granular: M1.7-W01 maps to FE-A1.1;
+W02 to FE-A1.2/FE-A1.4-W03 and W10; W03/W06 to FE-A1.4-W04 and FE-A1.5;
+W04 to FE-A1.4-W05 and W06; W05 to FE-A1.4-W16 through W21;
+W07 to FE-A1.4-W07/W08 and FE-A1.3-W08; W08/W09 to FE-A1.3-W09
+and the Inspector; W10/W11 to FE-A1.3-W01 through W08/W13;
+W12 to FE-A1.3-W10 through W12. The
+[A1 ledger](reports/FE-A1-CONTRACT-IMPLEMENTATION-LEDGER.md) controls actual
+completion and adds the contracted conversational, compositional and cyclic
+functions not captured by these older twelve rows.
+
 ### Minimum interface
 
 Build the smallest object-centered workbench surface:
@@ -824,7 +879,9 @@ Build the smallest object-centered workbench surface:
 | `M1.7-W11` | `planned` | Render assistant text, activity, tool proposals, and review interrupts through Petra-owned components. | The protocol must support Petra's scientific UX without becoming its design system. |
 | `M1.7-W12` | `in_progress` | Support stream reconnection, interaction replay, and explicit WorkUnit cancellation as separate actions. Successful and explicitly cancelled grounded presentations now survive process restart; cancellation commits before provider interruption, while a connection abort records delivery state only. Workbench reconnect and stop-control wiring remain open. | A dropped connection must not duplicate or silently terminate durable research work. |
 
-The first graph view needs interaction and traceability, not visual polish. Renderer selection remains replaceable behind a focused graph-view model.
+The graph must meet A1's interaction, traceability, visual and accessible-peer
+criteria together with the copilot and Workspace. Renderer selection remains
+replaceable behind the bounded semantic graph contract.
 
 ### Implementation evidence
 
@@ -1014,10 +1071,10 @@ Do not start M2 until M1's event replay, provenance path, and correction behavio
 
 | ID | Status | Build specification | Why Petra needs it |
 | --- | --- | --- | --- |
-| `M3-W01` | `planned` | Add Hypothesis ordinals and plain-language descriptors. | Researchers need stable shorthand without losing the proposition's meaning. |
-| `M3-W02` | `planned` | Add development, activity, warrant, and lifecycle projections. | Petra's posture should reflect where a Hypothesis is in the research process. |
-| `M3-W03` | `planned` | Add snapshot-bound assessments and posture decisions. | Later evidence must not silently rewrite what Petra advised earlier. |
-| `M3-W04` | `planned` | Add Findings, Obligations, waivers, and invalidation. | Evidence must generate explicit scientific consequences that can be satisfied or reconsidered. |
+| `M3-W01` | `planned` | Extend A1's registered Hypothesis identity/descriptors to broader pilot needs. Required A1 target references remain FE-A1.4 scope. | Researchers need stable shorthand without losing the proposition's meaning. |
+| `M3-W02` | `planned` | Extend A1's separate development, activity, warrant and lifecycle assessments with additional registered pilot projections. | Petra's posture should reflect where a Hypothesis is in the research process. |
+| `M3-W03` | `planned` | Extend the A1 snapshot-bound assessment/posture contract with broader methods and governed agency. | Later evidence must not silently rewrite what Petra advised earlier. |
+| `M3-W04` | `planned` | Extend A1 Findings, Obligations and invalidation with broader registered types and governed waiver behavior. Required cyclic verification remains FE-A1.4-W11 through W15. | Evidence must generate explicit scientific consequences that can be satisfied or reconsidered. |
 | `M3-W05` | `planned` | Separate review modes from CapabilityGrants. | Trust in review automation must not silently grant broader tool authority. |
 | `M3-W06` | `planned` | Add proactive background work with visible budgets and stop controls. | Petra should investigate useful alternatives while keeping agency legible and interruptible. |
 | `M3-W07` | `planned` | Certify and route additional role-specific models. | Multiple models should be used for demonstrated strengths under recorded contracts. |

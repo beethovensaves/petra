@@ -14,6 +14,10 @@
     "packages/*"
   ],
   "scripts": {
+    "audit:frontend-a1": "node scripts/audit-frontend-a1.mjs",
+    "roadmap:frontend-a1": "node scripts/audit-frontend-a1.mjs --write",
+    "gate:frontend-a1": "node scripts/audit-frontend-a1.mjs --require-complete",
+    "test:frontend-a1-ledger": "node --test scripts/audit-frontend-a1.test.mjs",
     "bootstrap": "npm ci && UV_CACHE_DIR=.cache/uv uv sync --project workers/science",
     "benchmark:retrieval:m1-floor": "npm run build:packages && node experiments/retrieval/run-m1-floor.mjs",
     "benchmark:retrieval:m1-floor:check": "npm run build:packages && node experiments/retrieval/run-m1-floor.mjs --check",
@@ -40,7 +44,7 @@
     "models:docling:check": "node scripts/prepare-docling-models.mjs --check",
     "models:certify:local": "npm run build:packages && node experiments/model-certification/run-local.mjs",
     "typecheck": "tsc -b && tsc --noEmit --project packages/contracts/test/tsconfig.json && tsc --noEmit --project packages/core/test/tsconfig.json && tsc --noEmit --project packages/adapters/test/tsconfig.json && tsc --noEmit --project packages/neo4j/test/tsconfig.json && tsc --noEmit --project packages/postgres/test/tsconfig.json && tsc --noEmit --project packages/retrieval/test/tsconfig.json && tsc --noEmit --project packages/s3/test/tsconfig.json && tsc --noEmit --project apps/server/test/tsconfig.json && tsc --noEmit --project experiments/m1-boundary/tsconfig.json && npm run typecheck --workspace @petra/workbench && UV_CACHE_DIR=.cache/uv uv run --project workers/science mypy workers/science/src workers/science/tests",
-    "test": "npm run test:contracts && npm run test:core && npm run test:adapters && npm run test:retrieval && npm run test:neo4j && npm run test:s3 && npm run test:server && npm run test:workbench && npm run test:python && npm run test:wave-handoff && npm run audit:ui-operations && npm run audit:ui-presentation",
+    "test": "npm run test:contracts && npm run test:core && npm run test:adapters && npm run test:retrieval && npm run test:neo4j && npm run test:s3 && npm run test:server && npm run test:workbench && npm run test:python && npm run test:wave-handoff && npm run test:frontend-a1-ledger && npm run audit:frontend-a1 && npm run audit:ui-operations && npm run audit:ui-presentation",
     "test:adapters": "npm test --workspace @petra/adapters",
     "test:contracts": "npm test --workspace @petra/contracts",
     "test:core": "npm test --workspace @petra/core",

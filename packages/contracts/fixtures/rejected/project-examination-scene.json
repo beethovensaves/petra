@@ -1,0 +1,18 @@
+{
+  "schema_name": "petra.project-examination-scene",
+  "schema_version": "1.0.0",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "content": {
+    "graph_content_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "nodes": [],
+    "relationships": [],
+    "omitted_nodes": 0,
+    "omitted_relationships": 0,
+    "has_more_history": false,
+    "limitations": [
+      "An empty examination scene creates no evidence or closure."
+    ],
+    "verified": true
+  },
+  "content_hash": "sha256:3448e88e0407a90c2364c3e52af6b6367aa3ed0e3d14cae3c0a09ee0dd73ae42"
+}

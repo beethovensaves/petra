@@ -1,0 +1,137 @@
+{
+  "schema_name": "petra.project-definition-draft-command-request",
+  "schema_version": "1.1.0",
+  "command_id": "command_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "idempotency_key": "intake-create:synthetic-fixture",
+  "draft": {
+    "schema_name": "petra.project-definition-draft-view",
+    "schema_version": "1.0.0",
+    "draft_id": "project_definition_draft_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+    "content": {
+      "request": {
+        "schema_name": "petra.project-definition-draft-request",
+        "schema_version": "1.0.0",
+        "request_id": "definition_draft_request_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+        "outcome": "Compare scientific claims against retained evidence."
+      },
+      "project": {
+        "name": "Synthetic intake Project",
+        "description": "Compare scientific claims against retained evidence."
+      },
+      "definition_family": "petra.scientific-evidence",
+      "definition_origin": {
+        "origin_kind": "project_authored"
+      },
+      "definition_content": {
+        "label": "Scientific evidence inquiry",
+        "description": "Organizes research questions, claims, relationships, literature, review, and provenance without changing Petra's shared authority rules.",
+        "kernel_compatibility": "petra.project-kernel@1.0.0",
+        "registrations": [
+          {
+            "registration_kind": "objective_schema",
+            "semantic_key": "scientific.research-question",
+            "contract": {
+              "name": "petra.project-objective",
+              "version": "1.0.0",
+              "content_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            }
+          },
+          {
+            "registration_kind": "object_schema",
+            "semantic_key": "scientific.claim",
+            "contract": {
+              "name": "petra.claim",
+              "version": "1.0.0",
+              "content_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            }
+          },
+          {
+            "registration_kind": "relationship_schema",
+            "semantic_key": "scientific.assertion",
+            "contract": {
+              "name": "petra.assertion",
+              "version": "1.0.0",
+              "content_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
+          },
+          {
+            "registration_kind": "source_role",
+            "semantic_key": "scientific.literature",
+            "contract": {
+              "name": "petra.rights-decision",
+              "version": "1.0.0",
+              "content_hash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+            }
+          }
+        ],
+        "terms": [
+          {
+            "semantic_key": "scientific.research-question",
+            "singular": "Research question",
+            "plural": "Research questions",
+            "definition": "A bounded question the Project is trying to answer.",
+            "generic_family": "focus"
+          },
+          {
+            "semantic_key": "scientific.claim",
+            "singular": "Claim",
+            "plural": "Claims",
+            "definition": "A proposition with explicit scope, basis, and authority state.",
+            "generic_family": "finding"
+          },
+          {
+            "semantic_key": "scientific.literature",
+            "singular": "Source",
+            "plural": "Sources",
+            "definition": "A versioned and rights-governed basis available to the Project.",
+            "generic_family": "reference"
+          }
+        ],
+        "supported_places": [
+          "brief",
+          "sources",
+          "review",
+          "graph",
+          "work",
+          "petra",
+          "composition",
+          "history",
+          "settings"
+        ],
+        "omitted_flows": [
+          "External filesystem editing",
+          "Multi-user collaboration"
+        ]
+      },
+      "objective": {
+        "objective_kind": "scientific.research-question",
+        "statement": "Compare scientific claims against retained evidence."
+      },
+      "enabled_evidence_namespaces": [
+        "scholarly"
+      ],
+      "selected_capabilities": [
+        {
+          "capability_id": "project.source",
+          "label": "Source intake",
+          "source": "petra_kernel",
+          "reason": "Review initial material explicitly."
+        }
+      ],
+      "assumptions": [
+        {
+          "code": "review_required",
+          "statement": "The definition is a reviewed proposal.",
+          "consequence": "Creation requires explicit human acceptance."
+        }
+      ],
+      "unsupported_capabilities": [],
+      "initial_material_plan": []
+    },
+    "content_hash": "sha256:cd878f3fbe2674bfc43ca875cca3569da5779a1e67f26f00b365b04791dfb3c6",
+    "read_at": "2026-10-07T21:00:00.000Z"
+  },
+  "accepted_assumption_codes": [
+    "review_required"
+  ]
+}

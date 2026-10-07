@@ -1,3 +1,9 @@
+import { CopilotBoundaryError } from "@petra/core";
+import type { IntakeCopilotService } from "./intake-copilot.js";
+import { mountIntakeCopilotRoutes } from "./intake-copilot-routes.js";
+import { mountProjectExaminationRoutes } from "./project-examination-routes.js";
+import type { ProjectExaminationService } from "./project-examination.js";
+import type { ProjectSemanticGraphReader } from "@petra/core";
 import {
   CommunicationPlanError,
   communicationHash,
@@ -196,6 +202,10 @@ interface Variables {
 type PetraHono = Hono<{ Variables: Variables }>;
 
 export interface PetraAppOptions {
+  projectExaminations?: ProjectExaminationService;
+  projectCopilot?: ProjectCopilotService;
+  intakeCopilot?: IntakeCopilotService;
+  projectSemanticGraphs?: ProjectSemanticGraphReader;
   runtime?: PetraInteractionRuntime;
   reviewBoundary?: ReviewInterruptBoundary;
   reviewAuthority?: ReviewResolutionContext;
@@ -855,6 +865,9 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
     context: Context<{ Variables: Variables }>,
     error: unknown,
   ): Response => {
+    if (error instanceof CopilotBoundaryError && error.code.startsWith("INTAKE_")) {
+      return jsonError(context, 409, "PROJECT_DEFINITION_DRAFT_STALE", error.message);
+    }
     if (error instanceof ProjectDefinitionDraftError) {
       const status =
         error.code === "PROJECT_DEFINITION_DRAFT_COMMAND_DENIED"
@@ -1079,6 +1092,14 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
     }
     await next();
   });
+
+  mountIntakeCopilotRoutes(app, options.intakeCopilot);
+  mountProjectCopilotRoutes(
+    app,
+    options.projectCopilot,
+    options.projectSemanticGraphs,
+  );
+  mountProjectExaminationRoutes(app, options.projectExaminations);
 
   const resolveApplyAuthority = async (
     projectId: string,
@@ -1677,7 +1698,7 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
       )) as PetraProjectDefinitionDraftCommandRequest;
       contracts.assertValid(
         "project-definition-draft-command-request",
-        "1.0.0",
+        request.schema_version,
         request,
       );
       const receipt =
@@ -10397,3 +10418,5 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
     },
   };
 };
+import { mountProjectCopilotRoutes } from "./project-copilot-routes.js";
+import type { ProjectCopilotService } from "./project-copilot.js";

@@ -8,6 +8,7 @@ Companion documents:
 - [Minimum viable graph and event model](PETRA_GRAPH_MODEL.md)
 - [Implementation roadmap](implementation_roadmap.md)
 - [Design implementation roadmap](design_implementation_roadmap.md)
+- [Binding A1 function implementation ledger](reports/FE-A1-CONTRACT-IMPLEMENTATION-LEDGER.md)
 
 ## Working method
 
@@ -37,8 +38,8 @@ The roadmap tracks order and status. Decision documents hold the reasoning. Impl
 | --- | --- | --- |
 | Product thesis and scientific contract | Complete | `PETRA.md` |
 | Logical graph and event model | Complete as design | `PETRA_GRAPH_MODEL.md` |
-| Implementation roadmap | M1.9 and its scoped scientific evidence spine are complete; the clean-start cumulative trace, four live presentation reads, interface recovery gate, Wave 1 neutral reads, and paired project-authored scientific/controlled-writing proof preserve exact identity from source acquisition through grounding, presentation, reversal, replay, AG-UI recovery, cancellation, ProjectDefinition-valid navigation, selected-object orientation, and Project-scoped control inspection. M1.7 Wave 2 neutral-interface implementation remains open. | `implementation_roadmap.md`, `reports/M1.9-CUMULATIVE-DEMONSTRATION.md`, `reports/M1.9-INTERFACE-RECOVERY.md`, `reports/UX-REQ-008-SEMANTIC-LOCATION.md`, `reports/UX-REQ-001-SHELL-CONTEXT.md`, `reports/UX-REQ-020-EFFECTIVE-CONTROLS.md`, `reports/UX-WAVE-1-PAIRED-DEFINITION-CONFORMANCE.md` |
-| Design implementation roadmap | UX design frozen at specification and reference-presentation depth; live runtime integration remains open | `design_implementation_roadmap.md`, `reports/UX-RUNTIME-ARCHITECTURE-DISPOSITION.md` |
+| Implementation roadmap | Scoped M1 scientific evidence spine complete; M1.7 product delivery remains in progress under FE-A1. The current execution ledger has 89 required construction/verification items with functional criteria and dependencies; eight documentation/creation items are complete and 81 remain incomplete. | `implementation_roadmap.md`, `reports/FE-A1-CONTRACT-IMPLEMENTATION-LEDGER.md`, `reports/M1.9-CUMULATIVE-DEMONSTRATION.md` |
+| Design implementation roadmap | Historical specification/reference freeze retained; the 2026-10-07 inspected frontend is rejected. All A1 product stages remain incomplete, including conversational empty entry. | `design_implementation_roadmap.md`, `reports/FE-A1-CONTRACT-IMPLEMENTATION-LEDGER.md` |
 | Source-control boundary | Dedicated `/petra` repository on `main`, backed by the private `beethovensaves/petra` remote; verified stages are committed and pushed | `.git/`, `.gitignore`, `implementation_roadmap.md` |
 | Machine-readable schemas | JSON Schema authority and the M1.1 contract kernel complete; additive ProjectDefinition, Objective, ProjectSource, ReviewSession, renderer-neutral relationship-view, semantic object-location, Project-shell 1.1, and effective-controls contracts support the minimum live M1 presentation, exact Project navigation, snapshot-coherent orientation, honest control inspection, and paired project-authored semantic definitions; Ajv/Python parity, generation, rejection, and canonical-hash gates pass | `decisions/D015-language-neutral-runtime-contracts.md`, `decisions/D018-project-definition-and-checkpoint-boundary.md`, `packages/contracts/`, `reports/UX-REQ-008-SEMANTIC-LOCATION.md`, `reports/UX-REQ-001-SHELL-CONTEXT.md`, `reports/UX-REQ-020-EFFECTIVE-CONTROLS.md`, `reports/UX-WAVE-1-PAIRED-DEFINITION-CONFORMANCE.md` |
 | Developer runtime | npm and uv verification passes; digest-pinned PostgreSQL, Neo4j, and S3-compatible services pass Compose health and native probes on Docker Desktop | `README.md`, `infra/dev/compose.yaml`, `implementation_roadmap.md` |
@@ -51,13 +52,13 @@ The roadmap tracks order and status. Decision documents hold the reasoning. Impl
 | Model gateway, role registry, and routing | Provider-neutral extractor foundation with active certified Qwen3.5 local and managed-subscription GPT-5.6 Terra routes; Luna and earlier local failures remain visible | `decisions/D007-model-gateway-role-registry-and-routing.md`, `reports/M1.5-MODEL-GATEWAY.md`, `reports/M1.5-CODEX-EXTRACTOR-CERTIFICATION.md` |
 | Graph-guided execution, context, and cost | Complete as design; M1 implements bounded retrieval, immutable packets, certified synthesis, provenance validation, durable grounded terminals, invalidation, and restart cache reuse; representative challenger benchmarks remain deferred until Petra has a suitable corpus and judgments | `decisions/D008-graph-guided-execution-context-and-cost.md`, `packages/retrieval/`, `packages/core/src/context-packet-compiler.ts`, `packages/core/src/grounded-synthesis.ts`, `packages/core/src/synthesist-gateway.ts`, `packages/core/src/grounded-response-registry.ts`, `reports/M1.6-RETRIEVAL-FLOOR.md`, `reports/M1.6-CODEX-SYNTHESIST-CERTIFICATION.md`, `reports/M1.6-DURABLE-GROUNDED-TERMINAL.md` |
 | Executable Petra ingestion workflow | Abstract-only Paper Trail baseline and exact CC BY full-text fixture complete; offline Docling returns stable document proposals, and independent TypeScript admission converts supported source passages into atomic quarantine-only Claim–Assertion pairs while rejecting fabricated spans | `fixtures/paper-trail/`, `fixtures/full-text/fair-guiding-principles/`, `packages/retrieval/`, `workers/science/`, `reports/M1.4-DOCLING-WORKER.md`, `reports/M1.5-DETERMINISTIC-PROPOSALS.md` |
-| Petra interface | Graph-controlled operations and recovery are live, but the 2026-09-21 user evaluation rejected the frozen reference frontend. D024 and FE-A1 now govern a 30/70 Agent–Workspace adaptation, outcome-first Project creation, progressive inspection, and the presentation of all 116 operations before Composition continues. | `decisions/D024-agentic-split-workspace.md`, `reports/FRONTEND-ADAPTATION-MILESTONE.md`, `scripts/ui-operation-presentation-map.json`, `design_implementation_roadmap.md` |
+| Petra interface | FE-A1 must deliver the normal conversational copilot, empty entry, functional AG-UI/progressive disclosure, compositional claim examination, reactive Workspace, graph-guided cyclic Hypothesis assessment/verification, closure/invalidation, complete Inspect and operation conformance before Wave 7 or Wave 8. Sixteen supplementary scenarios are optional near the end. | `decisions/D024-agentic-split-workspace.md`, `reports/FE-A1-CONTRACT-IMPLEMENTATION-LEDGER.md`, `scripts/frontend-a1-work-inventory.json` |
 | AG-UI interaction protocol | Official SDK and Petra adapter boundary accepted; M1 conformance, durable review-command fixtures, and a live OAuth-backed grounded synthesis pass after terminal persistence without creating a second authority path | `decisions/D013-ag-ui-sdk-interaction-boundary.md`, `reports/M1.0-AGUI-HONO-CONFORMANCE.md`, `reports/M1.5-AGUI-REVIEW-INTERRUPT.md`, `reports/M1.6-GROUNDED-AG-UI.md`, `reports/M1.6-DURABLE-GROUNDED-TERMINAL.md` |
 | Web workbench shell | Hono/React/Vite and the authenticated definition-resolved clients remain the runtime foundation. The merged control-heavy presentation is an internal conformance reference while FE-A1 replaces its hierarchy with the D024 Agent–Workspace shell; exact identity, recovery, and command ownership must survive the adaptation. | `decisions/D014-hono-react-vite-workbench-shell.md`, `decisions/D024-agentic-split-workspace.md`, `reports/FRONTEND-ADAPTATION-MILESTONE.md`, `implementation_roadmap.md` |
-| Hypothesis assessment and posture | Complete as design | `decisions/D010-hypothesis-assessment-posture-and-obligations.md` |
+| Hypothesis assessment and posture | D010 accepted as design. Required scoped assessment, posture/obligation, cyclic verification, disposition and invalidation are A1 construction under FE-A1.4-W11 through W15; broader agency and additional assessment libraries remain M3. | `decisions/D010-hypothesis-assessment-posture-and-obligations.md`, `reports/FE-A1-CONTRACT-IMPLEMENTATION-LEDGER.md` |
 | Agent runtime and permissions | Codex App Server adapter implemented for managed ChatGPT auth, entitlement model discovery, bounded conversation, approvals, AG-UI translation, and non-authoritative runtime events; Terra is certified independently for bounded extraction and bounded synthesis | `decisions/D017-codex-app-server-subscription-provider.md`, `reports/M1.5-CODEX-APP-SERVER.md`, `reports/M1.5-CODEX-EXTRACTOR-CERTIFICATION.md`, `reports/M1.6-CODEX-SYNTHESIST-CERTIFICATION.md` |
 | Experiment runtime | Complete as design; implementation not started | `decisions/D011-experiment-sandbox-and-reproducibility.md` |
-| Research-artifact composition | Complete as design; implementation follows grounded synthesis | `decisions/D012-scoped-research-artifacts-and-external-adapters.md` |
+| Research-artifact composition | Scoped provenance-bearing DraftArtifact backend complete; full document-first editor/Composition is Wave 7 and cannot begin before A1 acceptance. | `decisions/D012-scoped-research-artifacts-and-external-adapters.md`, `implementation_roadmap.md`, `scripts/wave-handoff-wave-7.md` |
 | External API and MCP | Shared boundary accepted; concrete adapters deferred | `decisions/D012-scoped-research-artifacts-and-external-adapters.md` |
 | Pilot evaluations | Questions selected | LLM-judge bias; single- versus multi-agent systems |
 
@@ -315,9 +316,25 @@ Every milestone should preserve a small set of continuous checks:
 
 Targets should be set only after a baseline task and error distribution exist. Petra should not invent success thresholds before observing what the first pilot actually requires.
 
-## Next implementation slice: M1 evidence spine
+## Next implementation slice: complete FE-A1
 
-The first build should establish:
+Follow the required items and prerequisite graph in the
+[A1 implementation ledger](reports/FE-A1-CONTRACT-IMPLEMENTATION-LEDGER.md):
+
+1. Build copilot components and register real conversational/model-role/text/context contracts.
+2. Complete zero/empty-Project conversation, durable AG-UI, working structure, actions, interrupts and recovery.
+3. Connect the reactive Workspace, domain-native examiners, Review, discoverable graph and exact scene/context.
+4. Complete graph-guided cyclic inquiry/Hypothesis examination, scoped verification, explicit closure and dependency invalidation.
+5. Complete progressive Inspect and retained authority receipts, then all adapted operation presentations and migration.
+6. Verify the functions against their own criteria and publish the reviewable candidate. Sixteen supplementary scenarios may optionally be used near the end.
+7. Obtain explicit user acceptance before any later delivery wave proceeds.
+
+`npm run gate:frontend-a1` remains closed while any required item or explicit
+user acceptance is incomplete. Optional scenario status is excluded.
+
+### Retained scoped M1 evidence-spine baseline
+
+The completed scoped baseline established:
 
 1. runtime-validated identifiers, revisions, commands, events, and artifact manifests shared by TypeScript and Python;
 2. one project with one canonical Work, WorkVersion, immutable source Artifact, and stable SourceSpans;
