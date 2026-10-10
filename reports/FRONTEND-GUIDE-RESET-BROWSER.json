@@ -1,0 +1,12 @@
+{
+  "schema_name": "petra.frontend-guide-reset-browser",
+  "schema_version": "1.0.0",
+  "status": "passed",
+  "recorded_at": "2026-09-29T06:51:11.403Z",
+  "original_project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "replacement_project_id": "project_3JK6ZTV4RN939BFJVCZYJYWK3T",
+  "ordinary_settings_reset_absent": true,
+  "direct_guide_reset_executed": true,
+  "reset_command_status": 200,
+  "final_path": "/projects/project_3JK6ZTV4RN939BFJVCZYJYWK3T/brief"
+}

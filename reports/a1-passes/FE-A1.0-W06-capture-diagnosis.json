@@ -1,0 +1,8 @@
+{
+  "contract": "The gate must establish an executed passing check for each criterion; it cannot treat matching prose in a log as an executed test.",
+  "architecture": "The verification runner invokes Node tests in a child process. Test-runner context must not leak from a parent test process into that child.",
+  "dependencies": "The fixture generated simplified TAP while the pinned Node 24 runner emits the standard dash separator in named result lines. Both need the same protocol grammar.",
+  "environment": "The inherited NODE_TEST_CONTEXT altered the first captured output. The runner now removes that internal variable, preserving other application environment values.",
+  "verification": "The first attempt failed the executed-summary check; the second passed the summary but failed the exact named-result check. Inspection of a separately captured real TAP record identified the mismatch.",
+  "changed_remedy": "Use standard TAP result-line grammar for exact names, correct synthetic logs to that grammar, retain a child-process execution test, and reject skipped or comment-only claims. Re-run execution and separate critical tests on the corrected candidate."
+}

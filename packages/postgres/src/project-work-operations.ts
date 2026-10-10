@@ -18,6 +18,8 @@ import {
   type ProjectWorkCommandPrincipal,
   type ProjectWorkCheckpointResumeRegistry,
   type ProjectWorkOperationAuthority,
+  type ProjectWorkReceipt,
+  type ProjectWorkReceiptReader,
   type ProjectWorkOperationsViewReader,
   type ProjectWorkResumeAuthority,
   type ProjectWorkStartAgainAuthority,
@@ -40,6 +42,13 @@ interface StoredReceiptRow {
   readonly actor_id: string;
   readonly actor_kind: "human";
   readonly capability_grant_id: string;
+  readonly receipt_payload: unknown;
+}
+
+interface RecentReceiptRow {
+  readonly kind: "operation" | "resume" | "start_again";
+  readonly command_id: string;
+  readonly receipt_id: string;
   readonly receipt_payload: unknown;
 }
 
@@ -329,6 +338,7 @@ export class PostgresProjectWorkOperations
   implements
     ProjectWorkOperationAuthority,
     ProjectWorkOperationsViewReader,
+    ProjectWorkReceiptReader,
     ProjectWorkResumeAuthority,
     ProjectWorkCheckpointResumeRegistry,
     ProjectWorkStartAgainAuthority,
@@ -348,6 +358,67 @@ export class PostgresProjectWorkOperations
     this.#authorizer = authorizer;
     this.#contracts = contracts;
     this.#workUnits = new PostgresWorkUnitAuthorityRepository(pool, contracts);
+  }
+
+  async readRecentProjectWorkReceipts(
+    projectId: string,
+    workUnitId: string,
+    actor: PetraProjectWorkOperationReceipt["actor"],
+  ): Promise<readonly ProjectWorkReceipt[]> {
+    const result = await this.#pool.query<RecentReceiptRow>(
+      `SELECT kind, command_id, receipt_id, receipt_payload
+         FROM (
+           SELECT 'operation'::text AS kind, command_id, receipt_id, recorded_at,
+                  receipt_payload
+             FROM petra.project_work_operation_receipts
+            WHERE project_id = $1 AND work_unit_id = $2
+              AND actor_id = $3 AND actor_kind = $4 AND state = 'completed'
+           UNION ALL
+           SELECT 'resume'::text AS kind, command_id, receipt_id, recorded_at,
+                  receipt_payload
+             FROM petra.project_work_resume_receipts
+            WHERE project_id = $1 AND work_unit_id = $2
+              AND actor_id = $3 AND actor_kind = $4 AND state = 'completed'
+           UNION ALL
+           SELECT 'start_again'::text AS kind, command_id, receipt_id, recorded_at,
+                  receipt_payload
+             FROM petra.project_work_start_again_receipts
+            WHERE project_id = $1 AND prior_work_unit_id = $2
+              AND actor_id = $3 AND actor_kind = $4 AND state = 'completed'
+         ) AS recent
+        ORDER BY recorded_at DESC, command_id DESC
+        LIMIT 20`,
+      [projectId, workUnitId, actor.actor_id, actor.actor_kind],
+    );
+    return result.rows.map((row) => {
+      const schemaName =
+        row.kind === "operation"
+          ? "project-work-operation-receipt"
+          : row.kind === "resume"
+            ? "project-work-resume-receipt"
+            : "project-work-start-again-receipt";
+      this.#contracts.assertValid(schemaName, "1.0.0", row.receipt_payload);
+      const receipt = row.receipt_payload as ProjectWorkReceipt;
+      const { record_hash: recordHash, ...base } = receipt;
+      const requestedId =
+        "requested_prior_work_unit_ref" in receipt
+          ? receipt.requested_prior_work_unit_ref.work_unit_id
+          : receipt.requested_work_unit_ref.work_unit_id;
+      if (
+        receipt.project_id !== projectId ||
+        requestedId !== workUnitId ||
+        receipt.command_id !== row.command_id ||
+        receipt.receipt_id !== row.receipt_id ||
+        !sameActor(receipt.actor, actor) ||
+        recordHash !== canonicalHash(base)
+      ) {
+        throw new ProjectWorkOperationError(
+          "PROJECT_WORK_OPERATION_STORED_RECORD_CORRUPT",
+          "A retained Work receipt crossed its Project, task, actor, or record-hash boundary.",
+        );
+      }
+      return clone(receipt);
+    });
   }
 
   async executeProjectWorkOperation(

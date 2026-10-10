@@ -39,6 +39,8 @@ import {
   type ReviewSessionSeparationCommandInput,
 } from "./project-data.js";
 import { useProjectRecord } from "./ReferenceWorkbench.js";
+import { AgentControlPortal } from "./AgentControlPlane.js";
+import { useWorkspaceDraftState } from "./workspace-drafts.js";
 
 import {
   createReviewApplyController,
@@ -1250,7 +1252,11 @@ export const ReviewCollectionSurface = ({
             <span aria-hidden="true">!</span>
             <div>
               <h2 id="review-summary-title">
-                {needsDecision.length} decision needs your attention
+                {needsDecision.length === 0
+                  ? "No decisions need your attention"
+                  : needsDecision.length === 1
+                    ? "1 decision needs your attention"
+                    : `${needsDecision.length} decisions need your attention`}
               </h2>
               <p>
                 {waiting.length + completed.length} other Review{" "}
@@ -1311,10 +1317,6 @@ const ReviewGroup = ({
                 <span>{review.objective}</span>
               </div>
               <dl>
-                <div>
-                  <dt>Bound to</dt>
-                  <dd>{review.snapshot}</dd>
-                </div>
                 <div>
                   <dt>Responsible</dt>
                   <dd>{review.responsible}</dd>
@@ -1493,25 +1495,60 @@ const ReviewSessionMemberSurface = ({
   initialCandidateEditOpen?: boolean;
   initialBasisEditOpen?: boolean;
 }): React.JSX.Element => {
-  const [rationale, setRationale] = useState("");
-  const [rejectRationale, setRejectRationale] = useState("");
+  const draftKey = `review-decision:${project.id}:${review.id}`;
+  const [rationale, setRationale] = useWorkspaceDraftState(
+    `${draftKey}:apply-rationale`,
+    "",
+  );
+  const [rejectRationale, setRejectRationale] = useWorkspaceDraftState(
+    `${draftKey}:reject-rationale`,
+    "",
+  );
+  const editorDraftKey = `${draftKey}:${review.exactRef.revision}:${review.candidate.id}:${review.candidate.revision}`;
+  const [candidateDraft, setCandidateDraft, clearCandidateDraft] =
+    useWorkspaceDraftState(
+      `${editorDraftKey}:candidate`,
+      review.candidate.proposed,
+    );
+  const [basisDraft, setBasisDraft, clearBasisDraft] =
+    useWorkspaceDraftState<ReviewCandidateBasisDraftState>(
+      `${editorDraftKey}:basis`,
+      emptyBasisDraft,
+    );
   const [lifecycle, setLifecycle] = useState<ReviewLifecyclePresentationState>({
     state: "idle",
   });
   const [refresh, setRefresh] = useState<ReviewRefreshPresentationState>({
     state: "idle",
   });
-  const [candidateEditor, dispatchCandidateEditor] = useReducer(
+  const automaticRefreshAttempted = useRef<string | undefined>(undefined);
+  const [candidateEditor, reduceCandidateEditor] = useReducer(
     reviewCandidateEditorReducer,
-    createReviewCandidateEditorState(
-      review.candidate.proposed,
-      initialCandidateEditOpen,
-    ),
+    createReviewCandidateEditorState(candidateDraft, initialCandidateEditOpen),
   );
-  const [basisEditor, dispatchBasisEditor] = useReducer(
+  const [basisEditor, reduceBasisEditor] = useReducer(
     reviewCandidateBasisEditorReducer,
-    createReviewCandidateBasisEditorState(initialBasisEditOpen),
+    {
+      ...createReviewCandidateBasisEditorState(initialBasisEditOpen),
+      draft: basisDraft,
+    },
   );
+  const dispatchCandidateEditor = (
+    action: ReviewCandidateEditorAction,
+  ): void => {
+    if (action.type === "draft_changed") setCandidateDraft(action.draft);
+    if (action.type === "correction_succeeded" && action.applied)
+      clearCandidateDraft();
+    reduceCandidateEditor(action);
+  };
+  const dispatchBasisEditor = (
+    action: ReviewCandidateBasisEditorAction,
+  ): void => {
+    if (action.type === "draft_changed") setBasisDraft(action.draft);
+    if (action.type === "revision_succeeded" && action.applied)
+      clearBasisDraft();
+    reduceBasisEditor(action);
+  };
   const decisionRef = useRef<HTMLElement>(null);
   const correctionRef = useRef<HTMLElement>(null);
   const correctionToggleRef = useRef<HTMLDivElement>(null);
@@ -1573,9 +1610,6 @@ const ReviewSessionMemberSurface = ({
     lifecycle.state !== "success";
   const reopenPresented =
     review.lifecycle === "deferred" && lifecycle.state !== "success";
-  const refreshControlPresented =
-    review.snapshotState === "stale" &&
-    (refresh.state === "idle" || refresh.state === "pending");
   const refreshAvailable =
     !applyLocked &&
     !rejectLocked &&
@@ -1755,6 +1789,28 @@ const ReviewSessionMemberSurface = ({
     runRefreshCommand(createReviewSessionRefreshCommandInput(review));
   };
 
+  useEffect(() => {
+    if (
+      !refreshAvailable ||
+      candidateEditor.draft !== review.candidate.proposed ||
+      basisDraftHasInput
+    )
+      return;
+    const key = `${project.id}:${review.id}:${review.exactRef.revision}:${review.exactRef.contentHash}`;
+    if (automaticRefreshAttempted.current === key) return;
+    automaticRefreshAttempted.current = key;
+    refreshReview();
+  }, [
+    basisDraftHasInput,
+    candidateEditor.draft,
+    project.id,
+    refreshAvailable,
+    review.candidate.proposed,
+    review.exactRef.contentHash,
+    review.exactRef.revision,
+    review.id,
+  ]);
+
   const runCandidateCorrection = (
     input: ReviewCandidateCorrectionCommandInput,
   ): void => {
@@ -1924,6 +1980,18 @@ const ReviewSessionMemberSurface = ({
         ? " Separate changes sends this exact Review revision and selected member to Petra. The server rechecks authority and existing ChangeSet boundaries. Separation changes only Review membership; it does not validate, approve, reject, apply, recover, or establish semantic compatibility."
         : " Separate changes is unavailable because this authenticated Review read does not supply an exact open multi-member lifecycle.";
   const decisionBoundary = `${lifecycleBoundary}${refreshBoundary}${separationBoundary}`;
+  const decisionSummary =
+    review.snapshotState === "stale"
+      ? "This comparison is stale. Petra must recheck the exact Review before a decision."
+      : review.validation.state === "blocked"
+        ? `Material validation is blocked: ${review.validation.detail} Petra will recheck any decision against current authority.`
+        : !review.commitment.available
+          ? `Apply and reject are unavailable: ${review.commitment.reason} Decide later changes only Review coordination.`
+          : review.lifecycle === "deferred"
+            ? "This Review is deferred. Reopen asks Petra to recheck the exact Review and current authority."
+            : review.status === "needs_decision"
+              ? "Apply and reject each require a fresh server-prepared commitment and your explicit confirmation. Decide later records no approval."
+              : lifecycleBoundary;
 
   return (
     <main className="reference-surface review-session" id="reference-main">
@@ -1936,30 +2004,34 @@ const ReviewSessionMemberSurface = ({
         </Link>
         <div className="review-session__orientation">
           <div>
-            <p className="reference-eyebrow">
-              Review session · {review.snapshot}
-            </p>
+            <p className="reference-eyebrow">Review session</p>
             <h1>{review.title}</h1>
             <p className="reference-lede">{review.objective}</p>
+            <p className="review-session__responsible">
+              Responsible author: {review.responsible}
+            </p>
           </div>
           <ReviewState review={review} />
         </div>
-        <dl className="review-session__identity">
-          <div>
-            <dt>Review identity</dt>
-            <dd>
-              <code>{review.id}</code>
-            </dd>
-          </div>
-          <div>
-            <dt>Responsible author</dt>
-            <dd>{review.responsible}</dd>
-          </div>
-          <div>
-            <dt>Return</dt>
-            <dd>{review.returnLabel}</dd>
-          </div>
-        </dl>
+        <details className="review-session__record-details">
+          <summary>Review record details</summary>
+          <dl className="review-session__identity">
+            <div>
+              <dt>Authority snapshot</dt>
+              <dd>{review.snapshot}</dd>
+            </div>
+            <div>
+              <dt>Review identity</dt>
+              <dd>
+                <code>{review.id}</code>
+              </dd>
+            </div>
+            <div>
+              <dt>Return</dt>
+              <dd>{review.returnLabel}</dd>
+            </div>
+          </dl>
+        </details>
       </header>
 
       {memberNavigation}
@@ -1969,7 +2041,13 @@ const ReviewSessionMemberSurface = ({
         data-state={review.validation.state}
         aria-labelledby="review-validation-title"
       >
-        <span aria-hidden="true">×</span>
+        <span aria-hidden="true">
+          {review.validation.state === "passed"
+            ? "✓"
+            : review.validation.state === "blocked"
+              ? "×"
+              : "!"}
+        </span>
         <div>
           <div className="review-validation__title">
             <h2 id="review-validation-title">Material validation state</h2>
@@ -2687,249 +2765,270 @@ const ReviewSessionMemberSurface = ({
         </p>
       </section>
 
-      <section
-        ref={decisionRef}
-        className="review-decision"
-        aria-labelledby="review-decision-title"
+      <AgentControlPortal
+        title="Decide this Review"
+        description="Decide the displayed change here. Comparison and preparation remain in the Workspace."
+        operationIds={[
+          "review.apply",
+          "review.reject",
+          "review.defer",
+          "review.reopen",
+        ]}
+        objectRef={review.id}
       >
-        <div>
-          <p className="reference-panel-kicker">Accountable boundary</p>
-          <h2 id="review-decision-title" tabIndex={-1}>
-            Decision
-          </h2>
-          <p id="review-decision-boundary">
-            {review.validation.state === "blocked"
-              ? `${review.validation.detail} `
-              : ""}
-            {decisionBoundary}
-          </p>
-        </div>
-        {review.status === "needs_decision" && lifecycle.state !== "success" ? (
-          <div className="review-decision__defer-input">
-            <PetraTextArea
-              label="Reason for deciding later (optional)"
-              hint="Petra retains this reason with the deferral. It grants no approval. A scheduled revisit time is not supported yet."
-              rows={3}
-              maxLength={4000}
-              value={rationale}
-              disabled={commandPending}
-              onChange={(event) => setRationale(event.currentTarget.value)}
-            />
+        <section
+          ref={decisionRef}
+          className="review-decision"
+          aria-labelledby="review-decision-title"
+        >
+          <div>
+            <p className="reference-panel-kicker">Accountable boundary</p>
+            <h2 id="review-decision-title" tabIndex={-1}>
+              Decision
+            </h2>
+            <a className="reference-text-link" href="#review-decision-actions">
+              Go to decision controls
+            </a>
+            <p id="review-decision-boundary">{decisionSummary}</p>
           </div>
-        ) : null}
-        {rejectState.kind === "ready" ? (
-          <div className="review-decision__reject-input">
-            <PetraTextArea
-              label="Reason for rejection"
-              hint="Required. Petra retains this exact rationale with the rejected Approval for the complete displayed ChangeSet. Rejection does not Apply the ChangeSet or establish no effect."
-              rows={4}
-              maxLength={4000}
-              required
-              value={rejectRationale}
-              {...(rejectRationaleError === undefined
-                ? {}
-                : { error: rejectRationaleError })}
-              onChange={(event) =>
-                setRejectRationale(event.currentTarget.value)
-              }
-            />
-          </div>
-        ) : null}
-        <PetraButtonGroup label="Review decision">
-          <PetraButton
-            variant="primary"
-            aria-disabled={applyState.kind !== "ready"}
-            {...(review.commitment.available
-              ? {}
-              : { unavailable: { reason: review.commitment.reason } })}
-            busy={applyState.kind === "applying"}
-            busyLabel="Applying commitment…"
-            aria-describedby="review-decision-boundary review-apply-scope"
-            onClick={onApply}
-          >
-            {applyState.kind === "ready"
-              ? "Apply displayed ChangeSet"
-              : "Apply unavailable"}
-          </PetraButton>
+          {review.status === "needs_decision" &&
+          lifecycle.state !== "success" ? (
+            <details className="review-decision__defer-input">
+              <summary>
+                {rationale.trim().length > 0
+                  ? "Edit saved reason for deciding later"
+                  : "Add a reason for deciding later (optional)"}
+              </summary>
+              <PetraTextArea
+                label="Reason for deciding later (optional)"
+                hint="Petra retains this reason with the deferral. It grants no approval. A scheduled revisit time is not supported yet."
+                rows={3}
+                maxLength={4000}
+                value={rationale}
+                disabled={commandPending}
+                onChange={(event) => setRationale(event.currentTarget.value)}
+              />
+            </details>
+          ) : null}
           {rejectState.kind === "ready" ? (
-            <>
+            <div className="review-decision__reject-input">
+              <PetraTextArea
+                label="Reason for rejection"
+                hint="Required. Petra retains this exact rationale with the rejected Approval for the complete displayed ChangeSet. Rejection does not Apply the ChangeSet or establish no effect."
+                rows={4}
+                maxLength={4000}
+                required
+                value={rejectRationale}
+                {...(rejectRationaleError === undefined
+                  ? {}
+                  : { error: rejectRationaleError })}
+                onChange={(event) =>
+                  setRejectRationale(event.currentTarget.value)
+                }
+              />
+            </div>
+          ) : null}
+          <PetraButtonGroup
+            label="Review decision"
+            id="review-decision-actions"
+            tabIndex={-1}
+          >
+            <PetraButton
+              variant="primary"
+              aria-disabled={applyState.kind !== "ready"}
+              {...(review.commitment.available
+                ? {}
+                : { unavailable: { reason: review.commitment.reason } })}
+              busy={applyState.kind === "applying"}
+              busyLabel="Applying commitment…"
+              aria-describedby="review-decision-boundary review-apply-scope"
+              onClick={onApply}
+            >
+              {applyState.kind === "ready"
+                ? "Apply displayed ChangeSet"
+                : "Apply unavailable"}
+            </PetraButton>
+            {rejectState.kind === "ready" ? (
+              <>
+                <PetraButton
+                  variant="danger"
+                  aria-disabled={rejectRationaleError !== undefined}
+                  aria-describedby="review-decision-boundary"
+                  data-operation="reject_review_candidate"
+                  onClick={() => onReject(rejectRationale)}
+                >
+                  Reject displayed ChangeSet
+                </PetraButton>
+                <PetraButton
+                  variant="quiet"
+                  onClick={() => {
+                    setRejectRationale("");
+                    onDiscardReject();
+                  }}
+                >
+                  Discard rejection preview
+                </PetraButton>
+              </>
+            ) : rejectState.kind === "uncertain" ||
+              rejectState.kind === "result" ? null : (
               <PetraButton
                 variant="danger"
-                aria-disabled={rejectRationaleError !== undefined}
+                busy={rejectState.kind === "preparing"}
+                busyLabel="Preparing rejection…"
+                aria-disabled={
+                  commandPending ||
+                  applyState.kind === "result" ||
+                  !review.commitment.available ||
+                  review.status !== "needs_decision" ||
+                  review.lifecycle !== "open" ||
+                  review.reviewMemberId === undefined ||
+                  review.snapshotState !== "current" ||
+                  candidateEditor.expanded ||
+                  basisEditor.expanded ||
+                  basisDraftHasInput ||
+                  candidateEditor.draft !== review.candidate.proposed
+                }
                 aria-describedby="review-decision-boundary"
                 data-operation="reject_review_candidate"
-                onClick={() => onReject(rejectRationale)}
+                onClick={onPrepareReject}
               >
-                Reject displayed ChangeSet
+                Reject candidate
               </PetraButton>
-              <PetraButton
-                variant="quiet"
-                onClick={() => {
-                  setRejectRationale("");
-                  onDiscardReject();
-                }}
-              >
-                Discard rejection preview
-              </PetraButton>
-            </>
-          ) : rejectState.kind === "uncertain" ||
-            rejectState.kind === "result" ? null : (
+            )}
             <PetraButton
-              variant="danger"
-              busy={rejectState.kind === "preparing"}
-              busyLabel="Preparing rejection…"
+              variant="quiet"
+              busy={lifecyclePending}
+              busyLabel={
+                reopenPresented ? "Reopening Review…" : "Deferring Review…"
+              }
               aria-disabled={
-                commandPending ||
-                applyState.kind === "result" ||
-                !review.commitment.available ||
-                review.status !== "needs_decision" ||
-                review.lifecycle !== "open" ||
-                review.reviewMemberId === undefined ||
-                review.snapshotState !== "current" ||
-                candidateEditor.expanded ||
-                basisEditor.expanded ||
-                basisDraftHasInput ||
-                candidateEditor.draft !== review.candidate.proposed
+                applyLocked ||
+                rejectLocked ||
+                refreshPending ||
+                correctionDraftIsLocked(candidateEditor.correction) ||
+                basisRevisionIsLocked(basisEditor.revision) ||
+                separationIsLocked ||
+                !(deferPresented || reopenPresented)
               }
-              aria-describedby="review-decision-boundary"
-              data-operation="reject_review_candidate"
-              onClick={onPrepareReject}
-            >
-              Reject candidate
-            </PetraButton>
-          )}
-          <PetraButton
-            variant="quiet"
-            busy={lifecyclePending}
-            busyLabel={
-              reopenPresented ? "Reopening Review…" : "Deferring Review…"
-            }
-            aria-disabled={
-              applyLocked ||
-              rejectLocked ||
-              refreshPending ||
-              correctionDraftIsLocked(candidateEditor.correction) ||
-              basisRevisionIsLocked(basisEditor.revision) ||
-              separationIsLocked ||
-              !(deferPresented || reopenPresented)
-            }
-            aria-describedby="review-decision-boundary"
-            data-operation={
-              reopenPresented ? "reopen_review_session" : "defer_review_session"
-            }
-            onClick={reopenPresented ? reopenReview : deferReview}
-          >
-            {reopenPresented ? "Reopen review" : "Decide later"}
-          </PetraButton>
-          {refreshControlPresented ? (
-            <PetraButton
-              variant="secondary"
-              busy={refreshPending}
-              busyLabel="Refreshing Review…"
-              aria-disabled={!refreshAvailable}
               aria-describedby="review-decision-boundary"
               data-operation={
-                review.lifecycle === "open"
-                  ? "refresh_review_session"
-                  : undefined
+                reopenPresented
+                  ? "reopen_review_session"
+                  : "defer_review_session"
               }
-              onClick={refreshReview}
+              onClick={reopenPresented ? reopenReview : deferReview}
             >
-              Refresh Review
+              {reopenPresented ? "Reopen review" : "Decide later"}
             </PetraButton>
-          ) : null}
-          {separationControlPresented ? (
-            <PetraButton
-              variant="secondary"
-              busy={separationPending}
-              busyLabel="Separating changes…"
-              aria-disabled={!separationAvailable}
-              aria-describedby="review-decision-boundary"
-              data-operation={
-                review.lifecycle === "open"
-                  ? "separate_review_session_member"
-                  : undefined
-              }
-              onClick={onSeparate}
+            {review.snapshotState === "stale" &&
+            refresh.state === "idle" &&
+            (candidateEditor.draft !== review.candidate.proposed ||
+              basisDraftHasInput) ? (
+              <p role="status">
+                Review changed while you have an unfinished edit. Keep or
+                discard that draft before Petra refreshes the comparison.
+              </p>
+            ) : null}
+            {separationControlPresented ? (
+              <PetraButton
+                variant="secondary"
+                busy={separationPending}
+                busyLabel="Separating changes…"
+                aria-disabled={!separationAvailable}
+                aria-describedby="review-decision-boundary"
+                data-operation={
+                  review.lifecycle === "open"
+                    ? "separate_review_session_member"
+                    : undefined
+                }
+                onClick={onSeparate}
+              >
+                Separate changes
+              </PetraButton>
+            ) : null}
+          </PetraButtonGroup>
+          <details className="review-decision__conditions">
+            <summary>Exact decision and recovery conditions</summary>
+            <p>{decisionBoundary}</p>
+          </details>
+          <ReviewApplyNotice state={applyState} onReload={onReviewChange} />
+          <ReviewRejectNotice
+            review={review}
+            state={rejectState}
+            onReload={onReviewChange}
+          />
+          <ReviewRecovery
+            key={`${review.projectId}:${review.id}:${review.exactRef.revision}:${review.exactRef.contentHash}:${lifecycle.state}:${refresh.state}:${candidateEditor.correction.state}:${basisEditor.revision.state}:${separation.state}:${applyState.kind}:${rejectState.kind}`}
+            review={review}
+            disabled={
+              applyBusy || rejectBusy || (commandPending && !applyLocked)
+            }
+            onReload={onReviewChange}
+          />
+          <ReviewLifecycleNotice
+            review={review}
+            lifecycle={lifecycle}
+            onRetry={runLifecycleCommand}
+            onRefresh={reloadReview}
+          />
+          <ReviewRefreshNotice
+            review={review}
+            refresh={refresh}
+            onRetry={runRefreshCommand}
+            onReload={reloadReview}
+          />
+          <ReviewSessionSeparationNotice
+            projectId={project.id}
+            review={review}
+            separation={separation}
+            onRetry={onSeparationRetry}
+            onReload={onSeparationReload}
+          />
+          <div className="review-decision__alternatives">
+            {review.candidateBasisRevision === undefined ? null : (
+              <FocusedGraphEntryLink
+                entry={scientificFocusedGraphEntryDraft({
+                  projectId: project.id,
+                  question:
+                    "Which recorded current relationships concern this Claim?",
+                  focusRef: {
+                    record_id:
+                      review.candidateBasisRevision.expectedClaimRef.record_id,
+                    revision:
+                      review.candidateBasisRevision.expectedClaimRef.revision,
+                    record_hash:
+                      review.candidateBasisRevision.expectedClaimRef
+                        .record_hash,
+                  },
+                  originKind: "review",
+                  definitionRef:
+                    review.candidateBasisRevision.expectedProjectDefinitionRef,
+                  returnDestinationKind: "review",
+                  returnDestinationOwner: "project_review_view",
+                  returnLabel: "Review",
+                  returnFocusId: "review-decision-title",
+                  ...(graphActionTarget === undefined
+                    ? {}
+                    : {
+                        actionPreviewTarget: graphActionTarget,
+                      }),
+                })}
+              >
+                Inspect bounded current relationships
+              </FocusedGraphEntryLink>
+            )}
+            <Link
+              className="reference-text-link"
+              to={`/projects/${project.id}/graph?layer=working`}
             >
-              Separate changes
-            </PetraButton>
-          ) : null}
-        </PetraButtonGroup>
-        <ReviewApplyNotice state={applyState} onReload={onReviewChange} />
-        <ReviewRejectNotice
-          review={review}
-          state={rejectState}
-          onReload={onReviewChange}
-        />
-        <ReviewRecovery
-          key={`${review.projectId}:${review.id}:${review.exactRef.revision}:${review.exactRef.contentHash}:${lifecycle.state}:${refresh.state}:${candidateEditor.correction.state}:${basisEditor.revision.state}:${separation.state}:${applyState.kind}:${rejectState.kind}`}
-          review={review}
-          disabled={applyBusy || rejectBusy || (commandPending && !applyLocked)}
-          onReload={onReviewChange}
-        />
-        <ReviewLifecycleNotice
-          review={review}
-          lifecycle={lifecycle}
-          onRetry={runLifecycleCommand}
-          onRefresh={reloadReview}
-        />
-        <ReviewRefreshNotice
-          review={review}
-          refresh={refresh}
-          onRetry={runRefreshCommand}
-          onReload={reloadReview}
-        />
-        <ReviewSessionSeparationNotice
-          projectId={project.id}
-          review={review}
-          separation={separation}
-          onRetry={onSeparationRetry}
-          onReload={onSeparationReload}
-        />
-        <div className="review-decision__alternatives">
-          {review.candidateBasisRevision === undefined ? null : (
-            <FocusedGraphEntryLink
-              entry={scientificFocusedGraphEntryDraft({
-                projectId: project.id,
-                question:
-                  "Which recorded current relationships concern this Claim?",
-                focusRef: {
-                  record_id:
-                    review.candidateBasisRevision.expectedClaimRef.record_id,
-                  revision:
-                    review.candidateBasisRevision.expectedClaimRef.revision,
-                  record_hash:
-                    review.candidateBasisRevision.expectedClaimRef.record_hash,
-                },
-                originKind: "review",
-                definitionRef:
-                  review.candidateBasisRevision.expectedProjectDefinitionRef,
-                returnDestinationKind: "review",
-                returnDestinationOwner: "project_review_view",
-                returnLabel: "Review",
-                returnFocusId: "review-decision-title",
-                ...(graphActionTarget === undefined
-                  ? {}
-                  : {
-                      actionPreviewTarget: graphActionTarget,
-                    }),
-              })}
-            >
-              Inspect bounded current relationships
-            </FocusedGraphEntryLink>
-          )}
-          <Link
-            className="reference-text-link"
-            to={`/projects/${project.id}/graph?layer=working`}
-          >
-            Inspect working graph
-          </Link>
-          <Link className="reference-text-link" to={review.returnPath}>
-            Return to {review.returnLabel}
-          </Link>
-        </div>
-      </section>
+              Inspect working graph
+            </Link>
+            <Link className="reference-text-link" to={review.returnPath}>
+              Return to {review.returnLabel}
+            </Link>
+          </div>
+        </section>
+      </AgentControlPortal>
     </main>
   );
 };
@@ -2979,7 +3078,8 @@ export const ReviewSessionSurface = ({
       reloadApplyRef.current?.(),
     ),
   );
-  const [activeMemberId, setActiveMemberId] = useState(
+  const [activeMemberId, setActiveMemberId] = useWorkspaceDraftState(
+    `review-selection:${project.id}:${review.id}:${review.exactRef.revision}:${initialMemberId ?? "default"}`,
     initialMemberId ??
       review.reviewMemberId ??
       review.members?.[0]?.reviewMemberId ??
@@ -3068,7 +3168,7 @@ export const ReviewSessionSurface = ({
 
   return (
     <ReviewSessionMemberSurface
-      key={selectedReview.reviewMemberId ?? selectedReview.id}
+      key={`${selectedReview.reviewMemberId ?? selectedReview.id}:${selectedReview.exactRef.revision}:${selectedReview.candidate.id}:${selectedReview.candidate.revision}`}
       project={project}
       review={selectedReview}
       applyState={applyState}
@@ -3126,7 +3226,7 @@ export const ReviewSessionRoute = (): React.JSX.Element => {
     : undefined;
   return (
     <ReviewSessionSurface
-      key={`${project.id}:${review.id}`}
+      key={`${project.id}:${review.id}:${review.exactRef.revision}:${initialMemberId ?? "default"}`}
       project={project}
       review={review}
       {...(initialMemberId === undefined ? {} : { initialMemberId })}

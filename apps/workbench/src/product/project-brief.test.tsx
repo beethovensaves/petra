@@ -83,6 +83,7 @@ const render = (
     eventId: string;
     reason: string;
   },
+  objectiveSuggestion?: string,
 ) =>
   renderToStaticMarkup(
     <MemoryRouter>
@@ -90,12 +91,23 @@ const render = (
         view={view}
         objectiveCommandContext={objectiveContext(view)}
         {...(comparisonRecovery === undefined ? {} : { comparisonRecovery })}
+        {...(objectiveSuggestion === undefined ? {} : { objectiveSuggestion })}
       />
     </MemoryRouter>,
   );
 afterEach(() => vi.unstubAllGlobals());
 
 describe("Project Brief browser boundary", () => {
+  it("opens an Agent draft as an uncommitted Objective proposal for review", () => {
+    const suggestion = "Compare the two explanations under the same limits.";
+    const markup = render(sample(), undefined, suggestion);
+    expect(markup).toContain("Your Agent draft is here for review");
+    expect(markup).toContain("It has not changed the");
+    expect(markup).toContain(suggestion);
+    expect(markup).toContain("Proposed objective");
+    expect(markup).not.toContain("Objective revised");
+  });
+
   it("registers exact installed schemas and complete dependencies, and checks their registry hashes", async () => {
     const contracts = new PetraContractRegistry();
     contracts.assertValid("project-brief-view", "1.1.0", fixture);

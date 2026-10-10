@@ -99,7 +99,7 @@ describe("neutral Petra reference workbench", () => {
     throw new Error("The inlet-cycle conformance Project is missing.");
   }
 
-  it("renders three compatible taxonomies through one Projects surface", () => {
+  it("renders unrelated Projects through one definition-neutral collection", () => {
     const markup = render(
       <ProjectsSurface
         projects={REFERENCE_PROJECTS}
@@ -117,13 +117,11 @@ describe("neutral Petra reference workbench", () => {
     expect(markup).toContain("Decision analysis");
     expect(markup.match(/Open Brief/g)).toHaveLength(3);
     expect(markup).toContain(
-      "Profiles supply compatible domain terms and tasks",
-    );
-    expect(markup).toContain(
-      "Petra searches the current Project name, Objective statement, and registered profile label.",
+      "Petra searches the current Project name, Objective statement, and definition label.",
     );
     expect(markup).toContain("Any status");
-    expect(markup).toContain("Any registered profile");
+    expect(markup).toContain("Any definition");
+    expect(markup).not.toContain("How profiles fit");
     expect(markup).not.toContain("projects/demo");
   });
 
@@ -952,8 +950,9 @@ describe("neutral Petra reference workbench", () => {
   it("keeps a persistent 30/70 Agent–Workspace frame with inspection on demand", () => {
     expect(referenceWorkbenchCss).toContain("position: sticky");
     expect(referenceWorkbenchCss).toContain(
-      "grid-template-columns: minmax(18rem, 3fr) minmax(0, 7fr)",
+      "grid-template-columns: minmax(18rem, var(--petra-agent-share, 30%))",
     );
+    expect(referenceWorkbenchCss).toContain(".reference-agent-resize");
     expect(referenceWorkbenchCss).toContain(".reference-agent-action");
     expect(referenceWorkbenchCss).toContain(".reference-project-inspection");
     expect(referenceWorkbenchCss).toContain(
@@ -1016,6 +1015,9 @@ describe("neutral Petra reference workbench", () => {
     expect(markup).toContain("The closing interval shortened");
     expect(markup).toContain('id="source-details-title"');
     expect(markup).toContain(">Details<");
+    expect(markup).toContain(
+      '<details class="reference-source-record-details"><summary>Record and copy identity</summary>',
+    );
     expect(markup).toContain(
       "Basis for 3 findings and 1 unresolved comparison",
     );

@@ -1,0 +1,115 @@
+{
+  "schema_name": "petra.assessment-profile",
+  "schema_version": "1.0.0",
+  "assessment_profile_id": "assessment_profile_01K4E000000000000000000105",
+  "revision": 1,
+  "content": {
+    "semantic_key": "scientific.scoped-examination-v1",
+    "label": "Scoped evidence examination",
+    "purpose": "Human review of exact represented source fidelity, scope compatibility and bounded contrary evidence. This establishes a Project judgment within the declared scope, never universal truth or independent replication.",
+    "subject_schema": "petra.hypothesis",
+    "target_schema": "petra.claim",
+    "criteria": [
+      {
+        "key": "source_fidelity",
+        "label": "Source fidelity",
+        "method": "Read the exact native Claim and cited SourceSpan; distinguish the source report from inference and record any attribution or representation limits.",
+        "required_for_satisfied": true,
+        "permitted_origins": [
+          "human_judgment",
+          "model_proposal"
+        ],
+        "required_evidence_schemas": [
+          "petra.claim",
+          "petra.source-span"
+        ]
+      },
+      {
+        "key": "scope_compatibility",
+        "label": "Scope compatibility",
+        "method": "Compare the examined evidence against every declared task, outcome and unreported scope dimension. State the boundary of the judgment.",
+        "required_for_satisfied": true,
+        "permitted_origins": [
+          "human_judgment",
+          "model_proposal"
+        ],
+        "required_evidence_schemas": [
+          "petra.claim"
+        ]
+      },
+      {
+        "key": "contrary_basis_review",
+        "label": "Contrary basis review",
+        "method": "Review the represented source set for contrary evidence and rivals using the stated bounded search protocol. Retain coverage, missing sources and unresolved alternatives. Absence in this bounded set is not universal absence.",
+        "required_for_satisfied": true,
+        "permitted_origins": [
+          "human_judgment",
+          "model_proposal"
+        ],
+        "required_evidence_schemas": [
+          "petra.source-span"
+        ]
+      }
+    ],
+    "finding_types": [
+      {
+        "key": "scientific.scoped_support",
+        "label": "Scoped support",
+        "axis": "warrant",
+        "permitted_summaries": [
+          "supporting_within_scope"
+        ],
+        "criterion_keys": [
+          "source_fidelity",
+          "scope_compatibility",
+          "contrary_basis_review"
+        ]
+      },
+      {
+        "key": "scientific.scoped_challenge",
+        "label": "Scoped challenge",
+        "axis": "warrant",
+        "permitted_summaries": [
+          "challenging_within_scope"
+        ],
+        "criterion_keys": [
+          "source_fidelity",
+          "scope_compatibility",
+          "contrary_basis_review"
+        ]
+      },
+      {
+        "key": "scientific.scoped_mixed",
+        "label": "Mixed evidence",
+        "axis": "warrant",
+        "permitted_summaries": [
+          "mixed"
+        ],
+        "criterion_keys": [
+          "source_fidelity",
+          "scope_compatibility",
+          "contrary_basis_review"
+        ]
+      },
+      {
+        "key": "scientific.scoped_insufficiency",
+        "label": "Insufficient evidence",
+        "axis": "warrant",
+        "permitted_summaries": [
+          "insufficient"
+        ],
+        "criterion_keys": [
+          "source_fidelity",
+          "scope_compatibility",
+          "contrary_basis_review"
+        ]
+      }
+    ],
+    "limitations": [
+      "A literature-based Project judgment does not certify a protocol, experiment, reproducibility, or independent repetition.",
+      "An unreported scope dimension and unsearched alternative remain visible; they cannot be replaced by numerical confidence."
+    ]
+  },
+  "registered_at": "2026-10-07T16:00:00.000Z",
+  "content_hash": "sha256:473da8f83f9a6058928d3ff9344bacccf8a4b1f11d5d6140a63181af1c0eed78"
+}

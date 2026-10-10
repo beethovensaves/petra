@@ -47,8 +47,9 @@ import {
   ProjectDataError,
 } from "./project-data.js";
 import { useProjectRecord } from "./ReferenceWorkbench.js";
+import { AgentControlPortal } from "./AgentControlPlane.js";
+import { useWorkspaceDraftState } from "./workspace-drafts.js";
 import { Observation } from "./ReviewRecovery.js";
-import { ProjectResetPanel } from "./ProjectProfileSurface.js";
 import {
   PERSONAL_LAYOUT_PRESETS,
   PERSONAL_PANEL_LIMITS,
@@ -165,7 +166,10 @@ export const CompositionArtifactSurface = ({
   initialMode?: CompositionMode;
 }): React.JSX.Element => {
   const [mode, setMode] = useState<CompositionMode>(initialMode);
-  const [draft, setDraft] = useState(artifact.workingText);
+  const [draft, setDraft] = useWorkspaceDraftState(
+    `artifact-text:${project.id}:${artifact.id}:${artifact.workingRevision}`,
+    artifact.workingText,
+  );
   const [exportPreviewOpen, setExportPreviewOpen] = useState(false);
   const locallyChanged = draft !== artifact.workingText;
 
@@ -440,15 +444,36 @@ export const CompositionArtifactRoute = (): React.JSX.Element => {
   const artifact = getReferenceArtifact(project.id, artifactId);
 
   if (artifact === undefined) {
+    const selectedArtifact =
+      project.selection?.destination === "composition" &&
+      project.selection.semanticKey === "petra.draft-artifact" &&
+      project.selection.objectId === artifactId &&
+      (project.selection.state === "current" ||
+        project.selection.state === "historical" ||
+        project.selection.state === "superseded")
+        ? project.selection
+        : undefined;
     return (
       <main className="reference-route-error" id="reference-main">
         <PetraMark />
         <p className="reference-eyebrow">Artifact unavailable</p>
-        <h1>This artifact cannot be opened</h1>
-        <p>
-          The identity does not resolve inside {project.title}. No newer
-          document was substituted.
-        </p>
+        <h1>
+          {selectedArtifact === undefined
+            ? "This artifact cannot be opened"
+            : "The Artifact workspace is not available yet"}
+        </h1>
+        {selectedArtifact === undefined ? (
+          <p>
+            The identity does not resolve inside {project.title}. No newer
+            document was substituted.
+          </p>
+        ) : (
+          <p>
+            Petra resolved {selectedArtifact.label ?? "this artifact"} at
+            revision {selectedArtifact.resolvedRevision}, but live document
+            reading and editing are not available in this workspace yet.
+          </p>
+        )}
         <Link
           className="reference-text-link"
           to={`/projects/${project.id}/composition`}
@@ -459,7 +484,13 @@ export const CompositionArtifactRoute = (): React.JSX.Element => {
     );
   }
 
-  return <CompositionArtifactSurface project={project} artifact={artifact} />;
+  return (
+    <CompositionArtifactSurface
+      key={artifact.id}
+      project={project}
+      artifact={artifact}
+    />
+  );
 };
 
 const historyFilterChoices = {
@@ -1182,7 +1213,7 @@ export const HistoryEventSurface = ({
               <>
                 <p>
                   Petra interpreted the event with the exact retained Project
-                  profile definition revision{" "}
+                  definition revision{" "}
                   {graphDefinitionAuthority.project_definition_ref.revision},
                   effective before this event.
                 </p>
@@ -1194,9 +1225,8 @@ export const HistoryEventSurface = ({
               </>
             ) : (
               <p>
-                No exact retained Project profile definition is available for
-                historical interpretation. Petra did not substitute the current
-                profile.
+                No exact retained Project definition is available for historical
+                interpretation. Petra did not substitute the current definition.
               </p>
             )}
           </details>
@@ -1361,212 +1391,228 @@ export const HistoryEventSurface = ({
         </aside>
       </div>
 
-      <section
-        className="history-event__revert"
-        aria-labelledby="governed-revert-title"
+      <AgentControlPortal
+        title="Request a governed Revert"
+        description="Preview and confirm this Revert here. The original event, impact, and resulting History remain in the Workspace."
+        operationIds={["history.preview-revert", "history.execute-revert"]}
+        objectRef={episode.event_id}
       >
-        <p className="reference-panel-kicker">Separate authority path</p>
-        <h2 id="governed-revert-title">Governed Revert</h2>
-        <p>
-          Read the exact preview first. A confirmed reason and Approval
-          rationale compose one new compensating ChangeSet. Execution is a
-          separate explicit action and rechecks authority at every command.
-        </p>
-        {canPreview ? (
-          <PetraButton
-            variant="secondary"
-            onClick={() => void readPreview()}
-            busy={revert.kind === "reading_preview"}
-            busyLabel="Reading governed Revert preview…"
-            aria-disabled={revert.kind !== "idle" && revert.kind !== "failed"}
-          >
-            Read governed Revert preview
-          </PetraButton>
-        ) : (
-          <PetraButton
-            variant="secondary"
-            unavailable={{
-              reason: statusText,
-              prerequisite:
-                "A current eligible single-ChangeSet recovery assessment.",
-            }}
-          >
-            Revert unavailable
-          </PetraButton>
-        )}
-
         <section
-          ref={notice}
-          className="history-event__revert-state"
-          tabIndex={-1}
-          aria-live={revert.kind === "failed" ? "assertive" : "polite"}
-          role={revert.kind === "failed" ? "alert" : "status"}
+          className="history-event__revert"
+          aria-labelledby="governed-revert-title"
         >
-          {revert.kind === "idle" ? (
-            <p>
-              No compensation preview, plan, or execution has been requested.
-            </p>
-          ) : revert.kind === "reading_preview" ? (
-            <p>
-              Reading the exact current preview. No ChangeSet, Approval, or
-              command has been composed or executed.
-            </p>
-          ) : revert.kind === "failed" ? (
-            <p>{revert.message}</p>
-          ) : revert.kind === "composing_plan" ? (
-            <p>
-              Revalidating the preview and composing the confirmed command plan.
-              Nothing is shown as executed.
-            </p>
-          ) : revert.kind === "executing" ? (
-            <p>
-              Executing the exact confirmed plan. Completion and effects are not
-              yet established.
-            </p>
-          ) : revert.kind === "result" ? (
-            <>
-              <h3>
-                {revert.result.content.outcome === "completed"
-                  ? "Governed Revert completed"
-                  : "Governed Revert stopped"}
-              </h3>
+          <p className="reference-panel-kicker">Separate authority path</p>
+          <h2 id="governed-revert-title">Governed Revert</h2>
+          <p>
+            Read the exact preview first. A confirmed reason and Approval
+            rationale compose one new compensating ChangeSet. Execution is a
+            separate explicit action and rechecks authority at every command.
+          </p>
+          {canPreview ? (
+            <PetraButton
+              variant="secondary"
+              onClick={() => void readPreview()}
+              busy={revert.kind === "reading_preview"}
+              busyLabel="Reading governed Revert preview…"
+              aria-disabled={revert.kind !== "idle" && revert.kind !== "failed"}
+            >
+              Read governed Revert preview
+            </PetraButton>
+          ) : (
+            <PetraButton
+              variant="secondary"
+              unavailable={{
+                reason: statusText,
+                prerequisite:
+                  "A current eligible single-ChangeSet recovery assessment.",
+              }}
+            >
+              Revert unavailable
+            </PetraButton>
+          )}
+
+          <section
+            ref={notice}
+            className="history-event__revert-state"
+            tabIndex={-1}
+            aria-live={revert.kind === "failed" ? "assertive" : "polite"}
+            role={revert.kind === "failed" ? "alert" : "status"}
+          >
+            {revert.kind === "idle" ? (
               <p>
-                Completed prefix: {revert.result.content.completed_prefix} of{" "}
-                {revert.result.content.steps.length}. Authority effect:{" "}
-                {revert.result.content.authoritative_effect.state.replaceAll(
-                  "_",
-                  " ",
-                )}
-                . The original action and this compensation both remain in
-                History.
+                No compensation preview, plan, or execution has been requested.
+              </p>
+            ) : revert.kind === "reading_preview" ? (
+              <p>
+                Reading the exact current preview. No ChangeSet, Approval, or
+                command has been composed or executed.
+              </p>
+            ) : revert.kind === "failed" ? (
+              <p>{revert.message}</p>
+            ) : revert.kind === "composing_plan" ? (
+              <p>
+                Revalidating the preview and composing the confirmed command
+                plan. Nothing is shown as executed.
+              </p>
+            ) : revert.kind === "executing" ? (
+              <p>
+                Executing the exact confirmed plan. Completion and effects are
+                not yet established.
+              </p>
+            ) : revert.kind === "result" ? (
+              <>
+                <h3>
+                  {revert.result.content.outcome === "completed"
+                    ? "Governed Revert completed"
+                    : "Governed Revert stopped"}
+                </h3>
+                <p>
+                  Completed prefix: {revert.result.content.completed_prefix} of{" "}
+                  {revert.result.content.steps.length}. Authority effect:{" "}
+                  {revert.result.content.authoritative_effect.state.replaceAll(
+                    "_",
+                    " ",
+                  )}
+                  . The original action and this compensation both remain in
+                  History.
+                </p>
+                <ol>
+                  {revert.result.content.steps.map((step) => (
+                    <li key={step.command_ref.command_id}>
+                      {step.command_name}: {step.state.replaceAll("_", " ")} ·{" "}
+                      <code>{step.command_ref.command_id}</code>
+                      {!("event_ref" in step) ||
+                      step.event_ref === undefined ? null : (
+                        <>
+                          {" "}
+                          · <code>{step.event_ref.event_id}</code>
+                        </>
+                      )}
+                    </li>
+                  ))}
+                </ol>
+                <details>
+                  <summary>Complete governed Revert execution record</summary>
+                  <Observation value={revert.result} />
+                </details>
+                <p>
+                  <Link
+                    className="reference-primary-link"
+                    to={`/projects/${project.id}/brief`}
+                  >
+                    Return to updated Brief
+                  </Link>
+                </p>
+              </>
+            ) : (
+              <p>
+                {revert.kind === "preview"
+                  ? "Read-only compensation preview loaded. No ChangeSet, Approval, or command has been composed or executed."
+                  : "Confirmed compensation plan composed. It is not persisted or executed until the separate execution action."}
+              </p>
+            )}
+          </section>
+
+          {activePreview === undefined ? null : (
+            <div className="history-event__preview">
+              <h3>Read-only preview</h3>
+              <p>
+                {activePreview.content.operation_preview.length} operations ·{" "}
+                {activePreview.content.command_sequence.length} commands · valid
+                through {activePreview.content.freshness.valid_through}
               </p>
               <ol>
-                {revert.result.content.steps.map((step) => (
-                  <li key={step.command_ref.command_id}>
-                    {step.command_name}: {step.state.replaceAll("_", " ")} ·{" "}
-                    <code>{step.command_ref.command_id}</code>
-                    {!("event_ref" in step) ||
-                    step.event_ref === undefined ? null : (
-                      <>
-                        {" "}
-                        · <code>{step.event_ref.event_id}</code>
-                      </>
-                    )}
+                {activePreview.content.operation_preview.map((operation) => (
+                  <li
+                    key={`${operation.operation_kind}:${operation.target_id}`}
+                  >
+                    {operation.operation_kind.replaceAll("_", " ")} ·{" "}
+                    <code>{operation.target_id}</code> · base revision{" "}
+                    {operation.base_revision}
                   </li>
                 ))}
               </ol>
               <details>
-                <summary>Complete governed Revert execution record</summary>
-                <Observation value={revert.result} />
+                <summary>
+                  Complete preview, results, and command sequence
+                </summary>
+                <Observation value={activePreview} />
               </details>
+            </div>
+          )}
+
+          {revert.kind !== "preview" ? null : (
+            <div className="history-event__confirmation">
+              <PetraTextArea
+                label="Reason for governed Revert"
+                hint="Explain why this exact authoritative change should be compensated."
+                rows={3}
+                value={reason}
+                onChange={(event) => setReason(event.currentTarget.value)}
+              />
+              <PetraTextArea
+                label="Approval rationale"
+                hint="State why the complete compensating ChangeSet is approved."
+                rows={3}
+                value={approvalRationale}
+                onChange={(event) =>
+                  setApprovalRationale(event.currentTarget.value)
+                }
+              />
+              <PetraButton
+                variant="primary"
+                onClick={() => void composePlan()}
+                aria-disabled={
+                  reason.trim().length === 0 ||
+                  approvalRationale.trim().length === 0
+                }
+              >
+                Confirm and compose Revert plan
+              </PetraButton>
+            </div>
+          )}
+
+          {activePlan === undefined ? null : (
+            <div className="history-event__plan">
+              <h3>Confirmed command plan</h3>
               <p>
-                <Link
-                  className="reference-primary-link"
-                  to={`/projects/${project.id}/brief`}
-                >
-                  Return to updated Brief
-                </Link>
+                ChangeSet{" "}
+                <code>{activePlan.content.change_set.change_set_id}</code>{" "}
+                compensates{" "}
+                <code>
+                  {
+                    activePlan.content.change_set.content
+                      .compensates_change_set_id
+                  }
+                </code>
+                . Persistence and execution remain not performed.
               </p>
-            </>
-          ) : (
-            <p>
-              {revert.kind === "preview"
-                ? "Read-only compensation preview loaded. No ChangeSet, Approval, or command has been composed or executed."
-                : "Confirmed compensation plan composed. It is not persisted or executed until the separate execution action."}
-            </p>
+              <ol>
+                {activePlan.content.commands.map((step) => (
+                  <li key={step.envelope.command_id}>
+                    {step.position}. {step.command_name} ·{" "}
+                    {step.state.replaceAll("_", " ")}
+                  </li>
+                ))}
+              </ol>
+              <details>
+                <summary>
+                  Complete ChangeSet, Approval, and command plan
+                </summary>
+                <Observation value={activePlan} />
+              </details>
+              {revert.kind === "plan" ? (
+                <PetraButton
+                  variant="primary"
+                  onClick={() => void executePlan()}
+                >
+                  Execute governed Revert
+                </PetraButton>
+              ) : null}
+            </div>
           )}
         </section>
-
-        {activePreview === undefined ? null : (
-          <div className="history-event__preview">
-            <h3>Read-only preview</h3>
-            <p>
-              {activePreview.content.operation_preview.length} operations ·{" "}
-              {activePreview.content.command_sequence.length} commands · valid
-              through {activePreview.content.freshness.valid_through}
-            </p>
-            <ol>
-              {activePreview.content.operation_preview.map((operation) => (
-                <li key={`${operation.operation_kind}:${operation.target_id}`}>
-                  {operation.operation_kind.replaceAll("_", " ")} ·{" "}
-                  <code>{operation.target_id}</code> · base revision{" "}
-                  {operation.base_revision}
-                </li>
-              ))}
-            </ol>
-            <details>
-              <summary>Complete preview, results, and command sequence</summary>
-              <Observation value={activePreview} />
-            </details>
-          </div>
-        )}
-
-        {revert.kind !== "preview" ? null : (
-          <div className="history-event__confirmation">
-            <PetraTextArea
-              label="Reason for governed Revert"
-              hint="Explain why this exact authoritative change should be compensated."
-              rows={3}
-              value={reason}
-              onChange={(event) => setReason(event.currentTarget.value)}
-            />
-            <PetraTextArea
-              label="Approval rationale"
-              hint="State why the complete compensating ChangeSet is approved."
-              rows={3}
-              value={approvalRationale}
-              onChange={(event) =>
-                setApprovalRationale(event.currentTarget.value)
-              }
-            />
-            <PetraButton
-              variant="primary"
-              onClick={() => void composePlan()}
-              aria-disabled={
-                reason.trim().length === 0 ||
-                approvalRationale.trim().length === 0
-              }
-            >
-              Confirm and compose Revert plan
-            </PetraButton>
-          </div>
-        )}
-
-        {activePlan === undefined ? null : (
-          <div className="history-event__plan">
-            <h3>Confirmed command plan</h3>
-            <p>
-              ChangeSet{" "}
-              <code>{activePlan.content.change_set.change_set_id}</code>{" "}
-              compensates{" "}
-              <code>
-                {
-                  activePlan.content.change_set.content
-                    .compensates_change_set_id
-                }
-              </code>
-              . Persistence and execution remain not performed.
-            </p>
-            <ol>
-              {activePlan.content.commands.map((step) => (
-                <li key={step.envelope.command_id}>
-                  {step.position}. {step.command_name} ·{" "}
-                  {step.state.replaceAll("_", " ")}
-                </li>
-              ))}
-            </ol>
-            <details>
-              <summary>Complete ChangeSet, Approval, and command plan</summary>
-              <Observation value={activePlan} />
-            </details>
-            {revert.kind === "plan" ? (
-              <PetraButton variant="primary" onClick={() => void executePlan()}>
-                Execute governed Revert
-              </PetraButton>
-            ) : null}
-          </div>
-        )}
-      </section>
+      </AgentControlPortal>
     </main>
   );
 };
@@ -2290,7 +2336,6 @@ const PersonalSettingsPanel = ({
 export const SettingsSurface = ({
   selectedProject,
   controls,
-  profiles = [],
   taxonomy,
 }: {
   selectedProject?: ProjectRecord | undefined;
@@ -2381,14 +2426,14 @@ export const SettingsSurface = ({
                   <dd>{selectedProject.title}</dd>
                 </div>
                 <div>
-                  <dt>Profile</dt>
+                  <dt>Project definition</dt>
                   <dd>
                     {selectedProject.profile.label} ·{" "}
                     {selectedProject.profile.version}
                   </dd>
                 </div>
                 <div>
-                  <dt>Profile origin</dt>
+                  <dt>Definition origin</dt>
                   <dd>
                     ProjectDefinition revision {selectedProject.profile.version}
                   </dd>
@@ -2398,10 +2443,10 @@ export const SettingsSurface = ({
                     <dt>Taxonomy resolution</dt>
                     <dd>
                       {taxonomy.resolution.state === "registered"
-                        ? `Registered profile · version ${taxonomy.resolution.profile_ref.profile_version}`
+                        ? `Registered definition · version ${taxonomy.resolution.profile_ref.profile_version}`
                         : taxonomy.resolution.state === "project_authored"
                           ? `Project-authored definition · ${taxonomy.resolution.limitation}`
-                          : `Unsupported profile · ${taxonomy.resolution.message}`}
+                          : `Unsupported definition · ${taxonomy.resolution.message}`}
                     </dd>
                   </div>
                 )}
@@ -2458,14 +2503,11 @@ export const SettingsSurface = ({
                 className="reference-primary-link"
                 to={`/projects/${selectedProject.id}/profile`}
               >
-                Inspect Project profile
+                Inspect Project definition
               </Link>
             </>
           )}
         </section>
-        {selectedProject === undefined ? null : (
-          <ProjectResetPanel project={selectedProject} profiles={profiles} />
-        )}
       </div>
     </main>
   );
@@ -2494,7 +2536,9 @@ export const ProfileToolSurface = ({
   <main className="reference-surface profile-tool" id="reference-main">
     <header className="reference-surface-heading">
       <div>
-        <p className="reference-eyebrow">Profile tool · {tool.profileLabel}</p>
+        <p className="reference-eyebrow">
+          Project capability · {tool.profileLabel}
+        </p>
         <h1>{tool.label}</h1>
         <p className="reference-lede">{tool.objective}</p>
       </div>
@@ -2505,7 +2549,7 @@ export const ProfileToolSurface = ({
       aria-labelledby="profile-tool-inputs-title"
     >
       <header>
-        <p className="reference-panel-kicker">Typed profile inputs</p>
+        <p className="reference-panel-kicker">Registered inputs</p>
         <h2 id="profile-tool-inputs-title">Check scope</h2>
       </header>
       <dl>
@@ -2545,7 +2589,7 @@ export const ProfileToolSurface = ({
     </section>
     <footer className="reference-reader-return">
       <p>
-        Profile terms and validation come from the registered tool; Petra owns
+        Terms and validation come from the registered capability; Petra owns
         Work, recovery, and return.
       </p>
       <Link
@@ -2566,10 +2610,10 @@ export const ProfileToolRoute = (): React.JSX.Element => {
     return (
       <main className="reference-route-error" id="reference-main">
         <PetraMark />
-        <p className="reference-eyebrow">Profile tool unavailable</p>
-        <h1>This tool is not registered for the active profile</h1>
+        <p className="reference-eyebrow">Project capability unavailable</p>
+        <h1>This capability is not registered for this Project</h1>
         <p>
-          Petra did not substitute another profile's task or generic controls.
+          Petra did not substitute another Project’s task or generic controls.
         </p>
         <Link
           className="reference-text-link"

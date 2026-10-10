@@ -1,4 +1,14 @@
+import { IntakeCopilotConversation } from "./IntakeCopilotConversation.js";
+import {
+  IntakeWorkspaceProvider,
+  IntakeWorkspaceAnswer,
+  useIntakeWorkspace,
+} from "./IntakeWorkspace.js";
 import { ProjectBriefSurface } from "./ProjectBriefSurface.js";
+import {
+  CopilotWorkspaceProvider,
+  CopilotWorkspaceBody,
+} from "./CopilotWorkspace.js";
 import {
   ProjectObjectiveEmptyBrief,
   type ProjectObjectiveReturnOutcome,
@@ -13,6 +23,7 @@ import {
 } from "react";
 import type {
   PetraProjectInquiryView,
+  PetraProjectSemanticGraphView,
   PetraSuggestedActionView,
   PetraSuggestedActionViewV11,
 } from "@petra/contracts";
@@ -21,6 +32,7 @@ import {
   NavLink,
   Outlet,
   useLoaderData,
+  useMatches,
   useLocation,
   useNavigate,
   useOutletContext,
@@ -57,7 +69,18 @@ import { searchProjectCollection } from "./project-data.js";
 import type { ProjectShellCollectionRequest } from "@petra/core";
 import type { SourceRevisionContext } from "./source-revision.js";
 import { SuggestedWorkAction } from "./SuggestedAction.js";
+import {
+  AgentControlPlaneProvider,
+  AgentControlPortal,
+  AgentConversation,
+} from "./AgentControlPlane.js";
 import { projectWorkDestinationPath } from "./project-work-destination.js";
+import { WorkspaceHost, type WorkspacePlace } from "./WorkspaceHost.js";
+import { InspectWorkspace } from "./InspectWorkspace.js";
+import {
+  WorkspaceDraftProvider,
+  useWorkspaceDraftState,
+} from "./workspace-drafts.js";
 import { usePersonalPreferences } from "./use-personal-preferences.js";
 import type {
   EngineState,
@@ -236,7 +259,7 @@ export const ProductFrame = (): React.JSX.Element => {
   );
 };
 
-export const ProjectsSurface = ({
+const ProjectsSurfaceContent = ({
   projects = [],
   profiles = [],
   query: initialQuery = { limit: 12 },
@@ -255,6 +278,7 @@ export const ProjectsSurface = ({
     request: ProjectShellCollectionRequest,
   ) => Promise<ProjectCollectionPage>;
 }): React.JSX.Element => {
+  const intakeWorkspace = useIntakeWorkspace();
   const location = useLocation();
   const switchOrigin = projectSwitchOriginFromState(location.state);
   const targetState = projectSwitchState(switchOrigin);
@@ -296,29 +320,6 @@ export const ProjectsSurface = ({
       ),
     [profiles],
   );
-  const profileSummaries = useMemo(
-    () =>
-      profileOptions.length > 0
-        ? profileOptions.map((registered) => ({
-            id: registered.definition_family,
-            label: registered.content.label,
-            detail: registered.content.purpose,
-          }))
-        : Array.from(
-            new Map(
-              results.projects.map((project) => [
-                project.profile.definitionFamily,
-                {
-                  id: project.profile.definitionFamily,
-                  label: project.profile.label,
-                  detail: `${project.profile.terms.focusPlural}, ${project.profile.terms.findingPlural}, and ${project.profile.terms.referencePlural}`,
-                },
-              ]),
-            ).values(),
-          ),
-    [profileOptions, results.projects],
-  );
-
   useEffect(() => {
     setResults({ projects, query: initialQuery, page: initialPage });
     setSearchText(initialQuery.search ?? "");
@@ -395,354 +396,365 @@ export const ProjectsSurface = ({
   };
 
   return (
-    <main className="reference-projects" id="reference-main">
-      <section
-        className="reference-page-heading"
-        aria-labelledby="projects-title"
-      >
-        <div>
-          <p className="reference-eyebrow">Projects</p>
-          <h1 id="projects-title">Choose where to continue</h1>
-          <p className="reference-lede">
-            Each Project keeps its own profile, history, work, and authoritative
-            state. Petra stores this workspace locally.
-          </p>
-        </div>
-        <div className="reference-page-heading__actions">
-          <PetraButton
-            variant="secondary"
-            onClick={() => {
-              setCreating(false);
-              setImporting(true);
-            }}
-            {...(importUnavailable === undefined
-              ? {}
-              : { unavailable: importUnavailable })}
-          >
-            Import Project
-          </PetraButton>
-          <PetraButton
-            variant="primary"
-            onClick={() => {
-              setImporting(false);
-              setCreating(true);
-            }}
-            {...(profiles.length === 0
-              ? {
-                  unavailable: {
-                    reason: "No registered Project profile is available.",
-                    prerequisite: "A registered profile from Petra services.",
-                  },
-                }
-              : {})}
-          >
-            New Project
-          </PetraButton>
-        </div>
-      </section>
-
-      {switchOrigin === undefined ? null : (
-        <section
-          className="reference-project-switch"
-          aria-labelledby="project-switch-title"
-        >
-          <div>
-            <p className="reference-panel-kicker">Project switch</p>
-            <h2 id="project-switch-title">
-              Choose another Project without stopping prior Work
-            </h2>
-            <p>
-              You came from {switchOrigin.taskLabel} in{" "}
-              <strong>{switchOrigin.projectTitle}</strong>. Opening a different
-              Project only changes the visible workspace; it does not cancel or
-              replace Work in the prior Project.
-            </p>
-            <p>
-              The opened Project will offer an exact return to this task.
-              Unsubmitted fields, local selection, browser focus, and local
-              presentation history are not transferred between Projects; save or
-              submit them first when their surface does not say they are
-              retained.
-            </p>
-          </div>
-          <Link className="reference-primary-link" to={switchOrigin.href}>
-            Return to prior task
-          </Link>
-        </section>
-      )}
-
-      {creating ? (
-        <ProjectCreationPanel
-          profiles={[...profiles]}
-          onCancel={() => setCreating(false)}
+    <div className="reference-project-layout reference-intake-layout">
+      <aside className="reference-agent-panel reference-intake-panel">
+        <IntakeCopilotConversation
+          onReview={() => {
+            intakeWorkspace?.dismiss();
+            setImporting(false);
+            setCreating(true);
+          }}
         />
-      ) : null}
-
-      {importing ? (
-        <ProjectImportPanel
-          projects={results.projects}
-          onCancel={() => setImporting(false)}
-        />
-      ) : null}
-
-      <form
-        className="reference-project-search"
-        aria-label="Find a Project"
-        onSubmit={(event) => {
-          event.preventDefault();
-          submitSearch();
-        }}
-      >
-        <PetraTextField
-          label="Find a Project"
-          hint="Petra searches the current Project name, Objective statement, and registered profile label."
-          placeholder="Name, Objective, or registered profile"
-          type="search"
-          maxLength={241}
-          value={searchText}
-          {...(failure?.kind === "invalid" ? { error: failure.message } : {})}
-          onChange={(event) => setSearchText(event.currentTarget.value)}
-        />
-        <label className="petra-field">
-          <span className="petra-field__label">Status</span>
-          <select
-            className="petra-field__control"
-            name="status"
-            value={status}
-            onChange={(event) =>
-              setStatus(event.currentTarget.value as "" | "active" | "archived")
-            }
-          >
-            <option value="">Any status</option>
-            <option value="active">Active</option>
-            <option value="archived">Archived</option>
-          </select>
-        </label>
-        <label className="petra-field">
-          <span className="petra-field__label">Profile</span>
-          <select
-            className="petra-field__control"
-            name="profile"
-            value={profile}
-            onChange={(event) => setProfile(event.currentTarget.value)}
-          >
-            <option value="">Any registered profile</option>
-            {profileOptions.map((registered) => (
-              <option
-                key={registered.definition_family}
-                value={registered.definition_family}
-              >
-                {registered.content.label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <div className="reference-project-search__actions">
-          <PetraButton
-            variant="primary"
-            type="submit"
-            busy={busy}
-            busyLabel="Searching Projects"
-          >
-            Find Projects
-          </PetraButton>
-          {hasFilters ||
-          searchText !== "" ||
-          status !== "" ||
-          profile !== "" ? (
-            <PetraButton variant="quiet" onClick={clearSearch}>
-              Clear search
-            </PetraButton>
-          ) : null}
-        </div>
-      </form>
-
-      {failure?.kind === "unavailable" ? (
-        <section
-          className="reference-project-search__failure"
-          role="alert"
-          aria-labelledby="project-search-failure-title"
-        >
-          <div>
-            <h2 id="project-search-failure-title">
-              Project search is temporarily unavailable
-            </h2>
-            <p>{failure.message}</p>
-            <p>
-              Your last server results remain below. No local substitute was
-              used.
-            </p>
-          </div>
-          <PetraButton
-            variant="secondary"
-            busy={busy}
-            busyLabel="Retrying search"
-            onClick={() => void runSearch(lastRequest, "retry")}
-          >
-            Retry search
-          </PetraButton>
-        </section>
-      ) : null}
-
-      <p className="reference-result-count" role="status" aria-live="polite">
-        {busy
-          ? "Searching Projects…"
-          : `Showing ${results.page.returned_count} of ${results.page.total_count} ${results.page.total_count === 1 ? "Project" : "Projects"}`}
-      </p>
-
-      <div className="reference-project-results" aria-busy={busy || undefined}>
-        {results.projects.length === 0 ? (
-          <section
-            className="reference-empty"
-            aria-labelledby="no-projects-title"
-          >
-            <PetraMark />
-            <h2 id="no-projects-title">
-              {hasFilters ? "No Projects match this search" : "No Projects yet"}
-            </h2>
-            <p>
-              {hasFilters
-                ? "Change or clear the search to ask Petra for another bounded Project list."
-                : "Create a Project with a registered profile to begin."}
-            </p>
-            {hasFilters ? (
-              <PetraButton variant="secondary" onClick={clearSearch}>
-                Show all Projects
-              </PetraButton>
-            ) : null}
-          </section>
-        ) : (
-          <ul className="reference-project-grid">
-            {results.projects.map((project) => (
-              <li key={project.id}>
-                <article className="reference-project-card">
-                  <div className="reference-project-card__topline">
-                    <span>{project.profile.label}</span>
-                    <ProjectStateLabel project={project} />
-                  </div>
-                  <h2>
-                    <Link
-                      to={`/projects/${project.id}/brief`}
-                      state={targetState}
-                    >
-                      {project.title}
-                    </Link>
-                  </h2>
-                  <p>{project.objective}</p>
-                  <ProjectResumeState project={project} />
-                  <dl className="reference-compact-facts">
-                    <div>
-                      <dt>Current</dt>
-                      <dd>{project.snapshot.label}</dd>
-                    </div>
-                    <div>
-                      <dt>Updated</dt>
-                      <dd>{project.updatedAt}</dd>
-                    </div>
-                  </dl>
-                  <div className="reference-project-card__footer">
-                    <ProjectionLabel project={project} />
-                    <div className="reference-project-card__actions">
-                      <Link
-                        className="reference-text-link"
-                        to={`/projects/${project.id}/brief`}
-                        state={targetState}
-                      >
-                        Open Brief
-                      </Link>
-                      {project.resume === undefined ? null : (
-                        <Link
-                          className="reference-primary-link"
-                          to={`/projects/${project.id}/resume`}
-                          state={targetState}
-                        >
-                          {project.resume.state === "available"
-                            ? "Resume Project"
-                            : project.resume.state === "unavailable"
-                              ? "Retry Resume"
-                              : "Open Brief recovery"}
-                          <span aria-hidden="true">→</span>
-                        </Link>
-                      )}
-                    </div>
-                  </div>
-                </article>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-
-      {cursorTrail.length > 0 || results.page.has_more ? (
-        <nav
-          className="reference-project-pagination"
-          aria-label="Project pages"
-        >
-          <PetraButton
-            variant="secondary"
-            {...(cursorTrail.length === 0
-              ? {
-                  unavailable: {
-                    reason: "This is the first Project page.",
-                  },
-                }
-              : {})}
-            onClick={() => {
-              const previousCursor = cursorTrail.at(-1);
-              const { cursor: currentCursor, ...baseRequest } = results.query;
-              void currentCursor;
-              const request =
-                previousCursor === undefined
-                  ? baseRequest
-                  : { ...baseRequest, cursor: previousCursor };
-              void runSearch(request, "previous");
-            }}
-          >
-            Previous page
-          </PetraButton>
-          <span>Server page {cursorTrail.length + 1}</span>
-          <PetraButton
-            variant="secondary"
-            {...(results.page.has_more
-              ? {}
-              : {
-                  unavailable: {
-                    reason: "There are no more matching Projects.",
-                  },
-                })}
-            onClick={() => {
-              if (results.page.next_cursor === undefined) return;
-              void runSearch(
-                { ...results.query, cursor: results.page.next_cursor },
-                "next",
-              );
-            }}
-          >
-            Next page
-          </PetraButton>
-        </nav>
-      ) : null}
-
-      <aside
-        className="reference-disclosure"
-        aria-labelledby="profiles-heading"
-      >
-        <h2 id="profiles-heading">How profiles fit</h2>
-        <p>
-          Profiles supply compatible domain terms and tasks. Petra continues to
-          own navigation, authority, provenance, status, recovery, and history.
-        </p>
-        <ul>
-          {profileSummaries.map((registered) => (
-            <li key={registered.id}>
-              <strong>{registered.label}</strong>: {registered.detail}
-            </li>
-          ))}
-        </ul>
       </aside>
-    </main>
+      <div className="reference-intake-workspace">
+        <IntakeWorkspaceAnswer />
+        <div hidden={intakeWorkspace?.turn !== undefined}>
+          <main className="reference-projects" id="reference-main">
+            <section
+              className="reference-page-heading"
+              aria-labelledby="projects-title"
+            >
+              <div>
+                <p className="reference-eyebrow">Projects</p>
+                <h1 id="projects-title">Choose where to continue</h1>
+                <p className="reference-lede">
+                  Each Project keeps its own definition, history, work, and
+                  authoritative state. Petra stores this workspace locally.
+                </p>
+              </div>
+              <div className="reference-page-heading__actions">
+                <PetraButton
+                  variant="secondary"
+                  onClick={() => {
+                    setCreating(false);
+                    setImporting(true);
+                  }}
+                  {...(importUnavailable === undefined
+                    ? {}
+                    : { unavailable: importUnavailable })}
+                >
+                  Import Project
+                </PetraButton>
+                <PetraButton
+                  variant="primary"
+                  onClick={() => {
+                    setImporting(false);
+                    setCreating(true);
+                  }}
+                >
+                  New Project
+                </PetraButton>
+              </div>
+            </section>
+
+            {switchOrigin === undefined ? null : (
+              <section
+                className="reference-project-switch"
+                aria-labelledby="project-switch-title"
+              >
+                <div>
+                  <p className="reference-panel-kicker">Project switch</p>
+                  <h2 id="project-switch-title">
+                    Choose another Project without stopping prior Work
+                  </h2>
+                  <p>
+                    You came from {switchOrigin.taskLabel} in{" "}
+                    <strong>{switchOrigin.projectTitle}</strong>. Opening a
+                    different Project only changes the visible workspace; it
+                    does not cancel or replace Work in the prior Project.
+                  </p>
+                  <p>
+                    The opened Project will offer an exact return to this task.
+                    Unsubmitted fields, local selection, browser focus, and
+                    local presentation history are not transferred between
+                    Projects; save or submit them first when their surface does
+                    not say they are retained.
+                  </p>
+                </div>
+                <Link className="reference-primary-link" to={switchOrigin.href}>
+                  Return to prior task
+                </Link>
+              </section>
+            )}
+
+            {creating ? (
+              <ProjectCreationPanel
+                profiles={[...profiles]}
+                onCancel={() => setCreating(false)}
+              />
+            ) : null}
+
+            {importing ? (
+              <ProjectImportPanel
+                projects={results.projects}
+                onCancel={() => setImporting(false)}
+              />
+            ) : null}
+
+            <form
+              className="reference-project-search"
+              aria-label="Find a Project"
+              onSubmit={(event) => {
+                event.preventDefault();
+                submitSearch();
+              }}
+            >
+              <PetraTextField
+                label="Find a Project"
+                hint="Petra searches the current Project name, Objective statement, and definition label."
+                placeholder="Name, Objective, or definition"
+                type="search"
+                maxLength={241}
+                value={searchText}
+                {...(failure?.kind === "invalid"
+                  ? { error: failure.message }
+                  : {})}
+                onChange={(event) => setSearchText(event.currentTarget.value)}
+              />
+              <label className="petra-field">
+                <span className="petra-field__label">Status</span>
+                <select
+                  className="petra-field__control"
+                  name="status"
+                  value={status}
+                  onChange={(event) =>
+                    setStatus(
+                      event.currentTarget.value as "" | "active" | "archived",
+                    )
+                  }
+                >
+                  <option value="">Any status</option>
+                  <option value="active">Active</option>
+                  <option value="archived">Archived</option>
+                </select>
+              </label>
+              <label className="petra-field">
+                <span className="petra-field__label">Starting definition</span>
+                <select
+                  className="petra-field__control"
+                  name="profile"
+                  value={profile}
+                  onChange={(event) => setProfile(event.currentTarget.value)}
+                >
+                  <option value="">Any definition</option>
+                  {profileOptions.map((registered) => (
+                    <option
+                      key={registered.definition_family}
+                      value={registered.definition_family}
+                    >
+                      {registered.content.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <div className="reference-project-search__actions">
+                <PetraButton
+                  variant="primary"
+                  type="submit"
+                  busy={busy}
+                  busyLabel="Searching Projects"
+                >
+                  Find Projects
+                </PetraButton>
+                {hasFilters ||
+                searchText !== "" ||
+                status !== "" ||
+                profile !== "" ? (
+                  <PetraButton variant="quiet" onClick={clearSearch}>
+                    Clear search
+                  </PetraButton>
+                ) : null}
+              </div>
+            </form>
+
+            {failure?.kind === "unavailable" ? (
+              <section
+                className="reference-project-search__failure"
+                role="alert"
+                aria-labelledby="project-search-failure-title"
+              >
+                <div>
+                  <h2 id="project-search-failure-title">
+                    Project search is temporarily unavailable
+                  </h2>
+                  <p>{failure.message}</p>
+                  <p>
+                    Your last server results remain below. No local substitute
+                    was used.
+                  </p>
+                </div>
+                <PetraButton
+                  variant="secondary"
+                  busy={busy}
+                  busyLabel="Retrying search"
+                  onClick={() => void runSearch(lastRequest, "retry")}
+                >
+                  Retry search
+                </PetraButton>
+              </section>
+            ) : null}
+
+            <p
+              className="reference-result-count"
+              role="status"
+              aria-live="polite"
+            >
+              {busy
+                ? "Searching Projects…"
+                : `Showing ${results.page.returned_count} of ${results.page.total_count} ${results.page.total_count === 1 ? "Project" : "Projects"}`}
+            </p>
+
+            <div
+              className="reference-project-results"
+              aria-busy={busy || undefined}
+            >
+              {results.projects.length === 0 ? (
+                <section
+                  className="reference-empty"
+                  aria-labelledby="no-projects-title"
+                >
+                  <PetraMark />
+                  <h2 id="no-projects-title">
+                    {hasFilters
+                      ? "No Projects match this search"
+                      : "No Projects yet"}
+                  </h2>
+                  <p>
+                    {hasFilters
+                      ? "Change or clear the search to ask Petra for another bounded Project list."
+                      : "Describe an outcome to create your first Project."}
+                  </p>
+                  {hasFilters ? (
+                    <PetraButton variant="secondary" onClick={clearSearch}>
+                      Show all Projects
+                    </PetraButton>
+                  ) : null}
+                </section>
+              ) : (
+                <ul className="reference-project-grid">
+                  {results.projects.map((project) => (
+                    <li key={project.id}>
+                      <article className="reference-project-card">
+                        <div className="reference-project-card__topline">
+                          <span>{project.profile.label}</span>
+                          <ProjectStateLabel project={project} />
+                        </div>
+                        <h2>
+                          <Link
+                            to={`/projects/${project.id}/${project.resume?.state === "available" ? "resume" : "brief"}`}
+                            state={targetState}
+                          >
+                            {project.title}
+                          </Link>
+                        </h2>
+                        <p>{project.objective}</p>
+                        <ProjectResumeState project={project} />
+                        <dl className="reference-compact-facts">
+                          <div>
+                            <dt>Current</dt>
+                            <dd>{project.snapshot.label}</dd>
+                          </div>
+                          <div>
+                            <dt>Updated</dt>
+                            <dd>{project.updatedAt}</dd>
+                          </div>
+                        </dl>
+                        <div className="reference-project-card__footer">
+                          <ProjectionLabel project={project} />
+                          <div className="reference-project-card__actions">
+                            <Link
+                              className="reference-text-link"
+                              to={`/projects/${project.id}/brief`}
+                              state={targetState}
+                            >
+                              Open Brief
+                            </Link>
+                            {project.resume === undefined ||
+                            project.resume.state === "available" ? null : (
+                              <Link
+                                className="reference-primary-link"
+                                to={`/projects/${project.id}/resume`}
+                                state={targetState}
+                              >
+                                {project.resume.state === "unavailable"
+                                  ? "Retry Resume"
+                                  : "Open Brief recovery"}
+                                <span aria-hidden="true">→</span>
+                              </Link>
+                            )}
+                          </div>
+                        </div>
+                      </article>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            {cursorTrail.length > 0 || results.page.has_more ? (
+              <nav
+                className="reference-project-pagination"
+                aria-label="Project pages"
+              >
+                <PetraButton
+                  variant="secondary"
+                  {...(cursorTrail.length === 0
+                    ? {
+                        unavailable: {
+                          reason: "This is the first Project page.",
+                        },
+                      }
+                    : {})}
+                  onClick={() => {
+                    const previousCursor = cursorTrail.at(-1);
+                    const { cursor: currentCursor, ...baseRequest } =
+                      results.query;
+                    void currentCursor;
+                    const request =
+                      previousCursor === undefined
+                        ? baseRequest
+                        : { ...baseRequest, cursor: previousCursor };
+                    void runSearch(request, "previous");
+                  }}
+                >
+                  Previous page
+                </PetraButton>
+                <span>Server page {cursorTrail.length + 1}</span>
+                <PetraButton
+                  variant="secondary"
+                  {...(results.page.has_more
+                    ? {}
+                    : {
+                        unavailable: {
+                          reason: "There are no more matching Projects.",
+                        },
+                      })}
+                  onClick={() => {
+                    if (results.page.next_cursor === undefined) return;
+                    void runSearch(
+                      { ...results.query, cursor: results.page.next_cursor },
+                      "next",
+                    );
+                  }}
+                >
+                  Next page
+                </PetraButton>
+              </nav>
+            ) : null}
+          </main>
+        </div>
+      </div>
+    </div>
   );
 };
+
+export const ProjectsSurface = (
+  props: React.ComponentProps<typeof ProjectsSurfaceContent>,
+): React.JSX.Element => (
+  <IntakeWorkspaceProvider>
+    <ProjectsSurfaceContent {...props} />
+  </IntakeWorkspaceProvider>
+);
 
 export const ProjectsRoute = (): React.JSX.Element => (
   <ProjectsSurface {...useLoaderData<ProjectCollectionData>()} />
@@ -755,28 +767,30 @@ export const useProjectRecord = (): ProjectRecord => {
   return context.project;
 };
 
-const placeFromPath = (pathname: string): ProjectPlace =>
+const placeFromPath = (pathname: string): WorkspacePlace =>
   pathname.includes("/profile")
     ? "profile_tool"
-    : pathname.includes("/resume")
-      ? "graph"
-      : pathname.includes("/sources")
-        ? "sources"
-        : pathname.includes("/review")
-          ? "review"
-          : pathname.includes("/graph")
-            ? "graph"
-            : pathname.includes("/work")
-              ? "work"
-              : pathname.includes("/composition")
-                ? "composition"
-                : pathname.includes("/history")
-                  ? "history"
-                  : pathname.includes("/tools/")
-                    ? "profile_tool"
-                    : pathname.includes("/petra")
-                      ? "petra"
-                      : "brief";
+    : pathname.includes("/inspect")
+      ? "inspect"
+      : pathname.includes("/resume")
+        ? "graph"
+        : pathname.includes("/sources")
+          ? "sources"
+          : pathname.includes("/review")
+            ? "review"
+            : pathname.includes("/graph")
+              ? "graph"
+              : pathname.includes("/work")
+                ? "work"
+                : pathname.includes("/composition")
+                  ? "composition"
+                  : pathname.includes("/history")
+                    ? "history"
+                    : pathname.includes("/tools/")
+                      ? "profile_tool"
+                      : pathname.includes("/petra")
+                        ? "petra"
+                        : "brief";
 
 export const hashFocusTargetId = (hash: string): string | undefined => {
   if (!hash.startsWith("#") || hash.length === 1) return undefined;
@@ -788,15 +802,48 @@ export const hashFocusTargetId = (hash: string): string | undefined => {
   }
 };
 
+const AGENT_WIDTH_STORAGE_KEY = "petra.agent-width-percent";
+const boundedAgentWidth = (value: number): number =>
+  Math.max(30, Math.min(40, Math.round(value)));
+const initialAgentWidth = (): number => {
+  if (typeof window === "undefined") return 30;
+  try {
+    const stored = Number(
+      window.sessionStorage.getItem(AGENT_WIDTH_STORAGE_KEY),
+    );
+    return Number.isFinite(stored) && stored >= 30 && stored <= 40
+      ? boundedAgentWidth(stored)
+      : 30;
+  } catch {
+    return 30;
+  }
+};
+
 export const ProjectShell = (): React.JSX.Element => {
   const project = useLoaderData<ProjectRecord>();
+  const matches = useMatches();
+  const candidateGraph = matches.at(-1)?.loaderData as
+    PetraProjectSemanticGraphView | undefined;
+  const nativeGraph =
+    candidateGraph?.schema_name === "petra.project-semantic-graph-view"
+      ? candidateGraph
+      : undefined;
   const location = useLocation();
+  const projectLayout = useRef<HTMLDivElement>(null);
+  const resizingAgent = useRef(false);
+  const [agentWidth, setAgentWidth] = useState(initialAgentWidth);
   const projectNav = useRef<HTMLElement>(null);
+  const previousWorkspacePath = useRef(location.pathname);
   const [mobilePane, setMobilePane] = useState<"agent" | "workspace">(
     "workspace",
   );
+  const [agentControlTarget, setAgentControlTarget] =
+    useState<HTMLDivElement | null>(null);
   const currentPlace = placeFromPath(location.pathname);
-  const currentWorkspaceLabel: Record<ProjectPlace, string> = {
+  const openReviewCount =
+    project.placeSummaries?.find((summary) => summary.role === "review")
+      ?.attentionCount ?? 0;
+  const currentWorkspaceLabel: Record<WorkspacePlace | "settings", string> = {
     brief: "Overview",
     petra: "Conversation",
     work: "Work",
@@ -807,12 +854,13 @@ export const ProjectShell = (): React.JSX.Element => {
     composition: "Outputs",
     profile_tool: "Project definition",
     settings: "Settings",
+    inspect: "Inspect",
   };
   const incomingSwitchOrigin = projectSwitchOriginFromState(location.state);
   const currentTaskLabel =
     location.pathname.endsWith("/resume") &&
     project.resume?.state === "available"
-      ? (project.resume.retained_task?.label ?? "the retained Graph task")
+      ? (project.resume.retained_task?.label ?? "the retained task")
       : currentPlace === "profile_tool"
         ? "the Project definition"
         : `the Project ${currentWorkspaceLabel[currentPlace]}`;
@@ -834,6 +882,25 @@ export const ProjectShell = (): React.JSX.Element => {
       : undefined;
 
   useEffect(() => {
+    try {
+      window.sessionStorage.setItem(
+        AGENT_WIDTH_STORAGE_KEY,
+        String(agentWidth),
+      );
+    } catch {
+      // The selected width remains available for this mounted workspace.
+    }
+  }, [agentWidth]);
+
+  const resizeAgentTo = (clientX: number): void => {
+    const bounds = projectLayout.current?.getBoundingClientRect();
+    if (bounds === undefined || bounds.width === 0) return;
+    setAgentWidth(
+      boundedAgentWidth(((clientX - bounds.left) / bounds.width) * 100),
+    );
+  };
+
+  useEffect(() => {
     projectNav.current
       ?.querySelector<HTMLElement>('a[aria-current="page"]')
       ?.scrollIntoView({ block: "nearest", inline: "center" });
@@ -851,6 +918,18 @@ export const ProjectShell = (): React.JSX.Element => {
     return () => window.cancelAnimationFrame(frame);
   }, [location.hash, location.key]);
 
+  useEffect(() => {
+    const pathChanged = previousWorkspacePath.current !== location.pathname;
+    previousWorkspacePath.current = location.pathname;
+    if (!pathChanged || hashFocusTargetId(location.hash) !== undefined) return;
+    const frame = window.requestAnimationFrame(() => {
+      document.getElementById("project-workspace-title")?.focus({
+        preventScroll: true,
+      });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [location.pathname, location.hash]);
+
   const destinationLink = ({
     place,
     to,
@@ -864,11 +943,7 @@ export const ProjectShell = (): React.JSX.Element => {
       (candidate) => candidate.role === place,
     );
     return (
-      <NavLink
-        key={place}
-        to={to}
-        onClick={() => setMobilePane("workspace")}
-      >
+      <NavLink key={place} to={to} onClick={() => setMobilePane("workspace")}>
         <span>{label}</span>
         {summary === undefined || summary.attentionCount === 0 ? null : (
           <span
@@ -946,187 +1021,266 @@ export const ProjectShell = (): React.JSX.Element => {
         </div>
       </div>
 
-      <div
-        className="reference-project-layout"
-        data-mobile-pane={mobilePane}
+      <CopilotWorkspaceProvider
+        key={project.id}
+        onOpenWorkspace={() => setMobilePane("workspace")}
       >
-        <aside
-          className="reference-project-nav reference-agent-panel"
-          id="project-agent"
-          aria-labelledby="project-agent-title"
+        <AgentControlPlaneProvider
+          target={agentControlTarget}
+          project={project}
         >
-          <header className="reference-agent-heading">
-            <span className="reference-agent-mark" aria-hidden="true">
-              <PetraMark />
-            </span>
-            <div>
-              <p className="reference-panel-kicker">Agent</p>
-              <h2 id="project-agent-title">Petra</h2>
-            </div>
-          </header>
-
-          <section
-            className="reference-agent-outcome"
-            aria-labelledby="current-outcome-title"
+          <div
+            ref={projectLayout}
+            className="reference-project-layout"
+            data-mobile-pane={mobilePane}
+            style={{ "--petra-agent-share": `${agentWidth}%` } as CSSProperties}
           >
-            <p className="reference-nav-label" id="current-outcome-title">
-              Current outcome
-            </p>
-            <strong>{project.title}</strong>
-            <p>{project.objective}</p>
-            <ProjectStateLabel project={project} />
-          </section>
-
-          <nav
-            ref={projectNav}
-            aria-label={`${project.title} workspace destinations`}
-          >
-            <NavLink
-              className="reference-agent-action"
-              to="petra"
-              onClick={() => setMobilePane("workspace")}
+            <aside
+              className="reference-project-nav reference-agent-panel"
+              id="project-agent"
+              aria-labelledby="project-agent-title"
+              onClickCapture={(event) => {
+                if ((event.target as HTMLElement).closest("a") !== null) {
+                  setMobilePane("workspace");
+                }
+              }}
             >
-              <span>Work with Petra</span>
-              <span aria-hidden="true">→</span>
-            </NavLink>
-
-            <div className="reference-workspace-destinations">
-              <p className="reference-nav-label">Workspace</p>
-              {[
-                { place: "brief" as const, to: "brief", label: "Overview" },
-                {
-                  place: "sources" as const,
-                  to: "sources",
-                  label: "Sources",
-                },
-                { place: "review" as const, to: "review", label: "Review" },
-                {
-                  place: "composition" as const,
-                  to: "composition",
-                  label: "Outputs",
-                },
-              ].map(destinationLink)}
-            </div>
-
-            <details className="reference-project-inspection">
-              <summary>Inspect project</summary>
-              <div className="reference-project-inspection__content">
-                <p>
-                  See the retained work, graph, history, and project definition
-                  that Petra is using.
-                </p>
-                <div className="reference-project-inspection__state">
-                  <span>
-                    <strong>{project.snapshot.label}</strong>
-                    <small>{project.snapshot.asOf}</small>
-                  </span>
-                  <ProjectionLabel project={project} />
+              <header className="reference-agent-heading">
+                <span className="reference-agent-mark" aria-hidden="true">
+                  <PetraMark />
+                </span>
+                <div>
+                  <p className="reference-panel-kicker">Your copilot</p>
+                  <h2 id="project-agent-title">Petra</h2>
                 </div>
-                <div className="reference-project-inspection__links">
+              </header>
+
+              <section
+                className="reference-agent-outcome"
+                aria-labelledby="current-outcome-title"
+              >
+                <p className="reference-nav-label" id="current-outcome-title">
+                  Current outcome
+                </p>
+                <details className="copilot-outcome-disclosure">
+                  <summary>{project.title}</summary>
+                  <p>{project.objective}</p>
+                </details>
+                <div className="reference-agent-outcome__state">
+                  <ProjectStateLabel project={project} />
+                  {openReviewCount > 0 ? (
+                    <Link
+                      className="reference-agent-review-attention"
+                      to={`/projects/${project.id}/review`}
+                      data-operation-id="review.queue"
+                      onClick={() => setMobilePane("workspace")}
+                    >
+                      {openReviewCount} open{" "}
+                      {openReviewCount === 1 ? "Review" : "Reviews"}
+                    </Link>
+                  ) : null}
+                </div>
+              </section>
+
+              <nav
+                ref={projectNav}
+                aria-label={`${project.title} workspace destinations`}
+              >
+                <div className="reference-workspace-destinations">
+                  <p className="reference-nav-label">Workspace</p>
                   {[
-                    { place: "work" as const, to: "work", label: "Work" },
+                    { place: "brief" as const, to: "brief", label: "Overview" },
+                    {
+                      place: "sources" as const,
+                      to: "sources",
+                      label: "Sources",
+                    },
+                    { place: "review" as const, to: "review", label: "Review" },
                     { place: "graph" as const, to: "graph", label: "Graph" },
                     {
-                      place: "history" as const,
-                      to: "history",
-                      label: "History",
-                    },
-                    {
-                      place: "profile_tool" as const,
-                      to: "profile",
-                      label: "Project definition",
+                      place: "composition" as const,
+                      to: "composition",
+                      label: "Outputs",
                     },
                   ].map(destinationLink)}
                 </div>
-                <p className="reference-project-inspection__definition">
-                  <strong>{project.profile.label}</strong>
-                  <span>{project.profile.description}</span>
-                </p>
-              </div>
-            </details>
-          </nav>
 
-          {project.attentionWork === undefined ? null : (
-            <aside
-              className="reference-attention-work"
-              id="shell-attention-work"
-              tabIndex={-1}
-              aria-labelledby="shell-attention-work-title"
-              data-state={project.attentionWork.state}
-            >
-              <p className="reference-panel-kicker">Needs your attention</p>
-              <h2 id="shell-attention-work-title">
-                Active or waiting on you
-              </h2>
-              {project.attentionWork.state === "unavailable" ? (
-                <p>{project.attentionWork.reason}</p>
-              ) : (
-                <>
-                  <p>
-                    {project.attentionWork.total_count === 0
-                      ? "Nothing needs your attention right now."
-                      : `${project.attentionWork.total_count} ${project.attentionWork.total_count === 1 ? "task needs" : "tasks need"} attention.`}
-                  </p>
-                  {project.attentionWork.tasks.length === 0 ? null : (
-                    <ul>
-                      {project.attentionWork.tasks.map((task) => (
-                        <li key={task.work_unit_ref.work_unit_id}>
-                          <Link
-                            to={projectWorkDestinationPath(
-                              project.id,
-                              task.destination.target_ref,
-                              {
-                                path: `${location.pathname}${location.search}#shell-attention-work`,
-                                label: "Needs your attention",
-                                focusId: "shell-attention-work",
-                              },
-                            )}
-                            onClick={() => setMobilePane("workspace")}
-                          >
-                            <strong>{task.task_label}</strong>
-                            <span>{task.objective}</span>
-                            <small data-state={task.attention.state}>
-                              {presentationLabel(task.execution.state)} ·{" "}
-                              {task.attention.reason}
-                            </small>
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                  {project.attentionWork.coverage === "partial" ? (
-                    <p className="reference-attention-work__limit">
-                      {project.attentionWork.limitation}
+                <details className="reference-project-inspection">
+                  <summary>Inspect project</summary>
+                  <div className="reference-project-inspection__content">
+                    <p>
+                      See the retained work, graph, history, and project
+                      definition that Petra is using.
                     </p>
-                  ) : null}
-                </>
+                    <div className="reference-project-inspection__state">
+                      <span>
+                        <strong>{project.snapshot.label}</strong>
+                        <small>{project.snapshot.asOf}</small>
+                      </span>
+                      <ProjectionLabel project={project} />
+                    </div>
+                    <div className="reference-project-inspection__links">
+                      {[
+                        { place: "work" as const, to: "work", label: "Work" },
+                        {
+                          place: "history" as const,
+                          to: "history",
+                          label: "History",
+                        },
+                        {
+                          place: "profile_tool" as const,
+                          to: "profile",
+                          label: "Project definition",
+                        },
+                      ].map(destinationLink)}
+                    </div>
+                    <p className="reference-project-inspection__definition">
+                      <strong>{project.profile.label}</strong>
+                      <span>{project.profile.description}</span>
+                    </p>
+                  </div>
+                </details>
+              </nav>
+
+              <AgentConversation
+                key={project.id}
+                project={project}
+                returnContext={{
+                  path: currentSwitchOrigin.href,
+                  label: currentWorkspaceLabel[currentPlace],
+                }}
+                onControlTarget={setAgentControlTarget}
+              />
+
+              {project.attentionWork === undefined ? null : (
+                <details className="copilot-work-attention">
+                  <summary>Tasks needing attention</summary>
+                  <aside
+                    className="reference-attention-work"
+                    id="shell-attention-work"
+                    tabIndex={-1}
+                    aria-labelledby="shell-attention-work-title"
+                    data-state={project.attentionWork.state}
+                  >
+                    <p className="reference-panel-kicker">
+                      Needs your attention
+                    </p>
+                    <h2 id="shell-attention-work-title">
+                      Active or waiting on you
+                    </h2>
+                    {project.attentionWork.state === "unavailable" ? (
+                      <p>{project.attentionWork.reason}</p>
+                    ) : (
+                      <>
+                        <p>
+                          {project.attentionWork.total_count === 0
+                            ? "Nothing needs your attention right now."
+                            : `${project.attentionWork.total_count} ${project.attentionWork.total_count === 1 ? "task needs" : "tasks need"} attention.`}
+                        </p>
+                        {project.attentionWork.tasks.length === 0 ? null : (
+                          <ul>
+                            {project.attentionWork.tasks.map((task) => (
+                              <li key={task.work_unit_ref.work_unit_id}>
+                                <Link
+                                  to={projectWorkDestinationPath(
+                                    project.id,
+                                    task.destination.target_ref,
+                                    {
+                                      path: `${location.pathname}${location.search}#shell-attention-work`,
+                                      label: "Needs your attention",
+                                      focusId: "shell-attention-work",
+                                    },
+                                  )}
+                                  onClick={() => setMobilePane("workspace")}
+                                >
+                                  <strong>{task.task_label}</strong>
+                                  <span>{task.objective}</span>
+                                  <small data-state={task.attention.state}>
+                                    {presentationLabel(task.execution.state)} ·{" "}
+                                    {task.attention.reason}
+                                  </small>
+                                </Link>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                        {project.attentionWork.coverage === "partial" ? (
+                          <p className="reference-attention-work__limit">
+                            {project.attentionWork.limitation}
+                          </p>
+                        ) : null}
+                      </>
+                    )}
+                  </aside>
+                </details>
               )}
             </aside>
-          )}
-        </aside>
 
-        <section
-          className="reference-workspace-panel"
-          id="project-workspace"
-          aria-labelledby="project-workspace-title"
-        >
-          <header className="reference-workspace-heading">
-            <div>
-              <p className="reference-panel-kicker">Workspace</p>
-              <h2 id="project-workspace-title">
-                {currentWorkspaceLabel[currentPlace]}
-              </h2>
-            </div>
-            <ProjectStateLabel project={project} />
-          </header>
-          <div className="reference-project-main" data-place={currentPlace}>
-            <Outlet context={{ project } satisfies ProjectOutletContext} />
+            <div
+              className="reference-agent-resize"
+              role="separator"
+              aria-label="Resize Agent and Workspace"
+              aria-orientation="vertical"
+              aria-controls="project-agent project-workspace"
+              aria-valuemin={30}
+              aria-valuemax={40}
+              aria-valuenow={agentWidth}
+              aria-valuetext={`Agent ${agentWidth} percent, Workspace ${100 - agentWidth} percent`}
+              tabIndex={0}
+              onKeyDown={(event) => {
+                if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+                  event.preventDefault();
+                  setAgentWidth((current) =>
+                    boundedAgentWidth(
+                      current + (event.key === "ArrowRight" ? 2 : -2),
+                    ),
+                  );
+                } else if (event.key === "Home" || event.key === "End") {
+                  event.preventDefault();
+                  setAgentWidth(event.key === "Home" ? 30 : 40);
+                }
+              }}
+              onPointerDown={(event) => {
+                resizingAgent.current = true;
+                event.currentTarget.setPointerCapture(event.pointerId);
+                resizeAgentTo(event.clientX);
+              }}
+              onPointerMove={(event) => {
+                if (resizingAgent.current) resizeAgentTo(event.clientX);
+              }}
+              onPointerUp={(event) => {
+                resizingAgent.current = false;
+                if (event.currentTarget.hasPointerCapture(event.pointerId))
+                  event.currentTarget.releasePointerCapture(event.pointerId);
+              }}
+              onPointerCancel={() => {
+                resizingAgent.current = false;
+              }}
+            />
+
+            <WorkspaceDraftProvider key={project.id}>
+              <WorkspaceHost
+                project={project}
+                place={currentPlace}
+                {...(nativeGraph === undefined ? {} : { nativeGraph })}
+              >
+                <CopilotWorkspaceBody>
+                  <Outlet
+                    context={{ project } satisfies ProjectOutletContext}
+                  />
+                </CopilotWorkspaceBody>
+              </WorkspaceHost>
+            </WorkspaceDraftProvider>
           </div>
-        </section>
-      </div>
+        </AgentControlPlaneProvider>
+      </CopilotWorkspaceProvider>
     </div>
   );
 };
+
+export const InspectRoute = (): React.JSX.Element => (
+  <InspectWorkspace project={useProjectRecord()} />
+);
 
 const SurfaceHeading = ({
   eyebrow,
@@ -1568,7 +1722,7 @@ export const BriefSurface = ({
           className="reference-panel reference-project-profile"
           aria-labelledby="profile-title"
         >
-          <p className="reference-panel-kicker">Profile</p>
+          <p className="reference-panel-kicker">Project definition</p>
           <h2 id="profile-title">{project.profile.label}</h2>
           <p>{project.profile.description}</p>
           <span className="reference-contract-label">
@@ -1666,13 +1820,20 @@ export const BriefSurface = ({
       </section>
 
       {suggestedAction === undefined ? null : (
-        <SuggestedActionPreview
-          actionView={suggestedAction}
-          {...(suggestedWorkAction === undefined
-            ? {}
-            : { workActionView: suggestedWorkAction })}
-          {...(invokedInquiry === undefined ? {} : { invokedInquiry })}
-        />
+        <AgentControlPortal
+          title="Proposed next action"
+          description="Review the proposed action here. Its progress and result open in the Workspace."
+          operationIds={["brief.suggested-preview", "brief.suggested-invoke"]}
+          objectRef={suggestedAction.content.action_ref.suggested_action_id}
+        >
+          <SuggestedActionPreview
+            actionView={suggestedAction}
+            {...(suggestedWorkAction === undefined
+              ? {}
+              : { workActionView: suggestedWorkAction })}
+            {...(invokedInquiry === undefined ? {} : { invokedInquiry })}
+          />
+        </AgentControlPortal>
       )}
 
       <section className="reference-section" aria-labelledby="decisions-title">
@@ -1811,13 +1972,13 @@ export const BriefRoute = (): React.JSX.Element => {
             <p className="reference-eyebrow">{project.title}</p>
             <h1>Brief</h1>
             <p className="reference-lede">
-              Start from this Project’s registered profile and current focus.
+              Start from this Project’s current objective and definition.
             </p>
           </div>
         </header>
         <div className="brief-position" aria-label="Current Brief position">
           <span>{project.profile.label}</span>
-          <span data-state="partial">Profile starting state</span>
+          <span data-state="partial">Definition starting state</span>
         </div>
         <section
           className="brief-section brief-focus"
@@ -1829,22 +1990,16 @@ export const BriefRoute = (): React.JSX.Element => {
           </h2>
           <p className="brief-focus__statement">{project.objective}</p>
           <p>
-            This registered profile does not supply composed Brief sections for
-            this starting state. Petra did not substitute scientific content,
-            actions, or meaning.
+            This Project definition does not supply composed outcome sections
+            for this starting state. Petra has not inferred missing sections or
+            actions.
           </p>
           <div className="reference-surface-actions">
             <Link
               className="reference-primary-link"
               to={`/projects/${project.id}/profile`}
             >
-              Inspect Project profile
-            </Link>
-            <Link
-              className="reference-text-link"
-              to={`/guide?project=${encodeURIComponent(project.id)}`}
-            >
-              Return to test guide
+              Inspect Project definition
             </Link>
           </div>
           <details className="brief-technical">
@@ -1856,7 +2011,7 @@ export const BriefRoute = (): React.JSX.Element => {
                 <dd>{data.profileStartingBrief.projectRef.revision}</dd>
               </div>
               <div>
-                <dt>Profile definition revision</dt>
+                <dt>Project definition revision</dt>
                 <dd>
                   {data.profileStartingBrief.projectDefinitionRef.revision}
                 </dd>
@@ -1875,12 +2030,22 @@ export const BriefRoute = (): React.JSX.Element => {
     throw new Error("The reviewed Project Objective boundary is unavailable.");
   const state = location.state as {
     objectiveCommandOutcome?: ProjectObjectiveReturnOutcome;
+    agentObjectiveDraft?: unknown;
   } | null;
   const objectiveCommandOutcome = state?.objectiveCommandOutcome;
+  const objectiveSuggestion =
+    typeof state?.agentObjectiveDraft === "string" &&
+    state.agentObjectiveDraft.trim().length > 0 &&
+    state.agentObjectiveDraft.length <= 4_000
+      ? state.agentObjectiveDraft
+      : undefined;
   if (data.briefView === undefined) {
     return (
       <ProjectObjectiveEmptyBrief
         context={data.objectiveCommandContext}
+        {...(objectiveSuggestion === undefined
+          ? {}
+          : { suggestedStatement: objectiveSuggestion })}
         {...(objectiveCommandOutcome === undefined
           ? {}
           : { outcome: objectiveCommandOutcome })}
@@ -1891,6 +2056,7 @@ export const BriefRoute = (): React.JSX.Element => {
     <ProjectBriefSurface
       view={data.briefView}
       objectiveCommandContext={data.objectiveCommandContext}
+      {...(objectiveSuggestion === undefined ? {} : { objectiveSuggestion })}
       {...(data.comparisonRecovery === undefined
         ? {}
         : { comparisonRecovery: data.comparisonRecovery })}
@@ -1907,25 +2073,48 @@ export const BriefRoute = (): React.JSX.Element => {
       {...(data.suggestedAction !== undefined
         ? {
             selectedAction: (
-              <SuggestedActionPreview
-                actionView={data.suggestedAction}
-                {...(data.suggestedWorkAction === undefined
-                  ? {}
-                  : { workActionView: data.suggestedWorkAction })}
-                {...(data.invokedInquiry === undefined
-                  ? {}
-                  : { invokedInquiry: data.invokedInquiry })}
-              />
+              <AgentControlPortal
+                title="Proposed next action"
+                description="Review the proposed action here. Its progress and result open in the Workspace."
+                operationIds={[
+                  "brief.suggested-preview",
+                  "brief.suggested-invoke",
+                  "work.start",
+                ]}
+                objectRef={
+                  data.suggestedAction.content.action_ref.suggested_action_id
+                }
+              >
+                <SuggestedActionPreview
+                  actionView={data.suggestedAction}
+                  {...(data.suggestedWorkAction === undefined
+                    ? {}
+                    : { workActionView: data.suggestedWorkAction })}
+                  {...(data.invokedInquiry === undefined
+                    ? {}
+                    : { invokedInquiry: data.invokedInquiry })}
+                />
+              </AgentControlPortal>
             ),
           }
         : data.suggestedWorkAction !== undefined
           ? {
               selectedAction: (
-                <SuggestedWorkAction
-                  projectId={data.suggestedWorkAction.project_id}
-                  actionView={data.suggestedWorkAction}
-                  presentationPath="direct"
-                />
+                <AgentControlPortal
+                  title="Start proposed Work"
+                  description="Start this proposed action here. Its progress and result open in the Workspace."
+                  operationIds={["work.start"]}
+                  objectRef={
+                    data.suggestedWorkAction.content.action_ref
+                      .suggested_action_id
+                  }
+                >
+                  <SuggestedWorkAction
+                    projectId={data.suggestedWorkAction.project_id}
+                    actionView={data.suggestedWorkAction}
+                    presentationPath="direct"
+                  />
+                </AgentControlPortal>
               ),
             }
           : {})}
@@ -1950,6 +2139,8 @@ export const SourcesSurface = ({
   registration,
   initialQuery = "",
   onSourceReuseComplete,
+  initialFiles = [],
+  onInitialFileRegistered,
 }: {
   project: ProjectRecord;
   registration?: ProjectSourceCollectionData["registration"];
@@ -1958,10 +2149,24 @@ export const SourcesSurface = ({
     completion: SourceReuseCompletion,
     sourceQuery: string,
   ) => void | Promise<void>;
+  initialFiles?: readonly File[];
+  onInitialFileRegistered?: () => void | Promise<void>;
 }) => {
-  const [query, setQuery] = useState(initialQuery);
-  const [adding, setAdding] = useState(false);
-  const [reusing, setReusing] = useState(false);
+  const [query, setQuery] = useWorkspaceDraftState(
+    `source-collection:${project.id}:query`,
+    initialQuery,
+  );
+  const [pendingInitialFiles, setPendingInitialFiles] = useWorkspaceDraftState<
+    File[]
+  >(`source-collection:${project.id}:initial-files`, () => [...initialFiles]);
+  const [adding, setAdding] = useWorkspaceDraftState(
+    `source-collection:${project.id}:adding`,
+    initialFiles.length > 0,
+  );
+  const [reusing, setReusing] = useWorkspaceDraftState(
+    `source-collection:${project.id}:reusing`,
+    false,
+  );
   const normalizedQuery = query.trim().toLocaleLowerCase();
   const sources = project.sources.filter((source) =>
     sourceSearchText(source).includes(normalizedQuery),
@@ -1973,45 +2178,78 @@ export const SourcesSurface = ({
         eyebrow={`${project.profile.terms.referencePlural} · current Project`}
         title={project.profile.terms.referencePlural}
         description={`Inspect identity, available content, rights, and downstream use for this Project's ${project.profile.terms.referencePlural.toLocaleLowerCase()}.`}
-        actions={
-          <div className="reference-source-actions">
-            <PetraButton
-              variant="primary"
-              onClick={() => {
-                setReusing(false);
-                setAdding(true);
-              }}
-              {...(registration === undefined ||
-              registration.sourceRoles.length === 0
-                ? {
-                    unavailable: {
-                      reason: `This exact Project profile has no available registered ${project.profile.terms.reference.toLocaleLowerCase()} role.`,
-                      prerequisite:
-                        "A current registered source role with copy-rights governance.",
-                    },
-                  }
-                : {})}
-            >
-              Add {project.profile.terms.reference}
-            </PetraButton>
-            <PetraButton
-              variant="secondary"
-              onClick={() => {
-                setAdding(false);
-                setReusing(true);
-              }}
-            >
-              Use existing {project.profile.terms.reference.toLocaleLowerCase()}
-            </PetraButton>
-          </div>
-        }
       />
+
+      <AgentControlPortal
+        title={`Find or add ${project.profile.terms.referencePlural.toLocaleLowerCase()}`}
+        description="Search this Project’s source collection or start reviewed intake and reuse. Source details stay in the Workspace."
+        operationIds={["source.find", "source.register", "source.reuse"]}
+        objectRef={project.id}
+      >
+        <PetraTextField
+          label={`Find ${project.profile.terms.referencePlural}`}
+          placeholder="Title, kind, role, or creator"
+          type="search"
+          value={query}
+          onChange={(event) => setQuery(event.currentTarget.value)}
+        />
+        <div className="reference-source-actions">
+          <PetraButton
+            variant="primary"
+            onClick={() => {
+              setPendingInitialFiles([]);
+              setReusing(false);
+              setAdding(true);
+            }}
+            {...(registration === undefined ||
+            registration.sourceRoles.length === 0
+              ? {
+                  unavailable: {
+                    reason: `This Project definition has no available registered ${project.profile.terms.reference.toLocaleLowerCase()} role.`,
+                    prerequisite:
+                      "A current registered source role with copy-rights governance.",
+                  },
+                }
+              : {})}
+          >
+            Add {project.profile.terms.reference}
+          </PetraButton>
+          <PetraButton
+            variant="secondary"
+            onClick={() => {
+              setAdding(false);
+              setReusing(true);
+            }}
+          >
+            Use existing {project.profile.terms.reference.toLocaleLowerCase()}
+          </PetraButton>
+        </div>
+      </AgentControlPortal>
 
       {adding && registration !== undefined ? (
         <SourceRegistrationPanel
+          key={
+            `${registration.projectDefinitionRef.revision}:` +
+            (pendingInitialFiles[0] === undefined
+              ? "manual-source-registration"
+              : `${pendingInitialFiles[0].name}:${pendingInitialFiles[0].size}:${pendingInitialFiles[0].lastModified}`)
+          }
           context={registration}
           sourceTerm={project.profile.terms.reference.toLocaleLowerCase()}
-          onCancel={() => setAdding(false)}
+          {...(pendingInitialFiles[0] === undefined
+            ? {}
+            : {
+                initialFile: pendingInitialFiles[0],
+                onContinue: async () => {
+                  await onInitialFileRegistered?.();
+                  setPendingInitialFiles((current) => current.slice(1));
+                  if (pendingInitialFiles.length <= 1) setAdding(false);
+                },
+              })}
+          onCancel={() => {
+            setPendingInitialFiles([]);
+            setAdding(false);
+          }}
         />
       ) : null}
 
@@ -2028,13 +2266,7 @@ export const SourcesSurface = ({
       ) : null}
 
       <div className="reference-source-toolbar" id="source-reuse-return">
-        <PetraTextField
-          label={`Find ${project.profile.terms.referencePlural}`}
-          placeholder="Title, kind, role, or creator"
-          type="search"
-          value={query}
-          onChange={(event) => setQuery(event.currentTarget.value)}
-        />
+        {query.trim() === "" ? null : <span>Filtered by “{query}”</span>}
         <p role="status" aria-live="polite">
           {sources.length} of {project.sources.length}
         </p>
@@ -2116,11 +2348,22 @@ export const SourcesRoute = (): React.JSX.Element => {
   const navigate = useNavigate();
   const revalidator = useRevalidator();
   const [searchParams] = useSearchParams();
+  const location = useLocation();
+  const initialFiles =
+    typeof location.state === "object" &&
+    location.state !== null &&
+    Array.isArray(Reflect.get(location.state, "initialSourceFiles"))
+      ? (Reflect.get(location.state, "initialSourceFiles") as unknown[]).filter(
+          (value): value is File => value instanceof File,
+        )
+      : [];
   return (
     <SourcesSurface
       project={{ ...project, sources: data.sources }}
       registration={data.registration}
       initialQuery={searchParams.get("query") ?? ""}
+      initialFiles={initialFiles}
+      onInitialFileRegistered={() => revalidator.revalidate()}
       onSourceReuseComplete={async (completion, sourceQuery) => {
         await revalidator.revalidate();
         const destinationQuery = new URLSearchParams({
@@ -2166,18 +2409,8 @@ export const SourceDetails = ({
     </div>
     <dl className="reference-detail-list">
       <div>
-        <dt>Identity</dt>
-        <dd>
-          <code>{source.id}</code>
-        </dd>
-      </div>
-      <div>
         <dt>Revision</dt>
         <dd>{source.revision}</dd>
-      </div>
-      <div>
-        <dt>Copy</dt>
-        <dd>{source.copy}</dd>
       </div>
       <div>
         <dt>Creator</dt>
@@ -2196,6 +2429,21 @@ export const SourceDetails = ({
         <dd>{source.downstreamUse}</dd>
       </div>
     </dl>
+    <details className="reference-source-record-details">
+      <summary>Record and copy identity</summary>
+      <dl className="reference-detail-list">
+        <div>
+          <dt>Identity</dt>
+          <dd>
+            <code>{source.id}</code>
+          </dd>
+        </div>
+        <div>
+          <dt>Copy</dt>
+          <dd>{source.copy}</dd>
+        </div>
+      </dl>
+    </details>
     <SourceLinkRemovalActions
       projectId={projectId}
       projectSourceId={source.id}
@@ -2285,6 +2533,7 @@ export const SourceReaderSurface = ({
 
       {addingRevision && revision !== undefined ? (
         <SourceRevisionPanel
+          key={`${revision.currentSourceRef.project_source_id}:${revision.currentSourceRef.revision}`}
           context={revision}
           sourceTitle={source.title}
           sourceRevision={source.revision}

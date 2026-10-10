@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/intake-copilot-session/1.0.0/schema.json",
+  "title": "PetraIntakeCopilotSession",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "content",
+    "content_hash"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.intake-copilot-session"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "content": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "intake_session_id",
+        "thread_id",
+        "actor_id",
+        "policy",
+        "policy_hash",
+        "consent",
+        "opened_at"
+      ],
+      "properties": {
+        "intake_session_id": {
+          "type": "string",
+          "pattern": "^intake_session_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "thread_id": {
+          "type": "string",
+          "pattern": "^thread_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "actor_id": {
+          "type": "string",
+          "pattern": "^actor_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "policy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "managed_model_egress",
+            "retention",
+            "authority",
+            "max_turns",
+            "max_input_bytes",
+            "max_history_turns",
+            "max_history_bytes",
+            "timeout_ms",
+            "price_observation",
+            "automatic_model_retry",
+            "provider_model"
+          ],
+          "properties": {
+            "managed_model_egress": {
+              "const": true
+            },
+            "retention": {
+              "const": "owner_only_immutable_session"
+            },
+            "authority": {
+              "const": "pre_project_advice_only"
+            },
+            "max_turns": {
+              "const": 20
+            },
+            "max_input_bytes": {
+              "const": 160000
+            },
+            "max_history_turns": {
+              "const": 12
+            },
+            "max_history_bytes": {
+              "const": 48000
+            },
+            "timeout_ms": {
+              "const": 120000
+            },
+            "price_observation": {
+              "const": "per_call_price_unavailable"
+            },
+            "automatic_model_retry": {
+              "const": false
+            },
+            "provider_model": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            }
+          }
+        },
+        "policy_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "consent": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "accepted_policy_hash",
+            "accepted_at",
+            "accepted_by"
+          ],
+          "properties": {
+            "accepted_policy_hash": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+            },
+            "accepted_at": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+            },
+            "accepted_by": {
+              "type": "string",
+              "pattern": "^actor_[0-9A-HJKMNP-TV-Z]{26}$"
+            }
+          }
+        },
+        "opened_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        }
+      }
+    },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    }
+  }
+}

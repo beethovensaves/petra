@@ -1,0 +1,42 @@
+{
+  "schema_name": "petra.copilot-turn",
+  "schema_version": "1.1.0",
+  "run_id": "run_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "thread_id": "thread_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "parent_run_id": null,
+  "question": "What should we examine?",
+  "context": {
+    "schema_name": "petra.copilot-context",
+    "schema_version": "1.0.0",
+    "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+    "basis": {
+      "project_revision": 1,
+      "definition": {
+        "record_id": "project_definition_01K4C000000000000000000001",
+        "revision": 1,
+        "content_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+      },
+      "objective": {
+        "record_id": "objective_01K4C000000000000000000001",
+        "revision": 1,
+        "content_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+      },
+      "event_position": 42,
+      "stream_revision": 8
+    },
+    "project_label": "Evidence review",
+    "objective_statement": "Examine the supplied evidence",
+    "definition_family": "scientific",
+    "records": [],
+    "limitations": [
+      "This bounded snapshot contains no evidence selections."
+    ],
+    "content_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+  },
+  "focus_keys": [],
+  "request_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+  "started_at": "2026-10-07T14:00:00.000Z",
+  "instance_id": "copilot_instance_01ARZ3NDEKTSV4RRFFQ69G5FAW"
+}

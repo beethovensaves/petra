@@ -1,0 +1,25 @@
+{
+  "schema_name": "petra.copilot-context",
+  "schema_version": "1.0.0",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "basis": {
+    "project_revision": 1,
+    "definition": {
+      "record_id": "project_definition_01K4C000000000000000000001",
+      "revision": 1,
+      "content_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+    },
+    "objective": null,
+    "event_position": 42,
+    "stream_revision": 8
+  },
+  "project_label": "Evidence review",
+  "objective_statement": "No current outcome has been selected.",
+  "definition_family": "scientific",
+  "records": [],
+  "limitations": [
+    "This bounded snapshot contains no evidence selections.",
+    "The outcome is unset. Clarifying this Project creates no outcome or evidence."
+  ],
+  "content_hash": "sha256:e1c43fedfae247a9fed6e4eb8f6b3ed39f2f5e765c0ff3ff9e34ffa76cc155f7"
+}

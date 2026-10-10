@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/intake-copilot-request/1.0.0/schema.json",
+  "title": "PetraIntakeCopilotRequest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "intake_session_id",
+    "context_hash",
+    "parent_run_id"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.intake-copilot-request"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "intake_session_id": {
+      "type": "string",
+      "pattern": "^intake_session_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "context_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "parent_run_id": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^run_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  }
+}

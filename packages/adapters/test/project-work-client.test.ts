@@ -67,6 +67,86 @@ const outputRecordHash = `sha256:${createHash("sha256")
   .digest("hex")}`;
 
 describe("ProjectWorkClient", () => {
+  it("reads bounded, hash-valid retained receipts for the exact Work task", async () => {
+    const receipts = [receipt, resumeReceipt, startAgainReceipt].map((item) => {
+      const base = Object.fromEntries(
+        Object.entries(item).filter(([key]) => key !== "record_hash"),
+      );
+      return {
+        ...base,
+        record_hash: `sha256:${createHash("sha256").update(canonicalize(base)).digest("hex")}`,
+      };
+    });
+    const fetch = vi.fn((input: URL | RequestInfo, init?: RequestInit) => {
+      const url =
+        input instanceof Request
+          ? input.url
+          : input instanceof URL
+            ? input.href
+            : input;
+      expect(url).toBe(
+        `http://petra.local/api/queries/projects/${receipt.project_id}/work/${receipt.requested_work_unit_ref.work_unit_id}/receipts`,
+      );
+      expect(new Headers(init?.headers).get("authorization")).toBe(
+        "Bearer work-token",
+      );
+      return Promise.resolve(Response.json(receipts));
+    });
+    const client = new ProjectWorkClient({
+      baseUrl: "http://petra.local",
+      token: "work-token",
+      fetch,
+    });
+    await expect(
+      client.readReceipts(
+        receipt.project_id,
+        receipt.requested_work_unit_ref.work_unit_id,
+      ),
+    ).resolves.toStrictEqual(receipts);
+  });
+
+  it("rejects a retained receipt whose hash or task identity changed", async () => {
+    const fetch = vi.fn(() => Promise.resolve(Response.json([receipt])));
+    const client = new ProjectWorkClient({
+      baseUrl: "http://petra.local",
+      token: "work-token",
+      fetch,
+    });
+    await expect(
+      client.readReceipts(
+        receipt.project_id,
+        receipt.requested_work_unit_ref.work_unit_id,
+      ),
+    ).rejects.toEqual(
+      expect.objectContaining<Partial<ProjectWorkClientError>>({
+        code: "PROJECT_WORK_RESPONSE_INVALID",
+      }),
+    );
+    const base = Object.fromEntries(
+      Object.entries(receipt).filter(([key]) => key !== "record_hash"),
+    );
+    fetch.mockImplementationOnce(() =>
+      Promise.resolve(
+        Response.json([
+          {
+            ...base,
+            record_hash: `sha256:${createHash("sha256").update(canonicalize(base)).digest("hex")}`,
+          },
+        ]),
+      ),
+    );
+    await expect(
+      client.readReceipts(
+        receipt.project_id,
+        "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FZZ",
+      ),
+    ).rejects.toEqual(
+      expect.objectContaining<Partial<ProjectWorkClientError>>({
+        code: "PROJECT_WORK_RESPONSE_INVALID",
+      }),
+    );
+  });
+
   it("authenticates and validates exact Work collection and detail reads", async () => {
     const requests: string[] = [];
     const fetch = vi.fn((input: URL | RequestInfo, init?: RequestInit) => {

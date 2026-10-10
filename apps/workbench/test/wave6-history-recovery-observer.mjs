@@ -119,7 +119,8 @@ export const createWave4EvidenceObserver = async ({ root }) => {
         status: "passed",
         recorded_at: new Date().toISOString(),
         command:
-          "PATH=/opt/homebrew/opt/node@24/bin:$PATH npm run test:wave6:history-ui",
+          process.env.PETRA_EVIDENCE_COMMAND ??
+          "node scripts/test-wave4-cumulative-integration.mjs",
         environment: {
           node: process.versions.node,
           browser: observation.browser,
@@ -136,7 +137,7 @@ export const createWave4EvidenceObserver = async ({ root }) => {
             scenario_id: "effect-recovery-revert-return",
             status: "passed",
             boundary:
-              "Isolated Chrome opened the production Brief recent-decision area, entered authenticated retained Project History, applied one exact seven-dimension filter through visible controls, opened the selected immutable event, expanded its retained historical comparison and current impact/recovery assessment, read the governed-Revert preview, supplied and confirmed the reason and Approval rationale, executed the exact server-composed compensation plan once, observed the additive result, verified both original and compensation events in retained History, and returned to the updated Brief. Authenticated live HTTP reached production readers and commands over fresh disposable PostgreSQL; the client supplied no authority and no fixture response substituted for the workflow.",
+              "Isolated Chrome opened the production Brief recent-decision area, entered authenticated retained Project History, applied one exact seven-dimension filter through visible controls, opened the selected immutable event, followed the Agent's Inspect action into the unified Workspace inspection of the exact event, impact, receipt, and recovery, and returned to that event. It then expanded the retained historical comparison and current impact/recovery assessment, read the governed-Revert preview, supplied and confirmed the reason and Approval rationale, executed the exact server-composed compensation plan once, observed the additive result, verified both original and compensation events in retained History, and returned to the updated Brief. Authenticated live HTTP reached production readers and commands over fresh disposable PostgreSQL; the client supplied no authority and no fixture response substituted for the workflow.",
           },
         ],
         boundary: {

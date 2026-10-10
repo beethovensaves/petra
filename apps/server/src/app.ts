@@ -1,3 +1,9 @@
+import { CopilotBoundaryError } from "@petra/core";
+import type { IntakeCopilotService } from "./intake-copilot.js";
+import { mountIntakeCopilotRoutes } from "./intake-copilot-routes.js";
+import { mountProjectExaminationRoutes } from "./project-examination-routes.js";
+import type { ProjectExaminationService } from "./project-examination.js";
+import type { ProjectSemanticGraphReader } from "@petra/core";
 import {
   CommunicationPlanError,
   communicationHash,
@@ -66,6 +72,8 @@ import {
 } from "@petra/adapters/server";
 import type {
   PetraClaim,
+  PetraProjectDefinitionDraftCommandRequest,
+  PetraProjectDefinitionDraftRequest,
   PetraProjectImportCommandRequest,
   PetraProjectInquirySaveRequest,
   PetraProjectObjectiveCommandRequest,
@@ -106,6 +114,7 @@ import {
   ProjectSourceProcessingError,
   ProjectSourceReuseError,
   ProjectProfileRuntimeError,
+  ProjectDefinitionDraftError,
   ProjectModelReadinessError,
   ProjectWorkOperationError,
   ProjectSourceLifecycleAuthorityError,
@@ -139,6 +148,8 @@ import {
   type ProjectProfileCommandAuthority,
   type ProjectProfileCommandRecoveryReader,
   type ProjectProfileRuntimeReader,
+  type ProjectDefinitionDraftCommandAuthority,
+  type ProjectDefinitionDraftReader,
   type ProjectModelReadinessReader,
   type ProjectInquiryViewReader,
   type ProjectObjectLocationViewReader,
@@ -172,6 +183,7 @@ import {
   type ProjectWorkStateFilter,
   type ProjectWorkOperationAuthority,
   type ProjectWorkOperationsViewReader,
+  type ProjectWorkReceiptReader,
   type ProjectWorkResumeAuthority,
   type ProjectWorkStartAgainAuthority,
   type ProjectWorkerOutputManifestReader,
@@ -190,6 +202,10 @@ interface Variables {
 type PetraHono = Hono<{ Variables: Variables }>;
 
 export interface PetraAppOptions {
+  projectExaminations?: ProjectExaminationService;
+  projectCopilot?: ProjectCopilotService;
+  intakeCopilot?: IntakeCopilotService;
+  projectSemanticGraphs?: ProjectSemanticGraphReader;
   runtime?: PetraInteractionRuntime;
   reviewBoundary?: ReviewInterruptBoundary;
   reviewAuthority?: ReviewResolutionContext;
@@ -204,6 +220,8 @@ export interface PetraAppOptions {
   projectProfileReads?: ProjectProfileRuntimeReader;
   projectProfileCommands?: ProjectProfileCommandAuthority;
   projectProfileRecovery?: ProjectProfileCommandRecoveryReader;
+  projectDefinitionDrafts?: ProjectDefinitionDraftReader;
+  projectDefinitionDraftCommands?: ProjectDefinitionDraftCommandAuthority;
   projectImportCommands?: ProjectImportCommandAuthority;
   projectImportRecovery?: ProjectImportCommandRecoveryReader;
   projectImportAncestry?: ProjectImportAncestryReader;
@@ -247,6 +265,7 @@ export interface PetraAppOptions {
   projectWorkViews?: ProjectWorkViewReader;
   projectWorkerOutputManifests?: ProjectWorkerOutputManifestReader;
   projectWorkOperations?: ProjectWorkOperationsViewReader;
+  projectWorkReceipts?: ProjectWorkReceiptReader;
   projectWorkOperationAuthority?: ProjectWorkOperationAuthority;
   projectWorkResumeAuthority?: ProjectWorkResumeAuthority;
   projectWorkStartAgainAuthority?: ProjectWorkStartAgainAuthority;
@@ -842,6 +861,48 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
         : "The registered Project profile runtime is unavailable.",
     );
   };
+  const projectDefinitionDraftError = (
+    context: Context<{ Variables: Variables }>,
+    error: unknown,
+  ): Response => {
+    if (error instanceof CopilotBoundaryError && error.code.startsWith("INTAKE_")) {
+      return jsonError(context, 409, "PROJECT_DEFINITION_DRAFT_STALE", error.message);
+    }
+    if (error instanceof ProjectDefinitionDraftError) {
+      const status =
+        error.code === "PROJECT_DEFINITION_DRAFT_COMMAND_DENIED"
+          ? 403
+          : error.code === "PROJECT_DEFINITION_DRAFT_RUNTIME_CORRUPT"
+            ? 503
+            : error.code === "PROJECT_DEFINITION_DRAFT_STALE" ||
+                error.code === "PROJECT_DEFINITION_DRAFT_COMMAND_CONFLICT"
+              ? 409
+              : 422;
+      return jsonError(context, status, error.code, error.message);
+    }
+    if (
+      error instanceof ContractRegistryError ||
+      error instanceof InteractionInputError ||
+      error instanceof SyntaxError
+    ) {
+      return jsonError(
+        context,
+        422,
+        "PROJECT_DEFINITION_DRAFT_INVALID",
+        error instanceof Error
+          ? error.message
+          : "The Project definition draft request is invalid.",
+      );
+    }
+    return jsonError(
+      context,
+      503,
+      "PROJECT_DEFINITION_DRAFT_RUNTIME_FAILED",
+      error instanceof Error
+        ? error.message
+        : "The Project definition draft runtime is unavailable.",
+    );
+  };
   const projectImportError = (
     context: Context<{ Variables: Variables }>,
     error: unknown,
@@ -1031,6 +1092,14 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
     }
     await next();
   });
+
+  mountIntakeCopilotRoutes(app, options.intakeCopilot);
+  mountProjectCopilotRoutes(
+    app,
+    options.projectCopilot,
+    options.projectSemanticGraphs,
+  );
+  mountProjectExaminationRoutes(app, options.projectExaminations);
 
   const resolveApplyAuthority = async (
     projectId: string,
@@ -1426,6 +1495,44 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
     }),
   );
 
+  app.post("/api/queries/project-definition-drafts", async (context) => {
+    if (options.projectDefinitionDrafts === undefined) {
+      return jsonError(
+        context,
+        503,
+        "PROJECT_DEFINITION_DRAFT_RUNTIME_UNAVAILABLE",
+        "The outcome-first Project definition draft boundary is not configured.",
+      );
+    }
+    try {
+      const request = (await readBoundedJson(
+        context,
+        maxBodyBytes,
+      )) as PetraProjectDefinitionDraftRequest;
+      contracts.assertValid(
+        "project-definition-draft-request",
+        "1.0.0",
+        request,
+      );
+      const draft =
+        await options.projectDefinitionDrafts.draftProjectDefinition(request);
+      contracts.assertValid("project-definition-draft-view", "1.0.0", draft);
+      if (
+        draft.content.request.request_id !== request.request_id ||
+        draft.content.request.outcome !== request.outcome
+      ) {
+        throw new ProjectDefinitionDraftError(
+          "PROJECT_DEFINITION_DRAFT_RUNTIME_CORRUPT",
+          "The definition draft did not preserve the exact request identity and outcome.",
+        );
+      }
+      context.header("Cache-Control", "no-store");
+      return context.json(draft);
+    } catch (error) {
+      return projectDefinitionDraftError(context, error);
+    }
+  });
+
   app.get("/api/queries/project-profiles", async (context) => {
     if (options.projectProfileReads === undefined) {
       return jsonError(
@@ -1572,6 +1679,53 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
       return context.json(receipt, 201);
     } catch (error) {
       return projectProfileError(context, error);
+    }
+  });
+
+  app.post("/api/commands/projects/from-definition-draft", async (context) => {
+    if (options.projectDefinitionDraftCommands === undefined) {
+      return jsonError(
+        context,
+        503,
+        "PROJECT_DEFINITION_DRAFT_RUNTIME_UNAVAILABLE",
+        "The outcome-first Project creation boundary is not configured.",
+      );
+    }
+    try {
+      const request = (await readBoundedJson(
+        context,
+        maxBodyBytes,
+      )) as PetraProjectDefinitionDraftCommandRequest;
+      contracts.assertValid(
+        "project-definition-draft-command-request",
+        request.schema_version,
+        request,
+      );
+      const receipt =
+        await options.projectDefinitionDraftCommands.executeProjectDefinitionDraftCommand(
+          request,
+        );
+      contracts.assertValid(
+        "project-definition-draft-command-receipt",
+        "1.0.0",
+        receipt,
+      );
+      if (
+        receipt.command_id !== request.command_id ||
+        receipt.idempotency_key !== request.idempotency_key ||
+        receipt.draft_ref.draft_id !== request.draft.draft_id ||
+        receipt.draft_ref.content_hash !== request.draft.content_hash ||
+        receipt.destination.project_id !== receipt.project_ref.project_id
+      ) {
+        throw new ProjectDefinitionDraftError(
+          "PROJECT_DEFINITION_DRAFT_RUNTIME_CORRUPT",
+          "The Project creation receipt does not identify the exact reviewed draft and resulting Project.",
+        );
+      }
+      context.header("Cache-Control", "no-store");
+      return context.json(receipt, 201);
+    } catch (error) {
+      return projectDefinitionDraftError(context, error);
     }
   });
 
@@ -1992,6 +2146,32 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
         actor_kind: "human" as const,
       },
       capabilityGrantId: principal.capabilityGrantId,
+    };
+  };
+
+  const sourceRegistrationReadPrincipal = async () => {
+    const resolver = options.commandPrincipalResolver;
+    if (resolver?.resolveAuthenticatedActor === undefined) {
+      throw new ProjectSourceRegistrationError(
+        "PROJECT_SOURCE_REGISTRATION_NOT_AUTHORIZED",
+        "Authenticated source receipt reading is unavailable.",
+      );
+    }
+    const principal = await resolver.resolveAuthenticatedActor();
+    if (
+      principal.state !== "resolved" ||
+      principal.actor.actor_kind !== "human"
+    ) {
+      throw new ProjectSourceRegistrationError(
+        "PROJECT_SOURCE_REGISTRATION_NOT_AUTHORIZED",
+        "The authenticated source receipt reader is not a registered human actor.",
+      );
+    }
+    return {
+      actor: {
+        actor_id: principal.actor.actor_id,
+        actor_kind: "human" as const,
+      },
     };
   };
 
@@ -2455,6 +2635,64 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
         }
         context.header("Cache-Control", "no-store");
         return context.json(result, result.applied ? 201 : 200);
+      } catch (error) {
+        return projectSourceRegistrationResponse(context, error);
+      }
+    },
+  );
+
+  app.get(
+    "/api/queries/projects/:projectId/sources/:projectSourceId/registration-receipt",
+    async (context) => {
+      if (options.projectSourceRegistrationAuthority === undefined) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_SOURCE_REGISTRATION_RECOVERY_UNAVAILABLE",
+          "The source registration read boundary is not configured.",
+        );
+      }
+      try {
+        const projectId = context.req.param("projectId");
+        const projectSourceId = context.req.param("projectSourceId");
+        if (
+          !PROJECT_ID_PATTERN.test(projectId) ||
+          !PROJECT_SOURCE_ID_PATTERN.test(projectSourceId) ||
+          new URL(context.req.url).searchParams.size !== 0
+        ) {
+          throw new InteractionInputError(
+            "The registration receipt read requires one exact Project source and accepts no query overrides.",
+          );
+        }
+        const receipt =
+          await options.projectSourceRegistrationAuthority.readProjectSourceRegistrationReceipt(
+            projectId,
+            projectSourceId,
+            await sourceRegistrationReadPrincipal(),
+          );
+        if (receipt === undefined) {
+          return jsonError(
+            context,
+            404,
+            "PROJECT_SOURCE_REGISTRATION_RECEIPT_NOT_FOUND",
+            "No new-source registration receipt is retained for this Project source.",
+          );
+        }
+        contracts.assertValid(
+          "project-source-registration-receipt",
+          "1.0.0",
+          receipt,
+        );
+        if (
+          receipt.project_id !== projectId ||
+          receipt.project_source_ref.project_source_id !== projectSourceId
+        ) {
+          throw new Error(
+            "The source registration receipt crossed its exact Project or Source boundary.",
+          );
+        }
+        context.header("Cache-Control", "no-store");
+        return context.json(receipt);
       } catch (error) {
         return projectSourceRegistrationResponse(context, error);
       }
@@ -5485,6 +5723,123 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
           error instanceof Error
             ? error.message
             : "The exact WorkerOutputManifest is unavailable.",
+          error instanceof InteractionInputError ? error.issues : undefined,
+        );
+      }
+    },
+  );
+
+  app.get(
+    "/api/queries/projects/:projectId/work/:workUnitId/receipts",
+    async (context) => {
+      if (options.projectWorkReceipts === undefined) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_WORK_RECEIPTS_UNAVAILABLE",
+          "The retained Work receipt reader is not configured.",
+        );
+      }
+      if (
+        options.commandPrincipalResolver?.resolveAuthenticatedActor ===
+        undefined
+      ) {
+        return jsonError(
+          context,
+          503,
+          "PROJECT_WORK_RECEIPTS_UNAVAILABLE",
+          "Authenticated Work receipt reading is unavailable.",
+        );
+      }
+      try {
+        const parameters = new URL(context.req.url).searchParams;
+        if ([...parameters.keys()].length > 0) {
+          throw new InteractionInputError(
+            "Retained Work receipts do not accept query parameters.",
+            [...new Set(parameters.keys())],
+          );
+        }
+        const projectId = context.req.param("projectId");
+        const workUnitId = context.req.param("workUnitId");
+        if (
+          !PROJECT_ID_PATTERN.test(projectId) ||
+          !WORK_UNIT_ID_PATTERN.test(workUnitId)
+        ) {
+          throw new InteractionInputError(
+            "Retained Work receipts require canonical Project and WorkUnit identities.",
+          );
+        }
+        const principal =
+          await options.commandPrincipalResolver.resolveAuthenticatedActor();
+        if (
+          principal.state !== "resolved" ||
+          principal.actor.actor_kind !== "human"
+        ) {
+          return jsonError(
+            context,
+            403,
+            "PROJECT_WORK_RECEIPTS_NOT_AUTHORIZED",
+            "The authenticated Work receipt reader is not a registered human actor.",
+          );
+        }
+        const actor = {
+          actor_id: principal.actor.actor_id,
+          actor_kind: "human" as const,
+        };
+        const receipts =
+          await options.projectWorkReceipts.readRecentProjectWorkReceipts(
+            projectId,
+            workUnitId,
+            actor,
+          );
+        if (
+          receipts.length > 20 ||
+          new Set(receipts.map((receipt) => receipt.receipt_id)).size !==
+            receipts.length
+        ) {
+          throw new Error(
+            "The retained Work receipt list exceeded its bounded identity contract.",
+          );
+        }
+        for (const receipt of receipts) {
+          const schemaName =
+            receipt.schema_name === "petra.project-work-operation-receipt"
+              ? "project-work-operation-receipt"
+              : receipt.schema_name === "petra.project-work-resume-receipt"
+                ? "project-work-resume-receipt"
+                : "project-work-start-again-receipt";
+          contracts.assertValid(schemaName, "1.0.0", receipt);
+          const { record_hash: recordHash, ...base } = receipt;
+          const requestedId =
+            "requested_prior_work_unit_ref" in receipt
+              ? receipt.requested_prior_work_unit_ref.work_unit_id
+              : receipt.requested_work_unit_ref.work_unit_id;
+          if (
+            receipt.project_id !== projectId ||
+            requestedId !== workUnitId ||
+            receipt.actor.actor_id !== actor.actor_id ||
+            receipt.actor.actor_kind !== actor.actor_kind ||
+            recordHash !== communicationHash(base)
+          ) {
+            throw new Error(
+              "A retained Work receipt crossed its authenticated Project or WorkUnit boundary.",
+            );
+          }
+        }
+        context.header("Cache-Control", "no-store");
+        return context.json(receipts);
+      } catch (error) {
+        return jsonError(
+          context,
+          error instanceof InteractionInputError ? 422 : 503,
+          error instanceof InteractionInputError
+            ? "PROJECT_WORK_RECEIPTS_QUERY_INVALID"
+            : error instanceof ProjectWorkOperationError
+              ? error.code
+              : "PROJECT_WORK_RECEIPTS_READ_FAILED",
+          error instanceof Error
+            ? error.message
+            : "The retained Work receipts are unavailable.",
           error instanceof InteractionInputError ? error.issues : undefined,
         );
       }
@@ -10063,3 +10418,5 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
     },
   };
 };
+import { mountProjectCopilotRoutes } from "./project-copilot-routes.js";
+import type { ProjectCopilotService } from "./project-copilot.js";

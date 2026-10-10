@@ -1,0 +1,179 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-examination-view/1.0.0/schema.json",
+  "title": "PetraProjectExaminationView",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "project_id",
+    "graph",
+    "profile",
+    "policy",
+    "records",
+    "freshness",
+    "has_more",
+    "authorization",
+    "limitations",
+    "receipts"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.project-examination-view"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "graph": {
+      "$ref": "../../project-semantic-graph-view/1.0.0/schema.json"
+    },
+    "profile": {
+      "oneOf": [
+        {
+          "$ref": "../../assessment-profile/1.0.0/schema.json"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "policy": {
+      "oneOf": [
+        {
+          "$ref": "../../assessment-policy/1.0.0/schema.json"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "records": {
+      "type": "array",
+      "maxItems": 100,
+      "items": {
+        "oneOf": [
+          {
+            "$ref": "../../hypothesis/1.0.0/schema.json"
+          },
+          {
+            "$ref": "../../hypothesis-assessment/1.0.0/schema.json"
+          },
+          {
+            "$ref": "../../posture-decision/1.0.0/schema.json"
+          },
+          {
+            "$ref": "../../cycle-disposition/1.0.0/schema.json"
+          }
+        ]
+      }
+    },
+    "freshness": {
+      "type": "array",
+      "maxItems": 100,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "record_ref",
+          "state",
+          "affected_axes"
+        ],
+        "properties": {
+          "record_ref": {
+            "$ref": "../../hypothesis/1.0.0/schema.json#/properties/content/properties/target_claim_ref"
+          },
+          "state": {
+            "enum": [
+              "current",
+              "stale",
+              "invalidated",
+              "profile_unavailable"
+            ]
+          },
+          "affected_axes": {
+            "type": "array",
+            "maxItems": 8,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            }
+          }
+        }
+      }
+    },
+    "has_more": {
+      "type": "boolean"
+    },
+    "next_sequence": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9007199254740991
+    },
+    "authorization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "reason"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "available",
+            "unavailable"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        }
+      }
+    },
+    "limitations": {
+      "type": "array",
+      "maxItems": 30,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 2000
+      }
+    },
+    "receipts": {
+      "type": "array",
+      "maxItems": 100,
+      "items": {
+        "$ref": "../../project-examination-receipt/1.0.0/schema.json"
+      }
+    },
+    "owner_setup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "reason"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "available",
+            "unavailable"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        }
+      }
+    },
+    "scene": {
+      "$ref": "../../project-examination-scene/1.0.0/schema.json"
+    }
+  }
+}

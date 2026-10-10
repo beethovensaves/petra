@@ -1,0 +1,194 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/assessment-profile/1.0.0/schema.json",
+  "title": "PetraAssessmentProfile",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "assessment_profile_id",
+    "revision",
+    "content",
+    "content_hash",
+    "registered_at"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.assessment-profile"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "assessment_profile_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+    },
+    "revision": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+    },
+    "content": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "semantic_key",
+        "label",
+        "purpose",
+        "subject_schema",
+        "target_schema",
+        "criteria",
+        "finding_types",
+        "limitations"
+      ],
+      "properties": {
+        "semantic_key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "purpose": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "subject_schema": {
+          "const": "petra.hypothesis"
+        },
+        "target_schema": {
+          "const": "petra.claim"
+        },
+        "criteria": {
+          "type": "array",
+          "maxItems": 30,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "key",
+              "label",
+              "method",
+              "required_for_satisfied",
+              "permitted_origins",
+              "required_evidence_schemas"
+            ],
+            "properties": {
+              "key": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "method": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4000
+              },
+              "required_for_satisfied": {
+                "type": "boolean"
+              },
+              "permitted_origins": {
+                "type": "array",
+                "maxItems": 3,
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "human_judgment",
+                    "deterministic_rule",
+                    "model_proposal"
+                  ]
+                }
+              },
+              "required_evidence_schemas": {
+                "type": "array",
+                "maxItems": 10,
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                }
+              }
+            }
+          }
+        },
+        "finding_types": {
+          "type": "array",
+          "maxItems": 50,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "key",
+              "label",
+              "axis",
+              "permitted_summaries",
+              "criterion_keys"
+            ],
+            "properties": {
+              "key": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "axis": {
+                "type": "string",
+                "enum": [
+                  "warrant",
+                  "scientific_standing",
+                  "alternative_coverage",
+                  "project_dependence",
+                  "research_stakes"
+                ]
+              },
+              "permitted_summaries": {
+                "type": "array",
+                "maxItems": 20,
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                }
+              },
+              "criterion_keys": {
+                "type": "array",
+                "maxItems": 30,
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                }
+              }
+            }
+          }
+        },
+        "limitations": {
+          "type": "array",
+          "maxItems": 30,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          }
+        }
+      }
+    },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "registered_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  }
+}

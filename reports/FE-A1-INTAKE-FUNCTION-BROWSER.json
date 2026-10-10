@@ -1,0 +1,251 @@
+{
+  "status": "passed",
+  "verified_at": "2026-10-07T21:30:56.294Z",
+  "scope": "Production HTTP, PostgreSQL, official AG-UI, actual eligible managed model, browser intake Q&A, exact native definition review, atomic creation, lost response/reload, original discussion binding, empty-Project continuation and retained answers. This function proof is not complete A1 acceptance.",
+  "intake_session_id": "intake_session_3GPA5AFC3NAA06XRHTWM5FDH34",
+  "project_id": "project_4GNM3G166Z7RCBSW5K6TXZ3XZ9",
+  "provider_model": "gpt-6-astra",
+  "runtime": {
+    "codex_version": "codex-cli 0.154.0",
+    "adapter_hash": "sha256:4bce560a231caa2a105a195c404da947854a4a266ed7a0f93458865670c9e6a6",
+    "copilot_core_hash": "sha256:18e549658e6dd6198880fd011920a024b3a7a2104b1a6a9562a7a20fce058120",
+    "intake_core_hash": "sha256:8293caf3f4cf50d0a08537ef0f15bf82a37bd2e1ffb3791f0c16954aa5a44f5f",
+    "provider_adapter_hash": "sha256:e34e578644a37fec1af6e44e4c5528cf85179d63252cdf1bcbc056d33cf41fe3"
+  },
+  "intake_turn": {
+    "run_id": "run_15XFFY7Q670C6KAV0PRV8KVM0W",
+    "context": {
+      "content": {
+        "records": [],
+        "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+        "authority": "pre_project_advice_only",
+        "limitations": [
+          "This is the original pre-creation discussion. It contains no Project evidence. Discussion and a proposed definition carry advisory authority only; creation requires a separate exact human review.",
+          "Only selected user wording and the bounded discussion enter the acknowledged managed provider. No files or Project sources are included.",
+          "This owner-only immutable session permits at most 20 new question runs, with at most 12 prior turns and 48 KB of history, a 160 KB input and a 120 second call budget. Per-call price is unavailable. No call is retried automatically."
+        ],
+        "policy_hash": "sha256:b5e5a35398db04e17589a0440afcc9a38951d765869f8fbfa6f9c6f7f3e1f3f4",
+        "outcome_wording": null,
+        "intake_session_id": "intake_session_3GPA5AFC3NAA06XRHTWM5FDH34",
+        "session_record_hash": "sha256:16d5f0a320273248f90aa473e51209601377c614a04ad16722d164cceb5e6efd",
+        "definition_draft_ref": null
+      },
+      "schema_name": "petra.intake-copilot-context",
+      "content_hash": "sha256:27972a6a79809fd258843ae521c396db6df7ab6974b5f0394ce7f4fc190a372a",
+      "schema_version": "1.0.0"
+    },
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "question": "Synthetic A1 inspection: help me plan a neighborhood volunteer checklist for families, with a $500 budget and an indoor rain option. What consequential choices need clarification before I review a Project?",
+    "thread_id": "thread_46AG5P07VA4E7WG3VF2TRP4EXH",
+    "started_at": "2026-10-07T21:30:21.058Z",
+    "instance_id": "copilot_instance_71D0BF6CFXSRXT6BPX7AD91KZP",
+    "schema_name": "petra.intake-copilot-turn",
+    "request_hash": "sha256:bfead75059c0fbc44ada5a857c1856da85d4172bbea856253913a6e127f29359",
+    "parent_run_id": null,
+    "schema_version": "1.0.0",
+    "intake_session_id": "intake_session_3GPA5AFC3NAA06XRHTWM5FDH34",
+    "terminal": {
+      "model": "gpt-6-astra",
+      "state": "completed",
+      "output": {
+        "blocks": [
+          {
+            "kind": "question",
+            "text": "Before proposing an outcome for your “neighborhood volunteer checklist for families,” these choices need clarification:\n\n1. Purpose: Is this a checklist for organizing a volunteer event, or for families choosing and doing volunteer tasks? What should it help them accomplish?\n2. Audience: Who will use it—organizers, parents, or children? How many families and what age ranges should it accommodate?\n3. Scope: What volunteer activities, neighborhood, date, and duration do you have in mind?\n4. Budget: Is $500 an all-in cap? Must it cover supplies, food, venue, transport, or other costs? Are any donated resources already available?\n5. Rain option: Should the same activity move indoors, or should there be a different indoor activity? Is a suitable space available, with sufficient capacity and accessibility?\n6. Safety and responsibilities: What supervision, accessibility, allergy, safeguarding, venue-permission, or activity-specific constraints should the checklist address, and who will confirm them?\n7. Inputs and output: Do you have activity details or venue rules to supply? Do you want a printable family checklist, an organizer checklist with assignments, a budget breakdown, or a combination?",
+            "citations": []
+          },
+          {
+            "kind": "advice",
+            "text": "Planning wording should distinguish confirmed arrangements from items someone still needs to check. Any proposed outcome would remain for human review—not an approved definition or a created Project.",
+            "citations": []
+          }
+        ],
+        "authority": "advisory_only",
+        "focus_keys": [],
+        "schema_name": "petra.copilot-output",
+        "schema_version": "1.0.0"
+      },
+      "finished_at": "2026-10-07T21:30:37.167Z",
+      "provider_turn_id": "01a11846-46c9-7613-91d4-fd8bf439bd19",
+      "provider_thread_id": "01a11846-4674-7371-8e44-a70ea3691002"
+    },
+    "input_manifest": {
+      "content": {
+        "run_id": "run_15XFFY7Q670C6KAV0PRV8KVM0W",
+        "history": [],
+        "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+        "authority": "advisory_input_only",
+        "thread_id": "thread_46AG5P07VA4E7WG3VF2TRP4EXH",
+        "input_bytes": 1415,
+        "prepared_at": "2026-10-07T21:30:21.078Z",
+        "context_hash": "sha256:27972a6a79809fd258843ae521c396db6df7ab6974b5f0394ce7f4fc190a372a",
+        "profile_hash": "sha256:814bae2ebe4f3932a96ff499c5cd1ee46c1a0bb0416bff71d5a3b22a5bc8940f",
+        "history_bytes": 2,
+        "intake_session_id": "intake_session_3GPA5AFC3NAA06XRHTWM5FDH34",
+        "input_payload_hash": "sha256:07d8a0b040c97eca42e77976a00f85357e849a978bd733ef21e8bcd089fafc62",
+        "included_history_count": 0,
+        "retained_history_count": 0
+      },
+      "schema_name": "petra.intake-copilot-input-manifest",
+      "content_hash": "sha256:4684801e8449a7d1cf1d69aa122e73a3a32a8b1bf97c88ed3c4ea42c1cadf6d4",
+      "schema_version": "1.0.0"
+    }
+  },
+  "binding": {
+    "content": {
+      "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+      "bound_at": "2026-10-07T21:30:40.956Z",
+      "authority": "human_reviewed_creation_binding",
+      "project_id": "project_4GNM3G166Z7RCBSW5K6TXZ3XZ9",
+      "original_turns": [
+        {
+          "run_id": "run_15XFFY7Q670C6KAV0PRV8KVM0W",
+          "record_hash": "sha256:4cdf2783ed0e75cf32fcd5240812b232bd6cd96aa6f06893cd5dd7719b0f39fc",
+          "terminal_hash": "sha256:5d5e2695ed063bc6c67ec9318ad7fd8b6cbac57e3d376e5c2d51f181c6a0db38"
+        }
+      ],
+      "project_thread_id": "thread_417PHGY55GKB1GRA9ZVV8W75SB",
+      "intake_session_ref": {
+        "revision": 1,
+        "record_id": "intake_session_3GPA5AFC3NAA06XRHTWM5FDH34",
+        "record_hash": "sha256:16d5f0a320273248f90aa473e51209601377c614a04ad16722d164cceb5e6efd"
+      },
+      "creation_command_id": "command_01M4C4D4JN2WDG6583FA70K1F7",
+      "creation_receipt_hash": "sha256:e216045a11a2d1207ce871bb14da5c13b64860b0f42110e2b28d4ba090a7b1fb",
+      "definition_draft_hash": "sha256:8b3490169a7d47ac470801f6f1edf4cca2cdb3e27806a3225dc3db7e6943155e"
+    },
+    "schema_name": "petra.intake-project-binding",
+    "content_hash": "sha256:516ee0331aca59b961ff34044eb9416edd351eee1849da61459cfc75dd1b1289",
+    "schema_version": "1.0.0"
+  },
+  "created_project_turn": {
+    "run_id": "run_4ZGFT7FXM154QR08T178KCE1N8",
+    "context": {
+      "basis": {
+        "objective": {
+          "revision": 1,
+          "record_id": "objective_0YK8W4VBK9GWDB1NTQ37WBNVSF",
+          "content_hash": "sha256:8cb3ce4a8387caef06631f09854284fcde878e57b1f2828ca08d5b88e1011fc2"
+        },
+        "definition": {
+          "revision": 1,
+          "record_id": "project_definition_1YVF468MMHV3NMMRZ6W26Z5AXT",
+          "content_hash": "sha256:81f8cda949a62f2ff9dc453bd0b53a82cf12a8599ad17003ff43a2271cca6bcb"
+        },
+        "event_position": 15,
+        "stream_revision": 0,
+        "project_revision": 1
+      },
+      "records": [
+        {
+          "key": "pre-creation-discussion",
+          "ref": {
+            "revision": 1,
+            "record_id": "intake_session_3GPA5AFC3NAA06XRHTWM5FDH34",
+            "record_hash": "sha256:16d5f0a320273248f90aa473e51209601377c614a04ad16722d164cceb5e6efd"
+          },
+          "kind": "pre_project_discussion",
+          "text": "{\"authority\":\"pre_project_advice_only\",\"creation_binding_hash\":\"sha256:128d5d5ff1f44c2f43fa2e8451fa5433246d8a6fedbead443c498680809fa5da\",\"retained_turn_count\":1,\"included_turn_count\":1,\"discussion\":[{\"run_id\":\"run_15XFFY7Q670C6KAV0PRV8KVM0W\",\"user_wording\":\"Synthetic A1 inspection: help me plan a neighborhood volunteer checklist for families, with a $500 budget and an indoor rain option. What consequential choices need clarification before I review a Project?\",\"advisory_answer\":{\"blocks\":[{\"kind\":\"question\",\"text\":\"Before proposing an outcome for your “neighborhood volunteer checklist for families,” these choices need clarification:\\n\\n1. Purpose: Is this a checklist for organizing a volunteer event, or for families choosing and doing volunteer tasks? What should it help them accomplish?\\n2. Audience: Who will use it—organizers, parents, or children? How many families and what age ranges should it accommodate?\\n3. Scope: What volunteer activities, neighborhood, date, and duration do you have in mind?\\n4. Budget: Is $500 an all-in cap? Must it cover supplies, food, venue, transport, or other costs? Are any donated resources already available?\\n5. Rain option: Should the same activity move indoors, or should there be a different indoor activity? Is a suitable space available, with sufficient capacity and accessibility?\\n6. Safety and responsibilities: What supervision, accessibility, allergy, safeguarding, venue-permission, or activity-specific constraints should the checklist address, and who will confirm them?\\n7. Inputs and output: Do you have activity details or venue rules to supply? Do you want a printable family checklist, an organizer checklist with assignments, a budget breakdown, or a combination?\",\"citations\":[]},{\"kind\":\"advice\",\"text\":\"Planning wording should distinguish confirmed arrangements from items someone still needs to check. Any proposed outcome would remain for human review—not an approved definition or a created Project.\",\"citations\":[]}],\"authority\":\"advisory_only\",\"focus_keys\":[],\"schema_name\":\"petra.copilot-output\",\"schema_version\":\"1.0.0\"},\"outcome\":\"completed\"}]}",
+          "label": "Original user wording and pre-creation advice",
+          "destination": "/projects/project_4GNM3G166Z7RCBSW5K6TXZ3XZ9/brief#copilot-intake-origin"
+        },
+        {
+          "key": "scene:30d12a7e4c914227",
+          "ref": {
+            "revision": 1,
+            "record_id": "graph_scene_3KH9X2CTHBCETMPBCHRY1MPRV6",
+            "record_hash": "sha256:df0cb0786bb1b661b706b313af0b1fa65ed5c6b419ec4464522500263f6138ff"
+          },
+          "kind": "project-examination-scene",
+          "text": "{\"scene_content_hash\":\"sha256:30d12a7e4c9142277cef5e9f045c09d7334fdeff258936078958d1d1c778d2b0\",\"graph_content_hash\":\"sha256:96d0674b7404a52ec8aed99fa803bad2b627cab0ea02586b2f2548df6e6c877f\",\"nodes\":[],\"relationships\":[],\"omitted_nodes\":0,\"omitted_relationships\":0,\"has_more_history\":false,\"limitations\":[\"This is a bounded derived scene of exact native material and retained examination lineage. Drawing a link creates no new relationship, verification, permission, or completed Work.\",\"Reference nodes may lie outside this history page or current working graph. Currentness is computed against the examined graph; earlier assessment content remains immutable.\",\"Only explicit criteria evidence and recorded obligation evidence form evidence links. Labels and layout provide navigation, never scientific support.\"],\"disclosure\":\"Exact identities and paths selected from the local scene. Native labels and any omitted nodes or paths are withheld; no support is inferred from layout.\"}",
+          "label": "Examination lineage semantic result",
+          "destination": "/projects/project_4GNM3G166Z7RCBSW5K6TXZ3XZ9/graph"
+        }
+      ],
+      "project_id": "project_4GNM3G166Z7RCBSW5K6TXZ3XZ9",
+      "limitations": [
+        "This role is advisory. Its answer creates no Project facts, permission, approval, assessment, closure, or completed Work.",
+        "Context contains a bounded selection of authorized current record summaries and working material. It is not an exhaustive evidence search or the complete bytes of a Source.",
+        "Managed model execution uses the registered remote provider; Project routing preferences and per-call price accounting are not available through this role.",
+        "The original pre-creation discussion is untrusted user wording and advisory answers, not Project evidence, an approved definition or a domain examination. Its excerpt preserves whole turns and declares omissions.",
+        "Native working records are included as exact-schema excerpts. Their candidacy, stale definition basis, and lack of domain authority remain explicit. Only the first 40 working objects are selected.",
+        "The examined graph basis is sha256:96d0674b7404a52ec8aed99fa803bad2b627cab0ea02586b2f2548df6e6c877f. Only 0 retained examination records from one bounded history page are selected; more history: false. Human assessment, posture and disposition records retain their own authority. They do not establish Work success or permit the copilot to act.",
+        "No registered graph evidence selection is currently available for this Project."
+      ],
+      "schema_name": "petra.copilot-context",
+      "content_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+      "project_label": "Plan a neighborhood volunteer checklist for families, with a $500 budget and an indoor rain option.",
+      "schema_version": "1.0.0",
+      "definition_family": "petra.project-authored",
+      "objective_statement": "Plan a neighborhood volunteer checklist for families, with a $500 budget and an indoor rain option."
+    },
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "question": "Synthetic A1 inspection: which uncertainty in our original discussion remains unresolved? Do not invent source evidence or claim a completed task.",
+    "thread_id": "thread_417PHGY55GKB1GRA9ZVV8W75SB",
+    "focus_keys": [],
+    "project_id": "project_4GNM3G166Z7RCBSW5K6TXZ3XZ9",
+    "started_at": "2026-10-07T21:30:45.522Z",
+    "instance_id": "copilot_instance_2BGF49Q0CMNYQXR0M3HS3FWQ74",
+    "schema_name": "petra.copilot-turn",
+    "request_hash": "sha256:23f289e924639483dfa3a4adb60f0ba28bdc4294745c254a115613acd491fb72",
+    "parent_run_id": null,
+    "schema_version": "1.0.0",
+    "terminal": {
+      "model": "gpt-6-astra",
+      "state": "completed",
+      "output": {
+        "blocks": [
+          {
+            "kind": "inference",
+            "text": "Based on the supplied original discussion, the central unresolved uncertainty appears to be the checklist’s purpose: is it for organizers planning a volunteer event, or for families choosing and carrying out volunteer tasks? No answer is supplied. Audience, activities and timing, budget coverage, indoor venue, safety responsibilities, and output format also appear unresolved.",
+            "citations": [
+              "pre-creation-discussion"
+            ]
+          },
+          {
+            "kind": "question",
+            "text": "Should the checklist primarily serve event organizers, participating families, or both?",
+            "citations": []
+          }
+        ],
+        "authority": "advisory_only",
+        "focus_keys": [
+          "pre-creation-discussion"
+        ],
+        "schema_name": "petra.copilot-output",
+        "schema_version": "1.0.0"
+      },
+      "finished_at": "2026-10-07T21:30:52.775Z",
+      "provider_turn_id": "01a11846-a5d2-7851-b3ea-a73651561172",
+      "provider_thread_id": "01a11846-a5b0-7921-abe8-e28951acc037"
+    },
+    "input_manifest": {
+      "content": {
+        "run_id": "run_4ZGFT7FXM154QR08T178KCE1N8",
+        "history": [],
+        "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+        "authority": "advisory_input_only",
+        "thread_id": "thread_417PHGY55GKB1GRA9ZVV8W75SB",
+        "project_id": "project_4GNM3G166Z7RCBSW5K6TXZ3XZ9",
+        "input_bytes": 6407,
+        "prepared_at": "2026-10-07T21:30:45.541Z",
+        "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+        "profile_hash": "sha256:39706626f815827e098a83c9a842900f73c9fe58c38f03688cfd48a08c51e00d",
+        "history_bytes": 2,
+        "input_payload_hash": "sha256:d09ec3a7d6f31b03d19e5ab959ff7009a347c573ec6f3e2ebea0973beb14209a",
+        "context_record_keys": [
+          "pre-creation-discussion",
+          "scene:30d12a7e4c914227"
+        ],
+        "history_query_limit": 200,
+        "excluded_history_count": 0,
+        "retained_history_count": 0,
+        "history_query_may_have_omissions": false
+      },
+      "schema_name": "petra.copilot-input-manifest",
+      "content_hash": "sha256:11b011746d7aa508f230e99c75975a8b55300c78ef0301f74baa1b3053dada94",
+      "schema_version": "1.0.0"
+    }
+  },
+  "browser_errors": []
+}

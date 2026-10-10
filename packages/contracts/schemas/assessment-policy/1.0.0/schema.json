@@ -1,0 +1,142 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/assessment-policy/1.0.0/schema.json",
+  "title": "PetraAssessmentPolicy",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "assessment_policy_id",
+    "revision",
+    "content",
+    "content_hash",
+    "registered_at"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.assessment-policy"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "assessment_policy_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+    },
+    "revision": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+    },
+    "content": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "semantic_key",
+        "label",
+        "profile_ref",
+        "activation",
+        "allowed_dispositions",
+        "obligation_types",
+        "waiver_policy",
+        "numerical_rules",
+        "limitations"
+      ],
+      "properties": {
+        "semantic_key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "profile_ref": {
+          "$ref": "../../hypothesis/1.0.0/schema.json#/properties/content/properties/target_claim_ref"
+        },
+        "activation": {
+          "const": "authorized_human_review"
+        },
+        "allowed_dispositions": {
+          "type": "array",
+          "maxItems": 6,
+          "items": {
+            "type": "string",
+            "enum": [
+              "supporting_within_scope",
+              "challenging_within_scope",
+              "mixed",
+              "insufficient",
+              "deferred",
+              "further_cycle"
+            ]
+          }
+        },
+        "obligation_types": {
+          "type": "array",
+          "maxItems": 30,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "key",
+              "label",
+              "criterion_keys",
+              "enforcement"
+            ],
+            "properties": {
+              "key": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "criterion_keys": {
+                "type": "array",
+                "maxItems": 30,
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                }
+              },
+              "enforcement": {
+                "type": "string",
+                "enum": [
+                  "advisory",
+                  "required_for_transition",
+                  "required_for_action"
+                ]
+              }
+            }
+          }
+        },
+        "waiver_policy": {
+          "const": "unavailable"
+        },
+        "numerical_rules": {
+          "const": "unavailable"
+        },
+        "limitations": {
+          "type": "array",
+          "maxItems": 30,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          }
+        }
+      }
+    },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "registered_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  }
+}

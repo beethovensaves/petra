@@ -102,6 +102,20 @@ export type {
   Term as ProjectDefinitionTerm,
 } from "./generated/project-definition.js";
 export type {
+  InitialMaterial as ProjectDefinitionDraftInitialMaterial,
+  PetraProjectDefinitionDraftRequest,
+} from "./generated/project-definition-draft-request.js";
+export type {
+  Assumption as ProjectDefinitionDraftAssumption,
+  DraftContent as ProjectDefinitionDraftContent,
+  InitialMaterialPlan as ProjectDefinitionDraftInitialMaterialPlan,
+  PetraProjectDefinitionDraftView,
+  SelectedCapability as ProjectDefinitionDraftSelectedCapability,
+  UnsupportedCapability as ProjectDefinitionDraftUnsupportedCapability,
+} from "./generated/project-definition-draft-view.js";
+export type { PetraProjectDefinitionDraftCommandRequest as PetraProjectDefinitionDraftCommandRequestV10 } from "./generated/project-definition-draft-command-request.js";
+export type { PetraProjectDefinitionDraftCommandReceipt } from "./generated/project-definition-draft-command-receipt.js";
+export type {
   ObjectiveContent as ProjectObjectiveContent,
   ObjectiveRef as ProjectObjectiveRef,
   PetraProjectObjective,
@@ -1610,6 +1624,7 @@ import type { PetraCapabilityGrantV1110 } from "./generated/capability-grant-v1-
 import type { PetraCapabilityGrantV1120 } from "./generated/capability-grant-v1-12.js";
 import type { PetraCapabilityGrantV1130 } from "./generated/capability-grant-v1-13.js";
 import type { PetraCapabilityGrantV1140 } from "./generated/capability-grant-v1-14.js";
+import type { PetraCapabilityGrantV1160 } from "./generated/capability-grant-v1-16.js";
 import type { PetraCapabilityGrantV1150 } from "./generated/capability-grant-v1-15.js";
 import type { PetraCommandEnvelope } from "./generated/command-envelope.js";
 import type { PetraCommandEnvelopeV110 } from "./generated/command-envelope-v1-1.js";
@@ -1647,7 +1662,8 @@ export type PetraCapabilityGrantRecord =
   | PetraCapabilityGrantV1120
   | PetraCapabilityGrantV1130
   | PetraCapabilityGrantV1140
-  | PetraCapabilityGrantV1150;
+  | PetraCapabilityGrantV1150
+  | PetraCapabilityGrantV1160;
 export type PetraCommandEnvelopeRecord =
   PetraCommandEnvelope | PetraCommandEnvelopeV110;
 export type PetraDomainEventRecord =
@@ -1697,3 +1713,53 @@ export type {
   PetraCommunicationValidationReceipt,
   CommunicationCheck,
 } from "./generated/communication-validation-receipt.js";
+export type { PetraCopilotContext } from "./generated/copilot-context.js";
+export type { PetraCopilotOutput } from "./generated/copilot-output.js";
+export type { PetraCopilotRequest } from "./generated/copilot-request.js";
+export type { PetraCopilotTurn } from "./generated/copilot-turn.js";
+export type { PetraProjectSemanticGraphView } from "./generated/project-semantic-graph-view.js";
+
+export type { PetraHypothesis } from "./generated/hypothesis.js";
+
+export type { PetraHypothesisAssessment } from "./generated/hypothesis-assessment.js";
+
+export type { PetraPostureDecision } from "./generated/posture-decision.js";
+
+export type { PetraCycleDisposition } from "./generated/cycle-disposition.js";
+
+export type { PetraCapabilityGrantV1160 } from "./generated/capability-grant-v1-16.js";
+export type { PetraAssessmentProfile } from "./generated/assessment-profile.js";
+export type { PetraAssessmentPolicy } from "./generated/assessment-policy.js";
+export type { PetraProjectExaminationRequest } from "./generated/project-examination-request.js";
+export type { PetraProjectExaminationReceipt } from "./generated/project-examination-receipt.js";
+
+export type { PetraProjectExaminationView } from "./generated/project-examination-view.js";
+
+export type { PetraProjectExaminationAuthorityRequest } from "./generated/project-examination-authority-request.js";
+
+export type { PetraProjectExaminationAuthorityReceipt } from "./generated/project-examination-authority-receipt.js";
+
+export type { PetraProjectExaminationScene } from "./generated/project-examination-scene.js";
+
+export type { PetraCopilotInputManifest } from "./generated/copilot-input-manifest.js";
+
+export type { PetraGraphPresentationContext } from "./generated/graph-presentation-context.js";
+
+export type { PetraCopilotRequestV11 } from "./generated/copilot-request-v1-1.js";
+
+export type { PetraCopilotTurnV11 } from "./generated/copilot-turn-v1-1.js";
+
+export type { PetraIntakeCopilotSession } from "./generated/intake-copilot-session.js";
+
+export type { PetraIntakeCopilotContext } from "./generated/intake-copilot-context.js";
+
+export type { PetraIntakeCopilotInputManifest } from "./generated/intake-copilot-input-manifest.js";
+
+export type { PetraIntakeProjectBinding } from "./generated/intake-project-binding.js";
+
+export type { PetraIntakeCopilotTurn } from "./generated/intake-copilot-turn.js";
+
+export type { PetraIntakeCopilotRequest } from "./generated/intake-copilot-request.js";
+
+export type { PetraProjectDefinitionDraftCommandRequestV11 } from "./generated/project-definition-draft-command-request-v1-1.js";
+export type PetraProjectDefinitionDraftCommandRequest = import("./generated/project-definition-draft-command-request.js").PetraProjectDefinitionDraftCommandRequest | import("./generated/project-definition-draft-command-request-v1-1.js").PetraProjectDefinitionDraftCommandRequestV11;

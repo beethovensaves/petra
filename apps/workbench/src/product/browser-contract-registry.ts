@@ -1,3 +1,29 @@
+import ProjectDefinitionDraftCommandRequestV11Schema from "../../../../packages/contracts/schemas/project-definition-draft-command-request/1.1.0/schema.json";
+import IntakeProjectBindingSchema from "../../../../packages/contracts/schemas/intake-project-binding/1.0.0/schema.json";
+import IntakeCopilotInputManifestSchema from "../../../../packages/contracts/schemas/intake-copilot-input-manifest/1.0.0/schema.json";
+import IntakeCopilotRequestSchema from "../../../../packages/contracts/schemas/intake-copilot-request/1.0.0/schema.json";
+import IntakeCopilotTurnSchema from "../../../../packages/contracts/schemas/intake-copilot-turn/1.0.0/schema.json";
+import IntakeCopilotContextSchema from "../../../../packages/contracts/schemas/intake-copilot-context/1.0.0/schema.json";
+import IntakeCopilotSessionSchema from "../../../../packages/contracts/schemas/intake-copilot-session/1.0.0/schema.json";
+import copilotRequestV11Schema from "../../../../packages/contracts/schemas/copilot-request/1.1.0/schema.json";
+import copilotTurnV11Schema from "../../../../packages/contracts/schemas/copilot-turn/1.1.0/schema.json";
+import graphPresentationSchema from "../../../../packages/contracts/schemas/graph-presentation-context/1.0.0/schema.json";
+import CopilotInputManifestSchema from "../../../../packages/contracts/schemas/copilot-input-manifest/1.0.0/schema.json";
+import CapabilityGrantV116Schema from "../../../../packages/contracts/schemas/capability-grant/1.16.0/schema.json";
+import ProjectExaminationAuthorityReceiptSchema from "../../../../packages/contracts/schemas/project-examination-authority-receipt/1.0.0/schema.json";
+import ProjectExaminationAuthorityRequestSchema from "../../../../packages/contracts/schemas/project-examination-authority-request/1.0.0/schema.json";
+import ProjectExaminationSceneSchema from "../../../../packages/contracts/schemas/project-examination-scene/1.0.0/schema.json";
+import HypothesisSchema from "../../../../packages/contracts/schemas/hypothesis/1.0.0/schema.json";
+import HypothesisAssessmentSchema from "../../../../packages/contracts/schemas/hypothesis-assessment/1.0.0/schema.json";
+import PostureDecisionSchema from "../../../../packages/contracts/schemas/posture-decision/1.0.0/schema.json";
+import CycleDispositionSchema from "../../../../packages/contracts/schemas/cycle-disposition/1.0.0/schema.json";
+import AssessmentProfileSchema from "../../../../packages/contracts/schemas/assessment-profile/1.0.0/schema.json";
+import AssessmentPolicySchema from "../../../../packages/contracts/schemas/assessment-policy/1.0.0/schema.json";
+import ProjectExaminationRequestSchema from "../../../../packages/contracts/schemas/project-examination-request/1.0.0/schema.json";
+import ProjectExaminationReceiptSchema from "../../../../packages/contracts/schemas/project-examination-receipt/1.0.0/schema.json";
+import ProjectExaminationViewSchema from "../../../../packages/contracts/schemas/project-examination-view/1.0.0/schema.json";
+import semanticGraphSchema from "../../../../packages/contracts/schemas/project-semantic-graph-view/1.0.0/schema.json";
+import copilotTurnSchema from "../../../../packages/contracts/schemas/copilot-turn/1.0.0/schema.json";
 import briefWorkerOutputManifestV100Schema from "../../../../packages/contracts/schemas/worker-output-manifest/1.0.0/schema.json";
 import briefWorkerInputManifestV100Schema from "../../../../packages/contracts/schemas/worker-input-manifest/1.0.0/schema.json";
 import briefWorkUnitV100Schema from "../../../../packages/contracts/schemas/work-unit/1.0.0/schema.json";
@@ -83,6 +109,10 @@ import projectModelReadinessViewSchema from "../../../../packages/contracts/sche
 import projectProfileCommandRequestSchema from "../../../../packages/contracts/schemas/project-profile-command-request/1.0.0/schema.json";
 import projectProfileCommandReceiptSchema from "../../../../packages/contracts/schemas/project-profile-command-receipt/1.0.0/schema.json";
 import projectProfileCommandRecoveryViewSchema from "../../../../packages/contracts/schemas/project-profile-command-recovery-view/1.0.0/schema.json";
+import projectDefinitionDraftRequestSchema from "../../../../packages/contracts/schemas/project-definition-draft-request/1.0.0/schema.json";
+import projectDefinitionDraftViewSchema from "../../../../packages/contracts/schemas/project-definition-draft-view/1.0.0/schema.json";
+import projectDefinitionDraftCommandRequestSchema from "../../../../packages/contracts/schemas/project-definition-draft-command-request/1.0.0/schema.json";
+import projectDefinitionDraftCommandReceiptSchema from "../../../../packages/contracts/schemas/project-definition-draft-command-receipt/1.0.0/schema.json";
 import projectImportCommandRequestSchema from "../../../../packages/contracts/schemas/project-import-command-request/1.0.0/schema.json";
 import projectImportCommandReceiptSchema from "../../../../packages/contracts/schemas/project-import-command-receipt/1.0.0/schema.json";
 import projectImportCommandRecoveryViewSchema from "../../../../packages/contracts/schemas/project-import-command-recovery-view/1.0.0/schema.json";
@@ -133,6 +163,35 @@ import historyImpactV12Schema from "../../../../packages/contracts/schemas/proje
 import historyImpactV14Schema from "../../../../packages/contracts/schemas/project-history-impact-view/1.4.0/schema.json";
 
 type BrowserContractName =
+  | "project-definition-draft-command-request@1.1.0"
+  | "intake-project-binding@1.0.0"
+  | "intake-copilot-input-manifest@1.0.0"
+  | "intake-copilot-request@1.0.0"
+  | "intake-copilot-turn@1.0.0"
+  | "intake-copilot-context@1.0.0"
+  | "intake-copilot-session@1.0.0"
+  | "project-semantic-graph-view@1.0.0"
+  | "hypothesis@1.0.0"
+  | "hypothesis-assessment@1.0.0"
+  | "posture-decision@1.0.0"
+  | "cycle-disposition@1.0.0"
+  | "assessment-profile@1.0.0"
+  | "assessment-policy@1.0.0"
+  | "project-examination-request@1.0.0"
+  | "project-examination-receipt@1.0.0"
+  | "project-examination-scene@1.0.0"
+  | "project-examination-authority-request@1.0.0"
+  | "project-examination-authority-receipt@1.0.0"
+  | "capability-grant@1.16.0"
+  | "copilot-input-manifest@1.0.0"
+  | "project-examination-view@1.0.0"
+  | "graph-presentation-context@1.0.0"
+  | "copilot-turn@1.1.0"
+  | "copilot-request@1.1.0"
+  | "copilot-turn@1.0.0"
+  | "copilot-context@1.0.0"
+  | "copilot-output@1.0.0"
+  | "copilot-request@1.0.0"
   | "communication-plan@1.0.0"
   | "focused-graph-analysis-view@1.0.0"
   | "focused-graph-action-preview-view@1.0.0"
@@ -173,6 +232,10 @@ type BrowserContractName =
   | "project-profile-command-request@1.0.0"
   | "project-profile-command-receipt@1.0.0"
   | "project-profile-command-recovery-view@1.0.0"
+  | "project-definition-draft-request@1.0.0"
+  | "project-definition-draft-view@1.0.0"
+  | "project-definition-draft-command-request@1.0.0"
+  | "project-definition-draft-command-receipt@1.0.0"
   | "project-import-command-request@1.0.0"
   | "project-import-command-receipt@1.0.0"
   | "project-import-command-recovery-view@1.0.0"
@@ -228,6 +291,36 @@ const definitionDependency = <
 });
 
 const schemas = [
+  ProjectDefinitionDraftCommandRequestV11Schema,
+  IntakeProjectBindingSchema,
+  IntakeCopilotInputManifestSchema,
+  IntakeCopilotRequestSchema,
+  IntakeCopilotTurnSchema,
+  IntakeCopilotContextSchema,
+  IntakeCopilotSessionSchema,
+  copilotRequestV11Schema,
+  copilotTurnV11Schema,
+  graphPresentationSchema,
+  HypothesisSchema,
+  HypothesisAssessmentSchema,
+  PostureDecisionSchema,
+  CycleDispositionSchema,
+  AssessmentProfileSchema,
+  AssessmentPolicySchema,
+  ProjectExaminationRequestSchema,
+  ProjectExaminationReceiptSchema,
+  ProjectExaminationSceneSchema,
+  ProjectExaminationAuthorityRequestSchema,
+  ProjectExaminationAuthorityReceiptSchema,
+  CapabilityGrantV116Schema,
+  CopilotInputManifestSchema,
+  ProjectExaminationViewSchema,
+
+  semanticGraphSchema,
+  copilotTurnSchema,
+  copilotContextSchema,
+  copilotOutputSchema,
+  copilotRequestSchema,
   actorSchema,
   artifactSchema,
   communicationValidationReceiptSchema,
@@ -289,6 +382,10 @@ const schemas = [
   projectProfileCommandRequestSchema,
   projectProfileCommandReceiptSchema,
   projectProfileCommandRecoveryViewSchema,
+  projectDefinitionDraftRequestSchema,
+  projectDefinitionDraftViewSchema,
+  projectDefinitionDraftCommandRequestSchema,
+  projectDefinitionDraftCommandReceiptSchema,
   projectImportCommandRequestSchema,
   projectImportCommandReceiptSchema,
   projectImportCommandRecoveryViewSchema,
@@ -360,6 +457,38 @@ const schemas = [
 ] as const;
 
 const contractIds: Record<BrowserContractName, string> = {
+  "project-definition-draft-command-request@1.1.0":
+    ProjectDefinitionDraftCommandRequestV11Schema.$id,
+  "intake-project-binding@1.0.0": IntakeProjectBindingSchema.$id,
+  "intake-copilot-input-manifest@1.0.0": IntakeCopilotInputManifestSchema.$id,
+  "intake-copilot-request@1.0.0": IntakeCopilotRequestSchema.$id,
+  "intake-copilot-turn@1.0.0": IntakeCopilotTurnSchema.$id,
+  "intake-copilot-context@1.0.0": IntakeCopilotContextSchema.$id,
+  "intake-copilot-session@1.0.0": IntakeCopilotSessionSchema.$id,
+  "project-semantic-graph-view@1.0.0": semanticGraphSchema.$id,
+  "hypothesis@1.0.0": HypothesisSchema.$id,
+  "hypothesis-assessment@1.0.0": HypothesisAssessmentSchema.$id,
+  "posture-decision@1.0.0": PostureDecisionSchema.$id,
+  "cycle-disposition@1.0.0": CycleDispositionSchema.$id,
+  "assessment-profile@1.0.0": AssessmentProfileSchema.$id,
+  "assessment-policy@1.0.0": AssessmentPolicySchema.$id,
+  "project-examination-request@1.0.0": ProjectExaminationRequestSchema.$id,
+  "project-examination-receipt@1.0.0": ProjectExaminationReceiptSchema.$id,
+  "project-examination-scene@1.0.0": ProjectExaminationSceneSchema.$id,
+  "project-examination-authority-request@1.0.0":
+    ProjectExaminationAuthorityRequestSchema.$id,
+  "project-examination-authority-receipt@1.0.0":
+    ProjectExaminationAuthorityReceiptSchema.$id,
+  "capability-grant@1.16.0": CapabilityGrantV116Schema.$id,
+  "copilot-input-manifest@1.0.0": CopilotInputManifestSchema.$id,
+  "project-examination-view@1.0.0": ProjectExaminationViewSchema.$id,
+  "graph-presentation-context@1.0.0": graphPresentationSchema.$id,
+  "copilot-turn@1.1.0": copilotTurnV11Schema.$id,
+  "copilot-request@1.1.0": copilotRequestV11Schema.$id,
+  "copilot-turn@1.0.0": copilotTurnSchema.$id,
+  "copilot-context@1.0.0": copilotContextSchema.$id,
+  "copilot-output@1.0.0": copilotOutputSchema.$id,
+  "copilot-request@1.0.0": copilotRequestSchema.$id,
   "communication-plan@1.0.0": communicationPlanSchema.$id,
   "focused-graph-analysis-view@1.0.0": focusedGraphAnalysisViewV100Schema.$id,
   "focused-graph-action-preview-view@1.0.0":
@@ -410,6 +539,13 @@ const contractIds: Record<BrowserContractName, string> = {
     projectProfileCommandReceiptSchema.$id,
   "project-profile-command-recovery-view@1.0.0":
     projectProfileCommandRecoveryViewSchema.$id,
+  "project-definition-draft-request@1.0.0":
+    projectDefinitionDraftRequestSchema.$id,
+  "project-definition-draft-view@1.0.0": projectDefinitionDraftViewSchema.$id,
+  "project-definition-draft-command-request@1.0.0":
+    projectDefinitionDraftCommandRequestSchema.$id,
+  "project-definition-draft-command-receipt@1.0.0":
+    projectDefinitionDraftCommandReceiptSchema.$id,
   "project-import-command-request@1.0.0": projectImportCommandRequestSchema.$id,
   "project-import-command-receipt@1.0.0": projectImportCommandReceiptSchema.$id,
   "project-import-command-recovery-view@1.0.0":
@@ -494,6 +630,48 @@ export class PetraContractRegistry {
   readonly #validators = new Map<BrowserContractName, ValidateFunction>();
 
   readonly entries = [
+    {
+      name: "project-definition-draft-command-request",
+      version: "1.1.0",
+      canonical_sha256:
+        "sha256:299c4543c308b6c573a9d0e60282aa007050c90e07da6fa8165600290f84bbae",
+    },
+    {
+      name: "intake-project-binding",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:67f3a1e9cc0951b4c4f2cbd8c2b222a35f6e04f306fae2746dfd0112ae6a754f",
+    },
+    {
+      name: "intake-copilot-input-manifest",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:87bbd6dc41b7ebdaf6cbb4daa21e37034e169e856247e6d04724d5eed9269f2c",
+    },
+    {
+      name: "intake-copilot-request",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:b8136976a1bfaca0ab70d0cbd2295dcdc3a40a83669cb4f59e319500f404837e",
+    },
+    {
+      name: "intake-copilot-turn",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:e8fde17c0839ad4059e1b724bc2ed9c24a24a7973edf9c1a9dfea29b523ee270",
+    },
+    {
+      name: "intake-copilot-context",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:147dcf8148b71dad8a93115a4d2f2787b66bf11678d05377bcf8bf22c75ad3c3",
+    },
+    {
+      name: "intake-copilot-session",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:f39b4eddc1317659260584de279637a40fb4bd22b0405203562f0f842979d101",
+    },
     {
       name: "communication-plan",
       version: "1.0.0",
@@ -619,6 +797,30 @@ export class PetraContractRegistry {
       version: "1.0.0",
       canonical_sha256:
         "sha256:77534795a71219fd9974160e547455966389f642f85c0e26fa3b44e2295c195e",
+    },
+    {
+      name: "project-definition-draft-request",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:43f38da042dd99c22831aa9fee53c45149601c4c647987493f4cda7047bfe3bc",
+    },
+    {
+      name: "project-definition-draft-view",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:326a66d4150ea406e865737f5299ff560ebe14b07cd16afe22e2cfc4c28f5217",
+    },
+    {
+      name: "project-definition-draft-command-request",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:6e9b426d1fd12898bf1bbc9e59dc804c3edca6a23a5a7047e3e6b03d85b24dda",
+    },
+    {
+      name: "project-definition-draft-command-receipt",
+      version: "1.0.0",
+      canonical_sha256:
+        "sha256:49f30e9a5706da542a35e354b57b092e3281a96489620ffd3d5ed3086838809b",
     },
     {
       name: "project-import-command-request",
@@ -881,3 +1083,6 @@ export class PetraContractRegistry {
     }
   }
 }
+import copilotContextSchema from "../../../../packages/contracts/schemas/copilot-context/1.0.0/schema.json";
+import copilotOutputSchema from "../../../../packages/contracts/schemas/copilot-output/1.0.0/schema.json";
+import copilotRequestSchema from "../../../../packages/contracts/schemas/copilot-request/1.0.0/schema.json";

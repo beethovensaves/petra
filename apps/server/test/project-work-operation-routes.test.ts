@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
 
 import type {
   PetraProjectWorkOperationReceipt,
@@ -13,10 +14,12 @@ import type {
   AuthenticatedCommandPrincipalResolver,
   ProjectWorkOperationAuthority,
   ProjectWorkOperationsViewReader,
+  ProjectWorkReceiptReader,
   ProjectWorkResumeAuthority,
   ProjectWorkStartAgainAuthority,
 } from "@petra/core";
 import { describe, expect, it, vi } from "vitest";
+import { canonicalize } from "json-canonicalize";
 
 import { createPetraApp } from "../src/app.js";
 
@@ -58,6 +61,7 @@ const startAgainReceipt = readFixture<PetraProjectWorkStartAgainReceipt>(
 );
 const commandPath = `/api/commands/projects/${view.project_id}/work/${view.work_unit_ref.work_unit_id}`;
 const queryPath = `/api/queries/projects/${view.project_id}/work/${view.work_unit_ref.work_unit_id}/operations`;
+const receiptsPath = `/api/queries/projects/${view.project_id}/work/${view.work_unit_ref.work_unit_id}/receipts`;
 const resumePath = `/api/commands/projects/${resumeReceipt.project_id}/work/${resumeRequest.expected_work_unit_ref.work_unit_id}/resume`;
 const startAgainPath = `/api/commands/projects/${startAgainReceipt.project_id}/work/${startAgainRequest.expected_prior_work_unit_ref.work_unit_id}/start-again`;
 
@@ -81,6 +85,79 @@ const resolvedPrincipal: AuthenticatedCommandPrincipalResolver = {
 };
 
 describe("Project Work operation routes", () => {
+  it("reads retained Work receipts only for the authenticated actor and exact task", async () => {
+    const base = Object.fromEntries(
+      Object.entries(receipt).filter(([key]) => key !== "record_hash"),
+    );
+    const retained: PetraProjectWorkOperationReceipt = {
+      ...receipt,
+      record_hash: `sha256:${createHash("sha256").update(canonicalize(base)).digest("hex")}`,
+    };
+    const readRecentProjectWorkReceipts = vi.fn(() =>
+      Promise.resolve([structuredClone(retained)]),
+    );
+    const reader: ProjectWorkReceiptReader = { readRecentProjectWorkReceipts };
+    const resolver: AuthenticatedCommandPrincipalResolver = {
+      ...resolvedPrincipal,
+      resolveAuthenticatedActor: () =>
+        Promise.resolve({
+          state: "resolved",
+          actor: structuredClone(receipt.actor),
+        }),
+    };
+    const petra = createPetraApp({
+      authToken: TOKEN,
+      projectWorkReceipts: reader,
+      commandPrincipalResolver: resolver,
+    });
+
+    const response = await petra.app.fetch(authorized(receiptsPath));
+    expect(response.status).toBe(200);
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    await expect(response.json()).resolves.toStrictEqual([retained]);
+    expect(readRecentProjectWorkReceipts).toHaveBeenCalledWith(
+      view.project_id,
+      view.work_unit_ref.work_unit_id,
+      receipt.actor,
+    );
+  });
+
+  it("denies an unregistered reader and rejects a receipt from another task", async () => {
+    const readRecentProjectWorkReceipts = vi.fn(() =>
+      Promise.resolve([structuredClone(receipt)]),
+    );
+    const denied = createPetraApp({
+      authToken: TOKEN,
+      projectWorkReceipts: { readRecentProjectWorkReceipts },
+      commandPrincipalResolver: {
+        ...resolvedPrincipal,
+        resolveAuthenticatedActor: () =>
+          Promise.resolve({ state: "denied", reason: "actor_not_registered" }),
+      },
+    });
+    expect((await denied.app.fetch(authorized(receiptsPath))).status).toBe(403);
+    expect(readRecentProjectWorkReceipts).not.toHaveBeenCalled();
+
+    const crossed = createPetraApp({
+      authToken: TOKEN,
+      projectWorkReceipts: { readRecentProjectWorkReceipts },
+      commandPrincipalResolver: {
+        ...resolvedPrincipal,
+        resolveAuthenticatedActor: () =>
+          Promise.resolve({
+            state: "resolved",
+            actor: structuredClone(receipt.actor),
+          }),
+      },
+    });
+    const response = await crossed.app.fetch(
+      authorized(
+        `/api/queries/projects/${view.project_id}/work/work_unit_01ARZ3NDEKTSV4RRFFQ69G5FZZ/receipts`,
+      ),
+    );
+    expect(response.status).toBe(503);
+  });
+
   it("returns the exact no-store operation assessment", async () => {
     const reader: ProjectWorkOperationsViewReader = {
       getProjectWorkOperationsView: vi.fn(() =>

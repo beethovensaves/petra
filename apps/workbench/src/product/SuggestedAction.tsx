@@ -406,153 +406,157 @@ export const SuggestedWorkAction = ({
         </span>
       </header>
 
-      <dl className="reference-suggested-action__summary">
-        <div>
-          <dt>Objective</dt>
-          <dd>{action.objective.statement}</dd>
-        </div>
-        <div>
-          <dt>Why now</dt>
-          <dd>
-            <strong>{titleLabel(readiness.reason_code)}</strong>
-            <span>{readiness.reason}</span>
-          </dd>
-        </div>
-        <div>
-          <dt>Exact scope</dt>
-          <dd>{action.scope.included}</dd>
-        </div>
-        <div>
-          <dt>Expected result</dt>
-          <dd>
-            New {plainLabel(action.expected_result.result_kind)} · authority
-            effect {action.expected_result.authority_effect} · reusable{" "}
-            {action.expected_result.reusable ? "yes" : "no"}
-          </dd>
-        </div>
-        <div>
-          <dt>Time and cost</dt>
-          <dd>
-            {plainLabel(action.resources.duration)} ·{" "}
-            {plainLabel(action.resources.cost)}
-            <span>
-              Hard wall-time limit {action.resources.limits.max_wall_time_ms} ms
-            </span>
-          </dd>
-        </div>
-        <div>
-          <dt>Execution limit</dt>
-          <dd>
-            {action.resources.limits.max_attempts} attempt ·{" "}
-            {action.resources.limits.max_parallelism} worker
-            <span>
-              {action.resources.limits.max_input_tokens ?? "No supplied"} input
-              tokens ·{" "}
-              {action.resources.limits.max_output_tokens ?? "No supplied"}{" "}
-              output tokens
-            </span>
-          </dd>
-        </div>
-      </dl>
-
-      <div className="reference-suggested-action__boundary">
-        <strong>Work starts only after this exact command</strong>
-        <p>
-          {action.capability.command_name} ·{" "}
-          {plainLabel(action.capability.approval)} · authority change{" "}
-          {actionView.content.operation.authority_change}. Delivery abort{" "}
-          {plainLabel(action.interrupt.delivery_abort)}; reconnect uses{" "}
-          {plainLabel(action.interrupt.reconnect)}.
-        </p>
-        <p>
-          Direct and conversational presentation use the same{" "}
-          <code>{action.invocation.contract_name}</code> command; the browser
-          does not supply Actor, grant, Project, Work, interaction, or trace
-          identity.
-        </p>
-      </div>
-
-      {readiness.missing_prerequisites.length === 0 ? null : (
-        <div className="reference-suggested-action__prerequisites">
-          <strong>Required before Work can start</strong>
-          <ul>
-            {readiness.missing_prerequisites.map((prerequisite) => (
-              <li key={prerequisite}>{prerequisite}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      <details className="reference-suggested-action__scope">
-        <summary>Exact scope, execution, and limitations</summary>
-        <strong>Excluded</strong>
-        <ul>
-          {action.scope.excluded.map((exclusion) => (
-            <li key={exclusion}>{exclusion}</li>
-          ))}
-        </ul>
-        <strong>Execution authority</strong>
-        <p>
-          {action.execution.workflow_name}@{action.execution.workflow_version} ·{" "}
-          {action.execution.validator} · network{" "}
-          {plainLabel(action.execution.network_policy)}
-        </p>
-        <strong>Cancellation consequence</strong>
-        <p>
-          {action.cancellation.command_name} ·{" "}
-          {plainLabel(action.cancellation.consequence)}
-        </p>
-        <strong>Contract limitations</strong>
-        <ul>
-          {actionView.content.limitations.map((limitation) => (
-            <li key={limitation}>{limitation}</li>
-          ))}
-        </ul>
-      </details>
-
-      <details className="reference-suggested-action__identity">
-        <summary>Exact action and retained basis</summary>
-        <dl>
+      <details className="reference-suggested-action__agent-inspection">
+        <summary>Review scope, result, and limits</summary>
+        <dl className="reference-suggested-action__summary">
           <div>
-            <dt>SuggestedAction</dt>
+            <dt>Objective</dt>
+            <dd>{action.objective.statement}</dd>
+          </div>
+          <div>
+            <dt>Why now</dt>
             <dd>
-              <code>{actionRef.suggested_action_id}</code> · revision{" "}
-              {actionRef.revision}
-              <span>Content hash {actionRef.content_hash}</span>
+              <strong>{titleLabel(readiness.reason_code)}</strong>
+              <span>{readiness.reason}</span>
             </dd>
           </div>
           <div>
-            <dt>Source result</dt>
+            <dt>Exact scope</dt>
+            <dd>{action.scope.included}</dd>
+          </div>
+          <div>
+            <dt>Expected result</dt>
             <dd>
-              <code>{action.basis.source_result_ref.record_id}</code> · revision{" "}
-              {action.basis.source_result_ref.revision}
+              New {plainLabel(action.expected_result.result_kind)} · authority
+              effect {action.expected_result.authority_effect} · reusable{" "}
+              {action.expected_result.reusable ? "yes" : "no"}
+            </dd>
+          </div>
+          <div>
+            <dt>Time and cost</dt>
+            <dd>
+              {plainLabel(action.resources.duration)} ·{" "}
+              {plainLabel(action.resources.cost)}
               <span>
-                Record hash {action.basis.source_result_ref.record_hash}
+                Hard wall-time limit {action.resources.limits.max_wall_time_ms}{" "}
+                ms
               </span>
             </dd>
           </div>
           <div>
-            <dt>Context and evidence</dt>
+            <dt>Execution limit</dt>
             <dd>
-              <code>{action.basis.context_packet_ref.record_id}</code> ·{" "}
-              <code>{action.basis.evidence_packet_ref.record_id}</code>
-              <span>Prompt hash {action.execution.prompt_hash}</span>
-            </dd>
-          </div>
-          <div>
-            <dt>Invocation posture</dt>
-            <dd>
-              {plainLabel(action.invocation.idempotency)} ·{" "}
-              {plainLabel(action.invocation.path_convergence)}
-              {readiness.state === "ready" ? (
-                <span>
-                  Grant reference {readiness.grant_ref.capability_grant_id} ·{" "}
-                  record hash {readiness.grant_ref.record_hash}
-                </span>
-              ) : null}
+              {action.resources.limits.max_attempts} attempt ·{" "}
+              {action.resources.limits.max_parallelism} worker
+              <span>
+                {action.resources.limits.max_input_tokens ?? "No supplied"}{" "}
+                input tokens ·{" "}
+                {action.resources.limits.max_output_tokens ?? "No supplied"}{" "}
+                output tokens
+              </span>
             </dd>
           </div>
         </dl>
+
+        <div className="reference-suggested-action__boundary">
+          <strong>Work starts only after this exact command</strong>
+          <p>
+            {action.capability.command_name} ·{" "}
+            {plainLabel(action.capability.approval)} · authority change{" "}
+            {actionView.content.operation.authority_change}. Delivery abort{" "}
+            {plainLabel(action.interrupt.delivery_abort)}; reconnect uses{" "}
+            {plainLabel(action.interrupt.reconnect)}.
+          </p>
+          <p>
+            Direct and conversational presentation use the same{" "}
+            <code>{action.invocation.contract_name}</code> command; the browser
+            does not supply Actor, grant, Project, Work, interaction, or trace
+            identity.
+          </p>
+        </div>
+
+        {readiness.missing_prerequisites.length === 0 ? null : (
+          <div className="reference-suggested-action__prerequisites">
+            <strong>Required before Work can start</strong>
+            <ul>
+              {readiness.missing_prerequisites.map((prerequisite) => (
+                <li key={prerequisite}>{prerequisite}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <details className="reference-suggested-action__scope">
+          <summary>Exact scope, execution, and limitations</summary>
+          <strong>Excluded</strong>
+          <ul>
+            {action.scope.excluded.map((exclusion) => (
+              <li key={exclusion}>{exclusion}</li>
+            ))}
+          </ul>
+          <strong>Execution authority</strong>
+          <p>
+            {action.execution.workflow_name}@{action.execution.workflow_version}{" "}
+            · {action.execution.validator} · network{" "}
+            {plainLabel(action.execution.network_policy)}
+          </p>
+          <strong>Cancellation consequence</strong>
+          <p>
+            {action.cancellation.command_name} ·{" "}
+            {plainLabel(action.cancellation.consequence)}
+          </p>
+          <strong>Contract limitations</strong>
+          <ul>
+            {actionView.content.limitations.map((limitation) => (
+              <li key={limitation}>{limitation}</li>
+            ))}
+          </ul>
+        </details>
+
+        <details className="reference-suggested-action__identity">
+          <summary>Exact action and retained basis</summary>
+          <dl>
+            <div>
+              <dt>SuggestedAction</dt>
+              <dd>
+                <code>{actionRef.suggested_action_id}</code> · revision{" "}
+                {actionRef.revision}
+                <span>Content hash {actionRef.content_hash}</span>
+              </dd>
+            </div>
+            <div>
+              <dt>Source result</dt>
+              <dd>
+                <code>{action.basis.source_result_ref.record_id}</code> ·
+                revision {action.basis.source_result_ref.revision}
+                <span>
+                  Record hash {action.basis.source_result_ref.record_hash}
+                </span>
+              </dd>
+            </div>
+            <div>
+              <dt>Context and evidence</dt>
+              <dd>
+                <code>{action.basis.context_packet_ref.record_id}</code> ·{" "}
+                <code>{action.basis.evidence_packet_ref.record_id}</code>
+                <span>Prompt hash {action.execution.prompt_hash}</span>
+              </dd>
+            </div>
+            <div>
+              <dt>Invocation posture</dt>
+              <dd>
+                {plainLabel(action.invocation.idempotency)} ·{" "}
+                {plainLabel(action.invocation.path_convergence)}
+                {readiness.state === "ready" ? (
+                  <span>
+                    Grant reference {readiness.grant_ref.capability_grant_id} ·{" "}
+                    record hash {readiness.grant_ref.record_hash}
+                  </span>
+                ) : null}
+              </dd>
+            </div>
+          </dl>
+        </details>
       </details>
 
       <div className="reference-suggested-action__actions">

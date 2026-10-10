@@ -15,6 +15,7 @@ import {
 import type { ProjectObjectiveCommandContext } from "./project-objective-command.js";
 import type { ProjectBriefComparisonRecovery } from "./project-data.js";
 import { projectWorkDestinationPath } from "./project-work-destination.js";
+import { AgentControlPortal } from "./AgentControlPlane.js";
 import "./project-brief.css";
 
 const RecordDetails = ({ label, value }: { label: string; value: unknown }) => (
@@ -54,6 +55,7 @@ export const ProjectBriefSurface = ({
   selectedAction,
   objectiveCommandContext,
   objectiveCommandOutcome,
+  objectiveSuggestion,
   comparisonRecovery,
 }: {
   view: PetraProjectBriefReadView;
@@ -61,6 +63,7 @@ export const ProjectBriefSurface = ({
   selectedAction?: ReactNode;
   objectiveCommandContext: ProjectObjectiveCommandContext;
   objectiveCommandOutcome?: ProjectObjectiveReturnOutcome;
+  objectiveSuggestion?: string;
   comparisonRecovery?: ProjectBriefComparisonRecovery;
 }) => {
   const c = view.content;
@@ -116,7 +119,23 @@ export const ProjectBriefSurface = ({
           Current focus
         </h2>
         <p className="brief-focus__statement">{c.orientation.statement}</p>
-        <ProjectObjectiveControl context={objectiveCommandContext} />
+        <AgentControlPortal
+          title={
+            objectiveCommandContext.focus.state === "none"
+              ? "Frame the Project outcome"
+              : "Revise the Project outcome"
+          }
+          description="Review the wording here. Petra updates the Project outcome shown in the Workspace."
+          operationIds={["brief.frame-objective"]}
+          objectRef={objectiveCommandContext.projectId}
+        >
+          <ProjectObjectiveControl
+            context={objectiveCommandContext}
+            {...(objectiveSuggestion === undefined
+              ? {}
+              : { suggestedStatement: objectiveSuggestion })}
+          />
+        </AgentControlPortal>
         <Limitations items={c.coverage.limitations} />
         <RecordDetails
           label="Technical position and scope"

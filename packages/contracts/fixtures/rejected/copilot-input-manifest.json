@@ -1,0 +1,24 @@
+{
+  "schema_name": "petra.copilot-input-manifest",
+  "schema_version": "1.0.0",
+  "content": {
+    "run_id": "run_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+    "thread_id": "thread_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+    "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+    "context_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+    "profile_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "input_payload_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "input_bytes": 100,
+    "history_bytes": 2,
+    "history_query_limit": 200,
+    "history_query_may_have_omissions": false,
+    "retained_history_count": 0,
+    "excluded_history_count": 0,
+    "history": [],
+    "context_record_keys": [],
+    "prepared_at": "2026-10-07T14:00:00.000Z",
+    "authority": "approve_project"
+  },
+  "content_hash": "sha256:80084ac03c808eeabe340edb8de7938150068de6afb38560ff52571151249088"
+}

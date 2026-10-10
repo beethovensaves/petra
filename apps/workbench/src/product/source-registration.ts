@@ -4,6 +4,7 @@ import {
   type ProjectSourceRegistrationClientResult,
 } from "@petra/adapters";
 import type {
+  PetraProjectSourceRegistrationReceipt,
   PetraProjectSourceRegistrationRecoveryView,
   PetraProjectSourceRegistrationRequest,
 } from "@petra/contracts";
@@ -271,6 +272,13 @@ export const assessSourceRegistrationRecovery = (
   client = projectSourceRegistrationClient(),
 ): Promise<PetraProjectSourceRegistrationRecoveryView> =>
   client.assessRecovery(context.projectId, request);
+
+export const readSourceRegistrationReceipt = (
+  projectId: string,
+  projectSourceId: string,
+  client = projectSourceRegistrationClient(),
+): Promise<PetraProjectSourceRegistrationReceipt | undefined> =>
+  client.readReceipt(projectId, projectSourceId);
 
 export const sourceRegistrationOutcomeUnknown = (error: unknown): boolean =>
   !(error instanceof ProjectSourceRegistrationClientError) ||

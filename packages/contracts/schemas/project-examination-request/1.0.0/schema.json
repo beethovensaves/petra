@@ -1,0 +1,182 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-examination-request/1.0.0/schema.json",
+  "title": "PetraProjectExaminationRequest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "command_id",
+    "idempotency_key",
+    "project_id",
+    "operation",
+    "expected_graph_hash",
+    "expected_prior_ref",
+    "proposed_content",
+    "review"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.project-examination-request"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "command_id": {
+      "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/CommandId"
+    },
+    "idempotency_key": {
+      "$ref": "../../command-envelope/1.0.0/schema.json#/$defs/IdempotencyKey"
+    },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "operation": {
+      "type": "string",
+      "enum": [
+        "register_hypothesis",
+        "revise_hypothesis",
+        "assess_hypothesis",
+        "decide_posture",
+        "conclude_cycle"
+      ]
+    },
+    "expected_graph_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "expected_prior_ref": {
+      "oneOf": [
+        {
+          "$ref": "../../hypothesis/1.0.0/schema.json#/properties/content/properties/target_claim_ref"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "proposed_content": {
+      "oneOf": [
+        {
+          "$ref": "../../hypothesis/1.0.0/schema.json#/properties/content"
+        },
+        {
+          "$ref": "../../hypothesis-assessment/1.0.0/schema.json#/properties/content"
+        },
+        {
+          "$ref": "../../posture-decision/1.0.0/schema.json#/properties/content"
+        },
+        {
+          "$ref": "../../cycle-disposition/1.0.0/schema.json#/properties/content"
+        }
+      ]
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "content_hash",
+        "reviewed_at",
+        "rationale"
+      ],
+      "properties": {
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "reviewed_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "register_hypothesis"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "proposed_content": {
+            "$ref": "../../hypothesis/1.0.0/schema.json#/properties/content"
+          },
+          "expected_prior_ref": {
+            "type": "null"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "revise_hypothesis"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "proposed_content": {
+            "$ref": "../../hypothesis/1.0.0/schema.json#/properties/content"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "assess_hypothesis"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "proposed_content": {
+            "$ref": "../../hypothesis-assessment/1.0.0/schema.json#/properties/content"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "decide_posture"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "proposed_content": {
+            "$ref": "../../posture-decision/1.0.0/schema.json#/properties/content"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "conclude_cycle"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "proposed_content": {
+            "$ref": "../../cycle-disposition/1.0.0/schema.json#/properties/content"
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/intake-project-binding/1.0.0/schema.json",
+  "title": "PetraIntakeProjectBinding",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "content",
+    "content_hash"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.intake-project-binding"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "content": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "intake_session_ref",
+        "actor_id",
+        "definition_draft_hash",
+        "creation_command_id",
+        "creation_receipt_hash",
+        "project_id",
+        "project_thread_id",
+        "original_turns",
+        "bound_at",
+        "authority"
+      ],
+      "properties": {
+        "intake_session_ref": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "record_id",
+            "revision",
+            "record_hash"
+          ],
+          "properties": {
+            "record_id": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+            },
+            "revision": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+            },
+            "record_hash": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+            }
+          }
+        },
+        "actor_id": {
+          "type": "string",
+          "pattern": "^actor_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "definition_draft_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "creation_command_id": {
+          "type": "string",
+          "pattern": "^command_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "creation_receipt_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "project_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+        },
+        "project_thread_id": {
+          "type": "string",
+          "pattern": "^thread_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "original_turns": {
+          "type": "array",
+          "maxItems": 20,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "run_id",
+              "record_hash",
+              "terminal_hash"
+            ],
+            "properties": {
+              "run_id": {
+                "type": "string",
+                "pattern": "^run_[0-9A-HJKMNP-TV-Z]{26}$"
+              },
+              "record_hash": {
+                "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash",
+                "description": "Exact immutable turn input record; terminal_hash separately pins its retained answer outcome."
+              },
+              "terminal_hash": {
+                "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+              }
+            }
+          }
+        },
+        "bound_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "authority": {
+          "const": "human_reviewed_creation_binding"
+        }
+      }
+    },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    }
+  }
+}

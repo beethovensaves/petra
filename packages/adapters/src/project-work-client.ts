@@ -31,6 +31,11 @@ export interface ProjectWorkClientOptions {
   readonly contracts?: PetraContractRegistry;
 }
 
+export type ProjectWorkReceipt =
+  | PetraProjectWorkOperationReceipt
+  | PetraProjectWorkResumeReceipt
+  | PetraProjectWorkStartAgainReceipt;
+
 const PROJECT_ID = /^project_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const WORK_UNIT_ID = /^work_unit_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const WORKER_OUTPUT_MANIFEST_ID =
@@ -201,6 +206,73 @@ export class ProjectWorkClient {
       );
     }
     return structuredClone(view);
+  }
+
+  async readReceipts(
+    projectId: string,
+    workUnitId: string,
+  ): Promise<readonly ProjectWorkReceipt[]> {
+    this.#assertTarget(projectId, workUnitId);
+    const response = await this.#request(
+      `/api/queries/projects/${projectId}/work/${workUnitId}/receipts`,
+      { method: "GET" },
+    );
+    const body: unknown = await response.json();
+    if (!Array.isArray(body) || body.length > 20) {
+      throw new ProjectWorkClientError(
+        503,
+        "PROJECT_WORK_RESPONSE_INVALID",
+        "The retained Work receipt response is not a bounded list.",
+      );
+    }
+    const receipts: ProjectWorkReceipt[] = [];
+    const seen = new Set<string>();
+    for (const candidate of body as unknown[]) {
+      if (!isRecord(candidate)) {
+        throw new ProjectWorkClientError(
+          503,
+          "PROJECT_WORK_RESPONSE_INVALID",
+          "A retained Work receipt is not a record.",
+        );
+      }
+      const schemaName =
+        candidate.schema_name === "petra.project-work-operation-receipt"
+          ? "project-work-operation-receipt"
+          : candidate.schema_name === "petra.project-work-resume-receipt"
+            ? "project-work-resume-receipt"
+            : candidate.schema_name === "petra.project-work-start-again-receipt"
+              ? "project-work-start-again-receipt"
+              : undefined;
+      if (schemaName === undefined) {
+        throw new ProjectWorkClientError(
+          503,
+          "PROJECT_WORK_RESPONSE_INVALID",
+          "A retained Work receipt has an unknown schema.",
+        );
+      }
+      this.#contracts.assertValid(schemaName, "1.0.0", candidate);
+      const receipt = candidate as unknown as ProjectWorkReceipt;
+      const { record_hash: recordHash, ...base } = receipt;
+      const requestedId =
+        "requested_prior_work_unit_ref" in receipt
+          ? receipt.requested_prior_work_unit_ref.work_unit_id
+          : receipt.requested_work_unit_ref.work_unit_id;
+      if (
+        receipt.project_id !== projectId ||
+        requestedId !== workUnitId ||
+        seen.has(receipt.receipt_id) ||
+        recordHash !== (await canonicalHash(base))
+      ) {
+        throw new ProjectWorkClientError(
+          503,
+          "PROJECT_WORK_RESPONSE_INVALID",
+          "A retained Work receipt crossed its Project, task, identity, or record-hash boundary.",
+        );
+      }
+      seen.add(receipt.receipt_id);
+      receipts.push(structuredClone(receipt));
+    }
+    return receipts;
   }
 
   async execute(

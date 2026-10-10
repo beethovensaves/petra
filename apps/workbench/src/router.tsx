@@ -6,6 +6,7 @@ import { PrimitiveGallery } from "./fixtures/PrimitiveGallery.js";
 import { ShellGallery } from "./fixtures/ShellGallery.js";
 import {
   BriefRoute,
+  InspectRoute,
   ProductFrame,
   ProjectShell,
   ProjectsRoute,
@@ -16,6 +17,7 @@ import {
 import { GraphRoute } from "./product/GraphSurface.js";
 import { ProjectProfileRoute } from "./product/ProjectProfileSurface.js";
 import { CheckpointGuideRoute } from "./product/CheckpointGuide.js";
+import { shouldRevalidateProjectShell } from "./product/WorkspaceHost.js";
 import {
   ReviewCollectionRoute,
   ReviewSessionRoute,
@@ -84,6 +86,7 @@ export const router = createBrowserRouter([
       {
         path: "projects/:projectId",
         loader: loadProjectRecord,
+        shouldRevalidate: shouldRevalidateProjectShell,
         element: <ProjectShell />,
         children: [
           { index: true, element: <Navigate to="brief" replace /> },
@@ -97,6 +100,7 @@ export const router = createBrowserRouter([
             loader: loadProjectBrief,
             element: <BriefRoute />,
           },
+          { path: "inspect", element: <InspectRoute /> },
           {
             path: "locate",
             loader: loadProjectObjectLocationRedirect,

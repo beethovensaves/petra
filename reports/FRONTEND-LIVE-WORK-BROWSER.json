@@ -1,0 +1,73 @@
+{
+  "scenario": "UX1.6-WORK/usable-work-ui",
+  "status": "passed",
+  "stable_url": "http://127.0.0.1:54083",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "registered_inquiry_visible": true,
+  "input_recorded": true,
+  "steer_exercised": true,
+  "prioritize_exercised": true,
+  "start_exercised": true,
+  "cancel_exercised": true,
+  "retry_exercised": true,
+  "detach_exercised": true,
+  "reconnect_exercised": true,
+  "replay_exercised": true,
+  "resume_exercised": true,
+  "start_again_exercised": true,
+  "inspector_exact_work_return": true,
+  "work_draft_survived_review_and_narrow_panes": true,
+  "retried_work": {
+    "work_unit_id": "work_unit_10JX7DFY64SV80DW9VFJVG4E7Y",
+    "resulting_revision": 6,
+    "outcome": "retried",
+    "prior_attempts_preserved": true,
+    "domain_authority_changed": false
+  },
+  "resumed_work": {
+    "work_unit_id": "work_unit_0B2QTS9NZ1D70E6W6SAAEN4CZQ",
+    "requested_revision": 4,
+    "resulting_revision": 5,
+    "resumed_attempt": 1,
+    "exact_checkpoint_copied": true,
+    "contextual_return": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/work/work_unit_0B2QTS9NZ1D70E6W6SAAEN4CZQ#work-control-boundary",
+    "start_again_unavailable": true,
+    "authority_selected_by_browser": false
+  },
+  "started_again_work": {
+    "prior_work_unit_id": "work_unit_1M59PHH5NWTD9XKTJKGSQQ3ED0",
+    "prior_work_attempt": 1,
+    "prior_lineage_attempt": 1,
+    "fresh_work_unit_id": "work_unit_16QBDVQGV20WHY698ZZ1CAWX9F",
+    "fresh_work_attempt": 1,
+    "fresh_lineage_attempt": 2,
+    "fresh_input_manifest_id": "worker_input_manifest_728DJY6XCXRRAGQF78S9M7CAHD",
+    "retained_output_reuse": "none",
+    "exact_registration_copied": true,
+    "prior_work_preserved": true,
+    "contextual_return": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/work/work_unit_1M59PHH5NWTD9XKTJKGSQQ3ED0#work-control-boundary",
+    "authority_selected_by_browser": false
+  },
+  "grounded_response": {
+    "id": "grounded_response_44GN00DDRDDN158ZJXKA8X6P73",
+    "destination": "http://127.0.0.1:54083/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/petra?communication_response_id=grounded_response_44GN00DDRDDN158ZJXKA8X6P73&communication_response_revision=1&communication_response_content_hash=sha256%3A2036520574e5178ac4d48e07cfbb5bac787db0b9c3af0a2a7a6e2c57a8446152&communication_response_record_hash=sha256%3A32236c51f0226320801f0a8fc517018bb48575ed3d5d4db2dc9e56ec4c865c05&communication_locale=en&return_to=%2Fprojects%2Fproject_01ARZ3NDEKTSV4RRFFQ69G5FAW%2Fwork%2Fwork_unit_1M59PHH5NWTD9XKTJKGSQQ3ED0&return_label=producing+Work+task&return_focus=work-destinations-title",
+    "exact_response_rendered": true,
+    "context_packet_id": "context_packet_01ARZ3NDEKTSV4RRFFQ69G5FCD",
+    "evidence_packet_id": "evidence_packet_01ARZ3NDEKTSV4RRFFQ69G5FCG",
+    "exact_references_rendered": true,
+    "authority_limits_rendered": true,
+    "producing_work_return_rendered": true
+  },
+  "worker_output_manifest": {
+    "id": "worker_output_manifest_5SH8DMNBYZA54M275HC1587G8J",
+    "producing_work_unit_id": "work_unit_1M59PHH5NWTD9XKTJKGSQQ3ED0",
+    "destination": "http://127.0.0.1:54083/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/work/work_unit_1M59PHH5NWTD9XKTJKGSQQ3ED0?result_semantic_key=petra.worker-output-manifest&result_id=worker_output_manifest_5SH8DMNBYZA54M275HC1587G8J&result_revision=1&result_content_hash=sha256%3A9e605a51f54d86c7be76ba6094f8613462d6d89bf8e65cf3068ef930bd7387b3&result_record_hash=sha256%3A24412d9c275df42d42c323503adc15480ec1effc78beebd3cb2542dd0da76448&parent_revision=4&parent_record_hash=sha256%3A66bb461cd980a6aa94aa849b8bfa14a2efc5fc4c5b181facad29e7398c8aa9df#selected-work-result",
+    "exact_outputs_rendered": true,
+    "measured_resources_rendered": true,
+    "exact_diagnostics_rendered": true,
+    "diagnostics_count": 0
+  },
+  "boundary": "Executed the complete production Work browser path through registered controls, including separate exact registered-checkpoint Resume and registered fresh-input Start again transitions, linked Work navigation and return, and exact result reads. Worker registration and representative setup occur through the cumulative disposable-store harness; no browser response or Work result is mocked, and the browser selects no authority, replacement Work, lineage, or input-reuse policy.",
+  "operation_call_count": 48,
+  "console_errors": []
+}

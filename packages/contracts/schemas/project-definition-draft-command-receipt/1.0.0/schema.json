@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-definition-draft-command-receipt/1.0.0/schema.json",
+  "title": "PetraProjectDefinitionDraftCommandReceipt",
+  "description": "The immutable result of atomically creating a Project, its exact ProjectDefinition, first objective, and current objective focus from one reviewed draft.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "receipt_id",
+    "command_id",
+    "idempotency_key",
+    "actor",
+    "draft_ref",
+    "project_ref",
+    "project_definition_ref",
+    "objective_ref",
+    "initial_material_plan",
+    "destination",
+    "recorded_at"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.project-definition-draft-command-receipt"
+    },
+    "schema_version": { "const": "1.0.0" },
+    "receipt_id": {
+      "type": "string",
+      "pattern": "^definition_draft_receipt_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "command_id": {
+      "type": "string",
+      "pattern": "^command_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "idempotency_key": { "type": "string", "minLength": 1, "maxLength": 512 },
+    "actor": { "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef" },
+    "draft_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["draft_id", "content_hash"],
+      "properties": {
+        "draft_id": {
+          "type": "string",
+          "pattern": "^project_definition_draft_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "project_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project_id", "revision"],
+      "properties": {
+        "project_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+        },
+        "revision": { "$ref": "../../common/1.0.0/schema.json#/$defs/Revision" }
+      }
+    },
+    "project_definition_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project_definition_id", "revision", "content_hash"],
+      "properties": {
+        "project_definition_id": {
+          "type": "string",
+          "pattern": "^project_definition_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "objective_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["objective_id", "revision", "content_hash"],
+      "properties": {
+        "objective_id": {
+          "type": "string",
+          "pattern": "^objective_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "initial_material_plan": {
+      "type": "array",
+      "maxItems": 12,
+      "items": {
+        "$ref": "../../project-definition-draft-view/1.0.0/schema.json#/$defs/InitialMaterialPlan"
+      }
+    },
+    "destination": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["place_role", "project_id"],
+      "properties": {
+        "place_role": { "const": "brief" },
+        "project_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+        }
+      }
+    },
+    "recorded_at": { "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp" }
+  }
+}

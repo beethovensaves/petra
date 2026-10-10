@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-definition-draft-request/1.0.0/schema.json",
+  "title": "PetraProjectDefinitionDraftRequest",
+  "description": "A use-agnostic request for Petra to propose one Project-owned definition and first objective while preserving the user's outcome wording.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_name", "schema_version", "request_id", "outcome"],
+  "properties": {
+    "schema_name": { "const": "petra.project-definition-draft-request" },
+    "schema_version": { "const": "1.0.0" },
+    "request_id": {
+      "allOf": [
+        { "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId" },
+        { "type": "string", "pattern": "^definition_draft_request_" }
+      ]
+    },
+    "outcome": { "type": "string", "minLength": 1, "maxLength": 4000 },
+    "project_name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 240
+    },
+    "example_ref": {
+      "$ref": "../../registered-project-profile/1.0.0/schema.json#/$defs/ProfileRef"
+    },
+    "initial_material": {
+      "type": "array",
+      "maxItems": 12,
+      "items": { "$ref": "#/$defs/InitialMaterial" }
+    }
+  },
+  "$defs": {
+    "InitialMaterial": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "material_id",
+        "filename",
+        "media_type",
+        "byte_size",
+        "content_hash"
+      ],
+      "properties": {
+        "material_id": {
+          "type": "string",
+          "pattern": "^initial_material_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "filename": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "media_type": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9!#$&^_.+-]+/[a-zA-Z0-9!#$&^_.+-]+(?:;[ -~]+)?$",
+          "maxLength": 300
+        },
+        "byte_size": { "type": "integer", "minimum": 1, "maximum": 33554432 },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    }
+  }
+}

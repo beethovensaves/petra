@@ -245,10 +245,15 @@ const exerciseModelRecovery = async (context) => {
 
     await evaluate(`${button("Ask Petra")}.click()`);
     await until(
-      'document.body.innerText.includes("Response delivery was not confirmed") && document.body.innerText.includes("Your draft and exact run identity are preserved")',
-      "honest unconfirmed-delivery recovery",
+      'document.querySelector(".petra-model-response")?.dataset.resultState === "failed"',
+      "automatic retained-response replay after interrupted delivery",
     );
     const transportText = await evaluate("document.body.innerText");
+    assert.equal(
+      transportText.includes("Response delivery was not confirmed"),
+      false,
+      "a verified replay must replace the uncertain delivery notice",
+    );
     await evaluate(`(() => {
       const textarea = document.querySelector(".petra-composer textarea");
       const setter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value").set;
@@ -309,19 +314,18 @@ const exerciseModelRecovery = async (context) => {
     );
     await evaluate(`${link("Discuss this task with Petra")}.click()`);
     await until(
-      `window.location.pathname === ${JSON.stringify(`/projects/${context.scientificProjectId}/petra`)} && ${button("Reconnect and replay")} !== undefined && document.querySelector(".petra-composer textarea")?.value === ${JSON.stringify(changedDraft)}`,
+      `window.location.pathname === ${JSON.stringify(`/projects/${context.scientificProjectId}/petra`)} && document.querySelector(".petra-focus .reference-context-back") !== null && document.querySelector(".petra-model-response")?.dataset.resultState === "failed" && document.querySelector(".petra-composer textarea")?.value === ${JSON.stringify(changedDraft)}`,
       "retained run opened from its originating Work control",
     );
     assert.equal(
       await evaluate(
-        'document.querySelector(".petra-model-return a").getAttribute("href")',
+        'document.querySelector(".petra-focus .reference-context-back").getAttribute("href")',
       ),
       `${returnPath}#work-control-boundary`,
     );
-    await evaluate(`${button("Reconnect and replay")}.click()`);
-    await until(
-      'document.querySelector(".petra-model-response")?.dataset.resultState === "failed"',
-      "replayed provider failure",
+    assert.equal(
+      await evaluate(`${button("Reconnect and replay")} === undefined`),
+      true,
     );
     const failureText = await evaluate(
       'document.querySelector(".petra-model-response").textContent',
@@ -354,7 +358,7 @@ const exerciseModelRecovery = async (context) => {
     );
     assert.equal(
       await evaluate(
-        'document.querySelector(".petra-model-return a").getAttribute("href")',
+        'document.querySelector(".petra-focus .reference-context-back").getAttribute("href")',
       ),
       `${returnPath}#work-control-boundary`,
     );
@@ -379,7 +383,7 @@ const exerciseModelRecovery = async (context) => {
         ),
     );
     assert.equal(interactionPosts.length, 1);
-    assert.equal(replayGets.length, 1);
+    assert.equal(replayGets.length, 2);
     const submitted = JSON.stringify(interactionPosts[0].requestJson);
     assert.ok(submitted.includes(context.registeredPrompt));
     assert.ok(
@@ -436,9 +440,8 @@ const exerciseModelRecovery = async (context) => {
       },
       initial_delivery: {
         state: "unconfirmed",
-        recovery_presented: transportText.includes(
-          "Reconnect and replay before starting another response",
-        ),
+        automatic_replay_verified_failure: true,
+        uncertain_notice_cleared: true,
       },
       originating_control: {
         label: "Discuss this task with Petra",
@@ -449,6 +452,7 @@ const exerciseModelRecovery = async (context) => {
       },
       replay: {
         state: "failed",
+        automatic_on_interrupted_delivery_and_reopen: true,
         message: failureText.replaceAll(/\s+/gu, " ").trim(),
         new_run_control_after_confirmed_failure: true,
         new_run_requires_registered_prompt: true,

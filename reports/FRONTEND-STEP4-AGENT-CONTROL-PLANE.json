@@ -1,0 +1,80 @@
+{
+  "schema_name": "petra.frontend-step4-agent-control-plane-evidence",
+  "schema_version": "1.0.0",
+  "status": "passed",
+  "executed_at": "2026-09-23T05:47:43.759Z",
+  "browser": {
+    "product": "Chrome/154.0.8037.57",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/154.0.0.0 Safari/537.36",
+    "protocol_version": "1.3"
+  },
+  "verified": {
+    "persistent_operations": ["petra.ask", "petra.resume-thread"],
+    "contextual_controls": [
+      {
+        "route": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/brief",
+        "title": "Proposed next action",
+        "button": "Start proposed Work",
+        "operations": [
+          "brief.frame-objective",
+          "brief.suggested-preview",
+          "brief.suggested-invoke",
+          "work.start"
+        ],
+        "objectRef": "objective_01K4C000000000000000000005",
+        "inAgent": true,
+        "inWorkspace": false
+      },
+      {
+        "route": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/work",
+        "title": "Control this Work",
+        "button": "Steer work",
+        "operations": [
+          "work.answer-input",
+          "work.steer",
+          "work.prioritize",
+          "work.cancel",
+          "work.reconnect",
+          "work.replay",
+          "work.retry",
+          "work.resume",
+          "work.start-again",
+          "work.open-result"
+        ],
+        "objectRef": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+        "inAgent": true,
+        "inWorkspace": false
+      },
+      {
+        "route": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/review",
+        "title": "Decide this Review",
+        "button": "Apply displayed ChangeSet",
+        "operations": [
+          "review.apply",
+          "review.reject",
+          "review.defer",
+          "review.reopen"
+        ],
+        "objectRef": "review_session_01ARZ3NDEKTSV4RRFFQ69G5FC3",
+        "inAgent": true,
+        "inWorkspace": false
+      },
+      {
+        "route": "/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/history",
+        "title": "Request a governed Revert",
+        "button": "Read governed Revert preview",
+        "operations": ["history.preview-revert", "history.execute-revert"],
+        "objectRef": "event_01ARZ3NDEKTSV4RRFFQ69G5FC4",
+        "inAgent": true,
+        "inWorkspace": false
+      }
+    ],
+    "sampled_route_controller_count": 1,
+    "controls_rendered_inside_agent": true,
+    "controls_absent_from_workspace": true,
+    "exact_object_reference_present": true,
+    "responsive_task_preserved": true,
+    "direct_and_agent_paths_share_route_owned_controller": true
+  },
+  "boundary": "The production ProjectShell and AgentControlPortal kept each sampled route-owned typed controller mounted while presenting its controls inside the persistent Agent. Existing Work, Review, SuggestedAction, objective, interaction, and History tests establish command behavior; this browser trace establishes presentation ownership, exact operation/object references, and responsive continuity for the sampled routes."
+}

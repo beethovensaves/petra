@@ -1,0 +1,400 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/graph-presentation-context/1.0.0/schema.json",
+  "title": "PetraGraphPresentationContext",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "content",
+    "content_hash"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.graph-presentation-context"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "content": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_id",
+        "graph_content_hash",
+        "parameters",
+        "layout_version",
+        "viewport",
+        "nodes",
+        "relationships",
+        "omitted_nodes",
+        "omitted_relationships",
+        "has_more_history",
+        "legend",
+        "peer_content_hash",
+        "authority"
+      ],
+      "properties": {
+        "project_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+        },
+        "graph_content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "renderer",
+            "mode",
+            "semantic_content_hash",
+            "selected_keys",
+            "excluded_kinds"
+          ],
+          "properties": {
+            "renderer": {
+              "enum": [
+                "native_working",
+                "examination_cycles"
+              ]
+            },
+            "mode": {
+              "enum": [
+                "graph",
+                "text"
+              ]
+            },
+            "semantic_content_hash": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+            },
+            "selected_keys": {
+              "type": "array",
+              "maxItems": 8,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "uniqueItems": true
+            },
+            "excluded_kinds": {
+              "type": "array",
+              "maxItems": 20,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "uniqueItems": true
+            }
+          }
+        },
+        "layout_version": {
+          "const": "petra.graph-layout@1.0.0"
+        },
+        "viewport": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "width",
+            "height"
+          ],
+          "properties": {
+            "width": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2000
+            },
+            "height": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 30000
+            }
+          }
+        },
+        "nodes": {
+          "type": "array",
+          "maxItems": 250,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "key",
+              "record_ref",
+              "kind",
+              "state",
+              "position"
+            ],
+            "properties": {
+              "key": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "record_ref": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "schema_name",
+                  "schema_version",
+                  "record_id",
+                  "revision",
+                  "record_hash"
+                ],
+                "properties": {
+                  "schema_name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "schema_version": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 30
+                  },
+                  "record_id": {
+                    "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+                  },
+                  "revision": {
+                    "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+                  },
+                  "record_hash": {
+                    "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+                  }
+                }
+              },
+              "kind": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "state": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "position": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "x",
+                  "y"
+                ],
+                "properties": {
+                  "x": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 2000
+                  },
+                  "y": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 30000
+                  }
+                }
+              }
+            }
+          }
+        },
+        "relationships": {
+          "type": "array",
+          "maxItems": 500,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "key",
+              "subject_key",
+              "object_key",
+              "predicate"
+            ],
+            "properties": {
+              "key": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 2000
+              },
+              "subject_key": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "object_key": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "predicate": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              }
+            }
+          }
+        },
+        "omitted_nodes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "omitted_relationships": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "has_more_history": {
+          "type": "boolean"
+        },
+        "legend": {
+          "type": "array",
+          "maxItems": 250,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "kind",
+              "meaning"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "meaning": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              }
+            }
+          }
+        },
+        "peer_content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "authority": {
+          "const": "presentation_only"
+        }
+      }
+    },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    }
+  },
+  "$defs": {
+    "Parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "renderer",
+        "mode",
+        "semantic_content_hash",
+        "selected_keys",
+        "excluded_kinds"
+      ],
+      "properties": {
+        "renderer": {
+          "enum": [
+            "native_working",
+            "examination_cycles"
+          ]
+        },
+        "mode": {
+          "enum": [
+            "graph",
+            "text"
+          ]
+        },
+        "semantic_content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "selected_keys": {
+          "type": "array",
+          "maxItems": 8,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "uniqueItems": true
+        },
+        "excluded_kinds": {
+          "type": "array",
+          "maxItems": 20,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "Binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "parameters",
+        "content_hash",
+        "peer_content_hash"
+      ],
+      "properties": {
+        "parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "renderer",
+            "mode",
+            "semantic_content_hash",
+            "selected_keys",
+            "excluded_kinds"
+          ],
+          "properties": {
+            "renderer": {
+              "enum": [
+                "native_working",
+                "examination_cycles"
+              ]
+            },
+            "mode": {
+              "enum": [
+                "graph",
+                "text"
+              ]
+            },
+            "semantic_content_hash": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+            },
+            "selected_keys": {
+              "type": "array",
+              "maxItems": 8,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "uniqueItems": true
+            },
+            "excluded_kinds": {
+              "type": "array",
+              "maxItems": 20,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "uniqueItems": true
+            }
+          }
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "peer_content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    }
+  }
+}

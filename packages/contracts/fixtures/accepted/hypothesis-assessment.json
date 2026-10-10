@@ -1,0 +1,93 @@
+{
+  "schema_name": "petra.hypothesis-assessment",
+  "schema_version": "1.0.0",
+  "hypothesis_assessment_id": "hypothesis_assessment_01K4E000000000000000000102",
+  "revision": 1,
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "content": {
+    "subject_ref": {
+      "schema_name": "petra.hypothesis",
+      "schema_version": "1.0.0",
+      "record_id": "hypothesis_01K4E000000000000000000101",
+      "revision": 1,
+      "record_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+    },
+    "target_claim_ref": {
+      "schema_name": "petra.claim",
+      "schema_version": "1.0.0",
+      "record_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+      "revision": 1,
+      "record_hash": "sha256:037b05d18954bd81029717fb0ff00c9f21e14895db98e4c2dfb2691aaf501db3"
+    },
+    "basis": {
+      "definition_ref": {
+        "record_id": "project_definition_01K4E000000000000000000002",
+        "revision": 1,
+        "content_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+      },
+      "graph_content_hash": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+      "event_position": 0,
+      "stream_revision": 0,
+      "query_kind": "current_registered_working_heads"
+    },
+    "as_of": "2026-10-07T16:00:00.000Z",
+    "perspective": "present_day",
+    "scope": {
+      "task": {
+        "description": "The study-defined evaluation task",
+        "entity_refs": []
+      },
+      "outcome": {
+        "description": "Measurable improvement in the reported metric",
+        "entity_refs": []
+      },
+      "unreported_dimensions": [
+        "population",
+        "language",
+        "model_family",
+        "dataset",
+        "intervention_or_exposure",
+        "comparator",
+        "setting",
+        "temporal_boundary"
+      ]
+    },
+    "profile_ref": {
+      "schema_name": "petra.assessment-profile",
+      "schema_version": "1.0.0",
+      "record_id": "assessment_profile_01K4E000000000000000000105",
+      "revision": 1,
+      "record_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+    },
+    "policy_ref": {
+      "schema_name": "petra.assessment-policy",
+      "schema_version": "1.0.0",
+      "record_id": "assessment_policy_01K4E000000000000000000106",
+      "revision": 1,
+      "record_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+    },
+    "criteria": [],
+    "findings": [],
+    "axes": [],
+    "coverage": {
+      "state": "unsearched",
+      "protocol": "No alternative search has been performed.",
+      "source_set_refs": [],
+      "limitations": ["This fixture represents partial assessment only."]
+    },
+    "conflicting_refs": [],
+    "material_unknowns": [
+      "Independent support and contrary evidence are unexamined."
+    ],
+    "origin": "human_judgment",
+    "review_state": "partial",
+    "prior_assessment_ref": null,
+    "trigger": "Initial examination"
+  },
+  "content_hash": "sha256:0e32163cc6edcabfb0d45fb7d5e723edff3c7b5d2794e5ea57ea578961aa9687",
+  "created_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "human"
+  },
+  "created_at": "2026-10-07T16:00:00.000Z"
+}

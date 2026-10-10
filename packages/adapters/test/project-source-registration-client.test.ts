@@ -140,4 +140,48 @@ describe("ProjectSourceRegistrationClient", () => {
       }),
     );
   });
+
+  it("reads a retained receipt with exact Project and Source identity", async () => {
+    const calls: RequestInit[] = [];
+    let read = 0;
+    const client = new ProjectSourceRegistrationClient({
+      baseUrl: "http://petra.local",
+      token: "source-token",
+      contracts,
+      fetch: vi.fn((_input: RequestInfo | URL, init?: RequestInit) => {
+        calls.push(init ?? {});
+        read += 1;
+        return Promise.resolve(
+          read === 1
+            ? Response.json(receipt)
+            : read === 2
+              ? Response.json({
+                  ...receipt,
+                  project_id: "project_01K6S000000000000000000099",
+                })
+              : Response.json(
+                  {
+                    error: {
+                      code: "PROJECT_SOURCE_REGISTRATION_RECEIPT_NOT_FOUND",
+                    },
+                  },
+                  { status: 404 },
+                ),
+        );
+      }),
+    });
+    await expect(
+      client.readReceipt(projectId, projectSource.project_source_id),
+    ).resolves.toStrictEqual(receipt);
+    expect(calls[0]?.method).toBe("GET");
+    expect(calls[0]?.body).toBeUndefined();
+    await expect(
+      client.readReceipt(projectId, projectSource.project_source_id),
+    ).rejects.toMatchObject({
+      code: "PROJECT_SOURCE_REGISTRATION_RESPONSE_INVALID",
+    });
+    await expect(
+      client.readReceipt(projectId, projectSource.project_source_id),
+    ).resolves.toBeUndefined();
+  });
 });

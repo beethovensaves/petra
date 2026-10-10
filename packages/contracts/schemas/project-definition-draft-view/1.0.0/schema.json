@@ -1,0 +1,178 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/project-definition-draft-view/1.0.0/schema.json",
+  "title": "PetraProjectDefinitionDraftView",
+  "description": "A deterministic server-owned proposal for one Project, ProjectDefinition, objective, capability selection, assumptions, limitations, and initial-material plan.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "draft_id",
+    "content",
+    "content_hash",
+    "read_at"
+  ],
+  "properties": {
+    "schema_name": { "const": "petra.project-definition-draft-view" },
+    "schema_version": { "const": "1.0.0" },
+    "draft_id": {
+      "type": "string",
+      "pattern": "^project_definition_draft_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "content": { "$ref": "#/$defs/DraftContent" },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "read_at": { "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp" }
+  },
+  "$defs": {
+    "DraftContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "request",
+        "project",
+        "definition_family",
+        "definition_origin",
+        "definition_content",
+        "objective",
+        "enabled_evidence_namespaces",
+        "selected_capabilities",
+        "assumptions",
+        "unsupported_capabilities",
+        "initial_material_plan"
+      ],
+      "properties": {
+        "request": {
+          "$ref": "../../project-definition-draft-request/1.0.0/schema.json"
+        },
+        "project": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["name", "description"],
+          "properties": {
+            "name": { "type": "string", "minLength": 1, "maxLength": 240 },
+            "description": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4000
+            }
+          }
+        },
+        "definition_family": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9.-]{2,127}$"
+        },
+        "definition_origin": {
+          "$ref": "../../project-definition/1.0.0/schema.json#/$defs/DefinitionOrigin"
+        },
+        "definition_content": {
+          "$ref": "../../project-definition/1.0.0/schema.json#/$defs/DefinitionContent"
+        },
+        "objective": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["objective_kind", "statement"],
+          "properties": {
+            "objective_kind": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9._/-]{1,199}$"
+            },
+            "statement": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4000
+            }
+          }
+        },
+        "enabled_evidence_namespaces": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "../../common/1.0.0/schema.json#/$defs/EvidenceNamespace"
+          }
+        },
+        "selected_capabilities": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": { "$ref": "#/$defs/SelectedCapability" }
+        },
+        "assumptions": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 30,
+          "items": { "$ref": "#/$defs/Assumption" }
+        },
+        "unsupported_capabilities": {
+          "type": "array",
+          "maxItems": 100,
+          "items": { "$ref": "#/$defs/UnsupportedCapability" }
+        },
+        "initial_material_plan": {
+          "type": "array",
+          "maxItems": 12,
+          "items": { "$ref": "#/$defs/InitialMaterialPlan" }
+        }
+      }
+    },
+    "SelectedCapability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["capability_id", "label", "source", "reason"],
+      "properties": {
+        "capability_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9._/-]{1,199}$"
+        },
+        "label": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "source": { "enum": ["petra_kernel", "registered_template"] },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 2000 },
+        "profile_ref": {
+          "$ref": "../../registered-project-profile/1.0.0/schema.json#/$defs/ProfileRef"
+        }
+      }
+    },
+    "Assumption": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "statement", "consequence"],
+      "properties": {
+        "code": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9._-]{1,99}$"
+        },
+        "statement": { "type": "string", "minLength": 1, "maxLength": 2000 },
+        "consequence": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        }
+      }
+    },
+    "UnsupportedCapability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["capability", "reason"],
+      "properties": {
+        "capability": { "type": "string", "minLength": 1, "maxLength": 300 },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 2000 }
+      }
+    },
+    "InitialMaterialPlan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["material_id", "disposition", "reason"],
+      "properties": {
+        "material_id": {
+          "type": "string",
+          "pattern": "^initial_material_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "disposition": { "const": "register_after_project_creation" },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 2000 }
+      }
+    }
+  }
+}

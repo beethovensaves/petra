@@ -63,3 +63,12 @@ export * from "./review-session-apply.js";
 
 export * from "./project-brief-view-reader.js";
 export * from "./communication-plan-reader.js";
+export * from "./project-copilot-repository.js";
+export * from "./project-semantic-graph-reader.js";
+export * from "./project-examination-repository.js";
+
+export * from "./project-examination-registry.js";
+export * from "./project-examination-command-authority.js";
+export * from "./project-examination-owner-authority.js";
+
+export * from "./intake-copilot-repository.js";

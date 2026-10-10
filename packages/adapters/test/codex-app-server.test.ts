@@ -266,6 +266,117 @@ describe("Codex app-server subscription provider", () => {
     await provider.close();
   });
 
+  it("disables built-in and inherited MCP tools before creating an advisory thread", async () => {
+    const port = initializedPort({
+      "config/read": () => ({
+        config: {
+          mcp_servers: {
+            "private.server": { command: "sensitive-command", required: true },
+          },
+        },
+      }),
+      "thread/start": () => ({
+        thread: { id: "advisory-thread" },
+        model: "candidate-model",
+        modelProvider: "openai",
+        cwd: "/isolated",
+        approvalPolicy: "never",
+        sandbox: { type: "readOnly", networkAccess: false },
+        instructionSources: [],
+      }),
+    });
+    const provider = await CodexSubscriptionProvider.connect(port, {
+      advisoryModel: "candidate-model",
+    });
+    const thread = await provider.startThread({
+      model: "candidate-model",
+      cwd: "/isolated",
+      ephemeral: true,
+      approvalPolicy: "never",
+      sandbox: "read-only",
+      advisoryOnly: true,
+    });
+    expect(thread.advisoryIsolation).toBe("petra.codex-no-tools@1.0.0");
+    expect(port.sent.map((message) => message.method)).toEqual([
+      "initialize",
+      "initialized",
+      "config/read",
+      "thread/start",
+    ]);
+    expect(port.sent.at(-1)).toMatchObject({
+      params: {
+        config: {
+          "features.shell_tool": false,
+          "features.unified_exec": false,
+          "features.apps": false,
+          "features.plugins": false,
+          "features.multi_agent_v2": false,
+          "features.js_repl": false,
+          web_search: "disabled",
+          project_doc_max_bytes: 0,
+          mcp_servers: {
+            "private.server": { enabled: false, required: false },
+          },
+        },
+      },
+    });
+    expect(JSON.stringify(port.sent)).not.toContain("sensitive-command");
+    await provider.close();
+  });
+
+  it("refuses advisory input on a shared provider without the startup tool-free catalog", async () => {
+    const port = initializedPort();
+    const provider = await CodexSubscriptionProvider.connect(port);
+    await expect(
+      provider.startThread({
+        model: "candidate-model",
+        cwd: "/isolated",
+        ephemeral: true,
+        approvalPolicy: "never",
+        sandbox: "read-only",
+        advisoryOnly: true,
+      }),
+    ).rejects.toMatchObject({ code: "CODEX_TOOL_POLICY_REQUIRED" });
+    expect(
+      port.sent.some(
+        (message) =>
+          message.method === "thread/start" || message.method === "turn/start",
+      ),
+    ).toBe(false);
+    await provider.close();
+  });
+
+  it("fails closed when an advisory thread loads unapproved instruction sources", async () => {
+    const port = initializedPort({
+      "config/read": () => ({ config: {} }),
+      "thread/start": () => ({
+        thread: { id: "advisory-thread" },
+        model: "candidate-model",
+        cwd: "/isolated",
+        approvalPolicy: "never",
+        sandbox: { type: "readOnly" },
+        instructionSources: ["/unapproved/AGENTS.md"],
+      }),
+    });
+    const provider = await CodexSubscriptionProvider.connect(port, {
+      advisoryModel: "candidate-model",
+    });
+    await expect(
+      provider.startThread({
+        model: "candidate-model",
+        cwd: "/isolated",
+        ephemeral: true,
+        approvalPolicy: "never",
+        sandbox: "read-only",
+        advisoryOnly: true,
+      }),
+    ).rejects.toMatchObject({ code: "CODEX_TOOL_POLICY_REFUSED" });
+    expect(port.sent.some((message) => message.method === "turn/start")).toBe(
+      false,
+    );
+    await provider.close();
+  });
+
   it("surfaces approvals, resolves only supported requests, and refuses token refresh", async () => {
     const port = initializedPort();
     const provider = await CodexSubscriptionProvider.connect(port);

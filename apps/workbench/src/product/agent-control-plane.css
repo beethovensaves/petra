@@ -1,0 +1,469 @@
+@import "./copilot.css";
+
+.reference-agent-panel {
+  gap: var(--petra-space-4);
+  padding: var(--petra-space-4);
+}
+
+.reference-agent-outcome {
+  gap: var(--petra-space-1);
+  padding: 0 0 var(--petra-space-3);
+  border: 0;
+  border-bottom: var(--petra-rule-thin) solid var(--petra-border-default);
+  border-radius: 0;
+  background: transparent;
+}
+
+.reference-agent-thread {
+  display: grid;
+  gap: var(--petra-space-3);
+}
+
+.reference-agent-thread > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--petra-space-3);
+}
+
+.reference-agent-thread > header h2,
+.reference-agent-thread > header p,
+.reference-agent-thread > p,
+.reference-agent-thread article p,
+.reference-agent-control > header p,
+.reference-agent-control > header h2 {
+  margin: 0;
+}
+
+.reference-agent-thread > header h2,
+.reference-agent-control > header h2 {
+  font-size: var(--petra-font-size-body-large);
+  line-height: var(--petra-line-height-tight);
+}
+
+.reference-agent-thread > header > span {
+  min-width: 1.75rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: var(--petra-radius-pill);
+  color: var(--petra-text-secondary);
+  background: var(--petra-surface-inset);
+  font-size: var(--petra-font-size-caption);
+  text-align: center;
+}
+
+.reference-agent-thread > ol {
+  display: grid;
+  gap: var(--petra-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.reference-agent-thread__representation {
+  color: var(--petra-text-secondary);
+  font-size: var(--petra-font-size-caption);
+}
+
+.reference-agent-thread > ol li {
+  padding-left: var(--petra-space-3);
+  border-left: 2px solid var(--petra-border-default);
+}
+
+.reference-agent-thread > ol li[data-force="author_instruction"] {
+  border-left-color: var(--petra-action-primary);
+}
+
+.reference-agent-thread article {
+  display: grid;
+  gap: var(--petra-space-2);
+}
+
+.reference-agent-thread article > header {
+  display: grid;
+  gap: 0.1rem;
+}
+
+.reference-agent-thread article > header span,
+.reference-agent-thread article > a,
+.reference-agent-thread > details,
+.reference-agent-control__identity {
+  color: var(--petra-text-secondary);
+  font-size: var(--petra-font-size-caption);
+}
+
+.reference-agent-control-slot {
+  display: grid;
+  gap: var(--petra-space-3);
+}
+
+.reference-agent-control {
+  display: grid;
+  gap: var(--petra-space-3);
+  padding: var(--petra-space-3);
+  border: var(--petra-rule-thin) solid var(--petra-border-strong);
+  border-radius: var(--petra-radius-medium);
+  background: var(--petra-surface-panel);
+}
+
+.reference-agent-control > header {
+  display: grid;
+  gap: var(--petra-space-1);
+}
+
+.reference-agent-control > header > p:last-child {
+  color: var(--petra-text-secondary);
+  font-size: var(--petra-font-size-caption);
+}
+
+.reference-agent-control__body {
+  min-width: 0;
+}
+
+.reference-agent-control__body > section,
+.reference-agent-control__body > main,
+.reference-agent-control__body .work-controls,
+.reference-agent-control__body .review-changeset,
+.reference-agent-control__body .review-decision,
+.reference-agent-control__body .history-event__revert,
+.reference-agent-control__body .reference-suggested-action,
+.reference-agent-control__body .reference-suggested-work-action {
+  width: auto;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.reference-agent-control__body .work-controls__snapshot,
+.reference-agent-control__body .reference-suggested-action__summary,
+.reference-agent-control__body .reference-suggested-action__invocation > dl,
+.reference-agent-control__body .review-changeset__lists {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.reference-agent-control__body .petra-button-group,
+.reference-agent-control__body .work-controls__commands,
+.reference-agent-control__body .work-controls__returns,
+.reference-agent-control__body .review-decision__alternatives,
+.reference-agent-control__body .reference-suggested-action__actions {
+  align-items: stretch;
+  flex-direction: column;
+}
+
+.reference-agent-control__body .petra-action,
+.reference-agent-control__body .reference-primary-link,
+.reference-agent-control__body .reference-text-link {
+  width: 100%;
+  max-width: none;
+}
+
+.reference-agent-control__body .reference-source-actions .petra-action {
+  width: auto;
+  max-width: 100%;
+}
+
+@media (max-width: 38rem) {
+  .reference-agent-control__body .reference-source-actions .petra-action {
+    width: 100%;
+  }
+}
+
+.reference-agent-control__body code,
+.reference-agent-thread code {
+  overflow-wrap: anywhere;
+}
+
+.reference-agent-composer {
+  display: grid;
+  gap: var(--petra-space-3);
+  position: sticky;
+  top: 0;
+  bottom: calc(-1 * var(--petra-space-4));
+  z-index: 2;
+  padding: var(--petra-space-3) 0 var(--petra-space-4);
+  border-top: var(--petra-rule-thin) solid var(--petra-border-default);
+  background: var(--petra-surface-chrome);
+}
+
+@media (max-width: 64rem) {
+  .reference-agent-composer {
+    position: static;
+  }
+}
+
+.reference-agent-composer .petra-model-readiness {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.reference-agent-readiness,
+.reference-agent-technical-note,
+.reference-suggested-action__agent-inspection {
+  color: var(--petra-text-secondary);
+  font-size: var(--petra-font-size-caption);
+}
+
+.reference-agent-readiness > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--petra-space-2);
+}
+
+.reference-agent-readiness > summary > span:last-child {
+  padding: 0.15rem 0.45rem;
+  border-radius: var(--petra-radius-pill);
+  background: var(--petra-surface-inset);
+}
+
+.reference-agent-readiness > summary > span[data-state="ready"] {
+  color: var(--petra-tone-positive);
+}
+
+.reference-agent-readiness[open] > summary,
+.reference-suggested-action__agent-inspection[open] > summary {
+  margin-bottom: var(--petra-space-3);
+}
+
+.reference-agent-composer .petra-model-readiness > header p,
+.reference-agent-composer .petra-model-readiness__facts,
+.reference-agent-composer .petra-model-limitations {
+  display: none;
+}
+
+.reference-agent-composer .petra-model-readiness > header {
+  align-items: center;
+}
+
+.reference-agent-composer .petra-model-readiness > header h2 {
+  font-size: var(--petra-font-size-body);
+}
+
+.reference-agent-composer .petra-model-response {
+  padding: var(--petra-space-3);
+}
+
+.reference-agent-composer .petra-model-response__basis {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.reference-agent-composer .petra-composer {
+  gap: var(--petra-space-3);
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.reference-agent-composer .petra-field__textarea {
+  min-height: 4.5rem;
+  height: 4.5rem;
+  max-height: 40vh;
+}
+
+.reference-agent-composer .petra-composer > div:last-child,
+.reference-agent-composer .petra-composer__actions {
+  align-items: stretch;
+  flex-direction: column;
+}
+
+.reference-agent-composer .petra-composer__actions .petra-action {
+  width: 100%;
+}
+
+.reference-agent-composer__unavailable {
+  display: grid;
+  gap: var(--petra-space-2);
+}
+
+.reference-agent-composer__unavailable p {
+  margin: 0;
+  color: var(--petra-text-secondary);
+}
+
+.reference-agent-panel nav {
+  padding-top: var(--petra-space-3);
+  border-top: var(--petra-rule-thin) solid var(--petra-border-default);
+}
+
+.petra-agent-handoff {
+  display: grid;
+  gap: var(--petra-space-2);
+  padding: var(--petra-space-4);
+  border-left: 3px solid var(--petra-action-primary);
+  background: var(--petra-surface-inset);
+}
+
+.petra-agent-handoff > * {
+  margin: 0;
+}
+
+.petra-agent-handoff > span {
+  color: var(--petra-text-secondary);
+  font-size: var(--petra-font-size-caption);
+}
+
+@media (max-width: 54rem) {
+  .reference-agent-panel {
+    height: calc(100vh - 7.25rem);
+    min-height: 0;
+    overflow-y: auto;
+  }
+}
+
+/* A persistent conversation owns the available vertical space. */
+.reference-agent-panel {
+  gap: 0.65rem;
+  overflow-y: auto;
+}
+.reference-agent-heading {
+  flex: 0 0 auto;
+}
+.reference-agent-heading h2 {
+  font-size: 1rem;
+}
+.reference-agent-heading .reference-panel-kicker {
+  font-size: 0.65rem;
+}
+.reference-agent-outcome {
+  padding-bottom: 0.6rem;
+  gap: 0.4rem;
+  flex: 0 0 auto;
+}
+.reference-agent-outcome > .reference-nav-label {
+  display: none;
+}
+.copilot-outcome-disclosure {
+  width: 100%;
+  font-size: 0.85rem;
+}
+.copilot-outcome-disclosure summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.copilot-outcome-disclosure p {
+  margin: 0.5rem 0;
+  line-height: 1.5;
+  color: var(--petra-text-secondary);
+}
+.reference-agent-outcome__state {
+  font-size: 0.72rem;
+}
+.reference-agent-panel nav {
+  border: 0;
+  padding: 0;
+  gap: 0.35rem;
+  flex: 0 0 auto;
+}
+.reference-workspace-destinations {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem;
+}
+.reference-workspace-destinations > .reference-nav-label {
+  display: none;
+}
+.reference-agent-panel nav .reference-workspace-destinations a {
+  min-height: 2rem;
+  padding: 0.3rem 0.5rem;
+  font-size: 0.78rem;
+}
+.reference-agent-panel nav .reference-workspace-destinations a.active {
+  box-shadow: none;
+  border-bottom: 2px solid var(--petra-brand-accent);
+}
+.reference-project-inspection {
+  font-size: 0.72rem;
+}
+.reference-project-inspection summary {
+  cursor: pointer;
+}
+.copilot-conversation {
+  min-height: 20rem;
+  flex: 1 1 auto;
+  gap: 0.5rem;
+}
+.copilot-transcript {
+  min-height: 8rem;
+  max-height: none;
+  flex: 1 1 0;
+  font-size: 0.875rem;
+}
+.copilot-compose-area {
+  position: static;
+  flex: 0 0 auto;
+  background: transparent;
+}
+.copilot-compose-area textarea {
+  min-height: 3.25rem;
+}
+.copilot-compose-area form {
+  padding: 0.7rem;
+}
+.copilot-refresh {
+  font-size: 0.7rem;
+}
+.reference-agent-control-slot {
+  flex: 0 0 auto;
+  gap: 0.35rem;
+}
+.reference-agent-control {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.copilot-task-disclosure {
+  border-top: 1px solid var(--petra-border-default);
+  padding-top: 0.5rem;
+  font-size: 0.8rem;
+}
+.copilot-task-disclosure > summary {
+  cursor: pointer;
+}
+.copilot-task-disclosure > summary > .reference-panel-kicker {
+  display: none;
+}
+.copilot-task-disclosure > summary > h2 {
+  display: inline;
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+.copilot-task-disclosure[open] {
+  max-height: 45vh;
+  overflow-y: auto;
+  padding-bottom: 0.5rem;
+}
+.copilot-task-disclosure > p {
+  color: var(--petra-text-secondary);
+  line-height: 1.5;
+}
+.copilot-registered-synthesis,
+.copilot-work-attention {
+  flex: 0 0 auto;
+  font-size: 0.7rem;
+}
+.copilot-work-attention > summary {
+  cursor: pointer;
+}
+.copilot-work-attention[open] > aside {
+  max-height: 30vh;
+  overflow-y: auto;
+}
+.copilot-workspace-result > header button {
+  border: 1px solid var(--petra-border-default);
+  border-radius: 0.4rem;
+  padding: 0.45rem 0.65rem;
+  background: var(--petra-surface-panel);
+  color: var(--petra-text-primary);
+  font-size: 0.8rem;
+}
+.copilot-workspace-result pre {
+  white-space: pre-wrap;
+  max-height: 25rem;
+  overflow-y: auto;
+  font-size: 0.72rem;
+}

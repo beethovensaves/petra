@@ -1,0 +1,159 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/copilot-input-manifest/1.0.0/schema.json",
+  "title": "PetraCopilotInputManifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "content",
+    "content_hash"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.copilot-input-manifest"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "content": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "run_id",
+        "thread_id",
+        "project_id",
+        "actor_id",
+        "context_hash",
+        "profile_hash",
+        "input_payload_hash",
+        "input_bytes",
+        "history_bytes",
+        "history_query_limit",
+        "history_query_may_have_omissions",
+        "retained_history_count",
+        "excluded_history_count",
+        "history",
+        "context_record_keys",
+        "prepared_at",
+        "authority"
+      ],
+      "properties": {
+        "run_id": {
+          "type": "string",
+          "pattern": "^run_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "thread_id": {
+          "type": "string",
+          "pattern": "^thread_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "project_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+        },
+        "actor_id": {
+          "type": "string",
+          "pattern": "^actor_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "context_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "profile_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "input_payload_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "input_bytes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "history_bytes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "history_query_limit": {
+          "const": 200
+        },
+        "history_query_may_have_omissions": {
+          "type": "boolean"
+        },
+        "retained_history_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 200
+        },
+        "excluded_history_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 200
+        },
+        "history": {
+          "type": "array",
+          "maxItems": 200,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "run_id",
+              "context_hash",
+              "question_hash",
+              "answer_hash",
+              "disclosure"
+            ],
+            "properties": {
+              "run_id": {
+                "type": "string",
+                "pattern": "^run_[0-9A-HJKMNP-TV-Z]{26}$"
+              },
+              "context_hash": {
+                "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+              },
+              "question_hash": {
+                "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+              },
+              "answer_hash": {
+                "oneOf": [
+                  {
+                    "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "disclosure": {
+                "enum": [
+                  "included_current_basis",
+                  "withheld_changed_basis",
+                  "excluded_history_budget"
+                ]
+              }
+            }
+          }
+        },
+        "context_record_keys": {
+          "type": "array",
+          "maxItems": 60,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "prepared_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "authority": {
+          "const": "advisory_input_only"
+        }
+      }
+    },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    }
+  }
+}

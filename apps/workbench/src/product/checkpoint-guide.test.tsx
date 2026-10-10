@@ -58,7 +58,8 @@ describe("Wave 6 in-product checkpoint guide", () => {
     expect(markup).toContain("Inspect effect and recovery");
     expect(markup).toContain("Expected outcomes");
     expect(markup).toContain("Safe optional mutations");
-    expect(markup).toContain("Open the reset control");
+    expect(markup).toContain("Choose replacement profile");
+    expect(markup).toContain("settings-project-reset");
     expect(markup).toContain(
       "Resume and Start again appear only for exact workflow-registered",
     );

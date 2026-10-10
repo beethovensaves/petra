@@ -1,5 +1,5 @@
 {
-  "fixture_manifest_version": "1.62.0",
+  "fixture_manifest_version": "1.75.0",
   "accepted": [
     {
       "schema": "contract-smoke",
@@ -637,6 +637,166 @@
       "schema": "communication-validation-receipt",
       "version": "1.0.0",
       "path": "fixtures/accepted/communication-validation-receipt.json"
+    },
+    {
+      "schema": "copilot-context",
+      "version": "1.0.0",
+      "path": "fixtures/accepted/copilot-context.json"
+    },
+    {
+      "schema": "copilot-output",
+      "version": "1.0.0",
+      "path": "fixtures/accepted/copilot-output.json"
+    },
+    {
+      "schema": "copilot-request",
+      "version": "1.0.0",
+      "path": "fixtures/accepted/copilot-request.json"
+    },
+    {
+      "schema": "copilot-turn",
+      "version": "1.0.0",
+      "path": "fixtures/accepted/copilot-turn.json"
+    },
+    {
+      "schema": "project-semantic-graph-view",
+      "version": "1.0.0",
+      "path": "fixtures/accepted/project-semantic-graph-view.json"
+    },
+    {
+      "schema": "copilot-context",
+      "version": "1.0.0",
+      "path": "fixtures/accepted/copilot-context-unset-objective.json"
+    },
+    {
+      "schema": "hypothesis",
+      "version": "1.0.0",
+      "path": "fixtures/accepted/hypothesis.json"
+    },
+    {
+      "schema": "hypothesis-assessment",
+      "version": "1.0.0",
+      "path": "fixtures/accepted/hypothesis-assessment.json"
+    },
+    {
+      "schema": "posture-decision",
+      "version": "1.0.0",
+      "path": "fixtures/accepted/posture-decision.json"
+    },
+    {
+      "schema": "cycle-disposition",
+      "version": "1.0.0",
+      "path": "fixtures/accepted/cycle-disposition.json"
+    },
+    {
+      "schema": "assessment-profile",
+      "version": "1.0.0",
+      "path": "fixtures/accepted/assessment-profile.json"
+    },
+    {
+      "schema": "assessment-policy",
+      "version": "1.0.0",
+      "path": "fixtures/accepted/assessment-policy.json"
+    },
+    {
+      "schema": "project-examination-request",
+      "version": "1.0.0",
+      "path": "fixtures/accepted/project-examination-request.json"
+    },
+    {
+      "schema": "project-examination-receipt",
+      "version": "1.0.0",
+      "path": "fixtures/accepted/project-examination-receipt.json"
+    },
+    {
+      "schema": "capability-grant",
+      "version": "1.16.0",
+      "path": "fixtures/accepted/capability-grant-v1-16.json"
+    },
+    {
+      "schema": "registered-project-profile",
+      "version": "1.0.0",
+      "path": "fixtures/accepted/registered-project-profile-scientific-v1-4.json"
+    },
+    {
+      "schema": "project-examination-view",
+      "version": "1.0.0",
+      "path": "fixtures/accepted/project-examination-view.json"
+    },
+    {
+      "schema": "registered-project-profile",
+      "version": "1.0.0",
+      "path": "fixtures/accepted/registered-project-profile-scientific-v1-5.json"
+    },
+    {
+      "schema": "project-examination-authority-request",
+      "version": "1.0.0",
+      "path": "fixtures/accepted/project-examination-authority-request.json"
+    },
+    {
+      "schema": "project-examination-authority-receipt",
+      "version": "1.0.0",
+      "path": "fixtures/accepted/project-examination-authority-receipt.json"
+    },
+    {
+      "schema": "project-examination-scene",
+      "version": "1.0.0",
+      "path": "fixtures/accepted/project-examination-scene.json"
+    },
+    {
+      "schema": "copilot-input-manifest",
+      "version": "1.0.0",
+      "path": "fixtures/accepted/copilot-input-manifest.json"
+    },
+    {
+      "schema": "graph-presentation-context",
+      "version": "1.0.0",
+      "path": "fixtures/accepted/graph-presentation-context.json"
+    },
+    {
+      "schema": "copilot-request",
+      "version": "1.1.0",
+      "path": "fixtures/accepted/copilot-request-v1-1.json"
+    },
+    {
+      "schema": "copilot-turn",
+      "version": "1.1.0",
+      "path": "fixtures/accepted/copilot-turn-v1-1.json"
+    },
+    {
+      "schema": "intake-copilot-session",
+      "version": "1.0.0",
+      "path": "fixtures/accepted/intake-copilot-session.json"
+    },
+    {
+      "schema": "intake-copilot-context",
+      "version": "1.0.0",
+      "path": "fixtures/accepted/intake-copilot-context.json"
+    },
+    {
+      "schema": "intake-copilot-input-manifest",
+      "version": "1.0.0",
+      "path": "fixtures/accepted/intake-copilot-input-manifest.json"
+    },
+    {
+      "schema": "intake-project-binding",
+      "version": "1.0.0",
+      "path": "fixtures/accepted/intake-project-binding.json"
+    },
+    {
+      "schema": "intake-copilot-turn",
+      "version": "1.0.0",
+      "path": "fixtures/accepted/intake-copilot-turn.json"
+    },
+    {
+      "schema": "intake-copilot-request",
+      "version": "1.0.0",
+      "path": "fixtures/accepted/intake-copilot-request.json"
+    },
+    {
+      "schema": "project-definition-draft-command-request",
+      "version": "1.1.0",
+      "path": "fixtures/accepted/project-definition-draft-command-request-v1-1.json"
     }
   ],
   "rejected": [
@@ -1077,6 +1237,151 @@
     {
       "schema": "project-source-replacement-retraction",
       "path": "fixtures/rejected/project-source-replacement-retraction-unpinned.json"
+    },
+    {
+      "schema": "copilot-context",
+      "version": "1.0.0",
+      "path": "fixtures/rejected/copilot-context.json"
+    },
+    {
+      "schema": "copilot-output",
+      "version": "1.0.0",
+      "path": "fixtures/rejected/copilot-output.json"
+    },
+    {
+      "schema": "copilot-request",
+      "version": "1.0.0",
+      "path": "fixtures/rejected/copilot-request.json"
+    },
+    {
+      "schema": "copilot-turn",
+      "version": "1.0.0",
+      "path": "fixtures/rejected/copilot-turn.json"
+    },
+    {
+      "schema": "project-semantic-graph-view",
+      "version": "1.0.0",
+      "path": "fixtures/rejected/project-semantic-graph-view.json"
+    },
+    {
+      "schema": "hypothesis",
+      "version": "1.0.0",
+      "path": "fixtures/rejected/hypothesis.json"
+    },
+    {
+      "schema": "hypothesis-assessment",
+      "version": "1.0.0",
+      "path": "fixtures/rejected/hypothesis-assessment.json"
+    },
+    {
+      "schema": "posture-decision",
+      "version": "1.0.0",
+      "path": "fixtures/rejected/posture-decision.json"
+    },
+    {
+      "schema": "cycle-disposition",
+      "version": "1.0.0",
+      "path": "fixtures/rejected/cycle-disposition.json"
+    },
+    {
+      "schema": "assessment-profile",
+      "version": "1.0.0",
+      "path": "fixtures/rejected/assessment-profile.json"
+    },
+    {
+      "schema": "assessment-policy",
+      "version": "1.0.0",
+      "path": "fixtures/rejected/assessment-policy.json"
+    },
+    {
+      "schema": "project-examination-request",
+      "version": "1.0.0",
+      "path": "fixtures/rejected/project-examination-request.json"
+    },
+    {
+      "schema": "project-examination-receipt",
+      "version": "1.0.0",
+      "path": "fixtures/rejected/project-examination-receipt.json"
+    },
+    {
+      "schema": "capability-grant",
+      "version": "1.16.0",
+      "path": "fixtures/rejected/capability-grant-v1-16.json"
+    },
+    {
+      "schema": "project-examination-view",
+      "version": "1.0.0",
+      "path": "fixtures/rejected/project-examination-view.json"
+    },
+    {
+      "schema": "project-examination-authority-request",
+      "version": "1.0.0",
+      "path": "fixtures/rejected/project-examination-authority-request.json"
+    },
+    {
+      "schema": "project-examination-authority-receipt",
+      "version": "1.0.0",
+      "path": "fixtures/rejected/project-examination-authority-receipt.json"
+    },
+    {
+      "schema": "project-examination-scene",
+      "version": "1.0.0",
+      "path": "fixtures/rejected/project-examination-scene.json"
+    },
+    {
+      "schema": "copilot-input-manifest",
+      "version": "1.0.0",
+      "path": "fixtures/rejected/copilot-input-manifest.json"
+    },
+    {
+      "schema": "graph-presentation-context",
+      "version": "1.0.0",
+      "path": "fixtures/rejected/graph-presentation-context.json"
+    },
+    {
+      "schema": "copilot-request",
+      "version": "1.1.0",
+      "path": "fixtures/rejected/copilot-request-v1-1.json"
+    },
+    {
+      "schema": "copilot-turn",
+      "version": "1.1.0",
+      "path": "fixtures/rejected/copilot-turn-v1-1.json"
+    },
+    {
+      "schema": "intake-copilot-session",
+      "version": "1.0.0",
+      "path": "fixtures/rejected/intake-copilot-session.json"
+    },
+    {
+      "schema": "intake-copilot-context",
+      "version": "1.0.0",
+      "path": "fixtures/rejected/intake-copilot-context.json"
+    },
+    {
+      "schema": "intake-copilot-input-manifest",
+      "version": "1.0.0",
+      "path": "fixtures/rejected/intake-copilot-input-manifest.json"
+    },
+    {
+      "schema": "intake-project-binding",
+      "version": "1.0.0",
+      "path": "fixtures/rejected/intake-project-binding.json"
+    },
+    {
+      "schema": "intake-copilot-turn",
+      "version": "1.0.0",
+      "path": "fixtures/rejected/intake-copilot-turn.json"
+    },
+    {
+      "schema": "intake-copilot-request",
+      "version": "1.0.0",
+      "path": "fixtures/rejected/intake-copilot-request.json"
+    },
+    {
+      "schema": "project-definition-draft-command-request",
+      "version": "1.1.0",
+      "path": "fixtures/rejected/project-definition-draft-command-request-v1-1.json"
     }
   ],
   "canonical": [

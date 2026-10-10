@@ -90,7 +90,7 @@ assert.equal(
 );
 assert.equal(
   await evaluate(
-    'document.querySelector(".reference-context-bar__identity a[href$=profile]").textContent',
+    'document.querySelector(".reference-project-inspection__definition strong").textContent',
   ),
   "Scientific evidence inquiry",
 );
@@ -102,7 +102,31 @@ assert.equal(
 );
 assert.equal(
   await evaluate(
-    'document.querySelector("#shell-attention-work").textContent.includes("1 task is active or need attention")',
+    'document.querySelectorAll(".reference-agent-control").length',
+  ),
+  1,
+);
+assert.equal(
+  await evaluate(
+    'document.querySelector(".reference-agent-control")?.dataset.operationIds',
+  ),
+  "brief.frame-objective",
+);
+assert.equal(
+  await evaluate(
+    'document.querySelector(".reference-agent-control")?.closest(".reference-agent-panel") !== null',
+  ),
+  true,
+);
+assert.equal(
+  await evaluate(
+    'document.querySelector(".reference-agent-control")?.closest(".reference-workspace-panel") !== null',
+  ),
+  false,
+);
+assert.equal(
+  await evaluate(
+    'document.querySelector("#shell-attention-work").textContent.includes("1 task needs attention")',
   ),
   true,
 );
@@ -119,7 +143,7 @@ await until(
   `${route}.pathname.endsWith("/work/work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2")`,
 );
 await until('document.querySelector(".work-detail") !== null');
-await activate(link("Return to Attention Work"));
+await activate(link("Return to Needs your attention"));
 await until(`${route}.pathname.endsWith("/brief")`);
 await until('document.activeElement?.id === "shell-attention-work"');
 
@@ -212,6 +236,19 @@ assert.equal(
   true,
   "the integrated shell and Brief must reflow at 375px and 200% text",
 );
+await evaluate(
+  `([...document.querySelectorAll('.reference-mobile-pane-switcher button')]
+    .find((button) => button.textContent?.trim() === 'Agent'))?.click()`,
+);
+await until(
+  'getComputedStyle(document.querySelector(".reference-agent-panel")).display !== "none"',
+);
+assert.equal(
+  await evaluate(
+    'document.querySelector(".reference-agent-control")?.dataset.operationIds',
+  ),
+  "brief.frame-objective",
+);
 const targetHeight = await evaluate(
   'document.querySelector(".reference-attention-work a").getBoundingClientRect().height',
 );
@@ -221,7 +258,12 @@ const observation = {
   schema_name: "petra.wave6-shell-brief-browser-evidence",
   schema_version: "1.0.0",
   state: "passed",
-  operation_ids: ["shell.attention-work", "brief.attention", "brief.change"],
+  operation_ids: [
+    "shell.attention-work",
+    "brief.attention",
+    "brief.change",
+    "brief.frame-objective",
+  ],
   browser: "Chrome via CDP",
   transport: "deterministic schema-valid HTTP at the production UI boundary",
   checks: [
@@ -234,12 +276,13 @@ const observation = {
     "unavailable baseline recovery without a substituted comparison",
     "stale comparison replay recovery without false success",
     "Project context and current Objective orientation remained visible",
+    "route-owned Objective control rendered in Agent with exact operation identity",
     "375px width, 200% text reflow, reduced motion, and 44px Work target",
   ],
   verified_not_credited: ["shell.inspect-context", "brief.orient"],
   named_scenario: null,
   boundary:
-    "Isolated Chrome keyboard-invoked the production ProjectShell, ProjectBriefSurface, WorkDetailSurface, React Router controls, ProjectShellClient, ProjectBriefClient, exact Work destination checks, comparison success, unavailable recovery, stale recovery, and focused returns using deterministic schema-valid authenticated HTTP. The exact backend counterpart separately proves the live server and PostgreSQL owners. This artifact does not claim live server transport, PostgreSQL persistence, a complete guided workflow, or any frozen Wave 6 evidence-plan scenario.",
+    "Isolated Chrome keyboard-invoked the production ProjectShell, ProjectBriefSurface, WorkDetailSurface, React Router controls, ProjectShellClient, ProjectBriefClient, exact Work destination checks, comparison success, unavailable recovery, stale recovery, and focused returns using deterministic schema-valid authenticated HTTP. It also confirmed that the route-owned Objective controller renders inside the persistent Agent, stays out of the Workspace, and survives the constrained-width pane switch. The exact backend counterpart separately proves the live server and PostgreSQL owners. This artifact does not claim live server transport, PostgreSQL persistence, a complete guided workflow, or any frozen Wave 6 evidence-plan scenario.",
 };
 await writeFile(
   process.env.PETRA_SHELL_BRIEF_BROWSER_OUTPUT ??

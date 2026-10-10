@@ -1,0 +1,182 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/copilot-turn/1.0.0/schema.json",
+  "title": "PetraCopilotTurn",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "run_id",
+    "thread_id",
+    "project_id",
+    "actor_id",
+    "parent_run_id",
+    "question",
+    "context",
+    "focus_keys",
+    "request_hash",
+    "started_at",
+    "instance_id"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.copilot-turn"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "run_id": {
+      "type": "string",
+      "pattern": "^run_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "thread_id": {
+      "type": "string",
+      "pattern": "^thread_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "project_id": {
+      "type": "string",
+      "pattern": "^project_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "actor_id": {
+      "type": "string",
+      "pattern": "^actor_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "parent_run_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^run_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "question": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 8000
+    },
+    "context": {
+      "$ref": "../../copilot-context/1.0.0/schema.json"
+    },
+    "focus_keys": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 200
+      },
+      "uniqueItems": true
+    },
+    "request_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "started_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    },
+    "instance_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+    },
+    "terminal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "finished_at"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "completed",
+            "failed",
+            "cancelled"
+          ]
+        },
+        "finished_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "output": {
+          "$ref": "../../copilot-output/1.0.0/schema.json"
+        },
+        "error": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8000
+        },
+        "model": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "provider_thread_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "provider_turn_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "completed"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "required": [
+              "output",
+              "model",
+              "provider_thread_id",
+              "provider_turn_id"
+            ],
+            "properties": {
+              "error": false,
+              "output": {
+                "$ref": "../../copilot-output/1.0.0/schema.json"
+              },
+              "model": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "provider_thread_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "provider_turn_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              }
+            }
+          },
+          "else": {
+            "required": [
+              "error"
+            ],
+            "properties": {
+              "output": false,
+              "error": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 8000
+              }
+            }
+          }
+        }
+      ]
+    },
+    "input_manifest": {
+      "$ref": "../../copilot-input-manifest/1.0.0/schema.json"
+    }
+  }
+}

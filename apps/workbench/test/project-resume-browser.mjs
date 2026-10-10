@@ -80,12 +80,17 @@ socket.addEventListener("message", (event) => {
     message.method === "Runtime.consoleAPICalled" &&
     ["error", "assert"].includes(message.params?.type)
   ) {
-    browserFailures.push(
-      message.params.args?.map((argument) => argument.value),
-    );
+    if (browserFailures.length < 5) {
+      browserFailures.push(
+        message.params.args?.map(
+          (argument) => argument.value ?? argument.description,
+        ),
+      );
+    }
   }
   if (message.method === "Runtime.exceptionThrown") {
-    browserFailures.push(message.params?.exceptionDetails);
+    if (browserFailures.length < 5)
+      browserFailures.push(message.params?.exceptionDetails);
   }
 });
 
@@ -159,7 +164,6 @@ try {
 
   const availableCollectionText = await evaluate("document.body.innerText");
   for (const value of [
-    "Resume Project",
     "Retained task ready",
     "Which retained relationship should I inspect next?",
   ]) {
@@ -168,7 +172,8 @@ try {
       `available collection omitted ${value}`,
     );
   }
-  await activateLink("Resume Project");
+  assert.equal(availableCollectionText.includes("Resume Project"), false);
+  await activateLink("Competing explanations");
   await until(
     'document.querySelector(".focused-graph-resume[data-resume-state=available]") !== null',
     "exact retained Graph task",
@@ -304,7 +309,7 @@ try {
     route_transport:
       "Production React Router loaders and controls with deterministic typed HTTP responses in isolated Chrome.",
     checks: [
-      "Project collection renders the server-owned resume state and visible Resume Project control",
+      "Project collection opens a server-verified retained task from the primary Project link without a routine Resume control",
       "keyboard activation opens the exact retained task through project-shell-view@1.2.0",
       "retained task, origin, focus, selection, destination, and request reach the Graph unchanged",
       "stale archived state follows the server-returned Brief recovery while preserving retained context",

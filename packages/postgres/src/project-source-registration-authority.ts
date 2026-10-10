@@ -21,6 +21,7 @@ import {
   type ArtifactStore,
   type ProjectSourceRegistrationAuthority,
   type ProjectSourceRegistrationPrincipal,
+  type ProjectSourceRegistrationReadPrincipal,
   type ProjectSourceRegistrationResult,
 } from "@petra/core";
 import { canonicalize } from "json-canonicalize";
@@ -106,6 +107,56 @@ export class PostgresProjectSourceRegistrationAuthority implements ProjectSource
     this.#artifactStore = artifactStore;
     this.#authorizer = authorizer;
     this.#contracts = contracts;
+  }
+
+  async readProjectSourceRegistrationReceipt(
+    projectId: string,
+    projectSourceId: string,
+    principal: ProjectSourceRegistrationReadPrincipal,
+  ): Promise<PetraProjectSourceRegistrationReceipt | undefined> {
+    const result = await this.#pool.query<StoredReceiptRow>(
+      `SELECT receipt.command_id, receipt.idempotency_key,
+              receipt.request_hash, receipt.project_id, receipt.actor_id,
+              receipt.actor_kind, receipt.payload AS receipt_payload,
+              receipt.record_hash AS receipt_record_hash,
+              source.payload AS source_payload,
+              source.record_hash AS source_record_hash
+         FROM petra.project_source_registration_receipts AS receipt
+         JOIN petra.project_source_revisions AS source
+           ON source.project_id = receipt.project_id
+          AND source.project_source_id = receipt.project_source_id
+          AND source.revision = receipt.project_source_revision
+          AND source.content_hash = receipt.project_source_content_hash
+          AND source.record_hash = receipt.project_source_record_hash
+        WHERE receipt.project_id = $1
+          AND receipt.project_source_id = $2`,
+      [projectId, projectSourceId],
+    );
+    if (result.rows.length === 0) return undefined;
+    if (result.rows.length !== 1) {
+      throw new ProjectSourceRegistrationError(
+        "PROJECT_SOURCE_REGISTRATION_STORED_RECORD_CORRUPT",
+        "More than one registration receipt was retained for this Project source.",
+      );
+    }
+    const row = result.rows[0];
+    if (row === undefined || !sameActor(row, principal.actor)) {
+      throw new ProjectSourceRegistrationError(
+        "PROJECT_SOURCE_REGISTRATION_NOT_AUTHORIZED",
+        "The registration receipt is not owned by the authenticated actor.",
+      );
+    }
+    const receipt = this.#storedResult(row).receipt;
+    if (
+      receipt.project_id !== projectId ||
+      receipt.project_source_ref.project_source_id !== projectSourceId
+    ) {
+      throw new ProjectSourceRegistrationError(
+        "PROJECT_SOURCE_REGISTRATION_STORED_RECORD_CORRUPT",
+        "The retained registration receipt crossed its exact Source identity.",
+      );
+    }
+    return receipt;
   }
 
   async executeProjectSourceRegistration(

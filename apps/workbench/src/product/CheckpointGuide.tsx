@@ -3,6 +3,7 @@ import { Link, useLoaderData, useSearchParams } from "react-router";
 import { PetraMark } from "../design-system/brand.js";
 import type { ProjectRecord } from "./model.js";
 import type { ProjectCollectionData } from "./project-data.js";
+import { ProjectResetPanel } from "./ProjectProfileSurface.js";
 
 import "./checkpoint-guide.css";
 
@@ -293,16 +294,11 @@ export const CheckpointGuideSurface = ({
           ) : (
             <>
               <p>
-                Settings archives exact Project revision {project.revision} and
+                This test control archives a current Project revision and
                 creates an additive replacement from a registered profile. It
                 does not delete the original Project or unrelated records.
               </p>
-              <Link
-                className="reference-primary-link"
-                to={"/settings?project=" + encodeURIComponent(project.id)}
-              >
-                Open the reset control
-              </Link>
+              <ProjectResetPanel project={project} profiles={profiles} />
             </>
           )}
         </section>

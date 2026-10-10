@@ -125,8 +125,11 @@ const run = () =>
         PETRA_WAVE4_TRACE: "wave5-cumulative",
         PETRA_WAVE4_EVIDENCE_OBSERVER:
           "./apps/workbench/test/wave6-work-browser-observer.mjs",
-        PETRA_WAVE4_RESULT_OUTPUT: "reports/WAVE6-WORK-CUMULATIVE-TRACE.json",
+        PETRA_WAVE4_RESULT_OUTPUT:
+          process.env.PETRA_WAVE4_RESULT_OUTPUT ??
+          "reports/WAVE6-WORK-CUMULATIVE-TRACE.json",
         PETRA_WAVE6_WORK_BROWSER_OUTPUT:
+          process.env.PETRA_WAVE6_WORK_BROWSER_OUTPUT ??
           "reports/WAVE6-WORK-BROWSER-OBSERVATION.json",
       },
       stdio: "inherit",

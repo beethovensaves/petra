@@ -435,6 +435,7 @@ describe("remaining neutral reference packets", () => {
       "The CapabilityGrant registry is available, but this Project has no registered command grant.",
     );
     expect(markup).toContain("No typed Project control operation is connected");
+    expect(markup).not.toContain("settings-project-reset");
   });
 
   it("uses a profile-owned tool inside Petra's shared task and recovery grammar", () => {
@@ -442,7 +443,7 @@ describe("remaining neutral reference packets", () => {
       <ProfileToolSurface project={decisionProject} tool={profileTool} />,
     );
 
-    expect(markup).toContain("Profile tool · Decision analysis");
+    expect(markup).toContain("Project capability · Decision analysis");
     expect(markup).toContain("Constraint coverage check");
     expect(markup).toContain(
       "profile.decision-analysis/constraint-coverage@1.0",

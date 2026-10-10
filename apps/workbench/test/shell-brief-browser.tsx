@@ -36,6 +36,7 @@ import "../src/styles.css";
 import "../src/product/reference-workbench.css";
 import "../src/product/project-brief.css";
 import "../src/product/work-petra.css";
+import "../src/product/agent-control-plane.css";
 
 const hash = async (value: unknown): Promise<string> => {
   const digest = await crypto.subtle.digest(

@@ -1,0 +1,180 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/copilot-context/1.0.0/schema.json",
+  "title": "PetraCopilotContext",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "project_id",
+    "basis",
+    "project_label",
+    "objective_statement",
+    "definition_family",
+    "records",
+    "limitations",
+    "content_hash"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.copilot-context"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "project_id": {
+      "type": "string",
+      "pattern": "^project_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "basis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_revision",
+        "definition",
+        "objective",
+        "event_position",
+        "stream_revision"
+      ],
+      "properties": {
+        "project_revision": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+        },
+        "definition": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["record_id", "revision", "content_hash"],
+          "properties": {
+            "record_id": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+            },
+            "revision": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+            },
+            "content_hash": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+            }
+          }
+        },
+        "objective": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["record_id", "revision", "content_hash"],
+              "properties": {
+                "record_id": {
+                  "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+                },
+                "revision": {
+                  "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+                },
+                "content_hash": {
+                  "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+                }
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "event_position": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "stream_revision": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "project_label": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500
+    },
+    "objective_statement": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 8000
+    },
+    "definition_family": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "records": {
+      "type": "array",
+      "maxItems": 60,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["key", "ref", "kind", "label", "destination"],
+        "properties": {
+          "key": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "ref": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["record_id", "revision", "record_hash"],
+            "properties": {
+              "record_id": {
+                "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+              },
+              "revision": {
+                "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+              },
+              "record_hash": {
+                "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+              }
+            }
+          },
+          "kind": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 8000
+          },
+          "destination": {
+            "type": "string",
+            "pattern": "^/projects/",
+            "maxLength": 2000
+          },
+          "reportable_text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 8000,
+            "description": "Exact admitted native wording. Absent on metadata-only, stale, oversized, or egress-withheld records."
+          }
+        }
+      }
+    },
+    "limitations": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 2000
+      }
+    },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    }
+  }
+}

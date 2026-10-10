@@ -1,8 +1,11 @@
 import { readProjectBrief } from "./brief-read.js";
+import { ProjectSemanticGraphClient } from "@petra/adapters";
+import type { PetraProjectSemanticGraphView } from "@petra/contracts";
 import {
   FocusedGraphClient,
   FocusedGraphClientError,
   ProjectBriefClientError,
+  ProjectDefinitionDraftClient,
   ProjectModelClient,
   ProjectProfileClient,
   ProjectSourceDiscoveryClient,
@@ -42,6 +45,11 @@ import type {
   PetraProjectModelReadinessView,
   PetraProjectObjectLocationView,
   PetraProjectDefinition,
+  PetraProjectDefinitionDraftCommandReceipt,
+  PetraProjectDefinitionDraftCommandRequest,
+  ProjectDefinitionDraftInitialMaterial,
+  PetraProjectDefinitionDraftRequest,
+  PetraProjectDefinitionDraftView,
   PetraProjectProfileCommandReceipt,
   PetraProjectProfileCommandRecoveryView,
   PetraProjectProfileCommandRequest,
@@ -3052,6 +3060,44 @@ export const workProjectFromView = (
   };
 };
 
+export const getProjectWorkInspection = async (
+  projectId: string,
+  workUnitId: string,
+  revision: number,
+  recordHash: string,
+): Promise<{
+  readonly work: WorkUnit;
+  readonly operations: PetraProjectWorkOperationsView;
+}> => {
+  const [value, operations] = await Promise.all([
+    requestJson(
+      `/api/queries/projects/${encodeURIComponent(projectId)}/work/${encodeURIComponent(workUnitId)}`,
+    ),
+    readProjectWorkOperations(projectId, workUnitId),
+  ]);
+  const view = projectWorkView(value);
+  if (
+    view.project_id !== projectId ||
+    view.content.view_kind !== "detail" ||
+    view.content.summary.work_unit_ref.work_unit_id !== workUnitId ||
+    view.content.summary.work_unit_ref.revision !== revision ||
+    view.content.summary.work_unit_ref.record_hash !== recordHash ||
+    operations.project_id !== projectId ||
+    operations.work_unit_ref.work_unit_id !== workUnitId ||
+    operations.work_unit_ref.revision !== revision
+  ) {
+    throw new ProjectDataError(
+      "The current Work read does not match the selected Project shell revision.",
+      409,
+    );
+  }
+  const work = workProjectFromView(view).units[0];
+  if (work === undefined) {
+    throw new ProjectDataError("Petra returned no exact Work task.", 502);
+  }
+  return { work, operations };
+};
+
 export const sourceRecordFromView = (
   view: PetraProjectSourceView,
 ): SourceRecord => {
@@ -3099,6 +3145,25 @@ export const sourceRecordFromView = (
           },
         }),
   };
+};
+
+export const getProjectSourceInspection = async (
+  projectId: string,
+  sourceId: string,
+  revision: number,
+): Promise<SourceRecord> => {
+  const view = await projectSourceDiscoveryClient().open(projectId, sourceId);
+  if (
+    view.project_id !== projectId ||
+    view.project_source_id !== sourceId ||
+    view.content.binding.revision !== revision
+  ) {
+    throw new ProjectDataError(
+      "The current Source read does not match the selected Project shell revision.",
+      409,
+    );
+  }
+  return sourceRecordFromView(view);
 };
 
 const reviewReturnPath = (view: PetraProjectReviewViewRecord): string => {
@@ -4113,6 +4178,13 @@ const projectProfileClient = (): ProjectProfileClient =>
     fetch: (input, init) => fetch(input, init),
   });
 
+const projectDefinitionDraftClient = (): ProjectDefinitionDraftClient =>
+  new ProjectDefinitionDraftClient({
+    baseUrl: apiBaseUrl(),
+    token: apiToken(),
+    fetch: (input, init) => fetch(input, init),
+  });
+
 export interface ProjectCollectionData extends ProjectCollectionPage {
   readonly profiles: PetraRegisteredProjectProfile[];
 }
@@ -4124,10 +4196,99 @@ export const loadProjectProfiles = async (): Promise<
 export const loadProjectsHome = async (): Promise<ProjectCollectionData> => {
   const [collection, profiles] = await Promise.all([
     searchProjectCollection({ limit: 12 }),
-    loadProjectProfiles(),
+    loadProjectProfiles().catch(() => []),
   ]);
   return { ...collection, profiles };
 };
+
+export interface ProjectDefinitionDraftInput {
+  readonly outcome: string;
+  readonly projectName?: string;
+  readonly example?: PetraRegisteredProjectProfile;
+  readonly initialMaterial?: readonly ProjectDefinitionDraftInitialMaterial[];
+}
+
+export const projectDefinitionInitialMaterialFromFiles = async (
+  files: readonly File[],
+): Promise<ProjectDefinitionDraftInitialMaterial[]> =>
+  Promise.all(
+    files.map(async (file) => {
+      if (file.size === 0 || file.size > 32 * 1024 * 1024) {
+        throw new ProjectDataError(
+          `${file.name || "An initial file"} must contain bytes and be no larger than 32 MiB.`,
+          400,
+        );
+      }
+      const digest = new Uint8Array(
+        await globalThis.crypto.subtle.digest(
+          "SHA-256",
+          await file.arrayBuffer(),
+        ),
+      );
+      return {
+        material_id: `initial_material_${randomUlidPayload()}`,
+        filename: file.name,
+        media_type: file.type || "application/octet-stream",
+        byte_size: file.size,
+        content_hash: `sha256:${Array.from(digest, (byte) => byte.toString(16).padStart(2, "0")).join("")}`,
+      };
+    }),
+  );
+
+export const createProjectDefinitionDraftRequest = (
+  input: ProjectDefinitionDraftInput,
+): PetraProjectDefinitionDraftRequest => ({
+  schema_name: "petra.project-definition-draft-request",
+  schema_version: "1.0.0",
+  request_id: `definition_draft_request_${randomUlidPayload()}`,
+  outcome: input.outcome,
+  ...(input.projectName === undefined || input.projectName.length === 0
+    ? {}
+    : { project_name: input.projectName }),
+  ...(input.example === undefined
+    ? {}
+    : {
+        example_ref: {
+          profile_id: input.example.profile_id,
+          profile_version: input.example.profile_version,
+          content_hash: input.example.content_hash,
+        },
+      }),
+  ...(input.initialMaterial === undefined
+    ? {}
+    : {
+        initial_material: structuredClone(input.initialMaterial) as Exclude<
+          PetraProjectDefinitionDraftRequest["initial_material"],
+          undefined
+        >,
+      }),
+});
+
+export const draftProjectDefinition = async (
+  request: PetraProjectDefinitionDraftRequest,
+): Promise<PetraProjectDefinitionDraftView> =>
+  projectDefinitionDraftClient().draft(request);
+
+export const createProjectDefinitionDraftCommandRequest = (
+  draft: PetraProjectDefinitionDraftView,
+): PetraProjectDefinitionDraftCommandRequest => {
+  const identity = randomUlidPayload();
+  return {
+    schema_name: "petra.project-definition-draft-command-request",
+    schema_version: "1.0.0",
+    command_id: `command_${identity}`,
+    idempotency_key: `project-definition-draft:create:${identity}`,
+    draft: structuredClone(draft),
+    accepted_assumption_codes: draft.content.assumptions.map(
+      (assumption) => assumption.code,
+    ) as PetraProjectDefinitionDraftCommandRequest["accepted_assumption_codes"],
+  };
+};
+
+export const createProjectFromDefinitionDraft = async (
+  request: PetraProjectDefinitionDraftCommandRequest,
+): Promise<PetraProjectDefinitionDraftCommandReceipt> =>
+  projectDefinitionDraftClient().create(request);
 
 export const loadProjectTaxonomy = async ({
   params,
@@ -4244,21 +4405,16 @@ export const loadProjectRecord = async ({
   const requestUrl = new URL(request.url);
   const incoming = requestUrl.searchParams;
   const semanticKey = incoming.get("semanticKey");
-  const objectPathSegment =
-    semanticKey === "petra.project-source"
-      ? "sources"
-      : semanticKey === "petra.work-unit"
-        ? "work"
-        : semanticKey === "petra.draft-artifact"
-          ? "composition"
-          : undefined;
   const pathParts = requestUrl.pathname.split("/").filter(Boolean);
-  const objectPathIndex =
-    objectPathSegment === undefined
-      ? -1
-      : pathParts.lastIndexOf(objectPathSegment);
+  const objectPathSegment =
+    pathParts.length === 4 &&
+    (pathParts[2] === "sources" ||
+      pathParts[2] === "work" ||
+      pathParts[2] === "composition")
+      ? pathParts[2]
+      : undefined;
   const pathObjectId =
-    objectPathIndex < 0 ? undefined : pathParts[objectPathIndex + 1];
+    objectPathSegment === undefined ? undefined : pathParts[3];
   const selected =
     incoming.get("selected") ??
     params.sourceId ??
@@ -4281,31 +4437,71 @@ export const loadProjectRecord = async ({
       400,
     );
   }
+  if (
+    hasExactSelection &&
+    pathObjectId !== undefined &&
+    selected !== pathObjectId
+  ) {
+    throw new ProjectDataError(
+      "The exact Workspace selection does not match the object in this Project URL.",
+      400,
+    );
+  }
+  const automaticSelection =
+    !hasExactSelectionMetadata && pathObjectId !== undefined
+      ? objectPathSegment === "sources" &&
+        /^project_source_[0-9A-HJKMNP-TV-Z]{26}$/u.test(pathObjectId)
+        ? {
+            semanticKey: "petra.project-source",
+            objectId: pathObjectId,
+            role: "sources",
+          }
+        : objectPathSegment === "work" &&
+            /^work_unit_[0-9A-HJKMNP-TV-Z]{26}$/u.test(pathObjectId)
+          ? {
+              semanticKey: "petra.work-unit",
+              objectId: pathObjectId,
+              role: "work",
+            }
+          : objectPathSegment === "composition" &&
+              /^draft_artifact_[0-9A-HJKMNP-TV-Z]{26}$/u.test(pathObjectId)
+            ? {
+                semanticKey: "petra.draft-artifact",
+                objectId: pathObjectId,
+                role: "composition",
+              }
+            : undefined
+      : undefined;
   const query = new URLSearchParams();
   if (hasExactSelection) {
     query.set("semanticKey", semanticKey);
     query.set("objectId", selected);
     query.set("revision", revision);
     query.set("taskIntent", "inspect");
+  } else if (automaticSelection !== undefined) {
+    query.set("semanticKey", automaticSelection.semanticKey);
+    query.set("objectId", automaticSelection.objectId);
+    query.set("taskIntent", "inspect");
   }
   const suffix = query.size === 0 ? "" : `?${query}`;
-  const view = hasExactSelection
-    ? shellView(
-        await requestJson(
-          `/api/queries/projects/${encodeURIComponent(params.projectId)}/shell${suffix}`,
-        ),
-      )
-    : await (async (): Promise<ProjectShellView> => {
-        const { ProjectShellClient } = await import("@petra/adapters");
-        return new ProjectShellClient({
-          baseUrl: apiBaseUrl(),
-          token: apiToken(),
-          fetch: (input, init) => fetch(input, init),
-        }).open(projectId);
-      })();
+  const view =
+    query.size > 0
+      ? shellView(
+          await requestJson(
+            `/api/queries/projects/${encodeURIComponent(params.projectId)}/shell${suffix}`,
+          ),
+        )
+      : await (async (): Promise<ProjectShellView> => {
+          const { ProjectShellClient } = await import("@petra/adapters");
+          return new ProjectShellClient({
+            baseUrl: apiBaseUrl(),
+            token: apiToken(),
+            fetch: (input, init) => fetch(input, init),
+          }).open(projectId);
+        })();
   if (hasExactSelection) {
     if (
-      view.schema_version !== "1.1.0" ||
+      view.schema_version === "1.0.0" ||
       view.content.selection === undefined ||
       !("resolved_ref" in view.content.selection.resolution) ||
       view.content.selection.resolution.resolved_ref.semantic_key !==
@@ -4318,6 +4514,24 @@ export const loadProjectRecord = async ({
       throw new ProjectDataError(
         "Petra could not reproduce the exact selected object in the Project shell snapshot.",
         502,
+      );
+    }
+  }
+  if (automaticSelection !== undefined) {
+    if (
+      view.schema_version === "1.0.0" ||
+      view.content.selection === undefined ||
+      view.content.selection.primary_destination.role !==
+        automaticSelection.role ||
+      view.content.selection.resolution.requested_ref.semantic_key !==
+        automaticSelection.semanticKey ||
+      view.content.selection.resolution.requested_ref.object_id !==
+        automaticSelection.objectId ||
+      !("resolved_ref" in view.content.selection.resolution)
+    ) {
+      throw new ProjectDataError(
+        "Petra could not verify this Workspace object and its server-owned destination in the Project shell snapshot.",
+        409,
       );
     }
   }
@@ -5158,11 +5372,10 @@ export interface ProjectHistoryEventData {
  * assessments. Compensation remains separately previewed, confirmed, and
  * executed by the owning production routes.
  */
-export const loadProjectHistoryEvent = async ({
-  params,
-}: LoaderFunctionArgs): Promise<ProjectHistoryEventData> => {
-  const projectId = requiredRouteIdentity(params.projectId, "A Project ID");
-  const eventId = requiredRouteIdentity(params.episodeId, "A History event ID");
+export const getProjectHistoryEvent = async (
+  projectId: string,
+  eventId: string,
+): Promise<ProjectHistoryEventData> => {
   const [episode, impact, recovery] = await Promise.all([
     getProjectHistoryEpisode(projectId, eventId),
     getProjectHistoryImpact(projectId, eventId),
@@ -5170,6 +5383,14 @@ export const loadProjectHistoryEvent = async ({
   ]);
   return { episode, impact, recovery };
 };
+
+export const loadProjectHistoryEvent = async ({
+  params,
+}: LoaderFunctionArgs): Promise<ProjectHistoryEventData> =>
+  getProjectHistoryEvent(
+    requiredRouteIdentity(params.projectId, "A Project ID"),
+    requiredRouteIdentity(params.episodeId, "A History event ID"),
+  );
 
 export interface ProjectHistoryCompensationPlanInput {
   readonly projectId: string;
@@ -6109,14 +6330,10 @@ export const loadProjectReviewCollection = async ({
   });
 };
 
-export const loadProjectReviewSession = async ({
-  params,
-}: LoaderFunctionArgs): Promise<ReviewSession> => {
-  const projectId = requiredRouteIdentity(params.projectId, "A Project ID");
-  const reviewSessionId = requiredRouteIdentity(
-    params.reviewId,
-    "A ReviewSession ID",
-  );
+export const getProjectReviewSession = async (
+  projectId: string,
+  reviewSessionId: string,
+): Promise<ReviewSession> => {
   const value = await requestJson(
     `/api/queries/projects/${encodeURIComponent(projectId)}/reviews/${encodeURIComponent(reviewSessionId)}`,
   );
@@ -6183,6 +6400,14 @@ export const loadProjectReviewSession = async ({
     ...(first.changeSet === undefined ? {} : { changeSet: first.changeSet }),
   };
 };
+
+export const loadProjectReviewSession = async ({
+  params,
+}: LoaderFunctionArgs): Promise<ReviewSession> =>
+  getProjectReviewSession(
+    requiredRouteIdentity(params.projectId, "A Project ID"),
+    requiredRouteIdentity(params.reviewId, "A ReviewSession ID"),
+  );
 
 const WORK_INQUIRY_MAPPING_UNAVAILABLE =
   "The current Project profile has no active inquiry-path mapping. Exact Work remains available, but Petra cannot show how these tasks relate to authored inquiry paths.";
@@ -6639,6 +6864,17 @@ export const readProjectWorkOperations = async (
   workUnitId: string,
 ): Promise<PetraProjectWorkOperationsView> =>
   projectWorkClient().readOperations(projectId, workUnitId);
+
+export const readProjectWorkReceipts = async (
+  projectId: string,
+  workUnitId: string,
+): Promise<
+  readonly (
+    | PetraProjectWorkOperationReceipt
+    | PetraProjectWorkResumeReceipt
+    | PetraProjectWorkStartAgainReceipt
+  )[]
+> => projectWorkClient().readReceipts(projectId, workUnitId);
 
 export const executeProjectWorkOperation = async (
   projectId: string,
@@ -8339,12 +8575,24 @@ export const loadProjectPetraThread = async ({
     }
     return petraThreadFromView(detail);
   }
+  return getLatestProjectPetraThread(projectId);
+};
+
+/**
+ * Reads the latest open Project thread for the persistent Agent rail. The
+ * returned thread is still composed from the authoritative Project-thread
+ * query; the browser does not rebuild conversation or operation identity.
+ */
+export const getLatestProjectPetraThread = async (
+  projectId: string,
+): Promise<PetraThread | undefined> => {
+  const exactProjectId = requiredRouteIdentity(projectId, "A Project ID");
   const collectionValue = await requestJson(
-    `/api/queries/projects/${encodeURIComponent(projectId)}/threads?limit=1&lifecycle=open`,
+    `/api/queries/projects/${encodeURIComponent(exactProjectId)}/threads?limit=1&lifecycle=open`,
   );
   const collection = projectThreadView(collectionValue);
   if (
-    collection.project_id !== projectId ||
+    collection.project_id !== exactProjectId ||
     collection.content.view_kind !== "collection"
   ) {
     throw new ProjectDataError(
@@ -8356,11 +8604,11 @@ export const loadProjectPetraThread = async ({
   if (selected === undefined) return undefined;
   const threadId = selected.thread_ref.project_thread_id;
   const detailValue = await requestJson(
-    `/api/queries/projects/${encodeURIComponent(projectId)}/threads/${encodeURIComponent(threadId)}`,
+    `/api/queries/projects/${encodeURIComponent(exactProjectId)}/threads/${encodeURIComponent(threadId)}`,
   );
   const detail = projectThreadView(detailValue);
   if (
-    detail.project_id !== projectId ||
+    detail.project_id !== exactProjectId ||
     detail.content.view_kind !== "detail" ||
     detail.content.summary.thread_ref.project_thread_id !== threadId ||
     detail.content.summary.thread_ref.revision !==
@@ -8908,7 +9156,7 @@ export const focusedGraphAnalysisRequestFromEntry = async (
 
 export const loadProjectGraph = async (
   args: LoaderFunctionArgs,
-): Promise<GraphQuestion | FocusedGraphRouteData | undefined> => {
+): Promise<GraphQuestion | FocusedGraphRouteData | PetraProjectSemanticGraphView | undefined> => {
   const projectId = requiredRouteIdentity(
     args.params.projectId,
     "A Project ID",
@@ -8917,7 +9165,10 @@ export const loadProjectGraph = async (
     projectId,
     new URL(args.request.url).searchParams,
   );
-  if (entry === undefined) return loadProjectRelationshipOverlayGraph(args);
+  if (entry === undefined) {
+    if (new URL(args.request.url).searchParams.get("query") === "authority-path") return loadProjectRelationshipOverlayGraph(args);
+    return new ProjectSemanticGraphClient({ baseUrl: apiBaseUrl(), token: apiToken() }).read(projectId, args.request.signal);
+  }
 
   const brief = await readProjectBrief({
     projectId,

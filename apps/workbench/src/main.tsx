@@ -10,6 +10,7 @@ import "./product/project-profile.css";
 import "./product/review-graph.css";
 import "./product/work-petra.css";
 import "./product/remaining-surfaces.css";
+import "./product/agent-control-plane.css";
 
 const root = document.getElementById("root");
 if (root === null) throw new Error("Petra's root element is missing.");

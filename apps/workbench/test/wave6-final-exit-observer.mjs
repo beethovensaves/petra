@@ -643,13 +643,13 @@ export const createWave4EvidenceObserver = async ({ root }) => {
         control.dispatchEvent(new Event("change",{bubbles:true}));
       })()`);
     await guided.navigate(
-      `/settings?project=${encodeURIComponent(context.scientificProjectId)}`,
+      `/guide?project=${encodeURIComponent(context.scientificProjectId)}`,
       'document.querySelector(".settings-project-reset") !== null',
-      "Project reset Settings",
+      "acceptance guide reset",
     );
     await guided.assertText(
-      ["Project controls", "Reset with a registered profile"],
-      "Settings reset",
+      ["Wave 6 user checkpoint", "Reset with a registered profile"],
+      "guide reset",
     );
     await evaluate(`${button("Choose replacement profile")}.click()`);
     await until(
@@ -776,7 +776,7 @@ export const createWave4EvidenceObserver = async ({ root }) => {
         guide_path: `/guide?project=${context.scientificProjectId}`,
         profile: "Scientific evidence inquiry",
         reset:
-          "Open Settings from the Project map, choose a registered replacement profile, confirm the additive archive-and-create action, then return through the Project-pinned Test guide link.",
+          "Open the Project-pinned Test guide, choose a registered replacement profile in its test reset, then confirm the additive archive-and-create action.",
       },
       expected_outcomes: [
         "Registered profile vocabulary and permitted actions stay consistent across the same Project.",

@@ -1,0 +1,31 @@
+{
+  "schema_name": "petra.intake-copilot-session",
+  "schema_version": "1.0.0",
+  "content": {
+    "intake_session_id": "intake_session_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+    "thread_id": "thread_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "policy": {
+      "managed_model_egress": true,
+      "retention": "owner_only_immutable_session",
+      "authority": "pre_project_advice_only",
+      "max_turns": 20,
+      "max_input_bytes": 160000,
+      "max_history_turns": 12,
+      "max_history_bytes": 48000,
+      "timeout_ms": 120000,
+      "price_observation": "per_call_price_unavailable",
+      "automatic_model_retry": false,
+      "provider_model": "gpt-6-astra"
+    },
+    "policy_hash": "sha256:b5e5a35398db04e17589a0440afcc9a38951d765869f8fbfa6f9c6f7f3e1f3f4",
+    "consent": {
+      "accepted_policy_hash": "sha256:b5e5a35398db04e17589a0440afcc9a38951d765869f8fbfa6f9c6f7f3e1f3f4",
+      "accepted_at": "2026-10-07T21:00:00.000Z",
+      "accepted_by": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV"
+    },
+    "opened_at": "2026-10-07T21:00:00.000Z",
+    "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW"
+  },
+  "content_hash": "sha256:98e52d59372cbe202fef7e0192ff3c8845da2405c129fe8b52100d929da580ee"
+}

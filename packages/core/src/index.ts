@@ -40,6 +40,7 @@ export * from "./model-evidence-extraction.js";
 export * from "./model-execution-repository.js";
 export * from "./model-gateway.js";
 export * from "./project-definition-authority-repository.js";
+export * from "./project-definition-draft.js";
 export * from "./project-objective-command.js";
 export * from "./project-profile-runtime.js";
 export * from "./project-import.js";
@@ -95,3 +96,14 @@ export * from "./review-session-reject.js";
 export * from "./project-brief-view.js";
 export * from "./profile-communication.js";
 export * from "./communication-plan.js";
+export * from "./project-copilot.js";
+export * from "./project-semantic-graph.js";
+export * from "./hypothesis-examination.js";
+export * from "./project-examination-repository.js";
+
+export * from "./project-examination-command.js";
+export * from "./project-examination-scene.js";
+
+export * from "./graph-presentation.js";
+
+export * from "./intake-copilot.js";

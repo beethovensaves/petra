@@ -1,3 +1,8 @@
+import { execFile } from "node:child_process";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { promisify } from "node:util";
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 
@@ -31,9 +36,20 @@ import type {
   PetraWorkingRelationship,
   PetraWorkUnit,
   PetraWorkVersion,
+  PetraHypothesis,
+  PetraRegisteredProjectProfile,
+  PetraAssessmentProfile,
+  PetraAssessmentPolicy,
+  PetraProjectExaminationRequest,
+  PetraHypothesisAssessment,
+  PetraPostureDecision,
+  PetraCycleDisposition,
 } from "@petra/contracts";
 import {
   derivePetraId,
+  HypothesisExaminationKernel,
+  examinationRecordRef,
+  examinationAuthorityProposal,
   type PersistDocumentBundleInput,
   type PersistVerifiedArtifactInput,
 } from "@petra/core";
@@ -50,6 +66,12 @@ import type { PostgresProjectRelationshipOverlayViewError } from "../src/project
 import { PostgresProjectRelationshipOverlayViewReader } from "../src/project-relationship-overlay-view-reader.js";
 import { PostgresProjectSourceAuthorityRepository } from "../src/project-source-authority-repository.js";
 import { PostgresProjectWorkingStateSnapshotReader } from "../src/project-working-state-snapshot-reader.js";
+import { PostgresProjectSemanticGraphReader } from "../src/project-semantic-graph-reader.js";
+import { PostgresProjectExaminationOwnerAuthority } from "../src/project-examination-owner-authority.js";
+import { PostgresProjectExaminationRegistry } from "../src/project-examination-registry.js";
+import { PostgresProjectExaminationCommandAuthority } from "../src/project-examination-command-authority.js";
+import { PostgresCapabilityGrantCommandAuthorizer } from "../src/capability-grant-authority-repository.js";
+import { PostgresProjectExaminationRepository } from "../src/project-examination-repository.js";
 import { PostgresResearchScopeRepository } from "../src/research-scope-repository.js";
 import { PostgresReviewSessionAuthorityRepository } from "../src/review-session-authority-repository.js";
 import { PostgresProjectReviewViewReader } from "../src/project-review-view-reader.js";
@@ -189,6 +211,7 @@ describePostgres("PostgreSQL working-state authority", () => {
   const workUnits = new PostgresWorkUnitAuthorityRepository(pool);
   const working = new PostgresWorkingStateAuthorityRepository(pool);
   const snapshots = new PostgresProjectWorkingStateSnapshotReader(pool);
+  const semanticGraphs = new PostgresProjectSemanticGraphReader(pool);
   const reviewSessions = new PostgresReviewSessionAuthorityRepository(pool);
   const reviewViews = new PostgresProjectReviewViewReader(pool);
 
@@ -318,7 +341,9 @@ describePostgres("PostgreSQL working-state authority", () => {
     assertion: PetraAssertion;
   }
 
-  const setupAuthority = async (): Promise<AuthorityFixture> => {
+  const setupAuthority = async (
+    examination = false,
+  ): Promise<AuthorityFixture> => {
     const researcher = readFixture<PetraActor>("actor");
     const worker = actor(
       "actor_01ARZ3NDEKTSV4RRFFQ69G5FBE",
@@ -371,6 +396,25 @@ describePostgres("PostgreSQL working-state authority", () => {
     const objective = readFixture<PetraProjectObjective>(
       "project-objective-working-scientific",
     );
+    if (examination) {
+      const registered = readFixture<PetraRegisteredProjectProfile>(
+        "registered-project-profile-scientific-v1-4",
+      );
+      definition.content.registrations.push(
+        ...registered.content.definition.registrations.filter((r) =>
+          [
+            "petra.hypothesis",
+            "petra.hypothesis-assessment",
+            "petra.posture-decision",
+            "petra.cycle-disposition",
+            "petra.assessment-profile",
+            "petra.assessment-policy",
+          ].includes(r.contract.name),
+        ),
+      );
+      definition.content_hash = canonicalHash(definition.content);
+      objective.project_definition_ref.content_hash = definition.content_hash;
+    }
     await definitions.registerDefinitionRevision(definition);
     await definitions.registerObjectiveRevision(objective);
 
@@ -741,6 +785,759 @@ describePostgres("PostgreSQL working-state authority", () => {
       correction_admissions: "1",
       domain_events: "0",
     });
+  });
+
+  it("resolves exact native material and Project-bound passages while preserving remote egress restrictions", async () => {
+    const fixture = await setupAuthority();
+    const empty = await semanticGraphs.getProjectSemanticGraph(
+      fixture.project.project_id,
+    );
+    expect(empty?.content.nodes).toEqual([]);
+    expect(
+      await semanticGraphs.getProjectSemanticGraph(
+        "project_01K4E000000000000000000099",
+      ),
+    ).toBeUndefined();
+    const root = candidate(fixture);
+    await working.admitWorkingCandidateRevision({
+      candidate: root,
+      profileRecord: fixture.claim,
+    });
+    const view = await semanticGraphs.getProjectSemanticGraph(
+      fixture.project.project_id,
+    );
+    const native = view?.content.nodes[0];
+    expect(native?.native_record).toEqual(fixture.claim);
+    expect(native?.source_passages?.[0]?.span).toEqual(fixture.span);
+    expect(native?.remote_context?.permitted).toBe(false);
+    expect(native?.source_passages?.[0]?.remote_permitted).toBe(false);
+    expect(view?.content_hash).toBe(canonicalHash(view?.content));
+    expect(view?.content.query.authority_effect).toBe("none");
+    const revised = correction(fixture, root);
+    await working.admitWorkingCandidateRevision({
+      candidate: revised.candidate,
+      profileRecord: revised.claim,
+    });
+    const current = await semanticGraphs.getProjectSemanticGraph(
+      fixture.project.project_id,
+    );
+    expect(current?.content.nodes[0]?.record_ref.revision).toBe(2);
+    expect(current?.content.nodes[0]?.native_record).toEqual(revised.claim);
+    expect(current?.content_hash).not.toBe(view?.content_hash);
+    await corruptStoredRecord(
+      "UPDATE petra.evidence_entity_revisions SET record_hash=$1 WHERE evidence_id=$2 AND revision=2",
+      [`sha256:${"0".repeat(64)}`, revised.claim.claim_id],
+    );
+    await expect(
+      semanticGraphs.getProjectSemanticGraph(fixture.project.project_id),
+    ).rejects.toThrow("unavailable");
+  });
+
+  if (process.env.PETRA_TEST_A1_BROWSER === "1")
+    it("executes examination functions through production browser controls and actual retained HTTP command owners", async () => {
+      const fixture = await setupAuthority(true);
+      const root = candidate(fixture);
+      await working.admitWorkingCandidateRevision({
+        candidate: root,
+        profileRecord: fixture.claim,
+      });
+      const registry = new PostgresProjectExaminationRegistry(pool);
+      await registry.register(
+        readFixture<PetraAssessmentProfile>("assessment-profile"),
+      );
+      await registry.register(
+        readFixture<PetraAssessmentPolicy>("assessment-policy"),
+      );
+      const directory = await mkdtemp(
+        join(tmpdir(), "petra-a1-examination-functions-"),
+      );
+      try {
+        const path = join(directory, "fixture.json");
+        await writeFile(
+          path,
+          JSON.stringify({
+            projectId: fixture.project.project_id,
+            actor: { ...fixture.project.created_by, actor_kind: "human" },
+            correction: correction(fixture, root),
+          }),
+        );
+        const result = await promisify(execFile)(
+          process.execPath,
+          [
+            "--import",
+            "tsx",
+            new URL(
+              "../../../scripts/verify-a1-examination-browser.mjs",
+              import.meta.url,
+            ).pathname,
+          ],
+          {
+            env: { ...process.env, PETRA_A1_EXAMINATION_FIXTURE: path },
+            timeout: 110000,
+            maxBuffer: 2 * 1024 * 1024,
+          },
+        );
+        expect(result.stdout).toContain(
+          "Examination browser functions passed.",
+        );
+      } finally {
+        await rm(directory, { recursive: true, force: true });
+      }
+    }, 120000);
+
+  it("authorizes two connected reviewed cycles through exact grants and atomic retained receipts", async () => {
+    const fixture = await setupAuthority(true);
+    const root = candidate(fixture);
+    await working.admitWorkingCandidateRevision({
+      candidate: root,
+      profileRecord: fixture.claim,
+    });
+    const registry = new PostgresProjectExaminationRegistry(pool);
+    await registry.register(
+      readFixture<PetraAssessmentProfile>("assessment-profile"),
+    );
+    await registry.register(
+      readFixture<PetraAssessmentPolicy>("assessment-policy"),
+    );
+    const records = new PostgresProjectExaminationRepository(
+      pool,
+      semanticGraphs,
+      async (projectId, graph, transaction) =>
+        (await registry.resolve(projectId, graph, transaction))?.kernel,
+    );
+    const commands = new PostgresProjectExaminationCommandAuthority(
+      pool,
+      records,
+      semanticGraphs,
+      registry,
+      new PostgresCapabilityGrantCommandAuthorizer(),
+    );
+    const ownerAuthority = new PostgresProjectExaminationOwnerAuthority(
+      pool,
+      semanticGraphs,
+      registry,
+    );
+    const owner = {
+      ...fixture.project.created_by,
+      actor_kind: "human" as const,
+    };
+    const authorityGraph = (await semanticGraphs.getProjectSemanticGraph(
+      fixture.project.project_id,
+    ))!;
+    const authorityRequest = {
+      schema_name: "petra.project-examination-authority-request" as const,
+      schema_version: "1.0.0" as const,
+      project_id: fixture.project.project_id,
+      command_id: derivePetraId("command", "reviewed-owner-authority"),
+      idempotency_key: "reviewed-owner-authority-01",
+      graph_content_hash: authorityGraph.content_hash,
+      operation: "authorize_own_examination" as const,
+      review: {
+        proposed_content_hash: canonicalHash(
+          examinationAuthorityProposal(
+            fixture.project.project_id,
+            authorityGraph.content_hash,
+          ),
+        ),
+        rationale:
+          "Authorize only my own bounded examinations on this exact registered Project basis.",
+        reviewed_at: "2026-09-08T00:00:00.000Z",
+      },
+    };
+    expect(
+      (await ownerAuthority.availability(fixture.project.project_id, owner))
+        .state,
+    ).toBe("available");
+    const nonOwner = {
+      actor_id: "actor_01K4D000000000000000000012",
+      actor_kind: "human" as const,
+    };
+    await expect(
+      ownerAuthority.execute(
+        fixture.project.project_id,
+        authorityRequest,
+        nonOwner,
+      ),
+    ).rejects.toMatchObject({ code: "EXAMINATION_NOT_AUTHORIZED" });
+    const staleAuthority = {
+      ...authorityRequest,
+      graph_content_hash: "sha256:" + "a".repeat(64),
+      review: {
+        ...authorityRequest.review,
+        proposed_content_hash: canonicalHash(
+          examinationAuthorityProposal(
+            fixture.project.project_id,
+            "sha256:" + "a".repeat(64),
+          ),
+        ),
+      },
+    };
+    await expect(
+      ownerAuthority.execute(fixture.project.project_id, staleAuthority, owner),
+    ).rejects.toMatchObject({ code: "EXAMINATION_BASIS_CHANGED" });
+    const authorityReceipt = await ownerAuthority.execute(
+      fixture.project.project_id,
+      authorityRequest,
+      owner,
+    );
+    expect(
+      await ownerAuthority.execute(
+        fixture.project.project_id,
+        authorityRequest,
+        owner,
+      ),
+    ).toEqual(authorityReceipt);
+    expect(
+      await ownerAuthority.recover(
+        fixture.project.project_id,
+        authorityRequest.command_id,
+        nonOwner,
+      ),
+    ).toBeUndefined();
+    await expect(
+      ownerAuthority.execute(
+        fixture.project.project_id,
+        {
+          ...authorityRequest,
+          review: { ...authorityRequest.review, rationale: "Changed review" },
+        },
+        owner,
+      ),
+    ).rejects.toMatchObject({ code: "EXAMINATION_AUTHORITY_COMMAND_CONFLICT" });
+    const grant = authorityReceipt.content.grant;
+    expect(grant.content.allowed_commands).toEqual([
+      "ConductProjectExamination",
+    ]);
+    expect(
+      (
+        await pool.query<{ count: number }>(
+          "SELECT count(*)::int AS count FROM petra.project_examination_records",
+        )
+      ).rows[0]!.count,
+    ).toBe(0);
+    await expect(
+      pool.query(
+        "UPDATE petra.project_examination_authority_receipts SET receipt_payload=receipt_payload WHERE command_id=$1",
+        [authorityRequest.command_id],
+      ),
+    ).rejects.toBeDefined();
+    const principal = {
+      actor: { ...grant.grantee, actor_kind: "human" as const },
+      capabilityGrantId: grant.capability_grant_id,
+    };
+    let graph = (await semanticGraphs.getProjectSemanticGraph(
+      fixture.project.project_id,
+    ))!;
+    let sequence = 0;
+    const request = (
+      operation: PetraProjectExaminationRequest["operation"],
+      content: PetraProjectExaminationRequest["proposed_content"],
+      prior: PetraProjectExaminationRequest["expected_prior_ref"] = null,
+    ): PetraProjectExaminationRequest => ({
+      schema_name: "petra.project-examination-request",
+      schema_version: "1.0.0",
+      project_id: fixture.project.project_id,
+      command_id: derivePetraId("command", `a1-scoped-command-${++sequence}`),
+      idempotency_key: `a1-scoped-command-${sequence}`,
+      operation,
+      expected_graph_hash: graph.content_hash,
+      expected_prior_ref: prior,
+      proposed_content: content,
+      review: {
+        content_hash: canonicalHash(content),
+        reviewed_at: "2026-10-07T12:00:00.000Z",
+        rationale:
+          "Disposable integration fixture: explicit authenticated human review of this exact scoped content and source basis.",
+      },
+    });
+    const hypContent = readFixture<PetraHypothesis>("hypothesis").content;
+    hypContent.target_claim_ref = graph.content.nodes[0]!.record_ref;
+    const initial = request("register_hypothesis", hypContent);
+    await expect(
+      commands.execute(fixture.project.project_id, initial, {
+        actor: principal.actor,
+      }),
+    ).rejects.toThrow("grant");
+    const admitted = await commands.execute(
+      fixture.project.project_id,
+      initial,
+      principal,
+    );
+    expect(admitted.outcome).toBe("recorded");
+    const firstHypothesis = admitted.record as PetraHypothesis;
+    const replay = await commands.execute(fixture.project.project_id, initial, {
+      actor: principal.actor,
+    });
+    expect(replay.receipt).toEqual(admitted.receipt);
+    expect(replay.outcome).toBe("replayed");
+    const conflict = structuredClone(initial);
+    (conflict.proposed_content as PetraHypothesis["content"]).descriptor =
+      "Conflicting immutable request";
+    conflict.review.content_hash = canonicalHash(conflict.proposed_content);
+    await expect(
+      commands.execute(fixture.project.project_id, conflict, principal),
+    ).rejects.toThrow("different immutable");
+    const configuration = (await registry.resolve(
+      fixture.project.project_id,
+      graph,
+    ))!;
+    const content = readFixture<PetraHypothesisAssessment>(
+      "hypothesis-assessment",
+    ).content;
+    content.subject_ref = examinationRecordRef(firstHypothesis);
+    content.target_claim_ref = firstHypothesis.content.target_claim_ref;
+    content.profile_ref = configuration.kernel.semantics.profile_ref;
+    content.policy_ref = configuration.kernel.semantics.policy_ref;
+    content.basis = {
+      definition_ref: graph.content.definition_ref,
+      objective_ref: graph.content.objective_ref ?? null,
+      graph_content_hash: graph.content_hash,
+      event_position: graph.content.authority.event_position,
+      stream_revision: graph.content.authority.stream_revision,
+      query_kind: "current_registered_working_heads",
+    };
+    content.as_of = "2026-10-07T12:00:00.000Z";
+    content.review_state = "reviewed";
+    content.criteria = configuration.profile.content.criteria.map(
+      (criterion) => ({
+        criterion_key: criterion.key,
+        method: criterion.method,
+        result: "unknown",
+        origin: "human_judgment",
+        evidence_refs: [],
+        explanation:
+          "The named check remains unexamined in this initial cycle.",
+        limitations: ["No satisfaction follows from task success."],
+      }),
+    );
+    content.findings = [
+      {
+        finding_key: "reviewed-gap",
+        type_key: "scientific.scoped_insufficiency",
+        axis: "warrant",
+        explanation:
+          "The exact basis is retained, but the named checks have not passed.",
+        evidence_refs: [firstHypothesis.content.target_claim_ref],
+        criterion_keys: content.criteria.map((c) => c.criterion_key),
+        origin: "human_judgment",
+        review_state: "reviewed",
+        material_unknowns: ["Required checks remain open."],
+        limitations: ["Partial represented evidence only."],
+      },
+    ];
+    content.axes = [
+      {
+        axis: "warrant",
+        summary: "insufficient",
+        finding_keys: ["reviewed-gap"],
+        material_unknowns: ["Required checks remain open."],
+        dependency_refs: [firstHypothesis.content.target_claim_ref],
+      },
+    ];
+    const firstAssessment = (
+      await commands.execute(
+        fixture.project.project_id,
+        request("assess_hypothesis", content),
+        principal,
+      )
+    ).record as PetraHypothesisAssessment;
+    const postureContent =
+      readFixture<PetraPostureDecision>("posture-decision").content;
+    postureContent.assessment_ref = examinationRecordRef(firstAssessment);
+    postureContent.profile_ref = content.profile_ref;
+    postureContent.policy_ref = content.policy_ref;
+    postureContent.state = "active";
+    postureContent.determining_finding_keys = ["reviewed-gap"];
+    postureContent.obligations =
+      configuration.policy.content.obligation_types.map((registered) => ({
+        obligation_id: derivePetraId("obligation", registered.key),
+        revision: 1,
+        type_key: registered.key,
+        creating_finding_key: "reviewed-gap",
+        rationale:
+          "Complete this named scoped check before a satisfied disposition.",
+        enforcement: registered.enforcement,
+        criterion_keys: registered.criterion_keys as [string, ...string[]],
+        state: "open",
+        satisfaction_evidence_refs: [],
+        waiver_ref: null,
+        work_refs: [],
+      }));
+    const firstPosture = (
+      await commands.execute(
+        fixture.project.project_id,
+        request("decide_posture", postureContent),
+        principal,
+      )
+    ).record as PetraPostureDecision;
+    const dispositionContent =
+      readFixture<PetraCycleDisposition>("cycle-disposition").content;
+    dispositionContent.assessment_ref = examinationRecordRef(firstAssessment);
+    dispositionContent.posture_ref = examinationRecordRef(firstPosture);
+    dispositionContent.basis = content.basis;
+    dispositionContent.disposition = "insufficient";
+    dispositionContent.unresolved_questions = [
+      ...new Set([
+        ...firstAssessment.content.material_unknowns,
+        "Required checks remain open.",
+      ]),
+    ];
+    const firstDisposition = (
+      await commands.execute(
+        fixture.project.project_id,
+        request("conclude_cycle", dispositionContent),
+        principal,
+      )
+    ).record as PetraCycleDisposition;
+    const revised = correction(fixture, root);
+    await working.admitWorkingCandidateRevision({
+      candidate: revised.candidate,
+      profileRecord: revised.claim,
+    });
+    const stale = request("assess_hypothesis", content);
+    await expect(
+      commands.execute(fixture.project.project_id, stale, principal),
+    ).rejects.toThrow("changed Project graph");
+    graph = (await semanticGraphs.getProjectSemanticGraph(
+      fixture.project.project_id,
+    ))!;
+    expect(configuration.kernel.freshness(firstAssessment, graph).state).toBe(
+      "invalidated",
+    );
+    const nextHypContent = structuredClone(firstHypothesis.content);
+    nextHypContent.target_claim_ref = graph.content.nodes[0]!.record_ref;
+    const secondHypothesis = (
+      await commands.execute(
+        fixture.project.project_id,
+        request(
+          "revise_hypothesis",
+          nextHypContent,
+          examinationRecordRef(firstHypothesis),
+        ),
+        principal,
+      )
+    ).record as PetraHypothesis;
+    const next = structuredClone(content);
+    next.subject_ref = examinationRecordRef(secondHypothesis);
+    next.target_claim_ref = secondHypothesis.content.target_claim_ref;
+    next.basis.graph_content_hash = graph.content_hash;
+    next.scope = revised.claim.scope;
+    next.prior_assessment_ref = examinationRecordRef(firstAssessment);
+    const spanRef = exactRef(
+      "petra.source-span",
+      fixture.span.source_span_id,
+      fixture.span.revision,
+      fixture.span,
+    );
+    const examined = [next.target_claim_ref, spanRef];
+    for (const criterion of next.criteria) {
+      criterion.result = "passed";
+      criterion.evidence_refs = examined;
+      criterion.explanation =
+        "This disposable fixture represents explicit human examination of the exact native Claim, retained passage, narrowed scope and bounded contrary-basis protocol.";
+    }
+    next.coverage = {
+      state: "bounded_search",
+      protocol:
+        "Review the exact retained passage and represented Project source set for this narrowed scope; unrepresented literature remains outside coverage.",
+      source_set_refs: [
+        graph.content.nodes[0]!.source_passages![0]!.project_source_ref,
+      ],
+      limitations: [
+        "A bounded reviewed source set cannot establish universal absence of contrary evidence.",
+      ],
+    };
+    next.findings[0]!.finding_key = "scoped-support";
+    next.findings[0]!.type_key = "scientific.scoped_support";
+    next.findings[0]!.evidence_refs = examined;
+    next.axes = [
+      {
+        axis: "warrant",
+        summary: "supporting_within_scope",
+        finding_keys: ["scoped-support"],
+        material_unknowns: ["Independent repetition remains unknown."],
+        dependency_refs: examined,
+      },
+    ];
+    next.material_unknowns = [
+      "Independent repetition and unrepresented sources remain unknown.",
+    ];
+    const secondAssessment = (
+      await commands.execute(
+        fixture.project.project_id,
+        request(
+          "assess_hypothesis",
+          next,
+          examinationRecordRef(firstAssessment),
+        ),
+        principal,
+      )
+    ).record as PetraHypothesisAssessment;
+    const nextPosture = structuredClone(postureContent);
+    nextPosture.assessment_ref = examinationRecordRef(secondAssessment);
+    nextPosture.determining_finding_keys = ["scoped-support"];
+    for (const obligation of nextPosture.obligations) {
+      obligation.state = "satisfied";
+      obligation.revision += 1;
+      obligation.creating_finding_key = "scoped-support";
+      obligation.satisfaction_evidence_refs = examined;
+    }
+    const secondPosture = (
+      await commands.execute(
+        fixture.project.project_id,
+        request(
+          "decide_posture",
+          nextPosture,
+          examinationRecordRef(firstPosture),
+        ),
+        principal,
+      )
+    ).record as PetraPostureDecision;
+    const nextDisposition = structuredClone(dispositionContent);
+    nextDisposition.assessment_ref = examinationRecordRef(secondAssessment);
+    nextDisposition.posture_ref = examinationRecordRef(secondPosture);
+    nextDisposition.basis = next.basis;
+    nextDisposition.disposition = "supporting_within_scope";
+    nextDisposition.criterion_keys = next.criteria.map((c) => c.criterion_key);
+    nextDisposition.finding_keys = ["scoped-support"];
+    nextDisposition.unresolved_questions = next.material_unknowns;
+    nextDisposition.prior_disposition_ref =
+      examinationRecordRef(firstDisposition);
+    const concluded = await commands.execute(
+      fixture.project.project_id,
+      request(
+        "conclude_cycle",
+        nextDisposition,
+        examinationRecordRef(firstDisposition),
+      ),
+      principal,
+    );
+    expect(concluded.record.revision).toBe(2);
+    expect(
+      (await records.list(fixture.project.project_id)).records,
+    ).toHaveLength(8);
+    expect(
+      (
+        await pool.query<{ count: string }>(
+          "SELECT count(*) FROM petra.project_examination_command_receipts",
+        )
+      ).rows[0]!.count,
+    ).toBe("8");
+    expect(
+      (
+        await records.getSnapshot(
+          fixture.project.project_id,
+          firstAssessment.content.basis.graph_content_hash,
+        )
+      )?.content.nodes[0]?.record_ref.revision,
+    ).toBe(1);
+    expect(
+      await commands.recover(
+        fixture.project.project_id,
+        initial.command_id,
+        principal.actor,
+      ),
+    ).toMatchObject({ receipt: admitted.receipt });
+    await expect(
+      commands.recover(fixture.project.project_id, initial.command_id, {
+        actor_id: "actor_01K4D000000000000000000012",
+        actor_kind: "human",
+      }),
+    ).rejects.toThrow("unavailable");
+    await expect(
+      pool.query(
+        "UPDATE petra.project_examination_command_receipts SET receipt_payload=receipt_payload",
+      ),
+    ).rejects.toThrow();
+    expect(
+      (
+        await pool.query<{ count: string }>(
+          "SELECT count(*) FROM petra.domain_events",
+        )
+      ).rows[0]!.count,
+    ).toBe("0");
+  });
+
+  it("persists two exact scoped examination revisions, preserves earlier cycle records, and forbids immutable mutation", async () => {
+    const fixture = await setupAuthority();
+    const root = candidate(fixture);
+    await working.admitWorkingCandidateRevision({
+      candidate: root,
+      profileRecord: fixture.claim,
+    });
+    const seal = <T extends { content: unknown; content_hash: string }>(
+      record: T,
+    ): T => {
+      record.content_hash = canonicalHash(record.content);
+      return record;
+    };
+    const graph = (await semanticGraphs.getProjectSemanticGraph(
+      fixture.project.project_id,
+    ))!;
+    const hypothesis = readFixture<PetraHypothesis>("hypothesis");
+    hypothesis.content.target_claim_ref = graph.content.nodes[0]!.record_ref;
+    seal(hypothesis);
+    const assessment = readFixture<PetraHypothesisAssessment>(
+      "hypothesis-assessment",
+    );
+    assessment.content.subject_ref = examinationRecordRef(hypothesis);
+    assessment.content.target_claim_ref = hypothesis.content.target_claim_ref;
+    assessment.content.basis = {
+      definition_ref: graph.content.definition_ref,
+      objective_ref: graph.content.objective_ref ?? null,
+      graph_content_hash: graph.content_hash,
+      event_position: graph.content.authority.event_position,
+      stream_revision: graph.content.authority.stream_revision,
+      query_kind: "current_registered_working_heads",
+    };
+    assessment.content.review_state = "reviewed";
+    seal(assessment);
+    const kernel = new HypothesisExaminationKernel({
+      profile_ref: assessment.content.profile_ref,
+      policy_ref: assessment.content.policy_ref,
+      criteria: new Map(),
+      finding_types: new Map(),
+      obligation_types: new Map(),
+      allowed_dispositions: ["insufficient", "deferred", "further_cycle"],
+    });
+    const repository = new PostgresProjectExaminationRepository(
+      pool,
+      semanticGraphs,
+      () => kernel,
+    );
+    const concurrent = await Promise.all([
+      repository.append(hypothesis),
+      repository.append(structuredClone(hypothesis)),
+    ]);
+    expect(concurrent).toEqual([hypothesis, hypothesis]);
+    await repository.append(assessment);
+    const posture = readFixture<PetraPostureDecision>("posture-decision");
+    posture.content.assessment_ref = examinationRecordRef(assessment);
+    seal(posture);
+    await repository.append(posture);
+    const disposition = readFixture<PetraCycleDisposition>("cycle-disposition");
+    disposition.content.assessment_ref = examinationRecordRef(assessment);
+    disposition.content.posture_ref = examinationRecordRef(posture);
+    disposition.content.basis = assessment.content.basis;
+    disposition.content.unresolved_questions =
+      assessment.content.material_unknowns;
+    seal(disposition);
+    await repository.append(disposition);
+    expect(await repository.append(structuredClone(disposition))).toEqual(
+      disposition,
+    );
+    expect(
+      await repository.get(
+        "project_01K4E000000000000000000099",
+        hypothesis.hypothesis_id,
+      ),
+    ).toBeUndefined();
+    await expect(
+      pool.query(
+        "UPDATE petra.project_examination_records SET payload=payload WHERE record_id=$1",
+        [hypothesis.hypothesis_id],
+      ),
+    ).rejects.toThrow();
+    await expect(
+      repository.append(
+        seal({
+          ...hypothesis,
+          content: {
+            ...hypothesis.content,
+            descriptor: "Changed immutable revision",
+          },
+        }),
+      ),
+    ).rejects.toThrow("immutable");
+    const revised = correction(fixture, root);
+    await working.admitWorkingCandidateRevision({
+      candidate: revised.candidate,
+      profileRecord: revised.claim,
+    });
+    const changed = (await semanticGraphs.getProjectSemanticGraph(
+      fixture.project.project_id,
+    ))!;
+    expect(kernel.freshness(assessment, changed).state).toBe("invalidated");
+    const nextHypothesis = structuredClone(hypothesis);
+    nextHypothesis.revision = 2;
+    nextHypothesis.content.target_claim_ref =
+      changed.content.nodes[0]!.record_ref;
+    seal(nextHypothesis);
+    await repository.append(nextHypothesis);
+    const next = structuredClone(assessment);
+    next.revision = 2;
+    next.content.subject_ref = examinationRecordRef(nextHypothesis);
+    next.content.target_claim_ref = nextHypothesis.content.target_claim_ref;
+    next.content.prior_assessment_ref = examinationRecordRef(assessment);
+    next.content.basis.graph_content_hash = changed.content_hash;
+    next.content.scope = revised.claim.scope;
+    seal(next);
+    await repository.append(next);
+    const nextPosture = structuredClone(posture);
+    nextPosture.revision = 2;
+    nextPosture.content.assessment_ref = examinationRecordRef(next);
+    seal(nextPosture);
+    await repository.append(nextPosture);
+    const nextDisposition = structuredClone(disposition);
+    nextDisposition.revision = 2;
+    nextDisposition.content.assessment_ref = examinationRecordRef(next);
+    nextDisposition.content.posture_ref = examinationRecordRef(nextPosture);
+    nextDisposition.content.basis = next.content.basis;
+    nextDisposition.content.prior_disposition_ref =
+      examinationRecordRef(disposition);
+    seal(nextDisposition);
+    await repository.append(nextDisposition);
+    expect(
+      (await repository.list(fixture.project.project_id)).records,
+    ).toHaveLength(8);
+    expect(
+      await repository.get(
+        fixture.project.project_id,
+        assessment.hypothesis_assessment_id,
+        1,
+      ),
+    ).toEqual(assessment);
+    expect(
+      (
+        await repository.getSnapshot(
+          fixture.project.project_id,
+          graph.content_hash,
+        )
+      )?.content,
+    ).toEqual(graph.content);
+    expect(
+      (
+        await repository.getSnapshot(
+          fixture.project.project_id,
+          changed.content_hash,
+        )
+      )?.content.nodes[0]?.record_ref.revision,
+    ).toBe(2);
+    expect(
+      await repository.getSnapshot(
+        "project_01K4E000000000000000000099",
+        graph.content_hash,
+      ),
+    ).toBeUndefined();
+    expect(
+      (
+        await repository.get(
+          fixture.project.project_id,
+          assessment.hypothesis_assessment_id,
+        )
+      )?.revision,
+    ).toBe(2);
+    const unavailable = new PostgresProjectExaminationRepository(
+      pool,
+      semanticGraphs,
+      () => undefined,
+    );
+    const unregistered = structuredClone(nextHypothesis);
+    unregistered.revision = 3;
+    seal(unregistered);
+    await expect(unavailable.append(unregistered)).rejects.toThrow(
+      "registered executable",
+    );
   });
 
   it("admits the five registered scientific relationship meanings without promoting working state", async () => {
@@ -1341,6 +2138,22 @@ describePostgres("PostgreSQL working-state authority", () => {
         profileRecord: governing,
       }),
     ).toEqual(relationshipRecord);
+
+    const nativeGraph = await semanticGraphs.getProjectSemanticGraph(
+      project.project_id,
+    );
+    expect(nativeGraph?.content.definition_family).toBe(
+      "petra.controlled-writing",
+    );
+    expect(
+      nativeGraph?.content.nodes.find((node) => node.layer === "working")
+        ?.native_record,
+    ).toEqual(requirement);
+    expect(nativeGraph?.content.relationships[0]?.predicate).toBe("GOVERNS");
+    expect(
+      nativeGraph?.content.nodes.find((node) => node.layer === "working")
+        ?.remote_context?.permitted,
+    ).toBe(false);
 
     const authoritySnapshot = async (projectId: string) => {
       const result = await pool.query<{

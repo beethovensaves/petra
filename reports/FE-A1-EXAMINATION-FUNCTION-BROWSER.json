@@ -1,0 +1,32 @@
+{
+  "status": "passed",
+  "verified_at": "2026-10-07T20:27:54.235Z",
+  "scope": "Connected function verification using production native examiner, permission review, cycle controls, graph renderer and actual authenticated HTTP/PostgreSQL command owners. Basis correction uses the existing trusted working-state owner in the disposable test fixture. No model call, external evidence search or scenario gate.",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "records": 8,
+  "receipts": 8,
+  "scene_content_hash": "sha256:15aff630038d789b74aa10f7c544c55c791d526b86e0791879b865dad2b011ea",
+  "graph_content_hash": "sha256:2167003c65199aaaaaae2bfb004c1e14c6e0b993c5535723c4abb95d4466c195",
+  "shared_presentation_hash": "sha256:47f9da3acf176caee70ec1948ab4d2651a2aba1d7ba6882c092a957b57da8048",
+  "filtered_shared_presentation_hash": "sha256:909f3a2b359ccffb62ae92647bbf033c6eaafeced6975bdfdd51e3e256278852",
+  "mismatched_peer_status": 409,
+  "functions": [
+    "review_owner_only_examination_permission",
+    "record_hypothesis",
+    "record_named_unknown_criteria",
+    "record_posture_and_open_obligations",
+    "record_insufficiency_and_unknowns",
+    "invalidate_changed_target",
+    "review_rebinding",
+    "reset_stale_draft_judgments",
+    "record_scoped_support_with_exact_passage",
+    "satisfy_registered_obligations",
+    "retain_explicit_scoped_disposition_and_prior_cycle",
+    "restore_records_receipts_and_graph_after_reload",
+    "match_graph_and_accessible_peer",
+    "bind_visible_scene_through_authenticated_copilot_read",
+    "retain_active_kind_filter_and_scene_omissions",
+    "reject_mismatched_shared_peer"
+  ],
+  "browser_errors": []
+}

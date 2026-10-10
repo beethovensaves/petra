@@ -1,0 +1,141 @@
+{
+  "schema_name": "petra.frontend-a1-construction-checks",
+  "schema_version": "1.0.0",
+  "status": "in_progress",
+  "verified_at": "2026-10-07T20:32:38.890215Z",
+  "candidate": {
+    "baseline_commit": "d3a5869fe65c6bb8b6f79203d218f710e9d2b4ae",
+    "commit": null,
+    "state": "uncommitted construction; not an accepted A1 candidate"
+  },
+  "scope": "Advisory conversation and durable input disclosure, native scientific/writing examiners, reviewed scientific cycles with immutable owner grants and receipts, and exact shared graph presentation/semantic-peer bindings. This is partial A1 construction, not product acceptance.",
+  "checks": [
+    {
+      "function_group": "contracts",
+      "command": "npm test --workspace @petra/contracts",
+      "passed": true,
+      "tests": 697,
+      "boundary": "Schema/fixture and generated contract checks; no product acceptance.",
+      "output": "\n> @petra/contracts@0.0.0 test\n> vitest run\n\n\n RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/packages/contracts\n\n\n Test Files  17 passed (17)\n      Tests  697 passed (697)\n   Start at  16:18:04\n   Duration  1.54s (transform 613ms, setup 0ms, import 3.55s, tests 3.98s, environment 1ms)\n\n"
+    },
+    {
+      "function_group": "copilot_and_examination_core",
+      "command": "npm test --workspace @petra/core -- project-copilot.test.ts hypothesis-examination.test.ts",
+      "passed": true,
+      "tests": 26,
+      "boundary": "Bounded copilot execution, exact source wording, stale-history withholding, durable input-manifest failure fences, scoped examination kernel, derived scene and exact filtered presentation/peer checks. No complete product acceptance.",
+      "output": "\n> @petra/core@0.0.0 test\n> vitest run --config vitest.config.ts project-copilot.test.ts hypothesis-examination.test.ts project-examination-scene.test.ts graph-presentation.test.ts\n\n\n RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/packages/core\n\n\n Test Files  4 passed (4)\n      Tests  26 passed (26)\n   Start at  16:24:16\n   Duration  1.12s (transform 132ms, setup 0ms, import 707ms, tests 1.02s, environment 0ms)\n\n"
+    },
+    {
+      "function_group": "managed_provider_and_official_ag_ui",
+      "command": "npm test --workspace @petra/adapters -- project-copilot.test.ts codex-app-server.test.ts project-copilot-ag-ui.test.ts",
+      "passed": true,
+      "tests": 28,
+      "boundary": "Provider/configuration protocol tests and actual official HttpAgent/EventEncoder integration with a bounded fixture runtime. Real managed-model proof is retained separately.",
+      "output": "\n> @petra/adapters@0.0.0 test\n> vitest run --config vitest.config.ts project-copilot-ag-ui.test.ts project-copilot.test.ts codex-app-server.test.ts project-examination-client.test.ts\n\n\n RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/packages/adapters\n\n\n Test Files  4 passed (4)\n      Tests  28 passed (28)\n   Start at  16:22:21\n   Duration  735ms (transform 524ms, setup 0ms, import 1.14s, tests 775ms, environment 0ms)\n\n"
+    },
+    {
+      "function_group": "examination_client",
+      "command": "npm test --workspace @petra/adapters -- project-examination-client.test.ts",
+      "passed": true,
+      "tests": 3,
+      "boundary": "Exact receipt/record references, recovery through reads, and known rejection versus uncertain delivery; mock HTTP responses.",
+      "output": "\n> @petra/adapters@0.0.0 test\n> vitest run --config vitest.config.ts project-examination-client.test.ts\n\n\n RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/packages/adapters\n\n\n Test Files  1 passed (1)\n      Tests  3 passed (3)\n   Start at  13:40:51\n   Duration  619ms (transform 17ms, setup 0ms, import 36ms, tests 514ms, environment 0ms)\n\n"
+    },
+    {
+      "function_group": "copilot_context_service",
+      "command": "npm test --workspace @petra/server -- project-copilot.test.ts",
+      "passed": true,
+      "tests": 5,
+      "boundary": "Synthetic service-port proof of unset outcome, restricted bytes, exact examination/graph coupling, retained retry and exact shared scene/peer binding before model invocation.",
+      "output": "\n> @petra/server@0.0.0 test\n> vitest run --config vitest.config.ts project-copilot.test.ts\n\n\n RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/apps/server\n\n\n Test Files  1 passed (1)\n      Tests  5 passed (5)\n   Start at  16:24:18\n   Duration  502ms (transform 211ms, setup 0ms, import 382ms, tests 15ms, environment 0ms)\n\n"
+    },
+    {
+      "function_group": "postgresql",
+      "command": "PETRA_TEST_A1_BROWSER=1 node scripts/test-postgres-integration.mjs",
+      "passed": true,
+      "tests": 199,
+      "boundary": "Fresh disposable PostgreSQL 18.6, 64 migrations, full 199-test retained suite including the production browser function check. Owner-only reviewed permission, two cycles, basis correction/invalidation, exact scene/peer/filter reads, retained turn scene recovery and immutable input manifests pass. This does not prove zero-Project intake, complete inquiry/Work coupling, the third domain or full A1 acceptance.",
+      "output": "\n> petra@0.0.0 build:packages\n> tsc -b\n\nFlyway OSS Edition 13.4.0 by Redgate\n\nSee release notes here: https://help.red-gate.com/help/flyway-cli13/help_4.aspx?topic=release-notes-and-older-versions/release-notes-for-flyway-engine\nDatabase: ******** (PostgreSQL 18.6)\nSchema history table \"public\".\"flyway_schema_history\" does not exist yet\nSuccessfully validated 64 migrations (execution time 00:00.030s)\nCreating Schema History table \"public\".\"flyway_schema_history\" ...\nCurrent version of schema \"public\": << Empty Schema >>\nMigrating schema \"public\" to version \"001 - research scope\"\nMigrating schema \"public\" to version \"002 - scholarly identity\"\nMigrating schema \"public\" to version \"003 - artifact authority\"\nMigrating schema \"public\" to version \"004 - document authority\"\nMigrating schema \"public\" to version \"005 - evidence authority\"\nMigrating schema \"public\" to version \"006 - change control event outbox\"\nMigrating schema \"public\" to version \"007 - work and projection control\"\nMigrating schema \"public\" to version \"008 - interaction authority\"\nMigrating schema \"public\" to version \"009 - scientific authority reversal\"\nMigrating schema \"public\" to version \"010 - model execution records\"\nMigrating schema \"public\" to version \"011 - grounded response authority\"\nMigrating schema \"public\" to version \"012 - durable interaction replay\"\nMigrating schema \"public\" to version \"013 - durable work unit cancellation\"\nMigrating schema \"public\" to version \"014 - composition control authority\"\nMigrating schema \"public\" to version \"015 - composition aggregate authority\"\nMigrating schema \"public\" to version \"016 - rendered artifact authority\"\nMigrating schema \"public\" to version \"017 - draft revision support authority\"\nMigrating schema \"public\" to version \"018 - felicity revision authority\"\nMigrating schema \"public\" to version \"019 - project definition authority\"\nMigrating schema \"public\" to version \"020 - project source authority\"\nMigrating schema \"public\" to version \"021 - review session authority\"\nMigrating schema \"public\" to version \"022 - project thread authority\"\nMigrating schema \"public\" to version \"023 - project inquiry authority\"\nMigrating schema \"public\" to version \"024 - project source lifecycle authority\"\nMigrating schema \"public\" to version \"025 - project source replacement authority\"\nMigrating schema \"public\" to version \"026 - capability grant authority\"\nMigrating schema \"public\" to version \"027 - project source replacement retraction authority\"\nMigrating schema \"public\" to version \"028 - project source replacement head integrity\"\nMigrating schema \"public\" to version \"029 - canonical project source retraction id\"\nMigrating schema \"public\" to version \"030 - project source replacement command authority\"\nMigrating schema \"public\" to version \"031 - project definition history authority\"\nMigrating schema \"public\" to version \"032 - suggested action invocation authority\"\nMigrating schema \"public\" to version \"033 - working state authority\"\nMigrating schema \"public\" to version \"034 - working review session composition\"\nMigrating schema \"public\" to version \"035 - review session lifecycle authority\"\nMigrating schema \"public\" to version \"036 - review session refresh authority\"\nMigrating schema \"public\" to version \"037 - review candidate correction authority\"\nMigrating schema \"public\" to version \"038 - server composed review candidate correction\"\nMigrating schema \"public\" to version \"039 - review candidate basis revision authority\"\nMigrating schema \"public\" to version \"040 - review session member separation authority\"\nMigrating schema \"public\" to version \"041 - manual review apply checkpoint context\"\nMigrating schema \"public\" to version \"042 - controlled writing working state\"\nMigrating schema \"public\" to version \"043 - paired profile review composition\"\nMigrating schema \"public\" to version \"044 - registered project profile runtime\"\nMigrating schema \"public\" to version \"045 - project work operations\"\nMigrating schema \"public\" to version \"046 - manual review rejection checkpoint context\"\nMigrating schema \"public\" to version \"047 - project work stage plans\"\nMigrating schema \"public\" to version \"048 - project inquiry save authority\"\nMigrating schema \"public\" to version \"049 - project import authority\"\nMigrating schema \"public\" to version \"050 - project objective command authority\"\nMigrating schema \"public\" to version \"051 - project source registration authority\"\nMigrating schema \"public\" to version \"052 - project source reuse authority\"\nMigrating schema \"public\" to version \"053 - project source processing authority\"\nMigrating schema \"public\" to version \"054 - project source revision authority\"\nMigrating schema \"public\" to version \"055 - project source link removal authority\"\nMigrating schema \"public\" to version \"056 - project source local copy deletion authority\"\nMigrating schema \"public\" to version \"057 - project work checkpoint resume\"\nMigrating schema \"public\" to version \"058 - project work start again\"\nMigrating schema \"public\" to version \"059 - project definition draft creation\"\nMigrating schema \"public\" to version \"060 - project copilot turns\"\nMigrating schema \"public\" to version \"061 - project examination records\"\nMigrating schema \"public\" to version \"062 - project examination command authority\"\nMigrating schema \"public\" to version \"063 - project examination owner authority\"\nMigrating schema \"public\" to version \"064 - project copilot input manifests\"\nSuccessfully applied 64 migrations to schema \"public\", now at version v064 (execution time 00:00.359s)\n\n-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\nA more recent version of Flyway is available. Find out more about Flyway 13.9.0 at https://help.red-gate.com/help/flyway-cli13/help_4.aspx?topic=release-notes-and-older-versions/release-notes-for-flyway-engine\n-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n Container petra-m12-78127-1791404808263-postgres-1 Running \n Container petra-m12-78127-1791404808263-postgres-1 Waiting \n Container petra-m12-78127-1791404808263-postgres-1 Healthy \n Container petra-m12-78127-1791404808263-migrations-run-b91996046aeb Creating \n Container petra-m12-78127-1791404808263-migrations-run-b91996046aeb Created \n\n> @petra/postgres@0.0.0 test\n> vitest run --config vitest.config.ts\n\n\n RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/packages/postgres\n\n\n Test Files  27 passed (27)\n      Tests  199 passed (199)\n   Start at  16:26:58\n   Duration  122.96s (transform 804ms, setup 0ms, import 10.46s, tests 110.80s, environment 1ms)\n\n"
+    },
+    {
+      "function_group": "workbench_regressions",
+      "command": "npm test --workspace @petra/workbench",
+      "passed": true,
+      "tests": 417,
+      "boundary": "Existing component and interaction regression suite. Complete live examination flows, unrelated third native domain, narrow/assistive tasks and user acceptance remain required.",
+      "output": "\n> @petra/workbench@0.0.0 test\n> vitest run\n\n\n RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/apps/workbench\n\n\n Test Files  44 passed (44)\n      Tests  417 passed (417)\n   Start at  16:24:18\n   Duration  26.38s (transform 10.82s, setup 0ms, import 139.04s, tests 77.60s, environment 2ms)\n\n"
+    }
+  ],
+  "model_role_evaluation": "reports/FE-A1-COPILOT-ROLE-EVALUATION.json",
+  "model_role_boundary": "Seven real synthetic managed gpt-6-astra probes passed against the current registered prompt/profile and exact runtime fingerprints, including filtered-scene explanation. Dedicated startup catalog removes advertised tools before any prompt and retains thread feature/MCP fencing. This certifies the advisory Project role only; pre-Project intake, native third-domain work, typed actions and full acceptance remain open.",
+  "native_browser_evaluation": "reports/FE-A1-NATIVE-WORKSPACE-BROWSER.json",
+  "profile_boundary": "Scientific profile 1.5.0 selects the current executable scoped-examination registration. Earlier retained profiles/Projects are not silently enabled or reinterpreted.",
+  "source_fingerprints": {
+    "apps/server/src/project-copilot-model.ts": "sha256:53a96e24cfac591d85e85bcc97158a4d736833be923e82a34e2ad6fdc115d011",
+    "apps/server/src/project-copilot-routes.ts": "sha256:8b0a977b641fe9b31ef7a276375aafe2f6c3006c2cdd9ea0adc1460e2e515108",
+    "apps/server/src/project-copilot.ts": "sha256:f13cc9f3ec9db247f1c08d3f47b811824a9308cb27bbd4e835466b192060279a",
+    "apps/server/src/project-examination.ts": "sha256:7b2f47026e3f28a8cff0e879ff2b659c9eddd81035b6858a592443bcc2d5072b",
+    "apps/workbench/src/product/HypothesisCycles.tsx": "sha256:08b4809d62a6e756d14cc41f0a71989be1ef477a621d0d28b7a40151a6b0b9f9",
+    "apps/workbench/src/product/SemanticGraphSurface.tsx": "sha256:d0a3069b90a69c6e48fd0454249896270cc1580be81d0886a88f3c739f370f62",
+    "apps/workbench/src/product/copilot.css": "sha256:893166ffec8bf0e6f0070f90108e21746389f6f5ed4f47e734cc911909a67cba",
+    "apps/workbench/src/product/native-examination-registry.tsx": "sha256:6fb298f5b003a9f88f4a1e72b65d573e24ab40a37618f7c1daf69ec09f29c61a",
+    "packages/adapters/src/codex-app-server.ts": "sha256:e34e578644a37fec1af6e44e4c5528cf85179d63252cdf1bcbc056d33cf41fe3",
+    "packages/adapters/src/codex-project-copilot.ts": "sha256:7381b8a262353d57d8272bc0dab9539ac2f41249a7840dfd000046754602df99",
+    "packages/adapters/src/project-copilot-ag-ui.ts": "sha256:c5c1c3bfb719b82955e0cf0008c0a64a9b08c7dc8d89cbfe30f963b4fce8da79",
+    "packages/core/src/hypothesis-examination.ts": "sha256:658c817a5c4e27f65bc895b53bfe9f7b51b095a00191cfc5cb4e34cabbc55c29",
+    "packages/core/src/project-copilot.ts": "sha256:d52e4f82adb984f778cb89bc7d5c3e65db4febc727ea85ae5be2e1a3f73a2ade",
+    "packages/postgres/src/project-copilot-repository.ts": "sha256:ef88920479c551e73328abd905de83c0cbe91ed82260a9386f81265aede72883",
+    "packages/postgres/src/project-examination-command-authority.ts": "sha256:e3f6f9aeda0bbde7795c0fdd0f04502f3524d15a41a2fdb7a19af05bb4f8ecf8",
+    "packages/postgres/src/project-examination-registry.ts": "sha256:04e48356e58ef58d01199723ee218c8f2db1fbfcedcfe445796d80fe9e74e824",
+    "packages/postgres/src/project-examination-repository.ts": "sha256:29330c24747cbe1b9b40a3066ad08c0cd0078b965df444a4bb3762964e022aaf",
+    "packages/postgres/src/project-semantic-graph-reader.ts": "sha256:a0652c7b764716be5016d7e80302d5bdbd936a4298866b72c4b2ae34e83685f1",
+    "packages/core/src/project-examination-command.ts": "sha256:8b543e97c2f6f2c6460f7f21b5ef150ac34e951830a42188c091364d1348624b",
+    "packages/core/src/project-examination-scene.ts": "sha256:60fd4d8c64eb6178edf26681d8239e843d816ee5d5ae990b1cf767842e835351",
+    "packages/postgres/src/project-examination-owner-authority.ts": "sha256:19cda599fd4fc45f65366e6816d0a3c2f1b7391666932c7e8b32ca09db024a2f",
+    "apps/server/src/project-examination-routes.ts": "sha256:fd894eacb0802e6cb3cd7e07e134a92530b5dea4712b098561359867c7b850c7",
+    "apps/server/src/server.ts": "sha256:d5ad340fc0540f5cb5999901e3fcf501bfb443f35a5dda6830f8f8dda3bf5be5",
+    "apps/workbench/src/product/ExaminationAuthoritySetup.tsx": "sha256:1e16605c96454991342ce92604996d4b3242066f7781274e70b9dc9839aa441d",
+    "apps/workbench/src/product/ExaminationGraph.tsx": "sha256:758ba8c14aa2c673343ce9c2e07ed588c3fa60e88c7401e358c7e4fb7f404a6a",
+    "scripts/verify-a1-examination-browser.mjs": "sha256:f46b07e98d05b2373da01bdf2febb1f7f340f5460c1a352103f8666b9f6a8ae8",
+    "infra/postgres/migrations/V063__project_examination_owner_authority.sql": "sha256:f8145170af25841961fc20322774494e17419d26b7fd366124913b4b8424bc1b",
+    "apps/workbench/src/product/GraphPresentationDetails.tsx": "sha256:2048c763f69b6bcb63cf91f86dc7981290bcc54d8aea175b6b737e2e767775c6",
+    "packages/contracts/schemas/graph-presentation-context/1.0.0/schema.json": "sha256:807812eda137066c070f8a1d8c3a4f4d5f0f8e68c6996a7a755f3a6da11e92ba",
+    "apps/workbench/src/product/shared-graph-presentation.ts": "sha256:90f0bd88a227621784e378c3c038c7667f60dd8ba364fda659a5828c16dd462d",
+    "packages/contracts/schemas/copilot-input-manifest/1.0.0/schema.json": "sha256:b2d5ceb120b21ed274cd9633a3c9c086178bf2ca70e5149b779b869f48e91f7d",
+    "packages/contracts/schemas/copilot-request/1.1.0/schema.json": "sha256:6dabcda9db72f8287101419055606d9166e95a9653de486313f71edf79eb39d5",
+    "apps/workbench/src/product/ProjectCopilotConversation.tsx": "sha256:3e58aabbf75f9703fb6ca17a3a1f1dc280ca51d70b72243819ba8027a3917d18",
+    "infra/postgres/migrations/V064__project_copilot_input_manifests.sql": "sha256:e2fe72cebb7697dc40e5c3aeac370ab43d4fa77360f8f451eabbff2bf5d1f794",
+    "apps/workbench/src/product/CopilotWorkspace.tsx": "sha256:b9f5bbf5cc215b372d45741c9aab0754adf9b41dc4e2dccbad00fa55b4c08722",
+    "packages/core/src/graph-presentation.ts": "sha256:84b980796a9465c047536211f6aa7a6dd1efd0dada2f656249015d9ccc0ebc48",
+    "packages/contracts/schemas/copilot-turn/1.1.0/schema.json": "sha256:ad87653d6af9e2e0d17851c0318d7219a588bb0e6cf133706a461c438561cd3e"
+  },
+  "construction_coverage": {
+    "FE-A1.3-W04": "Added durable pre-invocation input manifests containing exact canonical payload/profile/context hashes, original/included/withheld/excluded history identities and budget omissions. Original turns remain immutable; manifest persistence failure invokes no model. Exact shared scene records are retained with new versioned turns. Explicit current/original continuation, thread branches, inquiry/Work context and historical permission checks remain required.",
+    "FE-A1.3-W13": "Source reports must copy admitted wording; metadata and invented/paraphrased source reports fail before publication. Inference remains advisory. Whole-task communication/adverse recovery remains required.",
+    "FE-A1.4-W05": "Exact schema/version registry dispatches native Claim, Assertion and controlled-writing Requirement examination. The shared graph no longer mounts a scientific cycle through a domain conditional. Full compositional governance remains required.",
+    "FE-A1.4-W06": "Scientific and writing native reads/graph/examination are implemented and browser-inspected. The unrelated third native profile/examiner and its functional workflow remain required.",
+    "FE-A1.4-W11": "Scoped scientific assessment remains partial A1 construction. Added explicit owner-only permission proposal and atomic immutable grant receipt; exact owner, graph, review, idempotency and replay guards passed against a fresh V063 database. No permission is inferred from existing grants.",
+    "FE-A1.4-W12": "Posture decisions retain required typed obligations, creating findings, stable obligation identity/revisions and exact satisfaction evidence. Finding/obligation-driven SuggestedAction and Work/inquiry plans remain required.",
+    "FE-A1.4-W13": "Two human-reviewed cycles now pass through production browser native examiner, owner-permission flow, actual authenticated HTTP/PG commands and rendered lineage. Correction itself uses the trusted working-state fixture owner. Full question/proposal/Work/inquiry coupling remains required.",
+    "FE-A1.4-W14": "Human dispositions retain exact assessment/posture/basis/prior disposition, named scoped criteria, obligations and every material unknown. Product closure/reopening integration remains required.",
+    "FE-A1.4-W15": "Target and Objective changes invalidate affected axes; independent unaffected standing is retained. Original snapshots/records survive new revisions. Evidence retraction, temporal changes and relevant inquiry return remain required.",
+    "FE-A1.4-W19": "Added a native/cycle graph mode, exact cycle record selection, complete text peer, bounded scene metadata in copilot context and context refresh after recorded decisions. Typed next-work proposals and their Work/Review lineage remain incomplete.",
+    "FE-A1.5-W04": "Owner authority and examination receipts, full cycle records, and original shared turn scenes persist immutably and survive reload. The production browser function check passes. Whole-product receipt coverage remains required.",
+    "FE-A1.5-W07": "Native domain-specific reading, evidence disclosure, review preparation and deep identities are assembled in the Workspace. Whole-task four-level inspection and all three Project types remain required.",
+    "FE-A1.7-W07": "Core adversarial and real PostgreSQL two-cycle/invalidation evidence is retained. Full eligible-model production HTTP/AG-UI/browser/Work/inquiry flow remains required.",
+    "FE-A1.4-W18": "Added a pure shared renderer/server presentation compiler with exact semantic hash, membership, geometry/version, selection, kind filter, legend, viewport, counts and semantic-peer hash. Authenticated reads reconstruct and check the browser binding; changed or mismatched scenes block sending. New immutable turn version retains the original full presentation while model excerpts explicitly name additional omissions. Browser, stale-peer, real model explanation and PostgreSQL restart checks pass. Dependencies and complete query/group/history integration remain open; this work item is incomplete."
+  },
+  "remaining_boundaries": [
+    "Pre-Project conversational intake with explicit actor/privacy/cost/retention and atomic creation binding",
+    "Declared current/original-basis continuation, thread branches, authorized historical reads, pagination and redaction",
+    "Normal typed conversational proposals/corrections through canonical Work and Review owners",
+    "General owner permission issuance/recovery and explicit definition adoption beyond the implemented owner-only examination permission",
+    "Full unrelated third native profile/examiner and controlled-writing interpretation/competing-reading workflow",
+    "Complete bounded graph query/filter/group/history/impact contracts and recorded next-cycle Work/inquiry guidance",
+    "Full agent/graph/Work/inquiry cyclic integration and source retraction/rights/temporal invalidation",
+    "Complete progressive inspection/receipt/access coverage and all 97 adapted operation functions",
+    "Whole-task visual/responsive/keyboard/assistive reviews, repository gates, stable committed/pushed candidate and explicit user acceptance"
+  ],
+  "examination_function_browser_evaluation": "reports/FE-A1-EXAMINATION-FUNCTION-BROWSER.json"
+}

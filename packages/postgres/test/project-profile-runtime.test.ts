@@ -5,6 +5,8 @@ import type {
   PetraActor,
   PetraProject,
   PetraProjectDefinition,
+  PetraProjectDefinitionDraftCommandRequest,
+  PetraProjectDefinitionDraftRequest,
   PetraProjectProfileCommandRequest,
   PetraRegisteredProjectProfile,
 } from "@petra/contracts";
@@ -101,6 +103,7 @@ describePostgres("PostgreSQL registered Project profile runtime", () => {
   beforeEach(async () => {
     await pool.query(
       `TRUNCATE petra.project_profile_command_receipts,
+                petra.project_definition_draft_command_receipts,
                 petra.registered_project_profiles,
                 petra.project_objective_focus_history,
                 petra.project_objective_focus,
@@ -122,6 +125,186 @@ describePostgres("PostgreSQL registered Project profile runtime", () => {
 
   afterAll(async () => {
     await pool.end();
+  });
+
+  it("creates scientific, writing, and unrelated Projects from the same outcome-first draft path", async () => {
+    const inputs: Array<{
+      request: PetraProjectDefinitionDraftRequest;
+      commandId: string;
+      expectedFamily: string;
+    }> = [
+      {
+        request: {
+          schema_name: "petra.project-definition-draft-request",
+          schema_version: "1.0.0",
+          request_id: "definition_draft_request_01K6P000000000000000000301",
+          outcome:
+            "Compare scientific claims against scholarly evidence and retained sources.",
+          example_ref: {
+            profile_id: scientific.profile_id,
+            profile_version: scientific.profile_version,
+            content_hash: scientific.content_hash,
+          },
+          initial_material: [
+            {
+              material_id: "initial_material_01K6P000000000000000000301",
+              filename: "evidence-notes.txt",
+              media_type: "text/plain",
+              byte_size: 31,
+              content_hash:
+                "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            },
+          ],
+        },
+        commandId: "command_01K6P000000000000000000301",
+        expectedFamily: "petra.scientific-evidence",
+      },
+      {
+        request: {
+          schema_name: "petra.project-definition-draft-request",
+          schema_version: "1.0.0",
+          request_id: "definition_draft_request_01K6P000000000000000000302",
+          outcome:
+            "Prepare a controlled writing procedure governed by auditable requirements.",
+        },
+        commandId: "command_01K6P000000000000000000302",
+        expectedFamily: "petra.controlled-writing",
+      },
+      {
+        request: {
+          schema_name: "petra.project-definition-draft-request",
+          schema_version: "1.0.0",
+          request_id: "definition_draft_request_01K6P000000000000000000303",
+          outcome:
+            "Plan a neighborhood block party with a budget, volunteer shifts, and a rain date.",
+        },
+        commandId: "command_01K6P000000000000000000303",
+        expectedFamily: "petra.project-authored",
+      },
+    ];
+
+    for (const input of inputs) {
+      const draft = await runtime.draftProjectDefinition(input.request);
+      expect(draft.content.request.outcome).toBe(input.request.outcome);
+      expect(draft.content.definition_family).toBe(input.expectedFamily);
+      expect(draft.content.selected_capabilities.length).toBeGreaterThan(0);
+      expect(draft.content.assumptions.length).toBeGreaterThan(0);
+      expect(draft.content.initial_material_plan).toHaveLength(
+        input.request.initial_material?.length ?? 0,
+      );
+      const command: PetraProjectDefinitionDraftCommandRequest = {
+        schema_name: "petra.project-definition-draft-command-request",
+        schema_version: "1.0.0",
+        command_id: input.commandId,
+        idempotency_key: `definition-draft:${input.commandId}`,
+        draft,
+        accepted_assumption_codes: draft.content.assumptions.map(
+          (assumption) => assumption.code,
+        ) as PetraProjectDefinitionDraftCommandRequest["accepted_assumption_codes"],
+      };
+      const receipt =
+        await runtime.executeProjectDefinitionDraftCommand(command);
+      expect(receipt.initial_material_plan).toStrictEqual(
+        draft.content.initial_material_plan,
+      );
+      await expect(
+        runtime.executeProjectDefinitionDraftCommand(structuredClone(command)),
+      ).resolves.toStrictEqual(receipt);
+      const taxonomy = await runtime.getProjectProfileTaxonomy(
+        receipt.project_ref.project_id,
+      );
+      expect(taxonomy?.resolution.state).toBe(
+        input.expectedFamily === "petra.project-authored"
+          ? "project_authored"
+          : "registered",
+      );
+    }
+
+    const count = await pool.query<{ projects: string; receipts: string }>(
+      `SELECT
+         (SELECT count(*) FROM petra.projects)::text AS projects,
+         (SELECT count(*) FROM petra.project_definition_draft_command_receipts)::text AS receipts`,
+    );
+    expect(count.rows[0]).toEqual({ projects: "3", receipts: "3" });
+  });
+
+  it("rejects a changed draft and unaccepted assumptions without creating a Project", async () => {
+    const request: PetraProjectDefinitionDraftRequest = {
+      schema_name: "petra.project-definition-draft-request",
+      schema_version: "1.0.0",
+      request_id: "definition_draft_request_01K6P000000000000000000304",
+      outcome: "Organize a family reunion itinerary and meal plan.",
+    };
+    const draft = await runtime.draftProjectDefinition(request);
+    const command: PetraProjectDefinitionDraftCommandRequest = {
+      schema_name: "petra.project-definition-draft-command-request",
+      schema_version: "1.0.0",
+      command_id: "command_01K6P000000000000000000304",
+      idempotency_key: "definition-draft:unaccepted",
+      draft,
+      accepted_assumption_codes: [draft.content.assumptions[0].code],
+    };
+    await expect(
+      runtime.executeProjectDefinitionDraftCommand(command),
+    ).rejects.toMatchObject({
+      code: "PROJECT_DEFINITION_DRAFT_ASSUMPTIONS_UNACCEPTED",
+    });
+    const changed = structuredClone(command);
+    changed.command_id = "command_01K6P000000000000000000305";
+    changed.idempotency_key = "definition-draft:changed";
+    changed.draft.content.project.name = "Changed in the browser";
+    await expect(
+      runtime.executeProjectDefinitionDraftCommand(changed),
+    ).rejects.toMatchObject({
+      code: "PROJECT_DEFINITION_DRAFT_STALE",
+    });
+    const count = await pool.query<{ projects: string }>(
+      "SELECT count(*)::text AS projects FROM petra.projects",
+    );
+    expect(count.rows[0]?.projects).toBe("0");
+  });
+
+  it("serializes overlapping command and idempotency identities into one effect or a typed conflict", async () => {
+    const draft = await runtime.draftProjectDefinition({
+      schema_name: "petra.project-definition-draft-request",
+      schema_version: "1.0.0",
+      request_id: "definition_draft_request_01K6P000000000000000000306",
+      outcome: "Coordinate a community garden planting calendar.",
+    });
+    const accepted = draft.content.assumptions.map(
+      (assumption) => assumption.code,
+    ) as PetraProjectDefinitionDraftCommandRequest["accepted_assumption_codes"];
+    const first: PetraProjectDefinitionDraftCommandRequest = {
+      schema_name: "petra.project-definition-draft-command-request",
+      schema_version: "1.0.0",
+      command_id: "command_01K6P000000000000000000306",
+      idempotency_key: "definition-draft:overlap",
+      draft,
+      accepted_assumption_codes: accepted,
+    };
+    const second: PetraProjectDefinitionDraftCommandRequest = {
+      ...structuredClone(first),
+      command_id: "command_01K6P000000000000000000307",
+    };
+
+    const results = await Promise.allSettled([
+      runtime.executeProjectDefinitionDraftCommand(first),
+      runtime.executeProjectDefinitionDraftCommand(second),
+    ]);
+    expect(
+      results.filter((result) => result.status === "fulfilled"),
+    ).toHaveLength(1);
+    const rejection = results.find((result) => result.status === "rejected");
+    expect(rejection).toMatchObject({
+      status: "rejected",
+      reason: { code: "PROJECT_DEFINITION_DRAFT_COMMAND_CONFLICT" },
+    });
+    const count = await pool.query<{ projects: string; receipts: string }>(
+      `SELECT
+         (SELECT count(*) FROM petra.projects)::text AS projects,
+         (SELECT count(*) FROM petra.project_definition_draft_command_receipts)::text AS receipts`,
+    );
+    expect(count.rows[0]).toEqual({ projects: "1", receipts: "1" });
   });
 
   it("creates paired profile Projects and returns their exact versioned taxonomies", async () => {

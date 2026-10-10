@@ -1,0 +1,32 @@
+{
+  "schema_name": "petra.project-examination-request",
+  "schema_version": "1.0.0",
+  "command_id": "command_01K4E000000000000000000107",
+  "idempotency_key": "examination-register-fixture",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "operation": "register_hypothesis",
+  "expected_graph_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+  "expected_prior_ref": null,
+  "proposed_content": {
+    "ordinal": "H1",
+    "descriptor": "A measurable improvement within the reported evaluation task",
+    "target_claim_ref": {
+      "schema_name": "petra.claim",
+      "schema_version": "1.0.0",
+      "record_id": "claim_01ARZ3NDEKTSV4RRFFQ69G5FBB",
+      "revision": 1,
+      "record_hash": "sha256:037b05d18954bd81029717fb0ff00c9f21e14895db98e4c2dfb2691aaf501db3"
+    },
+    "rationale": "Examine the source-native representation and its limits.",
+    "falsification_conditions": [],
+    "development": "articulated",
+    "lifecycle": "active",
+    "supersedes_ref": null
+  },
+  "review": {
+    "content_hash": "sha256:a75c45a25b148eb2b3bba97bba921b277c6b5e2486c0cbd76180ff56bf7ebc9e",
+    "reviewed_at": "2026-10-07T16:00:00.000Z",
+    "rationale": "Explicit human review of this exact proposed Hypothesis and its scope."
+  },
+  "unregistered_authority": true
+}

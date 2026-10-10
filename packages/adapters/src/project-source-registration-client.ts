@@ -31,6 +31,7 @@ export interface ProjectSourceRegistrationClientResult {
 }
 
 const PROJECT_ID = /^project_[0-9A-HJKMNP-TV-Z]{26}$/u;
+const PROJECT_SOURCE_ID = /^project_source_[0-9A-HJKMNP-TV-Z]{26}$/u;
 
 /** Renderer-neutral client for the authenticated source registration owner. */
 export class ProjectSourceRegistrationClient {
@@ -40,6 +41,48 @@ export class ProjectSourceRegistrationClient {
   constructor(readonly options: ProjectSourceRegistrationClientOptions) {
     this.#fetch = options.fetch ?? fetch;
     this.#contracts = options.contracts ?? new PetraContractRegistry();
+  }
+
+  async readReceipt(
+    projectId: string,
+    projectSourceId: string,
+  ): Promise<PetraProjectSourceRegistrationReceipt | undefined> {
+    if (
+      !PROJECT_ID.test(projectId) ||
+      !PROJECT_SOURCE_ID.test(projectSourceId)
+    ) {
+      throw new TypeError(
+        "A registration receipt requires an exact Project source.",
+      );
+    }
+    let body: unknown;
+    try {
+      body = await this.#json(
+        `/api/queries/projects/${projectId}/sources/${projectSourceId}/registration-receipt`,
+      );
+    } catch (error) {
+      if (
+        error instanceof ProjectSourceRegistrationClientError &&
+        error.status === 404 &&
+        error.code === "PROJECT_SOURCE_REGISTRATION_RECEIPT_NOT_FOUND"
+      ) {
+        return undefined;
+      }
+      throw error;
+    }
+    this.#contracts.assertValid(
+      "project-source-registration-receipt",
+      "1.0.0",
+      body,
+    );
+    const receipt = body as PetraProjectSourceRegistrationReceipt;
+    if (
+      receipt.project_id !== projectId ||
+      receipt.project_source_ref.project_source_id !== projectSourceId
+    ) {
+      throw this.#invalidResponse();
+    }
+    return structuredClone(receipt);
   }
 
   async register(
@@ -128,15 +171,15 @@ export class ProjectSourceRegistrationClient {
 
   async #json(
     path: string,
-    body: PetraProjectSourceRegistrationRequest,
+    body?: PetraProjectSourceRegistrationRequest,
   ): Promise<unknown> {
     const response = await this.#fetch(new URL(path, this.options.baseUrl), {
-      method: "POST",
+      method: body === undefined ? "GET" : "POST",
       headers: {
         authorization: `Bearer ${this.options.token}`,
-        "content-type": "application/json",
+        ...(body === undefined ? {} : { "content-type": "application/json" }),
       },
-      body: JSON.stringify(body),
+      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
     });
     if (response.ok) return response.json();
     let code = "PROJECT_SOURCE_REGISTRATION_REQUEST_FAILED";

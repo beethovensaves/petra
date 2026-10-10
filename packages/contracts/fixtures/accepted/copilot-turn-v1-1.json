@@ -1,0 +1,71 @@
+{
+  "schema_name": "petra.copilot-turn",
+  "schema_version": "1.1.0",
+  "run_id": "run_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "thread_id": "thread_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "parent_run_id": null,
+  "question": "What should we examine?",
+  "context": {
+    "schema_name": "petra.copilot-context",
+    "schema_version": "1.0.0",
+    "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+    "basis": {
+      "project_revision": 1,
+      "definition": {
+        "record_id": "project_definition_01K4C000000000000000000001",
+        "revision": 1,
+        "content_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+      },
+      "objective": {
+        "record_id": "objective_01K4C000000000000000000001",
+        "revision": 1,
+        "content_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+      },
+      "event_position": 42,
+      "stream_revision": 8
+    },
+    "project_label": "Evidence review",
+    "objective_statement": "Examine the supplied evidence",
+    "definition_family": "scientific",
+    "records": [],
+    "limitations": [
+      "This bounded snapshot contains no evidence selections."
+    ],
+    "content_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+  },
+  "focus_keys": [],
+  "request_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+  "started_at": "2026-10-07T14:00:00.000Z",
+  "instance_id": "copilot_instance_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "shared_scene": {
+    "schema_name": "petra.graph-presentation-context",
+    "schema_version": "1.0.0",
+    "content": {
+      "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+      "graph_content_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "parameters": {
+        "renderer": "native_working",
+        "mode": "graph",
+        "semantic_content_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "selected_keys": [],
+        "excluded_kinds": []
+      },
+      "layout_version": "petra.graph-layout@1.0.0",
+      "viewport": {
+        "width": 880,
+        "height": 280
+      },
+      "nodes": [],
+      "relationships": [],
+      "omitted_nodes": 0,
+      "omitted_relationships": 0,
+      "has_more_history": false,
+      "legend": [],
+      "peer_content_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "authority": "presentation_only"
+    },
+    "content_hash": "sha256:50f355c37c7269e2da724dfb341b01c8b7ed45b65b376d08cd9d7445b9c32fec"
+  }
+}

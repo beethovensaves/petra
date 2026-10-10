@@ -19,6 +19,10 @@ acceptance record.
 
 ## Binding gates
 
+- `npm run gate:frontend-a1` must pass before execution. Every required item in
+  the [A1 function ledger](../reports/FE-A1-CONTRACT-IMPLEMENTATION-LEDGER.md)
+  must be complete with its own evidence and explicit user acceptance. The
+  sixteen optional end-of-A1 scenarios are excluded from this prerequisite.
 - `npm run gate:wave6:user-testable` must continue to pass. Wave 7 cannot trade
   away a core application operation to finish Composition.
 - FE-A1 must be accepted before Wave 7 starts, and

@@ -20,6 +20,7 @@ import {
   type SourceRegistrationContext,
   type SourceRegistrationDraft,
 } from "./source-registration.js";
+import { useWorkspaceDraftState } from "./workspace-drafts.js";
 
 type WorkKind = SourceRegistrationDraft["workKind"];
 type IdentityStatus = SourceRegistrationDraft["identityStatus"];
@@ -198,10 +199,12 @@ export const SourceRegistrationReceipt = ({
   receipt,
   recovered = false,
   roleLabel,
+  onContinue,
 }: {
   receipt: PetraProjectSourceRegistrationReceipt;
   recovered?: boolean;
   roleLabel?: string;
+  onContinue?: () => void | Promise<void>;
 }): React.JSX.Element => (
   <section
     className="source-registration-receipt"
@@ -235,6 +238,11 @@ export const SourceRegistrationReceipt = ({
       </div>
     </dl>
     <div className="source-registration-actions">
+      {onContinue === undefined ? null : (
+        <PetraButton variant="primary" onClick={() => void onContinue()}>
+          Continue initial file setup
+        </PetraButton>
+      )}
       <Link
         className="reference-primary-link"
         to={`/projects/${receipt.destination.project_id}/sources/${receipt.destination.project_source_id}?${new URLSearchParams(
@@ -295,18 +303,32 @@ export const SourceRegistrationPanel = ({
   context,
   sourceTerm,
   onCancel,
+  initialFile,
+  onContinue,
 }: {
   context: SourceRegistrationContext;
   sourceTerm: string;
   onCancel: () => void;
+  initialFile?: File;
+  onContinue?: () => void | Promise<void>;
 }): React.JSX.Element => {
-  const [fields, setFields] = useState(() => initialFields(context));
-  const [file, setFile] = useState<File>();
+  const draftKey = `source-registration:${context.projectId}:${context.projectDefinitionRef.revision}`;
+  const [fields, setFields, clearFields] = useWorkspaceDraftState(
+    `${draftKey}:fields`,
+    () => initialFields(context),
+  );
+  const [file, setFile, clearFile] = useWorkspaceDraftState<File | undefined>(
+    `${draftKey}:file`,
+    initialFile,
+  );
   const [submitting, setSubmitting] = useState(false);
   const [activeRequest, setActiveRequest] =
     useState<PetraProjectSourceRegistrationRequest>();
   const [receipt, setReceipt] =
     useState<PetraProjectSourceRegistrationReceipt>();
+  const [, retainSourceReceipt] = useWorkspaceDraftState<
+    Record<string, PetraProjectSourceRegistrationReceipt>
+  >(`source-registration:${context.projectId}:receipts`, {});
   const [recovered, setRecovered] = useState(false);
   const [failure, setFailure] = useState<{
     message: string;
@@ -322,6 +344,16 @@ export const SourceRegistrationPanel = ({
     key: Key,
     value: SourceRegistrationFields[Key],
   ): void => setFields((current) => ({ ...current, [key]: value }));
+
+  const retainReceipt = (
+    value: PetraProjectSourceRegistrationReceipt,
+  ): void => {
+    setReceipt(value);
+    retainSourceReceipt((current) => ({
+      ...current,
+      [value.project_source_ref.project_source_id]: value,
+    }));
+  };
 
   const draft = (): SourceRegistrationDraft => ({
     title: fields.title,
@@ -381,7 +413,9 @@ export const SourceRegistrationPanel = ({
       });
       setActiveRequest(request);
       const result = await executeSourceRegistration(context, request);
-      setReceipt(result.receipt);
+      retainReceipt(result.receipt);
+      clearFields();
+      clearFile();
       setRecovered(false);
     } catch (error) {
       setFailure({
@@ -405,7 +439,9 @@ export const SourceRegistrationPanel = ({
       );
       setAssessment(result);
       if (result.effect.state === "effect_confirmed") {
-        setReceipt(result.effect.receipt);
+        retainReceipt(result.effect.receipt);
+        clearFields();
+        clearFile();
         setRecovered(true);
       }
     } catch (error) {
@@ -421,7 +457,9 @@ export const SourceRegistrationPanel = ({
     setRecoveryError(undefined);
     try {
       const result = await executeSourceRegistration(context, activeRequest);
-      setReceipt(result.receipt);
+      retainReceipt(result.receipt);
+      clearFields();
+      clearFile();
       setRecovered(false);
     } catch (error) {
       const outcomeUnknown = sourceRegistrationOutcomeUnknown(error);
@@ -445,6 +483,7 @@ export const SourceRegistrationPanel = ({
         receipt={receipt}
         recovered={recovered}
         {...(roleLabel === undefined ? {} : { roleLabel })}
+        {...(onContinue === undefined ? {} : { onContinue })}
       />
     );
   }
@@ -654,11 +693,20 @@ export const SourceRegistrationPanel = ({
         <fieldset disabled={registrationLocked || submitting}>
           <legend>Exact material</legend>
           <div className="source-registration-grid">
+            {initialFile === undefined ? null : (
+              <p className="source-registration-fieldset-note" role="status">
+                Retained from Project creation: <strong>{file?.name}</strong>
+              </p>
+            )}
             <PetraTextField
               label="Source file"
-              hint="The selected bytes are hashed before submission."
+              hint={
+                initialFile === undefined
+                  ? "The selected bytes are hashed before submission."
+                  : "The initial file is retained in this browser. Choose another file here only to replace it."
+              }
               type="file"
-              required
+              required={file === undefined}
               onChange={(event) => setFile(event.currentTarget.files?.[0])}
             />
             <SelectField

@@ -1,0 +1,268 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/cycle-disposition/1.0.0/schema.json",
+  "title": "PetraCycleDisposition",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "cycle_disposition_id",
+    "revision",
+    "project_id",
+    "content",
+    "content_hash",
+    "created_by",
+    "created_at"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.cycle-disposition"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "cycle_disposition_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+    },
+    "revision": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+    },
+    "project_id": {
+      "type": "string",
+      "pattern": "^project_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "content": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "assessment_ref",
+        "posture_ref",
+        "basis",
+        "disposition",
+        "criterion_keys",
+        "finding_keys",
+        "unresolved_questions",
+        "rationale",
+        "prior_disposition_ref",
+        "authority_effect"
+      ],
+      "properties": {
+        "assessment_ref": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "schema_name",
+            "schema_version",
+            "record_id",
+            "revision",
+            "record_hash"
+          ],
+          "properties": {
+            "schema_name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            },
+            "schema_version": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 30
+            },
+            "record_id": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+            },
+            "revision": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+            },
+            "record_hash": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+            }
+          }
+        },
+        "posture_ref": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "schema_name",
+            "schema_version",
+            "record_id",
+            "revision",
+            "record_hash"
+          ],
+          "properties": {
+            "schema_name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            },
+            "schema_version": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 30
+            },
+            "record_id": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+            },
+            "revision": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+            },
+            "record_hash": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+            }
+          }
+        },
+        "basis": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "definition_ref",
+            "graph_content_hash",
+            "event_position",
+            "stream_revision",
+            "query_kind"
+          ],
+          "properties": {
+            "definition_ref": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["record_id", "revision", "content_hash"],
+              "properties": {
+                "record_id": {
+                  "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+                },
+                "revision": {
+                  "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+                },
+                "content_hash": {
+                  "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+                }
+              }
+            },
+            "graph_content_hash": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+            },
+            "event_position": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "stream_revision": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "query_kind": {
+              "const": "current_registered_working_heads"
+            },
+            "objective_ref": {
+              "oneOf": [
+                {
+                  "$ref": "../../hypothesis/1.0.0/schema.json#/properties/content/properties/target_claim_ref"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          }
+        },
+        "disposition": {
+          "type": "string",
+          "enum": [
+            "supporting_within_scope",
+            "challenging_within_scope",
+            "mixed",
+            "insufficient",
+            "deferred",
+            "further_cycle"
+          ]
+        },
+        "criterion_keys": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 50,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          }
+        },
+        "finding_keys": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 50,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          }
+        },
+        "unresolved_questions": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 50,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          }
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8000
+        },
+        "prior_disposition_ref": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "schema_name",
+                "schema_version",
+                "record_id",
+                "revision",
+                "record_hash"
+              ],
+              "properties": {
+                "schema_name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                "schema_version": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 30
+                },
+                "record_id": {
+                  "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+                },
+                "revision": {
+                  "$ref": "../../common/1.0.0/schema.json#/$defs/Revision"
+                },
+                "record_hash": {
+                  "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+                }
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "authority_effect": {
+          "const": "scoped_project_judgment"
+        }
+      }
+    },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "created_by": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ActorRef"
+    },
+    "created_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  }
+}

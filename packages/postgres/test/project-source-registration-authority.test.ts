@@ -259,6 +259,28 @@ describePostgres("PostgresProjectSourceRegistrationAuthority", () => {
       state: "exact",
       destination: first.receipt.destination,
     });
+    await expect(
+      authority.readProjectSourceRegistrationReceipt(
+        project.project_id,
+        first.projectSource.project_source_id,
+        principal,
+      ),
+    ).resolves.toStrictEqual(first.receipt);
+    await expect(
+      authority.readProjectSourceRegistrationReceipt(
+        project.project_id,
+        first.projectSource.project_source_id,
+        {
+          ...principal,
+          actor: {
+            actor_id: "actor_01K6S000000000000000000099",
+            actor_kind: "human",
+          },
+        },
+      ),
+    ).rejects.toMatchObject({
+      code: "PROJECT_SOURCE_REGISTRATION_NOT_AUTHORIZED",
+    });
 
     const counts = await pool.query<{
       authors: string;
