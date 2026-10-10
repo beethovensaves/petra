@@ -1,7 +1,7 @@
 {
   "status": "passed",
   "pass": "execution",
-  "verified_at": "2026-10-10T23:33:21.220Z",
+  "verified_at": "2026-10-10T23:40:42.955Z",
   "project_id": "project_4GNM3G166Z7RCBSW5K6TXZ3XZ9",
   "observations": [
     {
@@ -24,6 +24,17 @@
             "line": 21,
             "display": "flex"
           },
+          "conversation": {
+            "top": 223.375,
+            "bottom": 800.046875,
+            "left": 16,
+            "right": 367,
+            "width": 351,
+            "height": 576.671875,
+            "font": 14,
+            "line": 21,
+            "display": "flex"
+          },
           "workspace": {
             "top": 116,
             "bottom": 900,
@@ -36,12 +47,12 @@
             "display": "block"
           },
           "transcript": {
-            "top": 297.140625,
+            "top": 252.375,
             "bottom": 622.71875,
             "left": 16,
             "right": 367,
             "width": 351,
-            "height": 325.578125,
+            "height": 370.34375,
             "font": 14,
             "line": 21,
             "display": "block"
@@ -108,6 +119,17 @@
             "line": 21,
             "display": "flex"
           },
+          "conversation": {
+            "top": 223.375,
+            "bottom": 900.046875,
+            "left": 16,
+            "right": 415,
+            "width": 399,
+            "height": 676.671875,
+            "font": 14,
+            "line": 21,
+            "display": "flex"
+          },
           "workspace": {
             "top": 116,
             "bottom": 1000,
@@ -120,12 +142,12 @@
             "display": "block"
           },
           "transcript": {
-            "top": 297.140625,
+            "top": 252.375,
             "bottom": 722.71875,
             "left": 16,
             "right": 415,
             "width": 399,
-            "height": 425.578125,
+            "height": 470.34375,
             "font": 14,
             "line": 21,
             "display": "block"
@@ -192,6 +214,17 @@
             "line": 21,
             "display": "flex"
           },
+          "conversation": {
+            "top": 223.375,
+            "bottom": 980.046875,
+            "left": 16,
+            "right": 559,
+            "width": 543,
+            "height": 756.671875,
+            "font": 14,
+            "line": 21,
+            "display": "flex"
+          },
           "workspace": {
             "top": 116,
             "bottom": 1080,
@@ -204,12 +237,12 @@
             "display": "block"
           },
           "transcript": {
-            "top": 297.140625,
+            "top": 252.375,
             "bottom": 802.71875,
             "left": 16,
             "right": 559,
             "width": 543,
-            "height": 505.578125,
+            "height": 550.34375,
             "font": 14,
             "line": 21,
             "display": "block"
@@ -287,6 +320,17 @@
           "line": 21,
           "display": "flex"
         },
+        "conversation": {
+          "top": 223.375,
+          "bottom": 900.046875,
+          "left": 16,
+          "right": 415,
+          "width": 399,
+          "height": 676.671875,
+          "font": 14,
+          "line": 21,
+          "display": "flex"
+        },
         "workspace": {
           "top": 116,
           "bottom": 1000,
@@ -299,12 +343,12 @@
           "display": "block"
         },
         "transcript": {
-          "top": 297.140625,
+          "top": 252.375,
           "bottom": 722.71875,
           "left": 16,
           "right": 415,
           "width": 399,
-          "height": 425.578125,
+          "height": 470.34375,
           "font": 14,
           "line": 21,
           "display": "block"

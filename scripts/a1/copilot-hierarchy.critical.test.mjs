@@ -17,6 +17,10 @@ test("FE-A1.1-W01-AC01 critical: short and narrow viewports preserve accessible 
   await surface.evaluate(
     "Array.from(document.querySelectorAll('.reference-mobile-pane-switcher button')).find(e=>e.textContent.includes('Agent')).focus()",
   );
+  assert.equal(
+    await surface.evaluate("document.activeElement?.tagName"),
+    "BUTTON",
+  );
   await surface.key("Enter", "Enter", 13);
   await surface.until(
     "document.querySelector('.reference-project-layout').dataset.mobilePane==='agent'",
@@ -74,6 +78,10 @@ test("FE-A1.1-W01-AC03 critical: keyboard opening and dismissal preserve the exa
   await surface.evaluate(
     "Array.from(document.querySelectorAll('.copilot-open-answer')).at(-1).focus()",
   );
+  assert.equal(
+    await surface.evaluate("document.activeElement?.tagName"),
+    "BUTTON",
+  );
   await surface.key("Enter", "Enter", 13);
   await surface.until(
     "document.querySelector('.reference-project-layout').dataset.mobilePane==='workspace' && document.querySelector('.copilot-workspace-result')!==null",
@@ -93,6 +101,10 @@ test("FE-A1.1-W01-AC03 critical: keyboard opening and dismissal preserve the exa
   );
   await surface.evaluate(
     "Array.from(document.querySelectorAll('.copilot-workspace-result button')).find(e=>e.textContent==='Return to workspace').focus()",
+  );
+  assert.equal(
+    await surface.evaluate("document.activeElement?.tagName"),
+    "BUTTON",
   );
   await surface.key("Enter", "Enter", 13);
   await surface.until(

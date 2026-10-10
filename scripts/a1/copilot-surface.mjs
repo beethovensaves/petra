@@ -92,6 +92,7 @@ export async function copilotSurface(pass) {
       key: value,
       code,
       windowsVirtualKeyCode: virtualKey,
+      ...(value === "Enter" ? { text: "\r" } : {}),
     });
     await cdp.send("Input.dispatchKeyEvent", {
       type: "keyUp",
