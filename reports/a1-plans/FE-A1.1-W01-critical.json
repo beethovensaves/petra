@@ -90,6 +90,12 @@
         "disposition": "resolved",
         "finding": "Critical short-height inspection found that the composer exceeded its own conversation box; hidden overflow clipped it. Expanded objective text consumed fixed-header space, and a failed first check left the keyboard case in a hidden pane.",
         "resolution": "Compact objective disclosure, reserve real conversation minimums, allow support overflow to scroll, and independently set the Agent pane before keyboard activation. Rerun execution and critical on the changed candidate with containment and hit testing."
+      },
+      {
+        "severity": "material",
+        "disposition": "resolved",
+        "finding": "The new CDP keyboard driver sent a virtual Enter code without carriage-return text, so browser default activation never occurred. The repository existing native drivers supply it.",
+        "resolution": "Match native Enter keyDown text and retain the failing critical capture. Execute both passes again; do not replace keyboard activation with scripted clicks."
       }
     ]
   }
