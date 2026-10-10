@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/copilot-working-plan/1.0.0/schema.json",
+  "title": "PetraCopilotWorkingPlan",
+  "description": "Non-authoritative typed proposals against exact server-owned previews. A proposal cannot execute a command or promote domain authority.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "authority",
+    "explanation",
+    "proposals"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.copilot-working-plan"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "authority": {
+      "const": "proposed_only"
+    },
+    "explanation": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4000
+    },
+    "proposals": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["preview_key", "changes", "reason", "basis_keys"],
+        "properties": {
+          "preview_key": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "changes": {
+            "type": "array",
+            "maxItems": 12,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["path", "value_json"],
+              "properties": {
+                "path": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                "value_json": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 8000
+                }
+              }
+            }
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "basis_keys": {
+            "type": "array",
+            "maxItems": 12,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            }
+          }
+        }
+      }
+    }
+  }
+}

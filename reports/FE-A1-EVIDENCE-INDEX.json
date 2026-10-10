@@ -1,10 +1,10 @@
 {
   "schema_name": "petra.a1-evidence-index",
   "schema_version": "1.0.0",
-  "roadmap_binding": "sha256:e8ae01bec494cc45b1ebb44d619b70feda1bebaf17a1ef1f06b719f8abed742f",
+  "roadmap_binding": "sha256:87d26d4507d61d464ec0e577634e0625bc69eb0238a61792b43590d011d41444",
   "current": {
     "required": 90,
-    "complete": 7,
+    "complete": 8,
     "user_acceptance": null,
     "proofs": [
       {
@@ -106,6 +106,23 @@
             "artifact": "reports/a1-passes/FE-A1.0-W06-critical-1791661626828.json",
             "command": "node --test --test-reporter=tap scripts/frontend-a1-process.critical.test.mjs",
             "boundary": "Delivery-control implementation only. Temporary Git/worktree fixtures test guards; they establish no copilot, Workspace, native examiner, model or cyclic verification product completion. Generated status views are checked from the current canonical ledger; static implementation and test files bind the committed candidate."
+          }
+        ]
+      },
+      {
+        "work_item": "FE-A1.3-W01",
+        "passes": [
+          {
+            "pass": "execution",
+            "artifact": "reports/a1-passes/FE-A1.3-W01-execution-1791664110538.json",
+            "command": "node --test --test-reporter=tap scripts/a1/conversation-contracts.test.mjs",
+            "boundary": "Conversation contract and runtime boundary verification, using controlled repository/provider ports and a real local HTTP M1 route. Actual managed-model eligibility is separately required by FE-A1.3-W02; canonical Thread/Run integration, action proposals, native examiners and connected cycles remain open."
+          },
+          {
+            "pass": "critical",
+            "artifact": "reports/a1-passes/FE-A1.3-W01-critical-1791664123560.json",
+            "command": "node --test --test-reporter=tap scripts/a1/conversation-contracts.critical.test.mjs",
+            "boundary": "Conversation contract and runtime boundary verification, using controlled repository/provider ports and a real local HTTP M1 route. Actual managed-model eligibility is separately required by FE-A1.3-W02; canonical Thread/Run integration, action proposals, native examiners and connected cycles remain open."
           }
         ]
       },
@@ -273,7 +290,7 @@
       {
         "path": "apps/server/src/server.ts",
         "recorded_hash": "sha256:d5ad340fc0540f5cb5999901e3fcf501bfb443f35a5dda6830f8f8dda3bf5be5",
-        "current_hash": "sha256:f792dbca70fdba24e9fb22e8c30410d1b1a4432c5fc3e9a31404759d0e3fd1a4",
+        "current_hash": "sha256:9f83de0532e3a4f9cec021c13040922a321bb56c344dda257342daaa8eeedc6d",
         "reuse": "stale_or_missing_not_current_evidence"
       },
       {

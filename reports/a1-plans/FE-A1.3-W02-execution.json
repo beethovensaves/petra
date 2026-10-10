@@ -1,0 +1,63 @@
+{
+  "work_item": "FE-A1.3-W02",
+  "pass": "execution",
+  "argv": [
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "scripts/a1/model-routes.test.mjs"
+  ],
+  "sources": [
+    "packages/core/src/project-copilot.ts",
+    "packages/core/src/copilot-working-plan.ts",
+    "packages/adapters/src/codex-project-copilot.ts",
+    "packages/adapters/src/codex-working-plan.ts",
+    "packages/adapters/src/codex-app-server.ts",
+    "apps/server/src/project-copilot-model.ts",
+    "apps/server/src/copilot-working-plan-model.ts",
+    "apps/server/src/copilot-working-plan-routes.ts",
+    "packages/core/test/copilot-working-plan.test.ts",
+    "packages/adapters/test/copilot-working-plan.test.ts",
+    "apps/server/test/copilot-working-plan-model.test.ts",
+    "apps/server/test/copilot-working-plan-routes.test.ts",
+    "scripts/evaluate-a1-copilot.mjs",
+    "scripts/evaluate-a1-working-plan.mjs",
+    "reports/model-certifications/codex-project-copilot-1.0.0.json",
+    "reports/FE-A1-COPILOT-ROLE-EVALUATION.json",
+    "reports/model-certifications/codex-working-plan-1.0.0.json",
+    "reports/FE-A1-WORKING-PLAN-ROLE-EVALUATION.json",
+    "apps/workbench/test/a1-conversation-model-browser.mjs",
+    "apps/workbench/test/a1-model-unavailable-browser.mjs",
+    "scripts/a1/start-readiness-preview.mjs",
+    "scripts/a1/run-browser.mjs",
+    "scripts/a1/run-vitest.mjs",
+    "scripts/a1/model-routes.test.mjs",
+    "scripts/a1/model-routes.critical.test.mjs",
+    "packages/contracts/schemas/copilot-working-plan/1.0.0/schema.json",
+    "packages/contracts/schemas/copilot-context/1.0.0/schema.json",
+    "packages/contracts/schemas/copilot-output/1.0.0/schema.json",
+    "packages/contracts/schemas/claim/1.0.0/schema.json",
+    "packages/contracts/schemas/controlled-writing-requirement/1.0.0/schema.json"
+  ],
+  "criteria": [
+    {
+      "id": "FE-A1.3-W02-AC01",
+      "result": "passed",
+      "test": "FE-A1.3-W02-AC01 execution: actual application questions follow-ups and role readiness execute",
+      "observation": "Observed two actual managed-model turns through production HTTP, PostgreSQL, the official AG-UI client and the browser, plus exact own-role readiness and a new-document retained reload."
+    },
+    {
+      "id": "FE-A1.3-W02-AC02",
+      "result": "passed",
+      "test": "FE-A1.3-W02-AC02 execution: exact deployment readiness is a read and native proposals preserve input",
+      "observation": "The deployed proposal role is read without a provider invocation; scientific and writing-native proposed changes preserve their immutable inputs and execute no owner command."
+    },
+    {
+      "id": "FE-A1.3-W02-AC03",
+      "result": "passed",
+      "test": "FE-A1.3-W02-AC03 execution: new roles retain independent actual-model eligibility and exact source identities",
+      "observation": "Nine actual QA/intake/scene probes and four independent typed working-plan functional/adverse probes are retained with provider turn identities and matching deployed source hashes."
+    }
+  ],
+  "boundary": "Actual managed QA question/follow-up through the live production browser and PostgreSQL, separate actual-model typed working-plan eligibility, and production unavailable-model recovery. Role-native proposal probes use committed synthetic records; canonical ProjectThread/InteractionRun, durable proposal decisions/commands, native examiners and connected cycles remain separate required A1 work and are not claimed complete."
+}

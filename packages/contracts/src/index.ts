@@ -1762,4 +1762,8 @@ export type { PetraIntakeCopilotTurn } from "./generated/intake-copilot-turn.js"
 export type { PetraIntakeCopilotRequest } from "./generated/intake-copilot-request.js";
 
 export type { PetraProjectDefinitionDraftCommandRequestV11 } from "./generated/project-definition-draft-command-request-v1-1.js";
-export type PetraProjectDefinitionDraftCommandRequest = import("./generated/project-definition-draft-command-request.js").PetraProjectDefinitionDraftCommandRequest | import("./generated/project-definition-draft-command-request-v1-1.js").PetraProjectDefinitionDraftCommandRequestV11;
+export type PetraProjectDefinitionDraftCommandRequest =
+  | import("./generated/project-definition-draft-command-request.js").PetraProjectDefinitionDraftCommandRequest
+  | import("./generated/project-definition-draft-command-request-v1-1.js").PetraProjectDefinitionDraftCommandRequestV11;
+
+export type { PetraCopilotWorkingPlan } from "./generated/copilot-working-plan.js";

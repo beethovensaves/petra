@@ -1,0 +1,109 @@
+TAP version 13
+# > @petra/core@0.0.0 test
+# > vitest run --config vitest.config.ts project-copilot-conversation.test.ts project-copilot.test.ts intake-copilot.test.ts --testNamePattern rejects another Project|rejects cross-Project|rejects invented source reports --reporter=verbose
+#  RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/packages/core
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > binds empty native Project context without inventing evidence
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > rejects a context whose objective changed after hashing
+#  ✓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > rejects cross-Project destinations even with a matching context hash 6ms
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > rejects unsupported authoritative language force in structured output
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > rejects uncited source reports and citations outside the exact selection
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > allows exact admitted excerpts and rejects metadata citations or invented paraphrases
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > withholds old questions and answers after rights or basis changes without changing retained history
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > invokes once across concurrent delivery retries and retained replay
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > persists the exact disclosed history manifest before invoking the model and exposes withheld changed-basis history
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > retains failure and never invokes the model if its disclosure manifest cannot be persisted
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > retains invalid output as failure without publishing it
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > propagates explicit cancellation while leaving delivery wait harmless
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > does not cancel or reveal a run belonging to another actor
+#  ↓ test/project-copilot-conversation.test.ts > registered ordinary conversation and exact Project boundary > answers a normal question and a distinct follow-up with exact retained same-basis history
+#  ✓ test/project-copilot-conversation.test.ts > registered ordinary conversation and exact Project boundary > rejects another Project's validly hashed context before retaining bytes or invoking a model 16ms
+#  ↓ test/intake-copilot.test.ts > Owner-scoped advisory intake without a Project > retains the exact prepared input before invocation and replays a run without another call
+#  ↓ test/intake-copilot.test.ts > Owner-scoped advisory intake without a Project > makes no model call if the input disclosure cannot be durably retained
+#  ✓ test/intake-copilot.test.ts > Owner-scoped advisory intake without a Project > rejects invented source reports and fabricated Project context without producing authority 13ms
+#  ↓ test/intake-copilot.test.ts > Owner-scoped advisory intake without a Project > withholds prior bytes across owner, session or consent changes while preserving original discussion
+#  ↓ test/intake-copilot.test.ts > Owner-scoped advisory intake without a Project > retains cancellation as the only terminal outcome even when a provider delivers later
+#  Test Files  3 passed (3)
+#       Tests  3 passed | 17 skipped (20)
+#    Start at  16:28:40
+#    Duration  249ms (transform 81ms, setup 0ms, import 407ms, tests 37ms, environment 0ms)
+# > @petra/server@0.0.0 test
+# > vitest run --config vitest.config.ts m1-grounded-synthesis.test.ts --testNamePattern refuses unsupported questions before a provider turn --reporter=verbose
+#  RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/apps/server
+#  ↓ test/m1-grounded-synthesis.test.ts > M1.6-W18 certified grounded server composition > publishes one canonical certification service Actor for fresh-store setup
+#  ↓ test/m1-grounded-synthesis.test.ts > M1.6-W18 certified grounded server composition > refuses to expose the live model route without a terminal boundary
+#  ↓ test/m1-grounded-synthesis.test.ts > M1.6-W18 certified grounded server composition > loads the recorded certification and executes it through Petra's AG-UI client
+#  ✓ test/m1-grounded-synthesis.test.ts > M1.6-W18 certified grounded server composition > refuses unsupported questions before a provider turn 50ms
+#  ↓ test/m1-grounded-synthesis.test.ts > M1.6-W18 certified grounded server composition > invalidates execution when the runtime or entitlement snapshot drifts
+#  Test Files  1 passed (1)
+#       Tests  1 passed | 4 skipped (5)
+#    Start at  16:28:40
+#    Duration  974ms (transform 342ms, setup 0ms, import 859ms, tests 50ms, environment 0ms)
+# > @petra/server@0.0.0 test
+# > vitest run --config vitest.config.ts project-copilot-eligibility.test.ts --testNamePattern withholds a changed deployed copilot --reporter=verbose
+#  RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/apps/server
+#  ✓ test/project-copilot-eligibility.test.ts > withholds a changed deployed copilot before provider access even when the CLI version matches 148ms
+#  Test Files  1 passed (1)
+#       Tests  1 passed (1)
+#    Start at  16:28:41
+#    Duration  779ms (transform 199ms, setup 0ms, import 572ms, tests 148ms, environment 0ms)
+# > @petra/adapters@0.0.0 test
+# > vitest run --config vitest.config.ts project-copilot.test.ts --testNamePattern rejects tool activity|rejects model substitution --reporter=verbose
+#  RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/packages/adapters
+#  ↓ test/project-copilot.test.ts > Copilot provider and protocol boundary > projects provider-compatible required fields while preserving Petra's separate grounding validator
+#  ↓ test/project-copilot.test.ts > Copilot provider and protocol boundary > collects events delivered before startTurn returns and releases listeners
+#  ✓ test/project-copilot.test.ts > Copilot provider and protocol boundary > rejects tool activity and interrupts only the exact provider turn 3ms
+#  ✓ test/project-copilot.test.ts > Copilot provider and protocol boundary > rejects model substitution before submitting any user material 0ms
+#  ↓ test/project-copilot.test.ts > Copilot provider and protocol boundary > explicit cancellation interrupts a running answer and releases its listener
+#  ↓ test/project-copilot.test.ts > Copilot provider and protocol boundary > requires exact certification and keeps evaluation mode explicit
+#  ↓ test/project-copilot.test.ts > Copilot provider and protocol boundary > accepts one new message with an exact registered Project envelope
+#  Test Files  1 passed (1)
+#       Tests  2 passed | 5 skipped (7)
+#    Start at  16:28:42
+#    Duration  489ms (transform 182ms, setup 0ms, import 426ms, tests 4ms, environment 0ms)
+# > @petra/core@0.0.0 test
+# > vitest run --config vitest.config.ts project-copilot.test.ts --testNamePattern rejects uncited source reports|rejects unsupported authoritative language --reporter=verbose
+#  RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/packages/core
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > binds empty native Project context without inventing evidence
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > rejects a context whose objective changed after hashing
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > rejects cross-Project destinations even with a matching context hash
+#  ✓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > rejects unsupported authoritative language force in structured output 3ms
+#  ✓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > rejects uncited source reports and citations outside the exact selection 0ms
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > allows exact admitted excerpts and rejects metadata citations or invented paraphrases
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > withholds old questions and answers after rights or basis changes without changing retained history
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > invokes once across concurrent delivery retries and retained replay
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > persists the exact disclosed history manifest before invoking the model and exposes withheld changed-basis history
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > retains failure and never invokes the model if its disclosure manifest cannot be persisted
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > retains invalid output as failure without publishing it
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > propagates explicit cancellation while leaving delivery wait harmless
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > does not cancel or reveal a run belonging to another actor
+#  Test Files  1 passed (1)
+#       Tests  2 passed | 11 skipped (13)
+#    Start at  16:28:43
+#    Duration  164ms (transform 22ms, setup 0ms, import 103ms, tests 4ms, environment 0ms)
+# Subtest: FE-A1.3-W01-AC01 critical: hashed foreign context and fabricated intake evidence are rejected
+ok 1 - FE-A1.3-W01-AC01 critical: hashed foreign context and fabricated intake evidence are rejected
+  ---
+  duration_ms: 460.089291
+  type: 'test'
+  ...
+# Subtest: FE-A1.3-W01-AC02 critical: editing the fixed synthesis question cannot borrow its authority
+ok 2 - FE-A1.3-W01-AC02 critical: editing the fixed synthesis question cannot borrow its authority
+  ---
+  duration_ms: 1215.551791
+  type: 'test'
+  ...
+# Subtest: FE-A1.3-W01-AC03 critical: tool activity model substitution and invented source wording fail
+ok 3 - FE-A1.3-W01-AC03 critical: tool activity model substitution and invented source wording fail
+  ---
+  duration_ms: 2067.351875
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3792.367417

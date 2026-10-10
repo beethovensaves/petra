@@ -1,0 +1,9 @@
+{
+  "classification": "historical_eligibility_not_current_deployment",
+  "candidate": "7237e2f",
+  "original_paths": [
+    "reports/FE-A1-COPILOT-ROLE-EVALUATION.json",
+    "reports/model-certifications/codex-project-copilot-1.0.0.json"
+  ],
+  "boundary": "The original October 7 role evaluation and certificate are retained byte-for-byte from their committed candidate. They do not certify the changed runtime. The current eligible deployment is independently evaluated."
+}

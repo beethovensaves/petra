@@ -1,5 +1,5 @@
 {
-  "registry_version": "1.131.0",
+  "registry_version": "1.132.0",
   "schemas": [
     {
       "name": "contract-smoke",
@@ -2759,6 +2759,17 @@
       "canonical_sha256": "sha256:299c4543c308b6c573a9d0e60282aa007050c90e07da6fa8165600290f84bbae",
       "generate_typescript": true,
       "typescript_path": "src/generated/project-definition-draft-command-request-v1-1.ts"
+    },
+    {
+      "name": "copilot-working-plan",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/copilot-working-plan/1.0.0/schema.json",
+      "path": "schemas/copilot-working-plan/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial-non-authoritative-exact-preview-proposals",
+      "canonical_sha256": "sha256:36e32fd435ce43938883d2c7eabec5f68ab6c71626640ca45058276c9007ff82",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/copilot-working-plan.ts"
     }
   ]
 }

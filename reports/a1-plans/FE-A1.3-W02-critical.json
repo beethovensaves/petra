@@ -1,0 +1,97 @@
+{
+  "work_item": "FE-A1.3-W02",
+  "pass": "critical",
+  "argv": [
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "scripts/a1/model-routes.critical.test.mjs"
+  ],
+  "sources": [
+    "packages/core/src/project-copilot.ts",
+    "packages/core/src/copilot-working-plan.ts",
+    "packages/adapters/src/codex-project-copilot.ts",
+    "packages/adapters/src/codex-working-plan.ts",
+    "packages/adapters/src/codex-app-server.ts",
+    "apps/server/src/project-copilot-model.ts",
+    "apps/server/src/copilot-working-plan-model.ts",
+    "apps/server/src/copilot-working-plan-routes.ts",
+    "packages/core/test/copilot-working-plan.test.ts",
+    "packages/adapters/test/copilot-working-plan.test.ts",
+    "apps/server/test/copilot-working-plan-model.test.ts",
+    "apps/server/test/copilot-working-plan-routes.test.ts",
+    "scripts/evaluate-a1-copilot.mjs",
+    "scripts/evaluate-a1-working-plan.mjs",
+    "reports/model-certifications/codex-project-copilot-1.0.0.json",
+    "reports/FE-A1-COPILOT-ROLE-EVALUATION.json",
+    "reports/model-certifications/codex-working-plan-1.0.0.json",
+    "reports/FE-A1-WORKING-PLAN-ROLE-EVALUATION.json",
+    "apps/workbench/test/a1-conversation-model-browser.mjs",
+    "apps/workbench/test/a1-model-unavailable-browser.mjs",
+    "scripts/a1/start-readiness-preview.mjs",
+    "scripts/a1/run-browser.mjs",
+    "scripts/a1/run-vitest.mjs",
+    "scripts/a1/model-routes.test.mjs",
+    "scripts/a1/model-routes.critical.test.mjs",
+    "packages/contracts/schemas/copilot-working-plan/1.0.0/schema.json",
+    "packages/contracts/schemas/copilot-context/1.0.0/schema.json",
+    "packages/contracts/schemas/copilot-output/1.0.0/schema.json",
+    "packages/contracts/schemas/claim/1.0.0/schema.json",
+    "packages/contracts/schemas/controlled-writing-requirement/1.0.0/schema.json"
+  ],
+  "criteria": [
+    {
+      "id": "FE-A1.3-W02-AC01",
+      "result": "passed",
+      "test": "FE-A1.3-W02-AC01 critical: model access cannot acquire invented previews basis or authority edits",
+      "observation": "Unknown previews, fabricated basis, protected identity/authority changes, invalid native types, partial JSON, prohibited tools and substituted models fail the production core/adapter boundaries."
+    },
+    {
+      "id": "FE-A1.3-W02-AC02",
+      "result": "passed",
+      "test": "FE-A1.3-W02-AC02 critical: actual unavailable readiness preserves a draft through a new browser document",
+      "observation": "A real production HTTP/PostgreSQL service configured without an eligible model shows its actual readiness failure, prevents a turn, and restores the exact unsent question after a confirmed new-document reload. Shared-state browser checks execute sequentially."
+    },
+    {
+      "id": "FE-A1.3-W02-AC03",
+      "result": "passed",
+      "test": "FE-A1.3-W02-AC03 critical: stale deployment and another role certificate cannot borrow eligibility",
+      "observation": "A changed deployed proposal core is unavailable before provider access; another role certificate, missing owning provider/context and exact Project read failures cannot borrow eligibility or reveal restricted descriptors."
+    }
+  ],
+  "boundary": "Actual managed QA question/follow-up through the live production browser and PostgreSQL, separate actual-model typed working-plan eligibility, and production unavailable-model recovery. Role-native proposal probes use committed synthetic records; canonical ProjectThread/InteractionRun, durable proposal decisions/commands, native examiners and connected cycles remain separate required A1 work and are not claimed complete.",
+  "review": {
+    "perspective": "Challenge deployed eligibility, role authority, field/reference invention and actual unavailable-model input recovery. Confirm a new document on reload, and serialize mutable tests that share a Project.",
+    "challenges": [
+      {
+        "criterion": "FE-A1.3-W02-AC01",
+        "question": "FE-A1.3-W02-AC01 critical: model access cannot acquire invented previews basis or authority edits",
+        "result": "Unknown previews, fabricated basis, protected identity/authority changes, invalid native types, partial JSON, prohibited tools and substituted models fail the production core/adapter boundaries."
+      },
+      {
+        "criterion": "FE-A1.3-W02-AC02",
+        "question": "FE-A1.3-W02-AC02 critical: actual unavailable readiness preserves a draft through a new browser document",
+        "result": "A real production HTTP/PostgreSQL service configured without an eligible model shows its actual readiness failure, prevents a turn, and restores the exact unsent question after a confirmed new-document reload. Shared-state browser checks execute sequentially."
+      },
+      {
+        "criterion": "FE-A1.3-W02-AC03",
+        "question": "FE-A1.3-W02-AC03 critical: stale deployment and another role certificate cannot borrow eligibility",
+        "result": "A changed deployed proposal core is unavailable before provider access; another role certificate, missing owning provider/context and exact Project read failures cannot borrow eligibility or reveal restricted descriptors."
+      }
+    ],
+    "findings": [
+      {
+        "severity": "material",
+        "disposition": "resolved",
+        "finding": "The browser reload check could observe the previous document and then assert before fresh readiness loaded.",
+        "resolution": "Both browser checks now wait for an explicit new-document marker; the unavailable check also waits for its actual server readiness."
+      },
+      {
+        "severity": "material",
+        "disposition": "resolved",
+        "finding": "Functional and critical browser tests shared mutable Project state and were incorrectly scheduled concurrently.",
+        "resolution": "Stop the sequence, retain a broad diagnosis and run the functional capture to completion before the adverse readiness capture."
+      }
+    ]
+  }
+}

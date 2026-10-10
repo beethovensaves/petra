@@ -8,13 +8,13 @@
   "runtime": {
     "codex_version": "codex-cli 0.154.0",
     "adapter_hash": "sha256:4bce560a231caa2a105a195c404da947854a4a266ed7a0f93458865670c9e6a6",
-    "copilot_core_hash": "sha256:18e549658e6dd6198880fd011920a024b3a7a2104b1a6a9562a7a20fce058120",
+    "copilot_core_hash": "sha256:3329ca4ebfb82972746a63b502e96b3b446b777dc061a21632746d99d86efc66",
     "intake_core_hash": "sha256:8293caf3f4cf50d0a08537ef0f15bf82a37bd2e1ffb3791f0c16954aa5a44f5f",
     "provider_adapter_hash": "sha256:e34e578644a37fec1af6e44e4c5528cf85179d63252cdf1bcbc056d33cf41fe3"
   },
   "provider_model": "gpt-6-astra",
   "status": "passed",
-  "evaluated_at": "2026-10-07T21:28:58.449Z",
+  "evaluated_at": "2026-10-10T20:31:04.572Z",
   "evaluation_artifact": "reports/FE-A1-COPILOT-ROLE-EVALUATION.json",
-  "evaluation_artifact_hash": "sha256:c3ad6d886c092f749c16f9e185ef609a83d48a34ec3785960f9d1f3ac1c306fa"
+  "evaluation_artifact_hash": "sha256:b042b48a82a3fc167543485dc7aa7b252416988277c0ae1cc69d89a46eb86e77"
 }

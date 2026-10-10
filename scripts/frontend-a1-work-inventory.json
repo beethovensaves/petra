@@ -1185,7 +1185,7 @@
       "milestone": "FE-A1.3",
       "title": "Register genuine conversational interaction contracts",
       "owner": "runtime",
-      "status": "in_progress",
+      "status": "complete",
       "implementation": "Add versioned intake, Project evidence-question, follow-up, and scene-explanation interaction contracts with bounded inputs, response schemas, speech acts, policy, and validated references; preserve the fixed M1 synthesist contract.",
       "acceptance": [
         "Ordinary questions and follow-ups execute through registered runtime owners.",
@@ -1208,7 +1208,20 @@
       "retained_evidence": [
         "reports/FE-A1-CONSTRUCTION-CHECKS.json"
       ],
-      "completion_evidence": [],
+      "completion_evidence": [
+        {
+          "pass": "execution",
+          "artifact": "reports/a1-passes/FE-A1.3-W01-execution-1791664110538.json",
+          "command": "node --test --test-reporter=tap scripts/a1/conversation-contracts.test.mjs",
+          "boundary": "Conversation contract and runtime boundary verification, using controlled repository/provider ports and a real local HTTP M1 route. Actual managed-model eligibility is separately required by FE-A1.3-W02; canonical Thread/Run integration, action proposals, native examiners and connected cycles remain open."
+        },
+        {
+          "pass": "critical",
+          "artifact": "reports/a1-passes/FE-A1.3-W01-critical-1791664123560.json",
+          "command": "node --test --test-reporter=tap scripts/a1/conversation-contracts.critical.test.mjs",
+          "boundary": "Conversation contract and runtime boundary verification, using controlled repository/provider ports and a real local HTTP M1 route. Actual managed-model eligibility is separately required by FE-A1.3-W02; canonical Thread/Run integration, action proposals, native examiners and connected cycles remain open."
+        }
+      ],
       "optional_scenarios": [
         "A1-S01",
         "A1-S02",
@@ -1225,14 +1238,37 @@
       "verification_plans": {
         "execution": "reports/a1-plans/FE-A1.3-W01-execution.json",
         "critical": "reports/a1-plans/FE-A1.3-W01-critical.json"
-      }
+      },
+      "execution_history": [
+        {
+          "item": "FE-A1.3-W01",
+          "phase": "critical",
+          "failed_attempts": 0,
+          "started_at": "2026-10-10T19:57:40.696Z",
+          "passes": [
+            {
+              "pass": "execution",
+              "artifact": "reports/a1-passes/FE-A1.3-W01-execution-1791664110538.json",
+              "command": "node --test --test-reporter=tap scripts/a1/conversation-contracts.test.mjs",
+              "boundary": "Conversation contract and runtime boundary verification, using controlled repository/provider ports and a real local HTTP M1 route. Actual managed-model eligibility is separately required by FE-A1.3-W02; canonical Thread/Run integration, action proposals, native examiners and connected cycles remain open."
+            },
+            {
+              "pass": "critical",
+              "artifact": "reports/a1-passes/FE-A1.3-W01-critical-1791664123560.json",
+              "command": "node --test --test-reporter=tap scripts/a1/conversation-contracts.critical.test.mjs",
+              "boundary": "Conversation contract and runtime boundary verification, using controlled repository/provider ports and a real local HTTP M1 route. Actual managed-model eligibility is separately required by FE-A1.3-W02; canonical Thread/Run integration, action proposals, native examiners and connected cycles remain open."
+            }
+          ],
+          "finished_at": "2026-10-10T20:29:03.137Z"
+        }
+      ]
     },
     {
       "id": "FE-A1.3-W02",
       "milestone": "FE-A1.3",
       "title": "Establish eligible model routes for the new interactions",
       "owner": "runtime",
-      "status": "planned",
+      "status": "in_progress",
       "implementation": "Register and prove eligible provider/model/role routes for conversational questions, working structure, and explanations with exact prompt/schema/profile revisions, grounding, privacy/egress, cost, and fallback rules.",
       "acceptance": [
         "A real eligible model answers a normal question and follow-up in the application.",
@@ -1252,7 +1288,8 @@
         "UX-REQ-021"
       ],
       "retained_evidence": [
-        "reports/FE-A1-CONSTRUCTION-CHECKS.json"
+        "reports/FE-A1-CONSTRUCTION-CHECKS.json",
+        "reports/a1-history/2026-10-07-model-eligibility/manifest.json"
       ],
       "completion_evidence": [],
       "optional_scenarios": [
@@ -1267,7 +1304,11 @@
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
         }
-      ]
+      ],
+      "verification_plans": {
+        "execution": "reports/a1-plans/FE-A1.3-W02-execution.json",
+        "critical": "reports/a1-plans/FE-A1.3-W02-critical.json"
+      }
     },
     {
       "id": "FE-A1.3-W03",
@@ -5173,10 +5214,87 @@
     "synchronization": "Roadmap, generated execution packet, canonical ledger and both execution worktrees must agree before execution or closure."
   },
   "active_work": {
-    "item": "FE-A1.3-W01",
+    "item": "FE-A1.3-W02",
     "phase": "execution",
     "failed_attempts": 0,
-    "started_at": "2026-10-10T19:57:40.696Z"
+    "started_at": "2026-10-10T20:29:19.275Z",
+    "failures": [
+      {
+        "reason": "Working-plan unit execution used an empty-context fixture while expecting a source key; add an explicit bounded source record and revalidate before model evaluation.",
+        "phase": "execution",
+        "recorded_at": "2026-10-10T20:33:57.563Z"
+      },
+      {
+        "reason": "Working-plan unit execution still fails after the fixture repair; stop local retries and diagnose input format, contract boundaries, runtime architecture, dependencies, environment and verification together.",
+        "phase": "execution",
+        "recorded_at": "2026-10-10T20:34:12.265Z"
+      },
+      {
+        "reason": "Critical unavailable-role browser check exposed a reload verification race: restored draft was asserted while the new document and readiness read were still loading. Add a new-document marker to both affected browser checks and wait for actual readiness before assertions.",
+        "phase": "execution",
+        "recorded_at": "2026-10-10T20:45:02.792Z"
+      },
+      {
+        "reason": "The critical unavailable-model browser ran concurrently with functional model turns against the same Project; its global turn count changed because of the other test. Stop retries and diagnose shared-state isolation before rerunning.",
+        "phase": "execution",
+        "recorded_at": "2026-10-10T20:45:37.375Z"
+      }
+    ],
+    "diagnoses": [
+      {
+        "contract": "The proposal role is typed, advisory and bounded by exact Project context, native contracts and server-owned previews. It must never manufacture evidence or execute an owner command.",
+        "architecture": "The core rejects a foreign Project destination correctly. Both failures originate in synthetic test construction: first an absent evidence key, then a writing Project id changed without rebuilding destination and definition basis. The isolated adapter has no command or persistence port.",
+        "dependencies": "Conversation contracts have closed with two passes. Canonical ProjectThread and InteractionRun integration and the proposal decision/command bridge remain explicit subsequent dependencies; synthetic native role probes cannot close native examiner items.",
+        "environment": "Pinned Node 24 builds succeeded, the existing managed provider completed all nine actual advisory eligibility probes, and Docker services remain healthy. Neither failing unit test reached the network, provider or persistent authority.",
+        "verification": "Inspect every field of the compiled fixture, including Project, definition, objective, all record destinations, preview payload and content hashes. Split successful native proposal tests from independent forged-reference and protected-field challenges. Retain the two failed attempts.",
+        "changed_remedy": "Construct the controlled-writing context from its exact native Project and definition references, rebuild every destination and hash together, and add production checks that a preview native definition matches the context basis. Resume only after that full construction has been inspected.",
+        "failures": [
+          {
+            "reason": "Working-plan unit execution used an empty-context fixture while expecting a source key; add an explicit bounded source record and revalidate before model evaluation.",
+            "phase": "execution",
+            "recorded_at": "2026-10-10T20:33:57.563Z"
+          },
+          {
+            "reason": "Working-plan unit execution still fails after the fixture repair; stop local retries and diagnose input format, contract boundaries, runtime architecture, dependencies, environment and verification together.",
+            "phase": "execution",
+            "recorded_at": "2026-10-10T20:34:12.265Z"
+          }
+        ],
+        "recorded_at": "2026-10-10T20:34:49.652Z"
+      },
+      {
+        "contract": "Unavailable readiness must preserve the actual question, deny submission before any model invocation and restore the original draft in a newly loaded document. Functional question-and-follow-up evidence and this adverse readiness evidence answer different questions.",
+        "architecture": "Both actual previews share the same PostgreSQL fixture Project even though their browser profiles and model availability differ. A functional model turn legitimately writes that shared conversation; the adverse test incorrectly assumed exclusive ownership of the global turn count. No unavailable-model submission was retained.",
+        "dependencies": "Both checks depend on the same prior synthetic intake Project and production PostgreSQL services. Browser reload assertions must await a new-document marker plus the live readiness response. No canonical owner or command bridge completion is inferred from these checks.",
+        "environment": "Actual managed model calls completed through the eligible QA role, and the model-free preview returned its actual unavailable readiness state. The functional browser passed the repaired new-document boundary; the critical count failed while the other preview was committing a turn.",
+        "verification": "Stop parallel execution for operations that share the same mutable Project fixture. Run the unavailable-model check only after the functional browser and provider turns terminate. Preserve strict before/after turn count assertions and check a new document before any reload claim.",
+        "changed_remedy": "Use sequential functional and critical browser execution over this shared Project, retain the explicit new-document markers, and rerun the adverse check after the functional process has exited. The affected functional reload check has already passed after its targeted repair.",
+        "failures": [
+          {
+            "reason": "Working-plan unit execution used an empty-context fixture while expecting a source key; add an explicit bounded source record and revalidate before model evaluation.",
+            "phase": "execution",
+            "recorded_at": "2026-10-10T20:33:57.563Z"
+          },
+          {
+            "reason": "Working-plan unit execution still fails after the fixture repair; stop local retries and diagnose input format, contract boundaries, runtime architecture, dependencies, environment and verification together.",
+            "phase": "execution",
+            "recorded_at": "2026-10-10T20:34:12.265Z"
+          },
+          {
+            "reason": "Critical unavailable-role browser check exposed a reload verification race: restored draft was asserted while the new document and readiness read were still loading. Add a new-document marker to both affected browser checks and wait for actual readiness before assertions.",
+            "phase": "execution",
+            "recorded_at": "2026-10-10T20:45:02.792Z"
+          },
+          {
+            "reason": "The critical unavailable-model browser ran concurrently with functional model turns against the same Project; its global turn count changed because of the other test. Stop retries and diagnose shared-state isolation before rerunning.",
+            "phase": "execution",
+            "recorded_at": "2026-10-10T20:45:37.375Z"
+          }
+        ],
+        "recorded_at": "2026-10-10T20:45:57.732Z"
+      }
+    ],
+    "passes": []
   },
   "repair_sequence": [
     {
