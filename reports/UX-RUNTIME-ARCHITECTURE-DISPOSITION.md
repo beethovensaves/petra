@@ -1233,21 +1233,21 @@ and resulting evidence revisions.
 
 ## Controlling A1 execution
 
-Binding: `sha256:dce5856c9ae657ccf7ea9c3c6c6d8d7fb255794fc7b2c5d8c9cded72e64f9c0a`. 0/90 required items complete; 90 incomplete.
+Binding: `sha256:e8ae01bec494cc45b1ebb44d619b70feda1bebaf17a1ef1f06b719f8abed742f`. 7/90 required items complete; 83 incomplete.
 
 D024 governs the conversational copilot and reactive Workspace. D025 governs synchronized execution and two distinct validation passes. The canonical [function ledger](../scripts/frontend-a1-work-inventory.json), [readable implementation ledger](FE-A1-CONTRACT-IMPLEMENTATION-LEDGER.md), and [granular execution instructions](../scripts/frontend-a1-execution.md) agree before work starts, evidence is recorded, completion is accepted, or another wave proceeds.
 
-Active work: FE-A1.0-W06, execution.
+Active work: FE-A1.3-W01, execution.
 
 | Stage   | Required behavior                                                          | Complete / required |
 | ------- | -------------------------------------------------------------------------- | ------------------- |
-| FE-A1.0 | Contract reconciliation and execution control                              | 0 / 6               |
+| FE-A1.0 | Contract reconciliation and execution control                              | 6 / 6               |
 | FE-A1.1 | Copilot shell and interaction design                                       | 0 / 7               |
 | FE-A1.2 | Conversational zero/empty Project entry                                    | 0 / 7               |
 | FE-A1.3 | Durable grounded conversation and AG-UI                                    | 0 / 18              |
 | FE-A1.4 | Reactive Workspace, compositional examination and cyclic graph-guided work | 0 / 23              |
 | FE-A1.5 | Progressive inspection and complete authority receipts                     | 0 / 9               |
-| FE-A1.6 | Complete migration and operation conformance                               | 0 / 7               |
+| FE-A1.6 | Complete migration and operation conformance                               | 1 / 7               |
 | FE-A1.7 | Functional verification and explicit user acceptance                       | 0 / 13              |
 
 Select one prerequisite-ready item. Execute every criterion with proper tests; then challenge the delivered behavior in a separate critical pass with distinct tests. Repair findings when needed. Two unsuccessful attempts require broad diagnosis before more local retries. Preserve earlier partial evidence. The sixteen late scenarios are optional; browser semantics are required and native screen-reader evaluation remains excluded. Wave 7/8 stay blocked until all required functions pass and the user accepts the exact candidate.

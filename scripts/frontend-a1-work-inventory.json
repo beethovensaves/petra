@@ -65,7 +65,7 @@
       "milestone": "FE-A1.0",
       "title": "Record the controlling contracts and rejected candidate",
       "owner": "integration",
-      "status": "planned",
+      "status": "complete",
       "implementation": "Retain D024, D013, D018, the accepted UX requirements, and the 2026-10-07 inspection rejection as the A1 baseline. Retain the accepted 2026-10-10 two-pass and synchronized execution requirements as D025; preserve historical evidence while affected work is revalidated.",
       "acceptance": [
         "The rejected candidate remains recorded as changes requested.",
@@ -83,7 +83,20 @@
       "retained_evidence": [
         "reports/FE-A1-CONTRACT-RECONCILIATION-CHECKS.json"
       ],
-      "completion_evidence": [],
+      "completion_evidence": [
+        {
+          "pass": "execution",
+          "artifact": "reports/a1-passes/FE-A1.0-W01-execution-1791661638005.json",
+          "command": "node --test --test-reporter=tap scripts/a1/contract-reconciliation.test.mjs",
+          "boundary": "Contract reconciliation, dependency/operation accounting and delivery controls only. Live canonical documents and controlled adverse fixtures are examined; no product copilot, examiner, graph or cyclic-work completion is claimed."
+        },
+        {
+          "pass": "critical",
+          "artifact": "reports/a1-passes/FE-A1.0-W01-critical-1791661641792.json",
+          "command": "node --test --test-reporter=tap scripts/a1/contract-reconciliation.critical.test.mjs",
+          "boundary": "Contract reconciliation, dependency/operation accounting and delivery controls only. Live canonical documents and controlled adverse fixtures are examined; no product copilot, examiner, graph or cyclic-work completion is claimed."
+        }
+      ],
       "optional_scenarios": [
         "A1-S15"
       ],
@@ -104,14 +117,37 @@
       "verification_plans": {
         "execution": "reports/a1-plans/FE-A1.0-W01-execution.json",
         "critical": "reports/a1-plans/FE-A1.0-W01-critical.json"
-      }
+      },
+      "execution_history": [
+        {
+          "item": "FE-A1.0-W01",
+          "phase": "critical",
+          "failed_attempts": 0,
+          "started_at": "2026-10-10T19:47:10.269Z",
+          "passes": [
+            {
+              "pass": "execution",
+              "artifact": "reports/a1-passes/FE-A1.0-W01-execution-1791661638005.json",
+              "command": "node --test --test-reporter=tap scripts/a1/contract-reconciliation.test.mjs",
+              "boundary": "Contract reconciliation, dependency/operation accounting and delivery controls only. Live canonical documents and controlled adverse fixtures are examined; no product copilot, examiner, graph or cyclic-work completion is claimed."
+            },
+            {
+              "pass": "critical",
+              "artifact": "reports/a1-passes/FE-A1.0-W01-critical-1791661641792.json",
+              "command": "node --test --test-reporter=tap scripts/a1/contract-reconciliation.critical.test.mjs",
+              "boundary": "Contract reconciliation, dependency/operation accounting and delivery controls only. Live canonical documents and controlled adverse fixtures are examined; no product copilot, examiner, graph or cyclic-work completion is claimed."
+            }
+          ],
+          "finished_at": "2026-10-10T19:47:24.164Z"
+        }
+      ]
     },
     {
       "id": "FE-A1.0-W02",
       "milestone": "FE-A1.0",
       "title": "Publish the granular work and dependency ledger",
       "owner": "integration",
-      "status": "planned",
+      "status": "complete",
       "implementation": "Assign a stable work ID, accountable role, deliverable, prerequisite, observable acceptance criteria, and evidence slot to every A1 construction.",
       "acceptance": [
         "All eight A1 stages contain mandatory work records.",
@@ -129,7 +165,20 @@
       "retained_evidence": [
         "reports/FE-A1-CONTRACT-RECONCILIATION-CHECKS.json"
       ],
-      "completion_evidence": [],
+      "completion_evidence": [
+        {
+          "pass": "execution",
+          "artifact": "reports/a1-passes/FE-A1.0-W02-execution-1791661660054.json",
+          "command": "node --test --test-reporter=tap scripts/a1/contract-reconciliation.test.mjs",
+          "boundary": "Contract reconciliation, dependency/operation accounting and delivery controls only. Live canonical documents and controlled adverse fixtures are examined; no product copilot, examiner, graph or cyclic-work completion is claimed."
+        },
+        {
+          "pass": "critical",
+          "artifact": "reports/a1-passes/FE-A1.0-W02-critical-1791661665919.json",
+          "command": "node --test --test-reporter=tap scripts/a1/contract-reconciliation.critical.test.mjs",
+          "boundary": "Contract reconciliation, dependency/operation accounting and delivery controls only. Live canonical documents and controlled adverse fixtures are examined; no product copilot, examiner, graph or cyclic-work completion is claimed."
+        }
+      ],
       "optional_scenarios": [
         "A1-S15"
       ],
@@ -150,14 +199,37 @@
       "verification_plans": {
         "execution": "reports/a1-plans/FE-A1.0-W02-execution.json",
         "critical": "reports/a1-plans/FE-A1.0-W02-critical.json"
-      }
+      },
+      "execution_history": [
+        {
+          "item": "FE-A1.0-W02",
+          "phase": "critical",
+          "failed_attempts": 0,
+          "started_at": "2026-10-10T19:47:25.838Z",
+          "passes": [
+            {
+              "pass": "execution",
+              "artifact": "reports/a1-passes/FE-A1.0-W02-execution-1791661660054.json",
+              "command": "node --test --test-reporter=tap scripts/a1/contract-reconciliation.test.mjs",
+              "boundary": "Contract reconciliation, dependency/operation accounting and delivery controls only. Live canonical documents and controlled adverse fixtures are examined; no product copilot, examiner, graph or cyclic-work completion is claimed."
+            },
+            {
+              "pass": "critical",
+              "artifact": "reports/a1-passes/FE-A1.0-W02-critical-1791661665919.json",
+              "command": "node --test --test-reporter=tap scripts/a1/contract-reconciliation.critical.test.mjs",
+              "boundary": "Contract reconciliation, dependency/operation accounting and delivery controls only. Live canonical documents and controlled adverse fixtures are examined; no product copilot, examiner, graph or cyclic-work completion is claimed."
+            }
+          ],
+          "finished_at": "2026-10-10T19:47:48.499Z"
+        }
+      ]
     },
     {
       "id": "FE-A1.0-W03",
       "milestone": "FE-A1.0",
       "title": "Assign every operation and accepted requirement",
       "owner": "integration",
-      "status": "planned",
+      "status": "complete",
       "implementation": "Assign all 116 operations to A1 conformance or an explicit subsequent-wave owner; map all 23 UX requests and all 18 flow families to the applicable work.",
       "acceptance": [
         "Exactly 97 Wave 6 operations have A1 conformance owners.",
@@ -176,7 +248,20 @@
       "retained_evidence": [
         "reports/FE-A1-CONTRACT-RECONCILIATION-CHECKS.json"
       ],
-      "completion_evidence": [],
+      "completion_evidence": [
+        {
+          "pass": "execution",
+          "artifact": "reports/a1-passes/FE-A1.0-W03-execution-1791661691201.json",
+          "command": "node --test --test-reporter=tap scripts/a1/contract-reconciliation.test.mjs",
+          "boundary": "Contract reconciliation, dependency/operation accounting and delivery controls only. Live canonical documents and controlled adverse fixtures are examined; no product copilot, examiner, graph or cyclic-work completion is claimed."
+        },
+        {
+          "pass": "critical",
+          "artifact": "reports/a1-passes/FE-A1.0-W03-critical-1791661698058.json",
+          "command": "node --test --test-reporter=tap scripts/a1/contract-reconciliation.critical.test.mjs",
+          "boundary": "Contract reconciliation, dependency/operation accounting and delivery controls only. Live canonical documents and controlled adverse fixtures are examined; no product copilot, examiner, graph or cyclic-work completion is claimed."
+        }
+      ],
       "optional_scenarios": [
         "A1-S15"
       ],
@@ -197,14 +282,37 @@
       "verification_plans": {
         "execution": "reports/a1-plans/FE-A1.0-W03-execution.json",
         "critical": "reports/a1-plans/FE-A1.0-W03-critical.json"
-      }
+      },
+      "execution_history": [
+        {
+          "item": "FE-A1.0-W03",
+          "phase": "critical",
+          "failed_attempts": 0,
+          "started_at": "2026-10-10T19:47:50.397Z",
+          "passes": [
+            {
+              "pass": "execution",
+              "artifact": "reports/a1-passes/FE-A1.0-W03-execution-1791661691201.json",
+              "command": "node --test --test-reporter=tap scripts/a1/contract-reconciliation.test.mjs",
+              "boundary": "Contract reconciliation, dependency/operation accounting and delivery controls only. Live canonical documents and controlled adverse fixtures are examined; no product copilot, examiner, graph or cyclic-work completion is claimed."
+            },
+            {
+              "pass": "critical",
+              "artifact": "reports/a1-passes/FE-A1.0-W03-critical-1791661698058.json",
+              "command": "node --test --test-reporter=tap scripts/a1/contract-reconciliation.critical.test.mjs",
+              "boundary": "Contract reconciliation, dependency/operation accounting and delivery controls only. Live canonical documents and controlled adverse fixtures are examined; no product copilot, examiner, graph or cyclic-work completion is claimed."
+            }
+          ],
+          "finished_at": "2026-10-10T19:48:20.936Z"
+        }
+      ]
     },
     {
       "id": "FE-A1.0-W04",
       "milestone": "FE-A1.0",
       "title": "Enforce the A1 prerequisite in the wave controller",
       "owner": "integration",
-      "status": "planned",
+      "status": "complete",
       "implementation": "Add a read-only A1 completeness gate and check it before Wave 7 or later workers start or continue, and before resume, extension, or acceptance advances a later wave.",
       "acceptance": [
         "An incomplete or malformed A1 ledger prevents later-wave execution.",
@@ -223,7 +331,20 @@
       "retained_evidence": [
         "reports/FE-A1-CONTRACT-RECONCILIATION-CHECKS.json"
       ],
-      "completion_evidence": [],
+      "completion_evidence": [
+        {
+          "pass": "execution",
+          "artifact": "reports/a1-passes/FE-A1.0-W04-execution-1791661730763.json",
+          "command": "node --test --test-reporter=tap scripts/a1/contract-reconciliation.test.mjs",
+          "boundary": "Contract reconciliation, dependency/operation accounting and delivery controls only. Live canonical documents and controlled adverse fixtures are examined; no product copilot, examiner, graph or cyclic-work completion is claimed."
+        },
+        {
+          "pass": "critical",
+          "artifact": "reports/a1-passes/FE-A1.0-W04-critical-1791661739280.json",
+          "command": "node --test --test-reporter=tap scripts/a1/contract-reconciliation.critical.test.mjs",
+          "boundary": "Contract reconciliation, dependency/operation accounting and delivery controls only. Live canonical documents and controlled adverse fixtures are examined; no product copilot, examiner, graph or cyclic-work completion is claimed."
+        }
+      ],
       "optional_scenarios": [
         "A1-S15"
       ],
@@ -244,14 +365,37 @@
       "verification_plans": {
         "execution": "reports/a1-plans/FE-A1.0-W04-execution.json",
         "critical": "reports/a1-plans/FE-A1.0-W04-critical.json"
-      }
+      },
+      "execution_history": [
+        {
+          "item": "FE-A1.0-W04",
+          "phase": "critical",
+          "failed_attempts": 0,
+          "started_at": "2026-10-10T19:48:23.218Z",
+          "passes": [
+            {
+              "pass": "execution",
+              "artifact": "reports/a1-passes/FE-A1.0-W04-execution-1791661730763.json",
+              "command": "node --test --test-reporter=tap scripts/a1/contract-reconciliation.test.mjs",
+              "boundary": "Contract reconciliation, dependency/operation accounting and delivery controls only. Live canonical documents and controlled adverse fixtures are examined; no product copilot, examiner, graph or cyclic-work completion is claimed."
+            },
+            {
+              "pass": "critical",
+              "artifact": "reports/a1-passes/FE-A1.0-W04-critical-1791661739280.json",
+              "command": "node --test --test-reporter=tap scripts/a1/contract-reconciliation.critical.test.mjs",
+              "boundary": "Contract reconciliation, dependency/operation accounting and delivery controls only. Live canonical documents and controlled adverse fixtures are examined; no product copilot, examiner, graph or cyclic-work completion is claimed."
+            }
+          ],
+          "finished_at": "2026-10-10T19:49:02.441Z"
+        }
+      ]
     },
     {
       "id": "FE-A1.0-W05",
       "milestone": "FE-A1.0",
       "title": "Reconcile every roadmap entry and immediate sequence",
       "owner": "integration",
-      "status": "planned",
+      "status": "complete",
       "implementation": "Make ROADMAP, implementation roadmap, design roadmap, adaptation report, backend handoff, and runtime disposition point to this ledger for A1 execution.",
       "acceptance": [
         "Broad mechanical completion labels cannot contradict the A1 work status.",
@@ -272,7 +416,20 @@
       "retained_evidence": [
         "reports/FE-A1-CONTRACT-RECONCILIATION-CHECKS.json"
       ],
-      "completion_evidence": [],
+      "completion_evidence": [
+        {
+          "pass": "execution",
+          "artifact": "reports/a1-passes/FE-A1.0-W05-execution-1791661778349.json",
+          "command": "node --test --test-reporter=tap scripts/a1/contract-reconciliation.test.mjs",
+          "boundary": "Contract reconciliation, dependency/operation accounting and delivery controls only. Live canonical documents and controlled adverse fixtures are examined; no product copilot, examiner, graph or cyclic-work completion is claimed."
+        },
+        {
+          "pass": "critical",
+          "artifact": "reports/a1-passes/FE-A1.0-W05-critical-1791661788097.json",
+          "command": "node --test --test-reporter=tap scripts/a1/contract-reconciliation.critical.test.mjs",
+          "boundary": "Contract reconciliation, dependency/operation accounting and delivery controls only. Live canonical documents and controlled adverse fixtures are examined; no product copilot, examiner, graph or cyclic-work completion is claimed."
+        }
+      ],
       "optional_scenarios": [
         "A1-S15"
       ],
@@ -293,14 +450,37 @@
       "verification_plans": {
         "execution": "reports/a1-plans/FE-A1.0-W05-execution.json",
         "critical": "reports/a1-plans/FE-A1.0-W05-critical.json"
-      }
+      },
+      "execution_history": [
+        {
+          "item": "FE-A1.0-W05",
+          "phase": "critical",
+          "failed_attempts": 0,
+          "started_at": "2026-10-10T19:49:04.852Z",
+          "passes": [
+            {
+              "pass": "execution",
+              "artifact": "reports/a1-passes/FE-A1.0-W05-execution-1791661778349.json",
+              "command": "node --test --test-reporter=tap scripts/a1/contract-reconciliation.test.mjs",
+              "boundary": "Contract reconciliation, dependency/operation accounting and delivery controls only. Live canonical documents and controlled adverse fixtures are examined; no product copilot, examiner, graph or cyclic-work completion is claimed."
+            },
+            {
+              "pass": "critical",
+              "artifact": "reports/a1-passes/FE-A1.0-W05-critical-1791661788097.json",
+              "command": "node --test --test-reporter=tap scripts/a1/contract-reconciliation.critical.test.mjs",
+              "boundary": "Contract reconciliation, dependency/operation accounting and delivery controls only. Live canonical documents and controlled adverse fixtures are examined; no product copilot, examiner, graph or cyclic-work completion is claimed."
+            }
+          ],
+          "finished_at": "2026-10-10T19:49:51.382Z"
+        }
+      ]
     },
     {
       "id": "FE-A1.0-W06",
       "milestone": "FE-A1.0",
       "title": "Synchronize contract execution and require two distinct validation passes",
       "owner": "integration",
-      "status": "in_progress",
+      "status": "complete",
       "implementation": "Implement D025: generate the readable roadmap and granular execution packet from the canonical function ledger; synchronize both execution worktrees; enforce one prerequisite-ready active item, criterion/candidate/source-bound execution and critical passes, repair findings when needed, and stop repeated failures for broad diagnosis.",
       "acceptance": [
         "Readable roadmap, ledger and granular execution instructions agree in both configured worktrees before execution or closure.",
@@ -322,7 +502,20 @@
         "reports/a1-passes/FE-A1.0-W06-execution-1791660646152.json",
         "reports/a1-passes/FE-A1.0-W06-critical-1791660649524.json"
       ],
-      "completion_evidence": [],
+      "completion_evidence": [
+        {
+          "pass": "execution",
+          "artifact": "reports/a1-passes/FE-A1.0-W06-execution-1791661622972.json",
+          "command": "node --test --test-reporter=tap scripts/frontend-a1-process.test.mjs",
+          "boundary": "Delivery-control implementation only. Temporary Git/worktree fixtures test guards; they establish no copilot, Workspace, native examiner, model or cyclic verification product completion. Generated status views are checked from the current canonical ledger; static implementation and test files bind the committed candidate."
+        },
+        {
+          "pass": "critical",
+          "artifact": "reports/a1-passes/FE-A1.0-W06-critical-1791661626828.json",
+          "command": "node --test --test-reporter=tap scripts/frontend-a1-process.critical.test.mjs",
+          "boundary": "Delivery-control implementation only. Temporary Git/worktree fixtures test guards; they establish no copilot, Workspace, native examiner, model or cyclic verification product completion. Generated status views are checked from the current canonical ledger; static implementation and test files bind the committed candidate."
+        }
+      ],
       "optional_scenarios": [],
       "execution_history": [
         {
@@ -380,6 +573,27 @@
             }
           ],
           "finished_at": "2026-10-10T19:30:51.211Z"
+        },
+        {
+          "item": "FE-A1.0-W06",
+          "phase": "critical",
+          "failed_attempts": 0,
+          "started_at": "2026-10-10T19:32:41.126Z",
+          "passes": [
+            {
+              "pass": "execution",
+              "artifact": "reports/a1-passes/FE-A1.0-W06-execution-1791661622972.json",
+              "command": "node --test --test-reporter=tap scripts/frontend-a1-process.test.mjs",
+              "boundary": "Delivery-control implementation only. Temporary Git/worktree fixtures test guards; they establish no copilot, Workspace, native examiner, model or cyclic verification product completion. Generated status views are checked from the current canonical ledger; static implementation and test files bind the committed candidate."
+            },
+            {
+              "pass": "critical",
+              "artifact": "reports/a1-passes/FE-A1.0-W06-critical-1791661626828.json",
+              "command": "node --test --test-reporter=tap scripts/frontend-a1-process.critical.test.mjs",
+              "boundary": "Delivery-control implementation only. Temporary Git/worktree fixtures test guards; they establish no copilot, Workspace, native examiner, model or cyclic verification product completion. Generated status views are checked from the current canonical ledger; static implementation and test files bind the committed candidate."
+            }
+          ],
+          "finished_at": "2026-10-10T19:47:08.847Z"
         }
       ],
       "historical_completion_evidence": [
@@ -971,7 +1185,7 @@
       "milestone": "FE-A1.3",
       "title": "Register genuine conversational interaction contracts",
       "owner": "runtime",
-      "status": "planned",
+      "status": "in_progress",
       "implementation": "Add versioned intake, Project evidence-question, follow-up, and scene-explanation interaction contracts with bounded inputs, response schemas, speech acts, policy, and validated references; preserve the fixed M1 synthesist contract.",
       "acceptance": [
         "Ordinary questions and follow-ups execute through registered runtime owners.",
@@ -1007,7 +1221,11 @@
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
         }
-      ]
+      ],
+      "verification_plans": {
+        "execution": "reports/a1-plans/FE-A1.3-W01-execution.json",
+        "critical": "reports/a1-plans/FE-A1.3-W01-critical.json"
+      }
     },
     {
       "id": "FE-A1.3-W02",
@@ -3268,7 +3486,7 @@
       "milestone": "FE-A1.6",
       "title": "Keep completion and evidence accounting current",
       "owner": "integration",
-      "status": "planned",
+      "status": "complete",
       "implementation": "Update work status, dependencies, scoped retained evidence and completion artifacts in the same change as each delivered slice; append newly discovered required work before it can be waived or forgotten. Enforce one prerequisite-ready active item and criterion-bound execution/critical evidence, synchronize roadmap and execution views, and stop repeated failures for broad diagnosis under D025.",
       "acceptance": [
         "A complete item has evidence against its own acceptance criteria and completed dependencies.",
@@ -3285,7 +3503,20 @@
         "D024"
       ],
       "retained_evidence": [],
-      "completion_evidence": [],
+      "completion_evidence": [
+        {
+          "pass": "execution",
+          "artifact": "reports/a1-passes/FE-A1.6-W07-execution-1791661798178.json",
+          "command": "node --test --test-reporter=tap scripts/a1/accounting.test.mjs",
+          "boundary": "Current accounting and release-control logic only. Synthetic work/candidate fixtures prove closure, rejection and retry guards; they establish no adapted operation or product integration."
+        },
+        {
+          "pass": "critical",
+          "artifact": "reports/a1-passes/FE-A1.6-W07-critical-1791661801980.json",
+          "command": "node --test --test-reporter=tap scripts/a1/accounting.critical.test.mjs",
+          "boundary": "Current accounting and release-control logic only. Synthetic work/candidate fixtures prove closure, rejection and retry guards; they establish no adapted operation or product integration."
+        }
+      ],
       "optional_scenarios": [
         "A1-S15"
       ],
@@ -3299,7 +3530,30 @@
       "verification_plans": {
         "execution": "reports/a1-plans/FE-A1.6-W07-execution.json",
         "critical": "reports/a1-plans/FE-A1.6-W07-critical.json"
-      }
+      },
+      "execution_history": [
+        {
+          "item": "FE-A1.6-W07",
+          "phase": "critical",
+          "failed_attempts": 0,
+          "started_at": "2026-10-10T19:49:54.077Z",
+          "passes": [
+            {
+              "pass": "execution",
+              "artifact": "reports/a1-passes/FE-A1.6-W07-execution-1791661798178.json",
+              "command": "node --test --test-reporter=tap scripts/a1/accounting.test.mjs",
+              "boundary": "Current accounting and release-control logic only. Synthetic work/candidate fixtures prove closure, rejection and retry guards; they establish no adapted operation or product integration."
+            },
+            {
+              "pass": "critical",
+              "artifact": "reports/a1-passes/FE-A1.6-W07-critical-1791661801980.json",
+              "command": "node --test --test-reporter=tap scripts/a1/accounting.critical.test.mjs",
+              "boundary": "Current accounting and release-control logic only. Synthetic work/candidate fixtures prove closure, rejection and retry guards; they establish no adapted operation or product integration."
+            }
+          ],
+          "finished_at": "2026-10-10T19:50:05.302Z"
+        }
+      ]
     },
     {
       "id": "FE-A1.7-W01",
@@ -4919,10 +5173,10 @@
     "synchronization": "Roadmap, generated execution packet, canonical ledger and both execution worktrees must agree before execution or closure."
   },
   "active_work": {
-    "item": "FE-A1.0-W06",
+    "item": "FE-A1.3-W01",
     "phase": "execution",
     "failed_attempts": 0,
-    "started_at": "2026-10-10T19:32:41.126Z"
+    "started_at": "2026-10-10T19:57:40.696Z"
   },
   "repair_sequence": [
     {

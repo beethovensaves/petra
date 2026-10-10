@@ -1,0 +1,82 @@
+TAP version 13
+# Subtest: FE-A1.0-W01-AC01 critical: an agent cannot reinterpret rejection as acceptance
+ok 1 - FE-A1.0-W01-AC01 critical: an agent cannot reinterpret rejection as acceptance
+  ---
+  duration_ms: 622.178375
+  type: 'test'
+  ...
+# Subtest: FE-A1.0-W01-AC02 critical: retained test reports cannot close integrated product work
+ok 2 - FE-A1.0-W01-AC02 critical: retained test reports cannot close integrated product work
+  ---
+  duration_ms: 0.845666
+  type: 'test'
+  ...
+# Subtest: FE-A1.0-W02-AC01 critical: a missing required stage cannot become an executable plan
+ok 3 - FE-A1.0-W02-AC01 critical: a missing required stage cannot become an executable plan
+  ---
+  duration_ms: 0.442833
+  type: 'test'
+  ...
+# Subtest: FE-A1.0-W02-AC02 critical: required work cannot be deleted deferred or begun early
+ok 4 - FE-A1.0-W02-AC02 critical: required work cannot be deleted deferred or begun early
+  ---
+  duration_ms: 109.380125
+  type: 'test'
+  ...
+# Subtest: FE-A1.0-W03-AC01 critical: operation omission and duplication are rejected
+ok 5 - FE-A1.0-W03-AC01 critical: operation omission and duplication are rejected
+  ---
+  duration_ms: 1261.759
+  type: 'test'
+  ...
+# Subtest: FE-A1.0-W03-AC02 critical: later-wave boundaries cannot absorb required A1 functions
+ok 6 - FE-A1.0-W03-AC02 critical: later-wave boundaries cannot absorb required A1 functions
+  ---
+  duration_ms: 511.862375
+  type: 'test'
+  ...
+# Subtest: FE-A1.0-W03-AC03 critical: a diagnosed product gap cannot lose its required owner
+ok 7 - FE-A1.0-W03-AC03 critical: a diagnosed product gap cannot lose its required owner
+  ---
+  duration_ms: 0.533417
+  type: 'test'
+  ...
+# Subtest: FE-A1.0-W04-AC01 critical: missing or malformed ledgers fail before delivery mutation
+ok 8 - FE-A1.0-W04-AC01 critical: missing or malformed ledgers fail before delivery mutation
+  ---
+  duration_ms: 0.338125
+  type: 'test'
+  ...
+# Subtest: FE-A1.0-W04-AC02 critical: safe observation needs no writable acceptance state
+ok 9 - FE-A1.0-W04-AC02 critical: safe observation needs no writable acceptance state
+  ---
+  duration_ms: 87.148666
+  type: 'test'
+  ...
+# Subtest: FE-A1.0-W04-AC03 critical: a changed candidate and forged actor do not release A1
+ok 10 - FE-A1.0-W04-AC03 critical: a changed candidate and forged actor do not release A1
+  ---
+  duration_ms: 454.185
+  type: 'test'
+  ...
+# Subtest: FE-A1.0-W05-AC01 critical: a matching marker cannot excuse contradictory roadmap text
+ok 11 - FE-A1.0-W05-AC01 critical: a matching marker cannot excuse contradictory roadmap text
+  ---
+  duration_ms: 553.354667
+  type: 'test'
+  ...
+# Subtest: FE-A1.0-W05-AC02 critical: rejection reopens dependencies and revokes release
+ok 12 - FE-A1.0-W05-AC02 critical: rejection reopens dependencies and revokes release
+  ---
+  duration_ms: 87.407584
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3756.627125

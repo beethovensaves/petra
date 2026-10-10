@@ -1,12 +1,132 @@
 {
   "schema_name": "petra.a1-evidence-index",
   "schema_version": "1.0.0",
-  "roadmap_binding": "sha256:dce5856c9ae657ccf7ea9c3c6c6d8d7fb255794fc7b2c5d8c9cded72e64f9c0a",
+  "roadmap_binding": "sha256:e8ae01bec494cc45b1ebb44d619b70feda1bebaf17a1ef1f06b719f8abed742f",
   "current": {
     "required": 90,
-    "complete": 0,
+    "complete": 7,
     "user_acceptance": null,
-    "proofs": []
+    "proofs": [
+      {
+        "work_item": "FE-A1.0-W01",
+        "passes": [
+          {
+            "pass": "execution",
+            "artifact": "reports/a1-passes/FE-A1.0-W01-execution-1791661638005.json",
+            "command": "node --test --test-reporter=tap scripts/a1/contract-reconciliation.test.mjs",
+            "boundary": "Contract reconciliation, dependency/operation accounting and delivery controls only. Live canonical documents and controlled adverse fixtures are examined; no product copilot, examiner, graph or cyclic-work completion is claimed."
+          },
+          {
+            "pass": "critical",
+            "artifact": "reports/a1-passes/FE-A1.0-W01-critical-1791661641792.json",
+            "command": "node --test --test-reporter=tap scripts/a1/contract-reconciliation.critical.test.mjs",
+            "boundary": "Contract reconciliation, dependency/operation accounting and delivery controls only. Live canonical documents and controlled adverse fixtures are examined; no product copilot, examiner, graph or cyclic-work completion is claimed."
+          }
+        ]
+      },
+      {
+        "work_item": "FE-A1.0-W02",
+        "passes": [
+          {
+            "pass": "execution",
+            "artifact": "reports/a1-passes/FE-A1.0-W02-execution-1791661660054.json",
+            "command": "node --test --test-reporter=tap scripts/a1/contract-reconciliation.test.mjs",
+            "boundary": "Contract reconciliation, dependency/operation accounting and delivery controls only. Live canonical documents and controlled adverse fixtures are examined; no product copilot, examiner, graph or cyclic-work completion is claimed."
+          },
+          {
+            "pass": "critical",
+            "artifact": "reports/a1-passes/FE-A1.0-W02-critical-1791661665919.json",
+            "command": "node --test --test-reporter=tap scripts/a1/contract-reconciliation.critical.test.mjs",
+            "boundary": "Contract reconciliation, dependency/operation accounting and delivery controls only. Live canonical documents and controlled adverse fixtures are examined; no product copilot, examiner, graph or cyclic-work completion is claimed."
+          }
+        ]
+      },
+      {
+        "work_item": "FE-A1.0-W03",
+        "passes": [
+          {
+            "pass": "execution",
+            "artifact": "reports/a1-passes/FE-A1.0-W03-execution-1791661691201.json",
+            "command": "node --test --test-reporter=tap scripts/a1/contract-reconciliation.test.mjs",
+            "boundary": "Contract reconciliation, dependency/operation accounting and delivery controls only. Live canonical documents and controlled adverse fixtures are examined; no product copilot, examiner, graph or cyclic-work completion is claimed."
+          },
+          {
+            "pass": "critical",
+            "artifact": "reports/a1-passes/FE-A1.0-W03-critical-1791661698058.json",
+            "command": "node --test --test-reporter=tap scripts/a1/contract-reconciliation.critical.test.mjs",
+            "boundary": "Contract reconciliation, dependency/operation accounting and delivery controls only. Live canonical documents and controlled adverse fixtures are examined; no product copilot, examiner, graph or cyclic-work completion is claimed."
+          }
+        ]
+      },
+      {
+        "work_item": "FE-A1.0-W04",
+        "passes": [
+          {
+            "pass": "execution",
+            "artifact": "reports/a1-passes/FE-A1.0-W04-execution-1791661730763.json",
+            "command": "node --test --test-reporter=tap scripts/a1/contract-reconciliation.test.mjs",
+            "boundary": "Contract reconciliation, dependency/operation accounting and delivery controls only. Live canonical documents and controlled adverse fixtures are examined; no product copilot, examiner, graph or cyclic-work completion is claimed."
+          },
+          {
+            "pass": "critical",
+            "artifact": "reports/a1-passes/FE-A1.0-W04-critical-1791661739280.json",
+            "command": "node --test --test-reporter=tap scripts/a1/contract-reconciliation.critical.test.mjs",
+            "boundary": "Contract reconciliation, dependency/operation accounting and delivery controls only. Live canonical documents and controlled adverse fixtures are examined; no product copilot, examiner, graph or cyclic-work completion is claimed."
+          }
+        ]
+      },
+      {
+        "work_item": "FE-A1.0-W05",
+        "passes": [
+          {
+            "pass": "execution",
+            "artifact": "reports/a1-passes/FE-A1.0-W05-execution-1791661778349.json",
+            "command": "node --test --test-reporter=tap scripts/a1/contract-reconciliation.test.mjs",
+            "boundary": "Contract reconciliation, dependency/operation accounting and delivery controls only. Live canonical documents and controlled adverse fixtures are examined; no product copilot, examiner, graph or cyclic-work completion is claimed."
+          },
+          {
+            "pass": "critical",
+            "artifact": "reports/a1-passes/FE-A1.0-W05-critical-1791661788097.json",
+            "command": "node --test --test-reporter=tap scripts/a1/contract-reconciliation.critical.test.mjs",
+            "boundary": "Contract reconciliation, dependency/operation accounting and delivery controls only. Live canonical documents and controlled adverse fixtures are examined; no product copilot, examiner, graph or cyclic-work completion is claimed."
+          }
+        ]
+      },
+      {
+        "work_item": "FE-A1.0-W06",
+        "passes": [
+          {
+            "pass": "execution",
+            "artifact": "reports/a1-passes/FE-A1.0-W06-execution-1791661622972.json",
+            "command": "node --test --test-reporter=tap scripts/frontend-a1-process.test.mjs",
+            "boundary": "Delivery-control implementation only. Temporary Git/worktree fixtures test guards; they establish no copilot, Workspace, native examiner, model or cyclic verification product completion. Generated status views are checked from the current canonical ledger; static implementation and test files bind the committed candidate."
+          },
+          {
+            "pass": "critical",
+            "artifact": "reports/a1-passes/FE-A1.0-W06-critical-1791661626828.json",
+            "command": "node --test --test-reporter=tap scripts/frontend-a1-process.critical.test.mjs",
+            "boundary": "Delivery-control implementation only. Temporary Git/worktree fixtures test guards; they establish no copilot, Workspace, native examiner, model or cyclic verification product completion. Generated status views are checked from the current canonical ledger; static implementation and test files bind the committed candidate."
+          }
+        ]
+      },
+      {
+        "work_item": "FE-A1.6-W07",
+        "passes": [
+          {
+            "pass": "execution",
+            "artifact": "reports/a1-passes/FE-A1.6-W07-execution-1791661798178.json",
+            "command": "node --test --test-reporter=tap scripts/a1/accounting.test.mjs",
+            "boundary": "Current accounting and release-control logic only. Synthetic work/candidate fixtures prove closure, rejection and retry guards; they establish no adapted operation or product integration."
+          },
+          {
+            "pass": "critical",
+            "artifact": "reports/a1-passes/FE-A1.6-W07-critical-1791661801980.json",
+            "command": "node --test --test-reporter=tap scripts/a1/accounting.critical.test.mjs",
+            "boundary": "Current accounting and release-control logic only. Synthetic work/candidate fixtures prove closure, rejection and retry guards; they establish no adapted operation or product integration."
+          }
+        ]
+      }
+    ]
   },
   "historical_construction": {
     "artifact": "reports/FE-A1-CONSTRUCTION-CHECKS.json",
@@ -93,7 +213,7 @@
       {
         "path": "packages/core/src/project-copilot.ts",
         "recorded_hash": "sha256:d52e4f82adb984f778cb89bc7d5c3e65db4febc727ea85ae5be2e1a3f73a2ade",
-        "current_hash": "sha256:18e549658e6dd6198880fd011920a024b3a7a2104b1a6a9562a7a20fce058120",
+        "current_hash": "sha256:3329ca4ebfb82972746a63b502e96b3b446b777dc061a21632746d99d86efc66",
         "reuse": "stale_or_missing_not_current_evidence"
       },
       {

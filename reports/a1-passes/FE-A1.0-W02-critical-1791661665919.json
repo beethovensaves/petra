@@ -1,0 +1,109 @@
+{
+  "schema_name": "petra.a1-verification-pass",
+  "schema_version": "1.0.0",
+  "work_item": "FE-A1.0-W02",
+  "pass": "critical",
+  "contract_hash": "sha256:b78c711f3375d6468b2c3d9c449666e43d7173225f74a58271ff9c36087023be",
+  "status": "passed",
+  "candidate_commit": "5eeaddd1f8a94449c0afb52270c2ca1e5422e37a",
+  "started_at": "2026-10-10T19:47:42.128Z",
+  "finished_at": "2026-10-10T19:47:45.919Z",
+  "criteria": [
+    {
+      "id": "FE-A1.0-W02-AC01",
+      "result": "passed",
+      "test": "FE-A1.0-W02-AC01 critical: a missing required stage cannot become an executable plan",
+      "observation": "Challenged a specific false completion or authority bypass for: All eight A1 stages contain mandatory work records."
+    },
+    {
+      "id": "FE-A1.0-W02-AC02",
+      "result": "passed",
+      "test": "FE-A1.0-W02-AC02 critical: required work cannot be deleted deferred or begun early",
+      "observation": "Challenged a specific false completion or authority bypass for: No incomplete item can be deleted, deferred, or relabelled complete to release a wave."
+    }
+  ],
+  "sources": [
+    {
+      "path": "decisions/D013-ag-ui-sdk-interaction-boundary.md",
+      "hash": "sha256:658a61c7e32feff2550ee8ba8e045b687048ac25e90582c7cb26440244100849"
+    },
+    {
+      "path": "decisions/D018-project-definition-and-checkpoint-boundary.md",
+      "hash": "sha256:4b6bd3a0aef68b2e7ad292edb1a925f055966625eb3a015c12d9e8f7bbb6bca2"
+    },
+    {
+      "path": "decisions/D024-agentic-split-workspace.md",
+      "hash": "sha256:a15586fd37af4028f5b01d701b5865ed5cff63aab4a97c8237de06051d3c4b07"
+    },
+    {
+      "path": "decisions/D025-contract-ledger-and-two-pass-delivery.md",
+      "hash": "sha256:c7a489b6481f32413b404b6bdd212c86238cf530a8340db4f80e73ae8803fe05"
+    },
+    {
+      "path": "reports/FE-A1-CONSTRUCTION-CHECKS.json",
+      "hash": "sha256:180107832845f951d9447b323c83551d867c95eb7caba296cf103817c39ce890"
+    },
+    {
+      "path": "reports/FE-A1-CONTRACT-RECONCILIATION-CHECKS.json",
+      "hash": "sha256:b2d035dee58eb65d7c798cd48768e8c3a20a2515fec2d84963340ba791d676ef"
+    },
+    {
+      "path": "scripts/a1/contract-reconciliation.critical.test.mjs",
+      "hash": "sha256:7d096f450f3553c697cc902c7a52540963ed8bc0376c7c6513af00a89e43caf4"
+    },
+    {
+      "path": "scripts/a1/contract-reconciliation.test.mjs",
+      "hash": "sha256:245ab64f4823d4421a40899cfa3bfb63a0ba38dc54f7cf4a9d9911be37ce690a"
+    },
+    {
+      "path": "scripts/audit-frontend-a1.mjs",
+      "hash": "sha256:1941cb03c99aa4951ea8aec976ae605d1626d3a1b966aa2c16b171fb17c1056b"
+    },
+    {
+      "path": "scripts/frontend-a1-execute.mjs",
+      "hash": "sha256:f692c6a1acaa1820a7a301c91b30672abd5bfdfa407f4a7b822e1e16a01e00cd"
+    },
+    {
+      "path": "scripts/frontend-a1-process.mjs",
+      "hash": "sha256:70eaf0d24870e0b12a730e4c59045a9e13c7b738ad90a068bcee9ee5f85282ff"
+    },
+    {
+      "path": "scripts/frontend-a1-test-fixture.mjs",
+      "hash": "sha256:c0ffe35f93374a224d7f2cf216a5f14234c9e74f1f1d8da6bdc6ab71aecd768a"
+    },
+    {
+      "path": "scripts/wave-handoff.mjs",
+      "hash": "sha256:dd5025e27ab82282f73bf12ab3d98ebd9b043e305c39268086d554bf9e5580e3"
+    }
+  ],
+  "runs": [
+    {
+      "argv": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "scripts/a1/contract-reconciliation.critical.test.mjs"
+      ],
+      "exit_code": 0,
+      "output": "reports/a1-passes/FE-A1.0-W02-critical-1791661665919.tap",
+      "output_hash": "sha256:09f320d7db3070a6d680e314e7161846ed3aec2d4f619ae419fc7220f33d7943"
+    }
+  ],
+  "boundary": "Contract reconciliation, dependency/operation accounting and delivery controls only. Live canonical documents and controlled adverse fixtures are examined; no product copilot, examiner, graph or cyclic-work completion is claimed.",
+  "review": {
+    "perspective": "Challenge scope loss, misleading historical evidence, unsafe release, dependency bypass and contradictory roadmap narratives from the rejected product outcome.",
+    "challenges": [
+      {
+        "criterion": "FE-A1.0-W02-AC01",
+        "question": "FE-A1.0-W02-AC01 critical: a missing required stage cannot become an executable plan",
+        "result": "Challenged a specific false completion or authority bypass for: All eight A1 stages contain mandatory work records."
+      },
+      {
+        "criterion": "FE-A1.0-W02-AC02",
+        "question": "FE-A1.0-W02-AC02 critical: required work cannot be deleted deferred or begun early",
+        "result": "Challenged a specific false completion or authority bypass for: No incomplete item can be deleted, deferred, or relabelled complete to release a wave."
+      }
+    ],
+    "findings": []
+  }
+}

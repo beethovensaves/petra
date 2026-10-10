@@ -6,7 +6,7 @@ This is the required execution breakdown for FE-A1. It records implementation ob
 
 The canonical work/status/dependency register is [scripts/frontend-a1-work-inventory.json](../scripts/frontend-a1-work-inventory.json). This report is generated from it with `npm run roadmap:frontend-a1`; `npm run audit:frontend-a1` checks coverage and document agreement. The existing [reports/FRONTEND-ADAPTATION-MILESTONE.md](../reports/FRONTEND-ADAPTATION-MILESTONE.md) retains historical implementation evidence.
 
-Roadmap/execution binding: `sha256:dce5856c9ae657ccf7ea9c3c6c6d8d7fb255794fc7b2c5d8c9cded72e64f9c0a`. [scripts/frontend-a1-execution.md](../scripts/frontend-a1-execution.md) contains the same functions and criteria in prerequisite order. D025 requires one active item, an execution pass, a distinct critical pass, optional repair, and broad diagnosis after repeated failure. Both execution worktrees must match before work starts, verification is recorded, completion is accepted, or a later wave advances.
+Roadmap/execution binding: `sha256:e8ae01bec494cc45b1ebb44d619b70feda1bebaf17a1ef1f06b719f8abed742f`. [scripts/frontend-a1-execution.md](../scripts/frontend-a1-execution.md) contains the same functions and criteria in prerequisite order. D025 requires one active item, an execution pass, a distinct critical pass, optional repair, and broad diagnosis after repeated failure. Both execution worktrees must match before work starts, verification is recorded, completion is accepted, or a later wave advances.
 
 ## Controlling contract and scope
 
@@ -65,13 +65,13 @@ The wave controller checks the ledger before Wave 7 or later worker execution, r
 
 | Milestone | Required result                                                            | Complete / total | State       |
 | --------- | -------------------------------------------------------------------------- | ---------------- | ----------- |
-| FE-A1.0   | Contract reconciliation and execution control                              | 0 / 6            | in_progress |
+| FE-A1.0   | Contract reconciliation and execution control                              | 6 / 6            | complete    |
 | FE-A1.1   | Copilot shell and interaction design                                       | 0 / 7            | in_progress |
 | FE-A1.2   | Conversational zero/empty Project entry                                    | 0 / 7            | in_progress |
 | FE-A1.3   | Durable grounded conversation and AG-UI                                    | 0 / 18           | in_progress |
 | FE-A1.4   | Reactive Workspace, compositional examination and cyclic graph-guided work | 0 / 23           | in_progress |
 | FE-A1.5   | Progressive inspection and complete authority receipts                     | 0 / 9            | in_progress |
-| FE-A1.6   | Complete migration and operation conformance                               | 0 / 7            | in_progress |
+| FE-A1.6   | Complete migration and operation conformance                               | 1 / 7            | in_progress |
 | FE-A1.7   | Functional verification and explicit user acceptance                       | 0 / 13           | in_progress |
 
 Counts reflect verified contractual closure, not effort, product percentage, or an ETA. Historical evidence remains retained while affected completions are revalidated under D025.
@@ -84,7 +84,7 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 
 #### FE-A1.0-W01 — Record the controlling contracts and rejected candidate
 
-- **State:** `planned`; **owner:** integration.
+- **State:** `complete`; **owner:** integration.
 - **Prerequisites:** [FE-A1.0-W06](#fe-a10-w06)
 - **Contracts:** D024, D013, D018, D025.
 - **Construct:** Retain D024, D013, D018, the accepted UX requirements, and the 2026-10-07 inspection rejection as the A1 baseline. Retain the accepted 2026-10-10 two-pass and synchronized execution requirements as D025; preserve historical evidence while affected work is revalidated.
@@ -92,13 +92,15 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
   - The rejected candidate remains recorded as changes requested.
   - Existing mechanical evidence is preserved with its original limits.
 - **Retained partial evidence:** [reports/FE-A1-CONTRACT-RECONCILIATION-CHECKS.json](../reports/FE-A1-CONTRACT-RECONCILIATION-CHECKS.json)
-- **Completion evidence:** Missing; this item cannot close.
+- **Completion evidence:**
+  - [reports/a1-passes/FE-A1.0-W01-execution-1791661638005.json](../reports/a1-passes/FE-A1.0-W01-execution-1791661638005.json); `node --test --test-reporter=tap scripts/a1/contract-reconciliation.test.mjs`. Contract reconciliation, dependency/operation accounting and delivery controls only. Live canonical documents and controlled adverse fixtures are examined; no product copilot, examiner, graph or cyclic-work completion is claimed.
+  - [reports/a1-passes/FE-A1.0-W01-critical-1791661641792.json](../reports/a1-passes/FE-A1.0-W01-critical-1791661641792.json); `node --test --test-reporter=tap scripts/a1/contract-reconciliation.critical.test.mjs`. Contract reconciliation, dependency/operation accounting and delivery controls only. Live canonical documents and controlled adverse fixtures are examined; no product copilot, examiner, graph or cyclic-work completion is claimed.
 
 <a id="fe-a10-w02"></a>
 
 #### FE-A1.0-W02 — Publish the granular work and dependency ledger
 
-- **State:** `planned`; **owner:** integration.
+- **State:** `complete`; **owner:** integration.
 - **Prerequisites:** [FE-A1.0-W06](#fe-a10-w06), [FE-A1.0-W01](#fe-a10-w01)
 - **Contracts:** D024, D013, D018.
 - **Construct:** Assign a stable work ID, accountable role, deliverable, prerequisite, observable acceptance criteria, and evidence slot to every A1 construction.
@@ -106,13 +108,15 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
   - All eight A1 stages contain mandatory work records.
   - No incomplete item can be deleted, deferred, or relabelled complete to release a wave.
 - **Retained partial evidence:** [reports/FE-A1-CONTRACT-RECONCILIATION-CHECKS.json](../reports/FE-A1-CONTRACT-RECONCILIATION-CHECKS.json)
-- **Completion evidence:** Missing; this item cannot close.
+- **Completion evidence:**
+  - [reports/a1-passes/FE-A1.0-W02-execution-1791661660054.json](../reports/a1-passes/FE-A1.0-W02-execution-1791661660054.json); `node --test --test-reporter=tap scripts/a1/contract-reconciliation.test.mjs`. Contract reconciliation, dependency/operation accounting and delivery controls only. Live canonical documents and controlled adverse fixtures are examined; no product copilot, examiner, graph or cyclic-work completion is claimed.
+  - [reports/a1-passes/FE-A1.0-W02-critical-1791661665919.json](../reports/a1-passes/FE-A1.0-W02-critical-1791661665919.json); `node --test --test-reporter=tap scripts/a1/contract-reconciliation.critical.test.mjs`. Contract reconciliation, dependency/operation accounting and delivery controls only. Live canonical documents and controlled adverse fixtures are examined; no product copilot, examiner, graph or cyclic-work completion is claimed.
 
 <a id="fe-a10-w03"></a>
 
 #### FE-A1.0-W03 — Assign every operation and accepted requirement
 
-- **State:** `planned`; **owner:** integration.
+- **State:** `complete`; **owner:** integration.
 - **Prerequisites:** [FE-A1.0-W06](#fe-a10-w06), [FE-A1.0-W01](#fe-a10-w01)
 - **Contracts:** D024, D013, D018.
 - **Construct:** Assign all 116 operations to A1 conformance or an explicit subsequent-wave owner; map all 23 UX requests and all 18 flow families to the applicable work.
@@ -121,13 +125,15 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
   - The 15 Wave 7 and four Wave 8 operations retain explicit scope and dependencies.
   - Required A1 loops are assigned independently of the old operation list.
 - **Retained partial evidence:** [reports/FE-A1-CONTRACT-RECONCILIATION-CHECKS.json](../reports/FE-A1-CONTRACT-RECONCILIATION-CHECKS.json)
-- **Completion evidence:** Missing; this item cannot close.
+- **Completion evidence:**
+  - [reports/a1-passes/FE-A1.0-W03-execution-1791661691201.json](../reports/a1-passes/FE-A1.0-W03-execution-1791661691201.json); `node --test --test-reporter=tap scripts/a1/contract-reconciliation.test.mjs`. Contract reconciliation, dependency/operation accounting and delivery controls only. Live canonical documents and controlled adverse fixtures are examined; no product copilot, examiner, graph or cyclic-work completion is claimed.
+  - [reports/a1-passes/FE-A1.0-W03-critical-1791661698058.json](../reports/a1-passes/FE-A1.0-W03-critical-1791661698058.json); `node --test --test-reporter=tap scripts/a1/contract-reconciliation.critical.test.mjs`. Contract reconciliation, dependency/operation accounting and delivery controls only. Live canonical documents and controlled adverse fixtures are examined; no product copilot, examiner, graph or cyclic-work completion is claimed.
 
 <a id="fe-a10-w04"></a>
 
 #### FE-A1.0-W04 — Enforce the A1 prerequisite in the wave controller
 
-- **State:** `planned`; **owner:** integration.
+- **State:** `complete`; **owner:** integration.
 - **Prerequisites:** [FE-A1.0-W06](#fe-a10-w06), [FE-A1.0-W01](#fe-a10-w01)
 - **Contracts:** D024, D013, D018.
 - **Construct:** Add a read-only A1 completeness gate and check it before Wave 7 or later workers start or continue, and before resume, extension, or acceptance advances a later wave.
@@ -136,13 +142,15 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
   - Read-only status and stop remain available.
   - Missing user acceptance prevents release even if every engineering record is complete.
 - **Retained partial evidence:** [reports/FE-A1-CONTRACT-RECONCILIATION-CHECKS.json](../reports/FE-A1-CONTRACT-RECONCILIATION-CHECKS.json)
-- **Completion evidence:** Missing; this item cannot close.
+- **Completion evidence:**
+  - [reports/a1-passes/FE-A1.0-W04-execution-1791661730763.json](../reports/a1-passes/FE-A1.0-W04-execution-1791661730763.json); `node --test --test-reporter=tap scripts/a1/contract-reconciliation.test.mjs`. Contract reconciliation, dependency/operation accounting and delivery controls only. Live canonical documents and controlled adverse fixtures are examined; no product copilot, examiner, graph or cyclic-work completion is claimed.
+  - [reports/a1-passes/FE-A1.0-W04-critical-1791661739280.json](../reports/a1-passes/FE-A1.0-W04-critical-1791661739280.json); `node --test --test-reporter=tap scripts/a1/contract-reconciliation.critical.test.mjs`. Contract reconciliation, dependency/operation accounting and delivery controls only. Live canonical documents and controlled adverse fixtures are examined; no product copilot, examiner, graph or cyclic-work completion is claimed.
 
 <a id="fe-a10-w05"></a>
 
 #### FE-A1.0-W05 — Reconcile every roadmap entry and immediate sequence
 
-- **State:** `planned`; **owner:** integration.
+- **State:** `complete`; **owner:** integration.
 - **Prerequisites:** [FE-A1.0-W06](#fe-a10-w06), [FE-A1.0-W01](#fe-a10-w01), [FE-A1.0-W02](#fe-a10-w02), [FE-A1.0-W03](#fe-a10-w03), [FE-A1.0-W04](#fe-a10-w04)
 - **Contracts:** D024, D013, D018.
 - **Construct:** Make ROADMAP, implementation roadmap, design roadmap, adaptation report, backend handoff, and runtime disposition point to this ledger for A1 execution.
@@ -150,13 +158,15 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
   - Broad mechanical completion labels cannot contradict the A1 work status.
   - The immediate sequence ends in user acceptance before Wave 7 begins.
 - **Retained partial evidence:** [reports/FE-A1-CONTRACT-RECONCILIATION-CHECKS.json](../reports/FE-A1-CONTRACT-RECONCILIATION-CHECKS.json)
-- **Completion evidence:** Missing; this item cannot close.
+- **Completion evidence:**
+  - [reports/a1-passes/FE-A1.0-W05-execution-1791661778349.json](../reports/a1-passes/FE-A1.0-W05-execution-1791661778349.json); `node --test --test-reporter=tap scripts/a1/contract-reconciliation.test.mjs`. Contract reconciliation, dependency/operation accounting and delivery controls only. Live canonical documents and controlled adverse fixtures are examined; no product copilot, examiner, graph or cyclic-work completion is claimed.
+  - [reports/a1-passes/FE-A1.0-W05-critical-1791661788097.json](../reports/a1-passes/FE-A1.0-W05-critical-1791661788097.json); `node --test --test-reporter=tap scripts/a1/contract-reconciliation.critical.test.mjs`. Contract reconciliation, dependency/operation accounting and delivery controls only. Live canonical documents and controlled adverse fixtures are examined; no product copilot, examiner, graph or cyclic-work completion is claimed.
 
 <a id="fe-a10-w06"></a>
 
 #### FE-A1.0-W06 — Synchronize contract execution and require two distinct validation passes
 
-- **State:** `in_progress`; **owner:** integration.
+- **State:** `complete`; **owner:** integration.
 - **Prerequisites:** None; establishes the baseline.
 - **Contracts:** D025, D024, D013, D018.
 - **Construct:** Implement D025: generate the readable roadmap and granular execution packet from the canonical function ledger; synchronize both execution worktrees; enforce one prerequisite-ready active item, criterion/candidate/source-bound execution and critical passes, repair findings when needed, and stop repeated failures for broad diagnosis.
@@ -169,7 +179,9 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
   - D024/D025 govern every execution entry; legacy Wave 6 cannot bypass A1, native screen-reader evaluation remains excluded, and sixteen late scenarios remain optional.
   - The exact candidate still requires explicit user acceptance after all engineering work closes.
 - **Retained partial evidence:** [reports/a1-passes/FE-A1.0-W06-execution-1791660646152.json](../reports/a1-passes/FE-A1.0-W06-execution-1791660646152.json), [reports/a1-passes/FE-A1.0-W06-critical-1791660649524.json](../reports/a1-passes/FE-A1.0-W06-critical-1791660649524.json)
-- **Completion evidence:** Missing; this item cannot close.
+- **Completion evidence:**
+  - [reports/a1-passes/FE-A1.0-W06-execution-1791661622972.json](../reports/a1-passes/FE-A1.0-W06-execution-1791661622972.json); `node --test --test-reporter=tap scripts/frontend-a1-process.test.mjs`. Delivery-control implementation only. Temporary Git/worktree fixtures test guards; they establish no copilot, Workspace, native examiner, model or cyclic verification product completion. Generated status views are checked from the current canonical ledger; static implementation and test files bind the committed candidate.
+  - [reports/a1-passes/FE-A1.0-W06-critical-1791661626828.json](../reports/a1-passes/FE-A1.0-W06-critical-1791661626828.json); `node --test --test-reporter=tap scripts/frontend-a1-process.critical.test.mjs`. Delivery-control implementation only. Temporary Git/worktree fixtures test guards; they establish no copilot, Workspace, native examiner, model or cyclic verification product completion. Generated status views are checked from the current canonical ledger; static implementation and test files bind the committed candidate.
 
 ### FE-A1.1 — Copilot shell and interaction design
 
@@ -391,7 +403,7 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 
 #### FE-A1.3-W01 — Register genuine conversational interaction contracts
 
-- **State:** `planned`; **owner:** runtime.
+- **State:** `in_progress`; **owner:** runtime.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.0-W01](#fe-a10-w01)
 - **Contracts:** D007, D008, D013, UX-REQ-006, UX-REQ-021.
 - **Construct:** Add versioned intake, Project evidence-question, follow-up, and scene-explanation interaction contracts with bounded inputs, response schemas, speech acts, policy, and validated references; preserve the fixed M1 synthesist contract.
@@ -1246,7 +1258,7 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 
 #### FE-A1.6-W07 — Keep completion and evidence accounting current
 
-- **State:** `planned`; **owner:** integration.
+- **State:** `complete`; **owner:** integration.
 - **Prerequisites:** [FE-A1.0-W06](#fe-a10-w06), [FE-A1.0-W05](#fe-a10-w05)
 - **Contracts:** D024.
 - **Construct:** Update work status, dependencies, scoped retained evidence and completion artifacts in the same change as each delivered slice; append newly discovered required work before it can be waived or forgotten. Enforce one prerequisite-ready active item and criterion-bound execution/critical evidence, synchronize roadmap and execution views, and stop repeated failures for broad diagnosis under D025.
@@ -1257,7 +1269,9 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
   - Execution and critical tests evaluate distinct questions on the same exact candidate.
   - Two unsuccessful attempts cannot silently restart or advance another item.
 - **Retained partial evidence:** None assigned; no implementation claim.
-- **Completion evidence:** Missing; this item cannot close.
+- **Completion evidence:**
+  - [reports/a1-passes/FE-A1.6-W07-execution-1791661798178.json](../reports/a1-passes/FE-A1.6-W07-execution-1791661798178.json); `node --test --test-reporter=tap scripts/a1/accounting.test.mjs`. Current accounting and release-control logic only. Synthetic work/candidate fixtures prove closure, rejection and retry guards; they establish no adapted operation or product integration.
+  - [reports/a1-passes/FE-A1.6-W07-critical-1791661801980.json](../reports/a1-passes/FE-A1.6-W07-critical-1791661801980.json); `node --test --test-reporter=tap scripts/a1/accounting.critical.test.mjs`. Current accounting and release-control logic only. Synthetic work/candidate fixtures prove closure, rejection and retry guards; they establish no adapted operation or product integration.
 
 ### FE-A1.7 — Functional verification and explicit user acceptance
 
