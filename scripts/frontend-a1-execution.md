@@ -1,6 +1,6 @@
 # A1 execution instructions
 
-Roadmap binding: `sha256:87d26d4507d61d464ec0e577634e0625bc69eb0238a61792b43590d011d41444`. Generated from frontend-a1-work-inventory.json.
+Roadmap binding: `sha256:81218b7f14816dc38def5de230a0eca92e9e857bc3da6057bd7e849fcfa8da55`. Generated from frontend-a1-work-inventory.json.
 
 D025 and D024 govern this execution. Historical frozen Wave 6 instructions are subordinate. Native screen-reader evaluation is excluded; browser semantics and functional peers remain mandatory. The sixteen late scenarios are optional.
 
@@ -149,7 +149,7 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 ### 9. FE-A1.3-W02: Establish eligible model routes for the new interactions
 
-State: in_progress. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.3-W01.
+State: complete. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.3-W01.
 
 Register and prove eligible provider/model/role routes for conversational questions, working structure, and explanations with exact prompt/schema/profile revisions, grounding, privacy/egress, cost, and fallback rules.
 
@@ -163,7 +163,7 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 ### 10. FE-A1.3-W03: Persist and read exact user and assistant turns
 
-State: planned. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.3-W01.
+State: in_progress. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.3-W01.
 
 Add authorized immutable message/content reads and turn lineage around existing ProjectThread/InteractionRun records, with text or exact content references, revisions, role, context, result, partial/terminal state, and pagination.
 

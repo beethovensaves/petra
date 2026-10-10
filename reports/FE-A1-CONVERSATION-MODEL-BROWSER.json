@@ -1,0 +1,511 @@
+{
+  "status": "passed",
+  "verified_at": "2026-10-10T20:51:23.340Z",
+  "scope": "Two actual managed-model turns through the production HTTP service, PostgreSQL persistence, official AG-UI client and browser; followed by durable readable reload. This does not establish canonical owner integration or A1 product acceptance.",
+  "project_id": "project_4GNM3G166Z7RCBSW5K6TXZ3XZ9",
+  "provider_model": "gpt-6-astra",
+  "input_manifests": [
+    {
+      "content": {
+        "run_id": "run_68EGGCCHVWX7A88XB72YR5B0BZ",
+        "history": [
+          {
+            "run_id": "run_4ZGFT7FXM154QR08T178KCE1N8",
+            "disclosure": "included_current_basis",
+            "answer_hash": "sha256:1211da2b1bfc52d0a9e183621530b54b8b1c51067ebb5c9d165e4cbbbf90ebbb",
+            "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+            "question_hash": "sha256:19783897bc75b83c3941e3f31b91345acd636042c0e6ad68d26ad182e416b562"
+          },
+          {
+            "run_id": "run_7BQ9E34CHVRVKRRN52R67AREDD",
+            "disclosure": "included_current_basis",
+            "answer_hash": "sha256:e15b5b864e941018c214d3ea55f72855567b1a1ac26f2fa13606007969ab442a",
+            "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+            "question_hash": "sha256:44c39eb6633bae27422dc22e252dbf5d8f4500f4343dd2a8de42ee5718e679b8"
+          },
+          {
+            "run_id": "run_0C8J3EEPBRMB5PPRZJTD3K3PTM",
+            "disclosure": "included_current_basis",
+            "answer_hash": "sha256:b8c6d3b141472e9b984bdb18a9a61fa50d5fe2f06a9de12e2578b597a43efeff",
+            "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+            "question_hash": "sha256:a6e643897278706b4395ebe0f8cb6867a0b84ac81319da447769437e2e19d9b4"
+          },
+          {
+            "run_id": "run_5YK8JJ2D2VHR8ZTZSBKP6FCRB9",
+            "disclosure": "included_current_basis",
+            "answer_hash": "sha256:eaf5dbafcc516b98c60b0e4eb42f15395766859d3b65274ae5779ab2dfc50c93",
+            "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+            "question_hash": "sha256:44c39eb6633bae27422dc22e252dbf5d8f4500f4343dd2a8de42ee5718e679b8"
+          },
+          {
+            "run_id": "run_0RM85C025KY7FERTHCYWG5WXK4",
+            "disclosure": "included_current_basis",
+            "answer_hash": "sha256:ef89980f5050796870d9d225927785fa75ed20abb9d8dbaf705d307584a08247",
+            "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+            "question_hash": "sha256:a6e643897278706b4395ebe0f8cb6867a0b84ac81319da447769437e2e19d9b4"
+          }
+        ],
+        "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+        "authority": "advisory_input_only",
+        "thread_id": "thread_417PHGY55GKB1GRA9ZVV8W75SB",
+        "project_id": "project_4GNM3G166Z7RCBSW5K6TXZ3XZ9",
+        "input_bytes": 12986,
+        "prepared_at": "2026-10-10T20:51:06.678Z",
+        "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+        "profile_hash": "sha256:39706626f815827e098a83c9a842900f73c9fe58c38f03688cfd48a08c51e00d",
+        "history_bytes": 6613,
+        "input_payload_hash": "sha256:0fd95b8bf80d5376bbf6383e40f7f56abeddae2bdc3db3c0352696c4382c4837",
+        "context_record_keys": [
+          "pre-creation-discussion",
+          "scene:30d12a7e4c914227"
+        ],
+        "history_query_limit": 200,
+        "excluded_history_count": 0,
+        "retained_history_count": 5,
+        "history_query_may_have_omissions": false
+      },
+      "schema_name": "petra.copilot-input-manifest",
+      "content_hash": "sha256:9e8436ba3d21d64c40a0ef809408787e42afa57461fcc90a27bdf5db52a40217",
+      "schema_version": "1.0.0"
+    },
+    {
+      "content": {
+        "run_id": "run_3EM89XY1W98BRV2XBCAETC0M2Y",
+        "history": [
+          {
+            "run_id": "run_4ZGFT7FXM154QR08T178KCE1N8",
+            "disclosure": "included_current_basis",
+            "answer_hash": "sha256:1211da2b1bfc52d0a9e183621530b54b8b1c51067ebb5c9d165e4cbbbf90ebbb",
+            "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+            "question_hash": "sha256:19783897bc75b83c3941e3f31b91345acd636042c0e6ad68d26ad182e416b562"
+          },
+          {
+            "run_id": "run_7BQ9E34CHVRVKRRN52R67AREDD",
+            "disclosure": "included_current_basis",
+            "answer_hash": "sha256:e15b5b864e941018c214d3ea55f72855567b1a1ac26f2fa13606007969ab442a",
+            "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+            "question_hash": "sha256:44c39eb6633bae27422dc22e252dbf5d8f4500f4343dd2a8de42ee5718e679b8"
+          },
+          {
+            "run_id": "run_0C8J3EEPBRMB5PPRZJTD3K3PTM",
+            "disclosure": "included_current_basis",
+            "answer_hash": "sha256:b8c6d3b141472e9b984bdb18a9a61fa50d5fe2f06a9de12e2578b597a43efeff",
+            "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+            "question_hash": "sha256:a6e643897278706b4395ebe0f8cb6867a0b84ac81319da447769437e2e19d9b4"
+          },
+          {
+            "run_id": "run_5YK8JJ2D2VHR8ZTZSBKP6FCRB9",
+            "disclosure": "included_current_basis",
+            "answer_hash": "sha256:eaf5dbafcc516b98c60b0e4eb42f15395766859d3b65274ae5779ab2dfc50c93",
+            "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+            "question_hash": "sha256:44c39eb6633bae27422dc22e252dbf5d8f4500f4343dd2a8de42ee5718e679b8"
+          },
+          {
+            "run_id": "run_0RM85C025KY7FERTHCYWG5WXK4",
+            "disclosure": "included_current_basis",
+            "answer_hash": "sha256:ef89980f5050796870d9d225927785fa75ed20abb9d8dbaf705d307584a08247",
+            "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+            "question_hash": "sha256:a6e643897278706b4395ebe0f8cb6867a0b84ac81319da447769437e2e19d9b4"
+          },
+          {
+            "run_id": "run_68EGGCCHVWX7A88XB72YR5B0BZ",
+            "disclosure": "included_current_basis",
+            "answer_hash": "sha256:b0dda2ac9584783ffef2804318f0245349364d41e43f93f9d802cb6f264498d9",
+            "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+            "question_hash": "sha256:44c39eb6633bae27422dc22e252dbf5d8f4500f4343dd2a8de42ee5718e679b8"
+          }
+        ],
+        "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+        "authority": "advisory_input_only",
+        "thread_id": "thread_417PHGY55GKB1GRA9ZVV8W75SB",
+        "project_id": "project_4GNM3G166Z7RCBSW5K6TXZ3XZ9",
+        "input_bytes": 14356,
+        "prepared_at": "2026-10-10T20:51:13.201Z",
+        "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+        "profile_hash": "sha256:39706626f815827e098a83c9a842900f73c9fe58c38f03688cfd48a08c51e00d",
+        "history_bytes": 7998,
+        "input_payload_hash": "sha256:cf339ae1fb82fdb3669155c7fa858524b6a998ae611e02ede7999734175d392a",
+        "context_record_keys": [
+          "pre-creation-discussion",
+          "scene:30d12a7e4c914227"
+        ],
+        "history_query_limit": 200,
+        "excluded_history_count": 0,
+        "retained_history_count": 6,
+        "history_query_may_have_omissions": false
+      },
+      "schema_name": "petra.copilot-input-manifest",
+      "content_hash": "sha256:b818e32610d6ccd09169dd16b9396603cde37ed2bcbc0fe7fd69e3f8bd2c0a91",
+      "schema_version": "1.0.0"
+    }
+  ],
+  "turns": [
+    {
+      "run_id": "run_68EGGCCHVWX7A88XB72YR5B0BZ",
+      "context": {
+        "basis": {
+          "objective": {
+            "revision": 1,
+            "record_id": "objective_0YK8W4VBK9GWDB1NTQ37WBNVSF",
+            "content_hash": "sha256:8cb3ce4a8387caef06631f09854284fcde878e57b1f2828ca08d5b88e1011fc2"
+          },
+          "definition": {
+            "revision": 1,
+            "record_id": "project_definition_1YVF468MMHV3NMMRZ6W26Z5AXT",
+            "content_hash": "sha256:81f8cda949a62f2ff9dc453bd0b53a82cf12a8599ad17003ff43a2271cca6bcb"
+          },
+          "event_position": 15,
+          "stream_revision": 0,
+          "project_revision": 1
+        },
+        "records": [
+          {
+            "key": "pre-creation-discussion",
+            "ref": {
+              "revision": 1,
+              "record_id": "intake_session_3GPA5AFC3NAA06XRHTWM5FDH34",
+              "record_hash": "sha256:16d5f0a320273248f90aa473e51209601377c614a04ad16722d164cceb5e6efd"
+            },
+            "kind": "pre_project_discussion",
+            "text": "{\"authority\":\"pre_project_advice_only\",\"creation_binding_hash\":\"sha256:128d5d5ff1f44c2f43fa2e8451fa5433246d8a6fedbead443c498680809fa5da\",\"retained_turn_count\":1,\"included_turn_count\":1,\"discussion\":[{\"run_id\":\"run_15XFFY7Q670C6KAV0PRV8KVM0W\",\"user_wording\":\"Synthetic A1 inspection: help me plan a neighborhood volunteer checklist for families, with a $500 budget and an indoor rain option. What consequential choices need clarification before I review a Project?\",\"advisory_answer\":{\"blocks\":[{\"kind\":\"question\",\"text\":\"Before proposing an outcome for your “neighborhood volunteer checklist for families,” these choices need clarification:\\n\\n1. Purpose: Is this a checklist for organizing a volunteer event, or for families choosing and doing volunteer tasks? What should it help them accomplish?\\n2. Audience: Who will use it—organizers, parents, or children? How many families and what age ranges should it accommodate?\\n3. Scope: What volunteer activities, neighborhood, date, and duration do you have in mind?\\n4. Budget: Is $500 an all-in cap? Must it cover supplies, food, venue, transport, or other costs? Are any donated resources already available?\\n5. Rain option: Should the same activity move indoors, or should there be a different indoor activity? Is a suitable space available, with sufficient capacity and accessibility?\\n6. Safety and responsibilities: What supervision, accessibility, allergy, safeguarding, venue-permission, or activity-specific constraints should the checklist address, and who will confirm them?\\n7. Inputs and output: Do you have activity details or venue rules to supply? Do you want a printable family checklist, an organizer checklist with assignments, a budget breakdown, or a combination?\",\"citations\":[]},{\"kind\":\"advice\",\"text\":\"Planning wording should distinguish confirmed arrangements from items someone still needs to check. Any proposed outcome would remain for human review—not an approved definition or a created Project.\",\"citations\":[]}],\"authority\":\"advisory_only\",\"focus_keys\":[],\"schema_name\":\"petra.copilot-output\",\"schema_version\":\"1.0.0\"},\"outcome\":\"completed\"}]}",
+            "label": "Original user wording and pre-creation advice",
+            "destination": "/projects/project_4GNM3G166Z7RCBSW5K6TXZ3XZ9/brief#copilot-intake-origin"
+          },
+          {
+            "key": "scene:30d12a7e4c914227",
+            "ref": {
+              "revision": 1,
+              "record_id": "graph_scene_3KH9X2CTHBCETMPBCHRY1MPRV6",
+              "record_hash": "sha256:df0cb0786bb1b661b706b313af0b1fa65ed5c6b419ec4464522500263f6138ff"
+            },
+            "kind": "project-examination-scene",
+            "text": "{\"scene_content_hash\":\"sha256:30d12a7e4c9142277cef5e9f045c09d7334fdeff258936078958d1d1c778d2b0\",\"graph_content_hash\":\"sha256:96d0674b7404a52ec8aed99fa803bad2b627cab0ea02586b2f2548df6e6c877f\",\"nodes\":[],\"relationships\":[],\"omitted_nodes\":0,\"omitted_relationships\":0,\"has_more_history\":false,\"limitations\":[\"This is a bounded derived scene of exact native material and retained examination lineage. Drawing a link creates no new relationship, verification, permission, or completed Work.\",\"Reference nodes may lie outside this history page or current working graph. Currentness is computed against the examined graph; earlier assessment content remains immutable.\",\"Only explicit criteria evidence and recorded obligation evidence form evidence links. Labels and layout provide navigation, never scientific support.\"],\"disclosure\":\"Exact identities and paths selected from the local scene. Native labels and any omitted nodes or paths are withheld; no support is inferred from layout.\"}",
+            "label": "Examination lineage semantic result",
+            "destination": "/projects/project_4GNM3G166Z7RCBSW5K6TXZ3XZ9/graph"
+          }
+        ],
+        "project_id": "project_4GNM3G166Z7RCBSW5K6TXZ3XZ9",
+        "limitations": [
+          "This role is advisory. Its answer creates no Project facts, permission, approval, assessment, closure, or completed Work.",
+          "Context contains a bounded selection of authorized current record summaries and working material. It is not an exhaustive evidence search or the complete bytes of a Source.",
+          "Managed model execution uses the registered remote provider; Project routing preferences and per-call price accounting are not available through this role.",
+          "The original pre-creation discussion is untrusted user wording and advisory answers, not Project evidence, an approved definition or a domain examination. Its excerpt preserves whole turns and declares omissions.",
+          "Native working records are included as exact-schema excerpts. Their candidacy, stale definition basis, and lack of domain authority remain explicit. Only the first 40 working objects are selected.",
+          "The examined graph basis is sha256:96d0674b7404a52ec8aed99fa803bad2b627cab0ea02586b2f2548df6e6c877f. Only 0 retained examination records from one bounded history page are selected; more history: false. Human assessment, posture and disposition records retain their own authority. They do not establish Work success or permit the copilot to act.",
+          "No registered graph evidence selection is currently available for this Project."
+        ],
+        "schema_name": "petra.copilot-context",
+        "content_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+        "project_label": "Plan a neighborhood volunteer checklist for families, with a $500 budget and an indoor rain option.",
+        "schema_version": "1.0.0",
+        "definition_family": "petra.project-authored",
+        "objective_statement": "Plan a neighborhood volunteer checklist for families, with a $500 budget and an indoor rain option."
+      },
+      "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+      "question": "Synthetic A1 model-route inspection: which information is missing before this volunteer checklist can be examined?",
+      "thread_id": "thread_417PHGY55GKB1GRA9ZVV8W75SB",
+      "focus_keys": [],
+      "project_id": "project_4GNM3G166Z7RCBSW5K6TXZ3XZ9",
+      "started_at": "2026-10-10T20:51:06.664Z",
+      "instance_id": "copilot_instance_3RK32KN0T6A8G1EP8GYSGN47H2",
+      "schema_name": "petra.copilot-turn",
+      "request_hash": "sha256:a88ab0ada3b14468074b46e78f61e505e896a9942e123580d87a427ede64fef6",
+      "parent_run_id": "run_0RM85C025KY7FERTHCYWG5WXK4",
+      "schema_version": "1.0.0",
+      "terminal": {
+        "model": "gpt-6-astra",
+        "state": "completed",
+        "output": {
+          "blocks": [
+            {
+              "kind": "advice",
+              "text": "The supplied context still lacks a draft checklist, review criteria, and confirmed planning details. For a useful examination, provide:\n• Purpose: organizers, participating families, or both; intended volunteer outcome.\n• Scope: activities, participant numbers and ages, location, date, and duration.\n• Budget: whether $500 covers everything, estimated costs, and donations.\n• Indoor rain option: activity, venue availability, capacity, accessibility, and permissions.\n• Responsibilities: task owners, supervision, safety and allergy constraints, and who checks unresolved arrangements.\n• Review material: draft checklist, relevant venue rules, desired format, and readiness criteria.\n\nA partial draft can be examined for gaps; distinguish proposals from confirmed arrangements.",
+              "citations": []
+            },
+            {
+              "kind": "question",
+              "text": "Can you share a draft, or should we first clarify who the checklist serves and what it should accomplish?",
+              "citations": []
+            }
+          ],
+          "authority": "advisory_only",
+          "focus_keys": [
+            "pre-creation-discussion"
+          ],
+          "schema_name": "petra.copilot-output",
+          "schema_version": "1.0.0"
+        },
+        "finished_at": "2026-10-10T20:51:13.104Z",
+        "provider_turn_id": "01a12795-6d6e-7892-9348-551405cd6189",
+        "provider_thread_id": "01a12795-6d43-7dc0-b656-2a8c575d40cf"
+      },
+      "input_manifest": {
+        "content": {
+          "run_id": "run_68EGGCCHVWX7A88XB72YR5B0BZ",
+          "history": [
+            {
+              "run_id": "run_4ZGFT7FXM154QR08T178KCE1N8",
+              "disclosure": "included_current_basis",
+              "answer_hash": "sha256:1211da2b1bfc52d0a9e183621530b54b8b1c51067ebb5c9d165e4cbbbf90ebbb",
+              "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+              "question_hash": "sha256:19783897bc75b83c3941e3f31b91345acd636042c0e6ad68d26ad182e416b562"
+            },
+            {
+              "run_id": "run_7BQ9E34CHVRVKRRN52R67AREDD",
+              "disclosure": "included_current_basis",
+              "answer_hash": "sha256:e15b5b864e941018c214d3ea55f72855567b1a1ac26f2fa13606007969ab442a",
+              "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+              "question_hash": "sha256:44c39eb6633bae27422dc22e252dbf5d8f4500f4343dd2a8de42ee5718e679b8"
+            },
+            {
+              "run_id": "run_0C8J3EEPBRMB5PPRZJTD3K3PTM",
+              "disclosure": "included_current_basis",
+              "answer_hash": "sha256:b8c6d3b141472e9b984bdb18a9a61fa50d5fe2f06a9de12e2578b597a43efeff",
+              "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+              "question_hash": "sha256:a6e643897278706b4395ebe0f8cb6867a0b84ac81319da447769437e2e19d9b4"
+            },
+            {
+              "run_id": "run_5YK8JJ2D2VHR8ZTZSBKP6FCRB9",
+              "disclosure": "included_current_basis",
+              "answer_hash": "sha256:eaf5dbafcc516b98c60b0e4eb42f15395766859d3b65274ae5779ab2dfc50c93",
+              "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+              "question_hash": "sha256:44c39eb6633bae27422dc22e252dbf5d8f4500f4343dd2a8de42ee5718e679b8"
+            },
+            {
+              "run_id": "run_0RM85C025KY7FERTHCYWG5WXK4",
+              "disclosure": "included_current_basis",
+              "answer_hash": "sha256:ef89980f5050796870d9d225927785fa75ed20abb9d8dbaf705d307584a08247",
+              "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+              "question_hash": "sha256:a6e643897278706b4395ebe0f8cb6867a0b84ac81319da447769437e2e19d9b4"
+            }
+          ],
+          "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+          "authority": "advisory_input_only",
+          "thread_id": "thread_417PHGY55GKB1GRA9ZVV8W75SB",
+          "project_id": "project_4GNM3G166Z7RCBSW5K6TXZ3XZ9",
+          "input_bytes": 12986,
+          "prepared_at": "2026-10-10T20:51:06.678Z",
+          "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+          "profile_hash": "sha256:39706626f815827e098a83c9a842900f73c9fe58c38f03688cfd48a08c51e00d",
+          "history_bytes": 6613,
+          "input_payload_hash": "sha256:0fd95b8bf80d5376bbf6383e40f7f56abeddae2bdc3db3c0352696c4382c4837",
+          "context_record_keys": [
+            "pre-creation-discussion",
+            "scene:30d12a7e4c914227"
+          ],
+          "history_query_limit": 200,
+          "excluded_history_count": 0,
+          "retained_history_count": 5,
+          "history_query_may_have_omissions": false
+        },
+        "schema_name": "petra.copilot-input-manifest",
+        "content_hash": "sha256:9e8436ba3d21d64c40a0ef809408787e42afa57461fcc90a27bdf5db52a40217",
+        "schema_version": "1.0.0"
+      }
+    },
+    {
+      "run_id": "run_3EM89XY1W98BRV2XBCAETC0M2Y",
+      "context": {
+        "basis": {
+          "objective": {
+            "revision": 1,
+            "record_id": "objective_0YK8W4VBK9GWDB1NTQ37WBNVSF",
+            "content_hash": "sha256:8cb3ce4a8387caef06631f09854284fcde878e57b1f2828ca08d5b88e1011fc2"
+          },
+          "definition": {
+            "revision": 1,
+            "record_id": "project_definition_1YVF468MMHV3NMMRZ6W26Z5AXT",
+            "content_hash": "sha256:81f8cda949a62f2ff9dc453bd0b53a82cf12a8599ad17003ff43a2271cca6bcb"
+          },
+          "event_position": 15,
+          "stream_revision": 0,
+          "project_revision": 1
+        },
+        "records": [
+          {
+            "key": "pre-creation-discussion",
+            "ref": {
+              "revision": 1,
+              "record_id": "intake_session_3GPA5AFC3NAA06XRHTWM5FDH34",
+              "record_hash": "sha256:16d5f0a320273248f90aa473e51209601377c614a04ad16722d164cceb5e6efd"
+            },
+            "kind": "pre_project_discussion",
+            "text": "{\"authority\":\"pre_project_advice_only\",\"creation_binding_hash\":\"sha256:128d5d5ff1f44c2f43fa2e8451fa5433246d8a6fedbead443c498680809fa5da\",\"retained_turn_count\":1,\"included_turn_count\":1,\"discussion\":[{\"run_id\":\"run_15XFFY7Q670C6KAV0PRV8KVM0W\",\"user_wording\":\"Synthetic A1 inspection: help me plan a neighborhood volunteer checklist for families, with a $500 budget and an indoor rain option. What consequential choices need clarification before I review a Project?\",\"advisory_answer\":{\"blocks\":[{\"kind\":\"question\",\"text\":\"Before proposing an outcome for your “neighborhood volunteer checklist for families,” these choices need clarification:\\n\\n1. Purpose: Is this a checklist for organizing a volunteer event, or for families choosing and doing volunteer tasks? What should it help them accomplish?\\n2. Audience: Who will use it—organizers, parents, or children? How many families and what age ranges should it accommodate?\\n3. Scope: What volunteer activities, neighborhood, date, and duration do you have in mind?\\n4. Budget: Is $500 an all-in cap? Must it cover supplies, food, venue, transport, or other costs? Are any donated resources already available?\\n5. Rain option: Should the same activity move indoors, or should there be a different indoor activity? Is a suitable space available, with sufficient capacity and accessibility?\\n6. Safety and responsibilities: What supervision, accessibility, allergy, safeguarding, venue-permission, or activity-specific constraints should the checklist address, and who will confirm them?\\n7. Inputs and output: Do you have activity details or venue rules to supply? Do you want a printable family checklist, an organizer checklist with assignments, a budget breakdown, or a combination?\",\"citations\":[]},{\"kind\":\"advice\",\"text\":\"Planning wording should distinguish confirmed arrangements from items someone still needs to check. Any proposed outcome would remain for human review—not an approved definition or a created Project.\",\"citations\":[]}],\"authority\":\"advisory_only\",\"focus_keys\":[],\"schema_name\":\"petra.copilot-output\",\"schema_version\":\"1.0.0\"},\"outcome\":\"completed\"}]}",
+            "label": "Original user wording and pre-creation advice",
+            "destination": "/projects/project_4GNM3G166Z7RCBSW5K6TXZ3XZ9/brief#copilot-intake-origin"
+          },
+          {
+            "key": "scene:30d12a7e4c914227",
+            "ref": {
+              "revision": 1,
+              "record_id": "graph_scene_3KH9X2CTHBCETMPBCHRY1MPRV6",
+              "record_hash": "sha256:df0cb0786bb1b661b706b313af0b1fa65ed5c6b419ec4464522500263f6138ff"
+            },
+            "kind": "project-examination-scene",
+            "text": "{\"scene_content_hash\":\"sha256:30d12a7e4c9142277cef5e9f045c09d7334fdeff258936078958d1d1c778d2b0\",\"graph_content_hash\":\"sha256:96d0674b7404a52ec8aed99fa803bad2b627cab0ea02586b2f2548df6e6c877f\",\"nodes\":[],\"relationships\":[],\"omitted_nodes\":0,\"omitted_relationships\":0,\"has_more_history\":false,\"limitations\":[\"This is a bounded derived scene of exact native material and retained examination lineage. Drawing a link creates no new relationship, verification, permission, or completed Work.\",\"Reference nodes may lie outside this history page or current working graph. Currentness is computed against the examined graph; earlier assessment content remains immutable.\",\"Only explicit criteria evidence and recorded obligation evidence form evidence links. Labels and layout provide navigation, never scientific support.\"],\"disclosure\":\"Exact identities and paths selected from the local scene. Native labels and any omitted nodes or paths are withheld; no support is inferred from layout.\"}",
+            "label": "Examination lineage semantic result",
+            "destination": "/projects/project_4GNM3G166Z7RCBSW5K6TXZ3XZ9/graph"
+          }
+        ],
+        "project_id": "project_4GNM3G166Z7RCBSW5K6TXZ3XZ9",
+        "limitations": [
+          "This role is advisory. Its answer creates no Project facts, permission, approval, assessment, closure, or completed Work.",
+          "Context contains a bounded selection of authorized current record summaries and working material. It is not an exhaustive evidence search or the complete bytes of a Source.",
+          "Managed model execution uses the registered remote provider; Project routing preferences and per-call price accounting are not available through this role.",
+          "The original pre-creation discussion is untrusted user wording and advisory answers, not Project evidence, an approved definition or a domain examination. Its excerpt preserves whole turns and declares omissions.",
+          "Native working records are included as exact-schema excerpts. Their candidacy, stale definition basis, and lack of domain authority remain explicit. Only the first 40 working objects are selected.",
+          "The examined graph basis is sha256:96d0674b7404a52ec8aed99fa803bad2b627cab0ea02586b2f2548df6e6c877f. Only 0 retained examination records from one bounded history page are selected; more history: false. Human assessment, posture and disposition records retain their own authority. They do not establish Work success or permit the copilot to act.",
+          "No registered graph evidence selection is currently available for this Project."
+        ],
+        "schema_name": "petra.copilot-context",
+        "content_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+        "project_label": "Plan a neighborhood volunteer checklist for families, with a $500 budget and an indoor rain option.",
+        "schema_version": "1.0.0",
+        "definition_family": "petra.project-authored",
+        "objective_statement": "Plan a neighborhood volunteer checklist for families, with a $500 budget and an indoor rain option."
+      },
+      "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+      "question": "Synthetic A1 model-route inspection: which of those missing inputs should I clarify first, and why?",
+      "thread_id": "thread_417PHGY55GKB1GRA9ZVV8W75SB",
+      "focus_keys": [],
+      "project_id": "project_4GNM3G166Z7RCBSW5K6TXZ3XZ9",
+      "started_at": "2026-10-10T20:51:13.196Z",
+      "instance_id": "copilot_instance_3RK32KN0T6A8G1EP8GYSGN47H2",
+      "schema_name": "petra.copilot-turn",
+      "request_hash": "sha256:063516a69f13f97a4c9a6d02532fde4e9eaacf288b0e4d5108e4c274dbe9a549",
+      "parent_run_id": "run_68EGGCCHVWX7A88XB72YR5B0BZ",
+      "schema_version": "1.0.0",
+      "terminal": {
+        "model": "gpt-6-astra",
+        "state": "completed",
+        "output": {
+          "blocks": [
+            {
+              "kind": "advice",
+              "text": "Clarify purpose and users first: organizers planning an event, families doing volunteer tasks, or both—and the intended outcome. This determines what belongs on the checklist, who is responsible, and how to judge its usefulness.",
+              "citations": []
+            },
+            {
+              "kind": "advice",
+              "text": "Then clarify activities, participant numbers and ages, and timing. Check indoor venue suitability, safety responsibilities, and what the $500 must cover together before settling the plan. Those constraints may require changing the activities. Choose the final format afterward.\n\nThe supplied context still does not settle these inputs; keep proposals distinct from confirmed arrangements.",
+              "citations": []
+            },
+            {
+              "kind": "question",
+              "text": "Who should use the checklist, and what should their volunteering accomplish?",
+              "citations": []
+            }
+          ],
+          "authority": "advisory_only",
+          "focus_keys": [
+            "pre-creation-discussion"
+          ],
+          "schema_name": "petra.copilot-output",
+          "schema_version": "1.0.0"
+        },
+        "finished_at": "2026-10-10T20:51:19.934Z",
+        "provider_turn_id": "01a12795-86e3-7432-b567-b9c53430fc64",
+        "provider_thread_id": "01a12795-86bd-7bc2-a63c-b17b0d12aeaf"
+      },
+      "input_manifest": {
+        "content": {
+          "run_id": "run_3EM89XY1W98BRV2XBCAETC0M2Y",
+          "history": [
+            {
+              "run_id": "run_4ZGFT7FXM154QR08T178KCE1N8",
+              "disclosure": "included_current_basis",
+              "answer_hash": "sha256:1211da2b1bfc52d0a9e183621530b54b8b1c51067ebb5c9d165e4cbbbf90ebbb",
+              "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+              "question_hash": "sha256:19783897bc75b83c3941e3f31b91345acd636042c0e6ad68d26ad182e416b562"
+            },
+            {
+              "run_id": "run_7BQ9E34CHVRVKRRN52R67AREDD",
+              "disclosure": "included_current_basis",
+              "answer_hash": "sha256:e15b5b864e941018c214d3ea55f72855567b1a1ac26f2fa13606007969ab442a",
+              "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+              "question_hash": "sha256:44c39eb6633bae27422dc22e252dbf5d8f4500f4343dd2a8de42ee5718e679b8"
+            },
+            {
+              "run_id": "run_0C8J3EEPBRMB5PPRZJTD3K3PTM",
+              "disclosure": "included_current_basis",
+              "answer_hash": "sha256:b8c6d3b141472e9b984bdb18a9a61fa50d5fe2f06a9de12e2578b597a43efeff",
+              "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+              "question_hash": "sha256:a6e643897278706b4395ebe0f8cb6867a0b84ac81319da447769437e2e19d9b4"
+            },
+            {
+              "run_id": "run_5YK8JJ2D2VHR8ZTZSBKP6FCRB9",
+              "disclosure": "included_current_basis",
+              "answer_hash": "sha256:eaf5dbafcc516b98c60b0e4eb42f15395766859d3b65274ae5779ab2dfc50c93",
+              "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+              "question_hash": "sha256:44c39eb6633bae27422dc22e252dbf5d8f4500f4343dd2a8de42ee5718e679b8"
+            },
+            {
+              "run_id": "run_0RM85C025KY7FERTHCYWG5WXK4",
+              "disclosure": "included_current_basis",
+              "answer_hash": "sha256:ef89980f5050796870d9d225927785fa75ed20abb9d8dbaf705d307584a08247",
+              "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+              "question_hash": "sha256:a6e643897278706b4395ebe0f8cb6867a0b84ac81319da447769437e2e19d9b4"
+            },
+            {
+              "run_id": "run_68EGGCCHVWX7A88XB72YR5B0BZ",
+              "disclosure": "included_current_basis",
+              "answer_hash": "sha256:b0dda2ac9584783ffef2804318f0245349364d41e43f93f9d802cb6f264498d9",
+              "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+              "question_hash": "sha256:44c39eb6633bae27422dc22e252dbf5d8f4500f4343dd2a8de42ee5718e679b8"
+            }
+          ],
+          "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+          "authority": "advisory_input_only",
+          "thread_id": "thread_417PHGY55GKB1GRA9ZVV8W75SB",
+          "project_id": "project_4GNM3G166Z7RCBSW5K6TXZ3XZ9",
+          "input_bytes": 14356,
+          "prepared_at": "2026-10-10T20:51:13.201Z",
+          "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+          "profile_hash": "sha256:39706626f815827e098a83c9a842900f73c9fe58c38f03688cfd48a08c51e00d",
+          "history_bytes": 7998,
+          "input_payload_hash": "sha256:cf339ae1fb82fdb3669155c7fa858524b6a998ae611e02ede7999734175d392a",
+          "context_record_keys": [
+            "pre-creation-discussion",
+            "scene:30d12a7e4c914227"
+          ],
+          "history_query_limit": 200,
+          "excluded_history_count": 0,
+          "retained_history_count": 6,
+          "history_query_may_have_omissions": false
+        },
+        "schema_name": "petra.copilot-input-manifest",
+        "content_hash": "sha256:b818e32610d6ccd09169dd16b9396603cde37ed2bcbc0fe7fd69e3f8bd2c0a91",
+        "schema_version": "1.0.0"
+      }
+    }
+  ],
+  "browser_errors": [],
+  "working_role_readiness": {
+    "project_id": "project_4GNM3G166Z7RCBSW5K6TXZ3XZ9",
+    "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+    "role": "petra.copilot-working-plan@1.0.0",
+    "output_contract": "petra.copilot-working-plan@1.0.0",
+    "authority": "proposed_only",
+    "availability": {
+      "state": "ready",
+      "provider_model": "gpt-6-astra",
+      "profile_hash": "sha256:b9aab4af63b470e4a027a5a5472d4796812d0a1b2cece9a877128157ab9d85ca",
+      "output_schema_hash": "sha256:36e32fd435ce43938883d2c7eabec5f68ab6c71626640ca45058276c9007ff82"
+    },
+    "invocation": {
+      "state": "owner_required",
+      "reason": "An exact server-owned preview, canonical retained interaction, human decision and ordinary command owner are required before a proposal can be applied."
+    }
+  },
+  "source_fingerprints": {
+    "apps/server/src/project-copilot.ts": "sha256:a276723a78d000cbaedd758fef74c0cc95a155f2a053157ce5704229b963030a",
+    "apps/server/src/project-copilot-model.ts": "sha256:b9c12a86fc9923b5761838695b7241a16f5f00ca8204cfe514e06a899416559c",
+    "apps/server/src/project-copilot-routes.ts": "sha256:90ed54cd10ae06550bcadeaa72fe95417596a5b6ce918513665e3bbaeb5c469f",
+    "packages/postgres/src/project-copilot-repository.ts": "sha256:ef88920479c551e73328abd905de83c0cbe91ed82260a9386f81265aede72883",
+    "packages/core/src/project-copilot.ts": "sha256:3329ca4ebfb82972746a63b502e96b3b446b777dc061a21632746d99d86efc66",
+    "packages/adapters/src/project-copilot-ag-ui.ts": "sha256:e3e55f249d081f3b0fe89e802cff37393a1c63b5976be44f41059c321ccd2dc6",
+    "apps/workbench/src/product/ProjectCopilotConversation.tsx": "sha256:2b769f6ac43432ef4cfe574bf19e8b8edac6cb45dcb767aa75e256a9d18b45b5",
+    "apps/workbench/src/product/CopilotWorkspace.tsx": "sha256:b9f5bbf5cc215b372d45741c9aab0754adf9b41dc4e2dccbad00fa55b4c08722",
+    "apps/workbench/test/a1-conversation-model-browser.mjs": "sha256:16f08d111324682799c546874f0c5a7b7ca467c0b6b4714241712aa181123dcf"
+  }
+}
