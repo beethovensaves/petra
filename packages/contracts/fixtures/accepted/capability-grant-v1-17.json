@@ -1,0 +1,23 @@
+{
+  "schema_name": "petra.capability-grant",
+  "schema_version": "1.17.0",
+  "capability_grant_id": "capability_grant_01ARZ3NDEKTSV4RRFFQ69G5FBJ",
+  "revision": 1,
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "grantee": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "human"
+  },
+  "content": {
+    "scope_kind": "project_commands",
+    "allowed_commands": ["RunProjectCopilot"],
+    "valid_from": "2026-09-08T00:00:00.000Z",
+    "reason": "Allow the local Project owner to execute the currently registered governed commands."
+  },
+  "content_hash": "sha256:211c69f744f03a543f190f174785d9bf00a99a3593d19005b4158b560ae74ec4",
+  "issued_by": {
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "actor_kind": "human"
+  },
+  "issued_at": "2026-09-08T00:00:00.000Z"
+}

@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/conversation-result/1.0.0/schema.json",
+  "title": "PetraConversationResult",
+  "description": "Immutable native advisory delivery content retained by an exact canonical InteractionRun and ProjectThread. The record hash identifies this whole registered JSON object; delivery has no domain authority.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "conversation_result_id",
+    "revision",
+    "project_id",
+    "actor_id",
+    "protocol_thread_id",
+    "protocol_run_id",
+    "turn_content_hash",
+    "terminal"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.conversation-result"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "conversation_result_id": {
+      "type": "string",
+      "pattern": "^conversation_result_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "revision": {
+      "const": 1
+    },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "actor_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ActorId"
+    },
+    "protocol_thread_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "protocol_run_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "turn_content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "terminal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "finished_at"],
+      "properties": {
+        "state": {
+          "enum": ["completed", "failed", "cancelled"]
+        },
+        "finished_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "output": {
+          "$ref": "../../copilot-output/1.0.0/schema.json"
+        },
+        "error": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8000
+        },
+        "model": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "provider_thread_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "provider_turn_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "completed"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "output",
+              "model",
+              "provider_thread_id",
+              "provider_turn_id"
+            ],
+            "properties": {
+              "error": false,
+              "output": {},
+              "model": {},
+              "provider_thread_id": {},
+              "provider_turn_id": {}
+            }
+          },
+          "else": {
+            "required": ["error"],
+            "properties": {
+              "output": false,
+              "error": {}
+            }
+          }
+        }
+      ]
+    }
+  }
+}

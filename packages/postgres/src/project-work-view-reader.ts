@@ -5,7 +5,7 @@ import type {
   PetraProjectWorkView,
   PetraProjectWorkViewV11,
   PetraWorkerInputManifest,
-  PetraWorkerOutputManifest,
+  RegisteredWorkerOutputManifest as PetraWorkerOutputManifest,
   PetraWorkUnit,
   ProjectWorkAttentionSummary,
   ProjectWorkAuthorityPosition,
@@ -333,11 +333,12 @@ export class PostgresProjectWorkViewReader implements ProjectWorkViewReader {
         limits: clone(composed.input.content.resource_limits),
         usage:
           composed.output === undefined ||
+          composed.output.schema_version === "1.1.0" ||
           composed.outputRecordHash === undefined
             ? {
                 state: "unavailable",
                 reason:
-                  "No current WorkerOutputManifest supplies measured resource use.",
+                  "Complete resource use is unavailable. Inspect the exact WorkerOutputManifest for retained measurements and explicit provider limits.",
               }
             : {
                 state: "measured",
@@ -378,7 +379,8 @@ export class PostgresProjectWorkViewReader implements ProjectWorkViewReader {
         {
           area: "resources",
           state: composed.output === undefined ? "partial" : "complete",
-          ...(composed.output === undefined
+          ...(composed.output === undefined ||
+          composed.output.schema_version === "1.1.0"
             ? { limitation: "Only authorized resource limits are available." }
             : {}),
         },
@@ -722,7 +724,7 @@ export class PostgresProjectWorkViewReader implements ProjectWorkViewReader {
       }
       this.#contracts.assertValid(
         "worker-output-manifest",
-        "1.0.0",
+        (row.output_payload as { schema_version: string }).schema_version,
         row.output_payload,
       );
       output = row.output_payload as PetraWorkerOutputManifest;

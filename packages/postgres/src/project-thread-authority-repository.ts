@@ -4,12 +4,19 @@ import type {
   PetraContextPacket,
   PetraGroundedResponse,
   PetraInteractionRun,
-  PetraProjectThread,
+  PetraProjectThreadV11,
   PetraWorkUnit,
   ProjectThreadTurn,
 } from "@petra/contracts";
 import { PetraContractRegistry } from "@petra/contracts/validator";
-import type { ProjectThreadAuthorityRepository } from "@petra/core";
+import {
+  conversationResultRecord,
+  copilotHash,
+  type CopilotTurn,
+  type CopilotTerminal,
+  type CanonicalProjectThread,
+  type ProjectThreadAuthorityRepository,
+} from "@petra/core";
 import { canonicalize } from "json-canonicalize";
 import type { Pool, PoolClient } from "pg";
 
@@ -64,16 +71,34 @@ const same = (left: unknown, right: unknown): boolean =>
 export class PostgresProjectThreadAuthorityRepository implements ProjectThreadAuthorityRepository {
   readonly #pool: Pool;
   readonly #contracts: PetraContractRegistry;
+  readonly #transactionClient: PoolClient | undefined;
 
-  constructor(pool: Pool, contracts = new PetraContractRegistry()) {
+  constructor(
+    pool: Pool,
+    contracts = new PetraContractRegistry(),
+    transactionClient?: PoolClient,
+  ) {
     this.#pool = pool;
     this.#contracts = contracts;
+    this.#transactionClient = transactionClient;
+  }
+
+  inTransaction(client: PoolClient): PostgresProjectThreadAuthorityRepository {
+    return new PostgresProjectThreadAuthorityRepository(
+      this.#pool,
+      this.#contracts,
+      client,
+    );
   }
 
   async registerProjectThreadRevision(
-    thread: PetraProjectThread,
-  ): Promise<PetraProjectThread> {
-    this.#contracts.assertValid("project-thread", "1.0.0", thread);
+    thread: CanonicalProjectThread,
+  ): Promise<CanonicalProjectThread> {
+    this.#contracts.assertValid(
+      "project-thread",
+      thread.schema_version,
+      thread,
+    );
     if (thread.content_hash !== canonicalHash(thread.content)) {
       throw new PostgresProjectThreadError(
         "PROJECT_THREAD_CONTENT_HASH_MISMATCH",
@@ -82,9 +107,10 @@ export class PostgresProjectThreadAuthorityRepository implements ProjectThreadAu
     }
     this.#assertLocalStructure(thread);
 
-    const client = await this.#pool.connect();
+    const client = this.#transactionClient ?? (await this.#pool.connect());
     try {
-      await client.query("BEGIN ISOLATION LEVEL SERIALIZABLE");
+      if (this.#transactionClient === undefined)
+        await client.query("BEGIN ISOLATION LEVEL SERIALIZABLE");
       await client.query(
         "SELECT pg_advisory_xact_lock(hashtextextended($1, 0))",
         [`project-thread:${thread.project_thread_id}`],
@@ -125,7 +151,8 @@ export class PostgresProjectThreadAuthorityRepository implements ProjectThreadAu
           [thread.project_thread_id, thread.revision],
         );
         if (existing.rows[0]?.record_hash === recordHash) {
-          await client.query("COMMIT");
+          if (this.#transactionClient === undefined)
+            await client.query("COMMIT");
           return clone(thread);
         }
         if (existing.rows[0] !== undefined) {
@@ -170,10 +197,10 @@ export class PostgresProjectThreadAuthorityRepository implements ProjectThreadAu
           [thread.project_thread_id, thread.revision],
         );
       }
-      await client.query("COMMIT");
+      if (this.#transactionClient === undefined) await client.query("COMMIT");
       return clone(thread);
     } catch (error) {
-      await client.query("ROLLBACK");
+      if (this.#transactionClient === undefined) await client.query("ROLLBACK");
       if (error instanceof PostgresProjectThreadError) throw error;
       const pgError = error as PgError;
       if (pgError.code === "23505") {
@@ -190,7 +217,7 @@ export class PostgresProjectThreadAuthorityRepository implements ProjectThreadAu
       }
       throw error;
     } finally {
-      client.release();
+      if (this.#transactionClient === undefined) client.release();
     }
   }
 
@@ -198,8 +225,10 @@ export class PostgresProjectThreadAuthorityRepository implements ProjectThreadAu
     projectId: string,
     projectThreadId: string,
     revision?: number,
-  ): Promise<PetraProjectThread | undefined> {
-    const result = await this.#pool.query<StoredRow>(
+  ): Promise<CanonicalProjectThread | undefined> {
+    const result = await (
+      this.#transactionClient ?? this.#pool
+    ).query<StoredRow>(
       `SELECT record.payload, record.record_hash
          FROM petra.project_threads AS thread
          JOIN petra.project_thread_revisions AS record
@@ -213,8 +242,12 @@ export class PostgresProjectThreadAuthorityRepository implements ProjectThreadAu
       : this.#stored(result.rows[0]);
   }
 
-  async listProjectThreads(projectId: string): Promise<PetraProjectThread[]> {
-    const result = await this.#pool.query<StoredRow>(
+  async listProjectThreads(
+    projectId: string,
+  ): Promise<CanonicalProjectThread[]> {
+    const result = await (
+      this.#transactionClient ?? this.#pool
+    ).query<StoredRow>(
       `SELECT record.payload, record.record_hash
          FROM petra.project_threads AS thread
          JOIN petra.project_thread_revisions AS record
@@ -227,7 +260,7 @@ export class PostgresProjectThreadAuthorityRepository implements ProjectThreadAu
     return result.rows.map((row) => this.#stored(row));
   }
 
-  #assertLocalStructure(thread: PetraProjectThread): void {
+  #assertLocalStructure(thread: CanonicalProjectThread): void {
     const turns = thread.content.turns;
     const turnIds = new Set<string>();
     for (const [index, turn] of turns.entries()) {
@@ -251,6 +284,16 @@ export class PostgresProjectThreadAuthorityRepository implements ProjectThreadAu
       }
       turnIds.add(turn.project_turn_id);
       if (
+        thread.schema_version === "1.1.0" &&
+        turn.context.context_record_ref.schema_name ===
+          "petra.copilot-context" &&
+        turn.response.result_record_ref.schema_name ===
+          "petra.conversation-result" &&
+        "basis" in turn.context &&
+        turn.compaction.state === "unmodified"
+      )
+        continue;
+      if (
         turn.context.context_record_ref.schema_name !==
           "petra.context-packet" ||
         turn.context.context_record_ref.schema_version !== "1.0.0" ||
@@ -269,7 +312,7 @@ export class PostgresProjectThreadAuthorityRepository implements ProjectThreadAu
 
   async #assertRevisionHistory(
     client: PoolClient,
-    thread: PetraProjectThread,
+    thread: CanonicalProjectThread,
   ): Promise<void> {
     if (thread.revision > 1) {
       const prior = await client.query<PayloadRow>(
@@ -278,7 +321,8 @@ export class PostgresProjectThreadAuthorityRepository implements ProjectThreadAu
           WHERE project_thread_id = $1 AND revision = $2`,
         [thread.project_thread_id, thread.revision - 1],
       );
-      const parent = prior.rows[0]?.payload as PetraProjectThread | undefined;
+      const parent = prior.rows[0]?.payload as
+        CanonicalProjectThread | undefined;
       if (
         parent === undefined ||
         thread.lineage.lineage_kind !== "revision" ||
@@ -322,7 +366,7 @@ export class PostgresProjectThreadAuthorityRepository implements ProjectThreadAu
         ],
       );
       const parentThread = parent.rows[0]?.payload as
-        PetraProjectThread | undefined;
+        CanonicalProjectThread | undefined;
       if (
         parentThread === undefined ||
         !parentThread.content.turns.some(
@@ -339,18 +383,33 @@ export class PostgresProjectThreadAuthorityRepository implements ProjectThreadAu
 
   async #assertExactBindings(
     client: PoolClient,
-    thread: PetraProjectThread,
+    thread: CanonicalProjectThread,
   ): Promise<void> {
     for (const turn of thread.content.turns) {
-      await this.#assertTurnBindings(client, thread.project_id, turn);
+      await this.#assertTurnBindings(
+        client,
+        thread.project_id,
+        turn,
+        thread.project_thread_id,
+      );
     }
   }
 
   async #assertTurnBindings(
     client: PoolClient,
     projectId: string,
-    turn: ProjectThreadTurn,
+    turn: ProjectThreadTurn | PetraProjectThreadV11["content"]["turns"][number],
+    projectThreadId: string,
   ): Promise<void> {
+    if ("basis" in turn.context) {
+      await this.#assertNativeConversationBindings(
+        client,
+        projectId,
+        projectThreadId,
+        turn,
+      );
+      return;
+    }
     const contextRef = turn.context.context_record_ref;
     const contextResult = await client.query<PayloadRow>(
       `SELECT payload FROM petra.context_packets
@@ -516,9 +575,158 @@ export class PostgresProjectThreadAuthorityRepository implements ProjectThreadAu
     }
   }
 
+  async #assertNativeConversationBindings(
+    client: PoolClient,
+    projectId: string,
+    projectThreadId: string,
+    turn: PetraProjectThreadV11["content"]["turns"][number],
+  ): Promise<void> {
+    if (!("basis" in turn.context))
+      this.#invalid(
+        "Native conversation context requires its exact native basis.",
+      );
+    const result = await client.query<{
+      payload: CopilotTurn;
+      terminal: CopilotTerminal;
+      context_record_id: string;
+      context_hash: string;
+      turn_content_hash: string;
+      result_record_id: string;
+      result_hash: string;
+      input_artifact_id: string;
+      response_artifact_id: string;
+      run_payload: PetraInteractionRun;
+      work_payload: PetraWorkUnit;
+      capture: string;
+      owned_thread_id: string;
+    }>(
+      `SELECT t.payload,x.payload AS terminal,c.context_record_id,c.context_hash,
+      c.turn_content_hash,c.input_artifact_id,r.result_record_id,r.result_hash,r.response_artifact_id,
+      ir.payload AS run_payload,w.payload AS work_payload,b.payload->>'capture' AS capture,b.project_thread_id AS owned_thread_id
+      FROM petra.project_copilot_turns t
+      JOIN petra.project_copilot_terminals x USING(run_id)
+      JOIN petra.project_copilot_context_refs c USING(run_id)
+      JOIN petra.project_copilot_result_refs r USING(run_id)
+      JOIN petra.project_copilot_owner_bindings b ON b.run_id=t.run_id AND b.revision=1
+      JOIN petra.interaction_run_revisions ir ON ir.interaction_run_id=$3 AND ir.revision=$4 AND ir.content_hash=$5
+      JOIN petra.work_unit_revisions w ON w.work_unit_id=$6 AND w.revision=$7 AND w.spec_hash=$8
+      WHERE t.run_id=$1 AND t.project_id=$2 AND c.project_id=$2 AND ir.project_id=$2 AND w.project_id=$2`,
+      [
+        turn.input.source_message_id,
+        projectId,
+        turn.execution.interaction_run_ref.interaction_run_id,
+        turn.execution.interaction_run_ref.revision,
+        turn.execution.interaction_run_ref.content_hash,
+        turn.execution.work_unit_ref.work_unit_id,
+        turn.execution.work_unit_ref.revision,
+        turn.execution.work_unit_ref.spec_hash,
+      ],
+    );
+    const row = result.rows[0];
+    if (row === undefined)
+      this.#invalid(
+        "A native conversation must resolve its retained content and canonical execution owners.",
+      );
+    const { payload, terminal, run_payload: run, work_payload: work } = row;
+    this.#contracts.assertValid(
+      "copilot-turn",
+      payload.schema_version,
+      payload,
+    );
+    this.#contracts.assertValid("interaction-run", "1.0.0", run);
+    this.#contracts.assertValid("work-unit", "1.0.0", work);
+    const {
+      terminal: ignoredTerminal,
+      input_manifest: ignoredManifest,
+      ...original
+    } = payload;
+    void ignoredTerminal;
+    void ignoredManifest;
+    if (
+      row.owned_thread_id !== projectThreadId ||
+      payload.actor_id !== turn.authority_context.actor.actor_id ||
+      turn.authority_context.actor.actor_kind !== "human" ||
+      payload.context.project_id !== projectId ||
+      row.turn_content_hash !== copilotHash(original) ||
+      turn.input.input_hash !== row.turn_content_hash ||
+      turn.input.retention_state !== "retained_artifact" ||
+      turn.input.artifact_ref.artifact_id !== row.input_artifact_id ||
+      turn.context.context_record_ref.schema_name !== "petra.copilot-context" ||
+      turn.context.context_record_ref.schema_version !== "1.0.0" ||
+      turn.context.context_record_ref.record_id !== row.context_record_id ||
+      turn.context.context_record_ref.revision !== 1 ||
+      turn.context.context_record_ref.content_hash !== row.context_hash ||
+      row.context_hash !== payload.context.content_hash ||
+      !same(turn.context.basis, payload.context.basis) ||
+      turn.context.included_object_count !== payload.context.records.length ||
+      turn.context.coverage_state !== "bounded" ||
+      turn.response.result_record_ref.schema_name !==
+        "petra.conversation-result" ||
+      turn.response.result_record_ref.schema_version !== "1.0.0" ||
+      turn.response.result_record_ref.record_id !== row.result_record_id ||
+      turn.response.result_record_ref.revision !== 1 ||
+      turn.response.result_record_ref.content_hash !== row.result_hash ||
+      row.result_hash !==
+        copilotHash(conversationResultRecord(payload, terminal)) ||
+      turn.response.response_artifact_ref.artifact_id !==
+        row.response_artifact_id ||
+      turn.response.state !== terminal.state ||
+      turn.project_definition_ref.project_definition_id !==
+        payload.context.basis.definition.record_id ||
+      turn.project_definition_ref.revision !==
+        payload.context.basis.definition.revision ||
+      turn.project_definition_ref.content_hash !==
+        payload.context.basis.definition.content_hash ||
+      turn.project_definition_ref.definition_family !==
+        payload.context.definition_family ||
+      run.content.correlation.protocol_thread_id !== payload.thread_id ||
+      run.content.correlation.protocol_run_id !== payload.run_id ||
+      run.content.input.input_hash !== turn.input.input_hash ||
+      run.content.input.source_message_id !== turn.input.source_message_id ||
+      run.content.correlation.work_unit_ref.work_unit_id !==
+        work.work_unit_id ||
+      run.content.correlation.work_unit_ref.spec_hash !== work.spec_hash ||
+      run.content.authority_context.actor.actor_id !== payload.actor_id ||
+      run.content.authority_context.actor.actor_kind !== "human" ||
+      run.content.authority_context.capability_grant_id !==
+        work.capability_grant_id ||
+      turn.authority_context.capability_grant_id !== work.capability_grant_id ||
+      !same(
+        turn.authority_context.privacy_profile_ref,
+        run.content.authority_context.privacy_profile_ref,
+      ) ||
+      !same(
+        turn.authority_context.budget_profile_ref,
+        run.content.authority_context.budget_profile_ref,
+      ) ||
+      (work.status.state !== "completed" &&
+        work.status.state !== "cancelled") ||
+      (row.capture !== "historical_adoption" &&
+        (run.content.lifecycle.state !== terminal.state ||
+          (terminal.state === "completed"
+            ? work.status.state !== "completed" ||
+              work.status.terminal_outcome !== "succeeded"
+            : terminal.state === "cancelled"
+              ? work.status.state !== "cancelled"
+              : work.status.state !== "completed" ||
+                ![
+                  "worker_failed",
+                  "validation_failed",
+                  "timed_out",
+                  "resource_exhausted",
+                ].includes(work.status.terminal_outcome))))
+    ) {
+      this.#invalid(
+        "The native turn's content, outcome, definition or authority differs from its exact owners.",
+      );
+    }
+    await this.#requireArtifact(client, turn.input.artifact_ref);
+    await this.#requireArtifact(client, turn.response.response_artifact_ref);
+  }
+
   async #insertRevision(
     client: PoolClient,
-    thread: PetraProjectThread,
+    thread: CanonicalProjectThread,
     recordHash: string,
   ): Promise<void> {
     const origin = thread.content.origin;
@@ -575,15 +783,16 @@ export class PostgresProjectThreadAuthorityRepository implements ProjectThreadAu
 
   async #insertTurn(
     client: PoolClient,
-    thread: PetraProjectThread,
-    turn: ProjectThreadTurn,
+    thread: CanonicalProjectThread,
+    turn: ProjectThreadTurn | PetraProjectThreadV11["content"]["turns"][number],
   ): Promise<void> {
     const inputArtifact =
       turn.input.retention_state === "retained_artifact"
         ? turn.input.artifact_ref
         : undefined;
     const context = turn.context.context_record_ref;
-    const snapshot = turn.context.snapshot_ref;
+    const snapshot =
+      "snapshot_ref" in turn.context ? turn.context.snapshot_ref : undefined;
     const run = turn.execution.interaction_run_ref;
     const work = turn.execution.work_unit_ref;
     const result = turn.response.result_record_ref;
@@ -607,13 +816,13 @@ export class PostgresProjectThreadAuthorityRepository implements ProjectThreadAu
          response_artifact_id, response_artifact_hash,
          response_artifact_byte_size, response_artifact_media_type,
          authority_actor_id, authority_actor_kind, capability_grant_id,
-         recorded_at, turn_payload
+         recorded_at, turn_payload, native_run_id
        ) VALUES (
          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,
          $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23,
          $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34,
          $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45,
-         $46, $47, $48::jsonb
+         $46, $47, $48::jsonb, $49
        )`,
       [
         thread.project_thread_id,
@@ -637,13 +846,13 @@ export class PostgresProjectThreadAuthorityRepository implements ProjectThreadAu
         inputArtifact?.media_type ?? null,
         context.schema_name,
         context.schema_version,
-        context.record_id,
-        context.revision,
-        context.content_hash,
-        snapshot.snapshot_id,
-        snapshot.snapshot_revision,
-        snapshot.event_position,
-        snapshot.content_hash,
+        snapshot === undefined ? null : context.record_id,
+        snapshot === undefined ? null : context.revision,
+        snapshot === undefined ? null : context.content_hash,
+        snapshot?.snapshot_id ?? null,
+        snapshot?.snapshot_revision ?? null,
+        snapshot?.event_position ?? null,
+        snapshot?.content_hash ?? null,
         run.interaction_run_id,
         run.revision,
         run.content_hash,
@@ -652,9 +861,9 @@ export class PostgresProjectThreadAuthorityRepository implements ProjectThreadAu
         work.spec_hash,
         result.schema_name,
         result.schema_version,
-        result.record_id,
-        result.revision,
-        result.content_hash,
+        snapshot === undefined ? null : result.record_id,
+        snapshot === undefined ? null : result.revision,
+        snapshot === undefined ? null : result.content_hash,
         artifact.artifact_id,
         artifact.content_hash,
         artifact.byte_size,
@@ -664,13 +873,18 @@ export class PostgresProjectThreadAuthorityRepository implements ProjectThreadAu
         turn.authority_context.capability_grant_id,
         turn.recorded_at,
         JSON.stringify(turn),
+        snapshot === undefined ? turn.input.source_message_id : null,
       ],
     );
   }
 
-  #stored(row: StoredRow): PetraProjectThread {
-    this.#contracts.assertValid("project-thread", "1.0.0", row.payload);
-    const thread = row.payload as PetraProjectThread;
+  #stored(row: StoredRow): CanonicalProjectThread {
+    const schemaVersion = (row.payload as { schema_version?: string })
+      .schema_version;
+    if (schemaVersion !== "1.0.0" && schemaVersion !== "1.1.0")
+      this.#invalid("Unsupported retained ProjectThread version.");
+    this.#contracts.assertValid("project-thread", schemaVersion, row.payload);
+    const thread = row.payload as CanonicalProjectThread;
     if (
       row.record_hash !== canonicalHash(thread) ||
       thread.content_hash !== canonicalHash(thread.content)

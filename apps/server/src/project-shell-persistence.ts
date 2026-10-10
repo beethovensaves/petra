@@ -12,10 +12,15 @@ import type {
 } from "@petra/contracts";
 import { ProjectExaminationService } from "./project-examination.js";
 import { PostgresCommunicationPlanReader } from "@petra/postgres";
+import { PostgresCopilotPermissionAuthority } from "@petra/postgres";
 import { PostgresCopilotTurnRepository } from "@petra/postgres";
 import { PostgresProjectSemanticGraphReader } from "@petra/postgres";
 import type { ProjectSemanticGraphReader } from "@petra/core";
-import type { CopilotTurnRepository } from "@petra/core";
+import type {
+  ConversationHistoryReader,
+  ConversationPermissionAuthority,
+  CopilotTurnRepository,
+} from "@petra/core";
 import {
   CreateBucketCommand,
   HeadBucketCommand,
@@ -179,6 +184,8 @@ const readBuiltInProfiles = async (): Promise<
 export interface ProjectShellPersistence {
   readonly examinations?: ProjectExaminationService;
   readonly copilotTurns: CopilotTurnRepository;
+  readonly copilotHistory?: ConversationHistoryReader;
+  readonly copilotPermission?: ConversationPermissionAuthority;
   readonly intakeCopilot?: IntakeCopilotRepository;
   readonly semanticGraphs?: ProjectSemanticGraphReader;
   readonly localActorId?: string;
@@ -431,6 +438,20 @@ export const createProjectShellPersistenceFromEnvironment = async (
     pool,
     artifactStore,
   );
+  const copilotTurns = new PostgresCopilotTurnRepository(
+    pool,
+    configuredActorId === undefined || configuredActorId === ""
+      ? undefined
+      : {
+          actorId: configuredActorId,
+          artifactStore,
+          artifacts: artifactAuthority,
+        },
+  );
+  const copilotPermission =
+    configuredActorId === undefined || configuredActorId === ""
+      ? undefined
+      : new PostgresCopilotPermissionAuthority(pool, configuredActorId);
   const contracts = new PetraContractRegistry();
   const semanticGraphs = new PostgresProjectSemanticGraphReader(
     pool,
@@ -778,7 +799,9 @@ export const createProjectShellPersistenceFromEnvironment = async (
           contracts,
         );
       return {
-        copilotTurns: new PostgresCopilotTurnRepository(pool),
+        copilotTurns,
+        copilotHistory: copilotTurns,
+        ...(copilotPermission === undefined ? {} : { copilotPermission }),
         intakeCopilot: new PostgresIntakeCopilotRepository(pool),
         semanticGraphs,
         ...(examinations === undefined ? {} : { examinations }),
@@ -895,8 +918,10 @@ export const createProjectShellPersistenceFromEnvironment = async (
   }
 
   return {
-    copilotTurns: new PostgresCopilotTurnRepository(pool),
-        intakeCopilot: new PostgresIntakeCopilotRepository(pool),
+    copilotTurns,
+    copilotHistory: copilotTurns,
+    ...(copilotPermission === undefined ? {} : { copilotPermission }),
+    intakeCopilot: new PostgresIntakeCopilotRepository(pool),
     semanticGraphs,
     ...(examinations === undefined ? {} : { examinations }),
     ...(configuredActorId === undefined

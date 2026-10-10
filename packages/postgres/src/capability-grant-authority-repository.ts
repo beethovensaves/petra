@@ -68,9 +68,23 @@ export class PostgresCapabilityGrantAuthorityRepository implements CapabilityGra
   readonly #pool: Pool;
   readonly #contracts: PetraContractRegistry;
 
-  constructor(pool: Pool, contracts = new PetraContractRegistry()) {
+  constructor(
+    pool: Pool,
+    contracts = new PetraContractRegistry(),
+    readonly transactionClient?: PoolClient,
+  ) {
     this.#pool = pool;
     this.#contracts = contracts;
+  }
+
+  inTransaction(
+    client: PoolClient,
+  ): PostgresCapabilityGrantAuthorityRepository {
+    return new PostgresCapabilityGrantAuthorityRepository(
+      this.#pool,
+      this.#contracts,
+      client,
+    );
   }
 
   async registerCapabilityGrant(
@@ -452,6 +466,8 @@ export class PostgresCapabilityGrantAuthorityRepository implements CapabilityGra
   async #transaction<Value>(
     operation: (client: PoolClient) => Promise<Value>,
   ): Promise<Value> {
+    if (this.transactionClient !== undefined)
+      return operation(this.transactionClient);
     const client = await this.#pool.connect();
     try {
       await client.query("BEGIN ISOLATION LEVEL SERIALIZABLE");

@@ -1,3 +1,9 @@
+import type { PetraProjectDefinitionDraftCommandRequestV11 } from "./generated/project-definition-draft-command-request-v1-1.js";
+import type { PetraProjectDefinitionDraftCommandRequest as PetraProjectDefinitionDraftCommandRequestV10 } from "./generated/project-definition-draft-command-request.js";
+import type { PetraProjectThreadViewV11 } from "./generated/project-thread-view-v1-1.js";
+import type { PetraProjectThreadView } from "./generated/project-thread-view.js";
+import type { PetraWorkerOutputManifestV11 } from "./generated/worker-output-manifest-v1-1.js";
+import type { PetraWorkerOutputManifest } from "./generated/worker-output-manifest.js";
 export type { PetraActor } from "./generated/actor.js";
 export type { PetraScientificCommunicationPayload } from "./generated/scientific-communication-payload.js";
 export type {
@@ -1624,6 +1630,7 @@ import type { PetraCapabilityGrantV1110 } from "./generated/capability-grant-v1-
 import type { PetraCapabilityGrantV1120 } from "./generated/capability-grant-v1-12.js";
 import type { PetraCapabilityGrantV1130 } from "./generated/capability-grant-v1-13.js";
 import type { PetraCapabilityGrantV1140 } from "./generated/capability-grant-v1-14.js";
+import type { PetraCapabilityGrantV1170 } from "./generated/capability-grant-v1-17.js";
 import type { PetraCapabilityGrantV1160 } from "./generated/capability-grant-v1-16.js";
 import type { PetraCapabilityGrantV1150 } from "./generated/capability-grant-v1-15.js";
 import type { PetraCommandEnvelope } from "./generated/command-envelope.js";
@@ -1663,7 +1670,8 @@ export type PetraCapabilityGrantRecord =
   | PetraCapabilityGrantV1130
   | PetraCapabilityGrantV1140
   | PetraCapabilityGrantV1150
-  | PetraCapabilityGrantV1160;
+  | PetraCapabilityGrantV1160
+  | PetraCapabilityGrantV1170;
 export type PetraCommandEnvelopeRecord =
   PetraCommandEnvelope | PetraCommandEnvelopeV110;
 export type PetraDomainEventRecord =
@@ -1763,7 +1771,31 @@ export type { PetraIntakeCopilotRequest } from "./generated/intake-copilot-reque
 
 export type { PetraProjectDefinitionDraftCommandRequestV11 } from "./generated/project-definition-draft-command-request-v1-1.js";
 export type PetraProjectDefinitionDraftCommandRequest =
-  | import("./generated/project-definition-draft-command-request.js").PetraProjectDefinitionDraftCommandRequest
-  | import("./generated/project-definition-draft-command-request-v1-1.js").PetraProjectDefinitionDraftCommandRequestV11;
+  | PetraProjectDefinitionDraftCommandRequestV10
+  | PetraProjectDefinitionDraftCommandRequestV11;
 
 export type { PetraCopilotWorkingPlan } from "./generated/copilot-working-plan.js";
+
+export type { PetraProjectThreadV11 } from "./generated/project-thread-v1-1.js";
+
+export type { PetraWorkerOutputManifestV11 } from "./generated/worker-output-manifest-v1-1.js";
+export type {
+  PetraProjectThreadViewV11,
+  CollectionContent as ProjectThreadViewCollectionContentV11,
+  DetailContent as ProjectThreadViewDetailContentV11,
+  ThreadSummary as ProjectThreadViewThreadSummaryV11,
+  TurnView as ProjectThreadViewTurnV11,
+} from "./generated/project-thread-view-v1-1.js";
+export type RegisteredWorkerOutputManifest =
+  PetraWorkerOutputManifest | PetraWorkerOutputManifestV11;
+export type RegisteredProjectThreadView =
+  PetraProjectThreadView | PetraProjectThreadViewV11;
+
+export type { PetraConversationResult } from "./generated/conversation-result.js";
+
+export type { PetraCapabilityGrantV1170 } from "./generated/capability-grant-v1-17.js";
+export type {
+  PetraCopilotAuthorityRequest,
+  ConversationAuthorityProposal,
+} from "./generated/copilot-authority-request.js";
+export type { PetraCopilotAuthorityReceipt } from "./generated/copilot-authority-receipt.js";

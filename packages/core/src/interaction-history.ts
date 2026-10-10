@@ -74,10 +74,11 @@ const artifactIntegrity = (
   };
 };
 
-const eventArtifactRecords = (
-  event: PetraInteractionEvent,
+export const interactionContentArtifactRecords = (
+  event: Pick<PetraInteractionEvent, "threadId" | "runId" | "sequence">,
   available: AvailableArtifact,
   serviceActor: PetraActor,
+  mediaType = EVENT_MEDIA_TYPE,
 ): {
   artifact: PetraArtifact;
   manifest: PetraArtifactManifest;
@@ -94,7 +95,7 @@ const eventArtifactRecords = (
     artifact_id: artifactId,
     revision: 1,
     artifact_kind: "structured_text",
-    media_type: EVENT_MEDIA_TYPE,
+    media_type: mediaType,
     content_hash: available.contentHash,
     byte_size: available.byteSize,
     created_by: actor,
@@ -164,7 +165,7 @@ const eventArtifactRecords = (
 
 const persistArtifact = async (
   repository: ArtifactAuthorityRepository,
-  records: ReturnType<typeof eventArtifactRecords>,
+  records: ReturnType<typeof interactionContentArtifactRecords>,
 ): Promise<void> => {
   const existing = await repository.getArtifact(records.artifact.artifact_id);
   if (existing === undefined) {
@@ -429,7 +430,7 @@ export class DurableInteractionHistory implements InteractionHistoryPort {
         expectedContentHash: byteHash(encoded),
       });
       const available = await this.#options.artifactStore.makeAvailable(staged);
-      const artifactRecords = eventArtifactRecords(
+      const artifactRecords = interactionContentArtifactRecords(
         event,
         available,
         this.#options.serviceActor,

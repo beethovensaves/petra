@@ -868,8 +868,16 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
     context: Context<{ Variables: Variables }>,
     error: unknown,
   ): Response => {
-    if (error instanceof CopilotBoundaryError && error.code.startsWith("INTAKE_")) {
-      return jsonError(context, 409, "PROJECT_DEFINITION_DRAFT_STALE", error.message);
+    if (
+      error instanceof CopilotBoundaryError &&
+      error.code.startsWith("INTAKE_")
+    ) {
+      return jsonError(
+        context,
+        409,
+        "PROJECT_DEFINITION_DRAFT_STALE",
+        error.message,
+      );
     }
     if (error instanceof ProjectDefinitionDraftError) {
       const status =
@@ -1096,7 +1104,11 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
     await next();
   });
 
-  mountWorkingPlanReadiness(app, options.projectCopilot, options.workingPlanDeployment);
+  mountWorkingPlanReadiness(
+    app,
+    options.projectCopilot,
+    options.workingPlanDeployment,
+  );
   mountIntakeCopilotRoutes(app, options.intakeCopilot);
   mountProjectCopilotRoutes(
     app,
@@ -4980,7 +4992,7 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
           "The requested Project does not exist in the local authority store.",
         );
       }
-      contracts.assertValid("project-thread-view", "1.0.0", view);
+      contracts.assertValid("project-thread-view", view.schema_version, view);
       if (
         view.project_id !== projectId ||
         view.content.view_kind !== "collection" ||
@@ -5046,7 +5058,7 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
             "The requested ProjectThread is not bound to this Project.",
           );
         }
-        contracts.assertValid("project-thread-view", "1.0.0", view);
+        contracts.assertValid("project-thread-view", view.schema_version, view);
         if (
           view.project_id !== projectId ||
           view.content.view_kind !== "detail" ||
@@ -5703,7 +5715,11 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
             "The exact WorkerOutputManifest is not retained in this Project.",
           );
         }
-        contracts.assertValid("worker-output-manifest", "1.0.0", manifest);
+        contracts.assertValid(
+          "worker-output-manifest",
+          manifest.schema_version,
+          manifest,
+        );
         if (
           manifest.project_id !== projectId ||
           manifest.worker_output_manifest_id !== manifestId ||

@@ -28,6 +28,7 @@ import type {
   PetraProjectSource,
   PetraRightsDecision,
   PetraReviewSessionV110,
+  PetraCapabilityGrantV1160,
   PetraSourceSpan,
   PetraStructuralBlock,
   PetraWorkerInputManifest,
@@ -47,6 +48,9 @@ import type {
 } from "@petra/contracts";
 import {
   derivePetraId,
+  assertConversationOwnerBinding,
+  copilotHash,
+  type CopilotTurn,
   HypothesisExaminationKernel,
   examinationRecordRef,
   examinationAuthorityProposal,
@@ -82,6 +86,9 @@ import type {
   PostgresWorkingStateErrorCode,
 } from "../src/working-state-authority-repository.js";
 import { PostgresWorkingStateAuthorityRepository } from "../src/working-state-authority-repository.js";
+import { PostgresCopilotTurnRepository } from "../src/project-copilot-repository.js";
+import { PostgresCapabilityGrantAuthorityRepository } from "../src/capability-grant-authority-repository.js";
+import { createMemoryArtifactStore } from "./artifact-store-fixture.js";
 import { availableArtifactStore } from "./artifact-store-fixture.js";
 
 const { Pool } = pg;
@@ -1356,6 +1363,232 @@ describePostgres("PostgreSQL working-state authority", () => {
         )
       ).rows[0]!.count,
     ).toBe("0");
+  });
+
+  it("retains canonical conversation lineage across actual inquiry Work Review and hypothesis cycle records", async () => {
+    const fixture = await setupAuthority(true),
+      root = candidate(fixture);
+    await working.admitWorkingCandidateRevision({
+      candidate: root,
+      profileRecord: fixture.claim,
+    });
+    const relation = relationship(fixture, root);
+    await working.admitWorkingRelationshipRevision({
+      relationship: relation,
+      profileRecord: fixture.assertion,
+    });
+    const session = readFixture<PetraReviewSessionV110>(
+      "review-session-working-candidate",
+    );
+    session.project_id = fixture.project.project_id;
+    session.project_definition_ref = {
+      project_definition_id: fixture.definition.project_definition_id,
+      revision: fixture.definition.revision,
+      content_hash: fixture.definition.content_hash,
+    };
+    session.content.objective_ref = {
+      objective_id: fixture.objective.objective_id,
+      revision: fixture.objective.revision,
+      content_hash: fixture.objective.content_hash,
+    };
+    const position = (
+      await pool.query<{ event_position: string; stream_revision: string }>(
+        "SELECT authority.event_position::text,COALESCE(stream.current_stream_revision,0)::text AS stream_revision FROM petra.authority_positions authority LEFT JOIN petra.project_event_stream_heads stream ON stream.project_id=$1 WHERE authority.singleton",
+        [fixture.project.project_id],
+      )
+    ).rows[0]!;
+    session.content.snapshot = {
+      event_position: Number(position.event_position),
+      stream_revision: Number(position.stream_revision),
+      captured_at: new Date().toISOString(),
+    };
+    session.content.members = [
+      {
+        review_member_id: derivePetraId("review_member", "copilot-lineage"),
+        member_role: "ordinary",
+        working_state: {
+          candidate_ref: {
+            working_candidate_id: root.working_candidate_id,
+            revision: root.revision,
+            content_hash: root.content_hash,
+          },
+          relationship_refs: [
+            {
+              working_relationship_id: relation.working_relationship_id,
+              revision: relation.revision,
+              content_hash: relation.content_hash,
+            },
+          ],
+        },
+        candidate_bindings: [
+          {
+            semantic_key: root.profile_object.registration.semantic_key,
+            binding_role: "candidate",
+            record_ref: {
+              record_id: fixture.claim.claim_id,
+              revision: fixture.claim.revision,
+              record_hash: canonicalHash(fixture.claim),
+            },
+          },
+          {
+            semantic_key:
+              relation.profile_relationship.registration.semantic_key,
+            binding_role: "relationship",
+            record_ref: {
+              record_id: fixture.assertion.assertion_id,
+              revision: fixture.assertion.revision,
+              record_hash: canonicalHash(fixture.assertion),
+            },
+          },
+        ],
+      },
+    ];
+    session.content_hash = canonicalHash(session.content);
+    await reviewSessions.registerReviewSessionRevision(session);
+    const graph = (await semanticGraphs.getProjectSemanticGraph(
+      fixture.project.project_id,
+    ))!;
+    const hypothesis = readFixture<PetraHypothesis>("hypothesis");
+    hypothesis.content.target_claim_ref = graph.content.nodes[0]!.record_ref;
+    hypothesis.content_hash = canonicalHash(hypothesis.content);
+    const assessment = readFixture<PetraHypothesisAssessment>(
+      "hypothesis-assessment",
+    );
+    assessment.content.subject_ref = examinationRecordRef(hypothesis);
+    assessment.content.target_claim_ref = hypothesis.content.target_claim_ref;
+    assessment.content.basis = {
+      definition_ref: graph.content.definition_ref,
+      objective_ref: graph.content.objective_ref ?? null,
+      graph_content_hash: graph.content_hash,
+      event_position: graph.content.authority.event_position,
+      stream_revision: graph.content.authority.stream_revision,
+      query_kind: "current_registered_working_heads",
+    };
+    assessment.content.review_state = "reviewed";
+    assessment.content_hash = canonicalHash(assessment.content);
+    const kernel = new HypothesisExaminationKernel({
+      profile_ref: assessment.content.profile_ref,
+      policy_ref: assessment.content.policy_ref,
+      criteria: new Map(),
+      finding_types: new Map(),
+      obligation_types: new Map(),
+      allowed_dispositions: ["insufficient", "deferred", "further_cycle"],
+    });
+    const examinations = new PostgresProjectExaminationRepository(
+      pool,
+      semanticGraphs,
+      () => kernel,
+    );
+    await examinations.append(hypothesis);
+    await examinations.append(assessment);
+    const posture = readFixture<PetraPostureDecision>("posture-decision");
+    posture.content.assessment_ref = examinationRecordRef(assessment);
+    posture.content_hash = canonicalHash(posture.content);
+    await examinations.append(posture);
+    const disposition = readFixture<PetraCycleDisposition>("cycle-disposition");
+    disposition.content.assessment_ref = examinationRecordRef(assessment);
+    disposition.content.posture_ref = examinationRecordRef(posture);
+    disposition.content.basis = assessment.content.basis;
+    disposition.content.unresolved_questions =
+      assessment.content.material_unknowns;
+    disposition.content_hash = canonicalHash(disposition.content);
+    await examinations.append(disposition);
+    const grant = readFixture<PetraCapabilityGrantV1160>(
+      "capability-grant-v1-16",
+    );
+    grant.content.allowed_commands = ["ManageProjectWork"];
+    grant.content_hash = copilotHash(grant.content);
+    await new PostgresCapabilityGrantAuthorityRepository(
+      pool,
+    ).registerCapabilityGrant(grant);
+    const store = createMemoryArtifactStore(),
+      options = {
+        actorId: fixture.project.created_by.actor_id,
+        artifactStore: store,
+        artifacts: new PostgresArtifactAuthorityRepository(pool, store),
+      };
+    const repository = new PostgresCopilotTurnRepository(pool, options),
+      turn = readFixture<CopilotTurn>("copilot-turn");
+    turn.actor_id = options.actorId;
+    turn.project_id = fixture.project.project_id;
+    turn.context.project_id = fixture.project.project_id;
+    turn.thread_id = derivePetraId(
+      "thread",
+      `copilot:${turn.project_id}:${turn.actor_id}`,
+    );
+    turn.run_id = derivePetraId("run", "complete-native-lineage");
+    turn.focus_keys = [];
+    turn.started_at = new Date().toISOString();
+    turn.context.basis.definition = {
+      record_id: fixture.definition.project_definition_id,
+      revision: fixture.definition.revision,
+      content_hash: fixture.definition.content_hash,
+    };
+    turn.context.definition_family = fixture.definition.definition_family;
+    turn.context.basis.objective = {
+      record_id: fixture.objective.objective_id,
+      revision: fixture.objective.revision,
+      content_hash: fixture.objective.content_hash,
+    };
+    const records = [
+      { record: fixture.workUnit, id: fixture.workUnit.work_unit_id },
+      { record: session, id: session.review_session_id },
+      { record: hypothesis, id: hypothesis.hypothesis_id },
+      { record: assessment, id: assessment.hypothesis_assessment_id },
+      { record: posture, id: posture.posture_decision_id },
+      { record: disposition, id: disposition.cycle_disposition_id },
+    ];
+    turn.context.records = records.map(({ record, id }, index) => ({
+      key: `owned-${index}`,
+      ref: {
+        record_id: id,
+        revision: record.revision,
+        record_hash: copilotHash(record),
+      },
+      kind: record.schema_name.replace(/^petra\./u, ""),
+      label: `Exact native ${record.schema_name}`,
+      destination: `/projects/${fixture.project.project_id}/work`,
+      text: "Known synthetic fixture record retained through its actual owner.",
+    }));
+    const { content_hash: ignored, ...context } = turn.context;
+    void ignored;
+    turn.context.content_hash = copilotHash(context);
+    await repository.begin(turn);
+    await repository.finish(turn, {
+      state: "failed",
+      finished_at: new Date().toISOString(),
+      error: "Synthetic lineage test; no provider was invoked.",
+    });
+    const restarted = new PostgresCopilotTurnRepository(pool, options),
+      retained = (await restarted.get(
+        turn.project_id,
+        turn.actor_id,
+        turn.run_id,
+      ))!,
+      owned = (await restarted.ownership!.read(
+        turn.project_id,
+        turn.actor_id,
+        turn.run_id,
+      ))!;
+    assertConversationOwnerBinding(retained, owned.binding, owned.records);
+    expect(
+      owned.binding.lineage.inquiries.map((ref) => ref.record_id),
+    ).toContain(fixture.objective.objective_id);
+    expect(owned.binding.lineage.work).toHaveLength(2);
+    expect(owned.binding.lineage.reviews.map((ref) => ref.record_id)).toEqual([
+      session.review_session_id,
+    ]);
+    expect(owned.binding.lineage.cycles.map((ref) => ref.record_id)).toEqual(
+      records.slice(2).map((item) => item.id),
+    );
+    await restarted.get(turn.project_id, turn.actor_id, turn.run_id);
+    expect(
+      (
+        await pool.query<{ count: number }>(
+          "SELECT count(*)::int AS count FROM petra.work_units",
+        )
+      ).rows[0]!.count,
+    ).toBe(2);
   });
 
   it("persists two exact scoped examination revisions, preserves earlier cycle records, and forbids immutable mutation", async () => {

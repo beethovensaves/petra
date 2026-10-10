@@ -639,6 +639,17 @@ const groundedWorkOutput = (
       ),
       output_bytes: responseBytes,
       network_bytes: 0,
+      ...(request.result.model_call.content.usage.input_tokens === undefined
+        ? {}
+        : {
+            input_tokens: request.result.model_call.content.usage.input_tokens,
+          }),
+      ...(request.result.model_call.content.usage.output_tokens === undefined
+        ? {}
+        : {
+            output_tokens:
+              request.result.model_call.content.usage.output_tokens,
+          }),
     },
   };
   return {
@@ -823,6 +834,17 @@ const terminalWorkRecords = (
       input_bytes: 0,
       output_bytes: responseBytes,
       network_bytes: 0,
+      ...(request.result.model_call.content.usage.input_tokens === undefined
+        ? {}
+        : {
+            input_tokens: request.result.model_call.content.usage.input_tokens,
+          }),
+      ...(request.result.model_call.content.usage.output_tokens === undefined
+        ? {}
+        : {
+            output_tokens:
+              request.result.model_call.content.usage.output_tokens,
+          }),
     },
   };
   const output: PetraWorkerOutputManifest = {

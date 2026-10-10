@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/copilot-authority-receipt/1.0.0/schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_name": {
+      "const": "petra.copilot-authority-receipt"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "copilot_authority_receipt_id": {
+      "type": "string",
+      "pattern": "^copilot_authority_receipt_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "revision": {
+      "const": 1
+    },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "content": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "command_id",
+        "idempotency_key",
+        "request_hash",
+        "proposal",
+        "review",
+        "grant"
+      ],
+      "properties": {
+        "command_id": {
+          "type": "string",
+          "pattern": "^command_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "idempotency_key": {
+          "type": "string",
+          "minLength": 16,
+          "maxLength": 200
+        },
+        "request_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "proposal": {
+          "$ref": "../../copilot-authority-request/1.0.0/schema.json#/$defs/ConversationAuthorityProposal"
+        },
+        "review": {
+          "$ref": "../../copilot-authority-request/1.0.0/schema.json#/$defs/ConversationAuthorityReview"
+        },
+        "grant": {
+          "$ref": "../../capability-grant/1.17.0/schema.json"
+        }
+      }
+    },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "recorded_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "title": "PetraCopilotAuthorityReceipt",
+  "required": [
+    "schema_name",
+    "schema_version",
+    "copilot_authority_receipt_id",
+    "revision",
+    "project_id",
+    "content",
+    "content_hash",
+    "recorded_at"
+  ]
+}

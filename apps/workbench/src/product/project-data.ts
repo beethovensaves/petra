@@ -79,7 +79,7 @@ import type {
   PetraSuggestedActionInvocationRequest,
   PetraSuggestedActionInvocationView,
   PetraSuggestedActionViewV11,
-  PetraProjectThreadView,
+  RegisteredProjectThreadView as PetraProjectThreadView,
   PetraProjectWorkReadView,
   PetraProjectWorkOperationReceipt,
   PetraProjectWorkOperationRequest,
@@ -88,7 +88,7 @@ import type {
   PetraProjectWorkResumeRequest,
   PetraProjectWorkStartAgainReceipt,
   PetraProjectWorkStartAgainRequest,
-  PetraWorkerOutputManifest,
+  RegisteredWorkerOutputManifest as PetraWorkerOutputManifest,
   FocusedGraphProjectSnapshotRef,
   ProjectDefinitionTerm,
   CommandReviewSessionRef,
@@ -1888,7 +1888,7 @@ const projectThreadView = (value: unknown): PetraProjectThreadView => {
   if (
     !isRecord(value) ||
     value.schema_name !== "petra.project-thread-view" ||
-    value.schema_version !== "1.0.0" ||
+    (value.schema_version !== "1.0.0" && value.schema_version !== "1.1.0") ||
     typeof value.project_id !== "string" ||
     !isRecord(value.content) ||
     (value.content.view_kind !== "collection" &&
@@ -6570,11 +6570,11 @@ export interface ProjectWorkerOutputSelection {
   }>;
   readonly resourceUsage: {
     readonly wallTimeMs: number;
-    readonly cpuTimeMs: number;
-    readonly peakMemoryBytes: number;
+    readonly cpuTimeMs?: number;
+    readonly peakMemoryBytes?: number;
     readonly inputBytes: number;
     readonly outputBytes: number;
-    readonly networkBytes: number;
+    readonly networkBytes?: number;
     readonly gpuTimeMs?: number;
     readonly inputTokens?: number;
     readonly outputTokens?: number;
@@ -8231,11 +8231,12 @@ const selectedWorkerOutput = (
     result.destination.target_ref.semantic_key !== selection.semanticKey ||
     result.destination.target_ref.object_id !== selection.recordId ||
     result.destination.target_ref.revision !== selection.revision ||
-    usage.state !== "measured" ||
-    usage.output_manifest_ref.record_id !== selection.recordId ||
-    usage.output_manifest_ref.revision !== selection.revision ||
-    usage.output_manifest_ref.content_hash !== selection.contentHash ||
-    usage.output_manifest_ref.record_hash !== selection.recordHash ||
+    (usage.state !== "measured" && manifest?.schema_version !== "1.1.0") ||
+    (usage.state === "measured" &&
+      (usage.output_manifest_ref.record_id !== selection.recordId ||
+        usage.output_manifest_ref.revision !== selection.revision ||
+        usage.output_manifest_ref.content_hash !== selection.contentHash ||
+        usage.output_manifest_ref.record_hash !== selection.recordHash)) ||
     manifest === undefined ||
     manifest.project_id !== view.project_id ||
     manifest.worker_output_manifest_id !== selection.recordId ||
@@ -8247,8 +8248,9 @@ const selectedWorkerOutput = (
       summary.execution.terminal_outcome ||
     canonicalize(manifest.content.worker) !==
       canonicalize(specification.worker) ||
-    canonicalize(manifest.content.resource_usage) !==
-      canonicalize(usage.resource_usage) ||
+    (usage.state === "measured" &&
+      canonicalize(manifest.content.resource_usage) !==
+        canonicalize(usage.resource_usage)) ||
     manifest.content.outcome.produced_outputs.length !==
       reportedOutputs.length ||
     manifest.content.outcome.produced_outputs.some((output) => {
@@ -8270,6 +8272,7 @@ const selectedWorkerOutput = (
   }
   const measured = manifest.content.resource_usage;
   const limitations = [
+    ...("measurement_scope" in measured ? [measured.measurement_scope] : []),
     ...outputs.map((output) => output.availability.limitation),
     ...coverage.flatMap((item) =>
       item.state === "complete" || item.limitation === undefined
@@ -8329,11 +8332,17 @@ const selectedWorkerOutput = (
     })),
     resourceUsage: {
       wallTimeMs: measured.wall_time_ms,
-      cpuTimeMs: measured.cpu_time_ms,
-      peakMemoryBytes: measured.peak_memory_bytes,
+      ...(measured.cpu_time_ms === null
+        ? {}
+        : { cpuTimeMs: measured.cpu_time_ms }),
+      ...(measured.peak_memory_bytes === null
+        ? {}
+        : { peakMemoryBytes: measured.peak_memory_bytes }),
       inputBytes: measured.input_bytes,
       outputBytes: measured.output_bytes,
-      networkBytes: measured.network_bytes,
+      ...(measured.network_bytes === null
+        ? {}
+        : { networkBytes: measured.network_bytes }),
       ...(measured.gpu_time_ms === undefined
         ? {}
         : { gpuTimeMs: measured.gpu_time_ms }),
@@ -8464,7 +8473,9 @@ export const petraThreadFromView = (
     ...(context === undefined
       ? ["No material turn has compiled Project context."]
       : [
-          `${context.omission_count} omission${context.omission_count === 1 ? "" : "s"} recorded by the exact context packet.`,
+          context.omission_count === null
+            ? "The omission count is unavailable. The original native context preserves its stated limits."
+            : `${context.omission_count} omission${context.omission_count === 1 ? "" : "s"} recorded by the exact retained context.`,
         ]),
     ...(latest === undefined
       ? []
@@ -8520,7 +8531,9 @@ export const petraThreadFromView = (
     snapshot:
       context === undefined
         ? "No material-turn snapshot"
-        : `Authority event ${context.snapshot_ref.event_position} · snapshot revision ${context.snapshot_ref.snapshot_revision}`,
+        : "snapshot_ref" in context
+          ? `Authority event ${context.snapshot_ref.event_position} · snapshot revision ${context.snapshot_ref.snapshot_revision}`
+          : `Authority event ${context.basis.event_position} · Project revision ${context.basis.project_revision}`,
     context:
       context === undefined
         ? []
@@ -8537,7 +8550,7 @@ export const petraThreadFromView = (
           activeWorkId: latest.work_destination.work_unit_ref.work_unit_id,
           activeWorkTitle: "Linked Work",
           activeWorkSummary:
-            "This turn retains the exact successful WorkUnit revision. Opening it shows operational evidence; it does not apply or promote the response.",
+            "This turn retains its exact WorkUnit revision and outcome. Opening it shows operational evidence; it does not apply or promote the response.",
           activeWorkLinkLabel: "Open linked Work",
         }),
     messages,
@@ -9156,7 +9169,12 @@ export const focusedGraphAnalysisRequestFromEntry = async (
 
 export const loadProjectGraph = async (
   args: LoaderFunctionArgs,
-): Promise<GraphQuestion | FocusedGraphRouteData | PetraProjectSemanticGraphView | undefined> => {
+): Promise<
+  | GraphQuestion
+  | FocusedGraphRouteData
+  | PetraProjectSemanticGraphView
+  | undefined
+> => {
   const projectId = requiredRouteIdentity(
     args.params.projectId,
     "A Project ID",
@@ -9166,8 +9184,14 @@ export const loadProjectGraph = async (
     new URL(args.request.url).searchParams,
   );
   if (entry === undefined) {
-    if (new URL(args.request.url).searchParams.get("query") === "authority-path") return loadProjectRelationshipOverlayGraph(args);
-    return new ProjectSemanticGraphClient({ baseUrl: apiBaseUrl(), token: apiToken() }).read(projectId, args.request.signal);
+    if (
+      new URL(args.request.url).searchParams.get("query") === "authority-path"
+    )
+      return loadProjectRelationshipOverlayGraph(args);
+    return new ProjectSemanticGraphClient({
+      baseUrl: apiBaseUrl(),
+      token: apiToken(),
+    }).read(projectId, args.request.signal);
   }
 
   const brief = await readProjectBrief({

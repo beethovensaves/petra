@@ -169,7 +169,8 @@ export interface CommandAuthorizationRequest {
     | "StartProjectSourceProcessing"
     | "AddProjectSourceRevision"
     | "DeleteLocalSourceCopy"
-    | "ConductProjectExamination";
+    | "ConductProjectExamination"
+    | "RunProjectCopilot";
   readonly projectId: string;
 }
 

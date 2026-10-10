@@ -1,6 +1,6 @@
 # A1 execution instructions
 
-Roadmap binding: `sha256:81218b7f14816dc38def5de230a0eca92e9e857bc3da6057bd7e849fcfa8da55`. Generated from frontend-a1-work-inventory.json.
+Roadmap binding: `sha256:d52b41cd3a7117a9a34808fa33aa7372928302db3ac2756ee8d08e39154b7eff`. Generated from frontend-a1-work-inventory.json.
 
 D025 and D024 govern this execution. Historical frozen Wave 6 instructions are subordinate. Native screen-reader evaluation is excluded; browser semantics and functional peers remain mandatory. The sixteen late scenarios are optional.
 
@@ -165,13 +165,13 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 State: in_progress. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.3-W01.
 
-Add authorized immutable message/content reads and turn lineage around existing ProjectThread/InteractionRun records, with text or exact content references, revisions, role, context, result, partial/terminal state, and pagination.
+Sequence: (1) expose current model and permission readiness; (2) require an explicit reviewed owner-only RunProjectCopilot grant and immutable receipt before new conversation Work or historical adoption, preserving existing authorized Work management grants; (3) retain exact private question/native-context/result Artifacts and canonical Thread/Run/Work atomically; (4) resolve exact applicable inquiry, Work, Review and cycle lineage before release; (5) page original readable content and restore questions, answers, citations and outcomes in a fresh browser; (6) reject owner substitution, widened permission, stale proposals, late partial commits and duplicate effects in the distinct critical pass.
 
-Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
+Execution plan: [reports/a1-plans/FE-A1.3-W03-execution.json](../reports/a1-plans/FE-A1.3-W03-execution.json). Critical plan: [reports/a1-plans/FE-A1.3-W03-critical.json](../reports/a1-plans/FE-A1.3-W03-critical.json). Run each with `npm run a1:verify -- PLAN` in that order.
 
 - **FE-A1.3-W03-AC01:** A fresh browser restores actual question and answer content, citations, and outcomes.
 - **FE-A1.3-W03-AC02:** A thread metadata list is insufficient.
-- **FE-A1.3-W03-AC03:** Unauthorized or mismatched Project/content references reveal no bytes.
+- **FE-A1.3-W03-AC03:** Unauthorized or mismatched Project/content references reveal no bytes. New Projects require explicit reviewed owner-only conversation permission; questions and model output cannot grant capabilities.
 - **FE-A1.3-W03-AC04:** Every retained Project turn resolves to the existing canonical ProjectThread and InteractionRun; a parallel conversation store cannot substitute for those owners.
 - **FE-A1.3-W03-AC05:** Turn context and result references preserve exact inquiry, Work, Review and cycle lineage where applicable; replay must not create a second effect.
 

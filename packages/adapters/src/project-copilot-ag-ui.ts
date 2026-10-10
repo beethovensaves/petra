@@ -1,3 +1,8 @@
+import type {
+  PetraCopilotAuthorityRequest,
+  PetraCopilotAuthorityReceipt,
+} from "@petra/contracts";
+import type { ConversationPermissionRead } from "@petra/core";
 import { HttpAgent } from "@ag-ui/client";
 import { EventType, RunAgentInputSchema, type BaseEvent } from "@ag-ui/core";
 import { EventEncoder } from "@ag-ui/encoder";
@@ -8,7 +13,13 @@ import {
 } from "@petra/core/graph-presentation";
 import type { PetraGraphPresentationContext } from "@petra/contracts";
 import type { CopilotRequest } from "@petra/core";
-import type { CopilotTurn, CopilotContext, CopilotTerminal } from "@petra/core";
+import type {
+  ConversationHistoryPage,
+  ConversationOwnerBinding,
+  CopilotTurn,
+  CopilotContext,
+  CopilotTerminal,
+} from "@petra/core";
 import { canonicalize } from "json-canonicalize";
 
 const contracts = new PetraContractRegistry();
@@ -399,7 +410,11 @@ export class ProjectCopilotClient {
     projectId: string,
     focusKeys: readonly string[] = [],
     binding?: GraphPresentationBinding,
+    history?: { limit?: number; cursor?: string },
   ): Promise<{
+    authorization?: ConversationPermissionRead;
+    history_page?: ConversationHistoryPage["page"];
+    owners?: Record<string, ConversationOwnerBinding>;
     shared_scene?: PetraGraphPresentationContext;
     thread_id: string;
     context: CopilotContext;
@@ -414,6 +429,10 @@ export class ProjectCopilotClient {
       endpoint.searchParams.set("focus", JSON.stringify(focusKeys));
     if (binding !== undefined)
       endpoint.searchParams.set("scene", JSON.stringify(binding));
+    if (history?.cursor !== undefined)
+      endpoint.searchParams.set("cursor", history.cursor);
+    if (history?.limit !== undefined)
+      endpoint.searchParams.set("limit", String(history.limit));
     const response = await (this.options.fetch ?? fetch)(endpoint, {
       headers: { authorization: `Bearer ${this.options.token}` },
     });
@@ -435,6 +454,39 @@ export class ProjectCopilotClient {
       ReturnType<ProjectCopilotClient["read"]>
     >;
     await checkContext(result.context, projectId);
+    const permission = result.authorization;
+    if (permission !== undefined) {
+      if (permission.state === "required") {
+        const proposal = permission.proposal;
+        if (
+          proposal.project_id !== projectId ||
+          !id(proposal.actor_id, "actor") ||
+          !Number.isSafeInteger(proposal.project_revision) ||
+          proposal.project_revision < 1 ||
+          !/^sha256:[0-9a-f]{64}$/u.test(proposal.project_record_hash) ||
+          proposal.domain_authority !== false ||
+          JSON.stringify(proposal.allowed_commands) !==
+            JSON.stringify(["RunProjectCopilot"]) ||
+          (await browserHash(proposal.limits)) !==
+            (await browserHash({
+              max_wall_time_ms: 120000,
+              max_output_bytes: 256000,
+              max_attempts: 1,
+              max_parallelism: 1,
+            }))
+        )
+          throw new Error(
+            "The conversation permission preview does not match this bounded Project scope.",
+          );
+      } else if (permission.state === "ready") {
+        if (!id(permission.grant_id, "capability_grant"))
+          throw new Error(
+            "The retained conversation permission has no valid grant identity.",
+          );
+      } else if (permission.state !== "unavailable") {
+        throw new Error("Conversation permission readiness is malformed.");
+      }
+    }
     if (binding !== undefined) {
       if (result.shared_scene === undefined)
         throw new Error("The requested shared graph scene is missing.");
@@ -455,9 +507,102 @@ export class ProjectCopilotClient {
       !["ready", "unavailable"].includes(result.availability.state)
     )
       throw new Error("The conversation read does not match this Project.");
+    if (
+      result.history_page !== undefined &&
+      (result.history_page.returned_count !== result.turns.length ||
+        !Number.isSafeInteger(result.history_page.anchor_sequence) ||
+        result.history_page.anchor_sequence < 0 ||
+        typeof result.history_page.has_more !== "boolean" ||
+        (result.history_page.has_more &&
+          typeof result.history_page.next_cursor !== "string"))
+    )
+      throw new Error(
+        "The retained conversation page is incomplete or malformed.",
+      );
     for (const turn of result.turns) {
       await checkTurn(turn, projectId, result.thread_id);
+      if (result.history_page !== undefined) {
+        const owner = result.owners?.[turn.run_id];
+        const {
+          terminal: ignoredTerminal,
+          input_manifest: ignoredManifest,
+          ...content
+        } = turn;
+        void ignoredTerminal;
+        void ignoredManifest;
+        if (
+          owner === undefined ||
+          owner.project_id !== projectId ||
+          owner.actor_id !== turn.actor_id ||
+          owner.protocol_thread_id !== turn.thread_id ||
+          owner.protocol_run_id !== turn.run_id ||
+          !id(owner.project_thread_ref.project_thread_id, "project_thread") ||
+          !id(owner.project_turn_id, "project_turn") ||
+          !id(
+            owner.interaction_run_ref.interaction_run_id,
+            "interaction_run",
+          ) ||
+          !id(owner.work_unit_ref.work_unit_id, "work_unit") ||
+          owner.turn_content_hash !== (await browserHash(content))
+        )
+          throw new Error(
+            "Retained conversation content does not match its exact canonical owners.",
+          );
+      }
     }
+    return result;
+  }
+
+  async authorize(
+    projectId: string,
+    request: PetraCopilotAuthorityRequest,
+  ): Promise<PetraCopilotAuthorityReceipt> {
+    const response = await (this.options.fetch ?? fetch)(
+      new URL(
+        `/api/projects/${encodeURIComponent(projectId)}/copilot/authorize`,
+        this.options.baseUrl,
+      ),
+      {
+        method: "POST",
+        headers: {
+          authorization: `Bearer ${this.options.token}`,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(request),
+      },
+    );
+    const result = (await response.json()) as PetraCopilotAuthorityReceipt & {
+      error?: { message?: string };
+    };
+    if (!response.ok)
+      throw new Error(
+        result.error?.message ??
+          "Conversation permission could not be confirmed.",
+      );
+    if (
+      result.schema_name !== "petra.copilot-authority-receipt" ||
+      result.schema_version !== "1.0.0" ||
+      result.project_id !== projectId ||
+      result.content.command_id !== request.command_id ||
+      result.content.idempotency_key !== request.idempotency_key ||
+      result.content.request_hash !== (await browserHash(request)) ||
+      result.content_hash !== (await browserHash(result.content)) ||
+      (await browserHash(result.content.proposal)) !==
+        (await browserHash(request.proposal)) ||
+      (await browserHash(result.content.review)) !==
+        (await browserHash(request.review)) ||
+      result.content.grant.schema_version !== "1.17.0" ||
+      result.content.grant.project_id !== projectId ||
+      result.content.grant.grantee.actor_id !== request.proposal.actor_id ||
+      result.content.grant.issued_by.actor_id !== request.proposal.actor_id ||
+      (await browserHash(result.content.grant.content.allowed_commands)) !==
+        (await browserHash(["RunProjectCopilot"])) ||
+      result.content.grant.content_hash !==
+        (await browserHash(result.content.grant.content))
+    )
+      throw new Error(
+        "Conversation permission receipt does not match the reviewed owner proposal.",
+      );
     return result;
   }
 

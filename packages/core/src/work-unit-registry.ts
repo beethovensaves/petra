@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 
 import type {
   PetraWorkerInputManifest,
-  PetraWorkerOutputManifest,
+  RegisteredWorkerOutputManifest as PetraWorkerOutputManifest,
   PetraWorkUnit,
   WorkerDescriptor,
   WorkerExpectedOutput,
@@ -503,29 +503,69 @@ export class InMemoryWorkUnitRegistry {
     failure: WorkerFailure,
     completedAt: string,
   ): DeepReadonly<PetraWorkUnit> {
+    return this.#fail(
+      workUnitId,
+      expectedRevision,
+      attempt,
+      "validation_failed",
+      failure,
+      completedAt,
+    );
+  }
+
+  failExecution(
+    workUnitId: string,
+    expectedRevision: number,
+    attempt: number,
+    outcome: "worker_failed" | "resource_exhausted" | "timed_out",
+    failure: WorkerFailure,
+    completedAt: string,
+  ): DeepReadonly<PetraWorkUnit> {
+    return this.#fail(
+      workUnitId,
+      expectedRevision,
+      attempt,
+      outcome,
+      failure,
+      completedAt,
+    );
+  }
+
+  #fail(
+    workUnitId: string,
+    expectedRevision: number,
+    attempt: number,
+    outcome:
+      | "worker_failed"
+      | "resource_exhausted"
+      | "timed_out"
+      | "validation_failed",
+    failure: WorkerFailure,
+    completedAt: string,
+  ): DeepReadonly<PetraWorkUnit> {
     const current = this.#requireCurrent(workUnitId, expectedRevision);
     if (current.status.state !== "running") {
       throw new WorkUnitError(
         "WORK_UNIT_STATE_INVALID",
-        `WorkUnit ${workUnitId} must be running before validation failure.`,
+        `WorkUnit ${workUnitId} must be running before terminal failure.`,
       );
     }
     if (attempt !== current.status.attempt) {
       throw new WorkUnitError(
         "WORK_UNIT_ATTEMPT_INVALID",
-        `Validation failure belongs to attempt ${attempt}, not ${current.status.attempt}.`,
+        `Terminal failure belongs to attempt ${attempt}, not ${current.status.attempt}.`,
       );
     }
     assertTimestampOrder(
       current.status.started_at,
       completedAt,
-      "Validation failure time",
+      "Terminal failure time",
     );
     return this.#advance(
       current,
       {
         state: "completed",
-        terminal_outcome: "validation_failed",
+        terminal_outcome: outcome,
         requested_at: current.status.requested_at,
         queued_at: current.status.queued_at,
         started_at: current.status.started_at,
@@ -811,22 +851,22 @@ export class InMemoryWorkUnitRegistry {
         "Worker output bytes violate the WorkUnit's total output envelope.",
       );
     }
-    const measuredLimits: [number, number | undefined, string][] = [
+    const measuredLimits: [number | null, number | undefined, string][] = [
       [usage.wall_time_ms, limits.max_wall_time_ms, "wall time"],
       [usage.cpu_time_ms, limits.max_cpu_time_ms, "CPU time"],
       [usage.peak_memory_bytes, limits.max_memory_bytes, "memory"],
       [usage.network_bytes, limits.max_network_bytes, "network bytes"],
-      [usage.gpu_time_ms ?? 0, limits.max_gpu_time_ms, "GPU time"],
-      [usage.input_tokens ?? 0, limits.max_input_tokens, "input tokens"],
-      [usage.output_tokens ?? 0, limits.max_output_tokens, "output tokens"],
+      [usage.gpu_time_ms ?? null, limits.max_gpu_time_ms, "GPU time"],
+      [usage.input_tokens ?? null, limits.max_input_tokens, "input tokens"],
+      [usage.output_tokens ?? null, limits.max_output_tokens, "output tokens"],
       [
-        usage.cost?.microunits ?? 0,
+        usage.cost?.microunits ?? null,
         limits.monetary_limit?.max_microunits,
         "monetary cost",
       ],
     ];
     for (const [actual, limit, label] of measuredLimits) {
-      if (limit !== undefined && actual > limit) {
+      if (limit !== undefined && (actual === null || actual > limit)) {
         throw new WorkUnitError(
           "RESOURCE_LIMIT_EXCEEDED",
           `Worker ${label} exceeded its hard limit.`,
@@ -848,7 +888,7 @@ export class InMemoryWorkUnitRegistry {
       (sum, activity) => sum + activity.bytes_sent + activity.bytes_received,
       0,
     );
-    if (networkBytes !== usage.network_bytes) {
+    if (usage.network_bytes !== null && networkBytes !== usage.network_bytes) {
       throw new WorkUnitError(
         "NETWORK_USAGE_MISMATCH",
         "Network activity must account for the worker's measured network bytes.",
@@ -857,7 +897,9 @@ export class InMemoryWorkUnitRegistry {
     const networkPolicy = input.content.network_policy;
     if (
       networkPolicy.network_mode === "blocked" &&
-      (manifest.content.network_activity.length > 0 || usage.network_bytes > 0)
+      (manifest.content.network_activity.length > 0 ||
+        usage.network_bytes === null ||
+        usage.network_bytes > 0)
     ) {
       throw new WorkUnitError(
         "NETWORK_POLICY_VIOLATED",
