@@ -9,6 +9,7 @@
   ],
   "sources": [
     "apps/workbench/src/main.tsx",
+    "apps/workbench/src/product/AgentControlPlane.tsx",
     "apps/workbench/src/product/CopilotWorkspace.tsx",
     "apps/workbench/src/product/ReferenceWorkbench.tsx",
     "apps/workbench/src/product/WorkspaceHost.tsx",
@@ -83,6 +84,12 @@
         "disposition": "resolved",
         "finding": "The first execution counted a legacy form inside a closed disclosure because its layout bounds were nonzero. Actual browser CSS visibility was false.",
         "resolution": "Use actual CSS visibility when counting presented forms; retain the failed capture and challenge actual composer occlusion with hit testing in the critical pass."
+      },
+      {
+        "severity": "material",
+        "disposition": "resolved",
+        "finding": "Critical short-height inspection found that the composer exceeded its own conversation box; hidden overflow clipped it. Expanded objective text consumed fixed-header space, and a failed first check left the keyboard case in a hidden pane.",
+        "resolution": "Compact objective disclosure, reserve real conversation minimums, allow support overflow to scroll, and independently set the Agent pane before keyboard activation. Rerun execution and critical on the changed candidate with containment and hit testing."
       }
     ]
   }

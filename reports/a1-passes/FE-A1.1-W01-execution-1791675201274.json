@@ -1,0 +1,87 @@
+{
+  "schema_name": "petra.a1-verification-pass",
+  "schema_version": "1.0.0",
+  "work_item": "FE-A1.1-W01",
+  "pass": "execution",
+  "contract_hash": "sha256:799d594c0d1e4146e136aa8f8c26e03e7ebd4af4071ed1228cf3990b858ef500",
+  "status": "passed",
+  "candidate_commit": "5162726f3f54edf3890b36087927328782b83694",
+  "started_at": "2026-10-10T23:33:16.231Z",
+  "finished_at": "2026-10-10T23:33:21.274Z",
+  "criteria": [
+    {
+      "id": "FE-A1.1-W01-AC01",
+      "result": "passed",
+      "test": "FE-A1.1-W01-AC01 execution: conversation and result remain legible at ordinary desktop widths",
+      "observation": "At 1280, 1440 and 1920 pixels the Agent occupies approximately 30 percent; Q/A and composer remain legible and the Workspace retains the larger share."
+    },
+    {
+      "id": "FE-A1.1-W01-AC02",
+      "result": "passed",
+      "test": "FE-A1.1-W01-AC02 execution: normal retained Q/A and draft remain available while navigating the Workspace",
+      "observation": "Actual retained managed-model Q/A and a new unsent draft survive native Sources/Overview navigation. Workspace destinations and Inspect belong to the Workspace; one visible chat form occupies the left panel."
+    },
+    {
+      "id": "FE-A1.1-W01-AC03",
+      "result": "passed",
+      "test": "FE-A1.1-W01-AC03 execution: opening an actual answer makes its Workspace object the strongest visual element",
+      "observation": "Opening the exact retained answer changes the Workspace heading and dominant object while preserving the native return path."
+    }
+  ],
+  "sources": [
+    {
+      "path": "apps/workbench/src/main.tsx",
+      "hash": "sha256:3eb932fd7ba6a957126432e5d51dabf759627671e5cc1c769494df1e48f27dad"
+    },
+    {
+      "path": "apps/workbench/src/product/CopilotWorkspace.tsx",
+      "hash": "sha256:03de5e420a32ec0b9b1921f29dac7a3221aa62ed1622dbc4f2fe6b394e335792"
+    },
+    {
+      "path": "apps/workbench/src/product/ReferenceWorkbench.tsx",
+      "hash": "sha256:67573213bf8ba8a9a3cd3657614b1f537efedf64fe7c669399f38041334532d9"
+    },
+    {
+      "path": "apps/workbench/src/product/WorkspaceHost.tsx",
+      "hash": "sha256:e0cf9a480fa38ea72283f086965aad022d4945b081ef1b59ea7ca86369798611"
+    },
+    {
+      "path": "apps/workbench/src/product/copilot-layout.css",
+      "hash": "sha256:9b355774737c412db35cb547bd67f37b96b5c522c2c282901d4a8c02e090ad42"
+    },
+    {
+      "path": "apps/workbench/test/cumulative-production-browser-driver.mjs",
+      "hash": "sha256:20321ec18affbb376dd709dbf7565c09ed9e4a9af6a6da455dd193d1d32d5a4a"
+    },
+    {
+      "path": "reports/FE-A1-INTAKE-FUNCTION-BROWSER.json",
+      "hash": "sha256:ecc6a4937cb72681457d455799a391cc5317c256d8505aa55d36265e97c70c8f"
+    },
+    {
+      "path": "scripts/a1/copilot-hierarchy.critical.test.mjs",
+      "hash": "sha256:d44898f3eb705a3f854ac0e902f52cc3efe2b0bdb614a974edd82047c911b740"
+    },
+    {
+      "path": "scripts/a1/copilot-hierarchy.test.mjs",
+      "hash": "sha256:4df1c6805382d4a1b21b71b66349e7c69a2500f6492884dc8b3cd84fbcd36ec7"
+    },
+    {
+      "path": "scripts/a1/copilot-surface.mjs",
+      "hash": "sha256:7da517f88aefb1e579461dc39edaf6f64224531234aed9974f76a848a3cf53a1"
+    }
+  ],
+  "runs": [
+    {
+      "argv": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "scripts/a1/copilot-hierarchy.test.mjs"
+      ],
+      "exit_code": 0,
+      "output": "reports/a1-passes/FE-A1.1-W01-execution-1791675201274.tap",
+      "output_hash": "sha256:66af53df85297c8c5caba2806ec7dc2b7b4e23cceea9ffa76d26d8389cedc82c"
+    }
+  ],
+  "boundary": "Live production layout, retained actual managed-model Q/A, navigation, composer, disclosure and Workspace presentation only. No new model invocation, proposal command, native examiner, cycle or overall A1 acceptance is inferred."
+}

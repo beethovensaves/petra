@@ -64,7 +64,7 @@
   flex-wrap: wrap;
 }
 .reference-project-layout > .reference-agent-panel {
-  overflow: hidden;
+  overflow-y: auto;
   min-height: 0;
   padding: 1rem;
 }
@@ -76,16 +76,36 @@
   font-size: 0.8rem;
   line-height: 1.5;
 }
+.reference-agent-panel .reference-agent-outcome {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.reference-agent-panel .copilot-outcome-disclosure {
+  position: relative;
+  width: auto;
+}
 .reference-agent-panel .copilot-outcome-disclosure[open] > p {
-  max-height: 5rem;
+  position: absolute;
+  z-index: 30;
+  top: 100%;
+  left: 0;
+  width: min(23rem, 80vw);
+  max-height: 10rem;
+  padding: 1rem;
   overflow: auto;
+  background: var(--petra-surface-panel);
+  border: 1px solid var(--petra-border-default);
+  border-radius: var(--petra-radius-medium);
+  box-shadow: var(--petra-shadow-raised);
 }
 .reference-agent-panel .copilot-conversation {
-  min-height: 16rem;
-  overflow: hidden;
+  min-height: 21rem;
+  flex-shrink: 0;
+  overflow: visible;
 }
 .reference-agent-panel .copilot-transcript {
-  min-height: 4rem;
+  min-height: 5rem;
   overscroll-behavior: contain;
   padding: 0.5rem 0.25rem;
 }

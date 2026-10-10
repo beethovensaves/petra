@@ -220,7 +220,7 @@ export const AgentConversation = ({
       />
 
       <details className="copilot-registered-synthesis">
-        <summary>Registered evidence synthesis and earlier thread</summary>
+        <summary>Evidence synthesis and earlier thread</summary>
         <section
           className="reference-agent-composer"
           aria-label="Ask and direct Petra"

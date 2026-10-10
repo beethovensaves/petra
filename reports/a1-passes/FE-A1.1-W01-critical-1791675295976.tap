@@ -1,0 +1,136 @@
+TAP version 13
+# Subtest: FE-A1.1-W01-AC01 critical: short and narrow viewports preserve accessible composition and sequential panes
+not ok 1 - FE-A1.1-W01-AC01 critical: short and narrow viewports preserve accessible composition and sequential panes
+  ---
+  duration_ms: 3766.931125
+  type: 'test'
+  location: '/Users/felipe.casadei/vscode/graphRAG/petra/scripts/a1/copilot-hierarchy.critical.test.mjs:9:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+    
+      assert(g.transcript.height >= 80)
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///Users/felipe.casadei/vscode/graphRAG/petra/scripts/a1/copilot-hierarchy.critical.test.mjs:13:3)
+    async Test.run (node:internal/test_runner/test:1404:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+  ...
+# Subtest: FE-A1.1-W01-AC02 critical: expanded disclosures and a long objective cannot crowd out the composer
+not ok 2 - FE-A1.1-W01-AC02 critical: expanded disclosures and a long objective cannot crowd out the composer
+  ---
+  duration_ms: 63.895625
+  type: 'test'
+  location: '/Users/felipe.casadei/vscode/graphRAG/petra/scripts/a1/copilot-hierarchy.critical.test.mjs:36:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+    
+      assert(g.composer.bottom <= 650 + 1 && g.composer.top >= g.agent.top)
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///Users/felipe.casadei/vscode/graphRAG/petra/scripts/a1/copilot-hierarchy.critical.test.mjs:45:3)
+    async Test.run (node:internal/test_runner/test:1404:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:969:7)
+  ...
+# Subtest: FE-A1.1-W01-AC03 critical: keyboard opening and dismissal preserve the exact answer and route identity
+not ok 3 - FE-A1.1-W01-AC03 critical: keyboard opening and dismissal preserve the exact answer and route identity
+  ---
+  duration_ms: 25044.046792
+  type: 'test'
+  location: '/Users/felipe.casadei/vscode/graphRAG/petra/scripts/a1/copilot-hierarchy.critical.test.mjs:64:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Did not reach answer activates narrow Workspace: Skip to main content
+    PETRA
+    Services ready
+    Skip to Agent
+    ← Projects
+    Plan a neighborhood volunteer checklist for families, with a $500 budget and an indoor rain option.
+    Overview
+    Agent
+    Workspace
+    Settings
+    
+    WORKSPACE
+    
+    Outcome
+    Inspect
+    Overview
+    Sources
+    Review
+    Graph
+    Outputs
+    Inspect project
+    
+    PLAN A NEIGHBORHOOD VOLUNTEER CHECKLIST FOR FAMILIES, WITH A $500 BUDGET AND AN INDOOR RAIN OPTION.
+    
+    Brief
+    
+    Start from this Project’s current objective and definition.
+    
+    Outcome-led Project
+    Definition starting state
+    
+    ORIENTATION
+    
+    Current outcome
+    
+    Plan a neighborhood volunteer checklist for families, with a $500 budget and an indoor rain option.
+    
+    This Project definition does not supply composed outcome sections for this starting state. Petra has not inferred missing sections or actions.
+    
+    Inspect Project definition
+    Why composed Brief sections are unavailable
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    Object.until (file:///Users/felipe.casadei/vscode/graphRAG/petra/scripts/a1/copilot-surface.mjs:61:11)
+    async TestContext.<anonymous> (file:///Users/felipe.casadei/vscode/graphRAG/petra/scripts/a1/copilot-hierarchy.critical.test.mjs:70:3)
+    async Test.run (node:internal/test_runner/test:1404:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:969:7)
+  ...
+not ok 4 - /Users/felipe.casadei/vscode/graphRAG/petra/scripts/a1/copilot-hierarchy.critical.test.mjs
+  ---
+  duration_ms: 61.256209
+  location: '/Users/felipe.casadei/vscode/graphRAG/petra/scripts/a1/copilot-hierarchy.critical.test.mjs:8:1'
+  failureType: 'hookFailed'
+  error: |-
+    Only three successful criterion observations can produce this artifact.
+    
+    0 !== 3
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 3
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    Object.close (file:///Users/felipe.casadei/vscode/graphRAG/petra/scripts/a1/copilot-surface.mjs:111:14)
+    TestContext.<anonymous> (file:///Users/felipe.casadei/vscode/graphRAG/petra/scripts/a1/copilot-hierarchy.critical.test.mjs:8:22)
+    TestHook.runInAsyncScope (node:async_hooks:227:14)
+    TestHook.run (node:internal/test_runner/test:1397:25)
+    TestHook.run (node:internal/test_runner/test:1741:18)
+    TestHook.run (node:internal/util:581:20)
+    Test.runHook (node:internal/test_runner/test:1284:20)
+    after (node:internal/test_runner/test:1337:20)
+    Test.run (node:internal/test_runner/test:1423:13)
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 0
+# fail 4
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 44080.354958

@@ -84,7 +84,7 @@ export async function copilotSurface(pass) {
   const geometry = () =>
     cdp.evaluate(`(() => {
     const box=selector=>{const e=document.querySelector(selector),r=e.getBoundingClientRect(),s=getComputedStyle(e); return {top:r.top,bottom:r.bottom,left:r.left,right:r.right,width:r.width,height:r.height,font:parseFloat(s.fontSize),line:parseFloat(s.lineHeight),display:s.display};};
-    return {viewport:{width:innerWidth,height:innerHeight,scrollWidth:document.documentElement.scrollWidth},agent:box('#project-agent'),workspace:box('#project-workspace'),transcript:box('.copilot-transcript'),composer:box('.copilot-compose-area'),input:box('#copilot-question'),heading:box('.reference-agent-heading'),object:box('.reference-project-main h1, .copilot-workspace-result h2')};
+    return {viewport:{width:innerWidth,height:innerHeight,scrollWidth:document.documentElement.scrollWidth},agent:box('#project-agent'),conversation:box('.copilot-conversation'),workspace:box('#project-workspace'),transcript:box('.copilot-transcript'),composer:box('.copilot-compose-area'),input:box('#copilot-question'),heading:box('.reference-agent-heading'),object:box('.reference-project-main h1, .copilot-workspace-result h2')};
   })()`);
   const key = async (value, code, virtualKey) => {
     await cdp.send("Input.dispatchKeyEvent", {

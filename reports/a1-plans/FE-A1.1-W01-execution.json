@@ -9,6 +9,7 @@
   ],
   "sources": [
     "apps/workbench/src/main.tsx",
+    "apps/workbench/src/product/AgentControlPlane.tsx",
     "apps/workbench/src/product/CopilotWorkspace.tsx",
     "apps/workbench/src/product/ReferenceWorkbench.tsx",
     "apps/workbench/src/product/WorkspaceHost.tsx",
