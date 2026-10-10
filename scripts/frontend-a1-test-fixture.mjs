@@ -34,6 +34,9 @@ export function fixture() {
     item.status = "planned";
     item.completion_evidence = [];
     item.retained_evidence = [];
+    item.historical_completion_evidence = [];
+    item.execution_history = [];
+    item.reopenings = [];
   });
   data.active_work = null;
   const item = data.work_items.find((entry) => entry.id === "FE-A1.0-W06");

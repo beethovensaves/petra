@@ -21,9 +21,9 @@
   ],
   "status_definitions": {
     "planned": "Required construction not delivered.",
-    "in_progress": "Partial implementation or retained bounded mechanics; own complete criteria not proven.",
+    "in_progress": "The single prerequisite-ready item currently in execution, critical review, repair or broad diagnosis. Historical partial construction remains retained under its planned item.",
     "blocked": "Named dependency cannot proceed; work remains mandatory.",
-    "complete": "Own observable criteria and required evidence pass; all prerequisites complete."
+    "complete": "Every criterion has distinct execution and critical evidence on the same committed source; all prerequisites are complete and material findings are resolved."
   },
   "milestones": [
     {
@@ -93,7 +93,18 @@
           "command": "node --test scripts/audit-frontend-a1.test.mjs scripts/wave-handoff.test.mjs",
           "boundary": "Documentation, ledger accounting, and delivery-controller checks only. No copilot, Workspace, graph, cyclic examination or product acceptance is established by this report."
         }
-      ]
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.125Z"
+        }
+      ],
+      "verification_plans": {
+        "execution": "reports/a1-plans/FE-A1.0-W01-execution.json",
+        "critical": "reports/a1-plans/FE-A1.0-W01-critical.json"
+      }
     },
     {
       "id": "FE-A1.0-W02",
@@ -128,7 +139,18 @@
           "command": "node --test scripts/audit-frontend-a1.test.mjs scripts/wave-handoff.test.mjs",
           "boundary": "Documentation, ledger accounting, and delivery-controller checks only. No copilot, Workspace, graph, cyclic examination or product acceptance is established by this report."
         }
-      ]
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
+      ],
+      "verification_plans": {
+        "execution": "reports/a1-plans/FE-A1.0-W02-execution.json",
+        "critical": "reports/a1-plans/FE-A1.0-W02-critical.json"
+      }
     },
     {
       "id": "FE-A1.0-W03",
@@ -164,7 +186,18 @@
           "command": "node --test scripts/audit-frontend-a1.test.mjs scripts/wave-handoff.test.mjs",
           "boundary": "Documentation, ledger accounting, and delivery-controller checks only. No copilot, Workspace, graph, cyclic examination or product acceptance is established by this report."
         }
-      ]
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
+      ],
+      "verification_plans": {
+        "execution": "reports/a1-plans/FE-A1.0-W03-execution.json",
+        "critical": "reports/a1-plans/FE-A1.0-W03-critical.json"
+      }
     },
     {
       "id": "FE-A1.0-W04",
@@ -200,7 +233,18 @@
           "command": "node --test scripts/audit-frontend-a1.test.mjs scripts/wave-handoff.test.mjs",
           "boundary": "Documentation, ledger accounting, and delivery-controller checks only. No copilot, Workspace, graph, cyclic examination or product acceptance is established by this report."
         }
-      ]
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
+      ],
+      "verification_plans": {
+        "execution": "reports/a1-plans/FE-A1.0-W04-execution.json",
+        "critical": "reports/a1-plans/FE-A1.0-W04-critical.json"
+      }
     },
     {
       "id": "FE-A1.0-W05",
@@ -215,7 +259,10 @@
       ],
       "depends_on": [
         "FE-A1.0-W06",
-        "FE-A1.0-W01"
+        "FE-A1.0-W01",
+        "FE-A1.0-W02",
+        "FE-A1.0-W03",
+        "FE-A1.0-W04"
       ],
       "contracts": [
         "D024",
@@ -235,7 +282,18 @@
           "command": "node --test scripts/audit-frontend-a1.test.mjs scripts/wave-handoff.test.mjs",
           "boundary": "Documentation, ledger accounting, and delivery-controller checks only. No copilot, Workspace, graph, cyclic examination or product acceptance is established by this report."
         }
-      ]
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
+      ],
+      "verification_plans": {
+        "execution": "reports/a1-plans/FE-A1.0-W05-execution.json",
+        "critical": "reports/a1-plans/FE-A1.0-W05-critical.json"
+      }
     },
     {
       "id": "FE-A1.0-W06",
@@ -260,9 +318,95 @@
         "D013",
         "D018"
       ],
-      "retained_evidence": [],
+      "retained_evidence": [
+        "reports/a1-passes/FE-A1.0-W06-execution-1791660646152.json",
+        "reports/a1-passes/FE-A1.0-W06-critical-1791660649524.json"
+      ],
       "completion_evidence": [],
-      "optional_scenarios": []
+      "optional_scenarios": [],
+      "execution_history": [
+        {
+          "item": "FE-A1.0-W06",
+          "phase": "critical",
+          "failed_attempts": 0,
+          "started_at": "2026-10-10T19:17:08.681Z",
+          "failures": [
+            {
+              "reason": "Executed capture check rejected inherited Node test context output.",
+              "phase": "execution",
+              "recorded_at": "2026-10-10T19:26:34.382Z"
+            },
+            {
+              "reason": "Corrected capture still rejected exact test names because the fixture omitted the standard TAP separator.",
+              "phase": "execution",
+              "recorded_at": "2026-10-10T19:26:34.382Z"
+            }
+          ],
+          "diagnoses": [
+            {
+              "contract": "The gate must establish an executed passing check for each criterion; it cannot treat matching prose in a log as an executed test.",
+              "architecture": "The verification runner invokes Node tests in a child process. Test-runner context must not leak from a parent test process into that child.",
+              "dependencies": "The fixture generated simplified TAP while the pinned Node 24 runner emits the standard dash separator in named result lines. Both need the same protocol grammar.",
+              "environment": "The inherited NODE_TEST_CONTEXT altered the first captured output. The runner now removes that internal variable, preserving other application environment values.",
+              "verification": "The first attempt failed the executed-summary check; the second passed the summary but failed the exact named-result check. Inspection of a separately captured real TAP record identified the mismatch.",
+              "changed_remedy": "Use standard TAP result-line grammar for exact names, correct synthetic logs to that grammar, retain a child-process execution test, and reject skipped or comment-only claims. Re-run execution and separate critical tests on the corrected candidate.",
+              "failures": [
+                {
+                  "reason": "Executed capture check rejected inherited Node test context output.",
+                  "phase": "execution",
+                  "recorded_at": "2026-10-10T19:26:34.382Z"
+                },
+                {
+                  "reason": "Corrected capture still rejected exact test names because the fixture omitted the standard TAP separator.",
+                  "phase": "execution",
+                  "recorded_at": "2026-10-10T19:26:34.382Z"
+                }
+              ],
+              "recorded_at": "2026-10-10T19:26:34.383Z"
+            }
+          ],
+          "passes": [
+            {
+              "pass": "execution",
+              "artifact": "reports/a1-passes/FE-A1.0-W06-execution-1791660646152.json",
+              "command": "node --test --test-reporter=tap scripts/frontend-a1-process.test.mjs",
+              "boundary": "Delivery-control implementation only. Temporary Git/worktree fixtures test guards; they establish no copilot, Workspace, native examiner, model or cyclic verification product completion. Generated status views are checked from the current canonical ledger; static implementation and test files bind the committed candidate."
+            },
+            {
+              "pass": "critical",
+              "artifact": "reports/a1-passes/FE-A1.0-W06-critical-1791660649524.json",
+              "command": "node --test --test-reporter=tap scripts/frontend-a1-process.critical.test.mjs",
+              "boundary": "Delivery-control implementation only. Temporary Git/worktree fixtures test guards; they establish no copilot, Workspace, native examiner, model or cyclic verification product completion. Generated status views are checked from the current canonical ledger; static implementation and test files bind the committed candidate."
+            }
+          ],
+          "finished_at": "2026-10-10T19:30:51.211Z"
+        }
+      ],
+      "historical_completion_evidence": [
+        {
+          "pass": "execution",
+          "artifact": "reports/a1-passes/FE-A1.0-W06-execution-1791660646152.json",
+          "command": "node --test --test-reporter=tap scripts/frontend-a1-process.test.mjs",
+          "boundary": "Delivery-control implementation only. Temporary Git/worktree fixtures test guards; they establish no copilot, Workspace, native examiner, model or cyclic verification product completion. Generated status views are checked from the current canonical ledger; static implementation and test files bind the committed candidate."
+        },
+        {
+          "pass": "critical",
+          "artifact": "reports/a1-passes/FE-A1.0-W06-critical-1791660649524.json",
+          "command": "node --test --test-reporter=tap scripts/frontend-a1-process.critical.test.mjs",
+          "boundary": "Delivery-control implementation only. Temporary Git/worktree fixtures test guards; they establish no copilot, Workspace, native examiner, model or cyclic verification product completion. Generated status views are checked from the current canonical ledger; static implementation and test files bind the committed candidate."
+        }
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
+      ],
+      "verification_plans": {
+        "execution": "reports/a1-plans/FE-A1.0-W06-execution.json",
+        "critical": "reports/a1-plans/FE-A1.0-W06-critical.json"
+      }
     },
     {
       "id": "FE-A1.1-W01",
@@ -277,6 +421,8 @@
         "The Workspace object carries the strongest visual hierarchy."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.0-W02"
       ],
@@ -290,6 +436,13 @@
       "completion_evidence": [],
       "optional_scenarios": [
         "A1-S14"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -305,6 +458,8 @@
         "An operational status or proposal cannot look like an accepted finding."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.1-W01"
       ],
@@ -321,6 +476,13 @@
         "A1-S02",
         "A1-S06",
         "A1-S14"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -336,6 +498,8 @@
         "The visual review covers actual tasks rather than a fixture gallery."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.1-W01"
       ],
@@ -349,6 +513,13 @@
       "completion_evidence": [],
       "optional_scenarios": [
         "A1-S14"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -364,6 +535,8 @@
         "Switching panes does not submit, cancel, or replace a task."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.1-W01"
       ],
@@ -379,6 +552,13 @@
       "completion_evidence": [],
       "optional_scenarios": [
         "A1-S14"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -394,6 +574,8 @@
         "The graph semantic peer offers the same task actions."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.1-W02"
       ],
@@ -407,6 +589,13 @@
       "completion_evidence": [],
       "optional_scenarios": [
         "A1-S14"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -422,6 +611,8 @@
         "No third permanent diagnostic rail is introduced."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.1-W01"
       ],
@@ -436,6 +627,13 @@
       "optional_scenarios": [
         "A1-S05",
         "A1-S15"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -451,6 +649,8 @@
         "No demo Project or invented graph fills an empty or inaccessible state."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.1-W02"
       ],
@@ -464,6 +664,13 @@
       "optional_scenarios": [
         "A1-S01",
         "A1-S09"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -479,6 +686,8 @@
         "No mandatory profile picker precedes the outcome."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.0-W01"
       ],
@@ -501,6 +710,13 @@
           "command": "npm run test:frontend:step3-live",
           "boundary": "Retained live outcome-first creation proof; does not prove conversational empty-state onboarding."
         }
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -516,6 +732,8 @@
         "The new Project destination comes from the authoritative read."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.2-W01"
       ],
@@ -537,6 +755,13 @@
           "command": "npm run test:frontend:step3-live",
           "boundary": "Retained atomic creation and exact replay evidence; later conversational entry remains open."
         }
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -552,6 +777,8 @@
         "File bytes are not uploaded before the rights/intake action."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.2-W02"
       ],
@@ -574,6 +801,13 @@
           "command": "npm run test:frontend:step3-live",
           "boundary": "Retained optional file handoff proof, bounded to creation and source-review entry."
         }
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -589,6 +823,8 @@
         "Creation binds the correct turns without fabricating pre-creation domain authority."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.3-W01",
         "FE-A1.2-W02"
@@ -603,6 +839,13 @@
       "completion_evidence": [],
       "optional_scenarios": [
         "A1-S01"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -618,6 +861,8 @@
         "The first eligible action updates the Workspace and preserves the conversation."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.2-W04",
         "FE-A1.3-W06",
@@ -634,6 +879,13 @@
       "completion_evidence": [],
       "optional_scenarios": [
         "A1-S01"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -649,6 +901,8 @@
         "Access loss does not substitute another Project."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.2-W04",
         "FE-A1.3-W03"
@@ -663,6 +917,13 @@
         "A1-S01",
         "A1-S07",
         "A1-S09"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -678,6 +939,8 @@
         "A definition revision cannot silently reinterpret retained candidates or turns."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.2-W01"
       ],
@@ -694,6 +957,13 @@
         "A1-S03",
         "A1-S04",
         "A1-S09"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -709,6 +979,8 @@
         "Each new interaction declares model-role eligibility, output validation, and authority limits."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.0-W01"
       ],
@@ -728,6 +1000,13 @@
         "A1-S02",
         "A1-S03",
         "A1-S04"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -743,6 +1022,8 @@
         "No old fixed-prompt certification is treated as certification for a new role."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.3-W01"
       ],
@@ -761,6 +1042,13 @@
         "A1-S03",
         "A1-S04",
         "A1-S09"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -773,9 +1061,13 @@
       "acceptance": [
         "A fresh browser restores actual question and answer content, citations, and outcomes.",
         "A thread metadata list is insufficient.",
-        "Unauthorized or mismatched Project/content references reveal no bytes."
+        "Unauthorized or mismatched Project/content references reveal no bytes.",
+        "Every retained Project turn resolves to the existing canonical ProjectThread and InteractionRun; a parallel conversation store cannot substitute for those owners.",
+        "Turn context and result references preserve exact inquiry, Work, Review and cycle lineage where applicable; replay must not create a second effect."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.3-W01"
       ],
@@ -791,6 +1083,13 @@
       "optional_scenarios": [
         "A1-S07",
         "A1-S09"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -806,6 +1105,8 @@
         "Mixed-snapshot, stale, unavailable, or restricted basis cannot silently become current."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.3-W01",
         "FE-A1.2-W07"
@@ -824,6 +1125,13 @@
         "A1-S02",
         "A1-S07",
         "A1-S09"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -839,6 +1147,8 @@
         "Core and feature components do not parse raw AG-UI protocol types."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.3-W01",
         "FE-A1.3-W03"
@@ -857,6 +1167,13 @@
         "A1-S02",
         "A1-S06",
         "A1-S08"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -872,6 +1189,8 @@
         "Completed turns link to exact retained outputs and Inspect."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.1-W02",
         "FE-A1.3-W02",
@@ -893,6 +1212,13 @@
         "A1-S03",
         "A1-S04",
         "A1-S07"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -905,9 +1231,12 @@
       "acceptance": [
         "A recommendation does not execute itself.",
         "Direct and conversational invocation use identical operation IDs and exact command outcomes.",
-        "Malformed, partial, stale, or unregistered tool arguments are rejected."
+        "Malformed, partial, stale, or unregistered tool arguments are rejected.",
+        "Typed proposals render their canonical preview, required decision, observed receipt and Workspace result in the conversation. Advisory prose and route-form placement cannot satisfy the command bridge."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.3-W05"
       ],
@@ -923,6 +1252,13 @@
       "optional_scenarios": [
         "A1-S06",
         "A1-S09"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -938,6 +1274,8 @@
         "Reload/reconnect restores the pending decision without duplicate approval."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.3-W07",
         "FE-A1.3-W06"
@@ -956,6 +1294,13 @@
         "A1-S06",
         "A1-S07",
         "A1-S12"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -973,6 +1318,8 @@
         "Changed inputs preserve earlier manifests and results, and superseded successors cannot start silently."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.3-W05",
         "FE-A1.3-W06"
@@ -990,6 +1337,13 @@
         "A1-S02",
         "A1-S06",
         "A1-S08"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -1006,6 +1360,8 @@
         "A declared Work pause affects execution through its owning action; delivery stop or detach cannot masquerade as paused Work."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.3-W05",
         "FE-A1.3-W09"
@@ -1024,6 +1380,13 @@
       "optional_scenarios": [
         "A1-S08",
         "A1-S09"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -1039,6 +1402,8 @@
         "Interrupted text and context survive a fresh browser/process restart."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.3-W03",
         "FE-A1.3-W05"
@@ -1058,6 +1423,13 @@
         "A1-S07",
         "A1-S08",
         "A1-S09"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -1073,6 +1445,8 @@
         "View focus does not silently revise an inquiry or reprioritize Work."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.3-W03",
         "FE-A1.3-W04"
@@ -1090,6 +1464,13 @@
         "A1-S07",
         "A1-S09",
         "A1-S10"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -1105,6 +1486,8 @@
         "Repair cannot change meaning, uncertainty, scope, authority, or action consequence."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.3-W01",
         "FE-A1.2-W07"
@@ -1122,6 +1505,13 @@
         "A1-S02",
         "A1-S03",
         "A1-S09"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -1137,6 +1527,8 @@
         "Scientific citation and evidentiary support are distinguished."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.3-W04",
         "FE-A1.3-W13"
@@ -1156,6 +1548,13 @@
         "A1-S02",
         "A1-S03",
         "A1-S11"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -1171,6 +1570,8 @@
         "Retention or display emits no trusted-domain promotion."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.3-W01",
         "FE-A1.2-W07",
@@ -1188,6 +1589,13 @@
         "A1-S02",
         "A1-S03",
         "A1-S04"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -1203,6 +1611,8 @@
         "Promotion is available only through the ordinary Review path."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.3-W15"
       ],
@@ -1219,6 +1629,13 @@
         "A1-S02",
         "A1-S03",
         "A1-S13"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -1234,6 +1651,8 @@
         "Accepted authority changes have the same receipt as direct Review."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.3-W13",
         "FE-A1.3-W15",
@@ -1252,6 +1671,13 @@
         "A1-S03",
         "A1-S06",
         "A1-S12"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -1267,6 +1693,8 @@
         "Read failures and redaction return scoped explanations without leaking content."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.3-W03"
       ],
@@ -1281,6 +1709,13 @@
       "optional_scenarios": [
         "A1-S07",
         "A1-S09"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -1296,6 +1731,8 @@
         "No renderer guesses authority or another Project from the route."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.1-W01",
         "FE-A1.2-W07"
@@ -1312,6 +1749,13 @@
       "optional_scenarios": [
         "A1-S04",
         "A1-S09"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -1327,6 +1771,8 @@
         "A stale result cannot replace the current object or steal an active draft."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.4-W01",
         "FE-A1.3-W06",
@@ -1347,6 +1793,13 @@
         "A1-S02",
         "A1-S03",
         "A1-S09"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -1362,6 +1815,8 @@
         "The user can move between them without losing context."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.4-W02",
         "FE-A1.3-W13"
@@ -1379,6 +1834,13 @@
         "A1-S02",
         "A1-S03",
         "A1-S05"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -1394,6 +1856,8 @@
         "Revision/removal/local-copy deletion previews preserve affected references and consequences."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.4-W01",
         "FE-A1.3-W14"
@@ -1410,6 +1874,13 @@
       "optional_scenarios": [
         "A1-S11",
         "A1-S02"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -1421,10 +1892,12 @@
       "implementation": "Create an examiner registry that composes shared identity, basis, provenance, working/authority state, scope, uncertainty, validation, comparison, and action slots with ProjectDefinition-specific object and relationship components.",
       "acceptance": [
         "A scientific Claim/Assertion examiner distinguishes source report, inference, stance, evidence scope, and review state.",
-        "A writing requirement or interpretation examiner uses its own basis and validator meaning.",
+        "Writing requirement and interpretation examiners both use native textual basis, competing readings, scope and validator meaning.",
         "The shell does not recast all Projects as scientific Claims."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.4-W01",
         "FE-A1.3-W15",
@@ -1445,6 +1918,13 @@
         "A1-S02",
         "A1-S03",
         "A1-S04"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -1457,9 +1937,12 @@
       "acceptance": [
         "All three execute through shared governance and presentation contracts.",
         "Writing interpretation is not treated as scientific support.",
-        "A missing adapter is an explicit limitation and cannot count as completing its required functions."
+        "A missing adapter is an explicit limitation and cannot count as completing its required functions.",
+        "The unrelated compatible definition supplies native object and relationship schemas, basis, inquiry, validators and examiner slots; a synthetic Q&A example or empty shell cannot satisfy it."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.2-W07",
         "FE-A1.3-W16"
@@ -1478,6 +1961,13 @@
         "A1-S02",
         "A1-S03",
         "A1-S04"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -1493,6 +1983,8 @@
         "Accepted, rejected, deferred, reopened, and stale members retain exact outcomes."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.4-W05",
         "FE-A1.4-W06"
@@ -1511,6 +2003,13 @@
       "optional_scenarios": [
         "A1-S06",
         "A1-S12"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -1526,6 +2025,8 @@
         "Reject/defer/reopen and unknown Apply effects remain recoverable without duplicate execution."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.4-W07",
         "FE-A1.3-W08"
@@ -1544,6 +2045,13 @@
         "A1-S06",
         "A1-S12",
         "A1-S09"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -1559,6 +2067,8 @@
         "Shared Work results retain one identity when linked to several inquiries."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.4-W02",
         "FE-A1.3-W09"
@@ -1576,6 +2086,13 @@
         "A1-S02",
         "A1-S08",
         "A1-S10"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -1591,6 +2108,8 @@
         "Recommendations explain their basis without becoming scheduler prerequisites."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.4-W06",
         "FE-A1.3-W15"
@@ -1609,6 +2128,13 @@
         "A1-S03",
         "A1-S04",
         "A1-S10"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -1624,6 +2150,8 @@
         "A model proposal cannot assign authoritative warrant or a universal truth score."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.4-W10",
         "FE-A1.4-W06",
@@ -1643,6 +2171,13 @@
       "optional_scenarios": [
         "A1-S10",
         "A1-S02"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -1658,6 +2193,8 @@
         "The user can choose a different inquiry without changing warrant or bypassing a real prerequisite."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.4-W11",
         "FE-A1.3-W07"
@@ -1674,6 +2211,13 @@
       "completion_evidence": [],
       "optional_scenarios": [
         "A1-S10"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -1689,6 +2233,8 @@
         "Evidence gaps and unresolved alternatives remain visible through every cycle."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.4-W12",
         "FE-A1.4-W08",
@@ -1710,6 +2256,13 @@
       "optional_scenarios": [
         "A1-S10",
         "A1-S02"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -1725,6 +2278,8 @@
         "The record does not assert universal truth or equate Work completion with scientific resolution."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.4-W11",
         "FE-A1.4-W12",
@@ -1741,6 +2296,13 @@
       "completion_evidence": [],
       "optional_scenarios": [
         "A1-S10"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -1756,6 +2318,8 @@
         "Reassessment creates a new version and returns to the relevant inquiry/turn."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.4-W11",
         "FE-A1.4-W14"
@@ -1774,6 +2338,13 @@
       "optional_scenarios": [
         "A1-S10",
         "A1-S09"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -1789,6 +2360,8 @@
         "Direct and conversational questions resolve through the same bounded query owner."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.3-W16",
         "FE-A1.4-W06"
@@ -1804,6 +2377,13 @@
       "optional_scenarios": [
         "A1-S13",
         "A1-S05"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -1819,6 +2399,8 @@
         "The same task remains usable through the complete semantic peer."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.4-W16",
         "FE-A1.4-W02",
@@ -1837,6 +2419,13 @@
         "A1-S05",
         "A1-S13",
         "A1-S14"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -1852,6 +2441,8 @@
         "Semantic-only explanation is real; optional vision capture requires exact privacy/rights/egress binding and is not necessary for A1."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.4-W17",
         "FE-A1.3-W04",
@@ -1871,6 +2462,13 @@
         "A1-S05",
         "A1-S09",
         "A1-S13"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -1886,6 +2484,8 @@
         "A recommendation still passes the normal Work/Review command owner."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.4-W18",
         "FE-A1.4-W12",
@@ -1905,6 +2505,13 @@
       "optional_scenarios": [
         "A1-S05",
         "A1-S10"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -1920,6 +2527,8 @@
         "Historical/impact inspection returns to the same inquiry and focus."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.4-W16"
       ],
@@ -1934,6 +2543,13 @@
       "optional_scenarios": [
         "A1-S13",
         "A1-S12"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -1949,6 +2565,8 @@
         "A textual peer over a stale projection is labelled stale too."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.4-W16",
         "FE-A1.4-W17"
@@ -1965,6 +2583,13 @@
       "optional_scenarios": [
         "A1-S09",
         "A1-S13"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -1980,6 +2605,8 @@
         "A1 evidence/claim examination and cycle closure are not deferred under the name Composition."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.4-W01",
         "FE-A1.4-W09"
@@ -1999,6 +2626,13 @@
       "optional_scenarios": [
         "A1-S02",
         "A1-S15"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -2014,6 +2648,8 @@
         "Returning from source, graph, Review, History, and Inspect restores the initiating task."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.4-W01",
         "FE-A1.4-W02"
@@ -2030,6 +2666,13 @@
         "A1-S07",
         "A1-S09",
         "A1-S14"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -2045,6 +2688,8 @@
         "Returning restores task, draft, selection, and focus."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.4-W23",
         "FE-A1.3-W06"
@@ -2059,6 +2704,13 @@
       "optional_scenarios": [
         "A1-S05",
         "A1-S15"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -2074,6 +2726,8 @@
         "Original semantic versions remain visible in historical inspection."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.5-W01",
         "FE-A1.3-W14"
@@ -2091,6 +2745,13 @@
       "optional_scenarios": [
         "A1-S05",
         "A1-S10"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -2106,6 +2767,8 @@
         "Inspection never grants permission or changes state."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.5-W01",
         "FE-A1.3-W07"
@@ -2124,6 +2787,13 @@
         "A1-S05",
         "A1-S06",
         "A1-S09"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -2139,6 +2809,8 @@
         "Unavailable receipt is explicit and cannot support an applied claim."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.5-W03",
         "FE-A1.4-W14"
@@ -2158,6 +2830,13 @@
         "A1-S05",
         "A1-S07",
         "A1-S12"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -2173,6 +2852,8 @@
         "All source/graph/History destinations retain exact revisions and safe return."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.5-W02",
         "FE-A1.5-W04",
@@ -2191,6 +2872,13 @@
         "A1-S05",
         "A1-S10",
         "A1-S12"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -2206,6 +2894,8 @@
         "The next inquiry cycle reflects any changed basis."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.5-W05",
         "FE-A1.4-W15"
@@ -2223,6 +2913,13 @@
         "A1-S12",
         "A1-S09",
         "A1-S10"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -2238,6 +2935,8 @@
         "The same Inspect hierarchy works for different Project definitions; depth is not a set of unrelated routes."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.5-W02",
         "FE-A1.5-W03",
@@ -2257,6 +2956,13 @@
         "A1-S05",
         "A1-S03",
         "A1-S14"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -2273,6 +2979,8 @@
         "Native screen-reader evaluation remains excluded; required browser semantics, focus and complete semantic-peer actions are verified."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.5-W07",
         "FE-A1.1-W05"
@@ -2290,6 +2998,13 @@
       "optional_scenarios": [
         "A1-S05",
         "A1-S14"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -2305,6 +3020,8 @@
         "Failures reveal no restricted descriptor or payload."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.5-W04",
         "FE-A1.5-W05"
@@ -2320,6 +3037,13 @@
       "optional_scenarios": [
         "A1-S09",
         "A1-S07"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -2348,6 +3072,13 @@
       "completion_evidence": [],
       "optional_scenarios": [
         "A1-S15"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -2373,6 +3104,13 @@
       "completion_evidence": [],
       "optional_scenarios": [
         "A1-S15"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -2406,6 +3144,13 @@
         "A1-S02",
         "A1-S06",
         "A1-S08"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -2438,6 +3183,13 @@
         "A1-S03",
         "A1-S04",
         "A1-S15"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -2468,6 +3220,13 @@
       "optional_scenarios": [
         "A1-S15",
         "A1-S10"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -2495,6 +3254,13 @@
       "completion_evidence": [],
       "optional_scenarios": [
         "A1-S15"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -2513,7 +3279,7 @@
       ],
       "depends_on": [
         "FE-A1.0-W06",
-        "FE-A1.0-W02"
+        "FE-A1.0-W05"
       ],
       "contracts": [
         "D024"
@@ -2522,7 +3288,18 @@
       "completion_evidence": [],
       "optional_scenarios": [
         "A1-S15"
-      ]
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
+      ],
+      "verification_plans": {
+        "execution": "reports/a1-plans/FE-A1.6-W07-execution.json",
+        "critical": "reports/a1-plans/FE-A1.6-W07-critical.json"
+      }
     },
     {
       "id": "FE-A1.7-W01",
@@ -2537,6 +3314,8 @@
         "A fixture-only UI simulation cannot establish live functional integration."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.2-W05",
         "FE-A1.2-W06",
@@ -2549,6 +3328,13 @@
       "completion_evidence": [],
       "optional_scenarios": [
         "A1-S01"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -2564,6 +3350,8 @@
         "Actual model calls, receipts and snapshots are retained."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.4-W13",
         "FE-A1.5-W08",
@@ -2577,6 +3365,13 @@
       "completion_evidence": [],
       "optional_scenarios": [
         "A1-S02"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -2592,6 +3387,8 @@
         "Full Artifact text editing/export is not required by this A1 task."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.4-W06",
         "FE-A1.4-W07",
@@ -2606,6 +3403,13 @@
       "completion_evidence": [],
       "optional_scenarios": [
         "A1-S03"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -2621,6 +3425,8 @@
         "Missing out-of-scope capabilities are honest without blocking supported work."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.4-W06",
         "FE-A1.2-W07",
@@ -2634,6 +3440,13 @@
       "completion_evidence": [],
       "optional_scenarios": [
         "A1-S04"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -2649,6 +3462,8 @@
         "Drafts and pending decisions survive applicable interruption."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.3-W10",
         "FE-A1.3-W11",
@@ -2667,6 +3482,13 @@
         "A1-S08",
         "A1-S09",
         "A1-S12"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -2682,6 +3504,8 @@
         "All material failure states remain recoverable through the product."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.3-W05",
         "FE-A1.3-W07",
@@ -2697,6 +3521,13 @@
       "completion_evidence": [],
       "optional_scenarios": [
         "A1-S09"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -2712,6 +3543,8 @@
         "Old and new assessments remain inspectable with their exact dependency basis."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.4-W13",
         "FE-A1.4-W14",
@@ -2729,6 +3562,13 @@
       "completion_evidence": [],
       "optional_scenarios": [
         "A1-S10"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -2744,6 +3584,8 @@
         "All material findings have resolved work IDs and rerun evidence."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.7-W01",
         "FE-A1.7-W02",
@@ -2760,6 +3602,13 @@
       "completion_evidence": [],
       "optional_scenarios": [
         "A1-S14"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -2776,6 +3625,8 @@
         "Native screen-reader evaluation remains excluded; required browser semantics, focus and complete semantic-peer actions are verified."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.1-W04",
         "FE-A1.1-W05",
@@ -2795,6 +3646,13 @@
       "completion_evidence": [],
       "optional_scenarios": [
         "A1-S14"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -2810,6 +3668,8 @@
         "Previously passed checks are rerun when their owning behavior changes."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.6-W01",
         "FE-A1.6-W02",
@@ -2828,6 +3688,13 @@
       "completion_evidence": [],
       "optional_scenarios": [
         "A1-S15"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -2843,6 +3710,8 @@
         "A prior bounded mechanical review does not count as whole-product review."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.7-W05",
         "FE-A1.7-W06",
@@ -2861,6 +3730,13 @@
         "A1-S05",
         "A1-S09",
         "A1-S14"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -2876,10 +3752,11 @@
         "Wave 7 stays blocked while acceptance is pending."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.7-W10",
-        "FE-A1.7-W11",
-        "FE-A1.6-W07"
+        "FE-A1.7-W11"
       ],
       "contracts": [
         "D024"
@@ -2888,6 +3765,13 @@
       "completion_evidence": [],
       "optional_scenarios": [
         "A1-S16"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     },
     {
@@ -2903,6 +3787,8 @@
         "Wave 7 begins only after every mandatory work item is complete and the user decision is accepted."
       ],
       "depends_on": [
+        "FE-A1.0-W05",
+        "FE-A1.6-W07",
         "FE-A1.0-W06",
         "FE-A1.7-W12"
       ],
@@ -2913,6 +3799,13 @@
       "completion_evidence": [],
       "optional_scenarios": [
         "A1-S16"
+      ],
+      "reopenings": [
+        {
+          "prerequisite": "FE-A1.0-W06",
+          "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
+          "recorded_at": "2026-10-10T19:32:41.126Z"
+        }
       ]
     }
   ],
@@ -4029,42 +4922,118 @@
     "item": "FE-A1.0-W06",
     "phase": "execution",
     "failed_attempts": 0,
-    "started_at": "2026-10-10T19:17:08.681Z",
-    "failures": [
-      {
-        "reason": "Executed capture check rejected inherited Node test context output.",
-        "phase": "execution",
-        "recorded_at": "2026-10-10T19:26:34.382Z"
-      },
-      {
-        "reason": "Corrected capture still rejected exact test names because the fixture omitted the standard TAP separator.",
-        "phase": "execution",
-        "recorded_at": "2026-10-10T19:26:34.382Z"
-      }
-    ],
-    "diagnoses": [
-      {
-        "contract": "The gate must establish an executed passing check for each criterion; it cannot treat matching prose in a log as an executed test.",
-        "architecture": "The verification runner invokes Node tests in a child process. Test-runner context must not leak from a parent test process into that child.",
-        "dependencies": "The fixture generated simplified TAP while the pinned Node 24 runner emits the standard dash separator in named result lines. Both need the same protocol grammar.",
-        "environment": "The inherited NODE_TEST_CONTEXT altered the first captured output. The runner now removes that internal variable, preserving other application environment values.",
-        "verification": "The first attempt failed the executed-summary check; the second passed the summary but failed the exact named-result check. Inspection of a separately captured real TAP record identified the mismatch.",
-        "changed_remedy": "Use standard TAP result-line grammar for exact names, correct synthetic logs to that grammar, retain a child-process execution test, and reject skipped or comment-only claims. Re-run execution and separate critical tests on the corrected candidate.",
-        "failures": [
-          {
-            "reason": "Executed capture check rejected inherited Node test context output.",
-            "phase": "execution",
-            "recorded_at": "2026-10-10T19:26:34.382Z"
-          },
-          {
-            "reason": "Corrected capture still rejected exact test names because the fixture omitted the standard TAP separator.",
-            "phase": "execution",
-            "recorded_at": "2026-10-10T19:26:34.382Z"
-          }
-        ],
-        "recorded_at": "2026-10-10T19:26:34.383Z"
-      }
-    ],
-    "passes": []
-  }
+    "started_at": "2026-10-10T19:32:41.126Z"
+  },
+  "repair_sequence": [
+    {
+      "order": 1,
+      "diagnoses": [
+        5,
+        6,
+        7
+      ],
+      "resolution": "Repair dependency accounting, evidence gates and synchronized roadmap/execution before continuing product construction.",
+      "work_items": [
+        "FE-A1.0-W06",
+        "FE-A1.0-W01",
+        "FE-A1.0-W02",
+        "FE-A1.0-W03",
+        "FE-A1.0-W04",
+        "FE-A1.0-W05",
+        "FE-A1.6-W07"
+      ]
+    },
+    {
+      "order": 2,
+      "diagnoses": [
+        3
+      ],
+      "resolution": "Reconcile conversational contracts, exact retained content and lineage with existing ProjectThread and InteractionRun owners before connecting commands.",
+      "work_items": [
+        "FE-A1.3-W01",
+        "FE-A1.3-W02",
+        "FE-A1.3-W03",
+        "FE-A1.3-W04",
+        "FE-A1.3-W05"
+      ]
+    },
+    {
+      "order": 3,
+      "diagnoses": [
+        2
+      ],
+      "resolution": "Connect typed conversational proposals, consequential decisions, Work steering and observed receipts to canonical owners.",
+      "work_items": [
+        "FE-A1.3-W07",
+        "FE-A1.3-W08",
+        "FE-A1.3-W09",
+        "FE-A1.3-W15",
+        "FE-A1.3-W16",
+        "FE-A1.3-W18"
+      ]
+    },
+    {
+      "order": 4,
+      "diagnoses": [
+        4
+      ],
+      "resolution": "Complete native scientific, writing requirement/interpretation, and unrelated compatible definition composition and examiners.",
+      "work_items": [
+        "FE-A1.2-W07",
+        "FE-A1.4-W05",
+        "FE-A1.4-W06"
+      ]
+    },
+    {
+      "order": 5,
+      "diagnoses": [
+        1,
+        3
+      ],
+      "resolution": "Finish normal copilot hierarchy, reactive Workspace and progressive disclosure; connect inquiry, exact evidence, Work, Review, graph-guided assessments, obligations, disposition and selective invalidation across repeated cycles.",
+      "work_items": [
+        "FE-A1.1-W01",
+        "FE-A1.3-W06",
+        "FE-A1.4-W02",
+        "FE-A1.4-W03",
+        "FE-A1.4-W10",
+        "FE-A1.4-W11",
+        "FE-A1.4-W12",
+        "FE-A1.4-W13",
+        "FE-A1.4-W14",
+        "FE-A1.4-W15",
+        "FE-A1.4-W19",
+        "FE-A1.5-W07"
+      ]
+    },
+    {
+      "order": 6,
+      "diagnoses": [
+        1,
+        5,
+        6,
+        7
+      ],
+      "resolution": "Close all 97 adapted operation functions and remaining required work; execute integrated functional and separate critical verification; synchronize the reviewable candidate and obtain actual user acceptance before later waves.",
+      "work_items": [
+        "FE-A1.6-W01",
+        "FE-A1.6-W06",
+        "FE-A1.7-W07",
+        "FE-A1.7-W12",
+        "FE-A1.7-W13"
+      ]
+    }
+  ],
+  "feedback_history": [
+    {
+      "date": "2026-10-07",
+      "decision": "changes_requested",
+      "summary": "Copilot Q&A, reactive Workspace, compositional claim examination, progressive AG-UI and graph-guided cyclic Hypothesis verification remain required before A1 acceptance."
+    },
+    {
+      "date": "2026-10-10",
+      "decision": "changes_requested",
+      "summary": "Fix all seven diagnosed design/delivery failures in logical order. Keep readable roadmap and granular execution instructions synchronized as a hard gate. Every deliverable requires execution and distinct critical passes; optional repair and broad diagnosis on repeated failure."
+    }
+  ]
 }

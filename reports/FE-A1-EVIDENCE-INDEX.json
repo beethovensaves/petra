@@ -1,0 +1,259 @@
+{
+  "schema_name": "petra.a1-evidence-index",
+  "schema_version": "1.0.0",
+  "roadmap_binding": "sha256:dce5856c9ae657ccf7ea9c3c6c6d8d7fb255794fc7b2c5d8c9cded72e64f9c0a",
+  "current": {
+    "required": 90,
+    "complete": 0,
+    "user_acceptance": null,
+    "proofs": []
+  },
+  "historical_construction": {
+    "artifact": "reports/FE-A1-CONSTRUCTION-CHECKS.json",
+    "verified_at": "2026-10-07T20:32:38.890215Z",
+    "original_candidate": {
+      "baseline_commit": "d3a5869fe65c6bb8b6f79203d218f710e9d2b4ae",
+      "commit": null,
+      "state": "uncommitted construction; not an accepted A1 candidate"
+    },
+    "boundary": "Preserved historical partial construction. Its old uncommitted state and test counts describe that execution date; they are not the current candidate, current coverage or contractual completion.",
+    "source_reuse": [
+      {
+        "path": "apps/server/src/project-copilot-model.ts",
+        "recorded_hash": "sha256:53a96e24cfac591d85e85bcc97158a4d736833be923e82a34e2ad6fdc115d011",
+        "current_hash": "sha256:b9c12a86fc9923b5761838695b7241a16f5f00ca8204cfe514e06a899416559c",
+        "reuse": "stale_or_missing_not_current_evidence"
+      },
+      {
+        "path": "apps/server/src/project-copilot-routes.ts",
+        "recorded_hash": "sha256:8b0a977b641fe9b31ef7a276375aafe2f6c3006c2cdd9ea0adc1460e2e515108",
+        "current_hash": "sha256:90ed54cd10ae06550bcadeaa72fe95417596a5b6ce918513665e3bbaeb5c469f",
+        "reuse": "stale_or_missing_not_current_evidence"
+      },
+      {
+        "path": "apps/server/src/project-copilot.ts",
+        "recorded_hash": "sha256:f13cc9f3ec9db247f1c08d3f47b811824a9308cb27bbd4e835466b192060279a",
+        "current_hash": "sha256:a276723a78d000cbaedd758fef74c0cc95a155f2a053157ce5704229b963030a",
+        "reuse": "stale_or_missing_not_current_evidence"
+      },
+      {
+        "path": "apps/server/src/project-examination.ts",
+        "recorded_hash": "sha256:7b2f47026e3f28a8cff0e879ff2b659c9eddd81035b6858a592443bcc2d5072b",
+        "current_hash": "sha256:7b2f47026e3f28a8cff0e879ff2b659c9eddd81035b6858a592443bcc2d5072b",
+        "reuse": "bytes_match_historical_boundary_only"
+      },
+      {
+        "path": "apps/workbench/src/product/HypothesisCycles.tsx",
+        "recorded_hash": "sha256:08b4809d62a6e756d14cc41f0a71989be1ef477a621d0d28b7a40151a6b0b9f9",
+        "current_hash": "sha256:08b4809d62a6e756d14cc41f0a71989be1ef477a621d0d28b7a40151a6b0b9f9",
+        "reuse": "bytes_match_historical_boundary_only"
+      },
+      {
+        "path": "apps/workbench/src/product/SemanticGraphSurface.tsx",
+        "recorded_hash": "sha256:d0a3069b90a69c6e48fd0454249896270cc1580be81d0886a88f3c739f370f62",
+        "current_hash": "sha256:d0a3069b90a69c6e48fd0454249896270cc1580be81d0886a88f3c739f370f62",
+        "reuse": "bytes_match_historical_boundary_only"
+      },
+      {
+        "path": "apps/workbench/src/product/copilot.css",
+        "recorded_hash": "sha256:893166ffec8bf0e6f0070f90108e21746389f6f5ed4f47e734cc911909a67cba",
+        "current_hash": "sha256:97d6103214e1ce8b332a9ebd2561414b3461aed5d838f56550c6b46419add0c5",
+        "reuse": "stale_or_missing_not_current_evidence"
+      },
+      {
+        "path": "apps/workbench/src/product/native-examination-registry.tsx",
+        "recorded_hash": "sha256:6fb298f5b003a9f88f4a1e72b65d573e24ab40a37618f7c1daf69ec09f29c61a",
+        "current_hash": "sha256:6fb298f5b003a9f88f4a1e72b65d573e24ab40a37618f7c1daf69ec09f29c61a",
+        "reuse": "bytes_match_historical_boundary_only"
+      },
+      {
+        "path": "packages/adapters/src/codex-app-server.ts",
+        "recorded_hash": "sha256:e34e578644a37fec1af6e44e4c5528cf85179d63252cdf1bcbc056d33cf41fe3",
+        "current_hash": "sha256:e34e578644a37fec1af6e44e4c5528cf85179d63252cdf1bcbc056d33cf41fe3",
+        "reuse": "bytes_match_historical_boundary_only"
+      },
+      {
+        "path": "packages/adapters/src/codex-project-copilot.ts",
+        "recorded_hash": "sha256:7381b8a262353d57d8272bc0dab9539ac2f41249a7840dfd000046754602df99",
+        "current_hash": "sha256:4bce560a231caa2a105a195c404da947854a4a266ed7a0f93458865670c9e6a6",
+        "reuse": "stale_or_missing_not_current_evidence"
+      },
+      {
+        "path": "packages/adapters/src/project-copilot-ag-ui.ts",
+        "recorded_hash": "sha256:c5c1c3bfb719b82955e0cf0008c0a64a9b08c7dc8d89cbfe30f963b4fce8da79",
+        "current_hash": "sha256:e3e55f249d081f3b0fe89e802cff37393a1c63b5976be44f41059c321ccd2dc6",
+        "reuse": "stale_or_missing_not_current_evidence"
+      },
+      {
+        "path": "packages/core/src/hypothesis-examination.ts",
+        "recorded_hash": "sha256:658c817a5c4e27f65bc895b53bfe9f7b51b095a00191cfc5cb4e34cabbc55c29",
+        "current_hash": "sha256:658c817a5c4e27f65bc895b53bfe9f7b51b095a00191cfc5cb4e34cabbc55c29",
+        "reuse": "bytes_match_historical_boundary_only"
+      },
+      {
+        "path": "packages/core/src/project-copilot.ts",
+        "recorded_hash": "sha256:d52e4f82adb984f778cb89bc7d5c3e65db4febc727ea85ae5be2e1a3f73a2ade",
+        "current_hash": "sha256:18e549658e6dd6198880fd011920a024b3a7a2104b1a6a9562a7a20fce058120",
+        "reuse": "stale_or_missing_not_current_evidence"
+      },
+      {
+        "path": "packages/postgres/src/project-copilot-repository.ts",
+        "recorded_hash": "sha256:ef88920479c551e73328abd905de83c0cbe91ed82260a9386f81265aede72883",
+        "current_hash": "sha256:ef88920479c551e73328abd905de83c0cbe91ed82260a9386f81265aede72883",
+        "reuse": "bytes_match_historical_boundary_only"
+      },
+      {
+        "path": "packages/postgres/src/project-examination-command-authority.ts",
+        "recorded_hash": "sha256:e3f6f9aeda0bbde7795c0fdd0f04502f3524d15a41a2fdb7a19af05bb4f8ecf8",
+        "current_hash": "sha256:e3f6f9aeda0bbde7795c0fdd0f04502f3524d15a41a2fdb7a19af05bb4f8ecf8",
+        "reuse": "bytes_match_historical_boundary_only"
+      },
+      {
+        "path": "packages/postgres/src/project-examination-registry.ts",
+        "recorded_hash": "sha256:04e48356e58ef58d01199723ee218c8f2db1fbfcedcfe445796d80fe9e74e824",
+        "current_hash": "sha256:04e48356e58ef58d01199723ee218c8f2db1fbfcedcfe445796d80fe9e74e824",
+        "reuse": "bytes_match_historical_boundary_only"
+      },
+      {
+        "path": "packages/postgres/src/project-examination-repository.ts",
+        "recorded_hash": "sha256:29330c24747cbe1b9b40a3066ad08c0cd0078b965df444a4bb3762964e022aaf",
+        "current_hash": "sha256:29330c24747cbe1b9b40a3066ad08c0cd0078b965df444a4bb3762964e022aaf",
+        "reuse": "bytes_match_historical_boundary_only"
+      },
+      {
+        "path": "packages/postgres/src/project-semantic-graph-reader.ts",
+        "recorded_hash": "sha256:a0652c7b764716be5016d7e80302d5bdbd936a4298866b72c4b2ae34e83685f1",
+        "current_hash": "sha256:a0652c7b764716be5016d7e80302d5bdbd936a4298866b72c4b2ae34e83685f1",
+        "reuse": "bytes_match_historical_boundary_only"
+      },
+      {
+        "path": "packages/core/src/project-examination-command.ts",
+        "recorded_hash": "sha256:8b543e97c2f6f2c6460f7f21b5ef150ac34e951830a42188c091364d1348624b",
+        "current_hash": "sha256:8b543e97c2f6f2c6460f7f21b5ef150ac34e951830a42188c091364d1348624b",
+        "reuse": "bytes_match_historical_boundary_only"
+      },
+      {
+        "path": "packages/core/src/project-examination-scene.ts",
+        "recorded_hash": "sha256:60fd4d8c64eb6178edf26681d8239e843d816ee5d5ae990b1cf767842e835351",
+        "current_hash": "sha256:60fd4d8c64eb6178edf26681d8239e843d816ee5d5ae990b1cf767842e835351",
+        "reuse": "bytes_match_historical_boundary_only"
+      },
+      {
+        "path": "packages/postgres/src/project-examination-owner-authority.ts",
+        "recorded_hash": "sha256:19cda599fd4fc45f65366e6816d0a3c2f1b7391666932c7e8b32ca09db024a2f",
+        "current_hash": "sha256:19cda599fd4fc45f65366e6816d0a3c2f1b7391666932c7e8b32ca09db024a2f",
+        "reuse": "bytes_match_historical_boundary_only"
+      },
+      {
+        "path": "apps/server/src/project-examination-routes.ts",
+        "recorded_hash": "sha256:fd894eacb0802e6cb3cd7e07e134a92530b5dea4712b098561359867c7b850c7",
+        "current_hash": "sha256:fd894eacb0802e6cb3cd7e07e134a92530b5dea4712b098561359867c7b850c7",
+        "reuse": "bytes_match_historical_boundary_only"
+      },
+      {
+        "path": "apps/server/src/server.ts",
+        "recorded_hash": "sha256:d5ad340fc0540f5cb5999901e3fcf501bfb443f35a5dda6830f8f8dda3bf5be5",
+        "current_hash": "sha256:f792dbca70fdba24e9fb22e8c30410d1b1a4432c5fc3e9a31404759d0e3fd1a4",
+        "reuse": "stale_or_missing_not_current_evidence"
+      },
+      {
+        "path": "apps/workbench/src/product/ExaminationAuthoritySetup.tsx",
+        "recorded_hash": "sha256:1e16605c96454991342ce92604996d4b3242066f7781274e70b9dc9839aa441d",
+        "current_hash": "sha256:1e16605c96454991342ce92604996d4b3242066f7781274e70b9dc9839aa441d",
+        "reuse": "bytes_match_historical_boundary_only"
+      },
+      {
+        "path": "apps/workbench/src/product/ExaminationGraph.tsx",
+        "recorded_hash": "sha256:758ba8c14aa2c673343ce9c2e07ed588c3fa60e88c7401e358c7e4fb7f404a6a",
+        "current_hash": "sha256:758ba8c14aa2c673343ce9c2e07ed588c3fa60e88c7401e358c7e4fb7f404a6a",
+        "reuse": "bytes_match_historical_boundary_only"
+      },
+      {
+        "path": "scripts/verify-a1-examination-browser.mjs",
+        "recorded_hash": "sha256:f46b07e98d05b2373da01bdf2febb1f7f340f5460c1a352103f8666b9f6a8ae8",
+        "current_hash": "sha256:f46b07e98d05b2373da01bdf2febb1f7f340f5460c1a352103f8666b9f6a8ae8",
+        "reuse": "bytes_match_historical_boundary_only"
+      },
+      {
+        "path": "infra/postgres/migrations/V063__project_examination_owner_authority.sql",
+        "recorded_hash": "sha256:f8145170af25841961fc20322774494e17419d26b7fd366124913b4b8424bc1b",
+        "current_hash": "sha256:f8145170af25841961fc20322774494e17419d26b7fd366124913b4b8424bc1b",
+        "reuse": "bytes_match_historical_boundary_only"
+      },
+      {
+        "path": "apps/workbench/src/product/GraphPresentationDetails.tsx",
+        "recorded_hash": "sha256:2048c763f69b6bcb63cf91f86dc7981290bcc54d8aea175b6b737e2e767775c6",
+        "current_hash": "sha256:2048c763f69b6bcb63cf91f86dc7981290bcc54d8aea175b6b737e2e767775c6",
+        "reuse": "bytes_match_historical_boundary_only"
+      },
+      {
+        "path": "packages/contracts/schemas/graph-presentation-context/1.0.0/schema.json",
+        "recorded_hash": "sha256:807812eda137066c070f8a1d8c3a4f4d5f0f8e68c6996a7a755f3a6da11e92ba",
+        "current_hash": "sha256:807812eda137066c070f8a1d8c3a4f4d5f0f8e68c6996a7a755f3a6da11e92ba",
+        "reuse": "bytes_match_historical_boundary_only"
+      },
+      {
+        "path": "apps/workbench/src/product/shared-graph-presentation.ts",
+        "recorded_hash": "sha256:90f0bd88a227621784e378c3c038c7667f60dd8ba364fda659a5828c16dd462d",
+        "current_hash": "sha256:90f0bd88a227621784e378c3c038c7667f60dd8ba364fda659a5828c16dd462d",
+        "reuse": "bytes_match_historical_boundary_only"
+      },
+      {
+        "path": "packages/contracts/schemas/copilot-input-manifest/1.0.0/schema.json",
+        "recorded_hash": "sha256:b2d5ceb120b21ed274cd9633a3c9c086178bf2ca70e5149b779b869f48e91f7d",
+        "current_hash": "sha256:b2d5ceb120b21ed274cd9633a3c9c086178bf2ca70e5149b779b869f48e91f7d",
+        "reuse": "bytes_match_historical_boundary_only"
+      },
+      {
+        "path": "packages/contracts/schemas/copilot-request/1.1.0/schema.json",
+        "recorded_hash": "sha256:6dabcda9db72f8287101419055606d9166e95a9653de486313f71edf79eb39d5",
+        "current_hash": "sha256:6dabcda9db72f8287101419055606d9166e95a9653de486313f71edf79eb39d5",
+        "reuse": "bytes_match_historical_boundary_only"
+      },
+      {
+        "path": "apps/workbench/src/product/ProjectCopilotConversation.tsx",
+        "recorded_hash": "sha256:3e58aabbf75f9703fb6ca17a3a1f1dc280ca51d70b72243819ba8027a3917d18",
+        "current_hash": "sha256:2b769f6ac43432ef4cfe574bf19e8b8edac6cb45dcb767aa75e256a9d18b45b5",
+        "reuse": "stale_or_missing_not_current_evidence"
+      },
+      {
+        "path": "infra/postgres/migrations/V064__project_copilot_input_manifests.sql",
+        "recorded_hash": "sha256:e2fe72cebb7697dc40e5c3aeac370ab43d4fa77360f8f451eabbff2bf5d1f794",
+        "current_hash": "sha256:e2fe72cebb7697dc40e5c3aeac370ab43d4fa77360f8f451eabbff2bf5d1f794",
+        "reuse": "bytes_match_historical_boundary_only"
+      },
+      {
+        "path": "apps/workbench/src/product/CopilotWorkspace.tsx",
+        "recorded_hash": "sha256:b9f5bbf5cc215b372d45741c9aab0754adf9b41dc4e2dccbad00fa55b4c08722",
+        "current_hash": "sha256:b9f5bbf5cc215b372d45741c9aab0754adf9b41dc4e2dccbad00fa55b4c08722",
+        "reuse": "bytes_match_historical_boundary_only"
+      },
+      {
+        "path": "packages/core/src/graph-presentation.ts",
+        "recorded_hash": "sha256:84b980796a9465c047536211f6aa7a6dd1efd0dada2f656249015d9ccc0ebc48",
+        "current_hash": "sha256:84b980796a9465c047536211f6aa7a6dd1efd0dada2f656249015d9ccc0ebc48",
+        "reuse": "bytes_match_historical_boundary_only"
+      },
+      {
+        "path": "packages/contracts/schemas/copilot-turn/1.1.0/schema.json",
+        "recorded_hash": "sha256:ad87653d6af9e2e0d17851c0318d7219a588bb0e6cf133706a461c438561cd3e",
+        "current_hash": "sha256:ad87653d6af9e2e0d17851c0318d7219a588bb0e6cf133706a461c438561cd3e",
+        "reuse": "bytes_match_historical_boundary_only"
+      }
+    ]
+  },
+  "retained_browser_boundaries": [
+    {
+      "artifact": "reports/FE-A1-INTAKE-FUNCTION-BROWSER.json",
+      "classification": "historical_bounded_execution_not_A1_acceptance"
+    },
+    {
+      "artifact": "reports/FE-A1-NATIVE-WORKSPACE-BROWSER.json",
+      "classification": "historical_bounded_execution_not_A1_acceptance"
+    },
+    {
+      "artifact": "reports/FE-A1-EXAMINATION-FUNCTION-BROWSER.json",
+      "classification": "historical_bounded_execution_not_A1_acceptance"
+    }
+  ]
+}

@@ -633,7 +633,7 @@ graph-first default without revisiting D024.
 
 ## Controlling A1 execution
 
-Binding: `sha256:0affc2f0ff8a60684ac1df12f0159273654a2ed8ab86dabfe9582a08e0dc01c9`. 0/90 required items complete; 90 incomplete.
+Binding: `sha256:dce5856c9ae657ccf7ea9c3c6c6d8d7fb255794fc7b2c5d8c9cded72e64f9c0a`. 0/90 required items complete; 90 incomplete.
 
 D024 governs the conversational copilot and reactive Workspace. D025 governs synchronized execution and two distinct validation passes. The canonical [function ledger](../scripts/frontend-a1-work-inventory.json), [readable implementation ledger](FE-A1-CONTRACT-IMPLEMENTATION-LEDGER.md), and [granular execution instructions](../scripts/frontend-a1-execution.md) agree before work starts, evidence is recorded, completion is accepted, or another wave proceeds.
 

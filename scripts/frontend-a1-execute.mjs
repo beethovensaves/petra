@@ -24,6 +24,7 @@ import {
   roadmaps,
   renderExecutionPacket,
   roadmapBlock,
+  roadmapHash,
   safePath,
   validateCompletionPasses,
   validatePass,
@@ -37,6 +38,33 @@ export const readA1 = (root = repositoryRoot) =>
 const check = (condition, message) => {
   if (!condition) throw new Error(message);
 };
+
+export function evidenceIndex(data, root) {
+  const path = "reports/FE-A1-CONSTRUCTION-CHECKS.json";
+  const historical = existsSync(resolve(root, path))
+    ? JSON.parse(readFileSync(safePath(root, path), "utf8"))
+    : null;
+  const sources = Object.entries(historical?.source_fingerprints ?? {}).map(
+    ([path, recorded_hash]) => {
+      let current_hash = null;
+      try {
+        current_hash = digest(readFileSync(safePath(root, path)));
+      } catch {
+        /* Missing retained source is a disclosed historical limitation. */
+      }
+      return {
+        path,
+        recorded_hash,
+        current_hash,
+        reuse:
+          current_hash === recorded_hash
+            ? "bytes_match_historical_boundary_only"
+            : "stale_or_missing_not_current_evidence",
+      };
+    },
+  );
+  return `${JSON.stringify({ schema_name: "petra.a1-evidence-index", schema_version: "1.0.0", roadmap_binding: roadmapHash(data), current: { required: data.work_items.length, complete: data.work_items.filter((item) => item.status === "complete").length, user_acceptance: data.user_acceptance, proofs: data.work_items.filter((item) => item.status === "complete").map((item) => ({ work_item: item.id, passes: item.completion_evidence })) }, historical_construction: { artifact: path, verified_at: historical?.verified_at ?? null, original_candidate: historical?.candidate ?? null, boundary: "Preserved historical partial construction. Its old uncommitted state and test counts describe that execution date; they are not the current candidate, current coverage or contractual completion.", source_reuse: sources }, retained_browser_boundaries: ["reports/FE-A1-INTAKE-FUNCTION-BROWSER.json", "reports/FE-A1-NATIVE-WORKSPACE-BROWSER.json", "reports/FE-A1-EXAMINATION-FUNCTION-BROWSER.json"].filter((path) => existsSync(resolve(root, path))).map((artifact) => ({ artifact, classification: "historical_bounded_execution_not_A1_acceptance" })) }, null, 2)}\n`;
+}
 
 export function beginItem(data, id) {
   validateExecutionState(data);
@@ -61,6 +89,65 @@ export function beginItem(data, id) {
     started_at: new Date().toISOString(),
   };
   return item;
+}
+
+export function reopenItem(data, id, reason) {
+  check(
+    data.work_items.some((item) => item.id === id),
+    "Reopen an existing required item.",
+  );
+  check(
+    typeof reason === "string" && reason.trim().length >= 24,
+    "Reopening requires the rejected criterion or changed evidence boundary.",
+  );
+  const affected = new Set([id]);
+  for (let changed = true; changed;) {
+    changed = false;
+    for (const item of data.work_items)
+      if (
+        !affected.has(item.id) &&
+        item.depends_on.some((dependency) => affected.has(dependency))
+      ) {
+        affected.add(item.id);
+        changed = true;
+      }
+  }
+  check(
+    !data.active_work || affected.has(data.active_work.item),
+    "Finish unrelated active work before reopening another dependency chain.",
+  );
+  for (const item of data.work_items.filter((item) => affected.has(item.id))) {
+    if (item.completion_evidence.length) {
+      item.historical_completion_evidence ??= [];
+      item.historical_completion_evidence.push(...item.completion_evidence);
+      item.retained_evidence = [
+        ...new Set([
+          ...item.retained_evidence,
+          ...item.completion_evidence.map((entry) => entry.artifact),
+        ]),
+      ];
+      item.completion_evidence = [];
+    }
+    if (item.id === data.active_work?.item) {
+      item.execution_history ??= [];
+      item.execution_history.push({
+        ...data.active_work,
+        disposition: "reopened",
+        reason,
+      });
+    }
+    item.status = "planned";
+    item.reopenings ??= [];
+    item.reopenings.push({
+      prerequisite: id,
+      reason,
+      recorded_at: new Date().toISOString(),
+    });
+  }
+  data.active_work = null;
+  data.user_acceptance = null;
+  data.status = "in_progress";
+  return [...affected];
 }
 
 export function recordFailure(data, reason) {
@@ -303,6 +390,9 @@ export function closeItem(data, root, options) {
   });
   item.status = "complete";
   data.active_work = null;
+  data.status = data.work_items.every((item) => item.status === "complete")
+    ? "complete"
+    : "in_progress";
   return item;
 }
 
@@ -312,6 +402,7 @@ export async function synchronizeA1(data, root = repositoryRoot, mirrors = []) {
   const block = roadmapBlock(data);
   const prepared = new Map([
     [inventory, `${JSON.stringify(data, null, 2)}\n`],
+    ["reports/FE-A1-EVIDENCE-INDEX.json", evidenceIndex(data, root)],
     [
       "reports/FE-A1-CONTRACT-IMPLEMENTATION-LEDGER.md",
       await renderA1Ledger(data),
@@ -402,6 +493,11 @@ export async function assertRoadmapSynchronization(
   root = repositoryRoot,
 ) {
   check(
+    readFileSync(resolve(root, "reports/FE-A1-EVIDENCE-INDEX.json"), "utf8") ===
+      evidenceIndex(data, root),
+    "Current A1 evidence index is stale.",
+  );
+  check(
     readFileSync(
       resolve(root, "reports/FE-A1-CONTRACT-IMPLEMENTATION-LEDGER.md"),
       "utf8",
@@ -444,6 +540,7 @@ async function main() {
         resolve(repositoryRoot, "scripts/ui-operation-inventory.json"),
       ),
     ).operations,
+    { checkArtifacts: command !== "reopen" },
   );
   await assertRoadmapSynchronization(data);
   assertExecutionMirrors(repositoryRoot);
@@ -474,7 +571,12 @@ async function main() {
     return;
   }
   if (command === "begin") beginItem(data, value);
-  else if (command === "failure") recordFailure(data, value);
+  else if (command === "reopen") {
+    const rejection = JSON.parse(
+      readFileSync(safePath(repositoryRoot, value), "utf8"),
+    );
+    reopenItem(data, rejection.work_item, rejection.reason);
+  } else if (command === "failure") recordFailure(data, value);
   else if (command === "repair") beginRepair(data, value);
   else if (command === "diagnose")
     recordDiagnosis(
@@ -482,14 +584,30 @@ async function main() {
       JSON.parse(readFileSync(resolve(repositoryRoot, value), "utf8")),
     );
   else if (command === "verify") {
-    const result = executeVerification(
-      data,
-      JSON.parse(readFileSync(safePath(repositoryRoot, value), "utf8")),
+    const plan = JSON.parse(
+      readFileSync(safePath(repositoryRoot, value), "utf8"),
     );
+    const item = data.work_items.find(
+      (item) => item.id === data.active_work?.item,
+    );
+    check(
+      item?.verification_plans?.[plan.pass] === value,
+      "Publish this exact verification plan in the canonical item before executing it.",
+    );
+    const result = executeVerification(data, plan);
     console.log(JSON.stringify(result));
     if (result.failed) process.exitCode = 1;
-  } else if (command === "close") closeItem(data, repositoryRoot);
-  else
+  } else if (command === "close") {
+    const item = data.work_items.find(
+      (item) => item.id === data.active_work?.item,
+    );
+    check(item, "No active A1 item to close.");
+    validateCompletionPasses(
+      { ...item, completion_evidence: data.active_work.passes ?? [] },
+      counterpartRoot(repositoryRoot),
+    );
+    closeItem(data, repositoryRoot);
+  } else
     throw new Error(
       "Use A1 status, sync, begin ID, verify PLAN, failure REASON, repair FINDINGS, diagnose ARTIFACT, or close. Importing a report cannot record a passing execution.",
     );

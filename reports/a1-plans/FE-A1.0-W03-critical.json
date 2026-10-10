@@ -1,0 +1,67 @@
+{
+  "work_item": "FE-A1.0-W03",
+  "pass": "critical",
+  "argv": [
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "scripts/a1/contract-reconciliation.critical.test.mjs"
+  ],
+  "sources": [
+    "scripts/frontend-a1-process.mjs",
+    "scripts/frontend-a1-execute.mjs",
+    "scripts/audit-frontend-a1.mjs",
+    "scripts/wave-handoff.mjs",
+    "scripts/frontend-a1-test-fixture.mjs",
+    "scripts/a1/contract-reconciliation.test.mjs",
+    "scripts/a1/contract-reconciliation.critical.test.mjs",
+    "decisions/D013-ag-ui-sdk-interaction-boundary.md",
+    "decisions/D018-project-definition-and-checkpoint-boundary.md",
+    "decisions/D024-agentic-split-workspace.md",
+    "decisions/D025-contract-ledger-and-two-pass-delivery.md",
+    "reports/FE-A1-CONSTRUCTION-CHECKS.json",
+    "reports/FE-A1-CONTRACT-RECONCILIATION-CHECKS.json"
+  ],
+  "criteria": [
+    {
+      "id": "FE-A1.0-W03-AC01",
+      "result": "passed",
+      "test": "FE-A1.0-W03-AC01 critical: operation omission and duplication are rejected",
+      "observation": "Challenged a specific false completion or authority bypass for: Exactly 97 Wave 6 operations have A1 conformance owners."
+    },
+    {
+      "id": "FE-A1.0-W03-AC02",
+      "result": "passed",
+      "test": "FE-A1.0-W03-AC02 critical: later-wave boundaries cannot absorb required A1 functions",
+      "observation": "Challenged a specific false completion or authority bypass for: The 15 Wave 7 and four Wave 8 operations retain explicit scope and dependencies."
+    },
+    {
+      "id": "FE-A1.0-W03-AC03",
+      "result": "passed",
+      "test": "FE-A1.0-W03-AC03 critical: a diagnosed product gap cannot lose its required owner",
+      "observation": "Challenged a specific false completion or authority bypass for: Required A1 loops are assigned independently of the old operation list."
+    }
+  ],
+  "boundary": "Contract reconciliation, dependency/operation accounting and delivery controls only. Live canonical documents and controlled adverse fixtures are examined; no product copilot, examiner, graph or cyclic-work completion is claimed.",
+  "review": {
+    "perspective": "Challenge scope loss, misleading historical evidence, unsafe release, dependency bypass and contradictory roadmap narratives from the rejected product outcome.",
+    "challenges": [
+      {
+        "criterion": "FE-A1.0-W03-AC01",
+        "question": "FE-A1.0-W03-AC01 critical: operation omission and duplication are rejected",
+        "result": "Challenged a specific false completion or authority bypass for: Exactly 97 Wave 6 operations have A1 conformance owners."
+      },
+      {
+        "criterion": "FE-A1.0-W03-AC02",
+        "question": "FE-A1.0-W03-AC02 critical: later-wave boundaries cannot absorb required A1 functions",
+        "result": "Challenged a specific false completion or authority bypass for: The 15 Wave 7 and four Wave 8 operations retain explicit scope and dependencies."
+      },
+      {
+        "criterion": "FE-A1.0-W03-AC03",
+        "question": "FE-A1.0-W03-AC03 critical: a diagnosed product gap cannot lose its required owner",
+        "result": "Challenged a specific false completion or authority bypass for: Required A1 loops are assigned independently of the old operation list."
+      }
+    ],
+    "findings": []
+  }
+}

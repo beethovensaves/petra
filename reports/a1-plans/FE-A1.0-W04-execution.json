@@ -1,0 +1,46 @@
+{
+  "work_item": "FE-A1.0-W04",
+  "pass": "execution",
+  "argv": [
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "scripts/a1/contract-reconciliation.test.mjs"
+  ],
+  "sources": [
+    "scripts/frontend-a1-process.mjs",
+    "scripts/frontend-a1-execute.mjs",
+    "scripts/audit-frontend-a1.mjs",
+    "scripts/wave-handoff.mjs",
+    "scripts/frontend-a1-test-fixture.mjs",
+    "scripts/a1/contract-reconciliation.test.mjs",
+    "scripts/a1/contract-reconciliation.critical.test.mjs",
+    "decisions/D013-ag-ui-sdk-interaction-boundary.md",
+    "decisions/D018-project-definition-and-checkpoint-boundary.md",
+    "decisions/D024-agentic-split-workspace.md",
+    "decisions/D025-contract-ledger-and-two-pass-delivery.md",
+    "reports/FE-A1-CONSTRUCTION-CHECKS.json",
+    "reports/FE-A1-CONTRACT-RECONCILIATION-CHECKS.json"
+  ],
+  "criteria": [
+    {
+      "id": "FE-A1.0-W04-AC01",
+      "result": "passed",
+      "test": "FE-A1.0-W04-AC01 execution: incomplete A1 blocks all mutating delivery entries",
+      "observation": "Observed the live controlling roadmap and registered guard for: An incomplete or malformed A1 ledger prevents later-wave execution."
+    },
+    {
+      "id": "FE-A1.0-W04-AC02",
+      "result": "passed",
+      "test": "FE-A1.0-W04-AC02 execution: status and stop remain available",
+      "observation": "Observed the live controlling roadmap and registered guard for: Read-only status and stop remain available."
+    },
+    {
+      "id": "FE-A1.0-W04-AC03",
+      "result": "passed",
+      "test": "FE-A1.0-W04-AC03 execution: controller preserves actual user acceptance authority",
+      "observation": "Observed the live controlling roadmap and registered guard for: Missing user acceptance prevents release even if every engineering record is complete."
+    }
+  ],
+  "boundary": "Contract reconciliation, dependency/operation accounting and delivery controls only. Live canonical documents and controlled adverse fixtures are examined; no product copilot, examiner, graph or cyclic-work completion is claimed."
+}

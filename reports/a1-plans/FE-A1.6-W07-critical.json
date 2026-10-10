@@ -1,0 +1,84 @@
+{
+  "work_item": "FE-A1.6-W07",
+  "pass": "critical",
+  "argv": [
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "scripts/a1/accounting.critical.test.mjs"
+  ],
+  "sources": [
+    "scripts/frontend-a1-process.mjs",
+    "scripts/frontend-a1-execute.mjs",
+    "scripts/audit-frontend-a1.mjs",
+    "scripts/wave-handoff.mjs",
+    "scripts/frontend-a1-test-fixture.mjs",
+    "scripts/a1/accounting.test.mjs",
+    "scripts/a1/accounting.critical.test.mjs",
+    "decisions/D025-contract-ledger-and-two-pass-delivery.md"
+  ],
+  "criteria": [
+    {
+      "id": "FE-A1.6-W07-AC01",
+      "result": "passed",
+      "test": "FE-A1.6-W07-AC01 critical: no subset of criteria can manufacture closure",
+      "observation": "Rejected the adverse accounting bypass for A complete item has evidence against its own acceptance criteria and completed dependencies."
+    },
+    {
+      "id": "FE-A1.6-W07-AC02",
+      "result": "passed",
+      "test": "FE-A1.6-W07-AC02 critical: all but one child still leaves the stage incomplete",
+      "observation": "Rejected the adverse accounting bypass for A stage is complete only when every mandatory child is complete."
+    },
+    {
+      "id": "FE-A1.6-W07-AC03",
+      "result": "passed",
+      "test": "FE-A1.6-W07-AC03 critical: unchanged acceptance cannot survive a reopened dependency",
+      "observation": "Rejected the adverse accounting bypass for User rejection reopens affected items and revokes the wave release."
+    },
+    {
+      "id": "FE-A1.6-W07-AC04",
+      "result": "passed",
+      "test": "FE-A1.6-W07-AC04 critical: cloned execution cannot masquerade as critical review",
+      "observation": "Rejected the adverse accounting bypass for Execution and critical tests evaluate distinct questions on the same exact candidate."
+    },
+    {
+      "id": "FE-A1.6-W07-AC05",
+      "result": "passed",
+      "test": "FE-A1.6-W07-AC05 critical: a counter reset without broad diagnosis is rejected",
+      "observation": "Rejected the adverse accounting bypass for Two unsuccessful attempts cannot silently restart or advance another item."
+    }
+  ],
+  "boundary": "Current accounting and release-control logic only. Synthetic work/candidate fixtures prove closure, rejection and retry guards; they establish no adapted operation or product integration.",
+  "review": {
+    "perspective": "Challenge premature criterion/stage closure, retained approval after rejection, copied functional proof and endless local retries.",
+    "challenges": [
+      {
+        "criterion": "FE-A1.6-W07-AC01",
+        "question": "FE-A1.6-W07-AC01 critical: no subset of criteria can manufacture closure",
+        "result": "Rejected the adverse accounting bypass for A complete item has evidence against its own acceptance criteria and completed dependencies."
+      },
+      {
+        "criterion": "FE-A1.6-W07-AC02",
+        "question": "FE-A1.6-W07-AC02 critical: all but one child still leaves the stage incomplete",
+        "result": "Rejected the adverse accounting bypass for A stage is complete only when every mandatory child is complete."
+      },
+      {
+        "criterion": "FE-A1.6-W07-AC03",
+        "question": "FE-A1.6-W07-AC03 critical: unchanged acceptance cannot survive a reopened dependency",
+        "result": "Rejected the adverse accounting bypass for User rejection reopens affected items and revokes the wave release."
+      },
+      {
+        "criterion": "FE-A1.6-W07-AC04",
+        "question": "FE-A1.6-W07-AC04 critical: cloned execution cannot masquerade as critical review",
+        "result": "Rejected the adverse accounting bypass for Execution and critical tests evaluate distinct questions on the same exact candidate."
+      },
+      {
+        "criterion": "FE-A1.6-W07-AC05",
+        "question": "FE-A1.6-W07-AC05 critical: a counter reset without broad diagnosis is rejected",
+        "result": "Rejected the adverse accounting bypass for Two unsuccessful attempts cannot silently restart or advance another item."
+      }
+    ],
+    "findings": []
+  }
+}

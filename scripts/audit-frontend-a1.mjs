@@ -80,6 +80,15 @@ export function validateA1Inventory(
     data.controlling_decision === "D024",
     "A1 must retain D024.",
   );
+  requireCondition(
+    data.feedback_history?.some(
+      (entry) =>
+        entry.date === "2026-10-07" &&
+        entry.decision === "changes_requested" &&
+        nonempty(entry.summary),
+    ),
+    "The rejected frontend candidate must remain recorded in feedback history.",
+  );
   requireCondition(states.has(data.status), "Invalid A1 status.");
   const ids = uniqueIds(data.work_items, "id");
   const milestones = uniqueIds(data.milestones, "id");
@@ -91,6 +100,21 @@ export function validateA1Inventory(
   for (const id of requiredIds)
     requireCondition(ids.has(id), `Required A1 work removed: ${id}`);
   const byId = new Map(data.work_items.map((item) => [item.id, item]));
+  requireCondition(
+    Array.isArray(data.repair_sequence) &&
+      data.repair_sequence.length === 6 &&
+      data.repair_sequence.every(
+        (repair, i) =>
+          repair.order === i + 1 &&
+          nonempty(repair.resolution) &&
+          repair.work_items.length > 0 &&
+          repair.work_items.every((id) => ids.has(id)),
+      ) &&
+      [...Array(7)].every((_, i) =>
+        data.repair_sequence.some((repair) => repair.diagnoses.includes(i + 1)),
+      ),
+    "All seven diagnoses need explicit ordered implementation owners.",
+  );
   const scenarioIds = uniqueIds(data.optional_scenarios, "id");
   for (const item of data.work_items) {
     requireCondition(
@@ -257,10 +281,16 @@ export function candidateFingerprint(
   );
   const tree = result.stdout
     .split("\n")
-    .filter((line) => !line.endsWith(`\t${inventoryPath}`))
+    .filter(
+      (line) =>
+        ![inventoryPath, "scripts/frontend-a1-execution.md"].some((path) =>
+          line.endsWith(`\t${path}`),
+        ),
+    )
     .join("\n");
   const scope = {
     execution_policy: data.execution_policy,
+    repairs: data.repair_sequence,
     work: data.work_items.map(
       ({
         id,
@@ -271,6 +301,7 @@ export function candidateFingerprint(
         acceptance,
         depends_on,
         contracts,
+        verification_plans,
       }) => ({
         id,
         milestone,
@@ -280,6 +311,7 @@ export function candidateFingerprint(
         acceptance,
         depends_on,
         contracts,
+        verification_plans,
       }),
     ),
     operations: data.operation_coverage,
@@ -410,6 +442,14 @@ export async function renderA1Ledger(data) {
     "Compositionally means the shared examiner, conversation, Workspace, graph and governance slots resolve registered ProjectDefinition-specific object, relationship, inquiry, validator and language components. Scientific Claims/Assertions, writing requirements/interpretations and an unrelated compatible definition must each work with their own semantics. A shared shell alone is insufficient, and domain-specific global UI branches cannot substitute for this registry.",
     "",
     "A1 implements the scoped assessment/posture/obligation/closure/invalidation behavior needed for its demonstrated cycles. M3 retains broader research agency and additional assessment libraries; it does not retain an A1 cycle prerequisite. General experiment execution remains M4. Full document Composition remains the 15 Wave 7 operations. Wave 8 retains four new governed Settings/capability operations. Existing applicable policy, capability, validation and authority must already be inspectable in A1; unsupported policy automation must be explicit.",
+    "",
+    "## Diagnosed repair sequence",
+    "",
+    ...data.repair_sequence.flatMap((repair) => [
+      `${repair.order}. **Diagnoses ${repair.diagnoses.join(", ")}:** ${repair.resolution} Required owners: ${repair.work_items.map(itemRef).join(", ")}.`,
+      "",
+    ]),
+    "The detailed dependency order below controls construction. A repaired delivery gate cannot close the product integration it protects.",
     "",
     "## Required work cycle",
     "",

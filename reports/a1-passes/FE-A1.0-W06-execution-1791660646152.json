@@ -1,0 +1,119 @@
+{
+  "schema_name": "petra.a1-verification-pass",
+  "schema_version": "1.0.0",
+  "work_item": "FE-A1.0-W06",
+  "pass": "execution",
+  "contract_hash": "sha256:56e39d5980d0083b1bef98519f810639b269d1174865f2d6a301ac438408ab49",
+  "status": "passed",
+  "candidate_commit": "eb5f839d4aa0417f70e3f13dc4f11af6b26fde93",
+  "started_at": "2026-10-10T19:30:44.479Z",
+  "finished_at": "2026-10-10T19:30:46.152Z",
+  "criteria": [
+    {
+      "id": "FE-A1.0-W06-AC01",
+      "result": "passed",
+      "test": "AC01 execution: roadmap and both execution environments synchronize",
+      "observation": "The functional suite executes the intended process boundary: roadmap and both execution environments synchronize."
+    },
+    {
+      "id": "FE-A1.0-W06-AC02",
+      "result": "passed",
+      "test": "AC02 execution: one dependency-ready item preserves historical construction",
+      "observation": "The functional suite executes the intended process boundary: one dependency-ready item preserves historical construction."
+    },
+    {
+      "id": "FE-A1.0-W06-AC03",
+      "result": "passed",
+      "test": "AC03 execution: real tests are executed and exact candidate sources retained",
+      "observation": "The functional suite executes the intended process boundary: real tests are executed and exact candidate sources retained."
+    },
+    {
+      "id": "FE-A1.0-W06-AC04",
+      "result": "passed",
+      "test": "AC04 execution: distinct critical pass follows execution before closure",
+      "observation": "The functional suite executes the intended process boundary: distinct critical pass follows execution before closure."
+    },
+    {
+      "id": "FE-A1.0-W06-AC05",
+      "result": "passed",
+      "test": "AC05 execution: repair retains findings and repeated failures require broad diagnosis",
+      "observation": "The functional suite executes the intended process boundary: repair retains findings and repeated failures require broad diagnosis."
+    },
+    {
+      "id": "FE-A1.0-W06-AC06",
+      "result": "passed",
+      "test": "AC06 execution: contracted semantics remain required and late scenarios optional",
+      "observation": "The functional suite executes the intended process boundary: contracted semantics remain required and late scenarios optional."
+    },
+    {
+      "id": "FE-A1.0-W06-AC07",
+      "result": "passed",
+      "test": "AC07 execution: engineering records do not record user acceptance",
+      "observation": "The functional suite executes the intended process boundary: engineering records do not record user acceptance."
+    }
+  ],
+  "sources": [
+    {
+      "path": "decisions/D025-contract-ledger-and-two-pass-delivery.md",
+      "hash": "sha256:c7a489b6481f32413b404b6bdd212c86238cf530a8340db4f80e73ae8803fe05"
+    },
+    {
+      "path": "package.json",
+      "hash": "sha256:15663a90bcaeb3600485a1549df41d65a8769263ee6d814a3a881638d33e529a"
+    },
+    {
+      "path": "reports/a1-plans/FE-A1.0-W06-critical.json",
+      "hash": "sha256:64bcb713878e9a6d1e3960491c5f4ce323639d75737bff9d3d712a9b19c2991a"
+    },
+    {
+      "path": "reports/a1-plans/FE-A1.0-W06-execution.json",
+      "hash": "sha256:67c26a7bca5285bc2f4561789787e25f4fc3df4b2fe4bbb4761f47243c375a8b"
+    },
+    {
+      "path": "scripts/audit-frontend-a1.mjs",
+      "hash": "sha256:e534454d371470e3e47dd258b8f6b3994d9b3375a35e3f81f7cb7c01cdf9749f"
+    },
+    {
+      "path": "scripts/audit-frontend-a1.test.mjs",
+      "hash": "sha256:31d08a8f5b42fa5c14d9edd8f449375fef64b07d0ce9a0cf0ceee0cf32717887"
+    },
+    {
+      "path": "scripts/frontend-a1-execute.mjs",
+      "hash": "sha256:91dd08f72f90d98b963a7901b7121de3044bfc919ff9aa2a8f7a25844c6c1b4a"
+    },
+    {
+      "path": "scripts/frontend-a1-process.critical.test.mjs",
+      "hash": "sha256:320eb2b93924b29211261f321e12bff0bc6427344fd1382adbbf2fdc7ee994b7"
+    },
+    {
+      "path": "scripts/frontend-a1-process.mjs",
+      "hash": "sha256:3c655d562aba05bca8e3c9363d509e00764e601ea8ae201e24a5cbfbcb04483f"
+    },
+    {
+      "path": "scripts/frontend-a1-process.test.mjs",
+      "hash": "sha256:2c4f6efe0c21104ae3a36e44672697a672eda32ae3097bab0b15cbe18aa4ac8b"
+    },
+    {
+      "path": "scripts/frontend-a1-test-fixture.mjs",
+      "hash": "sha256:321ea38bfe802f286e5a4c5470cfd9e67a46080bc988ec962d54d5f5e74ab1b7"
+    },
+    {
+      "path": "scripts/wave-handoff.mjs",
+      "hash": "sha256:dd5025e27ab82282f73bf12ab3d98ebd9b043e305c39268086d554bf9e5580e3"
+    }
+  ],
+  "runs": [
+    {
+      "argv": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "scripts/frontend-a1-process.test.mjs"
+      ],
+      "exit_code": 0,
+      "output": "reports/a1-passes/FE-A1.0-W06-execution-1791660646152.tap",
+      "output_hash": "sha256:ae20dd7be0e4121ae092bcad019ccc1658f32a6842ace173620f6d0e4320a0c8"
+    }
+  ],
+  "boundary": "Delivery-control implementation only. Temporary Git/worktree fixtures test guards; they establish no copilot, Workspace, native examiner, model or cyclic verification product completion. Generated status views are checked from the current canonical ledger; static implementation and test files bind the committed candidate."
+}

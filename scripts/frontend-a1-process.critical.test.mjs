@@ -4,6 +4,7 @@ import { join } from "node:path";
 import test from "node:test";
 import {
   a1CompletionProblems,
+  candidateFingerprint,
   validateA1Inventory,
 } from "./audit-frontend-a1.mjs";
 import { assertDeliveryWavePrerequisites } from "./wave-handoff.mjs";
@@ -20,6 +21,7 @@ import {
   recordDiagnosis,
   recordFailure,
   recordPass,
+  reopenItem,
   synchronizeA1,
 } from "./frontend-a1-execute.mjs";
 import { fixture, ledger } from "./frontend-a1-test-fixture.mjs";
@@ -53,6 +55,11 @@ test(
 
 test("AC02 critical: concurrent work and unmet dependencies cannot hide as progress", () => {
   const data = ledger();
+  data.active_work = null;
+  data.work_items.forEach((item) => {
+    item.status = "planned";
+  });
+  beginItem(data, "FE-A1.0-W06");
   data.work_items.find((i) => i.id === "FE-A1.0-W01").status = "in_progress";
   assert.throws(() => validateExecutionState(data), /only one active/);
   data.work_items.find((i) => i.id === "FE-A1.0-W06").status = "planned";
@@ -331,5 +338,63 @@ test(
         /fully executed|named passing/,
       );
     }
+  }),
+);
+
+test(
+  "AC02 critical: rejection revokes dependent completion without discarding evidence",
+  withFixture((f) => {
+    const first = f.data.work_items.find((item) => item.id === "FE-A1.0-W01");
+    f.item.status = "complete";
+    first.status = "complete";
+    f.item.completion_evidence = [f.proof("execution"), f.proof("critical")];
+    f.data.user_acceptance = { actor: "user", decision: "accepted" };
+    const affected = reopenItem(
+      f.data,
+      f.item.id,
+      "Critical review identified changed proof; revalidate the prerequisite and dependants.",
+    );
+    assert.ok(affected.includes(first.id));
+    assert.equal(first.status, "planned");
+    assert.equal(f.item.historical_completion_evidence.length, 2);
+    assert.equal(f.item.completion_evidence.length, 0);
+    assert.equal(f.data.user_acceptance, null);
+    validateExecutionState(f.data);
+  }),
+);
+
+test(
+  "AC07 critical: accounting cannot alter accepted code identity but runtime changes do",
+  withFixture((f) => {
+    const before = candidateFingerprint(f.data, f.root, f.candidate);
+    f.put(
+      "scripts/frontend-a1-execution.md",
+      "Synthetic accounting transition after a recorded pass.",
+    );
+    f.git("add", ".");
+    f.git(
+      "-c",
+      "user.name=Petra gate fixture",
+      "-c",
+      "user.email=fixture@example.invalid",
+      "commit",
+      "--quiet",
+      "-m",
+      "Accounting only",
+    );
+    assert.equal(candidateFingerprint(f.data, f.root), before);
+    f.put("packages/runtime/owner.ts", "export const changedAuthority = true;");
+    f.git("add", ".");
+    f.git(
+      "-c",
+      "user.name=Petra gate fixture",
+      "-c",
+      "user.email=fixture@example.invalid",
+      "commit",
+      "--quiet",
+      "-m",
+      "Changed runtime owner",
+    );
+    assert.notEqual(candidateFingerprint(f.data, f.root), before);
   }),
 );
