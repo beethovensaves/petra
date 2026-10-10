@@ -1,0 +1,82 @@
+TAP version 13
+# Subtest: FE-A1.0-W01-AC01 execution: inspection rejection remains explicit
+ok 1 - FE-A1.0-W01-AC01 execution: inspection rejection remains explicit
+  ---
+  duration_ms: 1.177625
+  type: 'test'
+  ...
+# Subtest: FE-A1.0-W01-AC02 execution: historical mechanics retain their original limits
+ok 2 - FE-A1.0-W01-AC02 execution: historical mechanics retain their original limits
+  ---
+  duration_ms: 0.175042
+  type: 'test'
+  ...
+# Subtest: FE-A1.0-W02-AC01 execution: all eight stages retain granular criteria and owners
+ok 3 - FE-A1.0-W02-AC01 execution: all eight stages retain granular criteria and owners
+  ---
+  duration_ms: 484.937791
+  type: 'test'
+  ...
+# Subtest: FE-A1.0-W02-AC02 execution: completion requires criterion evidence and prerequisites
+ok 4 - FE-A1.0-W02-AC02 execution: completion requires criterion evidence and prerequisites
+  ---
+  duration_ms: 0.195791
+  type: 'test'
+  ...
+# Subtest: FE-A1.0-W03-AC01 execution: all 97 adapted operations have exact A1 owners
+ok 5 - FE-A1.0-W03-AC01 execution: all 97 adapted operations have exact A1 owners
+  ---
+  duration_ms: 0.145458
+  type: 'test'
+  ...
+# Subtest: FE-A1.0-W03-AC02 execution: later-wave operations keep explicit boundaries
+ok 6 - FE-A1.0-W03-AC02 execution: later-wave operations keep explicit boundaries
+  ---
+  duration_ms: 0.049792
+  type: 'test'
+  ...
+# Subtest: FE-A1.0-W03-AC03 execution: connected cycles remain independent required construction
+ok 7 - FE-A1.0-W03-AC03 execution: connected cycles remain independent required construction
+  ---
+  duration_ms: 0.09375
+  type: 'test'
+  ...
+# Subtest: FE-A1.0-W04-AC01 execution: incomplete A1 blocks all mutating delivery entries
+ok 8 - FE-A1.0-W04-AC01 execution: incomplete A1 blocks all mutating delivery entries
+  ---
+  duration_ms: 11512.672458
+  type: 'test'
+  ...
+# Subtest: FE-A1.0-W04-AC02 execution: status and stop remain available
+ok 9 - FE-A1.0-W04-AC02 execution: status and stop remain available
+  ---
+  duration_ms: 0.170333
+  type: 'test'
+  ...
+# Subtest: FE-A1.0-W04-AC03 execution: controller preserves actual user acceptance authority
+ok 10 - FE-A1.0-W04-AC03 execution: controller preserves actual user acceptance authority
+  ---
+  duration_ms: 0.247916
+  type: 'test'
+  ...
+# Subtest: FE-A1.0-W05-AC01 execution: every current roadmap agrees with the canonical queue
+ok 11 - FE-A1.0-W05-AC01 execution: every current roadmap agrees with the canonical queue
+  ---
+  duration_ms: 282.821875
+  type: 'test'
+  ...
+# Subtest: FE-A1.0-W05-AC02 execution: the immediate sequence ends at explicit acceptance
+ok 12 - FE-A1.0-W05-AC02 execution: the immediate sequence ends at explicit acceptance
+  ---
+  duration_ms: 0.451792
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 12346.550459

@@ -1,0 +1,91 @@
+{
+  "schema_name": "petra.a1-verification-pass",
+  "schema_version": "1.0.0",
+  "work_item": "FE-A1.6-W07",
+  "pass": "execution",
+  "contract_hash": "sha256:375a1defb0420f985574e1f04ff056a4a794097179acf1ebb578e9529fd205c6",
+  "status": "passed",
+  "candidate_commit": "5eeaddd1f8a94449c0afb52270c2ca1e5422e37a",
+  "started_at": "2026-10-10T19:49:56.944Z",
+  "finished_at": "2026-10-10T19:49:58.178Z",
+  "criteria": [
+    {
+      "id": "FE-A1.6-W07-AC01",
+      "result": "passed",
+      "test": "FE-A1.6-W07-AC01 execution: closure requires both criterion passes and prerequisites",
+      "observation": "Observed the functional accounting outcome for A complete item has evidence against its own acceptance criteria and completed dependencies."
+    },
+    {
+      "id": "FE-A1.6-W07-AC02",
+      "result": "passed",
+      "test": "FE-A1.6-W07-AC02 execution: stage completion derives from every mandatory child",
+      "observation": "Observed the functional accounting outcome for A stage is complete only when every mandatory child is complete."
+    },
+    {
+      "id": "FE-A1.6-W07-AC03",
+      "result": "passed",
+      "test": "FE-A1.6-W07-AC03 execution: rejection preserves evidence and revokes acceptance",
+      "observation": "Observed the functional accounting outcome for User rejection reopens affected items and revokes the wave release."
+    },
+    {
+      "id": "FE-A1.6-W07-AC04",
+      "result": "passed",
+      "test": "FE-A1.6-W07-AC04 execution: two distinct suites bind one exact candidate",
+      "observation": "Observed the functional accounting outcome for Execution and critical tests evaluate distinct questions on the same exact candidate."
+    },
+    {
+      "id": "FE-A1.6-W07-AC05",
+      "result": "passed",
+      "test": "FE-A1.6-W07-AC05 execution: two failures stop work before advancing another item",
+      "observation": "Observed the functional accounting outcome for Two unsuccessful attempts cannot silently restart or advance another item."
+    }
+  ],
+  "sources": [
+    {
+      "path": "decisions/D025-contract-ledger-and-two-pass-delivery.md",
+      "hash": "sha256:c7a489b6481f32413b404b6bdd212c86238cf530a8340db4f80e73ae8803fe05"
+    },
+    {
+      "path": "scripts/a1/accounting.critical.test.mjs",
+      "hash": "sha256:889d4604aefa4722587eab70aef3a9a2af8bcb2806b75d8bcb9acd588884f17e"
+    },
+    {
+      "path": "scripts/a1/accounting.test.mjs",
+      "hash": "sha256:cbab39873893df2b0472dfe0a65fbd529d34dd7b722d1f9c3c338f1465a2cd0a"
+    },
+    {
+      "path": "scripts/audit-frontend-a1.mjs",
+      "hash": "sha256:1941cb03c99aa4951ea8aec976ae605d1626d3a1b966aa2c16b171fb17c1056b"
+    },
+    {
+      "path": "scripts/frontend-a1-execute.mjs",
+      "hash": "sha256:f692c6a1acaa1820a7a301c91b30672abd5bfdfa407f4a7b822e1e16a01e00cd"
+    },
+    {
+      "path": "scripts/frontend-a1-process.mjs",
+      "hash": "sha256:70eaf0d24870e0b12a730e4c59045a9e13c7b738ad90a068bcee9ee5f85282ff"
+    },
+    {
+      "path": "scripts/frontend-a1-test-fixture.mjs",
+      "hash": "sha256:c0ffe35f93374a224d7f2cf216a5f14234c9e74f1f1d8da6bdc6ab71aecd768a"
+    },
+    {
+      "path": "scripts/wave-handoff.mjs",
+      "hash": "sha256:dd5025e27ab82282f73bf12ab3d98ebd9b043e305c39268086d554bf9e5580e3"
+    }
+  ],
+  "runs": [
+    {
+      "argv": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "scripts/a1/accounting.test.mjs"
+      ],
+      "exit_code": 0,
+      "output": "reports/a1-passes/FE-A1.6-W07-execution-1791661798178.tap",
+      "output_hash": "sha256:32e7b028decbbf176b7760c00496871ce217c27d7ef22bd22754372bb43aa167"
+    }
+  ],
+  "boundary": "Current accounting and release-control logic only. Synthetic work/candidate fixtures prove closure, rejection and retry guards; they establish no adapted operation or product integration."
+}

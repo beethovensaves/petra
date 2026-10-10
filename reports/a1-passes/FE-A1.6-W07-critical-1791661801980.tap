@@ -1,0 +1,40 @@
+TAP version 13
+# Subtest: FE-A1.6-W07-AC01 critical: no subset of criteria can manufacture closure
+ok 1 - FE-A1.6-W07-AC01 critical: no subset of criteria can manufacture closure
+  ---
+  duration_ms: 99.124042
+  type: 'test'
+  ...
+# Subtest: FE-A1.6-W07-AC02 critical: all but one child still leaves the stage incomplete
+ok 2 - FE-A1.6-W07-AC02 critical: all but one child still leaves the stage incomplete
+  ---
+  duration_ms: 257.360833
+  type: 'test'
+  ...
+# Subtest: FE-A1.6-W07-AC03 critical: unchanged acceptance cannot survive a reopened dependency
+ok 3 - FE-A1.6-W07-AC03 critical: unchanged acceptance cannot survive a reopened dependency
+  ---
+  duration_ms: 87.95
+  type: 'test'
+  ...
+# Subtest: FE-A1.6-W07-AC04 critical: cloned execution cannot masquerade as critical review
+ok 4 - FE-A1.6-W07-AC04 critical: cloned execution cannot masquerade as critical review
+  ---
+  duration_ms: 232.218208
+  type: 'test'
+  ...
+# Subtest: FE-A1.6-W07-AC05 critical: a counter reset without broad diagnosis is rejected
+ok 5 - FE-A1.6-W07-AC05 critical: a counter reset without broad diagnosis is rejected
+  ---
+  duration_ms: 85.512
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 820.650333

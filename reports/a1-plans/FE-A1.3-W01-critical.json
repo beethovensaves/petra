@@ -1,0 +1,85 @@
+{
+  "work_item": "FE-A1.3-W01",
+  "pass": "critical",
+  "argv": [
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "scripts/a1/conversation-contracts.critical.test.mjs"
+  ],
+  "sources": [
+    "packages/core/src/project-copilot.ts",
+    "packages/core/src/intake-copilot.ts",
+    "packages/adapters/src/codex-project-copilot.ts",
+    "apps/server/src/project-copilot-model.ts",
+    "apps/server/src/m1-grounded-synthesis.ts",
+    "packages/core/test/project-copilot-conversation.test.ts",
+    "packages/core/test/project-copilot.test.ts",
+    "packages/core/test/intake-copilot.test.ts",
+    "packages/adapters/test/project-copilot.test.ts",
+    "apps/server/test/m1-grounded-synthesis.test.ts",
+    "apps/server/test/project-copilot-eligibility.test.ts",
+    "scripts/a1/run-vitest.mjs",
+    "scripts/a1/conversation-contracts.test.mjs",
+    "scripts/a1/conversation-contracts.critical.test.mjs",
+    "packages/contracts/schemas/copilot-context/1.0.0/schema.json",
+    "packages/contracts/schemas/copilot-output/1.0.0/schema.json",
+    "packages/contracts/schemas/copilot-request/1.0.0/schema.json",
+    "packages/contracts/schemas/copilot-request/1.1.0/schema.json",
+    "packages/contracts/schemas/copilot-turn/1.0.0/schema.json",
+    "packages/contracts/schemas/copilot-turn/1.1.0/schema.json",
+    "packages/contracts/schemas/intake-copilot-context/1.0.0/schema.json",
+    "packages/contracts/schemas/intake-copilot-request/1.0.0/schema.json",
+    "packages/contracts/schemas/intake-copilot-turn/1.0.0/schema.json"
+  ],
+  "criteria": [
+    {
+      "id": "FE-A1.3-W01-AC01",
+      "result": "passed",
+      "test": "FE-A1.3-W01-AC01 critical: hashed foreign context and fabricated intake evidence are rejected",
+      "observation": "A validly hashed context from another Project is rejected before retention and before invocation; cross-Project context and fabricated source reports cannot acquire advisory authority."
+    },
+    {
+      "id": "FE-A1.3-W01-AC02",
+      "result": "passed",
+      "test": "FE-A1.3-W01-AC02 critical: editing the fixed synthesis question cannot borrow its authority",
+      "observation": "An altered fixed synthesis question is denied at the production route before the provider receives a turn."
+    },
+    {
+      "id": "FE-A1.3-W01-AC03",
+      "result": "passed",
+      "test": "FE-A1.3-W01-AC03 critical: tool activity model substitution and invented source wording fail",
+      "observation": "Changed deployed core bytes withhold readiness before provider access or repository recovery; prohibited tools, model substitution, uncited reports and invented authority are rejected."
+    }
+  ],
+  "boundary": "Conversation contract and runtime boundary verification, using controlled repository/provider ports and a real local HTTP M1 route. Actual managed-model eligibility is separately required by FE-A1.3-W02; canonical Thread/Run integration, action proposals, native examiners and connected cycles remain open.",
+  "review": {
+    "perspective": "Attempt cross-Project retention and model invocation, fixed-role authority borrowing, deployment drift, prohibited tools and fabricated evidence rather than repeat the successful conversation.",
+    "challenges": [
+      {
+        "criterion": "FE-A1.3-W01-AC01",
+        "question": "FE-A1.3-W01-AC01 critical: hashed foreign context and fabricated intake evidence are rejected",
+        "result": "A validly hashed context from another Project is rejected before retention and before invocation; cross-Project context and fabricated source reports cannot acquire advisory authority."
+      },
+      {
+        "criterion": "FE-A1.3-W01-AC02",
+        "question": "FE-A1.3-W01-AC02 critical: editing the fixed synthesis question cannot borrow its authority",
+        "result": "An altered fixed synthesis question is denied at the production route before the provider receives a turn."
+      },
+      {
+        "criterion": "FE-A1.3-W01-AC03",
+        "question": "FE-A1.3-W01-AC03 critical: tool activity model substitution and invented source wording fail",
+        "result": "Changed deployed core bytes withhold readiness before provider access or repository recovery; prohibited tools, model substitution, uncited reports and invented authority are rejected."
+      }
+    ],
+    "findings": [
+      {
+        "severity": "material",
+        "status": "resolved",
+        "finding": "Core runtime previously accepted validly hashed context whose Project differed from its turn.",
+        "resolution": "The exact Project guard now precedes repository retention and model invocation; the critical test confirms neither receives bytes.",
+        "disposition": "resolved"
+      }
+    ]
+  }
+}

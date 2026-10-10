@@ -1,0 +1,52 @@
+TAP version 13
+# Subtest: AC01 execution: roadmap and both execution environments synchronize
+ok 1 - AC01 execution: roadmap and both execution environments synchronize
+  ---
+  duration_ms: 555.603417
+  type: 'test'
+  ...
+# Subtest: AC02 execution: one dependency-ready item preserves historical construction
+ok 2 - AC02 execution: one dependency-ready item preserves historical construction
+  ---
+  duration_ms: 1.71025
+  type: 'test'
+  ...
+# Subtest: AC03 execution: real tests are executed and exact candidate sources retained
+ok 3 - AC03 execution: real tests are executed and exact candidate sources retained
+  ---
+  duration_ms: 229.224125
+  type: 'test'
+  ...
+# Subtest: AC04 execution: distinct critical pass follows execution before closure
+ok 4 - AC04 execution: distinct critical pass follows execution before closure
+  ---
+  duration_ms: 350.470666
+  type: 'test'
+  ...
+# Subtest: AC05 execution: repair retains findings and repeated failures require broad diagnosis
+ok 5 - AC05 execution: repair retains findings and repeated failures require broad diagnosis
+  ---
+  duration_ms: 116.04975
+  type: 'test'
+  ...
+# Subtest: AC06 execution: contracted semantics remain required and late scenarios optional
+ok 6 - AC06 execution: contracted semantics remain required and late scenarios optional
+  ---
+  duration_ms: 0.555541
+  type: 'test'
+  ...
+# Subtest: AC07 execution: engineering records do not record user acceptance
+ok 7 - AC07 execution: engineering records do not record user acceptance
+  ---
+  duration_ms: 352.144833
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1662.855333

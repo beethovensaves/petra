@@ -302,6 +302,11 @@ export class ProjectCopilotRuntime {
         "A new answer prepares its own disclosure manifest after retaining the exact request.",
       );
     validateCopilotContext(turn.context);
+    if (turn.context.project_id !== turn.project_id)
+      throw new CopilotBoundaryError(
+        "CONTEXT_PROJECT_MISMATCH",
+        "The conversation context must belong to the turn's exact Project before it is retained or sent to a model.",
+      );
     if (turn.shared_scene !== undefined) {
       const scene = turn.shared_scene;
       if (

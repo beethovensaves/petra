@@ -1,6 +1,6 @@
 # A1 execution instructions
 
-Roadmap binding: `sha256:dce5856c9ae657ccf7ea9c3c6c6d8d7fb255794fc7b2c5d8c9cded72e64f9c0a`. Generated from frontend-a1-work-inventory.json.
+Roadmap binding: `sha256:e8ae01bec494cc45b1ebb44d619b70feda1bebaf17a1ef1f06b719f8abed742f`. Generated from frontend-a1-work-inventory.json.
 
 D025 and D024 govern this execution. Historical frozen Wave 6 instructions are subordinate. Native screen-reader evaluation is excluded; browser semantics and functional peers remain mandatory. The sixteen late scenarios are optional.
 
@@ -34,7 +34,7 @@ Construction follows the prerequisites below. Independent shell work can run bef
 
 ### 1. FE-A1.0-W06: Synchronize contract execution and require two distinct validation passes
 
-State: in_progress. Owner: integration. Prerequisites: none.
+State: complete. Owner: integration. Prerequisites: none.
 
 Implement D025: generate the readable roadmap and granular execution packet from the canonical function ledger; synchronize both execution worktrees; enforce one prerequisite-ready active item, criterion/candidate/source-bound execution and critical passes, repair findings when needed, and stop repeated failures for broad diagnosis.
 
@@ -52,7 +52,7 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 ### 2. FE-A1.0-W01: Record the controlling contracts and rejected candidate
 
-State: planned. Owner: integration. Prerequisites: FE-A1.0-W06.
+State: complete. Owner: integration. Prerequisites: FE-A1.0-W06.
 
 Retain D024, D013, D018, the accepted UX requirements, and the 2026-10-07 inspection rejection as the A1 baseline. Retain the accepted 2026-10-10 two-pass and synchronized execution requirements as D025; preserve historical evidence while affected work is revalidated.
 
@@ -65,7 +65,7 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 ### 3. FE-A1.0-W02: Publish the granular work and dependency ledger
 
-State: planned. Owner: integration. Prerequisites: FE-A1.0-W06, FE-A1.0-W01.
+State: complete. Owner: integration. Prerequisites: FE-A1.0-W06, FE-A1.0-W01.
 
 Assign a stable work ID, accountable role, deliverable, prerequisite, observable acceptance criteria, and evidence slot to every A1 construction.
 
@@ -78,7 +78,7 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 ### 4. FE-A1.0-W03: Assign every operation and accepted requirement
 
-State: planned. Owner: integration. Prerequisites: FE-A1.0-W06, FE-A1.0-W01.
+State: complete. Owner: integration. Prerequisites: FE-A1.0-W06, FE-A1.0-W01.
 
 Assign all 116 operations to A1 conformance or an explicit subsequent-wave owner; map all 23 UX requests and all 18 flow families to the applicable work.
 
@@ -92,7 +92,7 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 ### 5. FE-A1.0-W04: Enforce the A1 prerequisite in the wave controller
 
-State: planned. Owner: integration. Prerequisites: FE-A1.0-W06, FE-A1.0-W01.
+State: complete. Owner: integration. Prerequisites: FE-A1.0-W06, FE-A1.0-W01.
 
 Add a read-only A1 completeness gate and check it before Wave 7 or later workers start or continue, and before resume, extension, or acceptance advances a later wave.
 
@@ -106,7 +106,7 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 ### 6. FE-A1.0-W05: Reconcile every roadmap entry and immediate sequence
 
-State: planned. Owner: integration. Prerequisites: FE-A1.0-W06, FE-A1.0-W01, FE-A1.0-W02, FE-A1.0-W03, FE-A1.0-W04.
+State: complete. Owner: integration. Prerequisites: FE-A1.0-W06, FE-A1.0-W01, FE-A1.0-W02, FE-A1.0-W03, FE-A1.0-W04.
 
 Make ROADMAP, implementation roadmap, design roadmap, adaptation report, backend handoff, and runtime disposition point to this ledger for A1 execution.
 
@@ -119,7 +119,7 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 ### 7. FE-A1.6-W07: Keep completion and evidence accounting current
 
-State: planned. Owner: integration. Prerequisites: FE-A1.0-W06, FE-A1.0-W05.
+State: complete. Owner: integration. Prerequisites: FE-A1.0-W06, FE-A1.0-W05.
 
 Update work status, dependencies, scoped retained evidence and completion artifacts in the same change as each delivered slice; append newly discovered required work before it can be waived or forgotten. Enforce one prerequisite-ready active item and criterion-bound execution/critical evidence, synchronize roadmap and execution views, and stop repeated failures for broad diagnosis under D025.
 
@@ -135,11 +135,11 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 ### 8. FE-A1.3-W01: Register genuine conversational interaction contracts
 
-State: planned. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.0-W01.
+State: in_progress. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.0-W01.
 
 Add versioned intake, Project evidence-question, follow-up, and scene-explanation interaction contracts with bounded inputs, response schemas, speech acts, policy, and validated references; preserve the fixed M1 synthesist contract.
 
-Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
+Execution plan: [reports/a1-plans/FE-A1.3-W01-execution.json](../reports/a1-plans/FE-A1.3-W01-execution.json). Critical plan: [reports/a1-plans/FE-A1.3-W01-critical.json](../reports/a1-plans/FE-A1.3-W01-critical.json). Run each with `npm run a1:verify -- PLAN` in that order.
 
 - **FE-A1.3-W01-AC01:** Ordinary questions and follow-ups execute through registered runtime owners.
 - **FE-A1.3-W01-AC02:** Editing the fixed certified question cannot bypass its guard.
