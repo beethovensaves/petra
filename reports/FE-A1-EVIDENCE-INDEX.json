@@ -1,10 +1,10 @@
 {
   "schema_name": "petra.a1-evidence-index",
   "schema_version": "1.0.0",
-  "roadmap_binding": "sha256:87d26d4507d61d464ec0e577634e0625bc69eb0238a61792b43590d011d41444",
+  "roadmap_binding": "sha256:81218b7f14816dc38def5de230a0eca92e9e857bc3da6057bd7e849fcfa8da55",
   "current": {
     "required": 90,
-    "complete": 8,
+    "complete": 9,
     "user_acceptance": null,
     "proofs": [
       {
@@ -123,6 +123,23 @@
             "artifact": "reports/a1-passes/FE-A1.3-W01-critical-1791664123560.json",
             "command": "node --test --test-reporter=tap scripts/a1/conversation-contracts.critical.test.mjs",
             "boundary": "Conversation contract and runtime boundary verification, using controlled repository/provider ports and a real local HTTP M1 route. Actual managed-model eligibility is separately required by FE-A1.3-W02; canonical Thread/Run integration, action proposals, native examiners and connected cycles remain open."
+          }
+        ]
+      },
+      {
+        "work_item": "FE-A1.3-W02",
+        "passes": [
+          {
+            "pass": "execution",
+            "artifact": "reports/a1-passes/FE-A1.3-W02-execution-1791665512698.json",
+            "command": "node --test --test-reporter=tap scripts/a1/model-routes.test.mjs",
+            "boundary": "Actual managed QA question/follow-up through the live production browser and PostgreSQL, separate actual-model typed working-plan eligibility, and production unavailable-model recovery. Role-native proposal probes use committed synthetic records; canonical ProjectThread/InteractionRun, durable proposal decisions/commands, native examiners and connected cycles remain separate required A1 work and are not claimed complete."
+          },
+          {
+            "pass": "critical",
+            "artifact": "reports/a1-passes/FE-A1.3-W02-critical-1791665549548.json",
+            "command": "node --test --test-reporter=tap scripts/a1/model-routes.critical.test.mjs",
+            "boundary": "Actual managed QA question/follow-up through the live production browser and PostgreSQL, separate actual-model typed working-plan eligibility, and production unavailable-model recovery. Role-native proposal probes use committed synthetic records; canonical ProjectThread/InteractionRun, durable proposal decisions/commands, native examiners and connected cycles remain separate required A1 work and are not claimed complete."
           }
         ]
       },

@@ -1,0 +1,77 @@
+TAP version 13
+# > @petra/core@0.0.0 test
+# > vitest run --config vitest.config.ts copilot-working-plan.test.ts --testNamePattern rejects fabricated preview|rejects protected authority|rejects partial JSON --reporter=verbose
+#  RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/packages/core
+#  ↓ test/copilot-working-plan.test.ts > typed working-structure role > validates a native proposal against its exact preview without mutating retained input
+#  ↓ test/copilot-working-plan.test.ts > typed working-structure role > preserves controlled-writing native requirements and admits an explicit empty catalogue
+#  ✓ test/copilot-working-plan.test.ts > typed working-structure role > rejects fabricated preview keys and evidence before any command boundary 195ms
+#  ✓ test/copilot-working-plan.test.ts > typed working-structure role > rejects protected authority fields unsafe paths stale hashes and foreign Project previews 296ms
+#  ✓ test/copilot-working-plan.test.ts > typed working-structure role > rejects partial JSON wrong native types duplicate edits and unregistered contract hashes 356ms
+#  Test Files  1 passed (1)
+#       Tests  3 passed | 2 skipped (5)
+#    Start at  16:52:19
+#    Duration  1.01s (transform 24ms, setup 0ms, import 105ms, tests 848ms, environment 0ms)
+# > @petra/adapters@0.0.0 test
+# > vitest run --config vitest.config.ts copilot-working-plan.test.ts --testNamePattern rejects forbidden tool|rejects invalid preview context --reporter=verbose
+#  RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/packages/adapters
+#  ↓ test/copilot-working-plan.test.ts > working-structure model deployment boundary > returns validated typed proposed output through an isolated no-tool provider and releases listeners
+#  ↓ test/copilot-working-plan.test.ts > working-structure model deployment boundary > projects every required field of the registered typed plan
+#  ↓ test/copilot-working-plan.test.ts > working-structure model deployment boundary > refuses an advisory or fixed-prompt certificate for the working-structure role
+#  ✓ test/copilot-working-plan.test.ts > working-structure model deployment boundary > rejects forbidden tool activity and does not substitute a provider model 87ms
+#  ✓ test/copilot-working-plan.test.ts > working-structure model deployment boundary > rejects invalid preview context before accessing the model provider 38ms
+#  Test Files  1 passed (1)
+#       Tests  2 passed | 3 skipped (5)
+#    Start at  16:52:20
+#    Duration  537ms (transform 180ms, setup 0ms, import 353ms, tests 125ms, environment 0ms)
+# Actual readiness failure preserved the question and prevented invocation.
+# > @petra/server@0.0.0 test
+# > vitest run --config vitest.config.ts copilot-working-plan-model.test.ts copilot-working-plan-routes.test.ts --testNamePattern withholds a changed working|does not borrow|does not disclose a role --reporter=verbose
+#  RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/apps/server
+#  ↓ test/copilot-working-plan-routes.test.ts > working-structure readiness remains a scoped read > returns its exact role and context while leaving invocation to the canonical owner
+#  ✓ test/copilot-working-plan-routes.test.ts > working-structure readiness remains a scoped read > does not disclose a role or substitute a Project when the exact read fails 10ms
+#  ↓ test/copilot-working-plan-model.test.ts > deployed working-structure role eligibility > loads its own exact actual-model proof without invoking a provider during readiness
+#  ✓ test/copilot-working-plan-model.test.ts > deployed working-structure role eligibility > withholds a changed working-structure deployment before any provider access 4ms
+#  ✓ test/copilot-working-plan-model.test.ts > deployed working-structure role eligibility > does not borrow conversation readiness when its owning provider or context is missing 0ms
+#  Test Files  2 passed (2)
+#       Tests  3 passed | 2 skipped (5)
+#    Start at  16:52:28
+#    Duration  613ms (transform 216ms, setup 0ms, import 568ms, tests 15ms, environment 0ms)
+# > @petra/adapters@0.0.0 test
+# > vitest run --config vitest.config.ts copilot-working-plan.test.ts --testNamePattern refuses an advisory or fixed-prompt certificate --reporter=verbose
+#  RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/packages/adapters
+#  ↓ test/copilot-working-plan.test.ts > working-structure model deployment boundary > returns validated typed proposed output through an isolated no-tool provider and releases listeners
+#  ↓ test/copilot-working-plan.test.ts > working-structure model deployment boundary > projects every required field of the registered typed plan
+#  ✓ test/copilot-working-plan.test.ts > working-structure model deployment boundary > refuses an advisory or fixed-prompt certificate for the working-structure role 82ms
+#  ↓ test/copilot-working-plan.test.ts > working-structure model deployment boundary > rejects forbidden tool activity and does not substitute a provider model
+#  ↓ test/copilot-working-plan.test.ts > working-structure model deployment boundary > rejects invalid preview context before accessing the model provider
+#  Test Files  1 passed (1)
+#       Tests  1 passed | 4 skipped (5)
+#    Start at  16:52:29
+#    Duration  495ms (transform 180ms, setup 0ms, import 354ms, tests 82ms, environment 0ms)
+# Subtest: FE-A1.3-W02-AC01 critical: model access cannot acquire invented previews basis or authority edits
+ok 1 - FE-A1.3-W02-AC01 critical: model access cannot acquire invented previews basis or authority edits
+  ---
+  duration_ms: 1982.38675
+  type: 'test'
+  ...
+# Subtest: FE-A1.3-W02-AC02 critical: actual unavailable readiness preserves a draft through a new browser document
+ok 2 - FE-A1.3-W02-AC02 critical: actual unavailable readiness preserves a draft through a new browser document
+  ---
+  duration_ms: 7063.673375
+  type: 'test'
+  ...
+# Subtest: FE-A1.3-W02-AC03 critical: stale deployment and another role certificate cannot borrow eligibility
+ok 3 - FE-A1.3-W02-AC03 critical: stale deployment and another role certificate cannot borrow eligibility
+  ---
+  duration_ms: 1585.18525
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 10684.002833

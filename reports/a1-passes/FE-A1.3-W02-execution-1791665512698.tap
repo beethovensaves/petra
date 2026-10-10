@@ -1,0 +1,66 @@
+TAP version 13
+# Actual application question and distinct follow-up passed.
+# {"artifact":"reports/FE-A1-CONVERSATION-MODEL-BROWSER.json","provider_model":"gpt-6-astra","provider_turn_ids":["01a12795-6d6e-7892-9348-551405cd6189","01a12795-86e3-7432-b567-b9c53430fc64"],"source_fingerprints":{"apps/server/src/project-copilot.ts":"sha256:a276723a78d000cbaedd758fef74c0cc95a155f2a053157ce5704229b963030a","apps/server/src/project-copilot-model.ts":"sha256:b9c12a86fc9923b5761838695b7241a16f5f00ca8204cfe514e06a899416559c","apps/server/src/project-copilot-routes.ts":"sha256:90ed54cd10ae06550bcadeaa72fe95417596a5b6ce918513665e3bbaeb5c469f","packages/postgres/src/project-copilot-repository.ts":"sha256:ef88920479c551e73328abd905de83c0cbe91ed82260a9386f81265aede72883","packages/core/src/project-copilot.ts":"sha256:3329ca4ebfb82972746a63b502e96b3b446b777dc061a21632746d99d86efc66","packages/adapters/src/project-copilot-ag-ui.ts":"sha256:e3e55f249d081f3b0fe89e802cff37393a1c63b5976be44f41059c321ccd2dc6","apps/workbench/src/product/ProjectCopilotConversation.tsx":"sha256:2b769f6ac43432ef4cfe574bf19e8b8edac6cb45dcb767aa75e256a9d18b45b5","apps/workbench/src/product/CopilotWorkspace.tsx":"sha256:b9f5bbf5cc215b372d45741c9aab0754adf9b41dc4e2dccbad00fa55b4c08722","apps/workbench/test/a1-conversation-model-browser.mjs":"sha256:16f08d111324682799c546874f0c5a7b7ca467c0b6b4714241712aa181123dcf"}}
+# > @petra/server@0.0.0 test
+# > vitest run --config vitest.config.ts copilot-working-plan-model.test.ts copilot-working-plan-routes.test.ts --testNamePattern loads its own exact|returns its exact role --reporter=verbose
+#  RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/apps/server
+#  ✓ test/copilot-working-plan-routes.test.ts > working-structure readiness remains a scoped read > returns its exact role and context while leaving invocation to the canonical owner 11ms
+#  ↓ test/copilot-working-plan-routes.test.ts > working-structure readiness remains a scoped read > does not disclose a role or substitute a Project when the exact read fails
+#  ✓ test/copilot-working-plan-model.test.ts > deployed working-structure role eligibility > loads its own exact actual-model proof without invoking a provider during readiness 205ms
+#  ↓ test/copilot-working-plan-model.test.ts > deployed working-structure role eligibility > withholds a changed working-structure deployment before any provider access
+#  ↓ test/copilot-working-plan-model.test.ts > deployed working-structure role eligibility > does not borrow conversation readiness when its owning provider or context is missing
+#  Test Files  2 passed (2)
+#       Tests  2 passed | 3 skipped (5)
+#    Start at  16:51:50
+#    Duration  914ms (transform 240ms, setup 0ms, import 667ms, tests 217ms, environment 0ms)
+# > @petra/core@0.0.0 test
+# > vitest run --config vitest.config.ts copilot-working-plan.test.ts --testNamePattern validates a native proposal|preserves controlled-writing native --reporter=verbose
+#  RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/packages/core
+#  ✓ test/copilot-working-plan.test.ts > typed working-structure role > validates a native proposal against its exact preview without mutating retained input 107ms
+#  ✓ test/copilot-working-plan.test.ts > typed working-structure role > preserves controlled-writing native requirements and admits an explicit empty catalogue 210ms
+#  ↓ test/copilot-working-plan.test.ts > typed working-structure role > rejects fabricated preview keys and evidence before any command boundary
+#  ↓ test/copilot-working-plan.test.ts > typed working-structure role > rejects protected authority fields unsafe paths stale hashes and foreign Project previews
+#  ↓ test/copilot-working-plan.test.ts > typed working-structure role > rejects partial JSON wrong native types duplicate edits and unregistered contract hashes
+#  Test Files  1 passed (1)
+#       Tests  2 passed | 3 skipped (5)
+#    Start at  16:51:51
+#    Duration  507ms (transform 35ms, setup 0ms, import 123ms, tests 317ms, environment 0ms)
+# > @petra/adapters@0.0.0 test
+# > vitest run --config vitest.config.ts copilot-working-plan.test.ts --testNamePattern returns validated typed|projects every required field --reporter=verbose
+#  RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/packages/adapters
+#  ✓ test/copilot-working-plan.test.ts > working-structure model deployment boundary > returns validated typed proposed output through an isolated no-tool provider and releases listeners 90ms
+#  ✓ test/copilot-working-plan.test.ts > working-structure model deployment boundary > projects every required field of the registered typed plan 0ms
+#  ↓ test/copilot-working-plan.test.ts > working-structure model deployment boundary > refuses an advisory or fixed-prompt certificate for the working-structure role
+#  ↓ test/copilot-working-plan.test.ts > working-structure model deployment boundary > rejects forbidden tool activity and does not substitute a provider model
+#  ↓ test/copilot-working-plan.test.ts > working-structure model deployment boundary > rejects invalid preview context before accessing the model provider
+#  Test Files  1 passed (1)
+#       Tests  2 passed | 3 skipped (5)
+#    Start at  16:51:52
+#    Duration  513ms (transform 188ms, setup 0ms, import 365ms, tests 91ms, environment 0ms)
+# Subtest: FE-A1.3-W02-AC01 execution: actual application questions follow-ups and role readiness execute
+ok 1 - FE-A1.3-W02-AC01 execution: actual application questions follow-ups and role readiness execute
+  ---
+  duration_ms: 47806.323375
+  type: 'test'
+  ...
+# Subtest: FE-A1.3-W02-AC02 execution: exact deployment readiness is a read and native proposals preserve input
+ok 2 - FE-A1.3-W02-AC02 execution: exact deployment readiness is a read and native proposals preserve input
+  ---
+  duration_ms: 1935.350167
+  type: 'test'
+  ...
+# Subtest: FE-A1.3-W02-AC03 execution: new roles retain independent actual-model eligibility and exact source identities
+ok 3 - FE-A1.3-W02-AC03 execution: new roles retain independent actual-model eligibility and exact source identities
+  ---
+  duration_ms: 732.259625
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 50523.007291
