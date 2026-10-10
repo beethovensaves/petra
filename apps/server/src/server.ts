@@ -1,3 +1,4 @@
+import { createWorkingPlanDeployment } from "./copilot-working-plan-model.js";
 import { createIntakeCopilotService } from "./intake-copilot-model.js";
 import { readFile } from "node:fs/promises";
 import type { ServerType } from "@hono/node-server";
@@ -256,7 +257,9 @@ export const startPetraServer = async (
             options.codexSidecar?.command ?? "codex",
           ));
     const intakeCopilot = options.intakeCopilot ?? (options.projectShellPersistence === undefined ? undefined : await createIntakeCopilotService(options.projectShellPersistence, projectCopilot, codexWorkspaceRoot));
+    const workingPlanDeployment = options.workingPlanDeployment ?? await createWorkingPlanDeployment(projectCopilot, ownedCopilotProvider, codexWorkspaceRoot, options.codexSidecar?.command ?? "codex");
     petra = createPetraApp({
+      workingPlanDeployment,
       ...options,
       ...((options.projectExaminations ??
         options.projectShellPersistence?.examinations) === undefined

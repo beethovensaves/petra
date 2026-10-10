@@ -1,0 +1,15 @@
+{
+  "role": "petra.copilot-working-plan@1.0.0",
+  "profile_hash": "sha256:b9aab4af63b470e4a027a5a5472d4796812d0a1b2cece9a877128157ab9d85ca",
+  "output_schema_hash": "sha256:36e32fd435ce43938883d2c7eabec5f68ab6c71626640ca45058276c9007ff82",
+  "runtime": {
+    "codex_version": "codex-cli 0.154.0",
+    "adapter_hash": "sha256:5514de684bab0544bdc22f1375f96fde428cd3ea19bcb3a7c84eb3052b429579",
+    "provider_adapter_hash": "sha256:e34e578644a37fec1af6e44e4c5528cf85179d63252cdf1bcbc056d33cf41fe3",
+    "core_hash": "sha256:d34b059143805c8b015e0f0c4b650f9e7557764bcfc26f60a108373ee3513d7f"
+  },
+  "provider_model": "gpt-6-astra",
+  "status": "passed",
+  "evaluation_artifact": "reports/FE-A1-WORKING-PLAN-ROLE-EVALUATION.json",
+  "evaluation_artifact_hash": "sha256:4458c7808e4ac7aab8d4e945f578bd6e5e6ce46aa2a1a66914f9e5a08b3b18cd"
+}

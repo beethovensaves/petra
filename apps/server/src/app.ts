@@ -1,3 +1,5 @@
+import { mountWorkingPlanReadiness } from "./copilot-working-plan-routes.js";
+import type { WorkingPlanDeployment } from "./copilot-working-plan-model.js";
 import { CopilotBoundaryError } from "@petra/core";
 import type { IntakeCopilotService } from "./intake-copilot.js";
 import { mountIntakeCopilotRoutes } from "./intake-copilot-routes.js";
@@ -204,6 +206,7 @@ type PetraHono = Hono<{ Variables: Variables }>;
 export interface PetraAppOptions {
   projectExaminations?: ProjectExaminationService;
   projectCopilot?: ProjectCopilotService;
+  workingPlanDeployment?: WorkingPlanDeployment;
   intakeCopilot?: IntakeCopilotService;
   projectSemanticGraphs?: ProjectSemanticGraphReader;
   runtime?: PetraInteractionRuntime;
@@ -1093,6 +1096,7 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
     await next();
   });
 
+  mountWorkingPlanReadiness(app, options.projectCopilot, options.workingPlanDeployment);
   mountIntakeCopilotRoutes(app, options.intakeCopilot);
   mountProjectCopilotRoutes(
     app,

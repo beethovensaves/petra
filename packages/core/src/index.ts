@@ -107,3 +107,5 @@ export * from "./project-examination-scene.js";
 export * from "./graph-presentation.js";
 
 export * from "./intake-copilot.js";
+
+export * from "./copilot-working-plan.js";
