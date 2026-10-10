@@ -1,0 +1,149 @@
+{
+  "schema_name": "petra.a1-verification-pass",
+  "schema_version": "1.0.0",
+  "work_item": "FE-A1.1-W01",
+  "pass": "critical",
+  "contract_hash": "sha256:799d594c0d1e4146e136aa8f8c26e03e7ebd4af4071ed1228cf3990b858ef500",
+  "status": "passed",
+  "candidate_commit": "70e1012e22bdaada85ac96f5e036c06c9b042aed",
+  "started_at": "2026-10-10T23:45:44.522Z",
+  "finished_at": "2026-10-10T23:45:48.769Z",
+  "criteria": [
+    {
+      "id": "FE-A1.1-W01-AC01",
+      "result": "passed",
+      "test": "FE-A1.1-W01-AC01 critical: short and narrow viewports preserve accessible composition and sequential panes",
+      "observation": "A short desktop viewport and 640-pixel sequential pane challenge composer visibility, overflow and keyboard activation without changing the desktop proportion."
+    },
+    {
+      "id": "FE-A1.1-W01-AC02",
+      "result": "passed",
+      "test": "FE-A1.1-W01-AC02 critical: expanded disclosures and a long objective cannot crowd out the composer",
+      "observation": "Opening the actual objective, registered synthesis and attention disclosures simultaneously challenges input occlusion and usable transcript space."
+    },
+    {
+      "id": "FE-A1.1-W01-AC03",
+      "result": "passed",
+      "test": "FE-A1.1-W01-AC03 critical: keyboard opening and dismissal preserve the exact answer and route identity",
+      "observation": "Keyboard activation on a narrow viewport opens the exact retained answer in Workspace; keyboard dismissal restores the original route and its heading."
+    }
+  ],
+  "sources": [
+    {
+      "path": "apps/workbench/src/main.tsx",
+      "hash": "sha256:3eb932fd7ba6a957126432e5d51dabf759627671e5cc1c769494df1e48f27dad"
+    },
+    {
+      "path": "apps/workbench/src/product/AgentControlPlane.tsx",
+      "hash": "sha256:e2853b7f7bc0b04739aedfc1b04e9e38f8ec8ef62c989534f6bac1b094f4ee0c"
+    },
+    {
+      "path": "apps/workbench/src/product/CopilotWorkspace.tsx",
+      "hash": "sha256:03de5e420a32ec0b9b1921f29dac7a3221aa62ed1622dbc4f2fe6b394e335792"
+    },
+    {
+      "path": "apps/workbench/src/product/ReferenceWorkbench.tsx",
+      "hash": "sha256:a5573782ff44dfafbd75248a0288f9f095dab477628318359a6908c0ff4c4fa7"
+    },
+    {
+      "path": "apps/workbench/src/product/WorkspaceHost.tsx",
+      "hash": "sha256:e0cf9a480fa38ea72283f086965aad022d4945b081ef1b59ea7ca86369798611"
+    },
+    {
+      "path": "apps/workbench/src/product/copilot-layout.css",
+      "hash": "sha256:cdfaa1fc6263a23f3a26ca2f3d4e5f7d4ed2fc8544d74d834ca0c6a1c2384e6a"
+    },
+    {
+      "path": "apps/workbench/test/cumulative-production-browser-driver.mjs",
+      "hash": "sha256:20321ec18affbb376dd709dbf7565c09ed9e4a9af6a6da455dd193d1d32d5a4a"
+    },
+    {
+      "path": "reports/FE-A1-INTAKE-FUNCTION-BROWSER.json",
+      "hash": "sha256:ecc6a4937cb72681457d455799a391cc5317c256d8505aa55d36265e97c70c8f"
+    },
+    {
+      "path": "scripts/a1/copilot-hierarchy.critical.test.mjs",
+      "hash": "sha256:5c809b558d5b6fa4d3b3512e2c7efee93d7e1743ead83fc0f439e505ceb60fac"
+    },
+    {
+      "path": "scripts/a1/copilot-hierarchy.test.mjs",
+      "hash": "sha256:4df1c6805382d4a1b21b71b66349e7c69a2500f6492884dc8b3cd84fbcd36ec7"
+    },
+    {
+      "path": "scripts/a1/copilot-surface.mjs",
+      "hash": "sha256:bf385c7d32656a4634b34318107195d8d2e7947f00995a50b45636da63b9c9c2"
+    }
+  ],
+  "runs": [
+    {
+      "argv": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "scripts/a1/copilot-hierarchy.critical.test.mjs"
+      ],
+      "exit_code": 0,
+      "output": "reports/a1-passes/FE-A1.1-W01-critical-1791675948769.tap",
+      "output_hash": "sha256:7208205bb31a2d8dfc7ca04d888b77cece5e1a3adf1b020a43860c7821066f71"
+    }
+  ],
+  "boundary": "Live production layout, retained actual managed-model Q/A, navigation, composer, disclosure and Workspace presentation only. No new model invocation, proposal command, native examiner, cycle or overall A1 acceptance is inferred.",
+  "review": {
+    "perspective": "Test whether the normal desktop presentation breaks under short viewports, narrow sequential panes, expanded disclosures and keyboard-only object navigation. These challenges use the actual retained conversation and production app, not a fixture renderer.",
+    "challenges": [
+      {
+        "criterion": "FE-A1.1-W01-AC01",
+        "question": "FE-A1.1-W01-AC01 critical: short and narrow viewports preserve accessible composition and sequential panes",
+        "result": "A short desktop viewport and 640-pixel sequential pane challenge composer visibility, overflow and keyboard activation without changing the desktop proportion."
+      },
+      {
+        "criterion": "FE-A1.1-W01-AC02",
+        "question": "FE-A1.1-W01-AC02 critical: expanded disclosures and a long objective cannot crowd out the composer",
+        "result": "Opening the actual objective, registered synthesis and attention disclosures simultaneously challenges input occlusion and usable transcript space."
+      },
+      {
+        "criterion": "FE-A1.1-W01-AC03",
+        "question": "FE-A1.1-W01-AC03 critical: keyboard opening and dismissal preserve the exact answer and route identity",
+        "result": "Keyboard activation on a narrow viewport opens the exact retained answer in Workspace; keyboard dismissal restores the original route and its heading."
+      }
+    ],
+    "findings": [
+      {
+        "severity": "material",
+        "disposition": "resolved",
+        "finding": "Workspace destinations and Project inspection took persistent space from the conversation.",
+        "resolution": "Move those destinations and inspection disclosure into the Workspace chrome; retain Project/objective context and the chat composer in the Agent."
+      },
+      {
+        "severity": "material",
+        "disposition": "resolved",
+        "finding": "Opening an answer did not activate the narrow Workspace or update the route-owned header.",
+        "resolution": "Presenting an answer activates the Workspace pane and its header names the active answer or selected evidence. Dismissal restores the native place."
+      },
+      {
+        "severity": "material",
+        "disposition": "resolved",
+        "finding": "Expanded lower controls could reduce conversation space and obscure the composer.",
+        "resolution": "Bound and permit shrinking of support disclosures while reserving minimum conversation space; critical browser measurements challenge the actual expanded layout."
+      },
+      {
+        "severity": "material",
+        "disposition": "resolved",
+        "finding": "The first execution counted a legacy form inside a closed disclosure because its layout bounds were nonzero. Actual browser CSS visibility was false.",
+        "resolution": "Use actual CSS visibility when counting presented forms; retain the failed capture and challenge actual composer occlusion with hit testing in the critical pass."
+      },
+      {
+        "severity": "material",
+        "disposition": "resolved",
+        "finding": "Critical short-height inspection found that the composer exceeded its own conversation box; hidden overflow clipped it. Expanded objective text consumed fixed-header space, and a failed first check left the keyboard case in a hidden pane.",
+        "resolution": "Compact objective disclosure, reserve real conversation minimums, allow support overflow to scroll, and independently set the Agent pane before keyboard activation. Rerun execution and critical on the changed candidate with containment and hit testing."
+      },
+      {
+        "severity": "material",
+        "disposition": "resolved",
+        "finding": "The new CDP keyboard driver sent a virtual Enter code without carriage-return text, so browser default activation never occurred. The repository existing native drivers supply it.",
+        "resolution": "Match native Enter keyDown text and retain the failing critical capture. Execute both passes again; do not replace keyboard activation with scripted clicks."
+      }
+    ]
+  }
+}

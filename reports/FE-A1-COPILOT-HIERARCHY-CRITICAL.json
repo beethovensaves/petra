@@ -1,0 +1,405 @@
+{
+  "status": "passed",
+  "pass": "critical",
+  "verified_at": "2026-10-10T23:45:48.719Z",
+  "project_id": "project_4GNM3G166Z7RCBSW5K6TXZ3XZ9",
+  "observations": [
+    {
+      "criterion": "FE-A1.1-W01-AC01",
+      "short": {
+        "viewport": {
+          "width": 1000,
+          "height": 650,
+          "scrollWidth": 985
+        },
+        "agent": {
+          "top": 116,
+          "bottom": 650,
+          "left": 0,
+          "right": 295.5,
+          "width": 295.5,
+          "height": 534,
+          "font": 14,
+          "line": 21,
+          "display": "flex"
+        },
+        "conversation": {
+          "top": 223.375,
+          "bottom": 559.375,
+          "left": 16,
+          "right": 263.5,
+          "width": 247.5,
+          "height": 336,
+          "font": 14,
+          "line": 21,
+          "display": "flex"
+        },
+        "workspace": {
+          "top": 116,
+          "bottom": 823.09375,
+          "left": 295.5,
+          "right": 985,
+          "width": 689.5,
+          "height": 707.09375,
+          "font": 14,
+          "line": 21,
+          "display": "block"
+        },
+        "transcript": {
+          "top": 273.375,
+          "bottom": 361.046875,
+          "left": 16,
+          "right": 263.5,
+          "width": 247.5,
+          "height": 87.671875,
+          "font": 14,
+          "line": 21,
+          "display": "block"
+        },
+        "composer": {
+          "top": 369.046875,
+          "bottom": 559.375,
+          "left": 16,
+          "right": 263.5,
+          "width": 247.5,
+          "height": 190.328125,
+          "font": 14,
+          "line": 21,
+          "display": "block"
+        },
+        "input": {
+          "top": 387.625,
+          "bottom": 450.625,
+          "left": 28.1875,
+          "right": 251.3125,
+          "width": 223.125,
+          "height": 63,
+          "font": 14,
+          "line": 21,
+          "display": "block"
+        },
+        "heading": {
+          "top": 132,
+          "bottom": 168,
+          "left": 16,
+          "right": 263.5,
+          "width": 247.5,
+          "height": 36,
+          "font": 14,
+          "line": 21,
+          "display": "flex"
+        },
+        "object": {
+          "top": 284.59375,
+          "bottom": 322.09375,
+          "left": 327.5,
+          "right": 953,
+          "width": 625.5,
+          "height": 37.5,
+          "font": 30,
+          "line": 37.5,
+          "display": "block"
+        }
+      },
+      "narrow": {
+        "viewport": {
+          "width": 640,
+          "height": 800,
+          "scrollWidth": 625
+        },
+        "agent": {
+          "top": 154,
+          "bottom": 810,
+          "left": 0,
+          "right": 625,
+          "width": 625,
+          "height": 656,
+          "font": 14,
+          "line": 21,
+          "display": "flex"
+        },
+        "conversation": {
+          "top": 261.375,
+          "bottom": 709.046875,
+          "left": 16,
+          "right": 609,
+          "width": 593,
+          "height": 447.671875,
+          "font": 14,
+          "line": 21,
+          "display": "flex"
+        },
+        "workspace": {
+          "top": 0,
+          "bottom": 0,
+          "left": 0,
+          "right": 0,
+          "width": 0,
+          "height": 0,
+          "font": 14,
+          "line": 21,
+          "display": "none"
+        },
+        "transcript": {
+          "top": 290.375,
+          "bottom": 531.71875,
+          "left": 16,
+          "right": 609,
+          "width": 593,
+          "height": 241.34375,
+          "font": 14,
+          "line": 21,
+          "display": "block"
+        },
+        "composer": {
+          "top": 539.71875,
+          "bottom": 709.046875,
+          "left": 16,
+          "right": 609,
+          "width": 593,
+          "height": 169.328125,
+          "font": 14,
+          "line": 21,
+          "display": "block"
+        },
+        "input": {
+          "top": 558.296875,
+          "bottom": 621.296875,
+          "left": 28.1875,
+          "right": 596.8125,
+          "width": 568.625,
+          "height": 63,
+          "font": 14,
+          "line": 21,
+          "display": "block"
+        },
+        "heading": {
+          "top": 170,
+          "bottom": 206,
+          "left": 16,
+          "right": 609,
+          "width": 593,
+          "height": 36,
+          "font": 14,
+          "line": 21,
+          "display": "flex"
+        },
+        "object": {
+          "top": 0,
+          "bottom": 0,
+          "left": 0,
+          "right": 0,
+          "width": 0,
+          "height": 0,
+          "font": 28,
+          "line": 35,
+          "display": "block"
+        }
+      }
+    },
+    {
+      "criterion": "FE-A1.1-W01-AC02",
+      "expanded_geometry": {
+        "viewport": {
+          "width": 1000,
+          "height": 650,
+          "scrollWidth": 985
+        },
+        "agent": {
+          "top": 116,
+          "bottom": 650,
+          "left": 0,
+          "right": 295.5,
+          "width": 295.5,
+          "height": 534,
+          "font": 14,
+          "line": 21,
+          "display": "flex"
+        },
+        "conversation": {
+          "top": 223.375,
+          "bottom": 559.375,
+          "left": 16,
+          "right": 263.5,
+          "width": 247.5,
+          "height": 336,
+          "font": 14,
+          "line": 21,
+          "display": "flex"
+        },
+        "workspace": {
+          "top": 116,
+          "bottom": 823.09375,
+          "left": 295.5,
+          "right": 985,
+          "width": 689.5,
+          "height": 707.09375,
+          "font": 14,
+          "line": 21,
+          "display": "block"
+        },
+        "transcript": {
+          "top": 273.375,
+          "bottom": 361.046875,
+          "left": 16,
+          "right": 263.5,
+          "width": 247.5,
+          "height": 87.671875,
+          "font": 14,
+          "line": 21,
+          "display": "block"
+        },
+        "composer": {
+          "top": 369.046875,
+          "bottom": 559.375,
+          "left": 16,
+          "right": 263.5,
+          "width": 247.5,
+          "height": 190.328125,
+          "font": 14,
+          "line": 21,
+          "display": "block"
+        },
+        "input": {
+          "top": 387.625,
+          "bottom": 450.625,
+          "left": 28.1875,
+          "right": 251.3125,
+          "width": 223.125,
+          "height": 63,
+          "font": 14,
+          "line": 21,
+          "display": "block"
+        },
+        "heading": {
+          "top": 132,
+          "bottom": 168,
+          "left": 16,
+          "right": 263.5,
+          "width": 247.5,
+          "height": 36,
+          "font": 14,
+          "line": 21,
+          "display": "flex"
+        },
+        "object": {
+          "top": 284.59375,
+          "bottom": 322.09375,
+          "left": 327.5,
+          "right": 953,
+          "width": 625.5,
+          "height": 37.5,
+          "font": 30,
+          "line": 37.5,
+          "display": "block"
+        }
+      },
+      "composer_visible": true
+    },
+    {
+      "criterion": "FE-A1.1-W01-AC03",
+      "exact_answer": true,
+      "keyboard_activation": true,
+      "route_after_dismissal": "brief",
+      "geometry": {
+        "viewport": {
+          "width": 1440,
+          "height": 1000,
+          "scrollWidth": 1440
+        },
+        "agent": {
+          "top": 116,
+          "bottom": 1000,
+          "left": 0,
+          "right": 432,
+          "width": 432,
+          "height": 884,
+          "font": 14,
+          "line": 21,
+          "display": "flex"
+        },
+        "conversation": {
+          "top": 223.375,
+          "bottom": 900.046875,
+          "left": 16,
+          "right": 415,
+          "width": 399,
+          "height": 676.671875,
+          "font": 14,
+          "line": 21,
+          "display": "flex"
+        },
+        "workspace": {
+          "top": 116,
+          "bottom": 1000,
+          "left": 432,
+          "right": 1440,
+          "width": 1008,
+          "height": 884,
+          "font": 14,
+          "line": 21,
+          "display": "block"
+        },
+        "transcript": {
+          "top": 252.375,
+          "bottom": 722.71875,
+          "left": 16,
+          "right": 415,
+          "width": 399,
+          "height": 470.34375,
+          "font": 14,
+          "line": 21,
+          "display": "block"
+        },
+        "composer": {
+          "top": 730.71875,
+          "bottom": 900.046875,
+          "left": 16,
+          "right": 415,
+          "width": 399,
+          "height": 169.328125,
+          "font": 14,
+          "line": 21,
+          "display": "block"
+        },
+        "input": {
+          "top": 749.296875,
+          "bottom": 812.296875,
+          "left": 28.1875,
+          "right": 402.8125,
+          "width": 374.625,
+          "height": 63,
+          "font": 14,
+          "line": 21,
+          "display": "block"
+        },
+        "heading": {
+          "top": 132,
+          "bottom": 168,
+          "left": 16,
+          "right": 415,
+          "width": 399,
+          "height": 36,
+          "font": 14,
+          "line": 21,
+          "display": "flex"
+        },
+        "object": {
+          "top": 266.59375,
+          "bottom": 311.59375,
+          "left": 464,
+          "right": 1211.921875,
+          "width": 747.921875,
+          "height": 45,
+          "font": 36,
+          "line": 45,
+          "display": "block"
+        }
+      }
+    }
+  ],
+  "browser_errors": [],
+  "command_requests": [],
+  "screenshot": "reports/FE-A1-COPILOT-HIERARCHY-CRITICAL.png",
+  "boundary": "Live production layout, retained actual managed-model Q/A, navigation, composer, disclosure and Workspace presentation only. No new model call, proposal command, examiner or cycle completion is inferred."
+}

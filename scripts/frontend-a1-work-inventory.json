@@ -627,7 +627,7 @@
       "milestone": "FE-A1.1",
       "title": "Rebuild the copilot and workspace hierarchy",
       "owner": "frontend",
-      "status": "in_progress",
+      "status": "complete",
       "implementation": "Build the persistent 30/70 desktop shell around a compact Project/objective header, continuous user/assistant thread, contextual progress/interventions, usable composer, and active Workspace result. Sequence: move Workspace destinations and inspection into Workspace chrome; reserve chat and composer space while bounding expandable support; reflect the opened answer or evidence in the Workspace heading and activate narrow Workspace presentation; verify ordinary desktop geometry and actual retained Q/A/draft continuity; critically challenge short/narrow viewports, expanded disclosures, keyboard activation and native return.",
       "acceptance": [
         "At ordinary desktop widths both the conversation and result remain legible.",
@@ -647,7 +647,20 @@
       "retained_evidence": [
         "reports/FRONTEND-STEP2-AGENT-WORKSPACE.json"
       ],
-      "completion_evidence": [],
+      "completion_evidence": [
+        {
+          "pass": "execution",
+          "artifact": "reports/a1-passes/FE-A1.1-W01-execution-1791675860000.json",
+          "command": "node --test --test-reporter=tap scripts/a1/copilot-hierarchy.test.mjs",
+          "boundary": "Live production layout, retained actual managed-model Q/A, navigation, composer, disclosure and Workspace presentation only. No new model invocation, proposal command, native examiner, cycle or overall A1 acceptance is inferred."
+        },
+        {
+          "pass": "critical",
+          "artifact": "reports/a1-passes/FE-A1.1-W01-critical-1791675948769.json",
+          "command": "node --test --test-reporter=tap scripts/a1/copilot-hierarchy.critical.test.mjs",
+          "boundary": "Live production layout, retained actual managed-model Q/A, navigation, composer, disclosure and Workspace presentation only. No new model invocation, proposal command, native examiner, cycle or overall A1 acceptance is inferred."
+        }
+      ],
       "optional_scenarios": [
         "A1-S14"
       ],
@@ -661,7 +674,84 @@
       "verification_plans": {
         "execution": "reports/a1-plans/FE-A1.1-W01-execution.json",
         "critical": "reports/a1-plans/FE-A1.1-W01-critical.json"
-      }
+      },
+      "execution_history": [
+        {
+          "item": "FE-A1.1-W01",
+          "phase": "critical",
+          "failed_attempts": 1,
+          "started_at": "2026-10-10T22:30:01.875Z",
+          "failures": [
+            {
+              "reason": "Verification failed: node --test --test-reporter=tap scripts/a1/copilot-hierarchy.test.mjs; retained output reports/a1-passes/FE-A1.1-W01-execution-1791675108513.tap",
+              "phase": "execution",
+              "recorded_at": "2026-10-10T23:31:48.514Z"
+            },
+            {
+              "reason": "Verification failed: node --test --test-reporter=tap scripts/a1/copilot-hierarchy.critical.test.mjs; retained output reports/a1-passes/FE-A1.1-W01-critical-1791675295976.tap",
+              "phase": "critical",
+              "recorded_at": "2026-10-10T23:34:55.977Z"
+            },
+            {
+              "reason": "Verification failed: node --test --test-reporter=tap scripts/a1/copilot-hierarchy.critical.test.mjs; retained output reports/a1-passes/FE-A1.1-W01-critical-1791675721315.tap",
+              "phase": "critical",
+              "recorded_at": "2026-10-10T23:42:01.316Z"
+            }
+          ],
+          "passes": [
+            {
+              "pass": "execution",
+              "artifact": "reports/a1-passes/FE-A1.1-W01-execution-1791675860000.json",
+              "command": "node --test --test-reporter=tap scripts/a1/copilot-hierarchy.test.mjs",
+              "boundary": "Live production layout, retained actual managed-model Q/A, navigation, composer, disclosure and Workspace presentation only. No new model invocation, proposal command, native examiner, cycle or overall A1 acceptance is inferred."
+            },
+            {
+              "pass": "critical",
+              "artifact": "reports/a1-passes/FE-A1.1-W01-critical-1791675948769.json",
+              "command": "node --test --test-reporter=tap scripts/a1/copilot-hierarchy.critical.test.mjs",
+              "boundary": "Live production layout, retained actual managed-model Q/A, navigation, composer, disclosure and Workspace presentation only. No new model invocation, proposal command, native examiner, cycle or overall A1 acceptance is inferred."
+            }
+          ],
+          "diagnoses": [
+            {
+              "contract": "The hierarchy must preserve readable Q/A and a usable composer under actual disclosures. Ordinary desktop width success does not establish short-height or keyboard behavior. Both failed captures remain retained, and W01 is not closed.",
+              "architecture": "The parent conversation reserved 256px, but its real children needed 328px: 42px intake-origin summary, 80px usable transcript, 190px composer and gaps. Overflow hidden clipped the composer even before the viewport boundary. An expanded duplicated objective also consumed conversation space. The actual header remained 116px; this is a nested layout admission failure, not a backend or model error.",
+              "dependencies": "Canonical conversation, models, owner permissions and 32 existing Workspace/navigation checks remain valid. The critical keyboard case had hidden-presentation setup after an earlier failed case; it must explicitly select Agent before activating the answer, independent of prior outcomes.",
+              "environment": "Live production preview and the known synthetic retained Project are healthy. At 1000x650, actual measurement showed the normal composer extending beyond its own conversation box and the expanded composer reaching 657px. A separate browser diagnosis has no model or domain command effect.",
+              "verification": "Stop under the two-failure guard and diagnose before another capture. Preserve the functional pass as historical construction, the visibility-measurement failure and the distinct critical failure. Add measurements of composer containment within its conversation as well as viewport hit testing; isolate the keyboard setup.",
+              "changed_remedy": "Use a compact objective control with an inspectable anchored disclosure instead of duplicated long text in the fixed chat header. Reserve enough real conversation space for its minimum transcript and composer, remove hidden clipping and permit the support region to scroll when it exceeds available height. Make every critical case establish its own pane state. Commit the corrected candidate, rerun execution and then critical with actual containment and occlusion checks; never inflate timeouts or weaken the readable-space threshold.",
+              "failures": [
+                {
+                  "reason": "Verification failed: node --test --test-reporter=tap scripts/a1/copilot-hierarchy.test.mjs; retained output reports/a1-passes/FE-A1.1-W01-execution-1791675108513.tap",
+                  "phase": "execution",
+                  "recorded_at": "2026-10-10T23:31:48.514Z"
+                },
+                {
+                  "reason": "Verification failed: node --test --test-reporter=tap scripts/a1/copilot-hierarchy.critical.test.mjs; retained output reports/a1-passes/FE-A1.1-W01-critical-1791675295976.tap",
+                  "phase": "critical",
+                  "recorded_at": "2026-10-10T23:34:55.977Z"
+                }
+              ],
+              "recorded_at": "2026-10-10T23:40:03.784Z"
+            }
+          ],
+          "repairs": [
+            {
+              "findings": "Critical layout containment and occlusion now pass. Two keyboard checks exposed missing carriage-return text in the new CDP Enter driver; match existing native browser drivers, assert actual focused controls, and rerun execution and distinct critical criteria on the corrected candidate.",
+              "prior_passes": [
+                {
+                  "pass": "execution",
+                  "artifact": "reports/a1-passes/FE-A1.1-W01-execution-1791675643005.json",
+                  "command": "node --test --test-reporter=tap scripts/a1/copilot-hierarchy.test.mjs",
+                  "boundary": "Live production layout, retained actual managed-model Q/A, navigation, composer, disclosure and Workspace presentation only. No new model invocation, proposal command, native examiner, cycle or overall A1 acceptance is inferred."
+                }
+              ],
+              "started_at": "2026-10-10T23:43:04.593Z"
+            }
+          ],
+          "finished_at": "2026-10-10T23:46:23.026Z"
+        }
+      ]
     },
     {
       "id": "FE-A1.1-W02",
@@ -5628,67 +5718,7 @@
     "repeated_failure_limit": 2,
     "synchronization": "Roadmap, generated execution packet, canonical ledger and both execution worktrees must agree before execution or closure."
   },
-  "active_work": {
-    "item": "FE-A1.1-W01",
-    "phase": "repair",
-    "failed_attempts": 1,
-    "started_at": "2026-10-10T22:30:01.875Z",
-    "failures": [
-      {
-        "reason": "Verification failed: node --test --test-reporter=tap scripts/a1/copilot-hierarchy.test.mjs; retained output reports/a1-passes/FE-A1.1-W01-execution-1791675108513.tap",
-        "phase": "execution",
-        "recorded_at": "2026-10-10T23:31:48.514Z"
-      },
-      {
-        "reason": "Verification failed: node --test --test-reporter=tap scripts/a1/copilot-hierarchy.critical.test.mjs; retained output reports/a1-passes/FE-A1.1-W01-critical-1791675295976.tap",
-        "phase": "critical",
-        "recorded_at": "2026-10-10T23:34:55.977Z"
-      },
-      {
-        "reason": "Verification failed: node --test --test-reporter=tap scripts/a1/copilot-hierarchy.critical.test.mjs; retained output reports/a1-passes/FE-A1.1-W01-critical-1791675721315.tap",
-        "phase": "critical",
-        "recorded_at": "2026-10-10T23:42:01.316Z"
-      }
-    ],
-    "passes": [],
-    "diagnoses": [
-      {
-        "contract": "The hierarchy must preserve readable Q/A and a usable composer under actual disclosures. Ordinary desktop width success does not establish short-height or keyboard behavior. Both failed captures remain retained, and W01 is not closed.",
-        "architecture": "The parent conversation reserved 256px, but its real children needed 328px: 42px intake-origin summary, 80px usable transcript, 190px composer and gaps. Overflow hidden clipped the composer even before the viewport boundary. An expanded duplicated objective also consumed conversation space. The actual header remained 116px; this is a nested layout admission failure, not a backend or model error.",
-        "dependencies": "Canonical conversation, models, owner permissions and 32 existing Workspace/navigation checks remain valid. The critical keyboard case had hidden-presentation setup after an earlier failed case; it must explicitly select Agent before activating the answer, independent of prior outcomes.",
-        "environment": "Live production preview and the known synthetic retained Project are healthy. At 1000x650, actual measurement showed the normal composer extending beyond its own conversation box and the expanded composer reaching 657px. A separate browser diagnosis has no model or domain command effect.",
-        "verification": "Stop under the two-failure guard and diagnose before another capture. Preserve the functional pass as historical construction, the visibility-measurement failure and the distinct critical failure. Add measurements of composer containment within its conversation as well as viewport hit testing; isolate the keyboard setup.",
-        "changed_remedy": "Use a compact objective control with an inspectable anchored disclosure instead of duplicated long text in the fixed chat header. Reserve enough real conversation space for its minimum transcript and composer, remove hidden clipping and permit the support region to scroll when it exceeds available height. Make every critical case establish its own pane state. Commit the corrected candidate, rerun execution and then critical with actual containment and occlusion checks; never inflate timeouts or weaken the readable-space threshold.",
-        "failures": [
-          {
-            "reason": "Verification failed: node --test --test-reporter=tap scripts/a1/copilot-hierarchy.test.mjs; retained output reports/a1-passes/FE-A1.1-W01-execution-1791675108513.tap",
-            "phase": "execution",
-            "recorded_at": "2026-10-10T23:31:48.514Z"
-          },
-          {
-            "reason": "Verification failed: node --test --test-reporter=tap scripts/a1/copilot-hierarchy.critical.test.mjs; retained output reports/a1-passes/FE-A1.1-W01-critical-1791675295976.tap",
-            "phase": "critical",
-            "recorded_at": "2026-10-10T23:34:55.977Z"
-          }
-        ],
-        "recorded_at": "2026-10-10T23:40:03.784Z"
-      }
-    ],
-    "repairs": [
-      {
-        "findings": "Critical layout containment and occlusion now pass. Two keyboard checks exposed missing carriage-return text in the new CDP Enter driver; match existing native browser drivers, assert actual focused controls, and rerun execution and distinct critical criteria on the corrected candidate.",
-        "prior_passes": [
-          {
-            "pass": "execution",
-            "artifact": "reports/a1-passes/FE-A1.1-W01-execution-1791675643005.json",
-            "command": "node --test --test-reporter=tap scripts/a1/copilot-hierarchy.test.mjs",
-            "boundary": "Live production layout, retained actual managed-model Q/A, navigation, composer, disclosure and Workspace presentation only. No new model invocation, proposal command, native examiner, cycle or overall A1 acceptance is inferred."
-          }
-        ],
-        "started_at": "2026-10-10T23:43:04.593Z"
-      }
-    ]
-  },
+  "active_work": null,
   "repair_sequence": [
     {
       "order": 1,

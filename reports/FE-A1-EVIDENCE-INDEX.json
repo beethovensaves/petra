@@ -1,10 +1,10 @@
 {
   "schema_name": "petra.a1-evidence-index",
   "schema_version": "1.0.0",
-  "roadmap_binding": "sha256:f2083d7d6968f2685f751c62c8c1421da3e33aa64e50b4903d8825b6f20f3bf7",
+  "roadmap_binding": "sha256:874ef0b2b9b24f01987be0982ccfa918b8d482a62dff225dea41cb867bb7e8d7",
   "current": {
     "required": 90,
-    "complete": 10,
+    "complete": 11,
     "user_acceptance": null,
     "proofs": [
       {
@@ -106,6 +106,23 @@
             "artifact": "reports/a1-passes/FE-A1.0-W06-critical-1791661626828.json",
             "command": "node --test --test-reporter=tap scripts/frontend-a1-process.critical.test.mjs",
             "boundary": "Delivery-control implementation only. Temporary Git/worktree fixtures test guards; they establish no copilot, Workspace, native examiner, model or cyclic verification product completion. Generated status views are checked from the current canonical ledger; static implementation and test files bind the committed candidate."
+          }
+        ]
+      },
+      {
+        "work_item": "FE-A1.1-W01",
+        "passes": [
+          {
+            "pass": "execution",
+            "artifact": "reports/a1-passes/FE-A1.1-W01-execution-1791675860000.json",
+            "command": "node --test --test-reporter=tap scripts/a1/copilot-hierarchy.test.mjs",
+            "boundary": "Live production layout, retained actual managed-model Q/A, navigation, composer, disclosure and Workspace presentation only. No new model invocation, proposal command, native examiner, cycle or overall A1 acceptance is inferred."
+          },
+          {
+            "pass": "critical",
+            "artifact": "reports/a1-passes/FE-A1.1-W01-critical-1791675948769.json",
+            "command": "node --test --test-reporter=tap scripts/a1/copilot-hierarchy.critical.test.mjs",
+            "boundary": "Live production layout, retained actual managed-model Q/A, navigation, composer, disclosure and Workspace presentation only. No new model invocation, proposal command, native examiner, cycle or overall A1 acceptance is inferred."
           }
         ]
       },
