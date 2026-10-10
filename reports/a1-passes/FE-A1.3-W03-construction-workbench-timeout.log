@@ -1,0 +1,9 @@
+Retained selected output from full Workbench construction verification, 2026-10-10T22:21:44Z. Exit status 1.
+
+FAIL src/product/review-apply.test.tsx > manual frozen Apply checkpoint > validates canonical success, retains its History and projection lag, and reports reload failure separately
+Error: Test timed out in 5000ms.
+Test Files 1 failed | 43 passed (44)
+Tests 1 failed | 416 passed (417)
+Duration 37.12s (transform 10.99s, setup 0ms, import 262.61s, tests 104.20s, environment 2ms)
+
+The shell chain stopped before server verification. The preceding Core 367 and adapter 155 checks passed. Separate bounded Workbench and server invocations are required after the recorded broad scheduling diagnosis.

@@ -1,0 +1,60 @@
+
+> @petra/postgres@0.0.0 test
+> vitest run --config vitest.config.ts copilot-permission-authority.test.ts project-copilot-repository.test.ts --reporter=verbose
+
+
+ RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/packages/postgres
+
+ ✓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > claims a concurrent identity exactly once and restores readable terminal text after repository restart 871ms
+ ✓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > rejects conflicting retries, stale parents, and continuation while a prior turn is active 408ms
+ ✓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > restores the original graph presentation after restart and a later semantic result 558ms
+ ✓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > isolates reads by authenticated actor and Project 280ms
+ ✓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > prevents updates and records expired uncertain invocation as failure without another model call 323ms
+ ✓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > retains an immutable owner-bound input manifest across repository restart and rejects replacement or wrong actor 529ms
+ ✓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > binds readable native question and result Artifacts to canonical Thread Run and Work owners 569ms
+ ✓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > retains failed and cancelled native deliveries without successful scientific result aliases 376ms
+ ✓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > adopts immutable historical content as an explicit import without fabricating its original execution authority 298ms
+ ✓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > rolls back terminal content and every canonical owner when a late binding write fails 341ms
+ ✓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > rejects validly rehashed foreign owners question substitution and hidden terminal state before releasing retained content 300ms
+ ✓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > pages exact retained questions and answers without duplicate effects and keeps its anchor across later turns 852ms
+ ✓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > denies malformed foreign and invalid page positions without releasing retained content 288ms
+ ✓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > denies a copied material turn in a second canonical Thread even when every content hash is valid 365ms
+ ✓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > denies substituted authority references false history imports missing material and a changed retry question 300ms
+ ✓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > preserves a controlled-writing native basis in canonical conversation owners without a scientific snapshot 359ms
+ ✓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > requires canonical ownership and cannot silently fall back to a private parallel store 146ms
+ ✓ test/copilot-permission-authority.test.ts > Explicit native conversation permission > requires explicit reviewed owner permission before bounded native Work and preserves exact retry receipts 796ms
+ × test/copilot-permission-authority.test.ts > Explicit native conversation permission > converges concurrent identical consent on one actual grant and immutable receipt 115ms
+   → Permission review cannot claim a future time.
+ ✓ test/copilot-permission-authority.test.ts > Explicit native conversation permission > denies widened capabilities stale owner references future review and receipt identity substitution before writes 1166ms
+ ✓ test/copilot-permission-authority.test.ts > Explicit native conversation permission > denies another actor or Project and rolls back a grant when receipt retention fails 162ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/copilot-permission-authority.test.ts > Explicit native conversation permission > converges concurrent identical consent on one actual grant and immutable receipt
+CopilotBoundaryError: Permission review cannot claim a future time.
+ ❯ PostgresCopilotPermissionAuthority.execute src/copilot-permission-authority.ts:208:15
+    206|       ).rows[0]!.at.toISOString();
+    207|       if (Date.parse(request.review.reviewed_at) > Date.parse(at))
+    208|         throw new CopilotBoundaryError(
+       |               ^
+    209|           "CONVERSATION_PERMISSION_MISMATCH",
+    210|           "Permission review cannot claim a future time.",
+ ❯ test/copilot-permission-authority.test.ts:159:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'CONVERSATION_PERMISSION_MISMATCH' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  1 failed | 20 passed (21)
+   Start at  18:15:00
+   Duration  10.63s (transform 251ms, setup 0ms, import 1.10s, tests 9.41s, environment 0ms)
+
+npm error Lifecycle script `test` failed with error:
+npm error code 1
+npm error path /Users/felipe.casadei/vscode/graphRAG/petra/packages/postgres
+npm error workspace @petra/postgres@0.0.0
+npm error location /Users/felipe.casadei/vscode/graphRAG/petra/packages/postgres
+npm error command failed
+npm error command sh -c vitest run --config vitest.config.ts copilot-permission-authority.test.ts project-copilot-repository.test.ts --reporter=verbose
