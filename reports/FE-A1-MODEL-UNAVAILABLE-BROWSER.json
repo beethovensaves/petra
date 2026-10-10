@@ -1,0 +1,14 @@
+{
+  "status": "passed",
+  "verified_at": "2026-10-10T20:52:27.874Z",
+  "scope": "Critical browser challenge against the production HTTP and PostgreSQL service configured without an eligible model provider. The actual readiness failure is visible, submit cannot start a turn, and the input survives reload. No provider call occurs.",
+  "project_id": "project_4GNM3G166Z7RCBSW5K6TXZ3XZ9",
+  "availability": {
+    "state": "unavailable",
+    "reason": "Connect the registered managed model provider to start a conversation."
+  },
+  "preserved_question": "Synthetic A1 readiness inspection: preserve this question until the model role becomes eligible.",
+  "turns_before": 7,
+  "turns_after": 7,
+  "model_calls": 0
+}
