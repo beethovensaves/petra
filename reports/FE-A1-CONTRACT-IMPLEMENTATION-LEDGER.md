@@ -6,7 +6,7 @@ This is the required execution breakdown for FE-A1. It records implementation ob
 
 The canonical work/status/dependency register is [scripts/frontend-a1-work-inventory.json](../scripts/frontend-a1-work-inventory.json). This report is generated from it with `npm run roadmap:frontend-a1`; `npm run audit:frontend-a1` checks coverage and document agreement. The existing [reports/FRONTEND-ADAPTATION-MILESTONE.md](../reports/FRONTEND-ADAPTATION-MILESTONE.md) retains historical implementation evidence.
 
-Roadmap/execution binding: `sha256:07dcb3d28dabeb1da60d51450267a359a093b69ee8112b3a7183b986dff7a5a9`. [scripts/frontend-a1-execution.md](../scripts/frontend-a1-execution.md) contains the same functions and criteria in prerequisite order. D025 requires one active item, an execution pass, a distinct critical pass, optional repair, and broad diagnosis after repeated failure. Both execution worktrees must match before work starts, verification is recorded, completion is accepted, or a later wave advances.
+Roadmap/execution binding: `sha256:26975d23c0477b873234b0c2983cdd4ddcfc9dcdd63b9a3e67f8128ce7a1a828`. [scripts/frontend-a1-execution.md](../scripts/frontend-a1-execution.md) contains the same functions and criteria in prerequisite order. D025 requires one active item, an execution pass, a distinct critical pass, optional repair, and broad diagnosis after repeated failure. Both execution worktrees must match before work starts, verification is recorded, completion is accepted, or a later wave advances.
 
 ## Controlling contract and scope
 
@@ -189,10 +189,10 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 
 #### FE-A1.1-W01 — Rebuild the copilot and workspace hierarchy
 
-- **State:** `planned`; **owner:** frontend.
+- **State:** `in_progress`; **owner:** frontend.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.0-W02](#fe-a10-w02)
 - **Contracts:** D024, UX-REQ-001.
-- **Construct:** Build the persistent 30/70 desktop shell around a compact Project/objective header, continuous user/assistant thread, contextual progress/interventions, usable composer, and active Workspace result.
+- **Construct:** Build the persistent 30/70 desktop shell around a compact Project/objective header, continuous user/assistant thread, contextual progress/interventions, usable composer, and active Workspace result. Sequence: move Workspace destinations and inspection into Workspace chrome; reserve chat and composer space while bounding expandable support; reflect the opened answer or evidence in the Workspace heading and activate narrow Workspace presentation; verify ordinary desktop geometry and actual retained Q/A/draft continuity; critically challenge short/narrow viewports, expanded disclosures, keyboard activation and native return.
 - **Complete only when:**
   - At ordinary desktop widths both the conversation and result remain legible.
   - The left panel reads and behaves as a normal conversational agent; route-owned forms do not dominate it.

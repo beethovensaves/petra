@@ -1,0 +1,43 @@
+{
+  "work_item": "FE-A1.1-W01",
+  "pass": "execution",
+  "argv": [
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "scripts/a1/copilot-hierarchy.test.mjs"
+  ],
+  "sources": [
+    "apps/workbench/src/main.tsx",
+    "apps/workbench/src/product/CopilotWorkspace.tsx",
+    "apps/workbench/src/product/ReferenceWorkbench.tsx",
+    "apps/workbench/src/product/WorkspaceHost.tsx",
+    "apps/workbench/src/product/copilot-layout.css",
+    "apps/workbench/test/cumulative-production-browser-driver.mjs",
+    "reports/FE-A1-INTAKE-FUNCTION-BROWSER.json",
+    "scripts/a1/copilot-hierarchy.critical.test.mjs",
+    "scripts/a1/copilot-hierarchy.test.mjs",
+    "scripts/a1/copilot-surface.mjs"
+  ],
+  "criteria": [
+    {
+      "id": "FE-A1.1-W01-AC01",
+      "result": "passed",
+      "test": "FE-A1.1-W01-AC01 execution: conversation and result remain legible at ordinary desktop widths",
+      "observation": "At 1280, 1440 and 1920 pixels the Agent occupies approximately 30 percent; Q/A and composer remain legible and the Workspace retains the larger share."
+    },
+    {
+      "id": "FE-A1.1-W01-AC02",
+      "result": "passed",
+      "test": "FE-A1.1-W01-AC02 execution: normal retained Q/A and draft remain available while navigating the Workspace",
+      "observation": "Actual retained managed-model Q/A and a new unsent draft survive native Sources/Overview navigation. Workspace destinations and Inspect belong to the Workspace; one visible chat form occupies the left panel."
+    },
+    {
+      "id": "FE-A1.1-W01-AC03",
+      "result": "passed",
+      "test": "FE-A1.1-W01-AC03 execution: opening an actual answer makes its Workspace object the strongest visual element",
+      "observation": "Opening the exact retained answer changes the Workspace heading and dominant object while preserving the native return path."
+    }
+  ],
+  "boundary": "Live production layout, retained actual managed-model Q/A, navigation, composer, disclosure and Workspace presentation only. No new model invocation, proposal command, native examiner, cycle or overall A1 acceptance is inferred."
+}

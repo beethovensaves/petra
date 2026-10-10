@@ -1,0 +1,83 @@
+{
+  "work_item": "FE-A1.1-W01",
+  "pass": "critical",
+  "argv": [
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "scripts/a1/copilot-hierarchy.critical.test.mjs"
+  ],
+  "sources": [
+    "apps/workbench/src/main.tsx",
+    "apps/workbench/src/product/CopilotWorkspace.tsx",
+    "apps/workbench/src/product/ReferenceWorkbench.tsx",
+    "apps/workbench/src/product/WorkspaceHost.tsx",
+    "apps/workbench/src/product/copilot-layout.css",
+    "apps/workbench/test/cumulative-production-browser-driver.mjs",
+    "reports/FE-A1-INTAKE-FUNCTION-BROWSER.json",
+    "scripts/a1/copilot-hierarchy.critical.test.mjs",
+    "scripts/a1/copilot-hierarchy.test.mjs",
+    "scripts/a1/copilot-surface.mjs"
+  ],
+  "criteria": [
+    {
+      "id": "FE-A1.1-W01-AC01",
+      "result": "passed",
+      "test": "FE-A1.1-W01-AC01 critical: short and narrow viewports preserve accessible composition and sequential panes",
+      "observation": "A short desktop viewport and 640-pixel sequential pane challenge composer visibility, overflow and keyboard activation without changing the desktop proportion."
+    },
+    {
+      "id": "FE-A1.1-W01-AC02",
+      "result": "passed",
+      "test": "FE-A1.1-W01-AC02 critical: expanded disclosures and a long objective cannot crowd out the composer",
+      "observation": "Opening the actual objective, registered synthesis and attention disclosures simultaneously challenges input occlusion and usable transcript space."
+    },
+    {
+      "id": "FE-A1.1-W01-AC03",
+      "result": "passed",
+      "test": "FE-A1.1-W01-AC03 critical: keyboard opening and dismissal preserve the exact answer and route identity",
+      "observation": "Keyboard activation on a narrow viewport opens the exact retained answer in Workspace; keyboard dismissal restores the original route and its heading."
+    }
+  ],
+  "boundary": "Live production layout, retained actual managed-model Q/A, navigation, composer, disclosure and Workspace presentation only. No new model invocation, proposal command, native examiner, cycle or overall A1 acceptance is inferred.",
+  "review": {
+    "perspective": "Test whether the normal desktop presentation breaks under short viewports, narrow sequential panes, expanded disclosures and keyboard-only object navigation. These challenges use the actual retained conversation and production app, not a fixture renderer.",
+    "challenges": [
+      {
+        "criterion": "FE-A1.1-W01-AC01",
+        "question": "FE-A1.1-W01-AC01 critical: short and narrow viewports preserve accessible composition and sequential panes",
+        "result": "A short desktop viewport and 640-pixel sequential pane challenge composer visibility, overflow and keyboard activation without changing the desktop proportion."
+      },
+      {
+        "criterion": "FE-A1.1-W01-AC02",
+        "question": "FE-A1.1-W01-AC02 critical: expanded disclosures and a long objective cannot crowd out the composer",
+        "result": "Opening the actual objective, registered synthesis and attention disclosures simultaneously challenges input occlusion and usable transcript space."
+      },
+      {
+        "criterion": "FE-A1.1-W01-AC03",
+        "question": "FE-A1.1-W01-AC03 critical: keyboard opening and dismissal preserve the exact answer and route identity",
+        "result": "Keyboard activation on a narrow viewport opens the exact retained answer in Workspace; keyboard dismissal restores the original route and its heading."
+      }
+    ],
+    "findings": [
+      {
+        "severity": "material",
+        "disposition": "resolved",
+        "finding": "Workspace destinations and Project inspection took persistent space from the conversation.",
+        "resolution": "Move those destinations and inspection disclosure into the Workspace chrome; retain Project/objective context and the chat composer in the Agent."
+      },
+      {
+        "severity": "material",
+        "disposition": "resolved",
+        "finding": "Opening an answer did not activate the narrow Workspace or update the route-owned header.",
+        "resolution": "Presenting an answer activates the Workspace pane and its header names the active answer or selected evidence. Dismissal restores the native place."
+      },
+      {
+        "severity": "material",
+        "disposition": "resolved",
+        "finding": "Expanded lower controls could reduce conversation space and obscure the composer.",
+        "resolution": "Bound and permit shrinking of support disclosures while reserving minimum conversation space; critical browser measurements challenge the actual expanded layout."
+      }
+    ]
+  }
+}

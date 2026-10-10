@@ -627,8 +627,8 @@
       "milestone": "FE-A1.1",
       "title": "Rebuild the copilot and workspace hierarchy",
       "owner": "frontend",
-      "status": "planned",
-      "implementation": "Build the persistent 30/70 desktop shell around a compact Project/objective header, continuous user/assistant thread, contextual progress/interventions, usable composer, and active Workspace result.",
+      "status": "in_progress",
+      "implementation": "Build the persistent 30/70 desktop shell around a compact Project/objective header, continuous user/assistant thread, contextual progress/interventions, usable composer, and active Workspace result. Sequence: move Workspace destinations and inspection into Workspace chrome; reserve chat and composer space while bounding expandable support; reflect the opened answer or evidence in the Workspace heading and activate narrow Workspace presentation; verify ordinary desktop geometry and actual retained Q/A/draft continuity; critically challenge short/narrow viewports, expanded disclosures, keyboard activation and native return.",
       "acceptance": [
         "At ordinary desktop widths both the conversation and result remain legible.",
         "The left panel reads and behaves as a normal conversational agent; route-owned forms do not dominate it.",
@@ -657,7 +657,11 @@
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
         }
-      ]
+      ],
+      "verification_plans": {
+        "execution": "reports/a1-plans/FE-A1.1-W01-execution.json",
+        "critical": "reports/a1-plans/FE-A1.1-W01-critical.json"
+      }
     },
     {
       "id": "FE-A1.1-W02",
@@ -5624,7 +5628,12 @@
     "repeated_failure_limit": 2,
     "synchronization": "Roadmap, generated execution packet, canonical ledger and both execution worktrees must agree before execution or closure."
   },
-  "active_work": null,
+  "active_work": {
+    "item": "FE-A1.1-W01",
+    "phase": "execution",
+    "failed_attempts": 0,
+    "started_at": "2026-10-10T22:30:01.875Z"
+  },
   "repair_sequence": [
     {
       "order": 1,
