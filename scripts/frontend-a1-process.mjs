@@ -28,6 +28,7 @@ export const itemContractHash = (item) =>
     acceptance: item.acceptance,
     depends_on: item.depends_on,
     contracts: item.contracts,
+    verification_plans: item.verification_plans,
   });
 export const roadmapHash = (data) =>
   digest({
@@ -41,6 +42,7 @@ export const roadmapHash = (data) =>
     operations: data.operation_coverage,
     requests: data.request_coverage,
     flows: data.flow_coverage,
+    repairs: data.repair_sequence,
     active: data.active_work,
     acceptance: data.user_acceptance,
   });
@@ -69,10 +71,12 @@ export function executionOrder(data) {
     "FE-A1.0-W04",
     "FE-A1.0-W05",
     "FE-A1.6-W07",
-    "FE-A1.6-W06",
     "FE-A1.3-W01",
     "FE-A1.3-W02",
     "FE-A1.3-W03",
+    "FE-A1.3-W04",
+    "FE-A1.3-W05",
+    "FE-A1.3-W07",
     "FE-A1.2-W07",
   ];
   [...first.filter((id) => items.has(id)), ...items.keys()].forEach(visit);
@@ -403,6 +407,14 @@ export function renderExecutionPacket(data) {
     "6. Close the item only with both passing records, current bindings, and completed prerequisites. Regenerate and synchronize all roadmap and execution views in the same change.",
     "7. Publish a fully verified candidate for explicit user acceptance after every required item closes. Never self-record acceptance or substitute a legacy Wave 6 checkpoint.",
     "",
+    "## Diagnosed repair sequence",
+    "",
+    ...data.repair_sequence.flatMap((repair) => [
+      `${repair.order}. **Diagnoses ${repair.diagnoses.join(", ")}:** ${repair.resolution} Owners: ${repair.work_items.join(", ")}.`,
+      "",
+    ]),
+    "Construction follows the prerequisites below. Independent shell work can run before runtime integration; it cannot close runtime or integrated behavior criteria.",
+    "",
     "## Granular prerequisite order",
     "",
   ];
@@ -413,6 +425,14 @@ export function renderExecutionPacket(data) {
       `State: ${item.status}. Owner: ${item.owner}. Prerequisites: ${item.depends_on.join(", ") || "none"}.`,
       "",
       item.implementation,
+      "",
+      ...(item.verification_plans
+        ? [
+            `Execution plan: [${item.verification_plans.execution}](../${item.verification_plans.execution}). Critical plan: [${item.verification_plans.critical}](../${item.verification_plans.critical}). Run each with \`npm run a1:verify -- PLAN\` in that order.`,
+          ]
+        : [
+            "Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.",
+          ]),
       "",
       ...item.acceptance.map(
         (criterion, i) => `- **${criterionIds(item)[i]}:** ${criterion}`,
@@ -469,6 +489,23 @@ export const roadmaps = [
   "WAVE_HANDOFF_AUTOMATION.md",
 ];
 export const mirrorFiles = [
+  "scripts/a1/contract-reconciliation.test.mjs",
+  "scripts/a1/contract-reconciliation.critical.test.mjs",
+  "scripts/a1/accounting.test.mjs",
+  "scripts/a1/accounting.critical.test.mjs",
+  ...[
+    "FE-A1.0-W01",
+    "FE-A1.0-W02",
+    "FE-A1.0-W03",
+    "FE-A1.0-W04",
+    "FE-A1.0-W05",
+    "FE-A1.0-W06",
+    "FE-A1.6-W07",
+  ].flatMap((id) =>
+    ["execution", "critical"].map(
+      (pass) => `reports/a1-plans/${id}-${pass}.json`,
+    ),
+  ),
   "package.json",
   "package-lock.json",
   "scripts/frontend-a1-work-inventory.json",
@@ -484,6 +521,7 @@ export const mirrorFiles = [
   "decisions/D024-agentic-split-workspace.md",
   "decisions/D025-contract-ledger-and-two-pass-delivery.md",
   "reports/FE-A1-CONTRACT-IMPLEMENTATION-LEDGER.md",
+  "reports/FE-A1-EVIDENCE-INDEX.json",
   ...roadmaps,
 ];
 export function assertExecutionMirrors(

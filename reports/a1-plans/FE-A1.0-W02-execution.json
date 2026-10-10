@@ -1,0 +1,40 @@
+{
+  "work_item": "FE-A1.0-W02",
+  "pass": "execution",
+  "argv": [
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "scripts/a1/contract-reconciliation.test.mjs"
+  ],
+  "sources": [
+    "scripts/frontend-a1-process.mjs",
+    "scripts/frontend-a1-execute.mjs",
+    "scripts/audit-frontend-a1.mjs",
+    "scripts/wave-handoff.mjs",
+    "scripts/frontend-a1-test-fixture.mjs",
+    "scripts/a1/contract-reconciliation.test.mjs",
+    "scripts/a1/contract-reconciliation.critical.test.mjs",
+    "decisions/D013-ag-ui-sdk-interaction-boundary.md",
+    "decisions/D018-project-definition-and-checkpoint-boundary.md",
+    "decisions/D024-agentic-split-workspace.md",
+    "decisions/D025-contract-ledger-and-two-pass-delivery.md",
+    "reports/FE-A1-CONSTRUCTION-CHECKS.json",
+    "reports/FE-A1-CONTRACT-RECONCILIATION-CHECKS.json"
+  ],
+  "criteria": [
+    {
+      "id": "FE-A1.0-W02-AC01",
+      "result": "passed",
+      "test": "FE-A1.0-W02-AC01 execution: all eight stages retain granular criteria and owners",
+      "observation": "Observed the live controlling roadmap and registered guard for: All eight A1 stages contain mandatory work records."
+    },
+    {
+      "id": "FE-A1.0-W02-AC02",
+      "result": "passed",
+      "test": "FE-A1.0-W02-AC02 execution: completion requires criterion evidence and prerequisites",
+      "observation": "Observed the live controlling roadmap and registered guard for: No incomplete item can be deleted, deferred, or relabelled complete to release a wave."
+    }
+  ],
+  "boundary": "Contract reconciliation, dependency/operation accounting and delivery controls only. Live canonical documents and controlled adverse fixtures are examined; no product copilot, examiner, graph or cyclic-work completion is claimed."
+}
