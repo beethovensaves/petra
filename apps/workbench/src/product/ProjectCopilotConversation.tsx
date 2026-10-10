@@ -2,12 +2,14 @@ import { intakeClient } from "./IntakeCopilotConversation.js";
 import type { IntakeCopilotRead } from "@petra/adapters/ag-ui";
 import { GraphPresentationDetails } from "./GraphPresentationDetails.js";
 import { useEffect, useRef, useState } from "react";
-import { useLocation } from "react-router";
+import { Link, useLocation } from "react-router";
 import {
   ProjectCopilotClient,
   CopilotRequestRejected,
   type CopilotDeliveryState,
 } from "@petra/adapters/ag-ui";
+import type { PetraCopilotAuthorityRequest } from "@petra/contracts";
+import { intakeBrowserHash as browserHash } from "./intake-browser-state.js";
 import type { CopilotTurn } from "@petra/core";
 import type { CopilotRequest } from "@petra/core";
 import type { ProjectRecord } from "./model.js";
@@ -65,9 +67,20 @@ export const ProjectCopilotConversation = ({
   const [delivery, setDelivery] = useState<CopilotDeliveryState>();
   const [error, setError] = useState<string>();
   const [reload, setReload] = useState(0);
+  const permissionKey = `petra:copilot:permission:${project.id}`;
+  const [permissionConsent, setPermissionConsent] = useState(false);
+  const [permissionBusy, setPermissionBusy] = useState(false);
+  const [permissionPending, setPermissionPending] =
+    useState<PetraCopilotAuthorityRequest | null>(() =>
+      saved(permissionKey, null),
+    );
   const [busy, setBusy] = useState(false);
+  const [loadingHistory, setLoadingHistory] = useState(false);
   const controller = useRef<AbortController>(null);
   const transcript = useRef<HTMLDivElement>(null);
+  const historyScroll = useRef<{ height: number; top: number } | undefined>(
+    undefined,
+  );
   const mounted = useRef(true);
   const workspace = useCopilotWorkspace();
   const location = useLocation();
@@ -159,11 +172,108 @@ export const ProjectCopilotConversation = ({
     else sessionStorage.setItem(pendingKey, JSON.stringify(pending));
   }, [pendingKey, pending]);
   useEffect(() => {
+    if (historyScroll.current !== undefined && transcript.current !== null) {
+      const previous = historyScroll.current;
+      historyScroll.current = undefined;
+      transcript.current.scrollTop =
+        previous.top + transcript.current.scrollHeight - previous.height;
+      return;
+    }
     transcript.current?.scrollTo({
       top: transcript.current.scrollHeight,
       behavior: "smooth",
     });
   }, [data?.turns.length, delivery?.phase, pending]);
+
+  const loadEarlier = async (): Promise<void> => {
+    const cursor = data?.history_page?.next_cursor;
+    if (cursor === undefined || loadingHistory) return;
+    setLoadingHistory(true);
+    try {
+      const earlier = await client().read(project.id, requestedKeys, binding, {
+        cursor,
+      });
+      if (!mounted.current) return;
+      if (transcript.current !== null)
+        historyScroll.current = {
+          height: transcript.current.scrollHeight,
+          top: transcript.current.scrollTop,
+        };
+      setData((previous) =>
+        previous === undefined || previous.thread_id !== earlier.thread_id
+          ? previous
+          : {
+              ...previous,
+              history_page: earlier.history_page!,
+              owners: { ...earlier.owners, ...previous.owners },
+              turns: [
+                ...earlier.turns.filter(
+                  (turn) =>
+                    !previous.turns.some(
+                      (existing) => existing.run_id === turn.run_id,
+                    ),
+                ),
+                ...previous.turns,
+              ],
+            },
+      );
+    } catch (reason) {
+      if (mounted.current)
+        setError(
+          reason instanceof Error
+            ? reason.message
+            : "Earlier conversation could not be read.",
+        );
+    } finally {
+      if (mounted.current) setLoadingHistory(false);
+    }
+  };
+
+  const enableConversation = async (): Promise<void> => {
+    if (permissionBusy) return;
+    const proposal =
+      data?.authorization?.state === "required"
+        ? data.authorization.proposal
+        : undefined;
+    if (
+      permissionPending === null &&
+      (proposal === undefined || !permissionConsent)
+    )
+      return;
+    setPermissionBusy(true);
+    setError(undefined);
+    try {
+      const request = permissionPending ?? {
+        schema_name: "petra.copilot-authority-request" as const,
+        schema_version: "1.0.0" as const,
+        project_id: project.id,
+        command_id: newRunId().replace(/^run_/u, "command_"),
+        idempotency_key: `copilot-permission:${crypto.randomUUID()}`,
+        proposal: proposal!,
+        review: {
+          proposed_content_hash: await browserHash(proposal!),
+          reviewed_at: new Date().toISOString(),
+        },
+      };
+      sessionStorage.setItem(permissionKey, JSON.stringify(request));
+      setPermissionPending(request);
+      await client().authorize(project.id, request);
+      if (!mounted.current) return;
+      sessionStorage.removeItem(permissionKey);
+      setPermissionPending(null);
+      setPermissionConsent(false);
+      setReload((value) => value + 1);
+    } catch (reason) {
+      if (mounted.current)
+        setError(
+          reason instanceof Error
+            ? reason.message
+            : "Conversation permission was not confirmed.",
+        );
+    } finally {
+      if (mounted.current) setPermissionBusy(false);
+    }
+  };
 
   const receive = async (request: Pending): Promise<void> => {
     setBusy(true);
@@ -246,6 +356,41 @@ export const ProjectCopilotConversation = ({
       data-operation-id="petra.ask"
       data-readiness={data?.availability.state ?? "loading"}
     >
+      {data?.authorization?.state === "required" ||
+      permissionPending !== null ? (
+        <div className="copilot-permission">
+          <h3>Enable this Project conversation</h3>
+          <p>
+            Allow Petra to run bounded advisory questions and retain their
+            history in this Project. Examinations and changes still require
+            their own reviewed actions.
+          </p>
+          <label>
+            <input
+              id="copilot-permission-consent"
+              type="checkbox"
+              checked={permissionConsent}
+              onChange={(event) => setPermissionConsent(event.target.checked)}
+            />
+            Allow these conversation tasks in this Project.
+          </label>
+          <button
+            type="button"
+            id="copilot-enable-conversation"
+            disabled={
+              permissionBusy ||
+              (!permissionConsent && permissionPending === null)
+            }
+            onClick={() => void enableConversation()}
+          >
+            {permissionBusy
+              ? "Confirming permission…"
+              : permissionPending === null
+                ? "Enable conversation"
+                : "Recover permission receipt"}
+          </button>
+        </div>
+      ) : null}
       {origin === undefined ? null : (
         <details id="copilot-intake-origin" className="copilot-intake-origin">
           <summary>
@@ -292,6 +437,12 @@ export const ProjectCopilotConversation = ({
       >
         {data === undefined ? (
           <p role="status">{error ?? "Opening your conversation…"}</p>
+        ) : data.authorization?.state === "required" ? (
+          <p role="status">
+            Your retained conversation will load after permission is confirmed.
+          </p>
+        ) : data.authorization?.state === "unavailable" ? (
+          <p role="status">{data.authorization.reason}</p>
         ) : data.turns.length === 0 ? (
           <div className="copilot-welcome">
             <strong>What would you like to work through?</strong>
@@ -314,6 +465,17 @@ export const ProjectCopilotConversation = ({
             </div>
           </div>
         ) : null}
+        {data?.history_page?.has_more ? (
+          <button
+            type="button"
+            disabled={loadingHistory || busy}
+            onClick={() => void loadEarlier()}
+          >
+            {loadingHistory
+              ? "Loading earlier conversation…"
+              : "Load earlier conversation"}
+          </button>
+        ) : null}
         {data?.turns.map((turn) => (
           <div key={turn.run_id} className="copilot-exchange">
             <article className="copilot-message copilot-message--user">
@@ -322,6 +484,18 @@ export const ProjectCopilotConversation = ({
             </article>
             <article className="copilot-message copilot-message--assistant">
               <strong>Petra</strong>
+              {data.owners?.[turn.run_id] === undefined ? null : (
+                <p>
+                  <Link
+                    to={`/projects/${project.id}/work/${data.owners[turn.run_id]!.work_unit_ref.work_unit_id}`}
+                  >
+                    Inspect conversation task
+                  </Link>
+                  {data.owners[turn.run_id]!.capture === "historical_adoption"
+                    ? " · Retained history import"
+                    : ""}
+                </p>
+              )}
               {turn.terminal === undefined ? (
                 <p role="status">Working on your answer…</p>
               ) : turn.terminal.state !== "completed" ? (

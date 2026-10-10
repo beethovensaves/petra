@@ -1,0 +1,363 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/worker-output-manifest/1.1.0/schema.json",
+  "title": "PetraWorkerOutputManifestV11",
+  "description": "An additive worker report preserving unavailable provider measurements explicitly. Missing usage is never zero and cannot establish compliance with an applicable hard limit.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "worker_output_manifest_id",
+    "revision",
+    "work_unit_id",
+    "project_id",
+    "attempt",
+    "worker_input_manifest_id",
+    "worker_input_manifest_hash",
+    "content",
+    "content_hash",
+    "reported_at"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.worker-output-manifest"
+    },
+    "schema_version": {
+      "const": "1.1.0"
+    },
+    "worker_output_manifest_id": {
+      "$ref": "#/$defs/WorkerOutputManifestId"
+    },
+    "revision": {
+      "const": 1,
+      "description": "A worker report is immutable; a retry creates another attempt and output manifest."
+    },
+    "work_unit_id": {
+      "$ref": "../../worker-input-manifest/1.0.0/schema.json#/$defs/WorkUnitId"
+    },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "attempt": {
+      "$ref": "../../worker-input-manifest/1.0.0/schema.json#/$defs/Attempt"
+    },
+    "worker_input_manifest_id": {
+      "$ref": "../../worker-input-manifest/1.0.0/schema.json#/$defs/WorkerInputManifestId"
+    },
+    "worker_input_manifest_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "content": {
+      "$ref": "#/$defs/OutputContent"
+    },
+    "content_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "reported_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    }
+  },
+  "$defs": {
+    "WorkerOutputManifestId": {
+      "allOf": [
+        {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/PetraId"
+        },
+        {
+          "type": "string",
+          "pattern": "^worker_output_manifest_[0-9A-HJKMNP-TV-Z]{26}$"
+        }
+      ]
+    },
+    "OutputContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "worker",
+        "started_at",
+        "completed_at",
+        "outcome",
+        "diagnostics",
+        "network_activity",
+        "resource_usage"
+      ],
+      "properties": {
+        "worker": {
+          "$ref": "../../worker-input-manifest/1.0.0/schema.json#/$defs/WorkerDescriptor"
+        },
+        "started_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "completed_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+        },
+        "outcome": {
+          "$ref": "#/$defs/WorkerOutcome"
+        },
+        "diagnostics": {
+          "type": "array",
+          "maxItems": 10000,
+          "items": {
+            "$ref": "#/$defs/Diagnostic"
+          }
+        },
+        "network_activity": {
+          "type": "array",
+          "maxItems": 10000,
+          "items": {
+            "$ref": "#/$defs/NetworkActivity"
+          }
+        },
+        "resource_usage": {
+          "$ref": "#/$defs/ResourceUsage"
+        }
+      }
+    },
+    "WorkerOutcome": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/SucceededOutcome"
+        },
+        {
+          "$ref": "#/$defs/UnsuccessfulOutcome"
+        }
+      ]
+    },
+    "SucceededOutcome": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["outcome_kind", "produced_outputs"],
+      "properties": {
+        "outcome_kind": {
+          "const": "succeeded"
+        },
+        "produced_outputs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1000,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/ProducedOutput"
+          }
+        }
+      }
+    },
+    "UnsuccessfulOutcome": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["outcome_kind", "failure", "produced_outputs"],
+      "properties": {
+        "outcome_kind": {
+          "enum": [
+            "worker_failed",
+            "resource_exhausted",
+            "timed_out",
+            "cancelled"
+          ]
+        },
+        "failure": {
+          "$ref": "#/$defs/Failure"
+        },
+        "produced_outputs": {
+          "type": "array",
+          "maxItems": 1000,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/ProducedOutput"
+          }
+        }
+      }
+    },
+    "ProducedOutput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "output_name",
+        "output_role",
+        "output_handle",
+        "content_hash",
+        "byte_size",
+        "media_type"
+      ],
+      "properties": {
+        "output_name": {
+          "$ref": "../../worker-input-manifest/1.0.0/schema.json#/$defs/SlotName"
+        },
+        "output_role": {
+          "enum": [
+            "result",
+            "proposal",
+            "diagnostic",
+            "log",
+            "metrics",
+            "checkpoint"
+          ]
+        },
+        "output_handle": {
+          "type": "string",
+          "pattern": "^output:[A-Za-z0-9][A-Za-z0-9._-]{0,255}$"
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "byte_size": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ByteSize"
+        },
+        "media_type": {
+          "$ref": "../../worker-input-manifest/1.0.0/schema.json#/$defs/MediaType"
+        },
+        "contract": {
+          "$ref": "../../worker-input-manifest/1.0.0/schema.json#/$defs/ContractRef"
+        }
+      }
+    },
+    "Failure": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "message", "retryable"],
+      "properties": {
+        "code": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]{1,63}$"
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "retryable": {
+          "type": "boolean"
+        }
+      }
+    },
+    "Diagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "severity", "message"],
+      "properties": {
+        "code": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]{1,63}$"
+        },
+        "severity": {
+          "enum": ["info", "warning", "error"]
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        }
+      }
+    },
+    "NetworkActivity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["destination", "bytes_sent", "bytes_received"],
+      "properties": {
+        "destination": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://",
+          "maxLength": 2000
+        },
+        "bytes_sent": {
+          "$ref": "#/$defs/NonNegativeSafeInteger"
+        },
+        "bytes_received": {
+          "$ref": "#/$defs/NonNegativeSafeInteger"
+        }
+      }
+    },
+    "ResourceUsage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "wall_time_ms",
+        "cpu_time_ms",
+        "peak_memory_bytes",
+        "input_bytes",
+        "output_bytes",
+        "network_bytes",
+        "measurement_scope"
+      ],
+      "properties": {
+        "wall_time_ms": {
+          "$ref": "#/$defs/NonNegativeSafeInteger"
+        },
+        "cpu_time_ms": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/NonNegativeSafeInteger"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "peak_memory_bytes": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/NonNegativeSafeInteger"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "input_bytes": {
+          "$ref": "#/$defs/NonNegativeSafeInteger"
+        },
+        "output_bytes": {
+          "$ref": "#/$defs/NonNegativeSafeInteger"
+        },
+        "network_bytes": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/NonNegativeSafeInteger"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "gpu_time_ms": {
+          "$ref": "#/$defs/NonNegativeSafeInteger"
+        },
+        "input_tokens": {
+          "$ref": "#/$defs/NonNegativeSafeInteger"
+        },
+        "output_tokens": {
+          "$ref": "#/$defs/NonNegativeSafeInteger"
+        },
+        "cost": {
+          "$ref": "#/$defs/MeasuredCost"
+        },
+        "measurement_scope": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        }
+      }
+    },
+    "NonNegativeSafeInteger": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "MeasuredCost": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["currency", "microunits"],
+      "properties": {
+        "currency": {
+          "type": "string",
+          "pattern": "^[A-Z]{3}$"
+        },
+        "microunits": {
+          "$ref": "#/$defs/NonNegativeSafeInteger"
+        }
+      }
+    }
+  }
+}

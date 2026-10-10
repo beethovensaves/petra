@@ -1,5 +1,5 @@
 {
-  "registry_version": "1.132.0",
+  "registry_version": "1.137.0",
   "schemas": [
     {
       "name": "contract-smoke",
@@ -2770,6 +2770,83 @@
       "canonical_sha256": "sha256:36e32fd435ce43938883d2c7eabec5f68ab6c71626640ca45058276c9007ff82",
       "generate_typescript": true,
       "typescript_path": "src/generated/copilot-working-plan.ts"
+    },
+    {
+      "name": "project-thread",
+      "version": "1.1.0",
+      "$id": "https://petra.local/schemas/project-thread/1.1.0/schema.json",
+      "path": "schemas/project-thread/1.1.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-native-terminal-conversation-results-preserving-v1-0-history",
+      "canonical_sha256": "sha256:4cfff9ee8304f6ee2122f458182c1339e38553b4abf37f37ae1fc714f93e87e3",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-thread-v1-1.ts"
+    },
+    {
+      "name": "worker-output-manifest",
+      "version": "1.1.0",
+      "$id": "https://petra.local/schemas/worker-output-manifest/1.1.0/schema.json",
+      "path": "schemas/worker-output-manifest/1.1.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive",
+      "canonical_sha256": "sha256:1f567cc709461dbb6bdcef090920023807d7922ef50202f46dc47ae64b1945e3",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/worker-output-manifest-v1-1.ts"
+    },
+    {
+      "name": "project-thread-view",
+      "version": "1.1.0",
+      "$id": "https://petra.local/schemas/project-thread-view/1.1.0/schema.json",
+      "path": "schemas/project-thread-view/1.1.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive",
+      "canonical_sha256": "sha256:35716fbb717083638f3ddc89c8a3aebfe37ac175fc83a1d61ac02bf16e03c150",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/project-thread-view-v1-1.ts"
+    },
+    {
+      "name": "conversation-result",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/conversation-result/1.0.0/schema.json",
+      "path": "schemas/conversation-result/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial",
+      "canonical_sha256": "sha256:20e5ceb4d47d5779a8df79be1946b78c38a4d2f5a8c08275554d7addf061ed52",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/conversation-result.ts"
+    },
+    {
+      "name": "capability-grant",
+      "version": "1.17.0",
+      "$id": "https://petra.local/schemas/capability-grant/1.17.0/schema.json",
+      "path": "schemas/capability-grant/1.17.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-reviewed-conversation-permission",
+      "canonical_sha256": "sha256:f3063c287cc422085d0383fad1576e4cc2fbaae42f75b582ba3beb900d66a204",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/capability-grant-v1-17.ts"
+    },
+    {
+      "name": "copilot-authority-request",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/copilot-authority-request/1.0.0/schema.json",
+      "path": "schemas/copilot-authority-request/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-reviewed-conversation-permission",
+      "canonical_sha256": "sha256:5530807d7aca47da735394972eba2f9153e0acc4ed6ff4f75019b9d2fc76d32e",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/copilot-authority-request.ts"
+    },
+    {
+      "name": "copilot-authority-receipt",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/copilot-authority-receipt/1.0.0/schema.json",
+      "path": "schemas/copilot-authority-receipt/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-reviewed-conversation-permission",
+      "canonical_sha256": "sha256:e1b9c5d983153f044c4a14e22b67e61b8225f91ae00edb00f8d8faaab37f2f90",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/copilot-authority-receipt.ts"
     }
   ]
 }

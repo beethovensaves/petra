@@ -5,7 +5,7 @@ import type {
   PetraArtifactManifest,
   PetraInteractionRun,
   PetraProjectReviewViewRecord,
-  PetraProjectThreadView,
+  RegisteredProjectThreadView as PetraProjectThreadView,
   PetraProjectWorkReadView,
   PetraReviewInterruptResponse,
   PetraReviewSessionApplyCheckpoint,

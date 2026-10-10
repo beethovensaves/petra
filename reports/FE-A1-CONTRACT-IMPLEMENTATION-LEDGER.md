@@ -6,7 +6,7 @@ This is the required execution breakdown for FE-A1. It records implementation ob
 
 The canonical work/status/dependency register is [scripts/frontend-a1-work-inventory.json](../scripts/frontend-a1-work-inventory.json). This report is generated from it with `npm run roadmap:frontend-a1`; `npm run audit:frontend-a1` checks coverage and document agreement. The existing [reports/FRONTEND-ADAPTATION-MILESTONE.md](../reports/FRONTEND-ADAPTATION-MILESTONE.md) retains historical implementation evidence.
 
-Roadmap/execution binding: `sha256:81218b7f14816dc38def5de230a0eca92e9e857bc3da6057bd7e849fcfa8da55`. [scripts/frontend-a1-execution.md](../scripts/frontend-a1-execution.md) contains the same functions and criteria in prerequisite order. D025 requires one active item, an execution pass, a distinct critical pass, optional repair, and broad diagnosis after repeated failure. Both execution worktrees must match before work starts, verification is recorded, completion is accepted, or a later wave advances.
+Roadmap/execution binding: `sha256:d52b41cd3a7117a9a34808fa33aa7372928302db3ac2756ee8d08e39154b7eff`. [scripts/frontend-a1-execution.md](../scripts/frontend-a1-execution.md) contains the same functions and criteria in prerequisite order. D025 requires one active item, an execution pass, a distinct critical pass, optional repair, and broad diagnosis after repeated failure. Both execution worktrees must match before work starts, verification is recorded, completion is accepted, or a later wave advances.
 
 ## Controlling contract and scope
 
@@ -440,11 +440,11 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `in_progress`; **owner:** runtime.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.3-W01](#fe-a13-w01)
 - **Contracts:** D013, UX-REQ-006, UX-REQ-023.
-- **Construct:** Add authorized immutable message/content reads and turn lineage around existing ProjectThread/InteractionRun records, with text or exact content references, revisions, role, context, result, partial/terminal state, and pagination.
+- **Construct:** Sequence: (1) expose current model and permission readiness; (2) require an explicit reviewed owner-only RunProjectCopilot grant and immutable receipt before new conversation Work or historical adoption, preserving existing authorized Work management grants; (3) retain exact private question/native-context/result Artifacts and canonical Thread/Run/Work atomically; (4) resolve exact applicable inquiry, Work, Review and cycle lineage before release; (5) page original readable content and restore questions, answers, citations and outcomes in a fresh browser; (6) reject owner substitution, widened permission, stale proposals, late partial commits and duplicate effects in the distinct critical pass.
 - **Complete only when:**
   - A fresh browser restores actual question and answer content, citations, and outcomes.
   - A thread metadata list is insufficient.
-  - Unauthorized or mismatched Project/content references reveal no bytes.
+  - Unauthorized or mismatched Project/content references reveal no bytes. New Projects require explicit reviewed owner-only conversation permission; questions and model output cannot grant capabilities.
   - Every retained Project turn resolves to the existing canonical ProjectThread and InteractionRun; a parallel conversation store cannot substitute for those owners.
   - Turn context and result references preserve exact inquiry, Work, Review and cycle lineage where applicable; replay must not create a second effect.
 - **Retained partial evidence:** [reports/FE-A1-CONSTRUCTION-CHECKS.json](../reports/FE-A1-CONSTRUCTION-CHECKS.json)

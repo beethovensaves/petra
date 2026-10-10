@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it, vi } from "vitest";
 import type {
   PetraProjectShellView,
+  PetraProject,
   PetraProjectSemanticGraphView,
   PetraCopilotRequest,
   PetraProjectExaminationView,
@@ -9,6 +10,7 @@ import type {
 } from "@petra/contracts";
 import {
   copilotHash,
+  conversationAuthorityProposal,
   type CopilotTurn,
   type ProjectCopilotRuntime,
 } from "@petra/core";
@@ -290,4 +292,82 @@ it("retains the exact filtered shared graph and refuses stale or mismatched peer
     service.start({ ...input, runId: "run_01ARZ3NDEKTSV4RRFFQ69G5FAX" }),
   ).rejects.toThrow("displayed graph");
   expect(start).not.toHaveBeenCalled();
+});
+
+it("denies unavailable owner permission before context content reads or provider invocation", async () => {
+  const view = vi.fn(() => Promise.resolve(shell()));
+  const base = ports(shell()),
+    start = vi.fn();
+  const persistence = {
+    ...base,
+    views: { ...base.views, getProjectShellView: view },
+    copilotPermission: {
+      read: () =>
+        Promise.resolve({
+          state: "unavailable" as const,
+          reason: "The exact owner is unavailable.",
+        }),
+      execute: () =>
+        Promise.reject(new Error("No permission command is allowed.")),
+    },
+  };
+  const service = new ProjectCopilotService(persistence, actor, {
+    repository: { get: () => Promise.resolve(undefined) },
+    start,
+  } as unknown as ProjectCopilotRuntime);
+  await expect(service.read(shell().project_id)).rejects.toMatchObject({
+    code: "CONVERSATION_PERMISSION_UNAVAILABLE",
+  });
+  await expect(service.context(shell().project_id)).rejects.toMatchObject({
+    code: "CONVERSATION_PERMISSION_UNAVAILABLE",
+  });
+  const request = fixture<PetraCopilotRequest>("copilot-request");
+  await expect(
+    service.start({
+      threadId: "thread_test",
+      runId: "run_test",
+      question: "Forbidden question",
+      request,
+    }),
+  ).rejects.toMatchObject({ code: "CONVERSATION_WORK_NOT_AUTHORIZED" });
+  expect(view).not.toHaveBeenCalled();
+  expect(start).not.toHaveBeenCalled();
+});
+it("exposes required owner consent without adopting history or starting conversation Work", async () => {
+  const read = shell(),
+    base = ports(read),
+    history = vi.fn(),
+    recover = vi.fn(),
+    proposal = conversationAuthorityProposal(
+      fixture<PetraProject>("project"),
+      actor,
+    );
+  const persistence = {
+    ...base,
+    copilotPermission: {
+      read: () =>
+        Promise.resolve({
+          state: "required" as const,
+          reason: "Explicit owner review is required.",
+          proposal,
+        }),
+      execute: () =>
+        Promise.reject(new Error("No permission command was submitted.")),
+    },
+    copilotHistory: { listPage: history },
+  };
+  const runtime = {
+    repository: { recover },
+    start: vi.fn(),
+  } as unknown as ProjectCopilotRuntime;
+  const result = await new ProjectCopilotService(
+    persistence,
+    actor,
+    runtime,
+  ).read(read.project_id);
+  expect(result.authorization?.state).toBe("required");
+  expect(result.turns).toEqual([]);
+  expect(result.availability.state).toBe("unavailable");
+  expect(history).not.toHaveBeenCalled();
+  expect(recover).not.toHaveBeenCalled();
 });

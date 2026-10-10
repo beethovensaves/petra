@@ -1,0 +1,25 @@
+{
+  "schema_name": "petra.copilot-authority-request",
+  "schema_version": "1.0.0",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "command_id": "command_01K4E000000000000000000090",
+  "idempotency_key": "synthetic-reviewed-conversation",
+  "proposal": {
+    "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+    "project_revision": 1,
+    "project_record_hash": "sha256:dc3d0aca15e39ab6a650065530eb706ffbdd8f9bde76e87927a7b3fab097457d",
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "allowed_commands": ["RunProjectCopilot"],
+    "limits": {
+      "max_wall_time_ms": 120000,
+      "max_output_bytes": 256000,
+      "max_attempts": 1,
+      "max_parallelism": 1
+    },
+    "domain_authority": false
+  },
+  "review": {
+    "proposed_content_hash": "sha256:bdfec4710fc8a17712f3ced0c23404145dea1f6396c37c026ba31b81b242845f",
+    "reviewed_at": "2026-10-10T21:00:00.000Z"
+  }
+}

@@ -1,6 +1,6 @@
 import type {
   PetraProjectWorkReadView,
-  PetraWorkerOutputManifest,
+  RegisteredWorkerOutputManifest as PetraWorkerOutputManifest,
 } from "@petra/contracts";
 
 export type ProjectWorkStateFilter =

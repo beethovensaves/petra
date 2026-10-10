@@ -1220,7 +1220,7 @@ Flyway OSS becomes the default only if `DISC-04-T01`–`DISC-04-T10` pass withou
 
 ## Controlling A1 execution
 
-Binding: `sha256:81218b7f14816dc38def5de230a0eca92e9e857bc3da6057bd7e849fcfa8da55`. 9/90 required items complete; 81 incomplete.
+Binding: `sha256:d52b41cd3a7117a9a34808fa33aa7372928302db3ac2756ee8d08e39154b7eff`. 9/90 required items complete; 81 incomplete.
 
 D024 governs the conversational copilot and reactive Workspace. D025 governs synchronized execution and two distinct validation passes. The canonical [function ledger](scripts/frontend-a1-work-inventory.json), [readable implementation ledger](reports/FE-A1-CONTRACT-IMPLEMENTATION-LEDGER.md), and [granular execution instructions](scripts/frontend-a1-execution.md) agree before work starts, evidence is recorded, completion is accepted, or another wave proceeds.
 

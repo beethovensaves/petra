@@ -1,6 +1,6 @@
 import type {
   PetraWorkerInputManifest,
-  PetraWorkerOutputManifest,
+  RegisteredWorkerOutputManifest as PetraWorkerOutputManifest,
   PetraWorkUnit,
   PetraWorkUnitCancellation,
   WorkUnitCancellationCommand,

@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/copilot-authority-request/1.0.0/schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_name": {
+      "const": "petra.copilot-authority-request"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "command_id": {
+      "type": "string",
+      "pattern": "^command_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "idempotency_key": {
+      "type": "string",
+      "minLength": 16,
+      "maxLength": 200
+    },
+    "proposal": {
+      "$ref": "#/$defs/ConversationAuthorityProposal"
+    },
+    "review": {
+      "$ref": "#/$defs/ConversationAuthorityReview"
+    }
+  },
+  "title": "PetraCopilotAuthorityRequest",
+  "required": [
+    "schema_name",
+    "schema_version",
+    "project_id",
+    "command_id",
+    "idempotency_key",
+    "proposal",
+    "review"
+  ],
+  "$defs": {
+    "ConversationAuthorityProposal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_id",
+        "project_revision",
+        "project_record_hash",
+        "actor_id",
+        "allowed_commands",
+        "limits",
+        "domain_authority"
+      ],
+      "properties": {
+        "project_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+        },
+        "project_revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "project_record_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "actor_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ActorId"
+        },
+        "allowed_commands": {
+          "const": ["RunProjectCopilot"]
+        },
+        "limits": {
+          "const": {
+            "max_wall_time_ms": 120000,
+            "max_output_bytes": 256000,
+            "max_attempts": 1,
+            "max_parallelism": 1
+          }
+        },
+        "domain_authority": {
+          "const": false
+        }
+      }
+    },
+    "ConversationAuthorityReview": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["proposed_content_hash", "reviewed_at"],
+      "properties": {
+        "proposed_content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        },
+        "reviewed_at": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp",
+          "description": "Original client-reported review time. The owner accepts at most one second of clock skew against the actual database transaction time; the original review and actual receipt/grant times remain separately retained."
+        }
+      }
+    }
+  }
+}

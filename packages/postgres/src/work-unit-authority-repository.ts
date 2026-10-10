@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 
 import type {
   PetraWorkerInputManifest,
-  PetraWorkerOutputManifest,
+  RegisteredWorkerOutputManifest as PetraWorkerOutputManifest,
   PetraWorkUnit,
   PetraWorkUnitCancellation,
   WorkUnitCancellationCommand,
@@ -62,10 +62,25 @@ const statusFailure = (status: PetraWorkUnit["status"]): unknown =>
 export class PostgresWorkUnitAuthorityRepository implements WorkUnitAuthorityRepository {
   readonly #pool: Pool;
   readonly #contracts: PetraContractRegistry;
+  readonly #transactionClient: PoolClient | undefined;
 
-  constructor(pool: Pool, contracts = new PetraContractRegistry()) {
+  constructor(
+    pool: Pool,
+    contracts = new PetraContractRegistry(),
+    transactionClient?: PoolClient,
+  ) {
     this.#pool = pool;
     this.#contracts = contracts;
+    this.#transactionClient = transactionClient;
+  }
+
+  /** The caller owns commit/rollback; canonical validations still run. */
+  inTransaction(client: PoolClient): PostgresWorkUnitAuthorityRepository {
+    return new PostgresWorkUnitAuthorityRepository(
+      this.#pool,
+      this.#contracts,
+      client,
+    );
   }
 
   async register(input: RegisterWorkUnitInput): Promise<PetraWorkUnit> {
@@ -180,14 +195,16 @@ export class PostgresWorkUnitAuthorityRepository implements WorkUnitAuthorityRep
   }
 
   getWorkUnit(workUnitId: string): Promise<PetraWorkUnit | undefined> {
-    return this.#getWorkUnit(this.#pool, workUnitId);
+    return this.#getWorkUnit(this.#transactionClient ?? this.#pool, workUnitId);
   }
 
   async getWorkUnitRevision(
     workUnitId: string,
     revision: number,
   ): Promise<PetraWorkUnit | undefined> {
-    const result = await this.#pool.query<PayloadRow>(
+    const result = await (
+      this.#transactionClient ?? this.#pool
+    ).query<PayloadRow>(
       `SELECT payload FROM petra.work_unit_revisions
         WHERE work_unit_id = $1 AND revision = $2`,
       [workUnitId, revision],
@@ -198,7 +215,9 @@ export class PostgresWorkUnitAuthorityRepository implements WorkUnitAuthorityRep
   async getInputManifest(
     manifestId: string,
   ): Promise<PetraWorkerInputManifest | undefined> {
-    const result = await this.#pool.query<PayloadRow>(
+    const result = await (
+      this.#transactionClient ?? this.#pool
+    ).query<PayloadRow>(
       `SELECT payload FROM petra.worker_input_manifests
         WHERE worker_input_manifest_id = $1`,
       [manifestId],
@@ -209,7 +228,9 @@ export class PostgresWorkUnitAuthorityRepository implements WorkUnitAuthorityRep
   async getOutputManifest(
     manifestId: string,
   ): Promise<PetraWorkerOutputManifest | undefined> {
-    const result = await this.#pool.query<PayloadRow>(
+    const result = await (
+      this.#transactionClient ?? this.#pool
+    ).query<PayloadRow>(
       `SELECT payload FROM petra.worker_output_manifests
         WHERE worker_output_manifest_id = $1`,
       [manifestId],
@@ -277,7 +298,11 @@ export class PostgresWorkUnitAuthorityRepository implements WorkUnitAuthorityRep
     manifest: PetraWorkerOutputManifest,
     expectedRevision: number,
   ): Promise<PetraWorkUnit> {
-    this.#contracts.assertValid("worker-output-manifest", "1.0.0", manifest);
+    this.#contracts.assertValid(
+      "worker-output-manifest",
+      manifest.schema_version,
+      manifest,
+    );
     return this.#transaction(async (client) => {
       await this.#lock(client, [
         `work-unit:${manifest.work_unit_id}`,
@@ -340,6 +365,28 @@ export class PostgresWorkUnitAuthorityRepository implements WorkUnitAuthorityRep
     );
   }
 
+  failExecution(
+    workUnitId: string,
+    expectedRevision: number,
+    attempt: number,
+    outcome: "worker_failed" | "resource_exhausted" | "timed_out",
+    failure: WorkerFailure,
+    completedAt: string,
+  ): Promise<PetraWorkUnit> {
+    return this.#transition(workUnitId, (registry) =>
+      mutableWorkUnit(
+        registry.failExecution(
+          workUnitId,
+          expectedRevision,
+          attempt,
+          outcome,
+          clone(failure),
+          completedAt,
+        ),
+      ),
+    );
+  }
+
   cancel(
     workUnitId: string,
     expectedRevision: number,
@@ -356,7 +403,9 @@ export class PostgresWorkUnitAuthorityRepository implements WorkUnitAuthorityRep
   async getCancellationByCommand(
     commandId: string,
   ): Promise<PetraWorkUnitCancellation | undefined> {
-    const result = await this.#pool.query<PayloadRow>(
+    const result = await (
+      this.#transactionClient ?? this.#pool
+    ).query<PayloadRow>(
       `SELECT payload
          FROM petra.work_unit_cancellations
         WHERE command_id = $1`,
@@ -644,8 +693,17 @@ export class PostgresWorkUnitAuthorityRepository implements WorkUnitAuthorityRep
                 status.completed_at,
               );
             } else {
-              throw new Error(
-                "A failed WorkUnit without an output manifest must be a validation failure.",
+              if (status.terminal_outcome === "succeeded")
+                throw new Error(
+                  "Successful Work requires its validated output manifest.",
+                );
+              actual = registry.failExecution(
+                workUnitId,
+                priorRevision,
+                status.attempt,
+                status.terminal_outcome,
+                clone(status.failure),
+                status.completed_at,
               );
             }
             break;
@@ -987,7 +1045,11 @@ export class PostgresWorkUnitAuthorityRepository implements WorkUnitAuthorityRep
 
   #readOutputManifest(payload: unknown): PetraWorkerOutputManifest | undefined {
     if (payload === undefined) return undefined;
-    this.#contracts.assertValid("worker-output-manifest", "1.0.0", payload);
+    this.#contracts.assertValid(
+      "worker-output-manifest",
+      (payload as { schema_version: string }).schema_version,
+      payload,
+    );
     return clone(payload as PetraWorkerOutputManifest);
   }
 
@@ -1057,6 +1119,8 @@ export class PostgresWorkUnitAuthorityRepository implements WorkUnitAuthorityRep
   async #transaction<Result>(
     operation: (client: PoolClient) => Promise<Result>,
   ): Promise<Result> {
+    if (this.#transactionClient !== undefined)
+      return operation(this.#transactionClient);
     const client = await this.#pool.connect();
     try {
       await client.query("BEGIN");

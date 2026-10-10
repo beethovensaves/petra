@@ -1,3 +1,4 @@
+import type { PetraCopilotAuthorityRequest } from "@petra/contracts";
 import type { Hono, Env } from "hono";
 import {
   CopilotBoundaryError,
@@ -93,6 +94,31 @@ export const mountProjectCopilotRoutes = <E extends Env>(
       );
     }
   });
+  app.post("/api/projects/:projectId/copilot/authorize", async (context) => {
+    if (service === undefined)
+      return context.json(
+        {
+          error: {
+            code: "COPILOT_UNAVAILABLE",
+            message: "The Project conversation service is unavailable.",
+          },
+        },
+        503,
+      );
+    try {
+      const projectId = context.req.param("projectId");
+      project(projectId);
+      const bytes = await boundedRequestBytes(context.req.raw);
+      const request = JSON.parse(
+        new TextDecoder().decode(bytes),
+      ) as PetraCopilotAuthorityRequest;
+      return context.json(
+        await service.authorizeConversation(projectId, request),
+      );
+    } catch (error) {
+      return context.json(failure(error), 409);
+    }
+  });
   app.get("/api/projects/:projectId/copilot", async (context) => {
     if (service === undefined)
       return context.json(
@@ -140,7 +166,14 @@ export const mountProjectCopilotRoutes = <E extends Env>(
           "The shared graph parameters exceed their budget.",
         );
       return context.json(
-        await service.read(projectId, focus as string[], binding),
+        await service.read(projectId, focus as string[], binding, {
+          ...(context.req.query("cursor") === undefined
+            ? {}
+            : { cursor: context.req.query("cursor")! }),
+          ...(context.req.query("limit") === undefined
+            ? {}
+            : { limit: Number(context.req.query("limit")) }),
+        }),
       );
     } catch (error) {
       return context.json(

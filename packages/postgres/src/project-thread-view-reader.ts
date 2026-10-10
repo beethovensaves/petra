@@ -2,16 +2,16 @@ import { createHash } from "node:crypto";
 
 import type {
   PetraProjectDefinition,
-  PetraProjectThread,
-  PetraProjectThreadView,
+  RegisteredProjectThreadView as PetraProjectThreadView,
   ProjectThreadViewAuthorityPosition,
-  ProjectThreadViewCollectionContent,
-  ProjectThreadViewDetailContent,
-  ProjectThreadViewThreadSummary,
-  ProjectThreadViewTurn,
+  ProjectThreadViewCollectionContentV11 as ProjectThreadViewCollectionContent,
+  ProjectThreadViewDetailContentV11 as ProjectThreadViewDetailContent,
+  ProjectThreadViewThreadSummaryV11 as ProjectThreadViewThreadSummary,
+  ProjectThreadViewTurnV11 as ProjectThreadViewTurn,
 } from "@petra/contracts";
 import { PetraContractRegistry } from "@petra/contracts/validator";
 import type {
+  CanonicalProjectThread,
   ProjectThreadCollectionRequest,
   ProjectThreadLifecycleFilter,
   ProjectThreadViewReader,
@@ -317,14 +317,18 @@ export class PostgresProjectThreadViewReader implements ProjectThreadViewReader 
   #record(
     row: ThreadRow,
     projectId: string,
-  ): { thread: PetraProjectThread; definition: PetraProjectDefinition } {
-    this.#contracts.assertValid("project-thread", "1.0.0", row.payload);
+  ): { thread: CanonicalProjectThread; definition: PetraProjectDefinition } {
+    this.#contracts.assertValid(
+      "project-thread",
+      (row.payload as { schema_version: string }).schema_version,
+      row.payload,
+    );
     this.#contracts.assertValid(
       "project-definition",
       "1.0.0",
       row.definition_payload,
     );
-    const thread = row.payload as PetraProjectThread;
+    const thread = row.payload as CanonicalProjectThread;
     const definition = row.definition_payload as PetraProjectDefinition;
     if (
       thread.project_id !== projectId ||
@@ -373,7 +377,9 @@ export class PostgresProjectThreadViewReader implements ProjectThreadViewReader 
               state: "available",
               project_turn_id: latest.project_turn_id,
               sequence: latest.sequence,
-              snapshot_ref: clone(latest.context.snapshot_ref),
+              ...("snapshot_ref" in latest.context
+                ? { snapshot_ref: clone(latest.context.snapshot_ref) }
+                : { basis: clone(latest.context.basis) }),
               force: latest.response.force,
               recorded_at: latest.recorded_at,
             },
@@ -451,13 +457,17 @@ export class PostgresProjectThreadViewReader implements ProjectThreadViewReader 
   ): PetraProjectThreadView {
     const view: PetraProjectThreadView = {
       schema_name: "petra.project-thread-view",
-      schema_version: "1.0.0",
+      schema_version: "1.1.0",
       project_id: projectId,
       content,
       content_hash: canonicalHash(content),
       read_at: readAt,
     };
-    this.#contracts.assertValid("project-thread-view", "1.0.0", view);
+    this.#contracts.assertValid(
+      "project-thread-view",
+      view.schema_version,
+      view,
+    );
     return view;
   }
 

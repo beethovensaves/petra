@@ -10,11 +10,18 @@ import {
   validateCopilotContext,
   type CopilotContext,
   type CopilotTurn,
+  type ConversationHistoryPage,
+  type ConversationPermissionRead,
+  type ConversationOwnerBinding,
   type ProjectCopilotRuntime,
 } from "@petra/core";
 import type { CopilotRequest } from "@petra/core";
 import { PetraContractRegistry } from "@petra/contracts/validator";
-import type { PetraGraphPresentationContext } from "@petra/contracts";
+import type {
+  PetraCopilotAuthorityRequest,
+  PetraCopilotAuthorityReceipt,
+  PetraGraphPresentationContext,
+} from "@petra/contracts";
 const contracts = new PetraContractRegistry();
 import type { ProjectShellPersistence } from "./project-shell-persistence.js";
 
@@ -99,6 +106,13 @@ export class ProjectCopilotService {
   ) {}
 
   async assertAccess(projectId: string): Promise<void> {
+    const permission =
+      await this.persistence.copilotPermission?.read(projectId);
+    if (permission?.state === "unavailable")
+      throw new CopilotBoundaryError(
+        "CONVERSATION_PERMISSION_UNAVAILABLE",
+        permission.reason,
+      );
     const shell = await this.persistence.views.getProjectShellView(projectId);
     if (shell === undefined || shell.content.project.status !== "active")
       throw new CopilotBoundaryError(
@@ -120,6 +134,7 @@ export class ProjectCopilotService {
     projectId: string,
     focusKeys: readonly string[] = [],
   ): Promise<CopilotContext> {
+    await this.assertAccess(projectId);
     return (await this.contextResult(projectId, focusKeys)).context;
   }
 
@@ -192,14 +207,12 @@ export class ProjectCopilotService {
           originSession.content.intake_session_id,
           this.actorId,
         );
-        const included = original
-          .slice(-12)
-          .map((turn) => ({
-            run_id: turn.run_id,
-            user_wording: turn.question,
-            advisory_answer: turn.terminal?.output ?? null,
-            outcome: turn.terminal?.state ?? "unknown",
-          }));
+        const included = original.slice(-12).map((turn) => ({
+          run_id: turn.run_id,
+          user_wording: turn.question,
+          advisory_answer: turn.terminal?.output ?? null,
+          outcome: turn.terminal?.state ?? "unknown",
+        }));
         const excerpt = () => ({
           authority: "pre_project_advice_only",
           creation_binding_hash: copilotHash(originBinding),
@@ -740,17 +753,41 @@ export class ProjectCopilotService {
     };
   }
 
+  async authorizeConversation(
+    projectId: string,
+    request: PetraCopilotAuthorityRequest,
+  ): Promise<PetraCopilotAuthorityReceipt> {
+    await this.assertAccess(projectId);
+    if (this.persistence.copilotPermission === undefined)
+      throw new CopilotBoundaryError(
+        "CONVERSATION_PERMISSION_UNAVAILABLE",
+        "The owner conversation permission boundary is unavailable.",
+      );
+    return this.persistence.copilotPermission.execute(projectId, request);
+  }
+
   async read(
     projectId: string,
     focusKeys: readonly string[] = [],
     binding?: GraphPresentationBinding,
+    history?: { limit?: number; cursor?: string },
   ): Promise<{
+    authorization?: ConversationPermissionRead;
+    history_page?: ConversationHistoryPage["page"];
+    owners?: Record<string, ConversationOwnerBinding>;
     shared_scene?: PetraGraphPresentationContext;
     thread_id: string;
     context: CopilotContext;
     turns: CopilotTurn[];
     availability: { state: "ready" | "unavailable"; reason?: string };
   }> {
+    const authorization =
+      await this.persistence.copilotPermission?.read(projectId);
+    if (authorization?.state === "unavailable")
+      throw new CopilotBoundaryError(
+        "CONVERSATION_PERMISSION_UNAVAILABLE",
+        authorization.reason,
+      );
     const { context, shared_scene } = await this.contextResult(
       projectId,
       focusKeys,
@@ -761,25 +798,51 @@ export class ProjectCopilotService {
       "thread",
       `copilot:${projectId}:${this.actorId}`,
     );
-    if (this.runtime === undefined)
+
+    if (authorization !== undefined && authorization.state !== "ready")
       return {
         thread_id,
         context,
         ...scene,
-        turns: await this.persistence.copilotTurns.list(
-          projectId,
-          this.actorId,
-        ),
-        availability: { state: "unavailable", reason: this.unavailableReason },
+        turns: [],
+        authorization,
+        availability: { state: "unavailable", reason: authorization.reason },
       };
-    await this.runtime.repository.recover(this.runtime.instanceId);
-    const turns = await this.runtime.repository.list(projectId, this.actorId);
+    await (this.runtime?.repository ?? this.persistence.copilotTurns).recover(
+      this.runtime?.instanceId ?? "retained-history-reader",
+    );
+    const historyRead = await this.persistence.copilotHistory?.listPage(
+      projectId,
+      this.actorId,
+      { thread_id, ...history },
+    );
+    const turns =
+      historyRead === undefined
+        ? await (
+            this.runtime?.repository ?? this.persistence.copilotTurns
+          ).list(projectId, this.actorId, thread_id)
+        : historyRead.entries.map((entry) => entry.turn);
     return {
+      ...(authorization === undefined ? {} : { authorization }),
       thread_id,
       context,
       ...scene,
       turns,
-      availability: { state: "ready" },
+      ...(historyRead === undefined
+        ? {}
+        : {
+            history_page: historyRead.page,
+            owners: Object.fromEntries(
+              historyRead.entries.map((entry) => [
+                entry.turn.run_id,
+                entry.owners,
+              ]),
+            ),
+          }),
+      availability:
+        this.runtime === undefined
+          ? { state: "unavailable", reason: this.unavailableReason }
+          : { state: "ready" },
     };
   }
 
@@ -809,6 +872,14 @@ export class ProjectCopilotService {
       throw new CopilotBoundaryError(
         "ROLE_UNAVAILABLE",
         this.unavailableReason,
+      );
+    const permission = await this.persistence.copilotPermission?.read(
+      input.request.project_id,
+    );
+    if (permission !== undefined && permission.state !== "ready")
+      throw new CopilotBoundaryError(
+        "CONVERSATION_WORK_NOT_AUTHORIZED",
+        permission.reason,
       );
     const { context, shared_scene } = await this.contextResult(
       input.request.project_id,

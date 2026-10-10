@@ -1428,11 +1428,11 @@
       "title": "Persist and read exact user and assistant turns",
       "owner": "runtime",
       "status": "in_progress",
-      "implementation": "Add authorized immutable message/content reads and turn lineage around existing ProjectThread/InteractionRun records, with text or exact content references, revisions, role, context, result, partial/terminal state, and pagination.",
+      "implementation": "Sequence: (1) expose current model and permission readiness; (2) require an explicit reviewed owner-only RunProjectCopilot grant and immutable receipt before new conversation Work or historical adoption, preserving existing authorized Work management grants; (3) retain exact private question/native-context/result Artifacts and canonical Thread/Run/Work atomically; (4) resolve exact applicable inquiry, Work, Review and cycle lineage before release; (5) page original readable content and restore questions, answers, citations and outcomes in a fresh browser; (6) reject owner substitution, widened permission, stale proposals, late partial commits and duplicate effects in the distinct critical pass.",
       "acceptance": [
         "A fresh browser restores actual question and answer content, citations, and outcomes.",
         "A thread metadata list is insufficient.",
-        "Unauthorized or mismatched Project/content references reveal no bytes.",
+        "Unauthorized or mismatched Project/content references reveal no bytes. New Projects require explicit reviewed owner-only conversation permission; questions and model output cannot grant capabilities.",
         "Every retained Project turn resolves to the existing canonical ProjectThread and InteractionRun; a parallel conversation store cannot substitute for those owners.",
         "Turn context and result references preserve exact inquiry, Work, Review and cycle lineage where applicable; replay must not create a second effect."
       ],
@@ -1461,7 +1461,11 @@
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
         }
-      ]
+      ],
+      "verification_plans": {
+        "execution": "reports/a1-plans/FE-A1.3-W03-execution.json",
+        "critical": "reports/a1-plans/FE-A1.3-W03-critical.json"
+      }
     },
     {
       "id": "FE-A1.3-W04",
@@ -5329,7 +5333,267 @@
     "item": "FE-A1.3-W03",
     "phase": "execution",
     "failed_attempts": 0,
-    "started_at": "2026-10-10T20:53:08.242Z"
+    "started_at": "2026-10-10T20:53:08.242Z",
+    "failures": [
+      {
+        "reason": "Canonical PostgreSQL conversation function construction failed before commit: WorkerInputManifest network allowlist received a non-URI provider label. Six dependent checks failed at the same input validation boundary; no canonical conversation Work committed.",
+        "phase": "execution",
+        "recorded_at": "2026-10-10T21:25:49.222Z"
+      },
+      {
+        "reason": "Second canonical conversation construction run reached registered Work ownership but terminal-result JSON Schema failed AJV strictRequired compilation. New schema roots lacked accepted fixtures, so build and existing fixture checks had not compiled the terminal path before database integration.",
+        "phase": "execution",
+        "recorded_at": "2026-10-10T21:26:44.607Z"
+      },
+      {
+        "reason": "After strict contract conformance passed, construction reached terminal Work reporting but the generated output_handle used artifact: rather than the contracted output: handle namespace. Isolation and uncertain-outcome recovery passed; four successful-output functions rolled back before terminal commit.",
+        "phase": "execution",
+        "recorded_at": "2026-10-10T21:32:33.146Z"
+      },
+      {
+        "reason": "Full PostgreSQL construction verification failed; inspect retained /tmp/petra-w3-postgres.log and diagnose owner/context integration before another execution attempt.",
+        "phase": "execution",
+        "recorded_at": "2026-10-10T21:48:06.994Z"
+      },
+      {
+        "reason": "Server construction checks found a persistence/runtime repository selection bug in recovery; retain /tmp/petra-w3-server.log. Local listener checks also require the approved unsandboxed test environment. Repository selection corrected before rerun.",
+        "phase": "execution",
+        "recorded_at": "2026-10-10T21:51:59.115Z"
+      },
+      {
+        "reason": "New lineage admission test used a static ReviewSession snapshot ahead of actual authority; full PostgreSQL run has one failing upstream admission. Retained reports/a1-passes/FE-A1.3-W03-construction-postgres-second-failed.log. No conversation pass recorded.",
+        "phase": "execution",
+        "recorded_at": "2026-10-10T21:53:30.511Z"
+      },
+      {
+        "reason": "Isolated ownership run passed all 17 conversation functions but rejected the new lineage fixture at authenticated actor admission. Retained reports/a1-passes/FE-A1.3-W03-lineage-owner-scope-failed.log. Bind the fixture actor Project protocol identities and focus to the actual owner before another test.",
+        "phase": "execution",
+        "recorded_at": "2026-10-10T21:57:03.021Z"
+      },
+      {
+        "reason": "Production inspection read denied canonical history adoption because existing empty Project has no Work grant. No grant or provider invocation was created. Add explicit narrowly scoped owner authorization before browser execution.",
+        "phase": "execution",
+        "recorded_at": "2026-10-10T22:03:17.270Z"
+      },
+      {
+        "reason": "Permission owner construction passed 20 functions; identical concurrent consent exposed client/database clock skew at the future-review guard. Original client and database times remain distinct. Add a bounded one-second skew allowance; a one-minute future review still fails. Retained reports/a1-passes/FE-A1.3-W03-permission-clock-failed.log.",
+        "phase": "execution",
+        "recorded_at": "2026-10-10T22:16:20.501Z"
+      },
+      {
+        "reason": "The full Workbench construction regression passed 416 of 417 functions but exceeded the five-second budget during unrelated Review Apply JSON Schema validation while PostgreSQL migration, typechecks and all 44 UI test files ran concurrently. No assertion failed. Stop the second unsuccessful attempt and diagnose scheduling and verification breadth before retrying.",
+        "phase": "execution",
+        "recorded_at": "2026-10-10T22:23:02.080Z"
+      }
+    ],
+    "diagnoses": [
+      {
+        "contract": "The old Thread owner accepts only completed scientific ContextPacket/GroundedResponse turns. Native advisory conversation needs an additive context/result contract and failed/cancelled delivery states. Whole raw turn plus terminal is not valid copilot-turn JSON: a separate registered result extension now preserves that meaning. Unknown provider resource usage must remain null, not manufactured zero. The second failure is strictRequired compilation of the new terminal-result conditional, not a missing provider or database.",
+        "architecture": "Private immutable turn/terminal bytes remain content extensions, while canonical ProjectThread, InteractionRun and bounded Work own identity, authority and outcomes. Existing repositories now participate in one explicit outer transaction, retaining their validations rather than copying owner SQL. Historical import must identify actual adoption Work and must not reconstruct original grants or model execution. Metadata readers need version dispatch and must not force native contexts into scientific snapshots.",
+        "dependencies": "New Thread, ThreadView, terminal Result and unavailable-resource OutputManifest schemas need accepted fixtures and strict validator compilation before persistence tests. Work and Run owner reads must share the outer transaction. Native history must bind exact definition, input/result Artifacts, actor, grant and applicable lineage; pagination and current-authorized disclosure remain required before W03 can close. The existing eligible advisory model adapter is unchanged; no new provider eligibility is inferred from storage tests.",
+        "environment": "A separate disposable PostgreSQL 18.6 instance successfully applied all 66 immutable forward migrations. It is independent of the running inspection previews and uses repository-controlled fixture credentials. The first test failure was a non-HTTPS provider label in an HTTPS allowlist contract. The replacement records an allowed managed-service destination; it does not claim inspection or enforcement of the provider's internal network routing, which remains unavailable.",
+        "verification": "The six PostgreSQL functions share a setup boundary. One failed input schema produced six dependent failures; the second run passed actor/Project isolation but failed terminal schema compilation. TypeScript compilation cannot compile AJV schemas, and tests over old fixtures do not cover newly registered roots. No W03 execution or critical pass has been recorded and no item has been closed. Positive storage recovery, adversarial owner substitution, atomic rollback, immutable history import, pagination and real browser restoration still need separate evidence.",
+        "changed_remedy": "Stop PostgreSQL retries. Add valid and adverse accepted fixtures for every new contract and run the full strict contract suite first; repair terminal conditional schemas without weakening AJV. Audit and repair all affected normal readers before persistence execution. Then test canonical storage with real PostgreSQL, add deliberate rollback/replay/cross-owner attacks as a distinct critical pass, and capture a fresh browser against the actual production persistence only after those owner tests pass. Keep the roadmap and executable ledger synchronized and leave W03 open until every acceptance criterion has evidence.",
+        "failures": [
+          {
+            "reason": "Canonical PostgreSQL conversation function construction failed before commit: WorkerInputManifest network allowlist received a non-URI provider label. Six dependent checks failed at the same input validation boundary; no canonical conversation Work committed.",
+            "phase": "execution",
+            "recorded_at": "2026-10-10T21:25:49.222Z"
+          },
+          {
+            "reason": "Second canonical conversation construction run reached registered Work ownership but terminal-result JSON Schema failed AJV strictRequired compilation. New schema roots lacked accepted fixtures, so build and existing fixture checks had not compiled the terminal path before database integration.",
+            "phase": "execution",
+            "recorded_at": "2026-10-10T21:26:44.607Z"
+          }
+        ],
+        "recorded_at": "2026-10-10T21:26:56.420Z"
+      },
+      {
+        "contract": "Unknown measurements cannot satisfy applicable hard limits. Actual over-deadline recovery must record failed canonical Work without manufacturing an in-limit output manifest. The full PostgreSQL suite found both a legacy producer omitting known token usage and an overdue advisory Work that could not terminate through the validated output path.",
+        "architecture": "Output validation and failure transitions serve different purposes. Reject invalid or unmeasured outputs, but permit a canonical failed Work revision with the actual terminal failure and no output manifest. Rehydration must preserve that failure kind. Native Thread and Artifact owners still retain exact error content in the same outer transaction. The normal HTTP readers also require registered-version dispatch rather than fixed legacy schemas.",
+        "dependencies": "The new stricter Work resource boundary affects existing grounded terminal producers. Their measured model-call token and cost records must populate the existing output usage fields. Update the canonical Work failure transition and PostgreSQL rehydration together, then verify both legacy scientific owner readers and native conversation readers. No QA provider eligibility source changed.",
+        "environment": "A fresh disposable PostgreSQL 18.6 instance applied and validated all 66 forward migrations. Core 364, adapters 153 and strict contracts 723 checks passed. The full PostgreSQL test harness reported two function failures; the database was disposed by its normal cleanup. No inspection database or user data was reset.",
+        "verification": "The broader run found failures omitted by the narrower conversation construction checks. Preserve /tmp/petra-w3-postgres.log as failed evidence, retain the ledger failure count, and stop retries after the second failure. Tests must distinguish valid output measurements from failure-only completion and must verify actual HTTP version dispatch, lineage, paging and browser restoration before W03 closes.",
+        "changed_remedy": "Implement a canonical failure-only transition for worker failure, timeout and resource exhaustion; retain its exact kind during PostgreSQL rehydration. Populate grounded output token/cost measurements from the retained model call. Fix fixed-version HTTP reader validation. Add tests for over-deadline recovery, rehashed copied owners, complete lineage and paged original content, then rerun affected tests and the full PostgreSQL suite before formal paired capture. Keep W03 open.",
+        "failures": [
+          {
+            "reason": "Canonical PostgreSQL conversation function construction failed before commit: WorkerInputManifest network allowlist received a non-URI provider label. Six dependent checks failed at the same input validation boundary; no canonical conversation Work committed.",
+            "phase": "execution",
+            "recorded_at": "2026-10-10T21:25:49.222Z"
+          },
+          {
+            "reason": "Second canonical conversation construction run reached registered Work ownership but terminal-result JSON Schema failed AJV strictRequired compilation. New schema roots lacked accepted fixtures, so build and existing fixture checks had not compiled the terminal path before database integration.",
+            "phase": "execution",
+            "recorded_at": "2026-10-10T21:26:44.607Z"
+          },
+          {
+            "reason": "After strict contract conformance passed, construction reached terminal Work reporting but the generated output_handle used artifact: rather than the contracted output: handle namespace. Isolation and uncertain-outcome recovery passed; four successful-output functions rolled back before terminal commit.",
+            "phase": "execution",
+            "recorded_at": "2026-10-10T21:32:33.146Z"
+          },
+          {
+            "reason": "Full PostgreSQL construction verification failed; inspect retained /tmp/petra-w3-postgres.log and diagnose owner/context integration before another execution attempt.",
+            "phase": "execution",
+            "recorded_at": "2026-10-10T21:48:06.994Z"
+          }
+        ],
+        "recorded_at": "2026-10-10T21:48:56.645Z"
+      },
+      {
+        "contract": "Retained Review lineage requires an actual authorized ReviewSession. Its immutable snapshot must come from the current authority counters; a conformance fixture snapshot is not a live database snapshot. The last full PostgreSQL run had one failing new lineage setup, while resource integration and canonical conversation functions passed.",
+        "architecture": "Native conversation continues to use existing Thread, Run and Work owners and actual typed lineage resolvers. The failure is upstream ReviewSession admission, before any conversation can be created. Recovery must choose the configured runtime repository or production persistence repository consistently; the old test stub was not the production runtime owner.",
+        "dependencies": "Build production and test TypeScript first, then seed the native Review through its existing owner with the actual authority snapshot, not static fixture counters. Existing working candidate and relationship admission stays mandatory. Complete positive lineage admission before reviewing conversation reference substitution.",
+        "environment": "The full PostgreSQL harness used a new disposable database with 66 successfully applied and validated migrations. The unprivileged server run had expected localhost EPERM errors; the approved rerun passes 177 server checks with seven unrelated database-dependent skips. Do not count skips as A1 proof. Failed construction logs are now retained in reports/a1-passes.",
+        "verification": "Stop after the second construction failure since the prior diagnosis. The new test used a ahead-of-authority Review snapshot from the accepted fixture; TypeScript cannot verify live counters. Full suites cost more than the local admission function, so validate the changed admission and owner functions in the separate disposable ownership database before another broad run. No W03 pass or closure is recorded.",
+        "changed_remedy": "Populate the new Review snapshot from actual PostgreSQL authority and Project stream counters. Run production/test type checks to completion before starting any runtime verification. Recreate only the separate ownership test schema, apply and validate all final migrations, and run exact conversation/lineage functions. Once these pass, run the full PostgreSQL suite and separate browser/critical captures. Keep all failures and W03 open.",
+        "failures": [
+          {
+            "reason": "Canonical PostgreSQL conversation function construction failed before commit: WorkerInputManifest network allowlist received a non-URI provider label. Six dependent checks failed at the same input validation boundary; no canonical conversation Work committed.",
+            "phase": "execution",
+            "recorded_at": "2026-10-10T21:25:49.222Z"
+          },
+          {
+            "reason": "Second canonical conversation construction run reached registered Work ownership but terminal-result JSON Schema failed AJV strictRequired compilation. New schema roots lacked accepted fixtures, so build and existing fixture checks had not compiled the terminal path before database integration.",
+            "phase": "execution",
+            "recorded_at": "2026-10-10T21:26:44.607Z"
+          },
+          {
+            "reason": "After strict contract conformance passed, construction reached terminal Work reporting but the generated output_handle used artifact: rather than the contracted output: handle namespace. Isolation and uncertain-outcome recovery passed; four successful-output functions rolled back before terminal commit.",
+            "phase": "execution",
+            "recorded_at": "2026-10-10T21:32:33.146Z"
+          },
+          {
+            "reason": "Full PostgreSQL construction verification failed; inspect retained /tmp/petra-w3-postgres.log and diagnose owner/context integration before another execution attempt.",
+            "phase": "execution",
+            "recorded_at": "2026-10-10T21:48:06.994Z"
+          },
+          {
+            "reason": "Server construction checks found a persistence/runtime repository selection bug in recovery; retain /tmp/petra-w3-server.log. Local listener checks also require the approved unsandboxed test environment. Repository selection corrected before rerun.",
+            "phase": "execution",
+            "recorded_at": "2026-10-10T21:51:59.115Z"
+          },
+          {
+            "reason": "New lineage admission test used a static ReviewSession snapshot ahead of actual authority; full PostgreSQL run has one failing upstream admission. Retained reports/a1-passes/FE-A1.3-W03-construction-postgres-second-failed.log. No conversation pass recorded.",
+            "phase": "execution",
+            "recorded_at": "2026-10-10T21:53:30.511Z"
+          }
+        ],
+        "recorded_at": "2026-10-10T21:53:34.362Z"
+      },
+      {
+        "contract": "Native retained conversation now owns bounded Work and therefore needs a current explicit capability grant. Existing newly created empty Projects do not have ManageProjectWork. A live production read correctly denied adoption, exposing a missing usable permission path that isolated pre-authorized fixtures could not reveal. Questions and model output must never grant capabilities implicitly.",
+        "architecture": "Separate role eligibility, permission readiness, human owner authorization and conversation execution. A narrowly registered RunProjectCopilot grant must authorize only advisory conversation Work and retention, without general Work management, Review, examination or domain authority. Existing explicitly broad ManageProjectWork grants remain usable for the existing owned path; new conversation permission is a separate reviewed owner command with an immutable receipt.",
+        "dependencies": "Add the narrow capability contract and registered owner authorization request/receipt before exposing its typed read and command ports. Validate actual current Project ownership and revision, commit the grant and receipt in one canonical repository transaction, then expose the explicit consent flow in the copilot. Question execution remains blocked until the grant and actual model eligibility are both available.",
+        "environment": "All full regression suites passed on the current construction: PostgreSQL 216, core 367, Workbench 417, server 177, adapters 153 and strict contracts 723. The existing disposable inspection Project is preserved; it lacks the newly required Work grant. No grant was automatically inserted and no managed-model call was made from the denied read.",
+        "verification": "Retain the live permission denial as the second construction failure since the prior diagnosis and stop retries. Pre-authorized database fixtures cannot establish new-Project permission usability. The fresh browser must explicitly review and submit the exact owner permission before its actual advisory questions; a critical pass must challenge stale proposals, foreign actors/Projects, widened capabilities, receipt conflicts and replay.",
+        "changed_remedy": "Implement registered narrow RunProjectCopilot permission and a reviewed owner-only authorization port, immutable request/receipt retention and exact replay. Return truthful permission readiness before attempting historical adoption; expose explicit scoped consent in the browser with no implicit grant from Ask or model text. Test the grant transition and denials, rerun affected regression suites after type/schema validation, commit and integrate the candidate, then execute distinct functional and critical captures. W03 stays open.",
+        "failures": [
+          {
+            "reason": "Canonical PostgreSQL conversation function construction failed before commit: WorkerInputManifest network allowlist received a non-URI provider label. Six dependent checks failed at the same input validation boundary; no canonical conversation Work committed.",
+            "phase": "execution",
+            "recorded_at": "2026-10-10T21:25:49.222Z"
+          },
+          {
+            "reason": "Second canonical conversation construction run reached registered Work ownership but terminal-result JSON Schema failed AJV strictRequired compilation. New schema roots lacked accepted fixtures, so build and existing fixture checks had not compiled the terminal path before database integration.",
+            "phase": "execution",
+            "recorded_at": "2026-10-10T21:26:44.607Z"
+          },
+          {
+            "reason": "After strict contract conformance passed, construction reached terminal Work reporting but the generated output_handle used artifact: rather than the contracted output: handle namespace. Isolation and uncertain-outcome recovery passed; four successful-output functions rolled back before terminal commit.",
+            "phase": "execution",
+            "recorded_at": "2026-10-10T21:32:33.146Z"
+          },
+          {
+            "reason": "Full PostgreSQL construction verification failed; inspect retained /tmp/petra-w3-postgres.log and diagnose owner/context integration before another execution attempt.",
+            "phase": "execution",
+            "recorded_at": "2026-10-10T21:48:06.994Z"
+          },
+          {
+            "reason": "Server construction checks found a persistence/runtime repository selection bug in recovery; retain /tmp/petra-w3-server.log. Local listener checks also require the approved unsandboxed test environment. Repository selection corrected before rerun.",
+            "phase": "execution",
+            "recorded_at": "2026-10-10T21:51:59.115Z"
+          },
+          {
+            "reason": "New lineage admission test used a static ReviewSession snapshot ahead of actual authority; full PostgreSQL run has one failing upstream admission. Retained reports/a1-passes/FE-A1.3-W03-construction-postgres-second-failed.log. No conversation pass recorded.",
+            "phase": "execution",
+            "recorded_at": "2026-10-10T21:53:30.511Z"
+          },
+          {
+            "reason": "Isolated ownership run passed all 17 conversation functions but rejected the new lineage fixture at authenticated actor admission. Retained reports/a1-passes/FE-A1.3-W03-lineage-owner-scope-failed.log. Bind the fixture actor Project protocol identities and focus to the actual owner before another test.",
+            "phase": "execution",
+            "recorded_at": "2026-10-10T21:57:03.021Z"
+          },
+          {
+            "reason": "Production inspection read denied canonical history adoption because existing empty Project has no Work grant. No grant or provider invocation was created. Add explicit narrowly scoped owner authorization before browser execution.",
+            "phase": "execution",
+            "recorded_at": "2026-10-10T22:03:17.270Z"
+          }
+        ],
+        "recorded_at": "2026-10-10T22:03:21.110Z"
+      },
+      {
+        "contract": "Conversation closure requires real canonical ownership and browser restoration plus separate adverse review. A full regression timeout is unsuccessful verification even without an assertion failure. W03 remains open and the two-failure loop guard is honored.",
+        "architecture": "The changed permission path separates owner consent from model execution and canonical retention. The failing Review Apply test exercises unchanged authority receipt validation. It uses the same strict registry, whose expensive cold compilation was multiplied across 44 simultaneous UI test files. No evidence establishes a changed Review Apply semantic defect.",
+        "dependencies": "Current strict contracts, all production and affected test TypeScript projects, Core 367 and adapters 155 pass. Full UI and server regressions are still prerequisites; the shell && chain never ran server after UI timeout. Lint also identified six type-import style errors in newly added contract union aliases, which must be repaired before candidate commit.",
+        "environment": "Concurrent full UI workers, PostgreSQL migration startup and typechecks saturated the local machine. UI reported 416 passes and one five-second timeout during strict schema validation, with 262 seconds aggregate import work. The inspection Project still returns explicit permission required, with no grant or Work effect. The isolated PostgreSQL suite is running separately and must finish before UI replay.",
+        "verification": "Stop repeated attempts. Retain the actual timeout and lint errors. Run each remaining full suite once with bounded worker concurrency, preserve actual output and exit status, and do not change production semantics or inflate time budgets to mask the failure. The formal functional and critical captures remain distinct and uncaptured.",
+        "changed_remedy": "Replace simultaneous unbounded construction suites with ordered verification: finish PostgreSQL first, correct contract type imports and complete lint, then execute full Workbench with maxWorkers=4 and server with maxWorkers=4. Keep existing five-second test budget. Commit and integrate the candidate only after these finish; then capture the live browser and separate critical owner attacks sequentially.",
+        "failures": [
+          {
+            "reason": "Canonical PostgreSQL conversation function construction failed before commit: WorkerInputManifest network allowlist received a non-URI provider label. Six dependent checks failed at the same input validation boundary; no canonical conversation Work committed.",
+            "phase": "execution",
+            "recorded_at": "2026-10-10T21:25:49.222Z"
+          },
+          {
+            "reason": "Second canonical conversation construction run reached registered Work ownership but terminal-result JSON Schema failed AJV strictRequired compilation. New schema roots lacked accepted fixtures, so build and existing fixture checks had not compiled the terminal path before database integration.",
+            "phase": "execution",
+            "recorded_at": "2026-10-10T21:26:44.607Z"
+          },
+          {
+            "reason": "After strict contract conformance passed, construction reached terminal Work reporting but the generated output_handle used artifact: rather than the contracted output: handle namespace. Isolation and uncertain-outcome recovery passed; four successful-output functions rolled back before terminal commit.",
+            "phase": "execution",
+            "recorded_at": "2026-10-10T21:32:33.146Z"
+          },
+          {
+            "reason": "Full PostgreSQL construction verification failed; inspect retained /tmp/petra-w3-postgres.log and diagnose owner/context integration before another execution attempt.",
+            "phase": "execution",
+            "recorded_at": "2026-10-10T21:48:06.994Z"
+          },
+          {
+            "reason": "Server construction checks found a persistence/runtime repository selection bug in recovery; retain /tmp/petra-w3-server.log. Local listener checks also require the approved unsandboxed test environment. Repository selection corrected before rerun.",
+            "phase": "execution",
+            "recorded_at": "2026-10-10T21:51:59.115Z"
+          },
+          {
+            "reason": "New lineage admission test used a static ReviewSession snapshot ahead of actual authority; full PostgreSQL run has one failing upstream admission. Retained reports/a1-passes/FE-A1.3-W03-construction-postgres-second-failed.log. No conversation pass recorded.",
+            "phase": "execution",
+            "recorded_at": "2026-10-10T21:53:30.511Z"
+          },
+          {
+            "reason": "Isolated ownership run passed all 17 conversation functions but rejected the new lineage fixture at authenticated actor admission. Retained reports/a1-passes/FE-A1.3-W03-lineage-owner-scope-failed.log. Bind the fixture actor Project protocol identities and focus to the actual owner before another test.",
+            "phase": "execution",
+            "recorded_at": "2026-10-10T21:57:03.021Z"
+          },
+          {
+            "reason": "Production inspection read denied canonical history adoption because existing empty Project has no Work grant. No grant or provider invocation was created. Add explicit narrowly scoped owner authorization before browser execution.",
+            "phase": "execution",
+            "recorded_at": "2026-10-10T22:03:17.270Z"
+          },
+          {
+            "reason": "Permission owner construction passed 20 functions; identical concurrent consent exposed client/database clock skew at the future-review guard. Original client and database times remain distinct. Add a bounded one-second skew allowance; a one-minute future review still fails. Retained reports/a1-passes/FE-A1.3-W03-permission-clock-failed.log.",
+            "phase": "execution",
+            "recorded_at": "2026-10-10T22:16:20.501Z"
+          },
+          {
+            "reason": "The full Workbench construction regression passed 416 of 417 functions but exceeded the five-second budget during unrelated Review Apply JSON Schema validation while PostgreSQL migration, typechecks and all 44 UI test files ran concurrently. No assertion failed. Stop the second unsuccessful attempt and diagnose scheduling and verification breadth before retrying.",
+            "phase": "execution",
+            "recorded_at": "2026-10-10T22:23:02.080Z"
+          }
+        ],
+        "recorded_at": "2026-10-10T22:23:24.357Z"
+      }
+    ],
+    "passes": []
   },
   "repair_sequence": [
     {

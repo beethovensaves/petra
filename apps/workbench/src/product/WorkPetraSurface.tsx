@@ -1359,8 +1359,10 @@ const WorkOperationControls = ({
   );
 };
 
-const measuredBytes = (value: number): string =>
-  new Intl.NumberFormat("en", { maximumFractionDigits: 1 }).format(value);
+const measuredBytes = (value: number | undefined): string =>
+  value === undefined
+    ? "Not measured"
+    : new Intl.NumberFormat("en", { maximumFractionDigits: 1 }).format(value);
 
 const SelectedWorkerOutput = ({
   result,

@@ -49,10 +49,25 @@ const asReplay = (value: unknown): PetraInteractionReplayRecord =>
 export class PostgresInteractionAuthorityRepository implements InteractionAuthorityRepository {
   readonly #pool: Pool;
   readonly #contracts: PetraContractRegistry;
+  readonly #transactionClient: PoolClient | undefined;
 
-  constructor(pool: Pool, contracts = new PetraContractRegistry()) {
+  constructor(
+    pool: Pool,
+    contracts = new PetraContractRegistry(),
+    transactionClient?: PoolClient,
+  ) {
     this.#pool = pool;
     this.#contracts = contracts;
+    this.#transactionClient = transactionClient;
+  }
+
+  /** The caller owns commit/rollback; canonical validations still run. */
+  inTransaction(client: PoolClient): PostgresInteractionAuthorityRepository {
+    return new PostgresInteractionAuthorityRepository(
+      this.#pool,
+      this.#contracts,
+      client,
+    );
   }
 
   async registerFeatureManifest(
@@ -149,7 +164,7 @@ export class PostgresInteractionAuthorityRepository implements InteractionAuthor
     interactionFeatureManifestId: string,
   ): Promise<PetraInteractionFeatureManifest | undefined> {
     const row = await this.#recordById(
-      this.#pool,
+      this.#transactionClient ?? this.#pool,
       "interaction_feature_manifests",
       "interaction_feature_manifest_id",
       interactionFeatureManifestId,
@@ -207,14 +222,19 @@ export class PostgresInteractionAuthorityRepository implements InteractionAuthor
   }
 
   getRun(interactionRunId: string): Promise<PetraInteractionRun | undefined> {
-    return this.#getCurrentRun(this.#pool, interactionRunId);
+    return this.#getCurrentRun(
+      this.#transactionClient ?? this.#pool,
+      interactionRunId,
+    );
   }
 
   async getRunByProtocolCorrelation(
     protocolThreadId: string,
     protocolRunId: string,
   ): Promise<PetraInteractionRun | undefined> {
-    const result = await this.#pool.query<PayloadRow>(
+    const result = await (
+      this.#transactionClient ?? this.#pool
+    ).query<PayloadRow>(
       `SELECT revision.payload
          FROM petra.interaction_runs AS head
          JOIN petra.interaction_run_revisions AS revision
@@ -232,7 +252,9 @@ export class PostgresInteractionAuthorityRepository implements InteractionAuthor
     interactionRunId: string,
     revision: number,
   ): Promise<PetraInteractionRun | undefined> {
-    const result = await this.#pool.query<PayloadRow>(
+    const result = await (
+      this.#transactionClient ?? this.#pool
+    ).query<PayloadRow>(
       `SELECT payload FROM petra.interaction_run_revisions
         WHERE interaction_run_id = $1 AND revision = $2`,
       [interactionRunId, revision],
@@ -280,7 +302,7 @@ export class PostgresInteractionAuthorityRepository implements InteractionAuthor
     interactionEventRecordId: string,
   ): Promise<PetraInteractionEventRecord | undefined> {
     const row = await this.#recordById(
-      this.#pool,
+      this.#transactionClient ?? this.#pool,
       "interaction_event_records",
       "interaction_event_record_id",
       interactionEventRecordId,
@@ -301,7 +323,9 @@ export class PostgresInteractionAuthorityRepository implements InteractionAuthor
     if (!Number.isSafeInteger(limit) || limit < 1 || limit > 10_000) {
       throw new RangeError("limit must be a safe integer between 1 and 10000.");
     }
-    const result = await this.#pool.query<PayloadRow>(
+    const result = await (
+      this.#transactionClient ?? this.#pool
+    ).query<PayloadRow>(
       `SELECT payload FROM petra.interaction_event_records
         WHERE interaction_run_id = $1 AND sequence > $2
         ORDER BY sequence
@@ -375,7 +399,9 @@ export class PostgresInteractionAuthorityRepository implements InteractionAuthor
   async getInterrupt(
     interactionInterruptId: string,
   ): Promise<PetraInteractionInterrupt | undefined> {
-    const result = await this.#pool.query<PayloadRow>(
+    const result = await (
+      this.#transactionClient ?? this.#pool
+    ).query<PayloadRow>(
       `SELECT revision.payload
          FROM petra.interaction_interrupts AS head
          JOIN petra.interaction_interrupt_revisions AS revision
@@ -393,7 +419,9 @@ export class PostgresInteractionAuthorityRepository implements InteractionAuthor
     interactionInterruptId: string,
     revision: number,
   ): Promise<PetraInteractionInterrupt | undefined> {
-    const result = await this.#pool.query<PayloadRow>(
+    const result = await (
+      this.#transactionClient ?? this.#pool
+    ).query<PayloadRow>(
       `SELECT payload FROM petra.interaction_interrupt_revisions
         WHERE interaction_interrupt_id = $1 AND revision = $2`,
       [interactionInterruptId, revision],
@@ -484,7 +512,7 @@ export class PostgresInteractionAuthorityRepository implements InteractionAuthor
     interactionReplayRecordId: string,
   ): Promise<PetraInteractionReplayRecord | undefined> {
     const row = await this.#recordById(
-      this.#pool,
+      this.#transactionClient ?? this.#pool,
       "interaction_replay_records",
       "interaction_replay_record_id",
       interactionReplayRecordId,
@@ -493,7 +521,9 @@ export class PostgresInteractionAuthorityRepository implements InteractionAuthor
   }
 
   async getConnectionAttempt(connectionId: string): Promise<number> {
-    const result = await this.#pool.query<ConnectionRow>(
+    const result = await (
+      this.#transactionClient ?? this.#pool
+    ).query<ConnectionRow>(
       `SELECT interaction_run_id, current_attempt
          FROM petra.interaction_connections
         WHERE connection_id = $1`,
@@ -1058,6 +1088,8 @@ export class PostgresInteractionAuthorityRepository implements InteractionAuthor
   async #transaction<Result>(
     operation: (client: PoolClient) => Promise<Result>,
   ): Promise<Result> {
+    if (this.#transactionClient !== undefined)
+      return operation(this.#transactionClient);
     const client = await this.#pool.connect();
     try {
       await client.query("BEGIN");

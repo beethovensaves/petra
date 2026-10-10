@@ -1,0 +1,31 @@
+{
+  "schema_name": "petra.conversation-result",
+  "schema_version": "1.0.0",
+  "conversation_result_id": "conversation_result_01K4C000000000000000000111",
+  "revision": 1,
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "protocol_thread_id": "thread_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "protocol_run_id": "run_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "turn_content_hash": "sha256:403f3bce144e4004cd3302eb81fb7c7ba25e256fad329aa223d2526f2ea0b7ef",
+  "terminal": {
+    "state": "completed",
+    "finished_at": "2026-10-07T14:00:10.000Z",
+    "output": {
+      "schema_name": "petra.copilot-output",
+      "schema_version": "1.0.0",
+      "authority": "advisory_only",
+      "blocks": [
+        {
+          "kind": "question",
+          "text": "Which evidence should we examine first?",
+          "citations": []
+        }
+      ],
+      "focus_keys": []
+    },
+    "model": "synthetic-conformance-model",
+    "provider_thread_id": "synthetic-thread",
+    "provider_turn_id": "synthetic-turn"
+  }
+}

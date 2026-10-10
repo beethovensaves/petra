@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 
-import type { PetraWorkerOutputManifest } from "@petra/contracts";
+import type { RegisteredWorkerOutputManifest as PetraWorkerOutputManifest } from "@petra/contracts";
 import { PetraContractRegistry } from "@petra/contracts/validator";
 import type {
   ProjectWorkerOutputManifestReader,
@@ -72,7 +72,11 @@ export class PostgresProjectWorkerOutputManifestReader implements ProjectWorkerO
     );
     const row = result.rows[0];
     if (row === undefined) return undefined;
-    this.contracts.assertValid("worker-output-manifest", "1.0.0", row.payload);
+    this.contracts.assertValid(
+      "worker-output-manifest",
+      (row.payload as { schema_version: string }).schema_version,
+      row.payload,
+    );
     const manifest = row.payload as PetraWorkerOutputManifest;
     if (
       manifest.project_id !== projectId ||

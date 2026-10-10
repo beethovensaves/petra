@@ -1,7 +1,10 @@
 import type {
   PetraProjectThread,
-  PetraProjectThreadView,
+  PetraProjectThreadV11,
+  RegisteredProjectThreadView as PetraProjectThreadView,
 } from "@petra/contracts";
+
+export type CanonicalProjectThread = PetraProjectThread | PetraProjectThreadV11;
 
 export type ProjectThreadLifecycleFilter = "open" | "archived";
 
@@ -18,14 +21,14 @@ export interface ProjectThreadCollectionRequest {
  */
 export interface ProjectThreadAuthorityRepository {
   registerProjectThreadRevision(
-    thread: PetraProjectThread,
-  ): Promise<PetraProjectThread>;
+    thread: CanonicalProjectThread,
+  ): Promise<CanonicalProjectThread>;
   getProjectThread(
     projectId: string,
     projectThreadId: string,
     revision?: number,
-  ): Promise<PetraProjectThread | undefined>;
-  listProjectThreads(projectId: string): Promise<PetraProjectThread[]>;
+  ): Promise<CanonicalProjectThread | undefined>;
+  listProjectThreads(projectId: string): Promise<CanonicalProjectThread[]>;
 }
 
 /** Authorized, snapshot-consistent Project thread collection and detail reads. */

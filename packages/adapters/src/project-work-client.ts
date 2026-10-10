@@ -7,7 +7,7 @@ import type {
   PetraProjectWorkResumeRequest,
   PetraProjectWorkStartAgainReceipt,
   PetraProjectWorkStartAgainRequest,
-  PetraWorkerOutputManifest,
+  RegisteredWorkerOutputManifest as PetraWorkerOutputManifest,
 } from "@petra/contracts";
 import { PetraContractRegistry } from "@petra/contracts/validator";
 import { canonicalize } from "json-canonicalize";
@@ -452,7 +452,11 @@ export class ProjectWorkClient {
       { method: "GET" },
     );
     const body: unknown = await response.json();
-    this.#contracts.assertValid("worker-output-manifest", "1.0.0", body);
+    this.#contracts.assertValid(
+      "worker-output-manifest",
+      (body as { schema_version: string }).schema_version,
+      body,
+    );
     const manifest = body as PetraWorkerOutputManifest;
     if (
       manifest.project_id !== projectId ||

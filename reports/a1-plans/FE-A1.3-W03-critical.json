@@ -1,0 +1,183 @@
+{
+  "work_item": "FE-A1.3-W03",
+  "pass": "critical",
+  "argv": [
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "scripts/a1/owned-conversation.critical.test.mjs"
+  ],
+  "sources": [
+    "apps/server/src/app.ts",
+    "apps/server/src/project-copilot-routes.ts",
+    "apps/server/src/project-copilot.ts",
+    "apps/server/src/project-shell-persistence.ts",
+    "apps/server/test/project-copilot.test.ts",
+    "apps/workbench/src/product/ProjectCopilotConversation.tsx",
+    "apps/workbench/src/product/WorkPetraSurface.tsx",
+    "apps/workbench/src/product/intake-browser-state.ts",
+    "apps/workbench/src/product/project-data.ts",
+    "apps/workbench/test/a1-owned-conversation-browser.mjs",
+    "infra/postgres/integration.compose.yaml",
+    "infra/postgres/migrations/V066__canonical_copilot_conversation.sql",
+    "infra/postgres/migrations/V067__copilot_owner_permission.sql",
+    "packages/adapters/src/project-copilot-ag-ui.ts",
+    "packages/adapters/src/project-work-client.ts",
+    "packages/adapters/test/copilot-permission-client.test.ts",
+    "packages/contracts/fixtures/accepted/capability-grant-v1-17.json",
+    "packages/contracts/fixtures/accepted/conversation-result.json",
+    "packages/contracts/fixtures/accepted/copilot-authority-receipt.json",
+    "packages/contracts/fixtures/accepted/copilot-authority-request.json",
+    "packages/contracts/fixtures/accepted/project-thread-v1-1.json",
+    "packages/contracts/fixtures/accepted/project-thread-view-v1-1.json",
+    "packages/contracts/fixtures/accepted/worker-output-manifest-v1-1.json",
+    "packages/contracts/registry.json",
+    "packages/contracts/schemas/capability-grant/1.17.0/schema.json",
+    "packages/contracts/schemas/conversation-result/1.0.0/schema.json",
+    "packages/contracts/schemas/copilot-authority-receipt/1.0.0/schema.json",
+    "packages/contracts/schemas/copilot-authority-request/1.0.0/schema.json",
+    "packages/contracts/schemas/project-thread-view/1.1.0/schema.json",
+    "packages/contracts/schemas/project-thread/1.1.0/schema.json",
+    "packages/contracts/schemas/worker-output-manifest/1.1.0/schema.json",
+    "packages/contracts/src/generated/capability-grant-v1-17.ts",
+    "packages/contracts/src/generated/conversation-result.ts",
+    "packages/contracts/src/generated/copilot-authority-receipt.ts",
+    "packages/contracts/src/generated/copilot-authority-request.ts",
+    "packages/contracts/src/generated/project-thread-v1-1.ts",
+    "packages/contracts/src/generated/project-thread-view-v1-1.ts",
+    "packages/contracts/src/generated/worker-output-manifest-v1-1.ts",
+    "packages/contracts/src/index.ts",
+    "packages/core/src/conversation-authority.ts",
+    "packages/core/src/conversation-permission.ts",
+    "packages/core/src/evidence-registry.ts",
+    "packages/core/src/grounded-synthesis-terminal.ts",
+    "packages/core/src/index.ts",
+    "packages/core/src/interaction-history.ts",
+    "packages/core/src/project-thread.ts",
+    "packages/core/src/project-work-view.ts",
+    "packages/core/src/review-interrupt-product-binding.ts",
+    "packages/core/src/work-unit-authority-repository.ts",
+    "packages/core/src/work-unit-registry.ts",
+    "packages/core/test/conversation-resource-controls.test.ts",
+    "packages/postgres/src/canonical-copilot-ownership.ts",
+    "packages/postgres/src/capability-grant-authority-repository.ts",
+    "packages/postgres/src/copilot-permission-authority.ts",
+    "packages/postgres/src/index.ts",
+    "packages/postgres/src/interaction-authority-repository.ts",
+    "packages/postgres/src/project-copilot-repository.ts",
+    "packages/postgres/src/project-thread-authority-repository.ts",
+    "packages/postgres/src/project-thread-view-reader.ts",
+    "packages/postgres/src/project-work-view-reader.ts",
+    "packages/postgres/src/project-worker-output-manifest-reader.ts",
+    "packages/postgres/src/work-unit-authority-repository.ts",
+    "packages/postgres/test/copilot-permission-authority.test.ts",
+    "packages/postgres/test/project-copilot-repository.test.ts",
+    "packages/postgres/test/working-state-authority-repository.test.ts",
+    "scripts/a1/owned-conversation.critical.test.mjs",
+    "scripts/a1/owned-conversation.test.mjs",
+    "scripts/a1/owned-postgres.mjs",
+    "scripts/a1/run-browser.mjs",
+    "scripts/a1/run-vitest.mjs"
+  ],
+  "criteria": [
+    {
+      "id": "FE-A1.3-W03-AC01",
+      "result": "passed",
+      "test": "FE-A1.3-W03-AC01 critical: retry mutation and uncertain delivery cannot replace history or launch a second effect",
+      "observation": "Mutated retries, stale parents, active continuations, immutable-row updates and over-deadline uncertain delivery are rejected or retain the actual failed outcome without another invocation."
+    },
+    {
+      "id": "FE-A1.3-W03-AC02",
+      "result": "passed",
+      "test": "FE-A1.3-W03-AC02 critical: a metadata store cannot masquerade as canonical conversation authority",
+      "observation": "Missing canonical ownership and a validly hashed copied material turn in a second Thread are denied before retained content is accepted."
+    },
+    {
+      "id": "FE-A1.3-W03-AC03",
+      "result": "passed",
+      "test": "FE-A1.3-W03-AC03 critical: malformed foreign history cursors and validly rehashed foreign owners release no content",
+      "observation": "Malformed/foreign cursors and rehashed foreign Run, changed question, false lineage and hidden terminal state fail the actual owner boundary. Explicit reviewed owner permission grants only RunProjectCopilot, creates no Work until Ask, and cannot authorize general Work management, examination or Apply."
+    },
+    {
+      "id": "FE-A1.3-W03-AC04",
+      "result": "passed",
+      "test": "FE-A1.3-W03-AC04 critical: unknown measurements cannot satisfy limits and actual timeout failures cannot invent output",
+      "observation": "Unknown CPU/memory/network/token/cost cannot satisfy applicable limits; failure-only Work creates no output; a deliberate late persistence fault rolls back all terminal owners and replay converges once."
+    },
+    {
+      "id": "FE-A1.3-W03-AC05",
+      "result": "passed",
+      "test": "FE-A1.3-W03-AC05 critical: substituted controls false imports missing material and changed retry content are denied",
+      "observation": "Validly rehashed substituted privacy/budget references, false historical capture, missing material and changed question with reused request identity fail before content release."
+    }
+  ],
+  "boundary": "Canonical ownership and retained readable advisory conversation only. Provider internal CPU, memory, network, tokens and price remain unavailable; unknown values never satisfy applicable hard limits. Historical adoption records actual import Work and preserves original bytes without reconstructing original execution authority. Proposal decisions/commands, progressive AG-UI activities/interrupts, native examiners, reactive Workspace graph cycles and A1 product acceptance remain open required ledger items.",
+  "review": {
+    "perspective": "Challenge whether successful persistence and metadata can conceal missing authority, content, lineage, measurements, rollback or replay. Use real same-Project records, valid hashes and deliberately late database failures; do not repeat the positive delivery pass.",
+    "challenges": [
+      {
+        "criterion": "FE-A1.3-W03-AC01",
+        "question": "FE-A1.3-W03-AC01 critical: retry mutation and uncertain delivery cannot replace history or launch a second effect",
+        "result": "Mutated retries, stale parents, active continuations, immutable-row updates and over-deadline uncertain delivery are rejected or retain the actual failed outcome without another invocation."
+      },
+      {
+        "criterion": "FE-A1.3-W03-AC02",
+        "question": "FE-A1.3-W03-AC02 critical: a metadata store cannot masquerade as canonical conversation authority",
+        "result": "Missing canonical ownership and a validly hashed copied material turn in a second Thread are denied before retained content is accepted."
+      },
+      {
+        "criterion": "FE-A1.3-W03-AC03",
+        "question": "FE-A1.3-W03-AC03 critical: malformed foreign history cursors and validly rehashed foreign owners release no content",
+        "result": "Malformed/foreign cursors and rehashed foreign Run, changed question, false lineage and hidden terminal state fail the actual owner boundary."
+      },
+      {
+        "criterion": "FE-A1.3-W03-AC04",
+        "question": "FE-A1.3-W03-AC04 critical: unknown measurements cannot satisfy limits and actual timeout failures cannot invent output",
+        "result": "Unknown CPU/memory/network/token/cost cannot satisfy applicable limits; failure-only Work creates no output; a deliberate late persistence fault rolls back all terminal owners and replay converges once."
+      },
+      {
+        "criterion": "FE-A1.3-W03-AC05",
+        "question": "FE-A1.3-W03-AC05 critical: substituted controls false imports missing material and changed retry content are denied",
+        "result": "Validly rehashed substituted privacy/budget references, false historical capture, missing material and changed question with reused request identity fail before content release."
+      }
+    ],
+    "findings": [
+      {
+        "severity": "material",
+        "disposition": "resolved",
+        "finding": "Native conversation cannot use the old successful scientific context/result path.",
+        "resolution": "Additive native context/result/Thread contracts retain original meaning, exact Artifact bytes and failed/cancelled outcomes; the old scientific path remains independently validated."
+      },
+      {
+        "severity": "material",
+        "disposition": "resolved",
+        "finding": "Repository-level owner writes could commit independently or a copied material turn could create a second Thread owner.",
+        "resolution": "Existing Run, Work and Thread repositories participate in one outer transaction; exact native Thread scope is enforced in the repository and forward SQL trigger; deliberate late-fault/replay tests verify rollback."
+      },
+      {
+        "severity": "material",
+        "disposition": "resolved",
+        "finding": "Unknown resource fields could satisfy limits as zero and overdue recovery could never record terminal Work.",
+        "resolution": "Unknown resource measurements remain null; applicable limits reject unknowns. Canonical failure-only transitions preserve actual failure kinds through rehydration, while known legacy token counts come from actual ModelCall records."
+      },
+      {
+        "severity": "material",
+        "disposition": "resolved",
+        "finding": "Static lineage fixtures borrowed a Review snapshot and actor from unrelated setup.",
+        "resolution": "The lineage function now uses actual authority counters and explicit owner actor, Project, protocol, native definition and original context; all four lineage categories resolve through real repositories."
+      },
+      {
+        "severity": "material",
+        "disposition": "resolved",
+        "finding": "Normal HTTP reader validation pinned legacy versions after native owner contracts were added.",
+        "resolution": "ThreadView and WorkerOutputManifest HTTP, PostgreSQL and browser readers dispatch supported registered versions and preserve unavailable usage."
+      },
+      {
+        "severity": "material",
+        "disposition": "resolved",
+        "finding": "The actual new Project had no conversation Work grant, while authorized fixtures concealed the missing permission flow.",
+        "resolution": "Explicit current owner consent binds the exact Project proposal to a narrow registered capability and an atomic immutable receipt; questions/model text have no permission-writing port. Stale, widened, foreign and late-failure/replay checks exercise the actual grant owner."
+      }
+    ]
+  }
+}

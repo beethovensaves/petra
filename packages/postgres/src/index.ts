@@ -72,3 +72,7 @@ export * from "./project-examination-command-authority.js";
 export * from "./project-examination-owner-authority.js";
 
 export * from "./intake-copilot-repository.js";
+
+export * from "./canonical-copilot-ownership.js";
+
+export * from "./copilot-permission-authority.js";

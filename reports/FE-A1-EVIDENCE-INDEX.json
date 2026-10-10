@@ -1,7 +1,7 @@
 {
   "schema_name": "petra.a1-evidence-index",
   "schema_version": "1.0.0",
-  "roadmap_binding": "sha256:81218b7f14816dc38def5de230a0eca92e9e857bc3da6057bd7e849fcfa8da55",
+  "roadmap_binding": "sha256:d52b41cd3a7117a9a34808fa33aa7372928302db3ac2756ee8d08e39154b7eff",
   "current": {
     "required": 90,
     "complete": 9,
@@ -181,13 +181,13 @@
       {
         "path": "apps/server/src/project-copilot-routes.ts",
         "recorded_hash": "sha256:8b0a977b641fe9b31ef7a276375aafe2f6c3006c2cdd9ea0adc1460e2e515108",
-        "current_hash": "sha256:90ed54cd10ae06550bcadeaa72fe95417596a5b6ce918513665e3bbaeb5c469f",
+        "current_hash": "sha256:940901c466146bcf2180c81a9b4b43d0cd5cc458ddd26e1347a3a5e15ade97d0",
         "reuse": "stale_or_missing_not_current_evidence"
       },
       {
         "path": "apps/server/src/project-copilot.ts",
         "recorded_hash": "sha256:f13cc9f3ec9db247f1c08d3f47b811824a9308cb27bbd4e835466b192060279a",
-        "current_hash": "sha256:a276723a78d000cbaedd758fef74c0cc95a155f2a053157ce5704229b963030a",
+        "current_hash": "sha256:c941fd54ffb00a5fdad30bba38879133850c1298da857eb732cb79d910022404",
         "reuse": "stale_or_missing_not_current_evidence"
       },
       {
@@ -235,7 +235,7 @@
       {
         "path": "packages/adapters/src/project-copilot-ag-ui.ts",
         "recorded_hash": "sha256:c5c1c3bfb719b82955e0cf0008c0a64a9b08c7dc8d89cbfe30f963b4fce8da79",
-        "current_hash": "sha256:e3e55f249d081f3b0fe89e802cff37393a1c63b5976be44f41059c321ccd2dc6",
+        "current_hash": "sha256:5774592406c38bcd93fcf2ccf4c8700abbece3ae779d10b1daedd096ca5db19f",
         "reuse": "stale_or_missing_not_current_evidence"
       },
       {
@@ -253,8 +253,8 @@
       {
         "path": "packages/postgres/src/project-copilot-repository.ts",
         "recorded_hash": "sha256:ef88920479c551e73328abd905de83c0cbe91ed82260a9386f81265aede72883",
-        "current_hash": "sha256:ef88920479c551e73328abd905de83c0cbe91ed82260a9386f81265aede72883",
-        "reuse": "bytes_match_historical_boundary_only"
+        "current_hash": "sha256:8aa569281fba7cc51f47d6c2b6e51098df89cf44e2eb8ef44cf188be10cb77d8",
+        "reuse": "stale_or_missing_not_current_evidence"
       },
       {
         "path": "packages/postgres/src/project-examination-command-authority.ts",
@@ -367,7 +367,7 @@
       {
         "path": "apps/workbench/src/product/ProjectCopilotConversation.tsx",
         "recorded_hash": "sha256:3e58aabbf75f9703fb6ca17a3a1f1dc280ca51d70b72243819ba8027a3917d18",
-        "current_hash": "sha256:2b769f6ac43432ef4cfe574bf19e8b8edac6cb45dcb767aa75e256a9d18b45b5",
+        "current_hash": "sha256:b38151e05acb3ab007653e3280686c784c30bc6354fe434bcaf20e2d2d708b0c",
         "reuse": "stale_or_missing_not_current_evidence"
       },
       {

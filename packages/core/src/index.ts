@@ -109,3 +109,7 @@ export * from "./graph-presentation.js";
 export * from "./intake-copilot.js";
 
 export * from "./copilot-working-plan.js";
+
+export * from "./conversation-authority.js";
+
+export * from "./conversation-permission.js";

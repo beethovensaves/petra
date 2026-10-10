@@ -1,0 +1,54 @@
+{
+  "schema_name": "petra.worker-output-manifest",
+  "schema_version": "1.1.0",
+  "worker_output_manifest_id": "worker_output_manifest_01ARZ3NDEKTSV4RRFFQ69G5FC4",
+  "revision": 1,
+  "work_unit_id": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+  "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+  "attempt": 1,
+  "worker_input_manifest_id": "worker_input_manifest_01ARZ3NDEKTSV4RRFFQ69G5FC3",
+  "worker_input_manifest_hash": "sha256:43057052df0f0067186c2a1a0daa8b0827823487141265996ed2deb0fdb7d3e7",
+  "content": {
+    "worker": {
+      "executor_kind": "python_worker",
+      "worker_name": "petra.science",
+      "worker_version": "0.0.0",
+      "runtime_name": "python",
+      "runtime_version": "3.13.7",
+      "entrypoint": "petra_science.parse"
+    },
+    "started_at": "2026-08-29T14:00:02.000Z",
+    "completed_at": "2026-08-29T14:00:05.000Z",
+    "outcome": {
+      "outcome_kind": "succeeded",
+      "produced_outputs": [
+        {
+          "output_name": "parsed_document",
+          "output_role": "proposal",
+          "output_handle": "output:parsed-document-json",
+          "content_hash": "sha256:6b2fa76c316e066aa3e3156ef026f140f4a45f4bf7f3127c766115b462ad16d8",
+          "byte_size": 40218,
+          "media_type": "application/json",
+          "contract": {
+            "schema_name": "petra.parsed-document",
+            "schema_version": "1.0.0",
+            "schema_hash": "sha256:7919ed260b6df95efe004aa90f584ed42cab842d0e4980a9fdf0b2958ebfba29"
+          }
+        }
+      ]
+    },
+    "diagnostics": [],
+    "network_activity": [],
+    "resource_usage": {
+      "wall_time_ms": 3000,
+      "cpu_time_ms": null,
+      "peak_memory_bytes": null,
+      "input_bytes": 21,
+      "output_bytes": 40218,
+      "network_bytes": null,
+      "measurement_scope": "Wall and byte counts are retained; remote provider measurements are unavailable."
+    }
+  },
+  "content_hash": "sha256:b96895d1de0aa041a1254798bb8c65a5541d69b5555879006a6b9b844922bc76",
+  "reported_at": "2026-08-29T14:00:05.000Z"
+}
