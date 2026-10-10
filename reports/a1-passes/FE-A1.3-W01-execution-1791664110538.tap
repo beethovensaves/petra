@@ -1,0 +1,88 @@
+TAP version 13
+# > @petra/core@0.0.0 test
+# > vitest run --config vitest.config.ts project-copilot-conversation.test.ts intake-copilot.test.ts --testNamePattern answers a normal question|retains the exact prepared input before invocation --reporter=verbose
+#  RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/packages/core
+#  ✓ test/project-copilot-conversation.test.ts > registered ordinary conversation and exact Project boundary > answers a normal question and a distinct follow-up with exact retained same-basis history 18ms
+#  ↓ test/project-copilot-conversation.test.ts > registered ordinary conversation and exact Project boundary > rejects another Project's validly hashed context before retaining bytes or invoking a model
+#  ✓ test/intake-copilot.test.ts > Owner-scoped advisory intake without a Project > retains the exact prepared input before invocation and replays a run without another call 13ms
+#  ↓ test/intake-copilot.test.ts > Owner-scoped advisory intake without a Project > makes no model call if the input disclosure cannot be durably retained
+#  ↓ test/intake-copilot.test.ts > Owner-scoped advisory intake without a Project > rejects invented source reports and fabricated Project context without producing authority
+#  ↓ test/intake-copilot.test.ts > Owner-scoped advisory intake without a Project > withholds prior bytes across owner, session or consent changes while preserving original discussion
+#  ↓ test/intake-copilot.test.ts > Owner-scoped advisory intake without a Project > retains cancellation as the only terminal outcome even when a provider delivers later
+#  Test Files  2 passed (2)
+#       Tests  2 passed | 5 skipped (7)
+#    Start at  16:28:27
+#    Duration  236ms (transform 47ms, setup 0ms, import 270ms, tests 32ms, environment 0ms)
+# > @petra/server@0.0.0 test
+# > vitest run --config vitest.config.ts m1-grounded-synthesis.test.ts --testNamePattern loads the recorded certification and executes it through Petra --reporter=verbose
+#  RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/apps/server
+#  ↓ test/m1-grounded-synthesis.test.ts > M1.6-W18 certified grounded server composition > publishes one canonical certification service Actor for fresh-store setup
+#  ↓ test/m1-grounded-synthesis.test.ts > M1.6-W18 certified grounded server composition > refuses to expose the live model route without a terminal boundary
+#  ✓ test/m1-grounded-synthesis.test.ts > M1.6-W18 certified grounded server composition > loads the recorded certification and executes it through Petra's AG-UI client 152ms
+#  ↓ test/m1-grounded-synthesis.test.ts > M1.6-W18 certified grounded server composition > refuses unsupported questions before a provider turn
+#  ↓ test/m1-grounded-synthesis.test.ts > M1.6-W18 certified grounded server composition > invalidates execution when the runtime or entitlement snapshot drifts
+#  Test Files  1 passed (1)
+#       Tests  1 passed | 4 skipped (5)
+#    Start at  16:28:28
+#    Duration  1.03s (transform 324ms, setup 0ms, import 818ms, tests 153ms, environment 0ms)
+# > @petra/core@0.0.0 test
+# > vitest run --config vitest.config.ts project-copilot.test.ts --testNamePattern binds empty native Project context|allows exact admitted excerpts --reporter=verbose
+#  RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/packages/core
+#  ✓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > binds empty native Project context without inventing evidence 7ms
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > rejects a context whose objective changed after hashing
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > rejects cross-Project destinations even with a matching context hash
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > rejects unsupported authoritative language force in structured output
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > rejects uncited source reports and citations outside the exact selection
+#  ✓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > allows exact admitted excerpts and rejects metadata citations or invented paraphrases 0ms
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > withholds old questions and answers after rights or basis changes without changing retained history
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > invokes once across concurrent delivery retries and retained replay
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > persists the exact disclosed history manifest before invoking the model and exposes withheld changed-basis history
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > retains failure and never invokes the model if its disclosure manifest cannot be persisted
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > retains invalid output as failure without publishing it
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > propagates explicit cancellation while leaving delivery wait harmless
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > does not cancel or reveal a run belonging to another actor
+#  Test Files  1 passed (1)
+#       Tests  2 passed | 11 skipped (13)
+#    Start at  16:28:29
+#    Duration  175ms (transform 25ms, setup 0ms, import 108ms, tests 8ms, environment 0ms)
+# > @petra/adapters@0.0.0 test
+# > vitest run --config vitest.config.ts project-copilot.test.ts --testNamePattern requires exact certification|projects provider-compatible required fields --reporter=verbose
+#  RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/packages/adapters
+#  ✓ test/project-copilot.test.ts > Copilot provider and protocol boundary > projects provider-compatible required fields while preserving Petra's separate grounding validator 1ms
+#  ↓ test/project-copilot.test.ts > Copilot provider and protocol boundary > collects events delivered before startTurn returns and releases listeners
+#  ↓ test/project-copilot.test.ts > Copilot provider and protocol boundary > rejects tool activity and interrupts only the exact provider turn
+#  ↓ test/project-copilot.test.ts > Copilot provider and protocol boundary > rejects model substitution before submitting any user material
+#  ↓ test/project-copilot.test.ts > Copilot provider and protocol boundary > explicit cancellation interrupts a running answer and releases its listener
+#  ✓ test/project-copilot.test.ts > Copilot provider and protocol boundary > requires exact certification and keeps evaluation mode explicit 77ms
+#  ↓ test/project-copilot.test.ts > Copilot provider and protocol boundary > accepts one new message with an exact registered Project envelope
+#  Test Files  1 passed (1)
+#       Tests  2 passed | 5 skipped (7)
+#    Start at  16:28:29
+#    Duration  560ms (transform 180ms, setup 0ms, import 423ms, tests 78ms, environment 0ms)
+# Subtest: FE-A1.3-W01-AC01 execution: registered ordinary questions follow-ups and intake execute
+ok 1 - FE-A1.3-W01-AC01 execution: registered ordinary questions follow-ups and intake execute
+  ---
+  duration_ms: 452.083834
+  type: 'test'
+  ...
+# Subtest: FE-A1.3-W01-AC02 execution: the certified M1 question keeps its original guarded route
+ok 2 - FE-A1.3-W01-AC02 execution: the certified M1 question keeps its original guarded route
+  ---
+  duration_ms: 1252.723542
+  type: 'test'
+  ...
+# Subtest: FE-A1.3-W01-AC03 execution: role output grounding budgets and eligibility remain explicit
+ok 3 - FE-A1.3-W01-AC03 execution: role output grounding budgets and eligibility remain explicit
+  ---
+  duration_ms: 1178.764458
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2933.030583

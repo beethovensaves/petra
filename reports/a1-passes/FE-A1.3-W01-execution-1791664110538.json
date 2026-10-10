@@ -1,0 +1,139 @@
+{
+  "schema_name": "petra.a1-verification-pass",
+  "schema_version": "1.0.0",
+  "work_item": "FE-A1.3-W01",
+  "pass": "execution",
+  "contract_hash": "sha256:f39b55eab162bbb467e4b44e454caeb4051ae187a0089e7814cb7dbdbed734b1",
+  "status": "passed",
+  "candidate_commit": "dfbb0d665254922a88f4a6915066845eedec5eb1",
+  "started_at": "2026-10-10T20:28:27.575Z",
+  "finished_at": "2026-10-10T20:28:30.538Z",
+  "criteria": [
+    {
+      "id": "FE-A1.3-W01-AC01",
+      "result": "passed",
+      "test": "FE-A1.3-W01-AC01 execution: registered ordinary questions follow-ups and intake execute",
+      "observation": "Production ProjectCopilotRuntime retains two different questions, the exact previous answer and same-basis history; intake records exact bounded input before invocation."
+    },
+    {
+      "id": "FE-A1.3-W01-AC02",
+      "result": "passed",
+      "test": "FE-A1.3-W01-AC02 execution: the certified M1 question keeps its original guarded route",
+      "observation": "The original certified M1 route executes through its production HTTP and official AG-UI boundary; normal copilot routing does not replace its fixed question."
+    },
+    {
+      "id": "FE-A1.3-W01-AC03",
+      "result": "passed",
+      "test": "FE-A1.3-W01-AC03 execution: role output grounding budgets and eligibility remain explicit",
+      "observation": "Registered role boundaries, valid admitted citations, provider-compatible output schema and required certification are exercised in production core and adapter."
+    }
+  ],
+  "sources": [
+    {
+      "path": "apps/server/src/m1-grounded-synthesis.ts",
+      "hash": "sha256:e67106d7d1022c56d3cbf92e7c1a4253d1b740308a62603d3ee4830c26c3fe6c"
+    },
+    {
+      "path": "apps/server/src/project-copilot-model.ts",
+      "hash": "sha256:b9c12a86fc9923b5761838695b7241a16f5f00ca8204cfe514e06a899416559c"
+    },
+    {
+      "path": "apps/server/test/m1-grounded-synthesis.test.ts",
+      "hash": "sha256:20a850a4a34d33222bd25b847024b56c6fabbf99b8169654d1b694686c462ee7"
+    },
+    {
+      "path": "apps/server/test/project-copilot-eligibility.test.ts",
+      "hash": "sha256:d650dc317afffbc5356b92087fb36ce39e4665c0f3cb26b1b4fa2e1ef2ebadca"
+    },
+    {
+      "path": "packages/adapters/src/codex-project-copilot.ts",
+      "hash": "sha256:4bce560a231caa2a105a195c404da947854a4a266ed7a0f93458865670c9e6a6"
+    },
+    {
+      "path": "packages/adapters/test/project-copilot.test.ts",
+      "hash": "sha256:3bb7b5189c5522df30751aa16f69cd9097cf91d5874a62646fdcabedae0929d0"
+    },
+    {
+      "path": "packages/contracts/schemas/copilot-context/1.0.0/schema.json",
+      "hash": "sha256:6a72d94b40a532349d96307139c0dae32ead975b24795a75564aeef49c0b48f1"
+    },
+    {
+      "path": "packages/contracts/schemas/copilot-output/1.0.0/schema.json",
+      "hash": "sha256:09fcd9561408d41b0d3ff1014f210af028a5ea2ac0b4f2c22d8a5c4c791f44bd"
+    },
+    {
+      "path": "packages/contracts/schemas/copilot-request/1.0.0/schema.json",
+      "hash": "sha256:63f01457e70d86f277c2dfa215ed3b9cc033181d0c70d6c588c1658a33814b96"
+    },
+    {
+      "path": "packages/contracts/schemas/copilot-request/1.1.0/schema.json",
+      "hash": "sha256:6dabcda9db72f8287101419055606d9166e95a9653de486313f71edf79eb39d5"
+    },
+    {
+      "path": "packages/contracts/schemas/copilot-turn/1.0.0/schema.json",
+      "hash": "sha256:56eb75f1908c30ea7e14d5369760b4d3e2daadb86fcb511bda98cdcdb5ca98ed"
+    },
+    {
+      "path": "packages/contracts/schemas/copilot-turn/1.1.0/schema.json",
+      "hash": "sha256:ad87653d6af9e2e0d17851c0318d7219a588bb0e6cf133706a461c438561cd3e"
+    },
+    {
+      "path": "packages/contracts/schemas/intake-copilot-context/1.0.0/schema.json",
+      "hash": "sha256:c35838093022dc1c2f54e67b75957bef58f84131a9b98faea575ab85e247111a"
+    },
+    {
+      "path": "packages/contracts/schemas/intake-copilot-request/1.0.0/schema.json",
+      "hash": "sha256:7c33b2ecc8389d2b73b649353c48b0ef1d7e9c5f983b5c76b677788f2d00df49"
+    },
+    {
+      "path": "packages/contracts/schemas/intake-copilot-turn/1.0.0/schema.json",
+      "hash": "sha256:7aa1c2d8c29b44ac9440187e5bd700441c01b5831320a3b6686d125e4dc87888"
+    },
+    {
+      "path": "packages/core/src/intake-copilot.ts",
+      "hash": "sha256:8293caf3f4cf50d0a08537ef0f15bf82a37bd2e1ffb3791f0c16954aa5a44f5f"
+    },
+    {
+      "path": "packages/core/src/project-copilot.ts",
+      "hash": "sha256:3329ca4ebfb82972746a63b502e96b3b446b777dc061a21632746d99d86efc66"
+    },
+    {
+      "path": "packages/core/test/intake-copilot.test.ts",
+      "hash": "sha256:5fe148dd12d0107ea02afa9d3abeb149d6a17d8b0c716fa2dbbbae7b2278d8d5"
+    },
+    {
+      "path": "packages/core/test/project-copilot-conversation.test.ts",
+      "hash": "sha256:e88e52ef8c0777309df6a48cee2f22e1c35a687275967ce7eb4c398f93549b8c"
+    },
+    {
+      "path": "packages/core/test/project-copilot.test.ts",
+      "hash": "sha256:2a5fc492811b7d6ab6af197cc3df3581ed1799a40a177727213ffc82af94427f"
+    },
+    {
+      "path": "scripts/a1/conversation-contracts.critical.test.mjs",
+      "hash": "sha256:18a9f193f8089a7d2e2d0d4cd1f14f0719fe73ae75f62a806d1859982aa9156a"
+    },
+    {
+      "path": "scripts/a1/conversation-contracts.test.mjs",
+      "hash": "sha256:6f23a88d52698006787d4fef88dc56a36b3411f3f10e9c21381ea14eaea2cc0c"
+    },
+    {
+      "path": "scripts/a1/run-vitest.mjs",
+      "hash": "sha256:4c2c635a474e84dba08144dfc9d68046281a9ccedff03e8fbf29954604a11d76"
+    }
+  ],
+  "runs": [
+    {
+      "argv": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "scripts/a1/conversation-contracts.test.mjs"
+      ],
+      "exit_code": 0,
+      "output": "reports/a1-passes/FE-A1.3-W01-execution-1791664110538.tap",
+      "output_hash": "sha256:b476aaf0b9068a61651a9ae5259354722a414d3319e90fce9aea63f707106183"
+    }
+  ],
+  "boundary": "Conversation contract and runtime boundary verification, using controlled repository/provider ports and a real local HTTP M1 route. Actual managed-model eligibility is separately required by FE-A1.3-W02; canonical Thread/Run integration, action proposals, native examiners and connected cycles remain open."
+}
