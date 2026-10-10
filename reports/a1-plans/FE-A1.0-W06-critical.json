@@ -1,0 +1,135 @@
+{
+  "work_item": "FE-A1.0-W06",
+  "pass": "critical",
+  "argv": [
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "scripts/frontend-a1-process.critical.test.mjs"
+  ],
+  "sources": [
+    "scripts/frontend-a1-process.mjs",
+    "scripts/frontend-a1-execute.mjs",
+    "scripts/frontend-a1-process.test.mjs",
+    "scripts/frontend-a1-process.critical.test.mjs",
+    "scripts/frontend-a1-test-fixture.mjs",
+    "scripts/audit-frontend-a1.mjs",
+    "scripts/audit-frontend-a1.test.mjs",
+    "scripts/wave-handoff.mjs",
+    "package.json",
+    "decisions/D025-contract-ledger-and-two-pass-delivery.md",
+    "reports/a1-plans/FE-A1.0-W06-execution.json",
+    "reports/a1-plans/FE-A1.0-W06-critical.json"
+  ],
+  "criteria": [
+    {
+      "id": "FE-A1.0-W06-AC01",
+      "result": "passed",
+      "test": "AC01 critical: narrative drift fails even with an unchanged binding marker",
+      "observation": "The separate challenge suite rejects the adverse state: narrative drift fails even with an unchanged binding marker."
+    },
+    {
+      "id": "FE-A1.0-W06-AC02",
+      "result": "passed",
+      "test": "AC02 critical: concurrent work and unmet dependencies cannot hide as progress",
+      "observation": "The separate challenge suite rejects the adverse state: concurrent work and unmet dependencies cannot hide as progress."
+    },
+    {
+      "id": "FE-A1.0-W06-AC03",
+      "result": "passed",
+      "test": "AC03 critical: README and true cannot manufacture engineering completion",
+      "observation": "The separate challenge suite rejects the adverse state: README and true cannot manufacture engineering completion."
+    },
+    {
+      "id": "FE-A1.0-W06-AC04",
+      "result": "passed",
+      "test": "AC04 critical: duplicate tests, earlier review and unresolved findings cannot close",
+      "observation": "The separate challenge suite rejects the adverse state: duplicate tests, earlier review and unresolved findings cannot close."
+    },
+    {
+      "id": "FE-A1.0-W06-AC05",
+      "result": "passed",
+      "test": "AC05 critical: repair cannot skip execution and repeated retries cannot reset themselves",
+      "observation": "The separate challenge suite rejects the adverse state: repair cannot skip execution and repeated retries cannot reset themselves."
+    },
+    {
+      "id": "FE-A1.0-W06-AC06",
+      "result": "passed",
+      "test": "AC06 critical: legacy Wave 6 cannot bypass A1 and read-only status remains available",
+      "observation": "The separate challenge suite rejects the adverse state: legacy Wave 6 cannot bypass A1 and read-only status remains available."
+    },
+    {
+      "id": "FE-A1.0-W06-AC07",
+      "result": "passed",
+      "test": "AC07 critical: forged authority and changed-candidate acceptance are rejected",
+      "observation": "The separate challenge suite rejects the adverse state: forged authority and changed-candidate acceptance are rejected."
+    }
+  ],
+  "boundary": "Delivery-control implementation only. Temporary Git/worktree fixtures test guards; they establish no copilot, Workspace, native examiner, model or cyclic verification product completion. Generated status views are checked from the current canonical ledger; static implementation and test files bind the committed candidate.",
+  "review": {
+    "perspective": "Challenge misleading completion, stale source authority, cross-worktree drift, candidate mismatch and recovery bypasses from the user delivery requirement.",
+    "challenges": [
+      {
+        "criterion": "FE-A1.0-W06-AC01",
+        "question": "narrative drift fails even with an unchanged binding marker",
+        "result": "The separate challenge suite rejects the adverse state: narrative drift fails even with an unchanged binding marker."
+      },
+      {
+        "criterion": "FE-A1.0-W06-AC02",
+        "question": "concurrent work and unmet dependencies cannot hide as progress",
+        "result": "The separate challenge suite rejects the adverse state: concurrent work and unmet dependencies cannot hide as progress."
+      },
+      {
+        "criterion": "FE-A1.0-W06-AC03",
+        "question": "README and true cannot manufacture engineering completion",
+        "result": "The separate challenge suite rejects the adverse state: README and true cannot manufacture engineering completion."
+      },
+      {
+        "criterion": "FE-A1.0-W06-AC04",
+        "question": "duplicate tests, earlier review and unresolved findings cannot close",
+        "result": "The separate challenge suite rejects the adverse state: duplicate tests, earlier review and unresolved findings cannot close."
+      },
+      {
+        "criterion": "FE-A1.0-W06-AC05",
+        "question": "repair cannot skip execution and repeated retries cannot reset themselves",
+        "result": "The separate challenge suite rejects the adverse state: repair cannot skip execution and repeated retries cannot reset themselves."
+      },
+      {
+        "criterion": "FE-A1.0-W06-AC06",
+        "question": "legacy Wave 6 cannot bypass A1 and read-only status remains available",
+        "result": "The separate challenge suite rejects the adverse state: legacy Wave 6 cannot bypass A1 and read-only status remains available."
+      },
+      {
+        "criterion": "FE-A1.0-W06-AC07",
+        "question": "forged authority and changed-candidate acceptance are rejected",
+        "result": "The separate challenge suite rejects the adverse state: forged authority and changed-candidate acceptance are rejected."
+      }
+    ],
+    "findings": [
+      {
+        "severity": "major",
+        "disposition": "resolved",
+        "finding": "Rejected paired evidence mutated the active state before validation.",
+        "resolution": "Validate the proposed pair before assigning the state; atomic-state challenge passes."
+      },
+      {
+        "severity": "major",
+        "disposition": "resolved",
+        "finding": "Repair could accept critical evidence before functional reruns.",
+        "resolution": "Repair accepts an execution pass first; repair-order challenge passes."
+      },
+      {
+        "severity": "major",
+        "disposition": "resolved",
+        "finding": "Source paths and marker-only synchronization permitted escaped evidence or altered narrative.",
+        "resolution": "Resolve real paths and compare the entire generated controlling section; escaped-path and narrative-drift challenges pass."
+      },
+      {
+        "severity": "major",
+        "disposition": "resolved",
+        "finding": "Mirror write failure could leave one roadmap published without its counterpart.",
+        "resolution": "Preflight reads, retain backups and roll back writes; failure-injection challenge passes."
+      }
+    ]
+  }
+}

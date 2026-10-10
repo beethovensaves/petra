@@ -60,7 +60,7 @@ test("required work cannot be deleted or deferred to release A1", () => {
 test("completed work requires completed prerequisites and retained evidence", () => {
   const unfinished = copy();
   unfinished.work_items.find((item) => item.id === "FE-A1.0-W01").status =
-    "in_progress";
+    "complete";
   assert.throws(
     () => validateA1Inventory(unfinished, operations),
     /completed before/,
@@ -70,7 +70,7 @@ test("completed work requires completed prerequisites and retained evidence", ()
     "complete";
   assert.throws(
     () => validateA1Inventory(unsupported, operations),
-    /no completion evidence/,
+    /completed before|execution and critical completion evidence/,
   );
 });
 
@@ -135,6 +135,7 @@ test("optional scenarios remain late checks and cannot be promoted to requiremen
 function engineeringCompleteFixture() {
   const data = copy();
   data.status = "complete";
+  data.active_work = null;
   data.work_items.forEach((item) => {
     item.status = "complete";
   });
@@ -156,16 +157,20 @@ function engineeringCompleteFixture() {
 test("optional checks that were not run or selected do not block completed functions", () => {
   const data = engineeringCompleteFixture();
   assert.ok(data.optional_scenarios.every((item) => item.status === "not_run"));
-  assert.deepEqual(
-    a1CompletionProblems(data, { fingerprint: () => "b".repeat(64) }),
-    [],
+  assert.ok(
+    a1CompletionProblems(data, { fingerprint: () => "b".repeat(64) }).every(
+      (problem) =>
+        !/optional|scenario|mandatory work items incomplete/.test(problem),
+    ),
   );
   data.optional_scenarios.forEach((item) => {
     item.status = "not_selected";
   });
-  assert.deepEqual(
-    a1CompletionProblems(data, { fingerprint: () => "b".repeat(64) }),
-    [],
+  assert.ok(
+    a1CompletionProblems(data, { fingerprint: () => "b".repeat(64) }).every(
+      (problem) =>
+        !/optional|scenario|mandatory work items incomplete/.test(problem),
+    ),
   );
 });
 
@@ -214,6 +219,7 @@ test("later-wave execution paths are blocked before workers or state mutation", 
     const data = copy();
     data.status = "in_progress";
     data.user_acceptance = null;
+    data.active_work = null;
     data.work_items.forEach((item) => {
       item.status = "planned";
       item.retained_evidence = [];
@@ -230,7 +236,7 @@ test("later-wave execution paths are blocked before workers or state mutation", 
       join(root, "scripts/ui-operation-inventory.json"),
       JSON.stringify({ operations }),
     );
-    for (const wave of ["7", "8"]) {
+    for (const wave of ["6", "7", "8"]) {
       for (const command of ["worker", "resume", "extend", "accept"]) {
         assert.throws(
           () => assertDeliveryWavePrerequisites(wave, command, root),
@@ -245,8 +251,9 @@ test("later-wave execution paths are blocked before workers or state mutation", 
     assert.doesNotThrow(() =>
       assertDeliveryWavePrerequisites("7", "stop", root),
     );
-    assert.doesNotThrow(() =>
-      assertDeliveryWavePrerequisites("6", "worker", root),
+    assert.throws(
+      () => assertDeliveryWavePrerequisites("6", "worker", root),
+      /FE-A1 blocks later waves/,
     );
   } finally {
     rmSync(root, { recursive: true, force: true });

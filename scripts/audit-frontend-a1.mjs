@@ -4,12 +4,20 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { format } from "prettier";
+import {
+  validateExecutionState,
+  validateCompletionPasses,
+  renderExecutionPacket,
+  assertExecutionMirrors,
+  assertRoadmapBindings,
+  roadmapHash,
+} from "./frontend-a1-process.mjs";
 
 const scriptPath = fileURLToPath(import.meta.url);
 export const repositoryRoot = resolve(dirname(scriptPath), "..");
 const inventoryPath = "scripts/frontend-a1-work-inventory.json";
 const reportPath = "reports/FE-A1-CONTRACT-IMPLEMENTATION-LEDGER.md";
-const stageMinimums = [5, 7, 7, 18, 23, 9, 7, 13];
+const stageMinimums = [6, 7, 7, 18, 23, 9, 7, 13];
 const requiredIds = stageMinimums.flatMap((count, stage) =>
   Array.from(
     { length: count },
@@ -65,7 +73,7 @@ export function validateA1Inventory(
 ) {
   requireCondition(
     data.schema_name === "petra.frontend-a1-work-inventory" &&
-      data.schema_version === "1.0.0",
+      data.schema_version === "1.1.0",
     "Unknown A1 ledger schema.",
   );
   requireCondition(
@@ -135,7 +143,7 @@ export function validateA1Inventory(
         `${item.id} needs a named blocker.`,
       );
     if (item.status === "complete" && checkArtifacts)
-      checkEvidence(item.completion_evidence, root, item.id);
+      validateCompletionPasses(item, root);
     if (checkArtifacts)
       for (const artifact of item.retained_evidence)
         requireCondition(
@@ -220,6 +228,7 @@ export function validateA1Inventory(
         row.milestones.every((id) => milestones.has(id)),
       `${row.flow} has an orphan disposition.`,
     );
+  validateExecutionState(data);
   return data;
 }
 
@@ -228,7 +237,16 @@ export function candidateFingerprint(
   root = repositoryRoot,
   revision = "HEAD",
 ) {
-  const paths = ["apps", "packages", "workers", "schemas", "infra", "scripts"];
+  const paths = [
+    "apps",
+    "packages",
+    "workers",
+    "schemas",
+    "infra",
+    "scripts",
+    "decisions",
+    "package.json",
+  ];
   const result = spawnSync("git", ["ls-tree", "-r", revision, "--", ...paths], {
     cwd: root,
     encoding: "utf8",
@@ -242,6 +260,7 @@ export function candidateFingerprint(
     .filter((line) => !line.endsWith(`\t${inventoryPath}`))
     .join("\n");
   const scope = {
+    execution_policy: data.execution_policy,
     work: data.work_items.map(
       ({
         id,
@@ -286,6 +305,15 @@ export function a1CompletionProblems(
   } = {},
 ) {
   const problems = [];
+  try {
+    validateExecutionState(data);
+    for (const item of data.work_items.filter(
+      (item) => item.status === "complete",
+    ))
+      validateCompletionPasses(item, root);
+  } catch (error) {
+    problems.push(error.message);
+  }
   const open = data.work_items.filter((item) => item.status !== "complete");
   if (data.status !== "complete")
     problems.push(`milestone status is ${data.status}`);
@@ -333,6 +361,13 @@ export function assertFrontendA1Complete(root = repositoryRoot) {
     throw new Error(
       `FE-A1 blocks later waves: ${problems.join("; ")}. See ${reportPath}.`,
     );
+  assertExecutionMirrors(root);
+  assertRoadmapBindings(data, root);
+  requireCondition(
+    data.user_acceptance.candidate_fingerprint ===
+      candidateFingerprint(data, root, "HEAD"),
+    "The current branch differs from the user-accepted A1 candidate.",
+  );
   const result = spawnSync(
     "git",
     [
@@ -361,6 +396,8 @@ export async function renderA1Ledger(data) {
     "This is the required execution breakdown for FE-A1. It records implementation obligations, not a promise that the current product meets them. The user rejected the inspected candidate on 2026-10-07. Its retained command, layout, and persistence evidence remains useful; the requested frontend and connected work cycles remain unfinished.",
     "",
     `The canonical work/status/dependency register is ${link(inventoryPath)}. This report is generated from it with \`npm run roadmap:frontend-a1\`; \`npm run audit:frontend-a1\` checks coverage and document agreement. The existing ${link("reports/FRONTEND-ADAPTATION-MILESTONE.md")} retains historical implementation evidence.`,
+    "",
+    `Roadmap/execution binding: \`${roadmapHash(data)}\`. ${link("scripts/frontend-a1-execution.md")} contains the same functions and criteria in prerequisite order. D025 requires one active item, an execution pass, a distinct critical pass, optional repair, and broad diagnosis after repeated failure. Both execution worktrees must match before work starts, verification is recorded, completion is accepted, or a later wave advances.`,
     "",
     "## Controlling contract and scope",
     "",
@@ -393,7 +430,7 @@ export async function renderA1Ledger(data) {
     "",
     "Every implementation work item is mandatory. planned, in_progress and blocked remain incomplete. There is no skipped, deferred or superseded status for required work. Added required work receives a new stable ID. Removing a required baseline ID fails the audit. Material scope changes require an explicit user instruction and a recorded contract amendment; editing a status or criterion is not evidence. The sixteen optional end-of-A1 scenarios are supplementary checks, not contracted functions or release prerequisites.",
     "",
-    "Complete means all observable criteria pass, every prerequisite is complete, and retained completion evidence exists. Partial mechanics belong under retained evidence and do not close the item. The three creation records preserve their narrow existing completion; the expanded conversational zero/empty entry remains open. All other product records remain open until their own criteria are demonstrated.",
+    "Complete means all observable criteria have execution and critical evidence, every prerequisite is complete, material findings are resolved, and candidate/source/contract bindings remain current. Earlier bounded completion artifacts are preserved as historical evidence; they do not substitute for the new two-pass requirement. Partial construction is retained while its item waits for prerequisites; it does not make that item active.",
     "",
     "Completion evidence belongs to each contracted function and implementation item: retain the exact candidate commit, reproducible invocation, inputs, profile/definition and snapshot bindings, actual backend/provider, observable result, relevant receipts/screenshots, adverse cases, and coverage limits. A mocked renderer or deterministic HTTP browser can prove a bounded component; integrated functional behavior also needs its real persistence/typed owners/official adapters and actual eligible model use where the function calls a model. External model invocation follows the project's existing authorization and resource rules. All evidence follows scripts/wave-evidence-policy.md.",
     "",
@@ -415,7 +452,7 @@ export async function renderA1Ledger(data) {
   }
   lines.push(
     "",
-    "Only documentation/control reconciliation and the retained narrow creation mechanics are complete. This count is not a product percentage or an ETA.",
+    "Counts reflect verified contractual closure, not effort, product percentage, or an ETA. Historical evidence remains retained while affected completions are revalidated under D025.",
     "",
     "## Implementation records",
     "",
@@ -523,7 +560,12 @@ async function main() {
   const args = process.argv.slice(2);
   requireCondition(
     args.every((arg) =>
-      ["--write", "--require-complete", "--fingerprint"].includes(arg),
+      [
+        "--write",
+        "--require-complete",
+        "--fingerprint",
+        "--environment",
+      ].includes(arg),
     ),
     "Unknown A1 audit argument.",
   );
@@ -540,13 +582,26 @@ async function main() {
     checkArtifacts: !args.includes("--write"),
   });
   const report = await renderA1Ledger(data);
-  if (args.includes("--write"))
+  if (args.includes("--write")) {
     writeFileSync(resolve(repositoryRoot, reportPath), report);
-  else
+    writeFileSync(
+      resolve(repositoryRoot, "scripts/frontend-a1-execution.md"),
+      await format(renderExecutionPacket(data), { parser: "markdown" }),
+    );
+  } else {
     requireCondition(
       readFileSync(resolve(repositoryRoot, reportPath), "utf8") === report,
       "A1 report differs from the canonical ledger; run npm run roadmap:frontend-a1.",
     );
+    requireCondition(
+      readFileSync(
+        resolve(repositoryRoot, "scripts/frontend-a1-execution.md"),
+        "utf8",
+      ) === (await format(renderExecutionPacket(data), { parser: "markdown" })),
+      "A1 execution instructions differ from the readable roadmap.",
+    );
+  }
+  if (args.includes("--environment")) assertExecutionMirrors(repositoryRoot);
   if (args.includes("--require-complete")) assertFrontendA1Complete();
   if (args.includes("--fingerprint"))
     process.stdout.write(`${candidateFingerprint(data)}\n`);

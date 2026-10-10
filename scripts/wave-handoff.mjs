@@ -26,6 +26,17 @@ export function assertDeliveryWavePrerequisites(
   root = backendRoot,
 ) {
   if (
+    wave === "6" &&
+    ["worker", "resume", "extend", "accept"].includes(command)
+  ) {
+    const ledgerPath = resolve(root, "scripts/frontend-a1-work-inventory.json");
+    if (
+      existsSync(ledgerPath) &&
+      JSON.parse(readFileSync(ledgerPath, "utf8")).execution_policy
+    )
+      assertFrontendA1Complete(root);
+  }
+  if (
     Number.parseInt(wave, 10) >= 7 &&
     ["worker", "resume", "extend", "accept"].includes(command)
   ) {

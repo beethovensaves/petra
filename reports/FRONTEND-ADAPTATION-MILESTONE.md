@@ -1,6 +1,6 @@
 # FE-A1: Agentic frontend adaptation
 
-- **Status:** `in_progress`; FE-A1.0 complete; FE-A1.1 through FE-A1.7 incomplete; the inspected frontend was rejected on 2026-10-07; blocks Wave 7 and Wave 8
+- **Status:** `in_progress`; all eight stages require revalidation under D025; the inspected frontend was rejected on 2026-10-07; blocks Wave 7 and Wave 8
 - **Decision:** [D024](../decisions/D024-agentic-split-workspace.md)
 - **Operation map:** [ui-operation-presentation-map.json](../scripts/ui-operation-presentation-map.json)
 - **Inventory:** [ui-operation-inventory.json](../scripts/ui-operation-inventory.json)
@@ -10,27 +10,17 @@
 
 ## Delivery ledger
 
-The granular ledger now controls implementation order and completion. It assigns
-89 required construction and verification items across the eight A1 stages,
-with exact prerequisites, accountable roles, contract references, observable
-criteria, and evidence slots. Eight items are complete: five documentation and
-execution-control items plus three retained creation mechanics. The remaining
-81 are incomplete. This count does not estimate product completion or time.
+The canonical ledger controls the required functions, dependency order, and
+criterion evidence. D025 adds one process prerequisite to the original 89 items:
+90 required items remain tracked. Earlier completion evidence is retained and
+must be revalidated with execution and critical passes. Current counts and stage
+states are generated in the controlling A1 section below; historical traces do
+not establish current completion.
 
-The 16 supplementary scenarios are optional checks near the end of A1. They
-add no contracted functions and do not control the release gate. Each required
-function must still satisfy its own criteria and evidence before later waves.
-
-| Step | State | Result |
-| --- | --- | --- |
-| FE-A1.0 | `complete` | Contract reconciliation, granular work/dependency tracking, all-operation ownership, roadmap alignment, and the later-wave prerequisite gate. |
-| FE-A1.1 | `in_progress` | Seven items cover the normal conversational copilot, hierarchy, components, visual system, resizing, accessibility, navigation, and empty states. Existing structural mechanics remain retained evidence. |
-| FE-A1.2 | `in_progress` | Three of seven items are complete: definition drafting, atomic creation, and optional material handoff. Conversational zero/empty-Project entry, restoration, and complete definition composition remain open. |
-| FE-A1.3 | `in_progress` | Eighteen items cover registered ordinary Q&A/follow-ups, eligible model routes, readable durable turns, bounded context, functioning AG-UI, proposals/interrupts, recovery, communication validation, working candidates/relations, correction, and retention. Control placement alone is insufficient. |
-| FE-A1.4 | `in_progress` | Twenty-three items cover reactive Workspace, compositional object/claim examiners, native Project adapters, Review, inquiry and Hypothesis assessment, posture/obligations, cyclic verification, exact closure/invalidation, graph queries/display/scenes/guidance, and task return. Full document editing remains Wave 7 scope. |
-| FE-A1.5 | In progress | One Inspect action is available from the Workspace header and material agent controls. Exact Source and Work reads, Review and History event reads, Project authority, targeted retained History, and return context meet in one Workspace view. History event inspection includes its recorded actor, definition, command fingerprint, grant, receipt reference, recovery assessment, and bounded causal impact. New-Source registration and recent Work command receipts now use authenticated retained server reads. Complete durable receipt and policy composition for other owning operations remains. |
-| FE-A1.6 | In progress | Source registration, reuse, processing start, and uncertain-effect recovery now enter through the Agent. The primary Project link opens a server-verified retained task; Work delivery, eligible stale Review refresh, and interrupted model response replay run automatically. Open Review sessions are raised in Agent context, and acceptance reset is confined to the direct test guide. Full operation conformance remains. |
-| FE-A1.7 | `in_progress` | Thirteen items verify the required functions, real integration, visual/accessibility/recovery behavior, adversarial boundaries, and the complete reviewable candidate. Explicit user acceptance remains required. The 16 supplementary scenarios may be used here and remain optional. |
+The 16 supplementary scenarios remain optional near the end of A1. Every
+contracted function still needs its own evidence. Native screen-reader evaluation
+remains excluded; browser semantics, keyboard, focus, reflow and graph peers are
+required.
 
 ### User inspection correction — 2026-10-07
 
@@ -39,7 +29,7 @@ conversational evidence-review copilot, the Workspace does not respond to that
 conversation, and the graph is not discoverable in the intended interaction.
 The earlier completion labels for FE-A1.1, FE-A1.3, and FE-A1.4 described
 mechanical implementation evidence and overstated product delivery. Those stages
-are reopened; their retained structural and command evidence remains valid.
+are reopened; their structural and command evidence remains retained for revalidation.
 
 The next delivery must prove one connected evidence-review task:
 
@@ -394,21 +384,21 @@ Only seven operations are primary in normal use:
 remaining operations are contextual, inspectable, automatic, secondary, or
 test-only.
 
-| Family | Operations mapped | Default frontend treatment |
-| --- | --- | --- |
-| Project and shell | `project.search`, `project.open`, `project.switch`, `project.resume`, `project.create`, `project.import`, `project.recover`, `shell.navigate`, `shell.return`, `shell.inspect-context`, `shell.project-map`, `shell.attention-work` | Create and frame through the Agent; open outcomes in Workspace; keep search/switch/map secondary; resume automatically; put exact context in Inspect. |
-| Outcome/Brief | `brief.orient`, `brief.frame-objective`, `brief.attention`, `brief.change`, `brief.suggested-preview`, `brief.suggested-invoke`, `brief.recent-decisions` | Workspace orients around the outcome; Agent frames objectives and offers ready actions; change and decision detail live in Inspect. |
-| Sources | `source.find`, `source.open`, `source.register`, `source.reuse`, `source.start-processing`, `source.inspect-processing`, `source.inspect-exact`, `source.add-revision`, `source.remove-project-link`, `source.delete-local-copy` | Agent initiates discovery and processing; Workspace reads and manages the selected source; Inspect holds processing, exactness, provenance, and limitations. |
-| Review | `review.queue`, `review.open-session`, `review.select-member`, `review.correct-candidate`, `review.revise-basis`, `review.separate`, `review.prepare-apply`, `review.apply`, `review.reject`, `review.defer`, `review.reopen`, `review.refresh` | Review runs by exception. Agent raises decisions; Workspace supports correction and comparison; exact ChangeSet and policy remain inspectable. |
-| Graph and Details | `graph.open`, `graph.return`, `graph.layer-position`, `graph.select`, `graph.open-details`, `graph.open-source`, `graph.expand`, `graph.filter`, `graph.save-question`, `graph.compare`, `graph.impact`, `graph.time`, `graph.correct-through-review`, `details.open`, `details.return` | Focused Graph and Details are Inspect modes within Workspace. Graph correction exits through governed Review. No graph canvas is the default home. |
-| Work | `work.list`, `work.open`, `work.start`, `work.answer-input`, `work.steer`, `work.prioritize`, `work.detach`, `work.reconnect`, `work.replay`, `work.cancel`, `work.retry`, `work.resume`, `work.start-again`, `work.open-result` | Agent summarizes and controls Work; Workspace shows exact stages and results; reconnect and replay are automatic; controls appear only when eligible. |
-| Agent, models, and feedback | `petra.open`, `petra.resume-thread`, `petra.ask`, `petra.inspect-context`, `petra.inspect-references`, `petra.preview-action`, `petra.invoke-action`, `petra.respond-interrupt`, `model.inspect-readiness`, `model.use`, `feedback.confirm`, `feedback.retry`, `feedback.dismiss`, `feedback.return` | Agent remains persistent and owns requests and interrupts. Healthy model routing stays under the hood. Context, references, certification, and limitations are inspectable. |
-| Project definition | `taxonomy.inspect-profile`, `taxonomy.bind-project` | Replace profile-picker presentation with Project-owned definition drafting and binding. Existing operation IDs remain compatibility names until the contract migration is complete. Definition detail is inspectable. |
-| History | `history.list`, `history.filter`, `history.open`, `history.compare`, `history.impact`, `history.preview-revert`, `history.execute-revert` | History is an Inspect mode. Agent can request Revert; exact preview, impact, confirmation, receipt, and updated result remain visible. |
-| Settings | `settings.personal-change`, `settings.personal-reset`, `settings.inspect-project-control`, `settings.change-project-control` | Personal preferences remain secondary. Governed Project controls are inspected in Settings and changed through an agent-mediated exact preview. |
-| Composition | `composition.list`, `composition.create`, `composition.open`, `composition.edit`, `composition.save`, `composition.ask-petra`, `composition.inspect-provenance`, `composition.inspect-findings`, `composition.compare`, `composition.restore`, `composition.validate`, `composition.render`, `composition.copy`, `composition.download`, `composition.promote-review` | Artifact work is primary in Workspace. Agent acts in exact passage, section, or artifact context. Save is durable and quiet; provenance, findings, and comparisons use Inspect. |
-| Definition capabilities | `profile-tool.open`, `profile-tool.run` | Present registered capabilities only when the Project definition and current task make them relevant. They never become profile-branded global navigation. |
-| Acceptance infrastructure | `application.guide`, `application.reset` | Remove from customer navigation. Keep as test-harness operations. Product onboarding occurs through the Agent; fixture reset remains external acceptance infrastructure. |
+| Family                      | Operations mapped                                                                                                                                                                                                                                                                                                                                                     | Default frontend treatment                                                                                                                                                                                            |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Project and shell           | `project.search`, `project.open`, `project.switch`, `project.resume`, `project.create`, `project.import`, `project.recover`, `shell.navigate`, `shell.return`, `shell.inspect-context`, `shell.project-map`, `shell.attention-work`                                                                                                                                   | Create and frame through the Agent; open outcomes in Workspace; keep search/switch/map secondary; resume automatically; put exact context in Inspect.                                                                 |
+| Outcome/Brief               | `brief.orient`, `brief.frame-objective`, `brief.attention`, `brief.change`, `brief.suggested-preview`, `brief.suggested-invoke`, `brief.recent-decisions`                                                                                                                                                                                                             | Workspace orients around the outcome; Agent frames objectives and offers ready actions; change and decision detail live in Inspect.                                                                                   |
+| Sources                     | `source.find`, `source.open`, `source.register`, `source.reuse`, `source.start-processing`, `source.inspect-processing`, `source.inspect-exact`, `source.add-revision`, `source.remove-project-link`, `source.delete-local-copy`                                                                                                                                      | Agent initiates discovery and processing; Workspace reads and manages the selected source; Inspect holds processing, exactness, provenance, and limitations.                                                          |
+| Review                      | `review.queue`, `review.open-session`, `review.select-member`, `review.correct-candidate`, `review.revise-basis`, `review.separate`, `review.prepare-apply`, `review.apply`, `review.reject`, `review.defer`, `review.reopen`, `review.refresh`                                                                                                                       | Review runs by exception. Agent raises decisions; Workspace supports correction and comparison; exact ChangeSet and policy remain inspectable.                                                                        |
+| Graph and Details           | `graph.open`, `graph.return`, `graph.layer-position`, `graph.select`, `graph.open-details`, `graph.open-source`, `graph.expand`, `graph.filter`, `graph.save-question`, `graph.compare`, `graph.impact`, `graph.time`, `graph.correct-through-review`, `details.open`, `details.return`                                                                               | Focused Graph and Details are Inspect modes within Workspace. Graph correction exits through governed Review. No graph canvas is the default home.                                                                    |
+| Work                        | `work.list`, `work.open`, `work.start`, `work.answer-input`, `work.steer`, `work.prioritize`, `work.detach`, `work.reconnect`, `work.replay`, `work.cancel`, `work.retry`, `work.resume`, `work.start-again`, `work.open-result`                                                                                                                                      | Agent summarizes and controls Work; Workspace shows exact stages and results; reconnect and replay are automatic; controls appear only when eligible.                                                                 |
+| Agent, models, and feedback | `petra.open`, `petra.resume-thread`, `petra.ask`, `petra.inspect-context`, `petra.inspect-references`, `petra.preview-action`, `petra.invoke-action`, `petra.respond-interrupt`, `model.inspect-readiness`, `model.use`, `feedback.confirm`, `feedback.retry`, `feedback.dismiss`, `feedback.return`                                                                  | Agent remains persistent and owns requests and interrupts. Healthy model routing stays under the hood. Context, references, certification, and limitations are inspectable.                                           |
+| Project definition          | `taxonomy.inspect-profile`, `taxonomy.bind-project`                                                                                                                                                                                                                                                                                                                   | Replace profile-picker presentation with Project-owned definition drafting and binding. Existing operation IDs remain compatibility names until the contract migration is complete. Definition detail is inspectable. |
+| History                     | `history.list`, `history.filter`, `history.open`, `history.compare`, `history.impact`, `history.preview-revert`, `history.execute-revert`                                                                                                                                                                                                                             | History is an Inspect mode. Agent can request Revert; exact preview, impact, confirmation, receipt, and updated result remain visible.                                                                                |
+| Settings                    | `settings.personal-change`, `settings.personal-reset`, `settings.inspect-project-control`, `settings.change-project-control`                                                                                                                                                                                                                                          | Personal preferences remain secondary. Governed Project controls are inspected in Settings and changed through an agent-mediated exact preview.                                                                       |
+| Composition                 | `composition.list`, `composition.create`, `composition.open`, `composition.edit`, `composition.save`, `composition.ask-petra`, `composition.inspect-provenance`, `composition.inspect-findings`, `composition.compare`, `composition.restore`, `composition.validate`, `composition.render`, `composition.copy`, `composition.download`, `composition.promote-review` | Artifact work is primary in Workspace. Agent acts in exact passage, section, or artifact context. Save is durable and quiet; provenance, findings, and comparisons use Inspect.                                       |
+| Definition capabilities     | `profile-tool.open`, `profile-tool.run`                                                                                                                                                                                                                                                                                                                               | Present registered capabilities only when the Project definition and current task make them relevant. They never become profile-branded global navigation.                                                            |
+| Acceptance infrastructure   | `application.guide`, `application.reset`                                                                                                                                                                                                                                                                                                                              | Remove from customer navigation. Keep as test-harness operations. Product onboarding occurs through the Agent; fixture reset remains external acceptance infrastructure.                                              |
 
 The JSON map is normative when an individual operation differs from its family
 summary.
@@ -638,3 +628,28 @@ Artifact workspace. Wave 8 completes the four remaining governed Settings and
 definition-capability operations and repeats whole-application validation. A
 later wave cannot restore profile-gated entry, operation-led navigation, or a
 graph-first default without revisiting D024.
+
+<!-- A1-SYNC:START -->
+
+## Controlling A1 execution
+
+Binding: `sha256:0affc2f0ff8a60684ac1df12f0159273654a2ed8ab86dabfe9582a08e0dc01c9`. 0/90 required items complete; 90 incomplete.
+
+D024 governs the conversational copilot and reactive Workspace. D025 governs synchronized execution and two distinct validation passes. The canonical [function ledger](../scripts/frontend-a1-work-inventory.json), [readable implementation ledger](FE-A1-CONTRACT-IMPLEMENTATION-LEDGER.md), and [granular execution instructions](../scripts/frontend-a1-execution.md) agree before work starts, evidence is recorded, completion is accepted, or another wave proceeds.
+
+Active work: FE-A1.0-W06, execution.
+
+| Stage   | Required behavior                                                          | Complete / required |
+| ------- | -------------------------------------------------------------------------- | ------------------- |
+| FE-A1.0 | Contract reconciliation and execution control                              | 0 / 6               |
+| FE-A1.1 | Copilot shell and interaction design                                       | 0 / 7               |
+| FE-A1.2 | Conversational zero/empty Project entry                                    | 0 / 7               |
+| FE-A1.3 | Durable grounded conversation and AG-UI                                    | 0 / 18              |
+| FE-A1.4 | Reactive Workspace, compositional examination and cyclic graph-guided work | 0 / 23              |
+| FE-A1.5 | Progressive inspection and complete authority receipts                     | 0 / 9               |
+| FE-A1.6 | Complete migration and operation conformance                               | 0 / 7               |
+| FE-A1.7 | Functional verification and explicit user acceptance                       | 0 / 13              |
+
+Select one prerequisite-ready item. Execute every criterion with proper tests; then challenge the delivered behavior in a separate critical pass with distinct tests. Repair findings when needed. Two unsuccessful attempts require broad diagnosis before more local retries. Preserve earlier partial evidence. The sixteen late scenarios are optional; browser semantics are required and native screen-reader evaluation remains excluded. Wave 7/8 stay blocked until all required functions pass and the user accepts the exact candidate.
+
+<!-- A1-SYNC:END -->

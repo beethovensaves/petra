@@ -1,0 +1,69 @@
+{
+  "work_item": "FE-A1.0-W06",
+  "pass": "execution",
+  "argv": [
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "scripts/frontend-a1-process.test.mjs"
+  ],
+  "sources": [
+    "scripts/frontend-a1-process.mjs",
+    "scripts/frontend-a1-execute.mjs",
+    "scripts/frontend-a1-process.test.mjs",
+    "scripts/frontend-a1-process.critical.test.mjs",
+    "scripts/frontend-a1-test-fixture.mjs",
+    "scripts/audit-frontend-a1.mjs",
+    "scripts/audit-frontend-a1.test.mjs",
+    "scripts/wave-handoff.mjs",
+    "package.json",
+    "decisions/D025-contract-ledger-and-two-pass-delivery.md",
+    "reports/a1-plans/FE-A1.0-W06-execution.json",
+    "reports/a1-plans/FE-A1.0-W06-critical.json"
+  ],
+  "criteria": [
+    {
+      "id": "FE-A1.0-W06-AC01",
+      "result": "passed",
+      "test": "AC01 execution: roadmap and both execution environments synchronize",
+      "observation": "The functional suite executes the intended process boundary: roadmap and both execution environments synchronize."
+    },
+    {
+      "id": "FE-A1.0-W06-AC02",
+      "result": "passed",
+      "test": "AC02 execution: one dependency-ready item preserves historical construction",
+      "observation": "The functional suite executes the intended process boundary: one dependency-ready item preserves historical construction."
+    },
+    {
+      "id": "FE-A1.0-W06-AC03",
+      "result": "passed",
+      "test": "AC03 execution: real tests are executed and exact candidate sources retained",
+      "observation": "The functional suite executes the intended process boundary: real tests are executed and exact candidate sources retained."
+    },
+    {
+      "id": "FE-A1.0-W06-AC04",
+      "result": "passed",
+      "test": "AC04 execution: distinct critical pass follows execution before closure",
+      "observation": "The functional suite executes the intended process boundary: distinct critical pass follows execution before closure."
+    },
+    {
+      "id": "FE-A1.0-W06-AC05",
+      "result": "passed",
+      "test": "AC05 execution: repair retains findings and repeated failures require broad diagnosis",
+      "observation": "The functional suite executes the intended process boundary: repair retains findings and repeated failures require broad diagnosis."
+    },
+    {
+      "id": "FE-A1.0-W06-AC06",
+      "result": "passed",
+      "test": "AC06 execution: contracted semantics remain required and late scenarios optional",
+      "observation": "The functional suite executes the intended process boundary: contracted semantics remain required and late scenarios optional."
+    },
+    {
+      "id": "FE-A1.0-W06-AC07",
+      "result": "passed",
+      "test": "AC07 execution: engineering records do not record user acceptance",
+      "observation": "The functional suite executes the intended process boundary: engineering records do not record user acceptance."
+    }
+  ],
+  "boundary": "Delivery-control implementation only. Temporary Git/worktree fixtures test guards; they establish no copilot, Workspace, native examiner, model or cyclic verification product completion. Generated status views are checked from the current canonical ledger; static implementation and test files bind the committed candidate."
+}

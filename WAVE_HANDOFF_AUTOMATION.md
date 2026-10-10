@@ -1,5 +1,11 @@
 # Petra wave handoff automation
 
+D024 and D025 govern current A1 delivery. Use `npm run a1:status`, the generated
+`scripts/frontend-a1-execution.md` packet, and the canonical function ledger.
+Legacy Wave 6 worker/resume/extend/accept commands fail while A1 is incomplete.
+The older packets and evidence plans below describe historical execution; they
+cannot reassign current scope or promote the sixteen optional A1 scenarios.
+
 The wave handoff runs two local, non-interactive Codex workers. One worker owns
 the backend `main` worktree; the other owns the `design/m1-ux` worktree. They
 alternate only after the active worker verifies, commits, pushes, and emits a
@@ -84,3 +90,28 @@ resetting, stashing, or rebasing work.
 The current Wave 4 execution packet is
 [`scripts/wave-handoff-wave-4.md`](scripts/wave-handoff-wave-4.md). Every future
 wave requires its own reviewed packet before it can be initialized.
+
+<!-- A1-SYNC:START -->
+
+## Controlling A1 execution
+
+Binding: `sha256:0affc2f0ff8a60684ac1df12f0159273654a2ed8ab86dabfe9582a08e0dc01c9`. 0/90 required items complete; 90 incomplete.
+
+D024 governs the conversational copilot and reactive Workspace. D025 governs synchronized execution and two distinct validation passes. The canonical [function ledger](scripts/frontend-a1-work-inventory.json), [readable implementation ledger](reports/FE-A1-CONTRACT-IMPLEMENTATION-LEDGER.md), and [granular execution instructions](scripts/frontend-a1-execution.md) agree before work starts, evidence is recorded, completion is accepted, or another wave proceeds.
+
+Active work: FE-A1.0-W06, execution.
+
+| Stage   | Required behavior                                                          | Complete / required |
+| ------- | -------------------------------------------------------------------------- | ------------------- |
+| FE-A1.0 | Contract reconciliation and execution control                              | 0 / 6               |
+| FE-A1.1 | Copilot shell and interaction design                                       | 0 / 7               |
+| FE-A1.2 | Conversational zero/empty Project entry                                    | 0 / 7               |
+| FE-A1.3 | Durable grounded conversation and AG-UI                                    | 0 / 18              |
+| FE-A1.4 | Reactive Workspace, compositional examination and cyclic graph-guided work | 0 / 23              |
+| FE-A1.5 | Progressive inspection and complete authority receipts                     | 0 / 9               |
+| FE-A1.6 | Complete migration and operation conformance                               | 0 / 7               |
+| FE-A1.7 | Functional verification and explicit user acceptance                       | 0 / 13              |
+
+Select one prerequisite-ready item. Execute every criterion with proper tests; then challenge the delivered behavior in a separate critical pass with distinct tests. Repair findings when needed. Two unsuccessful attempts require broad diagnosis before more local retries. Preserve earlier partial evidence. The sixteen late scenarios are optional; browser semantics are required and native screen-reader evaluation remains excluded. Wave 7/8 stay blocked until all required functions pass and the user accepts the exact candidate.
+
+<!-- A1-SYNC:END -->

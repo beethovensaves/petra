@@ -1,14 +1,14 @@
 {
   "schema_name": "petra.frontend-a1-work-inventory",
-  "schema_version": "1.0.0",
-  "updated": "2026-10-07",
+  "schema_version": "1.1.0",
+  "updated": "2026-10-10",
   "status": "in_progress",
   "controlling_decision": "D024",
   "baseline_commit": "d3a5869fe65c6bb8b6f79203d218f710e9d2b4ae",
   "last_user_feedback": {
-    "date": "2026-10-07",
+    "date": "2026-10-10",
     "decision": "changes_requested",
-    "summary": "Copilot Q&A, reactive Workspace, compositional claim examination, progressive AG-UI and graph-guided cyclic Hypothesis verification remain required before A1 acceptance."
+    "summary": "Fix all seven diagnosed design/delivery failures in logical order. Keep readable roadmap and granular execution instructions synchronized as a hard gate. Every deliverable requires execution and distinct critical passes; optional repair and broad diagnosis on repeated failure."
   },
   "user_acceptance": null,
   "owner_roles": [
@@ -65,28 +65,34 @@
       "milestone": "FE-A1.0",
       "title": "Record the controlling contracts and rejected candidate",
       "owner": "integration",
-      "status": "complete",
-      "implementation": "Retain D024, D013, D018, the accepted UX requirements, and the 2026-10-07 inspection rejection as the A1 baseline.",
+      "status": "planned",
+      "implementation": "Retain D024, D013, D018, the accepted UX requirements, and the 2026-10-07 inspection rejection as the A1 baseline. Retain the accepted 2026-10-10 two-pass and synchronized execution requirements as D025; preserve historical evidence while affected work is revalidated.",
       "acceptance": [
         "The rejected candidate remains recorded as changes requested.",
         "Existing mechanical evidence is preserved with its original limits."
       ],
-      "depends_on": [],
+      "depends_on": [
+        "FE-A1.0-W06"
+      ],
       "contracts": [
         "D024",
         "D013",
-        "D018"
+        "D018",
+        "D025"
       ],
-      "retained_evidence": [],
-      "completion_evidence": [
+      "retained_evidence": [
+        "reports/FE-A1-CONTRACT-RECONCILIATION-CHECKS.json"
+      ],
+      "completion_evidence": [],
+      "optional_scenarios": [
+        "A1-S15"
+      ],
+      "historical_completion_evidence": [
         {
           "artifact": "reports/FE-A1-CONTRACT-RECONCILIATION-CHECKS.json",
           "command": "node --test scripts/audit-frontend-a1.test.mjs scripts/wave-handoff.test.mjs",
           "boundary": "Documentation, ledger accounting, and delivery-controller checks only. No copilot, Workspace, graph, cyclic examination or product acceptance is established by this report."
         }
-      ],
-      "optional_scenarios": [
-        "A1-S15"
       ]
     },
     {
@@ -94,13 +100,14 @@
       "milestone": "FE-A1.0",
       "title": "Publish the granular work and dependency ledger",
       "owner": "integration",
-      "status": "complete",
+      "status": "planned",
       "implementation": "Assign a stable work ID, accountable role, deliverable, prerequisite, observable acceptance criteria, and evidence slot to every A1 construction.",
       "acceptance": [
         "All eight A1 stages contain mandatory work records.",
         "No incomplete item can be deleted, deferred, or relabelled complete to release a wave."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.0-W01"
       ],
       "contracts": [
@@ -108,16 +115,19 @@
         "D013",
         "D018"
       ],
-      "retained_evidence": [],
-      "completion_evidence": [
+      "retained_evidence": [
+        "reports/FE-A1-CONTRACT-RECONCILIATION-CHECKS.json"
+      ],
+      "completion_evidence": [],
+      "optional_scenarios": [
+        "A1-S15"
+      ],
+      "historical_completion_evidence": [
         {
           "artifact": "reports/FE-A1-CONTRACT-RECONCILIATION-CHECKS.json",
           "command": "node --test scripts/audit-frontend-a1.test.mjs scripts/wave-handoff.test.mjs",
           "boundary": "Documentation, ledger accounting, and delivery-controller checks only. No copilot, Workspace, graph, cyclic examination or product acceptance is established by this report."
         }
-      ],
-      "optional_scenarios": [
-        "A1-S15"
       ]
     },
     {
@@ -125,7 +135,7 @@
       "milestone": "FE-A1.0",
       "title": "Assign every operation and accepted requirement",
       "owner": "integration",
-      "status": "complete",
+      "status": "planned",
       "implementation": "Assign all 116 operations to A1 conformance or an explicit subsequent-wave owner; map all 23 UX requests and all 18 flow families to the applicable work.",
       "acceptance": [
         "Exactly 97 Wave 6 operations have A1 conformance owners.",
@@ -133,6 +143,7 @@
         "Required A1 loops are assigned independently of the old operation list."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.0-W01"
       ],
       "contracts": [
@@ -140,16 +151,19 @@
         "D013",
         "D018"
       ],
-      "retained_evidence": [],
-      "completion_evidence": [
+      "retained_evidence": [
+        "reports/FE-A1-CONTRACT-RECONCILIATION-CHECKS.json"
+      ],
+      "completion_evidence": [],
+      "optional_scenarios": [
+        "A1-S15"
+      ],
+      "historical_completion_evidence": [
         {
           "artifact": "reports/FE-A1-CONTRACT-RECONCILIATION-CHECKS.json",
           "command": "node --test scripts/audit-frontend-a1.test.mjs scripts/wave-handoff.test.mjs",
           "boundary": "Documentation, ledger accounting, and delivery-controller checks only. No copilot, Workspace, graph, cyclic examination or product acceptance is established by this report."
         }
-      ],
-      "optional_scenarios": [
-        "A1-S15"
       ]
     },
     {
@@ -157,7 +171,7 @@
       "milestone": "FE-A1.0",
       "title": "Enforce the A1 prerequisite in the wave controller",
       "owner": "integration",
-      "status": "complete",
+      "status": "planned",
       "implementation": "Add a read-only A1 completeness gate and check it before Wave 7 or later workers start or continue, and before resume, extension, or acceptance advances a later wave.",
       "acceptance": [
         "An incomplete or malformed A1 ledger prevents later-wave execution.",
@@ -165,6 +179,7 @@
         "Missing user acceptance prevents release even if every engineering record is complete."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.0-W01"
       ],
       "contracts": [
@@ -172,16 +187,19 @@
         "D013",
         "D018"
       ],
-      "retained_evidence": [],
-      "completion_evidence": [
+      "retained_evidence": [
+        "reports/FE-A1-CONTRACT-RECONCILIATION-CHECKS.json"
+      ],
+      "completion_evidence": [],
+      "optional_scenarios": [
+        "A1-S15"
+      ],
+      "historical_completion_evidence": [
         {
           "artifact": "reports/FE-A1-CONTRACT-RECONCILIATION-CHECKS.json",
           "command": "node --test scripts/audit-frontend-a1.test.mjs scripts/wave-handoff.test.mjs",
           "boundary": "Documentation, ledger accounting, and delivery-controller checks only. No copilot, Workspace, graph, cyclic examination or product acceptance is established by this report."
         }
-      ],
-      "optional_scenarios": [
-        "A1-S15"
       ]
     },
     {
@@ -189,13 +207,14 @@
       "milestone": "FE-A1.0",
       "title": "Reconcile every roadmap entry and immediate sequence",
       "owner": "integration",
-      "status": "complete",
+      "status": "planned",
       "implementation": "Make ROADMAP, implementation roadmap, design roadmap, adaptation report, backend handoff, and runtime disposition point to this ledger for A1 execution.",
       "acceptance": [
         "Broad mechanical completion labels cannot contradict the A1 work status.",
         "The immediate sequence ends in user acceptance before Wave 7 begins."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.0-W01"
       ],
       "contracts": [
@@ -203,24 +222,54 @@
         "D013",
         "D018"
       ],
-      "retained_evidence": [],
-      "completion_evidence": [
+      "retained_evidence": [
+        "reports/FE-A1-CONTRACT-RECONCILIATION-CHECKS.json"
+      ],
+      "completion_evidence": [],
+      "optional_scenarios": [
+        "A1-S15"
+      ],
+      "historical_completion_evidence": [
         {
           "artifact": "reports/FE-A1-CONTRACT-RECONCILIATION-CHECKS.json",
           "command": "node --test scripts/audit-frontend-a1.test.mjs scripts/wave-handoff.test.mjs",
           "boundary": "Documentation, ledger accounting, and delivery-controller checks only. No copilot, Workspace, graph, cyclic examination or product acceptance is established by this report."
         }
-      ],
-      "optional_scenarios": [
-        "A1-S15"
       ]
+    },
+    {
+      "id": "FE-A1.0-W06",
+      "milestone": "FE-A1.0",
+      "title": "Synchronize contract execution and require two distinct validation passes",
+      "owner": "integration",
+      "status": "in_progress",
+      "implementation": "Implement D025: generate the readable roadmap and granular execution packet from the canonical function ledger; synchronize both execution worktrees; enforce one prerequisite-ready active item, criterion/candidate/source-bound execution and critical passes, repair findings when needed, and stop repeated failures for broad diagnosis.",
+      "acceptance": [
+        "Readable roadmap, ledger and granular execution instructions agree in both configured worktrees before execution or closure.",
+        "Only one prerequisite-ready incomplete item is active; historical partial construction remains retained evidence.",
+        "Completion rejects missing, forged, stale, wrong-item, incomplete-criterion or uncommitted-candidate evidence.",
+        "A distinct critical pass challenges each criterion after execution; repeated execution output cannot satisfy it.",
+        "Repair retains findings and affected reruns; two unsuccessful attempts stop local execution for a broad diagnosis.",
+        "D024/D025 govern every execution entry; legacy Wave 6 cannot bypass A1, native screen-reader evaluation remains excluded, and sixteen late scenarios remain optional.",
+        "The exact candidate still requires explicit user acceptance after all engineering work closes."
+      ],
+      "depends_on": [],
+      "contracts": [
+        "D025",
+        "D024",
+        "D013",
+        "D018"
+      ],
+      "retained_evidence": [],
+      "completion_evidence": [],
+      "optional_scenarios": []
     },
     {
       "id": "FE-A1.1-W01",
       "milestone": "FE-A1.1",
       "title": "Rebuild the copilot and workspace hierarchy",
       "owner": "frontend",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Build the persistent 30/70 desktop shell around a compact Project/objective header, continuous user/assistant thread, contextual progress/interventions, usable composer, and active Workspace result.",
       "acceptance": [
         "At ordinary desktop widths both the conversation and result remain legible.",
@@ -228,6 +277,7 @@
         "The Workspace object carries the strongest visual hierarchy."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.0-W02"
       ],
       "contracts": [
@@ -247,7 +297,7 @@
       "milestone": "FE-A1.1",
       "title": "Construct conversation and intervention components",
       "owner": "frontend",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Implement user turns, assistant turns, citations, partial/limited responses, compact activity, typed action previews, clarification forms, approval cards, and terminal-result links as distinct components.",
       "acceptance": [
         "A question and answer are readable without opening metadata records.",
@@ -255,6 +305,7 @@
         "An operational status or proposal cannot look like an accepted finding."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.1-W01"
       ],
       "contracts": [
@@ -277,7 +328,7 @@
       "milestone": "FE-A1.1",
       "title": "Establish the final visual system",
       "owner": "frontend",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Apply neutral canvas, restrained accent, reading widths, typography, spacing, density, borders, icons, focus, error states, and motion to real conversation and Workspace content.",
       "acceptance": [
         "Long questions, citations, object descriptors, and decisions wrap without clipping.",
@@ -285,6 +336,7 @@
         "The visual review covers actual tasks rather than a fixture gallery."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.1-W01"
       ],
       "contracts": [
@@ -304,7 +356,7 @@
       "milestone": "FE-A1.1",
       "title": "Preserve the task across pane resizing and narrow layouts",
       "owner": "frontend",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Retain Agent/Workspace switching and resizing with exact selection, current run, pending interrupt, drafts, scroll, and return focus.",
       "acceptance": [
         "Keyboard and pointer resizing obey tested readable bounds.",
@@ -312,6 +364,7 @@
         "Switching panes does not submit, cancel, or replace a task."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.1-W01"
       ],
       "contracts": [
@@ -333,7 +386,7 @@
       "milestone": "FE-A1.1",
       "title": "Build accessible conversation and status behavior",
       "owner": "frontend",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Implement landmarks, labelled turns/actions, keyboard navigation, sensible focus, reduced motion, non-color state cues, and controlled live announcements.",
       "acceptance": [
         "Streaming does not repeatedly steal focus or flood announcements.",
@@ -341,6 +394,7 @@
         "The graph semantic peer offers the same task actions."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.1-W02"
       ],
       "contracts": [
@@ -360,7 +414,7 @@
       "milestone": "FE-A1.1",
       "title": "Keep navigation compact and exact",
       "owner": "frontend",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Present Project switching, active outcome, current task, contextual graph entry, one Inspect entry, and exact return without restoring module-heavy permanent navigation.",
       "acceptance": [
         "Project and object changes carry their exact identities.",
@@ -368,6 +422,7 @@
         "No third permanent diagnostic rail is introduced."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.1-W01"
       ],
       "contracts": [
@@ -396,6 +451,7 @@
         "No demo Project or invented graph fills an empty or inaccessible state."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.1-W02"
       ],
       "contracts": [
@@ -415,7 +471,7 @@
       "milestone": "FE-A1.2",
       "title": "Retain outcome-first definition drafting",
       "owner": "runtime",
-      "status": "complete",
+      "status": "planned",
       "implementation": "Keep the server-owned definition draft preserving original wording, Project kernel, proposed objective, outputs, assumptions, capabilities, and unsupported behavior; examples remain optional.",
       "acceptance": [
         "Scientific, controlled-writing, and unrelated outcomes use the same entry.",
@@ -423,6 +479,7 @@
         "No mandatory profile picker precedes the outcome."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.0-W01"
       ],
       "contracts": [
@@ -430,17 +487,20 @@
         "D024",
         "UX-REQ-004"
       ],
-      "retained_evidence": [],
-      "completion_evidence": [
+      "retained_evidence": [
+        "reports/FRONTEND-STEP3-AGNOSTIC-PROJECT-CREATION.json"
+      ],
+      "completion_evidence": [],
+      "optional_scenarios": [
+        "A1-S01",
+        "A1-S04"
+      ],
+      "historical_completion_evidence": [
         {
           "artifact": "reports/FRONTEND-STEP3-AGNOSTIC-PROJECT-CREATION.json",
           "command": "npm run test:frontend:step3-live",
           "boundary": "Retained live outcome-first creation proof; does not prove conversational empty-state onboarding."
         }
-      ],
-      "optional_scenarios": [
-        "A1-S01",
-        "A1-S04"
       ]
     },
     {
@@ -448,7 +508,7 @@
       "milestone": "FE-A1.2",
       "title": "Retain atomic Project creation",
       "owner": "runtime",
-      "status": "complete",
+      "status": "planned",
       "implementation": "Keep validated atomic Project, immutable definition, objective, focus, and receipt creation with actor, revision, idempotency, and exact draft bindings.",
       "acceptance": [
         "A repeated exact command returns the same outcome.",
@@ -456,6 +516,7 @@
         "The new Project destination comes from the authoritative read."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.2-W01"
       ],
       "contracts": [
@@ -463,16 +524,19 @@
         "UX-REQ-004",
         "UX-REQ-008"
       ],
-      "retained_evidence": [],
-      "completion_evidence": [
+      "retained_evidence": [
+        "reports/FRONTEND-STEP3-AGNOSTIC-PROJECT-CREATION.json"
+      ],
+      "completion_evidence": [],
+      "optional_scenarios": [
+        "A1-S01"
+      ],
+      "historical_completion_evidence": [
         {
           "artifact": "reports/FRONTEND-STEP3-AGNOSTIC-PROJECT-CREATION.json",
           "command": "npm run test:frontend:step3-live",
           "boundary": "Retained atomic creation and exact replay evidence; later conversational entry remains open."
         }
-      ],
-      "optional_scenarios": [
-        "A1-S01"
       ]
     },
     {
@@ -480,7 +544,7 @@
       "milestone": "FE-A1.2",
       "title": "Retain optional initial-material handoff",
       "owner": "frontend",
-      "status": "complete",
+      "status": "planned",
       "implementation": "Carry optional initial files from the outcome draft into the existing source and rights review after creation, preserving local bytes until explicit registration.",
       "acceptance": [
         "Creation without material works.",
@@ -488,6 +552,7 @@
         "File bytes are not uploaded before the rights/intake action."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.2-W02"
       ],
       "contracts": [
@@ -495,17 +560,20 @@
         "UX-REQ-009",
         "UX-REQ-010"
       ],
-      "retained_evidence": [],
-      "completion_evidence": [
+      "retained_evidence": [
+        "reports/FRONTEND-STEP3-AGNOSTIC-PROJECT-CREATION.json"
+      ],
+      "completion_evidence": [],
+      "optional_scenarios": [
+        "A1-S01",
+        "A1-S11"
+      ],
+      "historical_completion_evidence": [
         {
           "artifact": "reports/FRONTEND-STEP3-AGNOSTIC-PROJECT-CREATION.json",
           "command": "npm run test:frontend:step3-live",
           "boundary": "Retained optional file handoff proof, bounded to creation and source-review entry."
         }
-      ],
-      "optional_scenarios": [
-        "A1-S01",
-        "A1-S11"
       ]
     },
     {
@@ -521,6 +589,7 @@
         "Creation binds the correct turns without fabricating pre-creation domain authority."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.3-W01",
         "FE-A1.2-W02"
       ],
@@ -541,7 +610,7 @@
       "milestone": "FE-A1.2",
       "title": "Implement the empty-Project copilot task",
       "owner": "frontend",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Offer outcome revision, material intake, question framing, missing-input clarification, a ready bounded next action, and explicit capability limitations in a created Project with no evidence.",
       "acceptance": [
         "The user can ask a normal question and receive a grounded no-evidence or clarification response.",
@@ -549,6 +618,7 @@
         "The first eligible action updates the Workspace and preserves the conversation."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.2-W04",
         "FE-A1.3-W06",
         "FE-A1.4-W02"
@@ -579,6 +649,7 @@
         "Access loss does not substitute another Project."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.2-W04",
         "FE-A1.3-W03"
       ],
@@ -599,7 +670,7 @@
       "milestone": "FE-A1.2",
       "title": "Compose definitions and revisions across Project types",
       "owner": "runtime",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Resolve registered object/relationship descriptors, inquiry roles, examiners, language rules, validators, outputs, and place capabilities from the exact ProjectDefinition; semantic revisions follow D018.",
       "acceptance": [
         "The same shell can load different domain components without scientific conditionals.",
@@ -607,6 +678,7 @@
         "A definition revision cannot silently reinterpret retained candidates or turns."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.2-W01"
       ],
       "contracts": [
@@ -629,7 +701,7 @@
       "milestone": "FE-A1.3",
       "title": "Register genuine conversational interaction contracts",
       "owner": "runtime",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Add versioned intake, Project evidence-question, follow-up, and scene-explanation interaction contracts with bounded inputs, response schemas, speech acts, policy, and validated references; preserve the fixed M1 synthesist contract.",
       "acceptance": [
         "Ordinary questions and follow-ups execute through registered runtime owners.",
@@ -637,6 +709,7 @@
         "Each new interaction declares model-role eligibility, output validation, and authority limits."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.0-W01"
       ],
       "contracts": [
@@ -662,7 +735,7 @@
       "milestone": "FE-A1.3",
       "title": "Establish eligible model routes for the new interactions",
       "owner": "runtime",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Register and prove eligible provider/model/role routes for conversational questions, working structure, and explanations with exact prompt/schema/profile revisions, grounding, privacy/egress, cost, and fallback rules.",
       "acceptance": [
         "A real eligible model answers a normal question and follow-up in the application.",
@@ -670,6 +743,7 @@
         "No old fixed-prompt certification is treated as certification for a new role."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.3-W01"
       ],
       "contracts": [
@@ -694,7 +768,7 @@
       "milestone": "FE-A1.3",
       "title": "Persist and read exact user and assistant turns",
       "owner": "runtime",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Add authorized immutable message/content reads and turn lineage around existing ProjectThread/InteractionRun records, with text or exact content references, revisions, role, context, result, partial/terminal state, and pagination.",
       "acceptance": [
         "A fresh browser restores actual question and answer content, citations, and outcomes.",
@@ -702,6 +776,7 @@
         "Unauthorized or mismatched Project/content references reveal no bytes."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.3-W01"
       ],
       "contracts": [
@@ -723,7 +798,7 @@
       "milestone": "FE-A1.3",
       "title": "Compile exact bounded context for every turn",
       "owner": "runtime",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Compose Project definition, objective, inquiry, selected object revisions, graph query/scene references, sources, packets, Work/proposals, omissions, snapshot, privacy, and budget without inheriting ambient route state.",
       "acceptance": [
         "A follow-up explicitly binds prior turn and current or original basis.",
@@ -731,6 +806,7 @@
         "Mixed-snapshot, stale, unavailable, or restricted basis cannot silently become current."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.3-W01",
         "FE-A1.2-W07"
       ],
@@ -755,7 +831,7 @@
       "milestone": "FE-A1.3",
       "title": "Connect the official AG-UI stream to Petra view models",
       "owner": "runtime",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Use pinned official SDK client/server adapters for run, text, activity, tool, state, interrupt, custom, and terminal events; translate them into typed conversation/Work/Workspace models.",
       "acceptance": [
         "The real conversation progressively renders validated state through the official client.",
@@ -763,6 +839,7 @@
         "Core and feature components do not parse raw AG-UI protocol types."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.3-W01",
         "FE-A1.3-W03"
       ],
@@ -787,7 +864,7 @@
       "milestone": "FE-A1.3",
       "title": "Implement normal question-and-answer turns in the copilot",
       "owner": "frontend",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Render the durable thread and streamed turn, submit ordinary questions, continue with follow-ups, expose cited-object actions, and show validated partial/limited/error/final states with a persistent composer.",
       "acceptance": [
         "The left panel supports a readable question, answer, and follow-up during Workspace use.",
@@ -795,6 +872,7 @@
         "Completed turns link to exact retained outputs and Inspect."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.1-W02",
         "FE-A1.3-W02",
         "FE-A1.3-W03",
@@ -822,7 +900,7 @@
       "milestone": "FE-A1.3",
       "title": "Mediate typed action proposals through one command path",
       "owner": "runtime",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Resolve conversation proposals into existing registered SuggestedAction, Work, source, Review, and recovery previews; complete arguments must pass actor, capability, policy, revision, and idempotency checks.",
       "acceptance": [
         "A recommendation does not execute itself.",
@@ -830,6 +908,7 @@
         "Malformed, partial, stale, or unregistered tool arguments are rejected."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.3-W05"
       ],
       "contracts": [
@@ -851,7 +930,7 @@
       "milestone": "FE-A1.3",
       "title": "Implement consequential interrupts and resumable decisions",
       "owner": "integration",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Present clarification, missing input, exact Review approval/rejection/deferral, correction, and budget escalation in the conversation; correlate each response to its operation and owning Work/ChangeSet revision.",
       "acceptance": [
         "A user can inspect the exact consequence before deciding.",
@@ -859,6 +938,7 @@
         "Reload/reconnect restores the pending decision without duplicate approval."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.3-W07",
         "FE-A1.3-W06"
       ],
@@ -883,14 +963,17 @@
       "milestone": "FE-A1.3",
       "title": "Present plans, activity, required input, and actual outcomes",
       "owner": "frontend",
-      "status": "in_progress",
-      "implementation": "Compose compact live plan/stage/activity, Work identity, progress, resource limits, required input, candidate/result/decision links, and real terminal state around the active turn.",
+      "status": "planned",
+      "implementation": "Compose compact live plan/stage/activity, Work identity, progress, resource limits, required input, candidate/result/decision links, and real terminal state around the active turn. Apply explicit steering and eligible branch priority through the existing Work owners; preserve consumed input manifests, record plan revisions and exact scheduling cutover, retain shared prerequisites, and expose validated reuse or a fresh bounded attempt.",
       "acceptance": [
         "A running step, proposed candidate, and applied outcome have distinct language.",
         "Cost/latency statements come from retained runtime observations.",
-        "Terminal Work leaves its unresolved inquiry visible."
+        "Terminal Work leaves its unresolved inquiry visible.",
+        "An explicit instruction takes effect at its declared owning boundary; advice and graph selection do not change priority or a plan.",
+        "Changed inputs preserve earlier manifests and results, and superseded successors cannot start silently."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.3-W05",
         "FE-A1.3-W06"
       ],
@@ -914,7 +997,7 @@
       "milestone": "FE-A1.3",
       "title": "Distinguish Work pause, delivery stop and authorized cancellation",
       "owner": "integration",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Resolve D024 pause/resume through registered Work actions, expose delivery stop and eligible cancel with their separate lifecycles, and display interruption/cancellation races and the retained actual effect.",
       "acceptance": [
         "Closing/aborting the stream leaves durable Work unchanged.",
@@ -923,6 +1006,7 @@
         "A declared Work pause affects execution through its owning action; delivery stop or detach cannot masquerade as paused Work."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.3-W05",
         "FE-A1.3-W09"
       ],
@@ -947,7 +1031,7 @@
       "milestone": "FE-A1.3",
       "title": "Implement ordered replay, reconnect, and safe retry",
       "owner": "integration",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Restore streamed turns/activity/state from retained identity and cursor; handle duplicate, out-of-order, late, failed, and terminal events; distinguish reconnect, retry, resume, and start-again eligibility.",
       "acceptance": [
         "Reconnect does not rerun a model or command.",
@@ -955,6 +1039,7 @@
         "Interrupted text and context survive a fresh browser/process restart."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.3-W03",
         "FE-A1.3-W05"
       ],
@@ -980,7 +1065,7 @@
       "milestone": "FE-A1.3",
       "title": "Resolve stale continuation and explicit thread branches",
       "owner": "runtime",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Implement Continue from original snapshot, Compare with current, and Start from current state with exact parent turn, lineage, context, and safe destinations.",
       "acceptance": [
         "A changed basis forces a declared continuation choice where material.",
@@ -988,6 +1073,7 @@
         "View focus does not silently revise an inquiry or reprioritize Work."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.3-W03",
         "FE-A1.3-W04"
       ],
@@ -1011,7 +1097,7 @@
       "milestone": "FE-A1.3",
       "title": "Validate communication and preserve scientific force",
       "owner": "runtime",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Build communication-plan segments for attributed report, inference, author judgment, assessment, recommendation, clarification, proposal, action report, limitation, and status; bind language/reference/schema/validator versions and repair receipts.",
       "acceptance": [
         "Source reports and Petra inference remain distinguishable.",
@@ -1019,6 +1105,7 @@
         "Repair cannot change meaning, uncertainty, scope, authority, or action consequence."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.3-W01",
         "FE-A1.2-W07"
       ],
@@ -1042,7 +1129,7 @@
       "milestone": "FE-A1.3",
       "title": "Resolve citations and references to exact evidence",
       "owner": "runtime",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Resolve each material answer segment to authorized object/source/span/revision references with safe semantic destinations and available basis/limitations.",
       "acceptance": [
         "Clicking a citation opens the cited revision and passage.",
@@ -1050,6 +1137,7 @@
         "Scientific citation and evidentiary support are distinguished."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.3-W04",
         "FE-A1.3-W13"
       ],
@@ -1075,7 +1163,7 @@
       "milestone": "FE-A1.3",
       "title": "Persist conversation-derived working candidate revisions",
       "owner": "runtime",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Admit profile-valid non-authoritative candidates from turns, Work, extraction, import, and direct edits with exact producer, target, context, schema, basis, uncertainty, validation, and supersession lineage.",
       "acceptance": [
         "Working candidates survive reload independently of browser state.",
@@ -1083,6 +1171,7 @@
         "Retention or display emits no trusted-domain promotion."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.3-W01",
         "FE-A1.2-W07",
         "FE-A1.3-W04"
@@ -1106,7 +1195,7 @@
       "milestone": "FE-A1.3",
       "title": "Persist and query working relationships",
       "owner": "runtime",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Compose typed working relationship revisions and a snapshot-consistent overlay with source/native versus inferred origin, direction, predicate meaning, exclusions, provenance, and textual peers.",
       "acceptance": [
         "Scientific support/challenge and writing dependencies preserve different registered meanings.",
@@ -1114,6 +1203,7 @@
         "Promotion is available only through the ordinary Review path."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.3-W15"
       ],
       "contracts": [
@@ -1144,6 +1234,7 @@
         "Accepted authority changes have the same receipt as direct Review."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.3-W13",
         "FE-A1.3-W15",
         "FE-A1.3-W07"
@@ -1176,6 +1267,7 @@
         "Read failures and redaction return scoped explanations without leaking content."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.3-W03"
       ],
       "contracts": [
@@ -1196,7 +1288,7 @@
       "milestone": "FE-A1.4",
       "title": "Complete the domain-neutral Workspace renderer registry",
       "owner": "frontend",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Compose Outcome, Source, Review, Work, Artifact boundary, and Inspect renderers from server-owned semantic destinations and exact ProjectDefinition role mappings.",
       "acceptance": [
         "Every supported object resolves to its exact permitted renderer.",
@@ -1204,6 +1296,7 @@
         "No renderer guesses authority or another Project from the route."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.1-W01",
         "FE-A1.2-W07"
       ],
@@ -1226,7 +1319,7 @@
       "milestone": "FE-A1.4",
       "title": "Synchronize conversation and Workspace in both directions",
       "owner": "frontend",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Add a typed selection/result/context controller: cited object or turn opens/selects the Workspace result; direct selection supplies explicit bounded context to the next turn; late updates retain exact run/query identity.",
       "acceptance": [
         "An answer updates the visible durable result and evidence selection.",
@@ -1234,6 +1327,7 @@
         "A stale result cannot replace the current object or steal an active draft."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.4-W01",
         "FE-A1.3-W06",
         "FE-A1.3-W14"
@@ -1260,7 +1354,7 @@
       "milestone": "FE-A1.4",
       "title": "Present evidence answers as durable inspectable Workspace results",
       "owner": "frontend",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Render a bounded answer/result with material segments, selected claim or requirement, cited passage, contrary basis, limitations, validation status, next inquiry/action, graph entry, and exact return to its turn.",
       "acceptance": [
         "The result exists as retained structured content rather than only chat prose.",
@@ -1268,6 +1362,7 @@
         "The user can move between them without losing context."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.4-W02",
         "FE-A1.3-W13"
       ],
@@ -1291,7 +1386,7 @@
       "milestone": "FE-A1.4",
       "title": "Complete exact Source and passage reading",
       "owner": "frontend",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Compose canonical source identity, immutable revision, rights, original/derived representation, exact SourceSpan, processing depth, and quoted context with answer/graph/Review links.",
       "acceptance": [
         "A source-native statement resolves to exact bytes or an explicit unavailable boundary.",
@@ -1299,6 +1394,7 @@
         "Revision/removal/local-copy deletion previews preserve affected references and consequences."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.4-W01",
         "FE-A1.3-W14"
       ],
@@ -1321,7 +1417,7 @@
       "milestone": "FE-A1.4",
       "title": "Construct the compositional claim/object examiner",
       "owner": "frontend",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Create an examiner registry that composes shared identity, basis, provenance, working/authority state, scope, uncertainty, validation, comparison, and action slots with ProjectDefinition-specific object and relationship components.",
       "acceptance": [
         "A scientific Claim/Assertion examiner distinguishes source report, inference, stance, evidence scope, and review state.",
@@ -1329,6 +1425,7 @@
         "The shell does not recast all Projects as scientific Claims."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.4-W01",
         "FE-A1.3-W15",
         "FE-A1.2-W07"
@@ -1355,7 +1452,7 @@
       "milestone": "FE-A1.4",
       "title": "Implement registered examiners for required Project types",
       "owner": "runtime",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Supply native object/relationship, inquiry, basis, comparison, validation, terminology, and examiner adapters for scientific, controlled-writing, and one unrelated compatible Project definition.",
       "acceptance": [
         "All three execute through shared governance and presentation contracts.",
@@ -1363,6 +1460,7 @@
         "A missing adapter is an explicit limitation and cannot count as completing its required functions."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.2-W07",
         "FE-A1.3-W16"
       ],
@@ -1387,7 +1485,7 @@
       "milestone": "FE-A1.4",
       "title": "Complete candidate and Review examination",
       "owner": "frontend",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Render exact member selection, basis, source context, proposed/current comparison, correction, separate/batch semantics, ChangeSet preparation, stale refresh, and eligibility beside the active conversation.",
       "acceptance": [
         "The user can inspect and correct every proposed member before applying.",
@@ -1395,6 +1493,7 @@
         "Accepted, rejected, deferred, reopened, and stale members retain exact outcomes."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.4-W05",
         "FE-A1.4-W06"
       ],
@@ -1419,7 +1518,7 @@
       "milestone": "FE-A1.4",
       "title": "Complete governed decisions and observed projection",
       "owner": "integration",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Connect Agent decision cards and direct Review to exact prepared ChangeSet/Approval commands, retained receipts, events, and represented graph position.",
       "acceptance": [
         "Human approval is exact; no absent ReviewPolicy is fabricated.",
@@ -1427,6 +1526,7 @@
         "Reject/defer/reopen and unknown Apply effects remain recoverable without duplicate execution."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.4-W07",
         "FE-A1.3-W08"
       ],
@@ -1451,7 +1551,7 @@
       "milestone": "FE-A1.4",
       "title": "Route Work results to the correct continuation",
       "owner": "integration",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Compose Work stages, required input, outcomes, retained failures, and result delivery into read-only answer, working candidate/Review, artifact boundary, or originating inquiry with exact identities.",
       "acceptance": [
         "Success, failure, cancellation, and partial outcomes each have a terminal and return path.",
@@ -1459,6 +1559,7 @@
         "Shared Work results retain one identity when linked to several inquiries."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.4-W02",
         "FE-A1.3-W09"
       ],
@@ -1482,7 +1583,7 @@
       "milestone": "FE-A1.4",
       "title": "Complete durable lines of inquiry and their Work links",
       "owner": "runtime",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Resolve profile-native questions/Hypotheses/other inquiry roles with framing, purpose, exact basis, open questions, alternatives, history, recommendations, and zero/many/shared Work/turn/result links.",
       "acceptance": [
         "An inquiry survives task completion and focus changes.",
@@ -1490,6 +1591,7 @@
         "Recommendations explain their basis without becoming scheduler prerequisites."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.4-W06",
         "FE-A1.3-W15"
       ],
@@ -1514,7 +1616,7 @@
       "milestone": "FE-A1.4",
       "title": "Implement snapshot-bound Hypothesis examination",
       "owner": "runtime",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Register and persist the exact Hypothesis identity/revision, target Claim, descriptor and scoped reference, plus the D010 assessment envelope and applicable scientific indicator/finding/axis validators for the A1 evidence cycle; bind target revision, snapshot, as-of/temporal scope, basis, search coverage, methods, actor, alternatives and limitations.",
       "acceptance": [
         "Development, activity, warrant, lifecycle, standing, alternatives, dependence, and stakes remain separate; unassessed axes stay unknown.",
@@ -1522,6 +1624,7 @@
         "A model proposal cannot assign authoritative warrant or a universal truth score."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.4-W10",
         "FE-A1.4-W06",
         "FE-A1.3-W04"
@@ -1547,7 +1650,7 @@
       "milestone": "FE-A1.4",
       "title": "Implement posture, obligations, and bounded next-cycle plans",
       "owner": "runtime",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Register the applicable explore/clarify/challenge/discriminate/reproduce/consolidate posture and obligation/SuggestedAction mappings for A1; compose hypotheses, rivals, gaps, evidence needs, eligible Work, stop rules, and resource limits.",
       "acceptance": [
         "A next action records the finding/obligation that motivates it.",
@@ -1555,6 +1658,7 @@
         "The user can choose a different inquiry without changing warrant or bypassing a real prerequisite."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.4-W11",
         "FE-A1.3-W07"
       ],
@@ -1577,14 +1681,15 @@
       "milestone": "FE-A1.4",
       "title": "Execute the cyclic examine and verify workflow",
       "owner": "integration",
-      "status": "in_progress",
-      "implementation": "Connect inquiry/Hypothesis framing, bounded evidence retrieval or intake, source/candidate examination, alternative/challenge evaluation, governed decision, graph update, reassessment, and next-cycle planning in one Agent\u2013Workspace task.",
+      "status": "planned",
+      "implementation": "Connect inquiry/Hypothesis framing, bounded evidence retrieval or intake, source/candidate examination, alternative/challenge evaluation, governed decision, graph update, reassessment, and next-cycle planning in one Agent–Workspace task.",
       "acceptance": [
         "At least two connected cycles run from a question to an examined result and then a changed basis or rival.",
         "Verification means meeting named scoped criteria with retained evidence; task success and fluent prose are insufficient.",
         "Evidence gaps and unresolved alternatives remain visible through every cycle."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.4-W12",
         "FE-A1.4-W08",
         "FE-A1.4-W09",
@@ -1612,7 +1717,7 @@
       "milestone": "FE-A1.4",
       "title": "Record explicit cycle closure or unresolved disposition",
       "owner": "runtime",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Implement a profile-valid exact closure/disposition record linking objective/inquiry, assessment/check criteria, supporting and contrary basis, Review/decisions, outstanding obligations, limitations, snapshot, and user/runtime authority.",
       "acceptance": [
         "A cycle can conclude with a supported scoped finding, challenge, insufficiency, defer, or further cycle as the registered meaning permits.",
@@ -1620,6 +1725,7 @@
         "The record does not assert universal truth or equate Work completion with scientific resolution."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.4-W11",
         "FE-A1.4-W12",
         "FE-A1.4-W08"
@@ -1642,7 +1748,7 @@
       "milestone": "FE-A1.4",
       "title": "Invalidate affected assessments and reopen the next cycle",
       "owner": "runtime",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Track exact source/object/relationship/definition/method dependencies and affected findings/axes/closures; changed basis yields stale/invalid status, retained old assessment, recomputation or new examination, and explicit continuation.",
       "acceptance": [
         "Changing or retracting supporting evidence prevents old verification from remaining current.",
@@ -1650,6 +1756,7 @@
         "Reassessment creates a new version and returns to the relevant inquiry/turn."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.4-W11",
         "FE-A1.4-W14"
       ],
@@ -1674,7 +1781,7 @@
       "milestone": "FE-A1.4",
       "title": "Complete bounded semantic graph queries",
       "owner": "runtime",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Compose profile-resolved exact objects/edges, path steps, layers, revisions, snapshots, projection freshness, facets/count units, omissions, finite expansion references, capabilities, and safe semantic destinations.",
       "acceptance": [
         "Current, working, and historical members never mix silently.",
@@ -1682,6 +1789,7 @@
         "Direct and conversational questions resolve through the same bounded query owner."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.3-W16",
         "FE-A1.4-W06"
       ],
@@ -1703,7 +1811,7 @@
       "milestone": "FE-A1.4",
       "title": "Display a discoverable interactive focused graph",
       "owner": "frontend",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Mount the graph as an in-Workspace task/Inspect mode with focus, selection, typed edges, legend, layer position, expansion, filter, saved question, Details/source access, comparison, time, impact, Review correction, and exact return.",
       "acceptance": [
         "Opening evidence or asking for its graph shows a real bounded result.",
@@ -1711,6 +1819,7 @@
         "The same task remains usable through the complete semantic peer."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.4-W16",
         "FE-A1.4-W02",
         "FE-A1.1-W06"
@@ -1735,7 +1844,7 @@
       "milestone": "FE-A1.4",
       "title": "Bind the visible graph scene and accessible peer to the turn",
       "owner": "runtime",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Add immutable non-authoritative presentation context: exact semantic query/result, scene membership/layout/version, selection, groups/filter/legend/viewport/omissions, peer identity/parity, snapshot, actor, and model-context use.",
       "acceptance": [
         "Petra explains the graph currently shared with the turn, including filters and omissions.",
@@ -1743,6 +1852,7 @@
         "Semantic-only explanation is real; optional vision capture requires exact privacy/rights/egress binding and is not necessary for A1."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.4-W17",
         "FE-A1.3-W04",
         "FE-A1.3-W13"
@@ -1768,7 +1878,7 @@
       "milestone": "FE-A1.4",
       "title": "Guide agent context and next work from the graph",
       "owner": "runtime",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Compile registered graph paths, evidence gaps, dependencies, alternatives, and obligations into bounded turn context and exact eligible next-action previews; preserve explanation and query/scene provenance.",
       "acceptance": [
         "An agent can explain selected basis and propose the next examination from recorded semantics.",
@@ -1776,6 +1886,7 @@
         "A recommendation still passes the normal Work/Review command owner."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.4-W18",
         "FE-A1.4-W12",
         "FE-A1.3-W07"
@@ -1801,7 +1912,7 @@
       "milestone": "FE-A1.4",
       "title": "Compose graph comparisons, time, and impact honestly",
       "owner": "integration",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Connect exact current/working/historical positions and supported temporal dimensions to comparison and impact reads with named bases, freshness, coverage, supplied dependency facts, and explicit unsupported reconstruction.",
       "acceptance": [
         "No missing node in a limited result is described as a deletion.",
@@ -1809,6 +1920,7 @@
         "Historical/impact inspection returns to the same inquiry and focus."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.4-W16"
       ],
       "contracts": [
@@ -1829,7 +1941,7 @@
       "milestone": "FE-A1.4",
       "title": "Protect graph interaction against stale and restricted results",
       "owner": "integration",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Reject late query/continuation responses; recheck access, exact scope and layers; represent lagging projections, restricted endpoints, dense/cyclic/limited results, and safe authoritative Details/Review destinations.",
       "acceptance": [
         "An old graph result cannot overwrite a newer selection.",
@@ -1837,6 +1949,7 @@
         "A textual peer over a stale projection is labelled stale too."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.4-W16",
         "FE-A1.4-W17"
       ],
@@ -1859,7 +1972,7 @@
       "milestone": "FE-A1.4",
       "title": "Preserve exact Artifact result and Wave 7 handoff",
       "owner": "frontend",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Show retained output identity, provenance/validation availability, originating turn/Work, and exact Artifact destination; retain an explicit boundary for the full document editor/export operation family.",
       "acceptance": [
         "An output produced in A1 remains inspectable and linked to its basis.",
@@ -1867,6 +1980,7 @@
         "A1 evidence/claim examination and cycle closure are not deferred under the name Composition."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.4-W01",
         "FE-A1.4-W09"
       ],
@@ -1892,7 +2006,7 @@
       "milestone": "FE-A1.4",
       "title": "Preserve exact direct navigation, drafts, and task return",
       "owner": "frontend",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Complete safe direct links, server selection, historical/unavailable destinations, task-aware return, local unsent drafts, durable submitted candidates, focus and selection across all renderers and graph modes.",
       "acceptance": [
         "Refresh/direct links resolve the intended revision or a safe exact failure.",
@@ -1900,6 +2014,7 @@
         "Returning from source, graph, Review, History, and Inspect restores the initiating task."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.4-W01",
         "FE-A1.4-W02"
       ],
@@ -1922,7 +2037,7 @@
       "milestone": "FE-A1.5",
       "title": "Provide Inspect on every consequential turn and object",
       "owner": "frontend",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Add one Inspect entry to every material answer, candidate, Work action/result, Review decision, source change, inquiry assessment/closure, and Workspace object.",
       "acceptance": [
         "All required object/action families open exact inspection from their origin.",
@@ -1930,6 +2045,7 @@
         "Returning restores task, draft, selection, and focus."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.4-W23",
         "FE-A1.3-W06"
       ],
@@ -1950,7 +2066,7 @@
       "milestone": "FE-A1.5",
       "title": "Compose explanation and basis from authoritative reads",
       "owner": "runtime",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Return the exact request, outcome/state/reason, objective/definition/snapshot, source/evidence/packet/assessment references, alternatives, scope, omissions, uncertainty, and validation limitations.",
       "acceptance": [
         "Each material claim has an inspectable basis or explicit limitation.",
@@ -1958,6 +2074,7 @@
         "Original semantic versions remain visible in historical inspection."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.5-W01",
         "FE-A1.3-W14"
       ],
@@ -1981,7 +2098,7 @@
       "milestone": "FE-A1.5",
       "title": "Compose prerequisites, authority, policy, and decision detail",
       "owner": "runtime",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Add retained exact operation/command, actor/grant, definition/objective, input/output revisions, applicable policy and validation findings, approval or absence, command fingerprint, and real availability.",
       "acceptance": [
         "Every material action explains its authority and failed prerequisites.",
@@ -1989,6 +2106,7 @@
         "Inspection never grants permission or changes state."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.5-W01",
         "FE-A1.3-W07"
       ],
@@ -2013,7 +2131,7 @@
       "milestone": "FE-A1.5",
       "title": "Complete retained receipts for every material owner",
       "owner": "runtime",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Audit and supply authenticated durable receipt reads for creation/objective/definition, source lifecycle, Work, candidate/Review/Apply, model interaction, recovery/Revert, inquiry assessment and closure; bind record hashes and exact origin.",
       "acceptance": [
         "A fresh browser can inspect each observed command/effect after reload.",
@@ -2021,6 +2139,7 @@
         "Unavailable receipt is explicit and cannot support an applied claim."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.5-W03",
         "FE-A1.4-W14"
       ],
@@ -2046,7 +2165,7 @@
       "milestone": "FE-A1.5",
       "title": "Compose graph, provenance, transition, and History lineage",
       "owner": "runtime",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Connect turn/run, context/query/scene, evidence, working revision, ChangeSet, decision, event, projection, assessment/closure, and retained History to a bounded inspectable lineage.",
       "acceptance": [
         "The user can reconstruct how a result and authority state arose.",
@@ -2054,6 +2173,7 @@
         "All source/graph/History destinations retain exact revisions and safe return."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.5-W02",
         "FE-A1.5-W04",
         "FE-A1.4-W18"
@@ -2078,7 +2198,7 @@
       "milestone": "FE-A1.5",
       "title": "Complete impact, reversal, and unknown-effect inspection",
       "owner": "integration",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Compose recorded dependency impact, recovery assessment, compensating command preview, explicit confirmation, retained execution receipt, revalidation/invalidation, and updated graph/Workspace result.",
       "acceptance": [
         "Revert is a governed compensation rather than history deletion.",
@@ -2086,6 +2206,7 @@
         "The next inquiry cycle reflects any changed basis."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.5-W05",
         "FE-A1.4-W15"
       ],
@@ -2109,7 +2230,7 @@
       "milestone": "FE-A1.5",
       "title": "Implement progressive disclosure as one task hierarchy",
       "owner": "frontend",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Build Explanation, Basis, Control, and Graph/History levels using compositional object/action sections; keep current question, necessary decision, critical validation and unknown effect visible at the appropriate task level.",
       "acceptance": [
         "An ordinary user can finish a task without opening diagnostic details.",
@@ -2117,6 +2238,7 @@
         "The same Inspect hierarchy works for different Project definitions; depth is not a set of unrelated routes."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.5-W02",
         "FE-A1.5-W03",
         "FE-A1.5-W05",
@@ -2142,14 +2264,16 @@
       "milestone": "FE-A1.5",
       "title": "Complete readable and accessible inspection peers",
       "owner": "frontend",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Render readable exact records, path/basis tables, legends, policy findings, diffs and receipt summaries with semantic peer actions; keep raw diagnostics secondary.",
       "acceptance": [
-        "All four disclosure levels are usable with keyboard and screen reader.",
+        "All four disclosure levels are usable with keyboard and browser accessibility semantics.",
         "Names, reference descriptions, and long values wrap at high zoom.",
-        "Private reasoning is neither requested nor needed for inspection."
+        "Private reasoning is neither requested nor needed for inspection.",
+        "Native screen-reader evaluation remains excluded; required browser semantics, focus and complete semantic-peer actions are verified."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.5-W07",
         "FE-A1.1-W05"
       ],
@@ -2173,7 +2297,7 @@
       "milestone": "FE-A1.5",
       "title": "Verify exact inspection access and recovery boundaries",
       "owner": "integration",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Test actor/Project/object/revision/hash binding, historical access, denied or lost access, record corruption, stale selection, retained receipt ownership, and safe retry/return for every Inspector read owner.",
       "acceptance": [
         "No inspector fallback selects a nearby accessible object.",
@@ -2181,6 +2305,7 @@
         "Failures reveal no restricted descriptor or payload."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.5-W04",
         "FE-A1.5-W05"
       ],
@@ -2202,7 +2327,7 @@
       "milestone": "FE-A1.6",
       "title": "Reconcile all 97 live operation presentations",
       "owner": "integration",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Run every assigned Wave 6 operation through its mapped entry, result, exposure, exact identity, eligible command/read owner, terminal result, recovery, and return; retain operation-specific conformance evidence.",
       "acceptance": [
         "Every one of the 97 operations has live adapted evidence.",
@@ -2210,6 +2335,7 @@
         "Inventory mechanical status alone cannot close an A1 work record."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.4-W23",
         "FE-A1.5-W09"
       ],
@@ -2237,6 +2363,7 @@
         "Acceptance reset and conformance guide remain external test infrastructure."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.6-W01"
       ],
       "contracts": [
@@ -2253,7 +2380,7 @@
       "milestone": "FE-A1.6",
       "title": "Complete quiet automatic orchestration",
       "owner": "integration",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Make healthy Project/task resume, Work delivery/reconnect/replay, eligible stale Review refresh, attention surfacing, and result routing automatic where the server allows it; retain intervention for material meaning/authority/failure.",
       "acceptance": [
         "A representative outcome completes without visiting Work/History/Settings/Graph.",
@@ -2261,6 +2388,7 @@
         "An unresolved required decision remains visible."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.3-W11",
         "FE-A1.4-W09",
         "FE-A1.3-W08"
@@ -2293,6 +2421,7 @@
         "No universal hypothesis/science terminology is imposed on writing or unrelated work."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.4-W06",
         "FE-A1.3-W13"
       ],
@@ -2324,6 +2453,7 @@
         "Missing adapters leave the required paired-profile functions incomplete."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.4-W13",
         "FE-A1.4-W22",
         "FE-A1.5-W04"
@@ -2350,9 +2480,11 @@
       "acceptance": [
         "Initialization, resumed/existing workers, extension, and later-wave acceptance cannot bypass A1.",
         "Missing/stale ledger integration is a blocker.",
-        "Architecture disposition waves are identified separately from product delivery Wave 6/7/8."
+        "Architecture disposition waves are identified separately from product delivery Wave 6/7/8.",
+        "Both execution worktrees contain identical controlling A1 ledger, generated instructions and verification tools; stale roadmap or legacy instructions prevent execution."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.0-W04",
         "FE-A1.6-W01"
       ],
@@ -2371,13 +2503,16 @@
       "title": "Keep completion and evidence accounting current",
       "owner": "integration",
       "status": "planned",
-      "implementation": "Update work status, dependencies, scoped retained evidence and completion artifacts in the same change as each delivered slice; append newly discovered required work before it can be waived or forgotten.",
+      "implementation": "Update work status, dependencies, scoped retained evidence and completion artifacts in the same change as each delivered slice; append newly discovered required work before it can be waived or forgotten. Enforce one prerequisite-ready active item and criterion-bound execution/critical evidence, synchronize roadmap and execution views, and stop repeated failures for broad diagnosis under D025.",
       "acceptance": [
         "A complete item has evidence against its own acceptance criteria and completed dependencies.",
         "A stage is complete only when every mandatory child is complete.",
-        "User rejection reopens affected items and revokes the wave release."
+        "User rejection reopens affected items and revokes the wave release.",
+        "Execution and critical tests evaluate distinct questions on the same exact candidate.",
+        "Two unsuccessful attempts cannot silently restart or advance another item."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.0-W02"
       ],
       "contracts": [
@@ -2402,6 +2537,7 @@
         "A fixture-only UI simulation cannot establish live functional integration."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.2-W05",
         "FE-A1.2-W06",
         "FE-A1.1-W07"
@@ -2428,6 +2564,7 @@
         "Actual model calls, receipts and snapshots are retained."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.4-W13",
         "FE-A1.5-W08",
         "FE-A1.3-W18"
@@ -2455,6 +2592,7 @@
         "Full Artifact text editing/export is not required by this A1 task."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.4-W06",
         "FE-A1.4-W07",
         "FE-A1.5-W08",
@@ -2483,6 +2621,7 @@
         "Missing out-of-scope capabilities are honest without blocking supported work."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.4-W06",
         "FE-A1.2-W07",
         "FE-A1.5-W08"
@@ -2510,6 +2649,7 @@
         "Drafts and pending decisions survive applicable interruption."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.3-W10",
         "FE-A1.3-W11",
         "FE-A1.5-W06",
@@ -2542,6 +2682,7 @@
         "All material failure states remain recoverable through the product."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.3-W05",
         "FE-A1.3-W07",
         "FE-A1.4-W21",
@@ -2563,7 +2704,7 @@
       "milestone": "FE-A1.7",
       "title": "Verify cyclic Hypothesis examination and invalidation",
       "owner": "validation",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Verify target/rival and scoped criteria, repeated examination, exact assessment/posture/obligation links, explicit disposition, changed/retracted basis and stale/reopened/reassessed behavior against each cyclic-function contract.",
       "acceptance": [
         "No unresolved mandatory obligation is silently closed.",
@@ -2571,6 +2712,7 @@
         "Old and new assessments remain inspectable with their exact dependency basis."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.4-W13",
         "FE-A1.4-W14",
         "FE-A1.4-W15",
@@ -2594,7 +2736,7 @@
       "milestone": "FE-A1.7",
       "title": "Evaluate the complete visual and interaction redesign",
       "owner": "validation",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Review the integrated functions with actual content at desktop, resized, compact, empty and adverse states; correct hierarchy, reading density, composer usability, graph discoverability, response coupling, decisions and return.",
       "acceptance": [
         "Review includes complete scientific, writing, unrelated and empty-Project tasks.",
@@ -2602,6 +2744,7 @@
         "All material findings have resolved work IDs and rerun evidence."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.7-W01",
         "FE-A1.7-W02",
         "FE-A1.7-W03",
@@ -2624,14 +2767,16 @@
       "milestone": "FE-A1.7",
       "title": "Evaluate complete responsive and assistive tasks",
       "owner": "validation",
-      "status": "in_progress",
-      "implementation": "Verify required functions using keyboard/screen-reader, focus/return, 420 px, high zoom/text scale, touch, reduced motion, non-color cues, long labels and graph semantic-peer parity.",
+      "status": "planned",
+      "implementation": "Verify required functions using keyboard and browser accessibility semantics, focus/return, 420 px, high zoom/text scale, touch, reduced motion, non-color cues, long labels and graph semantic-peer parity.",
       "acceptance": [
         "Tasks can reach the same decisions and terminal outcomes in visual and accessible peers.",
         "No clipping, horizontal overflow, trapped focus, or lost pending input prevents completion.",
-        "Streaming and pane changes preserve readable interaction."
+        "Streaming and pane changes preserve readable interaction.",
+        "Native screen-reader evaluation remains excluded; required browser semantics, focus and complete semantic-peer actions are verified."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.1-W04",
         "FE-A1.1-W05",
         "FE-A1.5-W08",
@@ -2657,7 +2802,7 @@
       "milestone": "FE-A1.7",
       "title": "Run the complete conformance and repository gate",
       "owner": "validation",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Run all 116 presentation mappings, all 97 adapted live-operation evidence checks, ledger coverage/dependencies, protocol/domain boundaries, relevant repository checks, real persistence/projection integration and evidence for each required function.",
       "acceptance": [
         "Every completed work item links exact retained evidence with command, inputs, candidate commit, backend/provider, result and coverage limits.",
@@ -2665,6 +2810,7 @@
         "Previously passed checks are rerun when their owning behavior changes."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.6-W01",
         "FE-A1.6-W02",
         "FE-A1.6-W03",
@@ -2689,7 +2835,7 @@
       "milestone": "FE-A1.7",
       "title": "Close the whole-task adversarial product review",
       "owner": "validation",
-      "status": "in_progress",
+      "status": "planned",
       "implementation": "Review apparent authority, misleading completion, hidden uncertainty, cognitive load, lost context, dead ends, unsupported fallback, stale graph scenes and recovery across the integrated tasks.",
       "acceptance": [
         "No unresolved critical finding remains.",
@@ -2697,6 +2843,7 @@
         "A prior bounded mechanical review does not count as whole-product review."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.7-W05",
         "FE-A1.7-W06",
         "FE-A1.7-W07",
@@ -2729,6 +2876,7 @@
         "Wave 7 stays blocked while acceptance is pending."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.7-W10",
         "FE-A1.7-W11",
         "FE-A1.6-W07"
@@ -2755,6 +2903,7 @@
         "Wave 7 begins only after every mandatory work item is complete and the user decision is accepted."
       ],
       "depends_on": [
+        "FE-A1.0-W06",
         "FE-A1.7-W12"
       ],
       "contracts": [
@@ -3863,5 +4012,59 @@
       "required": false,
       "phase": "FE-A1.7"
     }
-  ]
+  ],
+  "execution_policy": {
+    "version": "1.0.0",
+    "controlling_decision": "D025",
+    "maximum_active_items": 1,
+    "required_passes": [
+      "execution",
+      "critical"
+    ],
+    "optional_repair_pass": true,
+    "repeated_failure_limit": 2,
+    "synchronization": "Roadmap, generated execution packet, canonical ledger and both execution worktrees must agree before execution or closure."
+  },
+  "active_work": {
+    "item": "FE-A1.0-W06",
+    "phase": "execution",
+    "failed_attempts": 0,
+    "started_at": "2026-10-10T19:17:08.681Z",
+    "failures": [
+      {
+        "reason": "Executed capture check rejected inherited Node test context output.",
+        "phase": "execution",
+        "recorded_at": "2026-10-10T19:26:34.382Z"
+      },
+      {
+        "reason": "Corrected capture still rejected exact test names because the fixture omitted the standard TAP separator.",
+        "phase": "execution",
+        "recorded_at": "2026-10-10T19:26:34.382Z"
+      }
+    ],
+    "diagnoses": [
+      {
+        "contract": "The gate must establish an executed passing check for each criterion; it cannot treat matching prose in a log as an executed test.",
+        "architecture": "The verification runner invokes Node tests in a child process. Test-runner context must not leak from a parent test process into that child.",
+        "dependencies": "The fixture generated simplified TAP while the pinned Node 24 runner emits the standard dash separator in named result lines. Both need the same protocol grammar.",
+        "environment": "The inherited NODE_TEST_CONTEXT altered the first captured output. The runner now removes that internal variable, preserving other application environment values.",
+        "verification": "The first attempt failed the executed-summary check; the second passed the summary but failed the exact named-result check. Inspection of a separately captured real TAP record identified the mismatch.",
+        "changed_remedy": "Use standard TAP result-line grammar for exact names, correct synthetic logs to that grammar, retain a child-process execution test, and reject skipped or comment-only claims. Re-run execution and separate critical tests on the corrected candidate.",
+        "failures": [
+          {
+            "reason": "Executed capture check rejected inherited Node test context output.",
+            "phase": "execution",
+            "recorded_at": "2026-10-10T19:26:34.382Z"
+          },
+          {
+            "reason": "Corrected capture still rejected exact test names because the fixture omitted the standard TAP separator.",
+            "phase": "execution",
+            "recorded_at": "2026-10-10T19:26:34.382Z"
+          }
+        ],
+        "recorded_at": "2026-10-10T19:26:34.383Z"
+      }
+    ],
+    "passes": []
+  }
 }

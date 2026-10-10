@@ -14,8 +14,8 @@
     "packages/*"
   ],
   "scripts": {
-    "audit:frontend-a1": "node scripts/audit-frontend-a1.mjs",
-    "roadmap:frontend-a1": "node scripts/audit-frontend-a1.mjs --write",
+    "audit:frontend-a1": "node scripts/audit-frontend-a1.mjs --environment",
+    "roadmap:frontend-a1": "node scripts/frontend-a1-execute.mjs sync",
     "gate:frontend-a1": "node scripts/audit-frontend-a1.mjs --require-complete",
     "test:frontend-a1-ledger": "node --test scripts/audit-frontend-a1.test.mjs",
     "bootstrap": "npm ci && UV_CACHE_DIR=.cache/uv uv sync --project workers/science",
@@ -44,7 +44,7 @@
     "models:docling:check": "node scripts/prepare-docling-models.mjs --check",
     "models:certify:local": "npm run build:packages && node experiments/model-certification/run-local.mjs",
     "typecheck": "tsc -b && tsc --noEmit --project packages/contracts/test/tsconfig.json && tsc --noEmit --project packages/core/test/tsconfig.json && tsc --noEmit --project packages/adapters/test/tsconfig.json && tsc --noEmit --project packages/neo4j/test/tsconfig.json && tsc --noEmit --project packages/postgres/test/tsconfig.json && tsc --noEmit --project packages/retrieval/test/tsconfig.json && tsc --noEmit --project packages/s3/test/tsconfig.json && tsc --noEmit --project apps/server/test/tsconfig.json && tsc --noEmit --project experiments/m1-boundary/tsconfig.json && npm run typecheck --workspace @petra/workbench && UV_CACHE_DIR=.cache/uv uv run --project workers/science mypy workers/science/src workers/science/tests",
-    "test": "npm run test:contracts && npm run test:core && npm run test:adapters && npm run test:retrieval && npm run test:neo4j && npm run test:s3 && npm run test:server && npm run test:workbench && npm run test:python && npm run test:wave-handoff && npm run test:frontend-a1-ledger && npm run audit:frontend-a1 && npm run audit:ui-operations && npm run audit:ui-presentation",
+    "test": "npm run test:contracts && npm run test:core && npm run test:adapters && npm run test:retrieval && npm run test:neo4j && npm run test:s3 && npm run test:server && npm run test:workbench && npm run test:python && npm run test:wave-handoff && npm run test:frontend-a1-ledger && npm run test:frontend-a1-process && npm run audit:frontend-a1 && npm run audit:ui-operations && npm run audit:ui-presentation",
     "test:adapters": "npm test --workspace @petra/adapters",
     "test:contracts": "npm test --workspace @petra/contracts",
     "test:core": "npm test --workspace @petra/core",
@@ -150,7 +150,18 @@
     "test:wave6:history": "npm run build:packages && npm test --workspace @petra/server -- project-shell-routes.test.ts && PETRA_WAVE6_HISTORY_EVIDENCE_OUTPUT=reports/WAVE6-HISTORY-RECOVERY-AUTHORITY.json node scripts/test-wave6-history-integration.mjs && prettier --write reports/WAVE6-HISTORY-RECOVERY-AUTHORITY.json",
     "test:wave6:history-ui": "npm run build:packages && PETRA_WAVE4_TRACE=wave5-cumulative PETRA_WAVE4_EVIDENCE_OBSERVER=./apps/workbench/test/wave6-history-recovery-observer.mjs PETRA_WAVE4_RESULT_OUTPUT=/tmp/petra-wave6-history-recovery-backend.json PETRA_WAVE6_HISTORY_BROWSER_OUTPUT=reports/WAVE6-HISTORY-RECOVERY-BROWSER.json node scripts/test-wave4-cumulative-integration.mjs",
     "test:wave6:personal-settings-ui": "npm run build:packages && PETRA_WAVE4_TRACE=wave5-cumulative PETRA_WAVE4_EVIDENCE_OBSERVER=./apps/workbench/test/wave6-personal-settings-observer.mjs PETRA_WAVE4_RESULT_OUTPUT=/tmp/petra-wave6-personal-settings-backend.json PETRA_WAVE6_PERSONAL_SETTINGS_OUTPUT=reports/WAVE6-PERSONAL-SETTINGS-BROWSER.json node scripts/test-wave4-cumulative-integration.mjs",
-    "test:wave6:final-exit-ui": "npm run build:packages && node apps/workbench/test/run-wave6-final-exit-browser.mjs"
+    "test:wave6:final-exit-ui": "npm run build:packages && node apps/workbench/test/run-wave6-final-exit-browser.mjs",
+    "a1:status": "node scripts/frontend-a1-execute.mjs status",
+    "a1:sync": "node scripts/frontend-a1-execute.mjs sync",
+    "a1:begin": "node scripts/frontend-a1-execute.mjs begin",
+    "a1:close": "node scripts/frontend-a1-execute.mjs close",
+    "a1:failure": "node scripts/frontend-a1-execute.mjs failure",
+    "a1:repair": "node scripts/frontend-a1-execute.mjs repair",
+    "a1:diagnose": "node scripts/frontend-a1-execute.mjs diagnose",
+    "a1:execution-tests": "node --test scripts/frontend-a1-process.test.mjs",
+    "a1:critical-tests": "node --test scripts/frontend-a1-process.critical.test.mjs",
+    "a1:verify": "node scripts/frontend-a1-execute.mjs verify",
+    "test:frontend-a1-process": "node --test scripts/frontend-a1-process.test.mjs scripts/frontend-a1-process.critical.test.mjs"
   },
   "devDependencies": {
     "@aws-sdk/client-s3": "3.1124.0",
