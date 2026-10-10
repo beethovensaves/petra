@@ -1,0 +1,56 @@
+{
+  "work_item": "FE-A1.3-W01",
+  "pass": "execution",
+  "argv": [
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "scripts/a1/conversation-contracts.test.mjs"
+  ],
+  "sources": [
+    "packages/core/src/project-copilot.ts",
+    "packages/core/src/intake-copilot.ts",
+    "packages/adapters/src/codex-project-copilot.ts",
+    "apps/server/src/project-copilot-model.ts",
+    "apps/server/src/m1-grounded-synthesis.ts",
+    "packages/core/test/project-copilot-conversation.test.ts",
+    "packages/core/test/project-copilot.test.ts",
+    "packages/core/test/intake-copilot.test.ts",
+    "packages/adapters/test/project-copilot.test.ts",
+    "apps/server/test/m1-grounded-synthesis.test.ts",
+    "apps/server/test/project-copilot-eligibility.test.ts",
+    "scripts/a1/run-vitest.mjs",
+    "scripts/a1/conversation-contracts.test.mjs",
+    "scripts/a1/conversation-contracts.critical.test.mjs",
+    "packages/contracts/schemas/copilot-context/1.0.0/schema.json",
+    "packages/contracts/schemas/copilot-output/1.0.0/schema.json",
+    "packages/contracts/schemas/copilot-request/1.0.0/schema.json",
+    "packages/contracts/schemas/copilot-request/1.1.0/schema.json",
+    "packages/contracts/schemas/copilot-turn/1.0.0/schema.json",
+    "packages/contracts/schemas/copilot-turn/1.1.0/schema.json",
+    "packages/contracts/schemas/intake-copilot-context/1.0.0/schema.json",
+    "packages/contracts/schemas/intake-copilot-request/1.0.0/schema.json",
+    "packages/contracts/schemas/intake-copilot-turn/1.0.0/schema.json"
+  ],
+  "criteria": [
+    {
+      "id": "FE-A1.3-W01-AC01",
+      "result": "passed",
+      "test": "FE-A1.3-W01-AC01 execution: registered ordinary questions follow-ups and intake execute",
+      "observation": "Production ProjectCopilotRuntime retains two different questions, the exact previous answer and same-basis history; intake records exact bounded input before invocation."
+    },
+    {
+      "id": "FE-A1.3-W01-AC02",
+      "result": "passed",
+      "test": "FE-A1.3-W01-AC02 execution: the certified M1 question keeps its original guarded route",
+      "observation": "The original certified M1 route executes through its production HTTP and official AG-UI boundary; normal copilot routing does not replace its fixed question."
+    },
+    {
+      "id": "FE-A1.3-W01-AC03",
+      "result": "passed",
+      "test": "FE-A1.3-W01-AC03 execution: role output grounding budgets and eligibility remain explicit",
+      "observation": "Registered role boundaries, valid admitted citations, provider-compatible output schema and required certification are exercised in production core and adapter."
+    }
+  ],
+  "boundary": "Conversation contract and runtime boundary verification, using controlled repository/provider ports and a real local HTTP M1 route. Actual managed-model eligibility is separately required by FE-A1.3-W02; canonical Thread/Run integration, action proposals, native examiners and connected cycles remain open."
+}
