@@ -87,6 +87,7 @@ export const CopilotWorkspaceProvider = ({
           setTurn(next);
           setSelection(undefined);
           setVisible(true);
+          onOpenWorkspace?.();
         },
         select: (record) => {
           setSelection(record);

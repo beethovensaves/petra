@@ -958,6 +958,68 @@ export const ProjectShell = (): React.JSX.Element => {
     );
   };
 
+  const workspaceNavigation = (
+    <nav
+      ref={projectNav}
+      aria-label={`${project.title} workspace destinations`}
+    >
+      <div className="reference-workspace-destinations">
+        <p className="reference-nav-label">Workspace</p>
+        {[
+          { place: "brief" as const, to: "brief", label: "Overview" },
+          {
+            place: "sources" as const,
+            to: "sources",
+            label: "Sources",
+          },
+          { place: "review" as const, to: "review", label: "Review" },
+          { place: "graph" as const, to: "graph", label: "Graph" },
+          {
+            place: "composition" as const,
+            to: "composition",
+            label: "Outputs",
+          },
+        ].map(destinationLink)}
+      </div>
+
+      <details className="reference-project-inspection">
+        <summary>Inspect project</summary>
+        <div className="reference-project-inspection__content">
+          <p>
+            See the retained work, graph, history, and project definition that
+            Petra is using.
+          </p>
+          <div className="reference-project-inspection__state">
+            <span>
+              <strong>{project.snapshot.label}</strong>
+              <small>{project.snapshot.asOf}</small>
+            </span>
+            <ProjectionLabel project={project} />
+          </div>
+          <div className="reference-project-inspection__links">
+            {[
+              { place: "work" as const, to: "work", label: "Work" },
+              {
+                place: "history" as const,
+                to: "history",
+                label: "History",
+              },
+              {
+                place: "profile_tool" as const,
+                to: "profile",
+                label: "Project definition",
+              },
+            ].map(destinationLink)}
+          </div>
+          <p className="reference-project-inspection__definition">
+            <strong>{project.profile.label}</strong>
+            <span>{project.profile.description}</span>
+          </p>
+        </div>
+      </details>
+    </nav>
+  );
+
   return (
     <div className="reference-project-shell">
       <a
@@ -1082,66 +1144,6 @@ export const ProjectShell = (): React.JSX.Element => {
                 </div>
               </section>
 
-              <nav
-                ref={projectNav}
-                aria-label={`${project.title} workspace destinations`}
-              >
-                <div className="reference-workspace-destinations">
-                  <p className="reference-nav-label">Workspace</p>
-                  {[
-                    { place: "brief" as const, to: "brief", label: "Overview" },
-                    {
-                      place: "sources" as const,
-                      to: "sources",
-                      label: "Sources",
-                    },
-                    { place: "review" as const, to: "review", label: "Review" },
-                    { place: "graph" as const, to: "graph", label: "Graph" },
-                    {
-                      place: "composition" as const,
-                      to: "composition",
-                      label: "Outputs",
-                    },
-                  ].map(destinationLink)}
-                </div>
-
-                <details className="reference-project-inspection">
-                  <summary>Inspect project</summary>
-                  <div className="reference-project-inspection__content">
-                    <p>
-                      See the retained work, graph, history, and project
-                      definition that Petra is using.
-                    </p>
-                    <div className="reference-project-inspection__state">
-                      <span>
-                        <strong>{project.snapshot.label}</strong>
-                        <small>{project.snapshot.asOf}</small>
-                      </span>
-                      <ProjectionLabel project={project} />
-                    </div>
-                    <div className="reference-project-inspection__links">
-                      {[
-                        { place: "work" as const, to: "work", label: "Work" },
-                        {
-                          place: "history" as const,
-                          to: "history",
-                          label: "History",
-                        },
-                        {
-                          place: "profile_tool" as const,
-                          to: "profile",
-                          label: "Project definition",
-                        },
-                      ].map(destinationLink)}
-                    </div>
-                    <p className="reference-project-inspection__definition">
-                      <strong>{project.profile.label}</strong>
-                      <span>{project.profile.description}</span>
-                    </p>
-                  </div>
-                </details>
-              </nav>
-
               <AgentConversation
                 key={project.id}
                 project={project}
@@ -1260,6 +1262,7 @@ export const ProjectShell = (): React.JSX.Element => {
 
             <WorkspaceDraftProvider key={project.id}>
               <WorkspaceHost
+                navigation={workspaceNavigation}
                 project={project}
                 place={currentPlace}
                 {...(nativeGraph === undefined ? {} : { nativeGraph })}

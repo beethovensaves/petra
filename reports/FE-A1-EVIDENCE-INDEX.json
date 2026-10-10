@@ -1,7 +1,7 @@
 {
   "schema_name": "petra.a1-evidence-index",
   "schema_version": "1.0.0",
-  "roadmap_binding": "sha256:07dcb3d28dabeb1da60d51450267a359a093b69ee8112b3a7183b986dff7a5a9",
+  "roadmap_binding": "sha256:26975d23c0477b873234b0c2983cdd4ddcfc9dcdd63b9a3e67f8128ce7a1a828",
   "current": {
     "required": 90,
     "complete": 10,
@@ -396,8 +396,8 @@
       {
         "path": "apps/workbench/src/product/CopilotWorkspace.tsx",
         "recorded_hash": "sha256:b9f5bbf5cc215b372d45741c9aab0754adf9b41dc4e2dccbad00fa55b4c08722",
-        "current_hash": "sha256:b9f5bbf5cc215b372d45741c9aab0754adf9b41dc4e2dccbad00fa55b4c08722",
-        "reuse": "bytes_match_historical_boundary_only"
+        "current_hash": "sha256:03de5e420a32ec0b9b1921f29dac7a3221aa62ed1622dbc4f2fe6b394e335792",
+        "reuse": "stale_or_missing_not_current_evidence"
       },
       {
         "path": "packages/core/src/graph-presentation.ts",

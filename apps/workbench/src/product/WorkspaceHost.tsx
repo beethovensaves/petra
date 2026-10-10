@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Link, useLocation } from "react-router";
+import { useCopilotWorkspace } from "./CopilotWorkspace.js";
 import type { PetraProjectSemanticGraphView } from "@petra/contracts";
 
 import type { ProjectPlace, ProjectRecord } from "./model.js";
@@ -148,11 +149,17 @@ const WorkspaceRenderer = ({
   destination,
   project,
   children,
+  navigation,
 }: {
+  navigation?: ReactNode;
   destination: WorkspaceDestination;
   project: ProjectRecord;
   children: ReactNode;
 }): React.JSX.Element => {
+  const copilot = useCopilotWorkspace();
+  const activeAnswer =
+    copilot?.visible === true &&
+    (copilot.turn !== undefined || copilot.selection !== undefined);
   const selection = destination.selected;
   const location = useLocation();
   const from = `${location.pathname}${location.search}${location.hash}`;
@@ -166,39 +173,44 @@ const WorkspaceRenderer = ({
       data-workspace-object-ref={selection?.objectId}
       data-workspace-snapshot={project.snapshot.id}
     >
-      <header className="reference-workspace-heading">
-        <div>
-          <p className="reference-panel-kicker">Workspace</p>
-          <h2 id="project-workspace-title" tabIndex={-1}>
-            {destination.role === "inspect"
-              ? destination.label
-              : (selection?.label ?? destination.label)}
-          </h2>
-        </div>
-        <div className="reference-workspace-heading__actions">
-          {destination.role === "inspect" ? null : (
-            <Link
-              className="reference-workspace-inspect"
-              to={projectInspectPath(project.id, from, selection)}
-              data-operation-id="shell.inspect-context"
-              aria-label={`Inspect ${selection?.label ?? destination.label}`}
-            >
-              Inspect
-            </Link>
-          )}
-          {selection === undefined ? null : (
-            <span
-              className="reference-workspace-selection"
-              data-state={selection.state}
-            >
-              {selection.state === "current" ? "Current" : selection.state}
-              {selection.resolvedRevision === undefined
-                ? ""
-                : ` · revision ${selection.resolvedRevision}`}
-            </span>
-          )}
-        </div>
-      </header>
+      <div className="reference-workspace-chrome">
+        <header className="reference-workspace-heading">
+          <div>
+            <p className="reference-panel-kicker">Workspace</p>
+            <h2 id="project-workspace-title" tabIndex={-1}>
+              {activeAnswer
+                ? (copilot?.selection?.label ?? "Petra answer")
+                : destination.role === "inspect"
+                  ? destination.label
+                  : (selection?.label ?? destination.label)}
+            </h2>
+          </div>
+          <div className="reference-workspace-heading__actions">
+            {destination.role === "inspect" ? null : (
+              <Link
+                className="reference-workspace-inspect"
+                to={projectInspectPath(project.id, from, selection)}
+                data-operation-id="shell.inspect-context"
+                aria-label={`Inspect ${activeAnswer ? "Project" : (selection?.label ?? destination.label)}`}
+              >
+                Inspect
+              </Link>
+            )}
+            {selection === undefined ? null : (
+              <span
+                className="reference-workspace-selection"
+                data-state={selection.state}
+              >
+                {selection.state === "current" ? "Current" : selection.state}
+                {selection.resolvedRevision === undefined
+                  ? ""
+                  : ` · revision ${selection.resolvedRevision}`}
+              </span>
+            )}
+          </div>
+        </header>
+        {navigation}
+      </div>
       {destination.conflict === undefined ? (
         <div className="reference-project-main" data-place={destination.place}>
           {children}
@@ -220,8 +232,10 @@ export const WorkspaceHost = ({
   place,
   children,
   nativeGraph,
+  navigation,
 }: {
   project: ProjectRecord;
+  navigation?: ReactNode;
   nativeGraph?: PetraProjectSemanticGraphView;
   place: WorkspacePlace;
   children: ReactNode;
@@ -242,7 +256,11 @@ export const WorkspaceHost = ({
     nativeGraphAvailable,
   );
   return (
-    <WorkspaceRenderer destination={destination} project={project}>
+    <WorkspaceRenderer
+      destination={destination}
+      project={project}
+      navigation={navigation}
+    >
       {children}
     </WorkspaceRenderer>
   );

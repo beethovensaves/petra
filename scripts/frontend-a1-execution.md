@@ -1,6 +1,6 @@
 # A1 execution instructions
 
-Roadmap binding: `sha256:07dcb3d28dabeb1da60d51450267a359a093b69ee8112b3a7183b986dff7a5a9`. Generated from frontend-a1-work-inventory.json.
+Roadmap binding: `sha256:26975d23c0477b873234b0c2983cdd4ddcfc9dcdd63b9a3e67f8128ce7a1a828`. Generated from frontend-a1-work-inventory.json.
 
 D025 and D024 govern this execution. Historical frozen Wave 6 instructions are subordinate. Native screen-reader evaluation is excluded; browser semantics and functional peers remain mandatory. The sixteen late scenarios are optional.
 
@@ -250,11 +250,11 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 ### 16. FE-A1.1-W01: Rebuild the copilot and workspace hierarchy
 
-State: planned. Owner: frontend. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.0-W02.
+State: in_progress. Owner: frontend. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.0-W02.
 
-Build the persistent 30/70 desktop shell around a compact Project/objective header, continuous user/assistant thread, contextual progress/interventions, usable composer, and active Workspace result.
+Build the persistent 30/70 desktop shell around a compact Project/objective header, continuous user/assistant thread, contextual progress/interventions, usable composer, and active Workspace result. Sequence: move Workspace destinations and inspection into Workspace chrome; reserve chat and composer space while bounding expandable support; reflect the opened answer or evidence in the Workspace heading and activate narrow Workspace presentation; verify ordinary desktop geometry and actual retained Q/A/draft continuity; critically challenge short/narrow viewports, expanded disclosures, keyboard activation and native return.
 
-Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
+Execution plan: [reports/a1-plans/FE-A1.1-W01-execution.json](../reports/a1-plans/FE-A1.1-W01-execution.json). Critical plan: [reports/a1-plans/FE-A1.1-W01-critical.json](../reports/a1-plans/FE-A1.1-W01-critical.json). Run each with `npm run a1:verify -- PLAN` in that order.
 
 - **FE-A1.1-W01-AC01:** At ordinary desktop widths both the conversation and result remain legible.
 - **FE-A1.1-W01-AC02:** The left panel reads and behaves as a normal conversational agent; route-owned forms do not dominate it.
