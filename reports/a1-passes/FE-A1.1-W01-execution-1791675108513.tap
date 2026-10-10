@@ -1,0 +1,70 @@
+TAP version 13
+# Subtest: FE-A1.1-W01-AC01 execution: conversation and result remain legible at ordinary desktop widths
+ok 1 - FE-A1.1-W01-AC01 execution: conversation and result remain legible at ordinary desktop widths
+  ---
+  duration_ms: 3929.486
+  type: 'test'
+  ...
+# Subtest: FE-A1.1-W01-AC02 execution: normal retained Q/A and draft remain available while navigating the Workspace
+not ok 2 - FE-A1.1-W01-AC02 execution: normal retained Q/A and draft remain available while navigating the Workspace
+  ---
+  duration_ms: 948.776334
+  type: 'test'
+  location: '/Users/felipe.casadei/vscode/graphRAG/petra/scripts/a1/copilot-hierarchy.test.mjs:28:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    2 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 2
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/felipe.casadei/vscode/graphRAG/petra/scripts/a1/copilot-hierarchy.test.mjs:74:10)
+    async Test.run (node:internal/test_runner/test:1404:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:969:7)
+  ...
+# Subtest: FE-A1.1-W01-AC03 execution: opening an actual answer makes its Workspace object the strongest visual element
+ok 3 - FE-A1.1-W01-AC03 execution: opening an actual answer makes its Workspace object the strongest visual element
+  ---
+  duration_ms: 23.830958
+  type: 'test'
+  ...
+not ok 4 - /Users/felipe.casadei/vscode/graphRAG/petra/scripts/a1/copilot-hierarchy.test.mjs
+  ---
+  duration_ms: 43.031792
+  location: '/Users/felipe.casadei/vscode/graphRAG/petra/scripts/a1/copilot-hierarchy.test.mjs:8:1'
+  failureType: 'hookFailed'
+  error: |-
+    Only three successful criterion observations can produce this artifact.
+    
+    2 !== 3
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 3
+  actual: 2
+  operator: 'strictEqual'
+  stack: |-
+    Object.close (file:///Users/felipe.casadei/vscode/graphRAG/petra/scripts/a1/copilot-surface.mjs:111:14)
+    TestContext.<anonymous> (file:///Users/felipe.casadei/vscode/graphRAG/petra/scripts/a1/copilot-hierarchy.test.mjs:8:22)
+    TestHook.runInAsyncScope (node:async_hooks:227:14)
+    TestHook.run (node:internal/test_runner/test:1397:25)
+    TestHook.run (node:internal/test_runner/test:1741:18)
+    TestHook.run (node:internal/util:581:20)
+    Test.runHook (node:internal/test_runner/test:1284:20)
+    after (node:internal/test_runner/test:1337:20)
+    Test.run (node:internal/test_runner/test:1423:13)
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 2
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5040.947208

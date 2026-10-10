@@ -5631,8 +5631,15 @@
   "active_work": {
     "item": "FE-A1.1-W01",
     "phase": "execution",
-    "failed_attempts": 0,
-    "started_at": "2026-10-10T22:30:01.875Z"
+    "failed_attempts": 1,
+    "started_at": "2026-10-10T22:30:01.875Z",
+    "failures": [
+      {
+        "reason": "Verification failed: node --test --test-reporter=tap scripts/a1/copilot-hierarchy.test.mjs; retained output reports/a1-passes/FE-A1.1-W01-execution-1791675108513.tap",
+        "phase": "execution",
+        "recorded_at": "2026-10-10T23:31:48.514Z"
+      }
+    ]
   },
   "repair_sequence": [
     {

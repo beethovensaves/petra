@@ -69,7 +69,7 @@ test("FE-A1.1-W01-AC02 execution: normal retained Q/A and draft remain available
     );
   }
   const shownForms = await surface.evaluate(
-    "Array.from(document.querySelectorAll('#project-agent form')).filter(e=>e.getBoundingClientRect().height>0).length",
+    "Array.from(document.querySelectorAll('#project-agent form')).filter(e=>e.checkVisibility()).length",
   );
   assert.equal(shownForms, 1);
   surface.observations.push({

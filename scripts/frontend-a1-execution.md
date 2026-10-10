@@ -1,6 +1,6 @@
 # A1 execution instructions
 
-Roadmap binding: `sha256:26975d23c0477b873234b0c2983cdd4ddcfc9dcdd63b9a3e67f8128ce7a1a828`. Generated from frontend-a1-work-inventory.json.
+Roadmap binding: `sha256:76564800a6aa150664f00efc6eec3917c67109974315a5b1569695658683c125`. Generated from frontend-a1-work-inventory.json.
 
 D025 and D024 govern this execution. Historical frozen Wave 6 instructions are subordinate. Native screen-reader evaluation is excluded; browser semantics and functional peers remain mandatory. The sixteen late scenarios are optional.
 
