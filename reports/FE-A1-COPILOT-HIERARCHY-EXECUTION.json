@@ -1,0 +1,364 @@
+{
+  "status": "passed",
+  "pass": "execution",
+  "verified_at": "2026-10-10T23:33:21.220Z",
+  "project_id": "project_4GNM3G166Z7RCBSW5K6TXZ3XZ9",
+  "observations": [
+    {
+      "criterion": "FE-A1.1-W01-AC01",
+      "measurements": [
+        {
+          "viewport": {
+            "width": 1280,
+            "height": 900,
+            "scrollWidth": 1280
+          },
+          "agent": {
+            "top": 116,
+            "bottom": 900,
+            "left": 0,
+            "right": 384,
+            "width": 384,
+            "height": 784,
+            "font": 14,
+            "line": 21,
+            "display": "flex"
+          },
+          "workspace": {
+            "top": 116,
+            "bottom": 900,
+            "left": 384,
+            "right": 1280,
+            "width": 896,
+            "height": 784,
+            "font": 14,
+            "line": 21,
+            "display": "block"
+          },
+          "transcript": {
+            "top": 297.140625,
+            "bottom": 622.71875,
+            "left": 16,
+            "right": 367,
+            "width": 351,
+            "height": 325.578125,
+            "font": 14,
+            "line": 21,
+            "display": "block"
+          },
+          "composer": {
+            "top": 630.71875,
+            "bottom": 800.046875,
+            "left": 16,
+            "right": 367,
+            "width": 351,
+            "height": 169.328125,
+            "font": 14,
+            "line": 21,
+            "display": "block"
+          },
+          "input": {
+            "top": 649.296875,
+            "bottom": 712.296875,
+            "left": 28.1875,
+            "right": 354.8125,
+            "width": 326.625,
+            "height": 63,
+            "font": 14,
+            "line": 21,
+            "display": "block"
+          },
+          "heading": {
+            "top": 132,
+            "bottom": 168,
+            "left": 16,
+            "right": 367,
+            "width": 351,
+            "height": 36,
+            "font": 14,
+            "line": 21,
+            "display": "flex"
+          },
+          "object": {
+            "top": 266.59375,
+            "bottom": 311.59375,
+            "left": 416,
+            "right": 1163.921875,
+            "width": 747.921875,
+            "height": 45,
+            "font": 36,
+            "line": 45,
+            "display": "block"
+          }
+        },
+        {
+          "viewport": {
+            "width": 1440,
+            "height": 1000,
+            "scrollWidth": 1440
+          },
+          "agent": {
+            "top": 116,
+            "bottom": 1000,
+            "left": 0,
+            "right": 432,
+            "width": 432,
+            "height": 884,
+            "font": 14,
+            "line": 21,
+            "display": "flex"
+          },
+          "workspace": {
+            "top": 116,
+            "bottom": 1000,
+            "left": 432,
+            "right": 1440,
+            "width": 1008,
+            "height": 884,
+            "font": 14,
+            "line": 21,
+            "display": "block"
+          },
+          "transcript": {
+            "top": 297.140625,
+            "bottom": 722.71875,
+            "left": 16,
+            "right": 415,
+            "width": 399,
+            "height": 425.578125,
+            "font": 14,
+            "line": 21,
+            "display": "block"
+          },
+          "composer": {
+            "top": 730.71875,
+            "bottom": 900.046875,
+            "left": 16,
+            "right": 415,
+            "width": 399,
+            "height": 169.328125,
+            "font": 14,
+            "line": 21,
+            "display": "block"
+          },
+          "input": {
+            "top": 749.296875,
+            "bottom": 812.296875,
+            "left": 28.1875,
+            "right": 402.8125,
+            "width": 374.625,
+            "height": 63,
+            "font": 14,
+            "line": 21,
+            "display": "block"
+          },
+          "heading": {
+            "top": 132,
+            "bottom": 168,
+            "left": 16,
+            "right": 415,
+            "width": 399,
+            "height": 36,
+            "font": 14,
+            "line": 21,
+            "display": "flex"
+          },
+          "object": {
+            "top": 266.59375,
+            "bottom": 311.59375,
+            "left": 464,
+            "right": 1211.921875,
+            "width": 747.921875,
+            "height": 45,
+            "font": 36,
+            "line": 45,
+            "display": "block"
+          }
+        },
+        {
+          "viewport": {
+            "width": 1920,
+            "height": 1080,
+            "scrollWidth": 1920
+          },
+          "agent": {
+            "top": 116,
+            "bottom": 1080,
+            "left": 0,
+            "right": 576,
+            "width": 576,
+            "height": 964,
+            "font": 14,
+            "line": 21,
+            "display": "flex"
+          },
+          "workspace": {
+            "top": 116,
+            "bottom": 1080,
+            "left": 576,
+            "right": 1920,
+            "width": 1344,
+            "height": 964,
+            "font": 14,
+            "line": 21,
+            "display": "block"
+          },
+          "transcript": {
+            "top": 297.140625,
+            "bottom": 802.71875,
+            "left": 16,
+            "right": 559,
+            "width": 543,
+            "height": 505.578125,
+            "font": 14,
+            "line": 21,
+            "display": "block"
+          },
+          "composer": {
+            "top": 810.71875,
+            "bottom": 980.046875,
+            "left": 16,
+            "right": 559,
+            "width": 543,
+            "height": 169.328125,
+            "font": 14,
+            "line": 21,
+            "display": "block"
+          },
+          "input": {
+            "top": 829.296875,
+            "bottom": 892.296875,
+            "left": 28.1875,
+            "right": 546.8125,
+            "width": 518.625,
+            "height": 63,
+            "font": 14,
+            "line": 21,
+            "display": "block"
+          },
+          "heading": {
+            "top": 132,
+            "bottom": 168,
+            "left": 16,
+            "right": 559,
+            "width": 543,
+            "height": 36,
+            "font": 14,
+            "line": 21,
+            "display": "flex"
+          },
+          "object": {
+            "top": 266.59375,
+            "bottom": 311.59375,
+            "left": 704,
+            "right": 1451.921875,
+            "width": 747.921875,
+            "height": 45,
+            "font": 36,
+            "line": 45,
+            "display": "block"
+          }
+        }
+      ]
+    },
+    {
+      "criterion": "FE-A1.1-W01-AC02",
+      "retained_questions": 9,
+      "draft_retained": true,
+      "visible_forms": 1
+    },
+    {
+      "criterion": "FE-A1.1-W01-AC03",
+      "question": "Synthetic A1 canonical-owner inspection: which of those missing inputs should I clarify first, and why?",
+      "geometry": {
+        "viewport": {
+          "width": 1440,
+          "height": 1000,
+          "scrollWidth": 1440
+        },
+        "agent": {
+          "top": 116,
+          "bottom": 1000,
+          "left": 0,
+          "right": 432,
+          "width": 432,
+          "height": 884,
+          "font": 14,
+          "line": 21,
+          "display": "flex"
+        },
+        "workspace": {
+          "top": 116,
+          "bottom": 1000,
+          "left": 432,
+          "right": 1440,
+          "width": 1008,
+          "height": 884,
+          "font": 14,
+          "line": 21,
+          "display": "block"
+        },
+        "transcript": {
+          "top": 297.140625,
+          "bottom": 722.71875,
+          "left": 16,
+          "right": 415,
+          "width": 399,
+          "height": 425.578125,
+          "font": 14,
+          "line": 21,
+          "display": "block"
+        },
+        "composer": {
+          "top": 730.71875,
+          "bottom": 900.046875,
+          "left": 16,
+          "right": 415,
+          "width": 399,
+          "height": 169.328125,
+          "font": 14,
+          "line": 21,
+          "display": "block"
+        },
+        "input": {
+          "top": 749.296875,
+          "bottom": 812.296875,
+          "left": 28.1875,
+          "right": 402.8125,
+          "width": 374.625,
+          "height": 63,
+          "font": 14,
+          "line": 21,
+          "display": "block"
+        },
+        "heading": {
+          "top": 132,
+          "bottom": 168,
+          "left": 16,
+          "right": 415,
+          "width": 399,
+          "height": 36,
+          "font": 14,
+          "line": 21,
+          "display": "flex"
+        },
+        "object": {
+          "top": 284.984375,
+          "bottom": 352.171875,
+          "left": 472,
+          "right": 1271.21875,
+          "width": 799.21875,
+          "height": 67.1875,
+          "font": 24,
+          "line": 33.6,
+          "display": "block"
+        }
+      },
+      "workspace_heading": "Petra answer"
+    }
+  ],
+  "browser_errors": [],
+  "command_requests": [],
+  "screenshot": "reports/FE-A1-COPILOT-HIERARCHY-EXECUTION.png",
+  "boundary": "Live production layout, retained actual managed-model Q/A, navigation, composer, disclosure and Workspace presentation only. No new model call, proposal command, examiner or cycle completion is inferred."
+}

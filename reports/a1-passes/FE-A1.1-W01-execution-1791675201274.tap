@@ -1,0 +1,28 @@
+TAP version 13
+# Subtest: FE-A1.1-W01-AC01 execution: conversation and result remain legible at ordinary desktop widths
+ok 1 - FE-A1.1-W01-AC01 execution: conversation and result remain legible at ordinary desktop widths
+  ---
+  duration_ms: 3861.687875
+  type: 'test'
+  ...
+# Subtest: FE-A1.1-W01-AC02 execution: normal retained Q/A and draft remain available while navigating the Workspace
+ok 2 - FE-A1.1-W01-AC02 execution: normal retained Q/A and draft remain available while navigating the Workspace
+  ---
+  duration_ms: 923.590834
+  type: 'test'
+  ...
+# Subtest: FE-A1.1-W01-AC03 execution: opening an actual answer makes its Workspace object the strongest visual element
+ok 3 - FE-A1.1-W01-AC03 execution: opening an actual answer makes its Workspace object the strongest visual element
+  ---
+  duration_ms: 13.554458
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5014.006083

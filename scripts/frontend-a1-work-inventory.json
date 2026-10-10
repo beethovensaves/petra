@@ -5631,13 +5631,42 @@
   "active_work": {
     "item": "FE-A1.1-W01",
     "phase": "execution",
-    "failed_attempts": 1,
+    "failed_attempts": 0,
     "started_at": "2026-10-10T22:30:01.875Z",
     "failures": [
       {
         "reason": "Verification failed: node --test --test-reporter=tap scripts/a1/copilot-hierarchy.test.mjs; retained output reports/a1-passes/FE-A1.1-W01-execution-1791675108513.tap",
         "phase": "execution",
         "recorded_at": "2026-10-10T23:31:48.514Z"
+      },
+      {
+        "reason": "Verification failed: node --test --test-reporter=tap scripts/a1/copilot-hierarchy.critical.test.mjs; retained output reports/a1-passes/FE-A1.1-W01-critical-1791675295976.tap",
+        "phase": "critical",
+        "recorded_at": "2026-10-10T23:34:55.977Z"
+      }
+    ],
+    "passes": [],
+    "diagnoses": [
+      {
+        "contract": "The hierarchy must preserve readable Q/A and a usable composer under actual disclosures. Ordinary desktop width success does not establish short-height or keyboard behavior. Both failed captures remain retained, and W01 is not closed.",
+        "architecture": "The parent conversation reserved 256px, but its real children needed 328px: 42px intake-origin summary, 80px usable transcript, 190px composer and gaps. Overflow hidden clipped the composer even before the viewport boundary. An expanded duplicated objective also consumed conversation space. The actual header remained 116px; this is a nested layout admission failure, not a backend or model error.",
+        "dependencies": "Canonical conversation, models, owner permissions and 32 existing Workspace/navigation checks remain valid. The critical keyboard case had hidden-presentation setup after an earlier failed case; it must explicitly select Agent before activating the answer, independent of prior outcomes.",
+        "environment": "Live production preview and the known synthetic retained Project are healthy. At 1000x650, actual measurement showed the normal composer extending beyond its own conversation box and the expanded composer reaching 657px. A separate browser diagnosis has no model or domain command effect.",
+        "verification": "Stop under the two-failure guard and diagnose before another capture. Preserve the functional pass as historical construction, the visibility-measurement failure and the distinct critical failure. Add measurements of composer containment within its conversation as well as viewport hit testing; isolate the keyboard setup.",
+        "changed_remedy": "Use a compact objective control with an inspectable anchored disclosure instead of duplicated long text in the fixed chat header. Reserve enough real conversation space for its minimum transcript and composer, remove hidden clipping and permit the support region to scroll when it exceeds available height. Make every critical case establish its own pane state. Commit the corrected candidate, rerun execution and then critical with actual containment and occlusion checks; never inflate timeouts or weaken the readable-space threshold.",
+        "failures": [
+          {
+            "reason": "Verification failed: node --test --test-reporter=tap scripts/a1/copilot-hierarchy.test.mjs; retained output reports/a1-passes/FE-A1.1-W01-execution-1791675108513.tap",
+            "phase": "execution",
+            "recorded_at": "2026-10-10T23:31:48.514Z"
+          },
+          {
+            "reason": "Verification failed: node --test --test-reporter=tap scripts/a1/copilot-hierarchy.critical.test.mjs; retained output reports/a1-passes/FE-A1.1-W01-critical-1791675295976.tap",
+            "phase": "critical",
+            "recorded_at": "2026-10-10T23:34:55.977Z"
+          }
+        ],
+        "recorded_at": "2026-10-10T23:40:03.784Z"
       }
     ]
   },

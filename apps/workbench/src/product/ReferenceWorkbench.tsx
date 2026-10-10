@@ -1125,7 +1125,7 @@ export const ProjectShell = (): React.JSX.Element => {
                   Current outcome
                 </p>
                 <details className="copilot-outcome-disclosure">
-                  <summary>{project.title}</summary>
+                  <summary>Project objective</summary>
                   <p>{project.objective}</p>
                 </details>
                 <div className="reference-agent-outcome__state">
