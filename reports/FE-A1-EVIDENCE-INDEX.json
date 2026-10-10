@@ -1,10 +1,10 @@
 {
   "schema_name": "petra.a1-evidence-index",
   "schema_version": "1.0.0",
-  "roadmap_binding": "sha256:d52b41cd3a7117a9a34808fa33aa7372928302db3ac2756ee8d08e39154b7eff",
+  "roadmap_binding": "sha256:07dcb3d28dabeb1da60d51450267a359a093b69ee8112b3a7183b986dff7a5a9",
   "current": {
     "required": 90,
-    "complete": 9,
+    "complete": 10,
     "user_acceptance": null,
     "proofs": [
       {
@@ -140,6 +140,23 @@
             "artifact": "reports/a1-passes/FE-A1.3-W02-critical-1791665549548.json",
             "command": "node --test --test-reporter=tap scripts/a1/model-routes.critical.test.mjs",
             "boundary": "Actual managed QA question/follow-up through the live production browser and PostgreSQL, separate actual-model typed working-plan eligibility, and production unavailable-model recovery. Role-native proposal probes use committed synthetic records; canonical ProjectThread/InteractionRun, durable proposal decisions/commands, native examiners and connected cycles remain separate required A1 work and are not claimed complete."
+          }
+        ]
+      },
+      {
+        "work_item": "FE-A1.3-W03",
+        "passes": [
+          {
+            "pass": "execution",
+            "artifact": "reports/a1-passes/FE-A1.3-W03-execution-1791671233189.json",
+            "command": "node --test --test-reporter=tap scripts/a1/owned-conversation.test.mjs",
+            "boundary": "Canonical ownership and retained readable advisory conversation only. Provider internal CPU, memory, network, tokens and price remain unavailable; unknown values never satisfy applicable hard limits. Historical adoption records actual import Work and preserves original bytes without reconstructing original execution authority. Proposal decisions/commands, progressive AG-UI activities/interrupts, native examiners, reactive Workspace graph cycles and A1 product acceptance remain open required ledger items."
+          },
+          {
+            "pass": "critical",
+            "artifact": "reports/a1-passes/FE-A1.3-W03-critical-1791671280023.json",
+            "command": "node --test --test-reporter=tap scripts/a1/owned-conversation.critical.test.mjs",
+            "boundary": "Canonical ownership and retained readable advisory conversation only. Provider internal CPU, memory, network, tokens and price remain unavailable; unknown values never satisfy applicable hard limits. Historical adoption records actual import Work and preserves original bytes without reconstructing original execution authority. Proposal decisions/commands, progressive AG-UI activities/interrupts, native examiners, reactive Workspace graph cycles and A1 product acceptance remain open required ledger items."
           }
         ]
       },

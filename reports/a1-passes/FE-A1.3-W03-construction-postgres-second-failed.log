@@ -1,0 +1,203 @@
+
+> petra@0.0.0 build:packages
+> tsc -b
+
+Flyway OSS Edition 13.4.0 by Redgate
+
+See release notes here: https://help.red-gate.com/help/flyway-cli13/help_4.aspx?topic=release-notes-and-older-versions/release-notes-for-flyway-engine
+Database: ******** (PostgreSQL 18.6)
+Schema history table "public"."flyway_schema_history" does not exist yet
+Successfully validated 66 migrations (execution time 00:00.035s)
+Creating Schema History table "public"."flyway_schema_history" ...
+Current version of schema "public": << Empty Schema >>
+Migrating schema "public" to version "001 - research scope"
+Migrating schema "public" to version "002 - scholarly identity"
+Migrating schema "public" to version "003 - artifact authority"
+Migrating schema "public" to version "004 - document authority"
+Migrating schema "public" to version "005 - evidence authority"
+Migrating schema "public" to version "006 - change control event outbox"
+Migrating schema "public" to version "007 - work and projection control"
+Migrating schema "public" to version "008 - interaction authority"
+Migrating schema "public" to version "009 - scientific authority reversal"
+Migrating schema "public" to version "010 - model execution records"
+Migrating schema "public" to version "011 - grounded response authority"
+Migrating schema "public" to version "012 - durable interaction replay"
+Migrating schema "public" to version "013 - durable work unit cancellation"
+Migrating schema "public" to version "014 - composition control authority"
+Migrating schema "public" to version "015 - composition aggregate authority"
+Migrating schema "public" to version "016 - rendered artifact authority"
+Migrating schema "public" to version "017 - draft revision support authority"
+Migrating schema "public" to version "018 - felicity revision authority"
+Migrating schema "public" to version "019 - project definition authority"
+Migrating schema "public" to version "020 - project source authority"
+Migrating schema "public" to version "021 - review session authority"
+Migrating schema "public" to version "022 - project thread authority"
+Migrating schema "public" to version "023 - project inquiry authority"
+Migrating schema "public" to version "024 - project source lifecycle authority"
+Migrating schema "public" to version "025 - project source replacement authority"
+Migrating schema "public" to version "026 - capability grant authority"
+Migrating schema "public" to version "027 - project source replacement retraction authority"
+Migrating schema "public" to version "028 - project source replacement head integrity"
+Migrating schema "public" to version "029 - canonical project source retraction id"
+Migrating schema "public" to version "030 - project source replacement command authority"
+Migrating schema "public" to version "031 - project definition history authority"
+Migrating schema "public" to version "032 - suggested action invocation authority"
+Migrating schema "public" to version "033 - working state authority"
+Migrating schema "public" to version "034 - working review session composition"
+Migrating schema "public" to version "035 - review session lifecycle authority"
+Migrating schema "public" to version "036 - review session refresh authority"
+Migrating schema "public" to version "037 - review candidate correction authority"
+Migrating schema "public" to version "038 - server composed review candidate correction"
+Migrating schema "public" to version "039 - review candidate basis revision authority"
+Migrating schema "public" to version "040 - review session member separation authority"
+Migrating schema "public" to version "041 - manual review apply checkpoint context"
+Migrating schema "public" to version "042 - controlled writing working state"
+Migrating schema "public" to version "043 - paired profile review composition"
+Migrating schema "public" to version "044 - registered project profile runtime"
+Migrating schema "public" to version "045 - project work operations"
+Migrating schema "public" to version "046 - manual review rejection checkpoint context"
+Migrating schema "public" to version "047 - project work stage plans"
+Migrating schema "public" to version "048 - project inquiry save authority"
+Migrating schema "public" to version "049 - project import authority"
+Migrating schema "public" to version "050 - project objective command authority"
+Migrating schema "public" to version "051 - project source registration authority"
+Migrating schema "public" to version "052 - project source reuse authority"
+Migrating schema "public" to version "053 - project source processing authority"
+Migrating schema "public" to version "054 - project source revision authority"
+Migrating schema "public" to version "055 - project source link removal authority"
+Migrating schema "public" to version "056 - project source local copy deletion authority"
+Migrating schema "public" to version "057 - project work checkpoint resume"
+Migrating schema "public" to version "058 - project work start again"
+Migrating schema "public" to version "059 - project definition draft creation"
+Migrating schema "public" to version "060 - project copilot turns"
+Migrating schema "public" to version "061 - project examination records"
+Migrating schema "public" to version "062 - project examination command authority"
+Migrating schema "public" to version "063 - project examination owner authority"
+Migrating schema "public" to version "064 - project copilot input manifests"
+Migrating schema "public" to version "065 - pre project copilot intake"
+Migrating schema "public" to version "066 - canonical copilot conversation"
+Successfully applied 66 migrations to schema "public", now at version v066 (execution time 00:00.367s)
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+A more recent version of Flyway is available. Find out more about Flyway 13.10.0 at https://help.red-gate.com/help/flyway-cli13/help_4.aspx?topic=release-notes-and-older-versions/release-notes-for-flyway-engine
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Container petra-m12-83319-1791669056551-postgres-1 Running 
+ Container petra-m12-83319-1791669056551-postgres-1 Waiting 
+ Container petra-m12-83319-1791669056551-postgres-1 Healthy 
+ Container petra-m12-83319-1791669056551-migrations-run-a6c4dd881543 Creating 
+ Container petra-m12-83319-1791669056551-migrations-run-a6c4dd881543 Created 
+postgres-1  | 	          AND revision.objective_id = focus.objective_id
+postgres-1  | 	          AND revision.revision = focus.objective_revision
+postgres-1  | 	          AND revision.content_hash = focus.objective_content_hash
+postgres-1  | 	        WHERE focus.project_id = $1
+postgres-1  | 	        FOR SHARE OF focus, head, revision
+postgres-1  | 2026-10-10 21:52:27.979 UTC [824] ERROR:  new row for relation "model_requests" violates check constraint "model_requests_role_version_check"
+postgres-1  | 2026-10-10 21:52:27.979 UTC [824] DETAIL:  Failing row contains (model_request_01ARZ3NDEKTSV4RRFFQ69G5FE4, 1, project_01ARZ3NDEKTSV4RRFFQ69G5FAW, synthesis_run_01ARZ3NDEKTSV4RRFFQ69G5FE7, extractor, routine, E0, routing_policy_01ARZ3NDEKTSV4RRFFQ69G5FE6, sha256:444444444444444444444444444444444444444444444444444444444..., model_deployment_01ARZ3NDEKTSV4RRFFQ69G5FE1, role_certification_01ARZ3NDEKTSV4RRFFQ69G5FE0, completed, sha256:e80f664da465fbde2f942c23bf5e80d6841291f3ead8e8f8c7502ffc0..., 2026-09-03 18:31:00+00, 2026-09-03 18:31:00.005+00, sha256:1ab7c2644765d1a775dc51a7465d8d5d0e5ca2ff0e90cd59fbc636d6d..., {"content": {"role": "extractor", "budget": {"max_attempts": 1, ...).
+postgres-1  | 2026-10-10 21:52:27.979 UTC [824] STATEMENT:  INSERT INTO petra.model_requests (
+postgres-1  | 	           model_request_id, revision, project_id, workflow_id, role,
+postgres-1  | 	           impact_class, egress_class, routing_policy_id,
+postgres-1  | 	           routing_policy_hash, selected_deployment_id,
+postgres-1  | 	           selected_certification_id, terminal_state, content_hash,
+postgres-1  | 	           created_at, completed_at, record_hash, payload
+postgres-1  | 	         ) VALUES (
+postgres-1  | 	           $1, 1, $2, $3, 'extractor', 'routine', 'E0', $4, $5,
+postgres-1  | 	           $6, $7, 'completed', $8, $9::timestamptz,
+postgres-1  | 	           $10::timestamptz, $11, $12::jsonb
+postgres-1  | 	         )
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "artifacts" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "domain_events" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "parsed_documents" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "canonical_entity_revisions" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "source_spans" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "actors" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "change_sets" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "command_executions" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "outbox_target_heads" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "outbox_records" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "author_revisions" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "work_revisions" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "interaction_feature_manifests" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "claim_revisions" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "evidence_revision_authorizations" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "interaction_runs" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "project_revisions" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "canonical_entities" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "capability_grants" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "projects" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "artifact_manifests" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "evidence_entities" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "assertion_provenance" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "rights_decisions" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "work_units" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "worker_input_manifests" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "project_definition_revisions" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "project_objectives" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "project_objective_revisions" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "project_source_revisions" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "review_sessions" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "review_session_revisions" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "working_candidates" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "working_candidate_revisions" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "working_relationships" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "working_relationship_revisions" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "work_author_credits" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "work_version_revisions" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "artifact_manifest_inputs" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "parsed_document_block_declarations" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "structural_blocks" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "structural_block_span_declarations" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "evidence_entity_revisions" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "claim_source_spans" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "claim_validator_results" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "assertion_revisions" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "change_set_operations" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "project_event_stream_heads" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "worker_input_bindings" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "worker_expected_outputs" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "worker_output_manifests" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "work_unit_revisions" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "interaction_feature_standard_events" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "interaction_run_revisions" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "project_definitions" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "project_sources" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "project_source_author_refs" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "review_session_candidate_bindings" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "project_definition_history_bindings" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "review_session_working_candidate_bindings" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "review_session_working_relationship_bindings" --- lock not available
+postgres-1  | 2026-10-10 21:52:29.116 UTC [834] LOG:  skipping analyze of "worker_produced_outputs" --- lock not available
+
+file:///Users/felipe.casadei/vscode/graphRAG/petra/scripts/test-postgres-integration.mjs:49
+    throw new Error(
+          ^
+
+Error: npm test --workspace @petra/postgres failed (1):
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/working-state-authority-repository.test.ts > PostgreSQL working-state authority > retains canonical conversation lineage across actual inquiry Work Review and hypothesis cycle records
+PostgresReviewSessionError: review session snapshot cannot be ahead of authority
+ ❯ PostgresReviewSessionAuthorityRepository.registerReviewSessionRevision src/review-session-authority-repository.ts:395:15
+    393|       }
+    394|       if (pgError.code === "23503" || pgError.code === "23514") {
+    395|         throw new PostgresReviewSessionError(
+       |               ^
+    396|           "REVIEW_SESSION_RELATION_INVALID",
+    397|           pgError.message ??
+ ❯ test/working-state-authority-repository.test.ts:1436:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+npm error Lifecycle script `test` failed with error:
+npm error code 1
+npm error path /Users/felipe.casadei/vscode/graphRAG/petra/packages/postgres
+npm error workspace @petra/postgres@0.0.0
+npm error location /Users/felipe.casadei/vscode/graphRAG/petra/packages/postgres
+npm error command failed
+npm error command sh -c vitest run --config vitest.config.ts
+
+    at requireRun (file:///Users/felipe.casadei/vscode/graphRAG/petra/scripts/test-postgres-integration.mjs:49:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async file:///Users/felipe.casadei/vscode/graphRAG/petra/scripts/test-postgres-integration.mjs:291:16
+
+Node.js v24.20.0

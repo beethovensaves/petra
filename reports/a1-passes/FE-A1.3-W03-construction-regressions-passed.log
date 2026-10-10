@@ -1,0 +1,101 @@
+
+> petra@0.0.0 build:packages
+> tsc -b
+
+Flyway OSS Edition 13.4.0 by Redgate
+
+See release notes here: https://help.red-gate.com/help/flyway-cli13/help_4.aspx?topic=release-notes-and-older-versions/release-notes-for-flyway-engine
+Database: ******** (PostgreSQL 18.6)
+Schema history table "public"."flyway_schema_history" does not exist yet
+Successfully validated 66 migrations (execution time 00:00.155s)
+Creating Schema History table "public"."flyway_schema_history" ...
+Current version of schema "public": << Empty Schema >>
+Migrating schema "public" to version "001 - research scope"
+Migrating schema "public" to version "002 - scholarly identity"
+Migrating schema "public" to version "003 - artifact authority"
+Migrating schema "public" to version "004 - document authority"
+Migrating schema "public" to version "005 - evidence authority"
+Migrating schema "public" to version "006 - change control event outbox"
+Migrating schema "public" to version "007 - work and projection control"
+Migrating schema "public" to version "008 - interaction authority"
+Migrating schema "public" to version "009 - scientific authority reversal"
+Migrating schema "public" to version "010 - model execution records"
+Migrating schema "public" to version "011 - grounded response authority"
+Migrating schema "public" to version "012 - durable interaction replay"
+Migrating schema "public" to version "013 - durable work unit cancellation"
+Migrating schema "public" to version "014 - composition control authority"
+Migrating schema "public" to version "015 - composition aggregate authority"
+Migrating schema "public" to version "016 - rendered artifact authority"
+Migrating schema "public" to version "017 - draft revision support authority"
+Migrating schema "public" to version "018 - felicity revision authority"
+Migrating schema "public" to version "019 - project definition authority"
+Migrating schema "public" to version "020 - project source authority"
+Migrating schema "public" to version "021 - review session authority"
+Migrating schema "public" to version "022 - project thread authority"
+Migrating schema "public" to version "023 - project inquiry authority"
+Migrating schema "public" to version "024 - project source lifecycle authority"
+Migrating schema "public" to version "025 - project source replacement authority"
+Migrating schema "public" to version "026 - capability grant authority"
+Migrating schema "public" to version "027 - project source replacement retraction authority"
+Migrating schema "public" to version "028 - project source replacement head integrity"
+Migrating schema "public" to version "029 - canonical project source retraction id"
+Migrating schema "public" to version "030 - project source replacement command authority"
+Migrating schema "public" to version "031 - project definition history authority"
+Migrating schema "public" to version "032 - suggested action invocation authority"
+Migrating schema "public" to version "033 - working state authority"
+Migrating schema "public" to version "034 - working review session composition"
+Migrating schema "public" to version "035 - review session lifecycle authority"
+Migrating schema "public" to version "036 - review session refresh authority"
+Migrating schema "public" to version "037 - review candidate correction authority"
+Migrating schema "public" to version "038 - server composed review candidate correction"
+Migrating schema "public" to version "039 - review candidate basis revision authority"
+Migrating schema "public" to version "040 - review session member separation authority"
+Migrating schema "public" to version "041 - manual review apply checkpoint context"
+Migrating schema "public" to version "042 - controlled writing working state"
+Migrating schema "public" to version "043 - paired profile review composition"
+Migrating schema "public" to version "044 - registered project profile runtime"
+Migrating schema "public" to version "045 - project work operations"
+Migrating schema "public" to version "046 - manual review rejection checkpoint context"
+Migrating schema "public" to version "047 - project work stage plans"
+Migrating schema "public" to version "048 - project inquiry save authority"
+Migrating schema "public" to version "049 - project import authority"
+Migrating schema "public" to version "050 - project objective command authority"
+Migrating schema "public" to version "051 - project source registration authority"
+Migrating schema "public" to version "052 - project source reuse authority"
+Migrating schema "public" to version "053 - project source processing authority"
+Migrating schema "public" to version "054 - project source revision authority"
+Migrating schema "public" to version "055 - project source link removal authority"
+Migrating schema "public" to version "056 - project source local copy deletion authority"
+Migrating schema "public" to version "057 - project work checkpoint resume"
+Migrating schema "public" to version "058 - project work start again"
+Migrating schema "public" to version "059 - project definition draft creation"
+Migrating schema "public" to version "060 - project copilot turns"
+Migrating schema "public" to version "061 - project examination records"
+Migrating schema "public" to version "062 - project examination command authority"
+Migrating schema "public" to version "063 - project examination owner authority"
+Migrating schema "public" to version "064 - project copilot input manifests"
+Migrating schema "public" to version "065 - pre project copilot intake"
+Migrating schema "public" to version "066 - canonical copilot conversation"
+Successfully applied 66 migrations to schema "public", now at version v066 (execution time 00:01.408s)
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+A more recent version of Flyway is available. Find out more about Flyway 13.10.0 at https://help.red-gate.com/help/flyway-cli13/help_4.aspx?topic=release-notes-and-older-versions/release-notes-for-flyway-engine
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Container petra-m12-57796-1791669472091-postgres-1 Running 
+ Container petra-m12-57796-1791669472091-postgres-1 Waiting 
+ Container petra-m12-57796-1791669472091-postgres-1 Healthy 
+ Container petra-m12-57796-1791669472091-migrations-run-57491ae6e6cd Creating 
+ Container petra-m12-57796-1791669472091-migrations-run-57491ae6e6cd Created 
+
+> @petra/postgres@0.0.0 test
+> vitest run --config vitest.config.ts
+
+
+ RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/packages/postgres
+
+
+ Test Files  28 passed (28)
+      Tests  216 passed (216)
+   Start at  17:58:07
+   Duration  81.01s (transform 1.48s, setup 0ms, import 14.52s, tests 64.73s, environment 1ms)
+

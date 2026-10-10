@@ -1,0 +1,68 @@
+
+> petra@0.0.0 test:server
+> npm test --workspace @petra/server
+
+
+> @petra/server@0.0.0 test
+> vitest run --config vitest.config.ts
+
+
+ RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/apps/server
+
+ ❯ test/conformance.test.ts (21 tests | 21 skipped) 77ms
+ ❯ test/project-copilot.test.ts (5 tests | 1 failed) 38ms
+   × retains the exact filtered shared graph and refuses stale or mismatched peers before model execution 11ms
+ ❯ test/m1-grounded-synthesis.test.ts (5 tests | 1 failed) 303ms
+     × loads the recorded certification and executes it through Petra's AG-UI client 116ms
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/conformance.test.ts > D014 Hono conformance
+Error: listen EPERM: operation not permitted 127.0.0.1
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  test/conformance.test.ts > D014 Hono conformance
+TypeError: Cannot read properties of undefined (reading 'shutdown')
+ ❯ test/conformance.test.ts:283:18
+    281|
+    282|   afterAll(async () => {
+    283|     await server.shutdown();
+       |                  ^
+    284|     await rm(publicDir, { recursive: true, force: true });
+    285|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/m1-grounded-synthesis.test.ts > M1.6-W18 certified grounded server composition > loads the recorded certification and executes it through Petra's AG-UI client
+Error: listen EPERM: operation not permitted 127.0.0.1
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  test/project-copilot.test.ts > retains the exact filtered shared graph and refuses stale or mismatched peers before model execution
+TypeError: this.persistence.copilotTurns.recover is not a function
+ ❯ ProjectCopilotService.read src/project-copilot.ts:769:41
+    767|       `copilot:${projectId}:${this.actorId}`,
+    768|     );
+    769|     await this.persistence.copilotTurns.recover(this.runtime?.instance…
+       |                                         ^
+    770|     const historyRead=await this.persistence.copilotHistory?.listPage(…
+    771|     const turns=historyRead===undefined ? await (this.runtime?.reposit…
+ ❯ test/project-copilot.test.ts:255:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  3 failed | 35 passed | 7 skipped (45)
+      Tests  2 failed | 154 passed | 28 skipped (184)
+   Start at  17:50:53
+   Duration  6.31s (transform 7.25s, setup 0ms, import 54.55s, tests 32.65s, environment 2ms)
+
+npm error Lifecycle script `test` failed with error:
+npm error code 1
+npm error path /Users/felipe.casadei/vscode/graphRAG/petra/apps/server
+npm error workspace @petra/server@0.0.0
+npm error location /Users/felipe.casadei/vscode/graphRAG/petra/apps/server
+npm error command failed
+npm error command sh -c vitest run --config vitest.config.ts
