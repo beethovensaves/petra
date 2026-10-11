@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/copilot-command-decision-request/1.0.0/schema.json",
+  "title": "PetraCopilotCommandDecisionRequest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "decision_id",
+    "proposal_id",
+    "proposal_output_hash",
+    "preview_key",
+    "preview_hash",
+    "decision"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.copilot-command-decision-request"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "decision_id": {
+      "type": "string",
+      "pattern": "^decision_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "proposal_id": {
+      "type": "string",
+      "pattern": "^proposal_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "proposal_output_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "preview_key": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512
+    },
+    "preview_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "decision": {
+      "enum": ["accept", "reject"]
+    }
+  }
+}

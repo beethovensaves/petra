@@ -1,0 +1,68 @@
+{
+  "status": "preparation_only",
+  "complete": false,
+  "boundary": "Real canonical PostgreSQL owners and ordinary Work command effects with a controlled typed role and in-memory private byte-store port. Production managed-model command selection and visible chat/Workspace command bridge remain unimplemented. These checks do not close an A1 item or count as its two formal passes.",
+  "owner_checks": {
+    "passed": 11,
+    "failed": 0,
+    "migrations": 68
+  },
+  "contract_checks": {
+    "passed": 671,
+    "failed": 0
+  },
+  "resolved_findings": [
+    "Serialize before SERIALIZABLE snapshot to prevent duplicate Work registration.",
+    "Enforce hard model deadline even when cancellation is ignored.",
+    "Recover expired canonical proposal Work on restart and forbid late output replacement.",
+    "Validate exact model-selected complete ordinary body independently at the repository boundary.",
+    "Revalidate restored exact receipts and expose a claimed but unobserved command without another execution.",
+    "One focused Core case exceeded the unit deadline during overlapping preparation; that case passed alone and all 14 focused checks passed after the build completed, without increasing the unit deadline. The failed log remains retained."
+  ],
+  "retained_logs": [
+    {
+      "artifact": "reports/a1-preparation/command-bridge-owner-initial-failure.log",
+      "sha256": "sha256:6d10b7ed2ae67b5f465a9e5a964a9decc8a2b2f6595a1812db8ceb4cf398612b"
+    },
+    {
+      "artifact": "reports/a1-preparation/command-bridge-owner-repair-timing-failure.log",
+      "sha256": "sha256:b1747ca3a5c52d10607f8dfa1c16db0c54a54366f5464083348a9166b906f522"
+    },
+    {
+      "artifact": "reports/a1-preparation/command-bridge-owner-diagnosed-repair.log",
+      "sha256": "sha256:094b2a2e94b2ea0b85af5e629b3b12222043adc7f160ebac1a25b2c5f411ae02"
+    },
+    {
+      "artifact": "reports/a1-preparation/command-bridge-contract-initial-failure.log",
+      "sha256": "sha256:25ea041c45bb82b494b3fb2e777127076dc20a4915329e77e219239b3355d4f8"
+    },
+    {
+      "artifact": "reports/a1-preparation/command-bridge-contract-repair.log",
+      "sha256": "sha256:49c8c4e18558cd8b683748df2cac1345051af0384bbab3759e92cef94d5b7b9f"
+    },
+    {
+      "artifact": "reports/a1-preparation/command-bridge-core-timing-failure.log",
+      "sha256": "sha256:9194c5e7d825f40e62309bc5bd7338a75dd2abb4b7e478d151f323b896197356"
+    },
+    {
+      "artifact": "reports/a1-preparation/command-bridge-core-timing-diagnosis.log",
+      "sha256": "sha256:74cb588d382350816822b77ebdc044dfd2c0422db3fb7fec9045cd859c5c0de1"
+    },
+    {
+      "artifact": "reports/a1-preparation/command-bridge-core-serial-final.log",
+      "sha256": "sha256:47b2b9fc284b41d14d09b760c8272dbebad93ae156c6ace89eef26dadf8c1545"
+    }
+  ],
+  "remaining": [
+    "Bind production eligible working-plan deployment to native preview catalogue.",
+    "Mount authenticated command proposal, decision and activity routes.",
+    "Render proposed activity and explicit human decisions in chat.",
+    "Read observed native effect into exact Workspace destination.",
+    "Execute and critically challenge each complete ledger item on one exact candidate."
+  ],
+  "core_checks": {
+    "passed": 14,
+    "failed": 0,
+    "execution_mode": "Focused final serial run after completed production build."
+  }
+}

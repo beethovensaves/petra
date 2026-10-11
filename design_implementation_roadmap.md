@@ -1556,18 +1556,18 @@ criteria or release an incomplete A1 item.
 
 ## Controlling A1 execution
 
-Binding: `sha256:2d5a955518401cb8dcc2065af686b06726c464efcd2db2e7661f45fee2931edd`. 15/90 required items complete; 75 incomplete.
+Binding: `sha256:41d490f63de2026c9b7c725e1ecd515aa808a2ba1e5a654922939ad9923a516e`. 7/90 required items complete; 83 incomplete.
 
 D024 governs the conversational copilot and reactive Workspace. D025 governs synchronized execution and two distinct validation passes. The canonical [function ledger](scripts/frontend-a1-work-inventory.json), [readable implementation ledger](reports/FE-A1-CONTRACT-IMPLEMENTATION-LEDGER.md), and [granular execution instructions](scripts/frontend-a1-execution.md) agree before work starts, evidence is recorded, completion is accepted, or another wave proceeds.
 
-Active work: none; select one prerequisite-ready item.
+Active work: FE-A1.3-W01, execution.
 
 | Stage   | Required behavior                                                          | Complete / required |
 | ------- | -------------------------------------------------------------------------- | ------------------- |
 | FE-A1.0 | Contract reconciliation and execution control                              | 6 / 6               |
-| FE-A1.1 | Copilot shell and interaction design                                       | 1 / 7               |
-| FE-A1.2 | Conversational zero/empty Project entry                                    | 2 / 7               |
-| FE-A1.3 | Durable grounded conversation and AG-UI                                    | 5 / 18              |
+| FE-A1.1 | Copilot shell and interaction design                                       | 0 / 7               |
+| FE-A1.2 | Conversational zero/empty Project entry                                    | 0 / 7               |
+| FE-A1.3 | Durable grounded conversation and AG-UI                                    | 0 / 18              |
 | FE-A1.4 | Reactive Workspace, compositional examination and cyclic graph-guided work | 0 / 23              |
 | FE-A1.5 | Progressive inspection and complete authority receipts                     | 0 / 9               |
 | FE-A1.6 | Complete migration and operation conformance                               | 1 / 7               |

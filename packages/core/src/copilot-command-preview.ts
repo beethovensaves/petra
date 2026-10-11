@@ -22,19 +22,22 @@ export type CopilotCommandOperation =
   | "work.resume"
   | "work.start-again"
   | "brief.suggested-invoke"
-  | "source.start-processing";
+  | "source.start-processing"
+  | "review.apply";
 type Owner = {
   request: string;
   command:
     | "ManageProjectWork"
     | "InvokeSuggestedAction"
-    | "StartProjectSourceProcessing";
+    | "StartProjectSourceProcessing"
+    | "ApplyChangeSet";
   route:
     | "work"
     | "work/resume"
     | "work/start-again"
     | "suggested-actions"
-    | "sources/processing";
+    | "sources/processing"
+    | "reviews/apply";
 };
 const owners: Record<CopilotCommandOperation, Owner> = {
   "work.start": {
@@ -86,6 +89,13 @@ const owners: Record<CopilotCommandOperation, Owner> = {
     request: "project-source-processing-request",
     command: "StartProjectSourceProcessing",
     route: "sources/processing",
+  },
+  "review.apply": {
+    // A checkpoint is selectable before the decision. decided_at belongs to
+    // the later human decision, never to the model or preview catalogue.
+    request: "review-session-apply-checkpoint",
+    command: "ApplyChangeSet",
+    route: "reviews/apply",
   },
 };
 const object = (value: unknown): Record<string, unknown> => {
@@ -168,6 +178,21 @@ export function copilotCommandPreview(
         /^suggested_action_[0-9A-HJKMNP-TV-Z]{26}$/u.test(input.target_id),
     );
     path = `${projectPath}/suggested-actions/${input.target_id}/invoke`;
+  } else if (owner.route === "reviews/apply") {
+    const binding = object(payload.binding),
+      review = object(binding.review_session),
+      definition = object(binding.project_definition);
+    requireBinding(
+      binding.project_id === input.context.project_id &&
+        review.project_id === input.context.project_id &&
+        review.review_session_id === input.target_id &&
+        /^review_session_[0-9A-HJKMNP-TV-Z]{26}$/u.test(input.target_id) &&
+        definition.project_definition_id ===
+          input.context.basis.definition.record_id &&
+        definition.revision === input.context.basis.definition.revision &&
+        definition.content_hash === input.context.basis.definition.content_hash,
+    );
+    path = `${projectPath}/reviews/${input.target_id}/apply`;
   } else {
     const expected = object(payload.expected),
       definition = object(expected.project_definition_ref),
@@ -186,7 +211,7 @@ export function copilotCommandPreview(
     path = `${projectPath}/sources/${input.target_id}/processing`;
   }
   const content = {
-    key: `${input.operation_id}:${String(payload.command_id)}`,
+    key: `${input.operation_id}:${owner.route === "reviews/apply" ? String(payload.displayed_commitment_hash) : String(payload.command_id)}`,
     kind: "command" as const,
     operation_id: input.operation_id,
     project_id: input.context.project_id,
@@ -209,4 +234,59 @@ export function copilotCommandPreview(
       requires_human_decision: true,
     },
   };
+}
+
+/** Build the ordinary request only after an explicitly retained human decision. */
+export function decidedCopilotCommandRequest(
+  command: CopilotCommandPreview,
+  decidedAt: string,
+  contracts = new PetraContractRegistry(),
+): Record<string, unknown> {
+  const schema =
+    command.ordinary_command.operation_id === "review.apply"
+      ? "review-session-apply-request"
+      : command.preview.contract.name;
+  const payload =
+    command.ordinary_command.operation_id === "review.apply"
+      ? {
+          schema_name: "petra.review-session-apply-request",
+          schema_version: "1.0.0",
+          checkpoint: structuredClone(command.preview.payload),
+          decided_at: decidedAt,
+        }
+      : structuredClone(command.preview.payload);
+  contracts.assertValid(schema, "1.0.0", payload);
+  return payload;
+}
+
+/** Reconstruct the closed owner mapping when reading a retained proposal. */
+export function assertCopilotCommandPreview(
+  command: CopilotCommandPreview,
+  context: CopilotContext,
+): void {
+  const payload = command.preview.payload;
+  const operation = command.ordinary_command.operation_id;
+  const target =
+    operation === "review.apply"
+      ? object(object(payload.binding).review_session).review_session_id
+      : operation === "brief.suggested-invoke"
+        ? object(payload.expected_action_ref).suggested_action_id
+        : operation === "source.start-processing"
+          ? object(object(payload.expected).project_source_ref)
+              .project_source_id
+          : object(
+              payload[
+                operation === "work.start-again"
+                  ? "expected_prior_work_unit_ref"
+                  : "expected_work_unit_ref"
+              ],
+            ).work_unit_id;
+  requireBinding(typeof target === "string");
+  const exact = copilotCommandPreview({
+    operation_id: operation,
+    target_id: target as string,
+    context,
+    request: payload,
+  });
+  requireBinding(copilotHash(exact) === copilotHash(command));
 }

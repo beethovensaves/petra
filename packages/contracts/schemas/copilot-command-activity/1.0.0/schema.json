@@ -1,0 +1,222 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/copilot-command-activity/1.0.0/schema.json",
+  "title": "PetraCopilotCommandActivity",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "project_id",
+    "actor_id",
+    "proposal_id",
+    "context_hash",
+    "origin",
+    "work_unit_ref",
+    "interaction_run_ref",
+    "state",
+    "commands"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.copilot-command-activity"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "project_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+    },
+    "actor_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ActorId"
+    },
+    "proposal_id": {
+      "type": "string",
+      "pattern": "^proposal_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "context_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "origin": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_id",
+        "actor_id",
+        "protocol_run_id",
+        "project_turn_id",
+        "project_thread_ref",
+        "interaction_run_ref",
+        "question"
+      ],
+      "properties": {
+        "project_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+        },
+        "actor_id": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ActorId"
+        },
+        "protocol_run_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "project_turn_id": {
+          "type": "string",
+          "pattern": "^project_turn_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "project_thread_ref": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["project_thread_id", "revision", "content_hash"],
+          "properties": {
+            "project_thread_id": {
+              "type": "string",
+              "pattern": "^project_thread_[0-9A-HJKMNP-TV-Z]{26}$"
+            },
+            "revision": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "content_hash": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+            }
+          }
+        },
+        "interaction_run_ref": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["interaction_run_id", "revision", "content_hash"],
+          "properties": {
+            "interaction_run_id": {
+              "type": "string",
+              "pattern": "^interaction_run_[0-9A-HJKMNP-TV-Z]{26}$"
+            },
+            "revision": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "content_hash": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+            }
+          }
+        },
+        "question": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8000
+        }
+      }
+    },
+    "work_unit_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["work_unit_id", "revision", "spec_hash"],
+      "properties": {
+        "work_unit_id": {
+          "type": "string",
+          "pattern": "^work_unit_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "spec_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "interaction_run_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["interaction_run_id", "revision", "content_hash"],
+      "properties": {
+        "interaction_run_id": {
+          "type": "string",
+          "pattern": "^interaction_run_[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "content_hash": {
+          "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+        }
+      }
+    },
+    "state": {
+      "enum": ["running", "completed", "failed"]
+    },
+    "commands": {
+      "type": "array",
+      "maxItems": 24,
+      "items": {
+        "$ref": "../../copilot-human-command-decision/1.0.0/schema.json#/properties/command"
+      }
+    },
+    "output": {
+      "$ref": "../../copilot-working-plan/1.0.0/schema.json"
+    },
+    "output_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "error": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4000
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "state": {
+            "const": "completed"
+          }
+        }
+      },
+      "then": {
+        "required": ["output", "output_hash"],
+        "properties": {
+          "output": {
+            "$ref": "../../copilot-working-plan/1.0.0/schema.json"
+          },
+          "output_hash": {
+            "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+          },
+          "error": false
+        }
+      },
+      "else": {
+        "properties": {
+          "output": false,
+          "output_hash": false
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "state": {
+            "const": "failed"
+          }
+        }
+      },
+      "then": {
+        "required": ["error"],
+        "properties": {
+          "error": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "error": false
+        }
+      }
+    }
+  ]
+}

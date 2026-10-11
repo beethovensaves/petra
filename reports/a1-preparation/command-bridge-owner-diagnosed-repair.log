@@ -1,0 +1,26 @@
+Fresh isolated PostgreSQL applied and validated all 68 migrations.
+
+> @petra/postgres@0.0.0 test
+> vitest run --config vitest.config.ts copilot-command-proposal-repository.test.ts --testNamePattern .* --reporter=verbose
+
+
+ RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/packages/postgres
+
+ ✓ test/copilot-command-proposal-repository.test.ts > PostgreSQL canonical command proposal activities > retains typed proposal Artifacts and real canonical Work Run and origin turn without executing a command 2893ms
+ ✓ test/copilot-command-proposal-repository.test.ts > PostgreSQL canonical command proposal activities > retains a human acceptance before the real ordinary Work command and restores the exact receipt after restart and direct replay 5445ms
+ ✓ test/copilot-command-proposal-repository.test.ts > PostgreSQL canonical command proposal activities > retains rejection without command authority and rejects immutable decision replacement and foreign reads 3629ms
+ ✓ test/copilot-command-proposal-repository.test.ts > PostgreSQL canonical command proposal activities > records model validation failure as failed canonical Work and cannot attach partial arbitrary output 1040ms
+ ✓ test/copilot-command-proposal-repository.test.ts > PostgreSQL canonical command proposal activities > rejects stale native revisions before an acceptance or command claim 1714ms
+ ✓ test/copilot-command-proposal-repository.test.ts > PostgreSQL canonical command proposal activities > critical: concurrent proposal requests invoke the role once and concurrent decisions produce one real ordinary effect 7268ms
+ ✓ test/copilot-command-proposal-repository.test.ts > PostgreSQL canonical command proposal activities > critical: the durable owner rejects rehashed foreign context and fabricated native definition identity before starting Work 616ms
+ ✓ test/copilot-command-proposal-repository.test.ts > PostgreSQL canonical command proposal activities > critical: a schema-valid rehashed foreign receipt cannot replace the observed command outcome 4333ms
+ ✓ test/copilot-command-proposal-repository.test.ts > PostgreSQL canonical command proposal activities > critical: restart recovers expired proposal delivery and rejects a late successful replacement 1953ms
+ ✓ test/copilot-command-proposal-repository.test.ts > PostgreSQL canonical command proposal activities > critical: direct owner calls cannot substitute the selected command or complete ordinary body 3186ms
+ ✓ test/copilot-command-proposal-repository.test.ts > PostgreSQL canonical command proposal activities > critical: restart exposes a claimed but unobserved command without executing it again 4211ms
+
+ Test Files  1 passed (1)
+      Tests  11 passed (11)
+   Start at  23:04:19
+   Duration  37.65s (transform 282ms, setup 0ms, import 1.29s, tests 36.29s, environment 0ms)
+
+

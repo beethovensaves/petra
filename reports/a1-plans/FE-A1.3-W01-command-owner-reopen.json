@@ -1,0 +1,4 @@
+{
+  "work_item": "FE-A1.3-W01",
+  "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it."
+}

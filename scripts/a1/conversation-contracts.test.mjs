@@ -18,6 +18,12 @@ test("FE-A1.3-W01-AC02 execution: the certified M1 question keeps its original g
 });
 test("FE-A1.3-W01-AC03 execution: role output grounding budgets and eligibility remain explicit", () => {
   runVitest(
+    "@petra/contracts",
+    ["copilot-human-command-decision.test.ts"],
+    "execution:",
+    2,
+  );
+  runVitest(
     "@petra/core",
     ["project-copilot.test.ts"],
     "binds empty native Project context|allows exact admitted excerpts",

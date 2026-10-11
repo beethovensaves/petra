@@ -1,0 +1,61 @@
+{
+  "schema_name": "petra.copilot-human-command-decision",
+  "schema_version": "1.0.0",
+  "decision_id": "decision_79Y7B7656XE51D633FZB1BE2DM",
+  "proposal_id": "proposal_76VRJNXZ3JA2BJ257WK50TP8PT",
+  "proposal_output_hash": "sha256:4f1e1129dadbb935973bb2c33c3d112750d792877e65783e323249b3cbe1eb7b",
+  "preview_key": "work.start:command_01K6P000000000000000000701",
+  "preview_hash": "sha256:19317157c7d44f1fb09f22025b943921a490782e5802442855e33a931aca45cb",
+  "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+  "decision": "accept",
+  "decided_at": "2026-10-11T02:30:00.000Z",
+  "command": {
+    "preview": {
+      "key": "work.start:command_01K6P000000000000000000701",
+      "kind": "command",
+      "operation_id": "work.start",
+      "project_id": "project_01ARZ3NDEKTSV4RRFFQ69G5FAW",
+      "context_hash": "sha256:867debe995157e7066b8ea2709d03cbda42b08e2846a4db55dba1ec7ab6705bc",
+      "contract": {
+        "name": "project-work-operation-request",
+        "version": "1.0.0",
+        "hash": "sha256:b0364e9458c0cf08ec28a729a8e88e3c066ca5c970d8fd65eaf5f0c791cdcb7d"
+      },
+      "payload": {
+        "schema_name": "petra.project-work-operation-request",
+        "schema_version": "1.0.0",
+        "command_id": "command_01K6P000000000000000000701",
+        "idempotency_key": "wave6:work:start:001",
+        "operation": "start",
+        "expected_work_unit_ref": {
+          "work_unit_id": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+          "revision": 1,
+          "spec_hash": "sha256:2e6c6536312fead0c9abc2d902035ba1c41b9e4a5fb6835f7666101940a6a737"
+        },
+        "submitted_at": "2026-09-19T12:00:00.000Z"
+      },
+      "editable_paths": [],
+      "preview_hash": "sha256:19317157c7d44f1fb09f22025b943921a490782e5802442855e33a931aca45cb"
+    },
+    "ordinary_command": {
+      "operation_id": "work.start",
+      "command_name": "ManageProjectWork",
+      "method": "POST",
+      "path": "/api/commands/projects/project_01ARZ3NDEKTSV4RRFFQ69G5FAW/work/work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+      "requires_human_decision": true
+    }
+  },
+  "request": {
+    "schema_name": "petra.project-work-operation-request",
+    "schema_version": "1.0.0",
+    "command_id": "command_01K6P000000000000000000701",
+    "idempotency_key": "wave6:work:start:001",
+    "operation": "start",
+    "expected_work_unit_ref": {
+      "work_unit_id": "work_unit_01ARZ3NDEKTSV4RRFFQ69G5FC2",
+      "revision": 1,
+      "spec_hash": "sha256:2e6c6536312fead0c9abc2d902035ba1c41b9e4a5fb6835f7666101940a6a737"
+    },
+    "submitted_at": "2026-09-19T12:00:00.000Z"
+  }
+}

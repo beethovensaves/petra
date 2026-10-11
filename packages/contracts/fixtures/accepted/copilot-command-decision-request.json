@@ -1,0 +1,10 @@
+{
+  "schema_name": "petra.copilot-command-decision-request",
+  "schema_version": "1.0.0",
+  "decision_id": "decision_79Y7B7656XE51D633FZB1BE2DM",
+  "proposal_id": "proposal_76VRJNXZ3JA2BJ257WK50TP8PT",
+  "proposal_output_hash": "sha256:4f1e1129dadbb935973bb2c33c3d112750d792877e65783e323249b3cbe1eb7b",
+  "preview_key": "work.start:command_01K6P000000000000000000701",
+  "preview_hash": "sha256:19317157c7d44f1fb09f22025b943921a490782e5802442855e33a931aca45cb",
+  "decision": "accept"
+}

@@ -1,0 +1,9 @@
+
+ RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/packages/contracts
+
+
+ Test Files  2 passed (2)
+      Tests  671 passed (671)
+   Start at  23:06:02
+   Duration  1.06s (transform 30ms, setup 0ms, import 194ms, tests 1.05s, environment 0ms)
+

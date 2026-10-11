@@ -5,6 +5,7 @@ import type { PetraProjectThreadView } from "./generated/project-thread-view.js"
 import type { PetraWorkerOutputManifestV11 } from "./generated/worker-output-manifest-v1-1.js";
 import type { PetraWorkerOutputManifest } from "./generated/worker-output-manifest.js";
 export type { PetraActor } from "./generated/actor.js";
+export type { PetraCopilotHumanCommandDecision } from "./generated/copilot-human-command-decision.js";
 export type { PetraScientificCommunicationPayload } from "./generated/scientific-communication-payload.js";
 export type {
   ActorRef as CapabilityGrantActorRef,
@@ -1799,3 +1800,9 @@ export type {
   ConversationAuthorityProposal,
 } from "./generated/copilot-authority-request.js";
 export type { PetraCopilotAuthorityReceipt } from "./generated/copilot-authority-receipt.js";
+
+export type { PetraCopilotCommandProposalRequest } from "./generated/copilot-command-proposal-request.js";
+
+export type { PetraCopilotCommandDecisionRequest } from "./generated/copilot-command-decision-request.js";
+
+export type { PetraCopilotCommandActivity } from "./generated/copilot-command-activity.js";
