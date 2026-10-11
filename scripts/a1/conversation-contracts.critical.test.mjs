@@ -22,6 +22,12 @@ test("FE-A1.3-W01-AC02 critical: editing the fixed synthesis question cannot bor
 });
 test("FE-A1.3-W01-AC03 critical: tool activity model substitution and invented source wording fail", () => {
   runVitest(
+    "@petra/contracts",
+    ["copilot-human-command-decision.test.ts"],
+    "critical:",
+    3,
+  );
+  runVitest(
     "@petra/server",
     ["project-copilot-eligibility.test.ts"],
     "withholds a changed deployed copilot",

@@ -1,0 +1,9 @@
+
+ RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/packages/core
+
+
+ Test Files  2 passed (2)
+      Tests  14 passed (14)
+   Start at  23:47:39
+   Duration  4.49s (transform 34ms, setup 0ms, import 198ms, tests 4.17s, environment 0ms)
+

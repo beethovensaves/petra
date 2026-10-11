@@ -30,10 +30,10 @@ export function ownedPostgres() {
     run(["up", "--detach", "--wait", "postgres"]);
     const migration = run(["run", "--rm", "migrations", "migrate"]),
       validation = run(["run", "--rm", "migrations", "validate"]);
-    assert.match(migration, /version v067/u);
-    assert.match(validation, /Successfully validated 67 migrations/u);
+    assert.match(migration, /version v068/u);
+    assert.match(validation, /Successfully validated 68 migrations/u);
     console.log(
-      "Fresh isolated PostgreSQL applied and validated all 67 migrations.",
+      "Fresh isolated PostgreSQL applied and validated all 68 migrations.",
     );
     const port = run(["port", "postgres", "5432"]).match(/:(\d+)\s*$/u)?.[1];
     assert(port);

@@ -1,0 +1,27 @@
+
+ RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/packages/core
+
+ ❯ test/copilot-command-bridge.test.ts (11 tests | 1 failed) 32647ms
+     × denies changed native basis and revoked ordinary authority before retaining an acceptance 28975ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/copilot-command-bridge.test.ts > copilot command bridge construction > denies changed native basis and revoked ordinary authority before retaining an acceptance
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ test/copilot-command-bridge.test.ts:298:3
+    296|     expect(h.ports.revalidate).not.toHaveBeenCalled();
+    297|   });
+    298|   it("denies changed native basis and revoked ordinary authority befor…
+       |   ^
+    299|     const h = harness();
+    300|     await h.propose();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  1 failed | 13 passed (14)
+   Start at  23:06:24
+   Duration  32.83s (transform 55ms, setup 0ms, import 236ms, tests 33.18s, environment 0ms)
+

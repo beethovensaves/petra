@@ -30,7 +30,26 @@
     "packages/contracts/schemas/copilot-turn/1.1.0/schema.json",
     "packages/contracts/schemas/intake-copilot-context/1.0.0/schema.json",
     "packages/contracts/schemas/intake-copilot-request/1.0.0/schema.json",
-    "packages/contracts/schemas/intake-copilot-turn/1.0.0/schema.json"
+    "packages/contracts/schemas/intake-copilot-turn/1.0.0/schema.json",
+    "packages/contracts/schemas/copilot-human-command-decision/1.0.0/schema.json",
+    "packages/contracts/src/generated/copilot-human-command-decision.ts",
+    "packages/contracts/registry.json",
+    "packages/contracts/fixtures/manifest.json",
+    "packages/contracts/fixtures/accepted/copilot-human-command-decision.json",
+    "packages/contracts/fixtures/rejected/copilot-human-command-decision.json",
+    "packages/contracts/test/copilot-human-command-decision.test.ts",
+    "packages/contracts/schemas/copilot-command-proposal-request/1.0.0/schema.json",
+    "packages/contracts/src/generated/copilot-command-proposal-request.ts",
+    "packages/contracts/fixtures/accepted/copilot-command-proposal-request.json",
+    "packages/contracts/fixtures/rejected/copilot-command-proposal-request.json",
+    "packages/contracts/schemas/copilot-command-decision-request/1.0.0/schema.json",
+    "packages/contracts/src/generated/copilot-command-decision-request.ts",
+    "packages/contracts/fixtures/accepted/copilot-command-decision-request.json",
+    "packages/contracts/fixtures/rejected/copilot-command-decision-request.json",
+    "packages/contracts/schemas/copilot-command-activity/1.0.0/schema.json",
+    "packages/contracts/src/generated/copilot-command-activity.ts",
+    "packages/contracts/fixtures/accepted/copilot-command-activity.json",
+    "packages/contracts/fixtures/rejected/copilot-command-activity.json"
   ],
   "criteria": [
     {
@@ -49,10 +68,10 @@
       "id": "FE-A1.3-W01-AC03",
       "result": "passed",
       "test": "FE-A1.3-W01-AC03 critical: tool activity model substitution and invented source wording fail",
-      "observation": "Changed deployed core bytes withhold readiness before provider access or repository recovery; prohibited tools, model substitution, uncited reports and invented authority are rejected."
+      "observation": "Changed deployed core bytes withhold readiness before provider access or repository recovery; prohibited tools, model substitution, uncited reports and invented authority are rejected. Partial ordinary bodies, editable command arguments, arbitrary tools and fabricated approval/receipt fields are rejected by the registered human decision contract. Typed activity transport preserves native origin/Work/Run identities and refuses Actor overrides or completed output under failed delivery."
     }
   ],
-  "boundary": "Conversation contract and runtime boundary verification, using controlled repository/provider ports and a real local HTTP M1 route. Actual managed-model eligibility is separately required by FE-A1.3-W02; canonical Thread/Run integration, action proposals, native examiners and connected cycles remain open.",
+  "boundary": "Conversation and explicit human-decision contract boundary checks. Actual model eligibility, canonical proposal ownership, ordinary command effects, visible chat and Workspace convergence require their separate prerequisite and command-bridge items.",
   "review": {
     "perspective": "Attempt cross-Project retention and model invocation, fixed-role authority borrowing, deployment drift, prohibited tools and fabricated evidence rather than repeat the successful conversation.",
     "challenges": [
@@ -69,7 +88,7 @@
       {
         "criterion": "FE-A1.3-W01-AC03",
         "question": "FE-A1.3-W01-AC03 critical: tool activity model substitution and invented source wording fail",
-        "result": "Changed deployed core bytes withhold readiness before provider access or repository recovery; prohibited tools, model substitution, uncited reports and invented authority are rejected."
+        "result": "Changed deployed core bytes withhold readiness before provider access or repository recovery; prohibited tools, model substitution, uncited reports and invented authority are rejected. Partial ordinary bodies, editable command arguments, arbitrary tools and fabricated approval/receipt fields are rejected by the registered human decision contract. Typed activity transport preserves native origin/Work/Run identities and refuses Actor overrides or completed output under failed delivery."
       }
     ],
     "findings": [

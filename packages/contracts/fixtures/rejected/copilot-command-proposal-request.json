@@ -1,0 +1,8 @@
+{
+  "schema_name": "petra.copilot-command-proposal-request",
+  "schema_version": "1.0.0",
+  "proposal_id": "proposal_76VRJNXZ3JA2BJ257WK50TP8PT",
+  "origin_run_id": "retained-exact-run",
+  "expected_context_hash": "sha256:867debe995157e7066b8ea2709d03cbda42b08e2846a4db55dba1ec7ab6705bc",
+  "actor_override": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV"
+}

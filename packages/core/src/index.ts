@@ -113,3 +113,6 @@ export * from "./copilot-working-plan.js";
 export * from "./conversation-authority.js";
 
 export * from "./conversation-permission.js";
+export * from "./copilot-command-preview.js";
+export * from "./copilot-command-receipt.js";
+export * from "./copilot-command-bridge.js";

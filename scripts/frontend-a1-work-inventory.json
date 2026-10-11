@@ -627,7 +627,7 @@
       "milestone": "FE-A1.1",
       "title": "Rebuild the copilot and workspace hierarchy",
       "owner": "frontend",
-      "status": "complete",
+      "status": "planned",
       "implementation": "Build the persistent 30/70 desktop shell around a compact Project/objective header, continuous user/assistant thread, contextual progress/interventions, usable composer, and active Workspace result. Sequence: move Workspace destinations and inspection into Workspace chrome; reserve chat and composer space while bounding expandable support; reflect the opened answer or evidence in the Workspace heading and activate narrow Workspace presentation; verify ordinary desktop geometry and actual retained Q/A/draft continuity; critically challenge short/narrow viewports, expanded disclosures, keyboard activation and native return. After AG-UI integration, revalidate the whole hierarchy and keep long answer headings from shrinking the native return control into a vertical column.",
       "acceptance": [
         "At ordinary desktop widths both the conversation and result remain legible.",
@@ -654,22 +654,11 @@
         "reports/a1-passes/FE-A1.1-W01-execution-1791681282679.json",
         "reports/a1-passes/FE-A1.1-W01-critical-1791681337814.json",
         "reports/a1-passes/FE-A1.1-W01-execution-1791683734054.json",
-        "reports/a1-passes/FE-A1.1-W01-critical-1791683746756.json"
+        "reports/a1-passes/FE-A1.1-W01-critical-1791683746756.json",
+        "reports/a1-passes/FE-A1.1-W01-execution-1791684120131.json",
+        "reports/a1-passes/FE-A1.1-W01-critical-1791684133038.json"
       ],
-      "completion_evidence": [
-        {
-          "pass": "execution",
-          "artifact": "reports/a1-passes/FE-A1.1-W01-execution-1791684120131.json",
-          "command": "node --test --test-reporter=tap scripts/a1/copilot-hierarchy.test.mjs",
-          "boundary": "Live production layout, retained actual managed-model Q/A, navigation, composer, disclosure and Workspace presentation only. No new model invocation, proposal command, native examiner, cycle or overall A1 acceptance is inferred."
-        },
-        {
-          "pass": "critical",
-          "artifact": "reports/a1-passes/FE-A1.1-W01-critical-1791684133038.json",
-          "command": "node --test --test-reporter=tap scripts/a1/copilot-hierarchy.critical.test.mjs",
-          "boundary": "Live production layout, retained actual managed-model Q/A, navigation, composer, disclosure and Workspace presentation only. No new model invocation, proposal command, native examiner, cycle or overall A1 acceptance is inferred."
-        }
-      ],
+      "completion_evidence": [],
       "optional_scenarios": [
         "A1-S14"
       ],
@@ -698,6 +687,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.939Z"
         }
       ],
       "verification_plans": {
@@ -913,6 +907,18 @@
           "artifact": "reports/a1-passes/FE-A1.1-W01-critical-1791683746756.json",
           "command": "node --test --test-reporter=tap scripts/a1/copilot-hierarchy.critical.test.mjs",
           "boundary": "Live production layout, retained actual managed-model Q/A, navigation, composer, disclosure and Workspace presentation only. No new model invocation, proposal command, native examiner, cycle or overall A1 acceptance is inferred."
+        },
+        {
+          "pass": "execution",
+          "artifact": "reports/a1-passes/FE-A1.1-W01-execution-1791684120131.json",
+          "command": "node --test --test-reporter=tap scripts/a1/copilot-hierarchy.test.mjs",
+          "boundary": "Live production layout, retained actual managed-model Q/A, navigation, composer, disclosure and Workspace presentation only. No new model invocation, proposal command, native examiner, cycle or overall A1 acceptance is inferred."
+        },
+        {
+          "pass": "critical",
+          "artifact": "reports/a1-passes/FE-A1.1-W01-critical-1791684133038.json",
+          "command": "node --test --test-reporter=tap scripts/a1/copilot-hierarchy.critical.test.mjs",
+          "boundary": "Live production layout, retained actual managed-model Q/A, navigation, composer, disclosure and Workspace presentation only. No new model invocation, proposal command, native examiner, cycle or overall A1 acceptance is inferred."
         }
       ]
     },
@@ -973,6 +979,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
         }
       ]
     },
@@ -1030,6 +1041,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
         }
       ]
     },
@@ -1089,6 +1105,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
         }
       ]
     },
@@ -1146,6 +1167,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
         }
       ]
     },
@@ -1204,6 +1230,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
         }
       ]
     },
@@ -1261,6 +1292,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
         }
       ]
     },
@@ -1269,7 +1305,7 @@
       "milestone": "FE-A1.2",
       "title": "Retain outcome-first definition drafting",
       "owner": "runtime",
-      "status": "complete",
+      "status": "planned",
       "implementation": "Keep the server-owned definition draft preserving original wording, Project kernel, proposed objective, outputs, assumptions, capabilities, and unsupported behavior; examples remain optional.",
       "acceptance": [
         "Scientific, controlled-writing, and unrelated outcomes use the same entry.",
@@ -1290,22 +1326,11 @@
       "retained_evidence": [
         "reports/FRONTEND-STEP3-AGNOSTIC-PROJECT-CREATION.json",
         "reports/a1-passes/FE-A1.2-W01-execution-1791679529391.json",
-        "reports/a1-passes/FE-A1.2-W01-critical-1791679570413.json"
+        "reports/a1-passes/FE-A1.2-W01-critical-1791679570413.json",
+        "reports/a1-passes/FE-A1.2-W01-execution-1791681414148.json",
+        "reports/a1-passes/FE-A1.2-W01-critical-1791681529436.json"
       ],
-      "completion_evidence": [
-        {
-          "pass": "execution",
-          "artifact": "reports/a1-passes/FE-A1.2-W01-execution-1791681414148.json",
-          "command": "node --test --test-reporter=tap scripts/a1/outcome-drafting.test.mjs",
-          "boundary": "Existing outcome-first draft construction and its exact authority are being verified. Live browser uses one ordinary pre-Project session and three retained draft revisions, with no model invocation or accepted Project creation against inspection data. Isolated PostgreSQL proves real creation/atomicity and rejection. This does not close definition composition, intake model functions, native examiner execution or overall A1."
-        },
-        {
-          "pass": "critical",
-          "artifact": "reports/a1-passes/FE-A1.2-W01-critical-1791681529436.json",
-          "command": "node --test --test-reporter=tap scripts/a1/outcome-drafting.critical.test.mjs",
-          "boundary": "Existing outcome-first draft construction and its exact authority are being verified. Live browser uses one ordinary pre-Project session and three retained draft revisions, with no model invocation or accepted Project creation against inspection data. Isolated PostgreSQL proves real creation/atomicity and rejection. This does not close definition composition, intake model functions, native examiner execution or overall A1."
-        }
-      ],
+      "completion_evidence": [],
       "optional_scenarios": [
         "A1-S01",
         "A1-S04"
@@ -1327,6 +1352,18 @@
           "artifact": "reports/a1-passes/FE-A1.2-W01-critical-1791679570413.json",
           "command": "node --test --test-reporter=tap scripts/a1/outcome-drafting.critical.test.mjs",
           "boundary": "Existing outcome-first draft construction and its exact authority are being verified. Live browser uses one ordinary pre-Project session and three retained draft revisions, with no model invocation or accepted Project creation against inspection data. Isolated PostgreSQL proves real creation/atomicity and rejection. This does not close definition composition, intake model functions, native examiner execution or overall A1."
+        },
+        {
+          "pass": "execution",
+          "artifact": "reports/a1-passes/FE-A1.2-W01-execution-1791681414148.json",
+          "command": "node --test --test-reporter=tap scripts/a1/outcome-drafting.test.mjs",
+          "boundary": "Existing outcome-first draft construction and its exact authority are being verified. Live browser uses one ordinary pre-Project session and three retained draft revisions, with no model invocation or accepted Project creation against inspection data. Isolated PostgreSQL proves real creation/atomicity and rejection. This does not close definition composition, intake model functions, native examiner execution or overall A1."
+        },
+        {
+          "pass": "critical",
+          "artifact": "reports/a1-passes/FE-A1.2-W01-critical-1791681529436.json",
+          "command": "node --test --test-reporter=tap scripts/a1/outcome-drafting.critical.test.mjs",
+          "boundary": "Existing outcome-first draft construction and its exact authority are being verified. Live browser uses one ordinary pre-Project session and three retained draft revisions, with no model invocation or accepted Project creation against inspection data. Isolated PostgreSQL proves real creation/atomicity and rejection. This does not close definition composition, intake model functions, native examiner execution or overall A1."
         }
       ],
       "reopenings": [
@@ -1339,6 +1376,11 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.661Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.058Z"
         }
       ],
       "verification_plans": {
@@ -1472,6 +1514,11 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -1523,6 +1570,11 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -1566,6 +1618,16 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -1661,6 +1723,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -1719,6 +1791,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -1727,7 +1809,7 @@
       "milestone": "FE-A1.2",
       "title": "Compose definitions and revisions across Project types",
       "owner": "runtime",
-      "status": "complete",
+      "status": "planned",
       "implementation": "Resolve registered object/relationship descriptors, inquiry roles, examiners, language rules, validators, outputs, and place capabilities from the exact ProjectDefinition; semantic revisions follow D018.",
       "acceptance": [
         "The same shell can load different domain components without scientific conditionals.",
@@ -1751,22 +1833,11 @@
         "reports/a1-passes/FE-A1.2-W07-execution-1791681705286.json",
         "reports/a1-passes/FE-A1.2-W07-critical-1791681950358.json",
         "reports/a1-passes/FE-A1.2-W07-execution-1791684183544.json",
-        "reports/a1-passes/FE-A1.2-W07-critical-1791684214939.json"
+        "reports/a1-passes/FE-A1.2-W07-critical-1791684214939.json",
+        "reports/a1-passes/FE-A1.2-W07-execution-1791684943733.json",
+        "reports/a1-passes/FE-A1.2-W07-critical-1791684975453.json"
       ],
-      "completion_evidence": [
-        {
-          "pass": "execution",
-          "artifact": "reports/a1-passes/FE-A1.2-W07-execution-1791684943733.json",
-          "command": "node --test --test-reporter=tap scripts/a1/definition-components.test.mjs",
-          "boundary": "Exact immutable definition reads and generic component negotiation across declared domain registrations. Schema admission is separate from an installed examiner or executor; unavailable capability does not invalidate a valid Project. Existing immutable history owners preserve the original basis. This does not certify missing native writing interpretation/third-type examiners, new model roles, proposed commands, or overall A1."
-        },
-        {
-          "pass": "critical",
-          "artifact": "reports/a1-passes/FE-A1.2-W07-critical-1791684975453.json",
-          "command": "node --test --test-reporter=tap scripts/a1/definition-components.critical.test.mjs",
-          "boundary": "Exact immutable definition reads and generic component negotiation across declared domain registrations. Schema admission is separate from an installed examiner or executor; unavailable capability does not invalidate a valid Project. Existing immutable history owners preserve the original basis. This does not certify missing native writing interpretation/third-type examiners, new model roles, proposed commands, or overall A1."
-        }
-      ],
+      "completion_evidence": [],
       "optional_scenarios": [
         "A1-S03",
         "A1-S04",
@@ -1807,6 +1878,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ],
       "execution_history": [
@@ -1918,6 +1999,18 @@
           "artifact": "reports/a1-passes/FE-A1.2-W07-critical-1791684214939.json",
           "command": "node --test --test-reporter=tap scripts/a1/definition-components.critical.test.mjs",
           "boundary": "Exact immutable definition reads and generic component negotiation across declared domain registrations. Schema admission is separate from an installed examiner or executor; unavailable capability does not invalidate a valid Project. Existing immutable history owners preserve the original basis. This does not certify missing native writing interpretation/third-type examiners, new model roles, proposed commands, or overall A1."
+        },
+        {
+          "pass": "execution",
+          "artifact": "reports/a1-passes/FE-A1.2-W07-execution-1791684943733.json",
+          "command": "node --test --test-reporter=tap scripts/a1/definition-components.test.mjs",
+          "boundary": "Exact immutable definition reads and generic component negotiation across declared domain registrations. Schema admission is separate from an installed examiner or executor; unavailable capability does not invalidate a valid Project. Existing immutable history owners preserve the original basis. This does not certify missing native writing interpretation/third-type examiners, new model roles, proposed commands, or overall A1."
+        },
+        {
+          "pass": "critical",
+          "artifact": "reports/a1-passes/FE-A1.2-W07-critical-1791684975453.json",
+          "command": "node --test --test-reporter=tap scripts/a1/definition-components.critical.test.mjs",
+          "boundary": "Exact immutable definition reads and generic component negotiation across declared domain registrations. Schema admission is separate from an installed examiner or executor; unavailable capability does not invalidate a valid Project. Existing immutable history owners preserve the original basis. This does not certify missing native writing interpretation/third-type examiners, new model roles, proposed commands, or overall A1."
         }
       ]
     },
@@ -1926,8 +2019,8 @@
       "milestone": "FE-A1.3",
       "title": "Register genuine conversational interaction contracts",
       "owner": "runtime",
-      "status": "complete",
-      "implementation": "Add versioned intake, Project evidence-question, follow-up, and scene-explanation interaction contracts with bounded inputs, response schemas, speech acts, policy, and validated references; preserve the fixed M1 synthesist contract.",
+      "status": "in_progress",
+      "implementation": "Add versioned intake, Project evidence-question, follow-up, and scene-explanation interaction contracts with bounded inputs, response schemas, speech acts, policy, and validated references; preserve the fixed M1 synthesist contract. Register the immutable typed human command-decision contract over complete existing native request schemas; it cannot grant capability, approve domain truth, or substitute for the ordinary command owner.",
       "acceptance": [
         "Ordinary questions and follow-ups execute through registered runtime owners.",
         "Editing the fixed certified question cannot bypass its guard.",
@@ -1947,22 +2040,11 @@
         "UX-REQ-021"
       ],
       "retained_evidence": [
-        "reports/FE-A1-CONSTRUCTION-CHECKS.json"
+        "reports/FE-A1-CONSTRUCTION-CHECKS.json",
+        "reports/a1-passes/FE-A1.3-W01-execution-1791664110538.json",
+        "reports/a1-passes/FE-A1.3-W01-critical-1791664123560.json"
       ],
-      "completion_evidence": [
-        {
-          "pass": "execution",
-          "artifact": "reports/a1-passes/FE-A1.3-W01-execution-1791664110538.json",
-          "command": "node --test --test-reporter=tap scripts/a1/conversation-contracts.test.mjs",
-          "boundary": "Conversation contract and runtime boundary verification, using controlled repository/provider ports and a real local HTTP M1 route. Actual managed-model eligibility is separately required by FE-A1.3-W02; canonical Thread/Run integration, action proposals, native examiners and connected cycles remain open."
-        },
-        {
-          "pass": "critical",
-          "artifact": "reports/a1-passes/FE-A1.3-W01-critical-1791664123560.json",
-          "command": "node --test --test-reporter=tap scripts/a1/conversation-contracts.critical.test.mjs",
-          "boundary": "Conversation contract and runtime boundary verification, using controlled repository/provider ports and a real local HTTP M1 route. Actual managed-model eligibility is separately required by FE-A1.3-W02; canonical Thread/Run integration, action proposals, native examiners and connected cycles remain open."
-        }
-      ],
+      "completion_evidence": [],
       "optional_scenarios": [
         "A1-S01",
         "A1-S02",
@@ -1974,6 +2056,11 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
         }
       ],
       "verification_plans": {
@@ -2002,6 +2089,20 @@
           ],
           "finished_at": "2026-10-10T20:29:03.137Z"
         }
+      ],
+      "historical_completion_evidence": [
+        {
+          "pass": "execution",
+          "artifact": "reports/a1-passes/FE-A1.3-W01-execution-1791664110538.json",
+          "command": "node --test --test-reporter=tap scripts/a1/conversation-contracts.test.mjs",
+          "boundary": "Conversation contract and runtime boundary verification, using controlled repository/provider ports and a real local HTTP M1 route. Actual managed-model eligibility is separately required by FE-A1.3-W02; canonical Thread/Run integration, action proposals, native examiners and connected cycles remain open."
+        },
+        {
+          "pass": "critical",
+          "artifact": "reports/a1-passes/FE-A1.3-W01-critical-1791664123560.json",
+          "command": "node --test --test-reporter=tap scripts/a1/conversation-contracts.critical.test.mjs",
+          "boundary": "Conversation contract and runtime boundary verification, using controlled repository/provider ports and a real local HTTP M1 route. Actual managed-model eligibility is separately required by FE-A1.3-W02; canonical Thread/Run integration, action proposals, native examiners and connected cycles remain open."
+        }
       ]
     },
     {
@@ -2009,7 +2110,7 @@
       "milestone": "FE-A1.3",
       "title": "Establish eligible model routes for the new interactions",
       "owner": "runtime",
-      "status": "complete",
+      "status": "planned",
       "implementation": "Register and prove eligible provider/model/role routes for conversational questions, working structure, and explanations with exact prompt/schema/profile revisions, grounding, privacy/egress, cost, and fallback rules.",
       "acceptance": [
         "A real eligible model answers a normal question and follow-up in the application.",
@@ -2032,22 +2133,11 @@
         "reports/FE-A1-CONSTRUCTION-CHECKS.json",
         "reports/a1-history/2026-10-07-model-eligibility/manifest.json",
         "reports/a1-passes/FE-A1.3-W02-execution-1791665512698.json",
-        "reports/a1-passes/FE-A1.3-W02-critical-1791665549548.json"
+        "reports/a1-passes/FE-A1.3-W02-critical-1791665549548.json",
+        "reports/a1-passes/FE-A1.3-W02-execution-1791683152658.json",
+        "reports/a1-passes/FE-A1.3-W02-critical-1791683179542.json"
       ],
-      "completion_evidence": [
-        {
-          "pass": "execution",
-          "artifact": "reports/a1-passes/FE-A1.3-W02-execution-1791683152658.json",
-          "command": "node --test --test-reporter=tap scripts/a1/model-routes.test.mjs",
-          "boundary": "Actual managed QA question/follow-up through the live production browser and PostgreSQL, separate actual-model typed working-plan eligibility, and production unavailable-model recovery. Role-native proposal probes use committed synthetic records; canonical ProjectThread/InteractionRun, durable proposal decisions/commands, native examiners and connected cycles remain separate required A1 work and are not claimed complete."
-        },
-        {
-          "pass": "critical",
-          "artifact": "reports/a1-passes/FE-A1.3-W02-critical-1791683179542.json",
-          "command": "node --test --test-reporter=tap scripts/a1/model-routes.critical.test.mjs",
-          "boundary": "Actual managed QA question/follow-up through the live production browser and PostgreSQL, separate actual-model typed working-plan eligibility, and production unavailable-model recovery. Role-native proposal probes use committed synthetic records; canonical ProjectThread/InteractionRun, durable proposal decisions/commands, native examiners and connected cycles remain separate required A1 work and are not claimed complete."
-        }
-      ],
+      "completion_evidence": [],
       "optional_scenarios": [
         "A1-S02",
         "A1-S03",
@@ -2064,6 +2154,11 @@
           "prerequisite": "FE-A1.3-W02",
           "reason": "The synthetic model/browser guard must admit and validate the newly bounded exact definition, inquiry and Work metadata. Revalidate actual question/follow-up and unavailable-role behavior on the integrated context candidate.",
           "recorded_at": "2026-10-11T01:35:27.515Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
         }
       ],
       "verification_plans": {
@@ -2283,6 +2378,18 @@
           "artifact": "reports/a1-passes/FE-A1.3-W02-critical-1791665549548.json",
           "command": "node --test --test-reporter=tap scripts/a1/model-routes.critical.test.mjs",
           "boundary": "Actual managed QA question/follow-up through the live production browser and PostgreSQL, separate actual-model typed working-plan eligibility, and production unavailable-model recovery. Role-native proposal probes use committed synthetic records; canonical ProjectThread/InteractionRun, durable proposal decisions/commands, native examiners and connected cycles remain separate required A1 work and are not claimed complete."
+        },
+        {
+          "pass": "execution",
+          "artifact": "reports/a1-passes/FE-A1.3-W02-execution-1791683152658.json",
+          "command": "node --test --test-reporter=tap scripts/a1/model-routes.test.mjs",
+          "boundary": "Actual managed QA question/follow-up through the live production browser and PostgreSQL, separate actual-model typed working-plan eligibility, and production unavailable-model recovery. Role-native proposal probes use committed synthetic records; canonical ProjectThread/InteractionRun, durable proposal decisions/commands, native examiners and connected cycles remain separate required A1 work and are not claimed complete."
+        },
+        {
+          "pass": "critical",
+          "artifact": "reports/a1-passes/FE-A1.3-W02-critical-1791683179542.json",
+          "command": "node --test --test-reporter=tap scripts/a1/model-routes.critical.test.mjs",
+          "boundary": "Actual managed QA question/follow-up through the live production browser and PostgreSQL, separate actual-model typed working-plan eligibility, and production unavailable-model recovery. Role-native proposal probes use committed synthetic records; canonical ProjectThread/InteractionRun, durable proposal decisions/commands, native examiners and connected cycles remain separate required A1 work and are not claimed complete."
         }
       ]
     },
@@ -2291,8 +2398,8 @@
       "milestone": "FE-A1.3",
       "title": "Persist and read exact user and assistant turns",
       "owner": "runtime",
-      "status": "complete",
-      "implementation": "Sequence: (1) expose current model and permission readiness; (2) require an explicit reviewed owner-only RunProjectCopilot grant and immutable receipt before new conversation Work or historical adoption, preserving existing authorized Work management grants; (3) retain exact private question/native-context/result Artifacts and canonical Thread/Run/Work atomically; (4) resolve exact applicable inquiry, Work, Review and cycle lineage before release; (5) page original readable content and restore questions, answers, citations and outcomes in a fresh browser; (6) reject owner substitution, widened permission, stale proposals, late partial commits and duplicate effects in the distinct critical pass.",
+      "status": "planned",
+      "implementation": "Sequence: (1) expose current model and permission readiness; (2) require an explicit reviewed owner-only RunProjectCopilot grant and immutable receipt before new conversation Work or historical adoption, preserving existing authorized Work management grants; (3) retain exact private question/native-context/result Artifacts and canonical Thread/Run/Work atomically; (4) resolve exact applicable inquiry, Work, Review and cycle lineage before release; (5) page original readable content and restore questions, answers, citations and outcomes in a fresh browser; (6) reject owner substitution, widened permission, stale proposals, late partial commits and duplicate effects in the distinct critical pass. Retain working-plan proposal activities as exact private input/output Artifacts with their own bounded WorkUnit and InteractionRun, attached to the immutable canonical origin turn. Preserve typed proposal meaning and exact human decision/observed receipt lineage separately; never relabel proposals as advisory answers or fabricate domain approval.",
       "acceptance": [
         "A fresh browser restores actual question and answer content, citations, and outcomes.",
         "A thread metadata list is insufficient.",
@@ -2318,22 +2425,11 @@
         "reports/a1-passes/FE-A1.3-W03-execution-1791680978364.json",
         "reports/a1-passes/FE-A1.3-W03-critical-1791681035780.json",
         "reports/a1-passes/FE-A1.3-W03-execution-1791683584165.json",
-        "reports/a1-passes/FE-A1.3-W03-critical-1791683648878.json"
+        "reports/a1-passes/FE-A1.3-W03-critical-1791683648878.json",
+        "reports/a1-passes/FE-A1.3-W03-execution-1791683965472.json",
+        "reports/a1-passes/FE-A1.3-W03-critical-1791684034936.json"
       ],
-      "completion_evidence": [
-        {
-          "pass": "execution",
-          "artifact": "reports/a1-passes/FE-A1.3-W03-execution-1791683965472.json",
-          "command": "node --test --test-reporter=tap scripts/a1/owned-conversation.test.mjs",
-          "boundary": "Canonical ownership and retained readable advisory conversation only. Provider internal CPU, memory, network, tokens and price remain unavailable; unknown values never satisfy applicable hard limits. Historical adoption records actual import Work and preserves original bytes without reconstructing original execution authority. Proposal decisions/commands, progressive AG-UI activities/interrupts, native examiners, reactive Workspace graph cycles and A1 product acceptance remain open required ledger items."
-        },
-        {
-          "pass": "critical",
-          "artifact": "reports/a1-passes/FE-A1.3-W03-critical-1791684034936.json",
-          "command": "node --test --test-reporter=tap scripts/a1/owned-conversation.critical.test.mjs",
-          "boundary": "Canonical ownership and retained readable advisory conversation only. Provider internal CPU, memory, network, tokens and price remain unavailable; unknown values never satisfy applicable hard limits. Historical adoption records actual import Work and preserves original bytes without reconstructing original execution authority. Proposal decisions/commands, progressive AG-UI activities/interrupts, native examiners, reactive Workspace graph cycles and A1 product acceptance remain open required ledger items."
-        }
-      ],
+      "completion_evidence": [],
       "optional_scenarios": [
         "A1-S07",
         "A1-S09"
@@ -2358,6 +2454,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
         }
       ],
       "verification_plans": {
@@ -2858,6 +2959,18 @@
           "artifact": "reports/a1-passes/FE-A1.3-W03-critical-1791683648878.json",
           "command": "node --test --test-reporter=tap scripts/a1/owned-conversation.critical.test.mjs",
           "boundary": "Canonical ownership and retained readable advisory conversation only. Provider internal CPU, memory, network, tokens and price remain unavailable; unknown values never satisfy applicable hard limits. Historical adoption records actual import Work and preserves original bytes without reconstructing original execution authority. Proposal decisions/commands, progressive AG-UI activities/interrupts, native examiners, reactive Workspace graph cycles and A1 product acceptance remain open required ledger items."
+        },
+        {
+          "pass": "execution",
+          "artifact": "reports/a1-passes/FE-A1.3-W03-execution-1791683965472.json",
+          "command": "node --test --test-reporter=tap scripts/a1/owned-conversation.test.mjs",
+          "boundary": "Canonical ownership and retained readable advisory conversation only. Provider internal CPU, memory, network, tokens and price remain unavailable; unknown values never satisfy applicable hard limits. Historical adoption records actual import Work and preserves original bytes without reconstructing original execution authority. Proposal decisions/commands, progressive AG-UI activities/interrupts, native examiners, reactive Workspace graph cycles and A1 product acceptance remain open required ledger items."
+        },
+        {
+          "pass": "critical",
+          "artifact": "reports/a1-passes/FE-A1.3-W03-critical-1791684034936.json",
+          "command": "node --test --test-reporter=tap scripts/a1/owned-conversation.critical.test.mjs",
+          "boundary": "Canonical ownership and retained readable advisory conversation only. Provider internal CPU, memory, network, tokens and price remain unavailable; unknown values never satisfy applicable hard limits. Historical adoption records actual import Work and preserves original bytes without reconstructing original execution authority. Proposal decisions/commands, progressive AG-UI activities/interrupts, native examiners, reactive Workspace graph cycles and A1 product acceptance remain open required ledger items."
         }
       ]
     },
@@ -2866,7 +2979,7 @@
       "milestone": "FE-A1.3",
       "title": "Compile exact bounded context for every turn",
       "owner": "runtime",
-      "status": "complete",
+      "status": "planned",
       "implementation": "Compose Project definition, objective, inquiry, selected object revisions, graph query/scene references, sources, packets, Work/proposals, omissions, snapshot, privacy, and budget without inheriting ambient route state.",
       "acceptance": [
         "A follow-up explicitly binds prior turn and current or original basis.",
@@ -2890,22 +3003,11 @@
         "reports/FE-A1-CONSTRUCTION-CHECKS.json",
         "reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log",
         "reports/a1-passes/FE-A1.3-W04-execution-1791684264454.json",
-        "reports/a1-passes/FE-A1.3-W04-critical-1791684289531.json"
+        "reports/a1-passes/FE-A1.3-W04-critical-1791684289531.json",
+        "reports/a1-passes/FE-A1.3-W04-execution-1791685030732.json",
+        "reports/a1-passes/FE-A1.3-W04-critical-1791685054359.json"
       ],
-      "completion_evidence": [
-        {
-          "pass": "execution",
-          "artifact": "reports/a1-passes/FE-A1.3-W04-execution-1791685030732.json",
-          "command": "node --test --test-reporter=tap scripts/a1/exact-context.test.mjs",
-          "boundary": "Exact bounded advisory turn context only. Original-basis branching, action previews/commands, missing native examiners and connected graph cycles remain their own required A1 items. Work inputs/proposals/output and inquiry framing/source bytes are explicitly withheld on metadata paths; no fact, approval, examination, resolved inquiry or completed domain work is inferred."
-        },
-        {
-          "pass": "critical",
-          "artifact": "reports/a1-passes/FE-A1.3-W04-critical-1791685054359.json",
-          "command": "node --test --test-reporter=tap scripts/a1/exact-context.critical.test.mjs",
-          "boundary": "Exact bounded advisory turn context only. Original-basis branching, action previews/commands, missing native examiners and connected graph cycles remain their own required A1 items. Work inputs/proposals/output and inquiry framing/source bytes are explicitly withheld on metadata paths; no fact, approval, examination, resolved inquiry or completed domain work is inferred."
-        }
-      ],
+      "completion_evidence": [],
       "optional_scenarios": [
         "A1-S02",
         "A1-S07",
@@ -2951,6 +3053,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ],
       "execution_history": [
@@ -3021,6 +3133,18 @@
           "artifact": "reports/a1-passes/FE-A1.3-W04-critical-1791684289531.json",
           "command": "node --test --test-reporter=tap scripts/a1/exact-context.critical.test.mjs",
           "boundary": "Exact bounded advisory turn context only. Original-basis branching, action previews/commands, missing native examiners and connected graph cycles remain their own required A1 items. Work inputs/proposals/output and inquiry framing/source bytes are explicitly withheld on metadata paths; no fact, approval, examination, resolved inquiry or completed domain work is inferred."
+        },
+        {
+          "pass": "execution",
+          "artifact": "reports/a1-passes/FE-A1.3-W04-execution-1791685030732.json",
+          "command": "node --test --test-reporter=tap scripts/a1/exact-context.test.mjs",
+          "boundary": "Exact bounded advisory turn context only. Original-basis branching, action previews/commands, missing native examiners and connected graph cycles remain their own required A1 items. Work inputs/proposals/output and inquiry framing/source bytes are explicitly withheld on metadata paths; no fact, approval, examination, resolved inquiry or completed domain work is inferred."
+        },
+        {
+          "pass": "critical",
+          "artifact": "reports/a1-passes/FE-A1.3-W04-critical-1791685054359.json",
+          "command": "node --test --test-reporter=tap scripts/a1/exact-context.critical.test.mjs",
+          "boundary": "Exact bounded advisory turn context only. Original-basis branching, action previews/commands, missing native examiners and connected graph cycles remain their own required A1 items. Work inputs/proposals/output and inquiry framing/source bytes are explicitly withheld on metadata paths; no fact, approval, examination, resolved inquiry or completed domain work is inferred."
         }
       ]
     },
@@ -3029,7 +3153,7 @@
       "milestone": "FE-A1.3",
       "title": "Connect the official AG-UI stream to Petra view models",
       "owner": "runtime",
-      "status": "complete",
+      "status": "planned",
       "implementation": "Use pinned official SDK client/server adapters for run, text, activity, tool, state, interrupt, custom, and terminal events; translate them into typed conversation/Work/Workspace models. Sequence: define presentation-only view models and a closed versioned disclosure activity; preserve the existing canonical terminal encoder while adding retained block references; resolve each disclosed block through the exact actor-authorized retained owner read before exposing bytes; map registered Work, tool and interrupt events separately from advisory role authority; mount typed live activity in the actual copilot; verify live managed-model delivery, canonical Work links and independent hostile-event/version/scope/replay cases. Revalidate the hierarchy after integration changes its presentation.",
       "acceptance": [
         "The real conversation progressively renders validated state through the official client.",
@@ -3056,22 +3180,11 @@
         "reports/a1-passes/FE-A1.3-W05-execution-1791681143770.json",
         "reports/a1-passes/FE-A1.3-W05-critical-1791681205090.json",
         "reports/a1-passes/FE-A1.3-W05-execution-1791683691615.json",
-        "reports/a1-passes/FE-A1.3-W05-critical-1791683703592.json"
+        "reports/a1-passes/FE-A1.3-W05-critical-1791683703592.json",
+        "reports/a1-passes/FE-A1.3-W05-execution-1791684077519.json",
+        "reports/a1-passes/FE-A1.3-W05-critical-1791684089444.json"
       ],
-      "completion_evidence": [
-        {
-          "pass": "execution",
-          "artifact": "reports/a1-passes/FE-A1.3-W05-execution-1791684077519.json",
-          "command": "node --test --test-reporter=tap scripts/a1/progressive-copilot.test.mjs",
-          "boundary": "Typed presentation and official AG-UI transport only. Execution checks actual managed model and canonical ownership in the live browser; critical checks adverse events and actual same-identity replay/auth denial. Controlled owner ports test disclosure guards, not canonical persistence. Command mediation, native examiners, cyclic verification and overall A1 acceptance remain separate open requirements."
-        },
-        {
-          "pass": "critical",
-          "artifact": "reports/a1-passes/FE-A1.3-W05-critical-1791684089444.json",
-          "command": "node --test --test-reporter=tap scripts/a1/progressive-copilot.critical.test.mjs",
-          "boundary": "Typed presentation and official AG-UI transport only. Execution checks actual managed model and canonical ownership in the live browser; critical checks adverse events and actual same-identity replay/auth denial. Controlled owner ports test disclosure guards, not canonical persistence. Command mediation, native examiners, cyclic verification and overall A1 acceptance remain separate open requirements."
-        }
-      ],
+      "completion_evidence": [],
       "optional_scenarios": [
         "A1-S02",
         "A1-S06",
@@ -3102,6 +3215,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
         }
       ],
       "execution_history": [
@@ -3280,6 +3398,18 @@
           "artifact": "reports/a1-passes/FE-A1.3-W05-critical-1791683703592.json",
           "command": "node --test --test-reporter=tap scripts/a1/progressive-copilot.critical.test.mjs",
           "boundary": "Typed presentation and official AG-UI transport only. Execution checks actual managed model and canonical ownership in the live browser; critical checks adverse events and actual same-identity replay/auth denial. Controlled owner ports test disclosure guards, not canonical persistence. Command mediation, native examiners, cyclic verification and overall A1 acceptance remain separate open requirements."
+        },
+        {
+          "pass": "execution",
+          "artifact": "reports/a1-passes/FE-A1.3-W05-execution-1791684077519.json",
+          "command": "node --test --test-reporter=tap scripts/a1/progressive-copilot.test.mjs",
+          "boundary": "Typed presentation and official AG-UI transport only. Execution checks actual managed model and canonical ownership in the live browser; critical checks adverse events and actual same-identity replay/auth denial. Controlled owner ports test disclosure guards, not canonical persistence. Command mediation, native examiners, cyclic verification and overall A1 acceptance remain separate open requirements."
+        },
+        {
+          "pass": "critical",
+          "artifact": "reports/a1-passes/FE-A1.3-W05-critical-1791684089444.json",
+          "command": "node --test --test-reporter=tap scripts/a1/progressive-copilot.critical.test.mjs",
+          "boundary": "Typed presentation and official AG-UI transport only. Execution checks actual managed model and canonical ownership in the live browser; critical checks adverse events and actual same-identity replay/auth denial. Controlled owner ports test disclosure guards, not canonical persistence. Command mediation, native examiners, cyclic verification and overall A1 acceptance remain separate open requirements."
         }
       ]
     },
@@ -3355,6 +3485,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
         }
       ]
     },
@@ -3364,7 +3499,7 @@
       "title": "Mediate typed action proposals through one command path",
       "owner": "runtime",
       "status": "planned",
-      "implementation": "Resolve conversation proposals into existing registered SuggestedAction, Work, source, Review, and recovery previews; complete arguments must pass actor, capability, policy, revision, and idempotency checks.",
+      "implementation": "Sequence: (1) resolve the exact authorized canonical origin turn; (2) read eligible native SuggestedAction, Work/recovery, source-processing and Review checkpoints; (3) construct complete server-owned immutable previews and ordinary operation IDs; (4) invoke the existing separately eligible working-plan role and retain its actual proposed-only output through canonical Artifact/Work/Run owners; (5) show that exact preview in the conversation and require a separate explicit human accept/reject decision; (6) retain the immutable decision and serialize the command claim; (7) revalidate Actor, capability, policy and exact native revisions through the existing ordinary command owner, preserving its command ID and idempotency key; (8) validate and retain the observed native receipt, distinguish reconciliation-required outcomes, and expose its exact Workspace result; (9) prove restart/replay/concurrency, stale or malformed arguments, revoked rights, foreign receipts and proposal-without-decision cannot create another effect; (10) execute distinct functional and critical checks before contractual closure. Advisory prose, ready role metadata, pure preview helpers and route-local forms cannot close this item.",
       "acceptance": [
         "A recommendation does not execute itself.",
         "Direct and conversational invocation use identical operation IDs and exact command outcomes.",
@@ -3420,6 +3555,11 @@
           "prerequisite": "FE-A1.3-W07",
           "reason": "Suspend partial command-preview construction to fix and revalidate the completed definition-component test typing exposed by the full Core test check; preserve construction without claiming the command bridge complete.",
           "recorded_at": "2026-10-11T02:13:33.269Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
         }
       ],
       "execution_history": [
@@ -3466,6 +3606,50 @@
           "passes": [],
           "disposition": "reopened",
           "reason": "Suspend partial command-preview construction to fix and revalidate the completed definition-component test typing exposed by the full Core test check; preserve construction without claiming the command bridge complete."
+        },
+        {
+          "item": "FE-A1.3-W07",
+          "phase": "execution",
+          "failed_attempts": 0,
+          "started_at": "2026-10-11T02:21:29.484Z",
+          "failures": [
+            {
+              "reason": "Command-bridge preparation failed to parse a newly constructed test matrix: missing outer array bracket. No product or canonical owner invocation ran; repair the syntax and run focused tests before integration.",
+              "phase": "execution",
+              "recorded_at": "2026-10-11T02:28:06.910Z"
+            },
+            {
+              "reason": "The focused command bridge tests and full Core test type check passed, but new orchestration doubles failed scoped lint for async methods without awaits and unbound mock methods. This is the second unsuccessful preparation check; stop for broad diagnosis before further construction.",
+              "phase": "execution",
+              "recorded_at": "2026-10-11T02:29:16.297Z"
+            }
+          ],
+          "diagnoses": [
+            {
+              "contract": "The command bridge remains incomplete. Isolated orchestration tests must not close canonical proposal ownership, actual eligible model invocation, human decision retention, ordinary command authorization, observed receipts or visible Workspace convergence.",
+              "architecture": "The existing certified working-plan role can select complete native previews. Constructed orchestration keeps proposed effects separate from immutable human decisions and ordinary owners. Actual proposal Work and InteractionRun must attach to an exact existing ProjectThread turn; a private parallel conversation table or fabricated approval is not an acceptable shortcut.",
+              "dependencies": "Eleven focused preview, sequence, rejection, stale-basis, revocation, transport uncertainty and receipt checks pass, and full Core test typing passes. New source files are not yet exported or wired to product, so previously completed evidence remains unchanged. Adding production wiring will require one deliberate affected-source reopening and revalidation after the integrated construction is stable.",
+              "environment": "Node 24 and local Vitest ran normally. No model provider call, Project mutation, database migration or browser command was triggered. The failures are a malformed test matrix and synchronous test doubles declared async, plus mock methods used without a bound callback type.",
+              "verification": "The first preparation run failed before collecting tests because its outer matrix bracket was missing. The corrected eleven tests pass. Scoped lint then rejected the newly written doubles. These failures expose construction discipline defects: writing a large test block without a syntax check, and failing to reuse the established Promise-returning fixture convention.",
+              "changed_remedy": "Stop new owner construction until the new test doubles return explicit Promises and mock references are stable functions. Run syntax/format checks before test collection, then focused functional checks, full test typing and scoped lint. Preserve the failed checks and passing checks as preparation only. Next construct the durable owner and its native preview catalogue before exporting and wiring product files; revalidate affected prerequisites once against that stable integrated candidate instead of after each preparatory fragment.",
+              "failures": [
+                {
+                  "reason": "Command-bridge preparation failed to parse a newly constructed test matrix: missing outer array bracket. No product or canonical owner invocation ran; repair the syntax and run focused tests before integration.",
+                  "phase": "execution",
+                  "recorded_at": "2026-10-11T02:28:06.910Z"
+                },
+                {
+                  "reason": "The focused command bridge tests and full Core test type check passed, but new orchestration doubles failed scoped lint for async methods without awaits and unbound mock methods. This is the second unsuccessful preparation check; stop for broad diagnosis before further construction.",
+                  "phase": "execution",
+                  "recorded_at": "2026-10-11T02:29:16.297Z"
+                }
+              ],
+              "recorded_at": "2026-10-11T02:29:27.013Z"
+            }
+          ],
+          "passes": [],
+          "disposition": "reopened",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it."
         }
       ]
     },
@@ -3543,6 +3727,11 @@
           "prerequisite": "FE-A1.3-W07",
           "reason": "Suspend partial command-preview construction to fix and revalidate the completed definition-component test typing exposed by the full Core test check; preserve construction without claiming the command bridge complete.",
           "recorded_at": "2026-10-11T02:13:33.269Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
         }
       ]
     },
@@ -3616,6 +3805,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
         }
       ]
     },
@@ -3689,6 +3883,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
         }
       ]
     },
@@ -3752,6 +3951,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
         }
       ]
     },
@@ -3833,6 +4037,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -3904,6 +4118,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -3982,6 +4206,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -4058,6 +4292,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -4133,6 +4377,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -4225,6 +4479,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -4278,6 +4542,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
         }
       ]
     },
@@ -4358,6 +4627,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -4457,6 +4736,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -4553,6 +4842,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -4638,6 +4937,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -4727,6 +5036,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -4805,6 +5124,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -4892,6 +5221,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -4994,6 +5333,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -5090,6 +5439,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -5167,6 +5526,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -5245,6 +5614,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -5335,6 +5714,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -5440,6 +5829,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -5540,6 +5939,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -5642,6 +6051,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -5716,6 +6135,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -5813,6 +6242,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -5911,6 +6350,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -6014,6 +6463,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -6087,6 +6546,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -6182,6 +6651,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -6280,6 +6759,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -6375,6 +6864,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -6468,6 +6967,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -6564,6 +7073,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -6666,6 +7185,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -6769,6 +7298,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -6871,6 +7410,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -6972,6 +7521,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -7075,6 +7634,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -7177,6 +7746,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -7276,6 +7855,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -7371,6 +7960,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -7463,6 +8062,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -7563,6 +8172,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -7637,6 +8256,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -7734,6 +8363,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -7828,6 +8467,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -7993,6 +8642,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -8090,6 +8749,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -8188,6 +8857,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -8285,6 +8964,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -8387,6 +9076,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -8486,6 +9185,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -8587,6 +9296,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -8687,6 +9406,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -8791,6 +9520,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -8893,6 +9632,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -8995,6 +9744,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -9090,6 +9849,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     },
@@ -9184,6 +9953,16 @@
           "prerequisite": "FE-A1.2-W07",
           "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
           "recorded_at": "2026-10-11T02:13:36.743Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W01",
+          "reason": "Adding the missing typed human decision contract, canonical proposal Work/Run attachment owner and ordinary-command wiring changes shared contract/export/runtime sources. Preserve all prior proofs and partial command bridge construction; revalidate the affected chain against one stable integrated candidate before closing or advancing it.",
+          "recorded_at": "2026-10-11T02:37:18.940Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "Upcoming production command bridge mounting changes the shared server app source bound to the outcome-drafting proof. Preserve the delivered intake function and prior evidence; require its two regression passes on the stable integrated command-owner candidate before any dependent closure.",
+          "recorded_at": "2026-10-11T02:37:43.059Z"
         }
       ]
     }
@@ -10297,7 +11076,12 @@
     "repeated_failure_limit": 2,
     "synchronization": "Roadmap, generated execution packet, canonical ledger and both execution worktrees must agree before execution or closure."
   },
-  "active_work": null,
+  "active_work": {
+    "item": "FE-A1.3-W01",
+    "phase": "execution",
+    "failed_attempts": 0,
+    "started_at": "2026-10-11T02:37:47.390Z"
+  },
   "repair_sequence": [
     {
       "order": 1,

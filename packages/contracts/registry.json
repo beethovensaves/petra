@@ -1,5 +1,5 @@
 {
-  "registry_version": "1.137.0",
+  "registry_version": "1.139.0",
   "schemas": [
     {
       "name": "contract-smoke",
@@ -2847,6 +2847,50 @@
       "canonical_sha256": "sha256:e1b9c5d983153f044c4a14e22b67e61b8225f91ae00edb00f8d8faaab37f2f90",
       "generate_typescript": true,
       "typescript_path": "src/generated/copilot-authority-receipt.ts"
+    },
+    {
+      "name": "copilot-human-command-decision",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/copilot-human-command-decision/1.0.0/schema.json",
+      "path": "schemas/copilot-human-command-decision/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "additive-human-command-decision",
+      "canonical_sha256": "sha256:4345ec28878d0a85e970f2677dbd37c8dcff00a0ffc7b6d08fbe2f724e540bf5",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/copilot-human-command-decision.ts"
+    },
+    {
+      "name": "copilot-command-proposal-request",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/copilot-command-proposal-request/1.0.0/schema.json",
+      "path": "schemas/copilot-command-proposal-request/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial",
+      "canonical_sha256": "sha256:d7abc21199e77eac0cb94295c81322a5d5ab755a39d2c0a16e785879ac69d1d2",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/copilot-command-proposal-request.ts"
+    },
+    {
+      "name": "copilot-command-decision-request",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/copilot-command-decision-request/1.0.0/schema.json",
+      "path": "schemas/copilot-command-decision-request/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial",
+      "canonical_sha256": "sha256:b1fe00241b4a5865a78e68b6fc5d2af3d37842a17e47f7ce047e4887f3acbf17",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/copilot-command-decision-request.ts"
+    },
+    {
+      "name": "copilot-command-activity",
+      "version": "1.0.0",
+      "$id": "https://petra.local/schemas/copilot-command-activity/1.0.0/schema.json",
+      "path": "schemas/copilot-command-activity/1.0.0/schema.json",
+      "status": "accepted",
+      "compatibility": "initial",
+      "canonical_sha256": "sha256:2e9cadbcca1521c51ecf1079b742eac4808f38576653af15f87554edc066fae6",
+      "generate_typescript": true,
+      "typescript_path": "src/generated/copilot-command-activity.ts"
     }
   ]
 }

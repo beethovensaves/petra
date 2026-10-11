@@ -76,3 +76,4 @@ export * from "./intake-copilot-repository.js";
 export * from "./canonical-copilot-ownership.js";
 
 export * from "./copilot-permission-authority.js";
+export * from "./copilot-command-proposal-repository.js";

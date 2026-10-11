@@ -1,0 +1,231 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://petra.local/schemas/copilot-human-command-decision/1.0.0/schema.json",
+  "title": "PetraCopilotHumanCommandDecision",
+  "description": "An immutable explicit human choice over one retained proposed-only command. This record grants no capability or domain authority; the existing ordinary command owner must separately authorize and execute its exact request. Observed receipts are retained separately.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "decision_id",
+    "proposal_id",
+    "proposal_output_hash",
+    "preview_key",
+    "preview_hash",
+    "actor_id",
+    "decision",
+    "decided_at",
+    "command",
+    "request"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "petra.copilot-human-command-decision"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "decision_id": {
+      "type": "string",
+      "pattern": "^decision_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "proposal_id": {
+      "type": "string",
+      "pattern": "^proposal_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "proposal_output_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "preview_key": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512
+    },
+    "preview_hash": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+    },
+    "actor_id": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/ActorId"
+    },
+    "decision": {
+      "enum": ["accept", "reject"]
+    },
+    "decided_at": {
+      "$ref": "../../common/1.0.0/schema.json#/$defs/Timestamp"
+    },
+    "command": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["preview", "ordinary_command"],
+      "properties": {
+        "preview": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "key",
+            "kind",
+            "operation_id",
+            "project_id",
+            "context_hash",
+            "contract",
+            "payload",
+            "editable_paths",
+            "preview_hash"
+          ],
+          "properties": {
+            "key": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 512
+            },
+            "kind": {
+              "const": "command"
+            },
+            "operation_id": {
+              "enum": [
+                "work.start",
+                "work.answer-input",
+                "work.steer",
+                "work.prioritize",
+                "work.cancel",
+                "work.retry",
+                "work.resume",
+                "work.start-again",
+                "brief.suggested-invoke",
+                "source.start-processing",
+                "review.apply"
+              ]
+            },
+            "project_id": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/ProjectId"
+            },
+            "context_hash": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+            },
+            "contract": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["name", "version", "hash"],
+              "properties": {
+                "name": {
+                  "enum": [
+                    "project-work-operation-request",
+                    "project-work-resume-request",
+                    "project-work-start-again-request",
+                    "suggested-action-invocation-request",
+                    "project-source-processing-request",
+                    "review-session-apply-checkpoint"
+                  ]
+                },
+                "version": {
+                  "const": "1.0.0"
+                },
+                "hash": {
+                  "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+                }
+              }
+            },
+            "payload": {
+              "oneOf": [
+                {
+                  "$ref": "../../project-work-operation-request/1.0.0/schema.json"
+                },
+                {
+                  "$ref": "../../project-work-resume-request/1.0.0/schema.json"
+                },
+                {
+                  "$ref": "../../project-work-start-again-request/1.0.0/schema.json"
+                },
+                {
+                  "$ref": "../../suggested-action-invocation-request/1.0.0/schema.json"
+                },
+                {
+                  "$ref": "../../project-source-processing-request/1.0.0/schema.json"
+                },
+                {
+                  "$ref": "../../review-session-apply-checkpoint/1.0.0/schema.json"
+                }
+              ]
+            },
+            "editable_paths": {
+              "type": "array",
+              "maxItems": 0
+            },
+            "preview_hash": {
+              "$ref": "../../common/1.0.0/schema.json#/$defs/ContentHash"
+            }
+          }
+        },
+        "ordinary_command": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "operation_id",
+            "command_name",
+            "method",
+            "path",
+            "requires_human_decision"
+          ],
+          "properties": {
+            "operation_id": {
+              "enum": [
+                "work.start",
+                "work.answer-input",
+                "work.steer",
+                "work.prioritize",
+                "work.cancel",
+                "work.retry",
+                "work.resume",
+                "work.start-again",
+                "brief.suggested-invoke",
+                "source.start-processing",
+                "review.apply"
+              ]
+            },
+            "command_name": {
+              "enum": [
+                "ManageProjectWork",
+                "InvokeSuggestedAction",
+                "StartProjectSourceProcessing",
+                "ApplyChangeSet"
+              ]
+            },
+            "method": {
+              "const": "POST"
+            },
+            "path": {
+              "type": "string",
+              "pattern": "^/api/commands/projects/project_[0-9A-HJKMNP-TV-Z]{26}/(?:work|sources|suggested-actions|reviews)/[a-z_]+[0-9A-HJKMNP-TV-Z]{26}(?:/(?:resume|start-again|processing|invoke|apply))?$"
+            },
+            "requires_human_decision": {
+              "const": true
+            }
+          }
+        }
+      }
+    },
+    "request": {
+      "oneOf": [
+        {
+          "$ref": "../../project-work-operation-request/1.0.0/schema.json"
+        },
+        {
+          "$ref": "../../project-work-resume-request/1.0.0/schema.json"
+        },
+        {
+          "$ref": "../../project-work-start-again-request/1.0.0/schema.json"
+        },
+        {
+          "$ref": "../../suggested-action-invocation-request/1.0.0/schema.json"
+        },
+        {
+          "$ref": "../../project-source-processing-request/1.0.0/schema.json"
+        },
+        {
+          "$ref": "../../review-session-apply-request/1.0.0/schema.json"
+        }
+      ]
+    }
+  }
+}

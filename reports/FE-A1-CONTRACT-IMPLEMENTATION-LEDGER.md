@@ -6,7 +6,7 @@ This is the required execution breakdown for FE-A1. It records implementation ob
 
 The canonical work/status/dependency register is [scripts/frontend-a1-work-inventory.json](../scripts/frontend-a1-work-inventory.json). This report is generated from it with `npm run roadmap:frontend-a1`; `npm run audit:frontend-a1` checks coverage and document agreement. The existing [reports/FRONTEND-ADAPTATION-MILESTONE.md](../reports/FRONTEND-ADAPTATION-MILESTONE.md) retains historical implementation evidence.
 
-Roadmap/execution binding: `sha256:2d5a955518401cb8dcc2065af686b06726c464efcd2db2e7661f45fee2931edd`. [scripts/frontend-a1-execution.md](../scripts/frontend-a1-execution.md) contains the same functions and criteria in prerequisite order. D025 requires one active item, an execution pass, a distinct critical pass, optional repair, and broad diagnosis after repeated failure. Both execution worktrees must match before work starts, verification is recorded, completion is accepted, or a later wave advances.
+Roadmap/execution binding: `sha256:41d490f63de2026c9b7c725e1ecd515aa808a2ba1e5a654922939ad9923a516e`. [scripts/frontend-a1-execution.md](../scripts/frontend-a1-execution.md) contains the same functions and criteria in prerequisite order. D025 requires one active item, an execution pass, a distinct critical pass, optional repair, and broad diagnosis after repeated failure. Both execution worktrees must match before work starts, verification is recorded, completion is accepted, or a later wave advances.
 
 ## Controlling contract and scope
 
@@ -66,9 +66,9 @@ The wave controller checks the ledger before Wave 7 or later worker execution, r
 | Milestone | Required result                                                            | Complete / total | State       |
 | --------- | -------------------------------------------------------------------------- | ---------------- | ----------- |
 | FE-A1.0   | Contract reconciliation and execution control                              | 6 / 6            | complete    |
-| FE-A1.1   | Copilot shell and interaction design                                       | 1 / 7            | in_progress |
-| FE-A1.2   | Conversational zero/empty Project entry                                    | 2 / 7            | in_progress |
-| FE-A1.3   | Durable grounded conversation and AG-UI                                    | 5 / 18           | in_progress |
+| FE-A1.1   | Copilot shell and interaction design                                       | 0 / 7            | in_progress |
+| FE-A1.2   | Conversational zero/empty Project entry                                    | 0 / 7            | in_progress |
+| FE-A1.3   | Durable grounded conversation and AG-UI                                    | 0 / 18           | in_progress |
 | FE-A1.4   | Reactive Workspace, compositional examination and cyclic graph-guided work | 0 / 23           | in_progress |
 | FE-A1.5   | Progressive inspection and complete authority receipts                     | 0 / 9            | in_progress |
 | FE-A1.6   | Complete migration and operation conformance                               | 1 / 7            | in_progress |
@@ -189,7 +189,7 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 
 #### FE-A1.1-W01 — Rebuild the copilot and workspace hierarchy
 
-- **State:** `complete`; **owner:** frontend.
+- **State:** `planned`; **owner:** frontend.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.0-W02](#fe-a10-w02), [FE-A1.3-W05](#fe-a13-w05)
 - **Contracts:** D024, UX-REQ-001.
 - **Construct:** Build the persistent 30/70 desktop shell around a compact Project/objective header, continuous user/assistant thread, contextual progress/interventions, usable composer, and active Workspace result. Sequence: move Workspace destinations and inspection into Workspace chrome; reserve chat and composer space while bounding expandable support; reflect the opened answer or evidence in the Workspace heading and activate narrow Workspace presentation; verify ordinary desktop geometry and actual retained Q/A/draft continuity; critically challenge short/narrow viewports, expanded disclosures, keyboard activation and native return. After AG-UI integration, revalidate the whole hierarchy and keep long answer headings from shrinking the native return control into a vertical column.
@@ -197,10 +197,8 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
   - At ordinary desktop widths both the conversation and result remain legible.
   - The left panel reads and behaves as a normal conversational agent; route-owned forms do not dominate it.
   - The Workspace object carries the strongest visual hierarchy.
-- **Retained partial evidence:** [reports/FRONTEND-STEP2-AGENT-WORKSPACE.json](../reports/FRONTEND-STEP2-AGENT-WORKSPACE.json), [reports/a1-passes/FE-A1.1-W01-execution-1791675860000.json](../reports/a1-passes/FE-A1.1-W01-execution-1791675860000.json), [reports/a1-passes/FE-A1.1-W01-critical-1791675948769.json](../reports/a1-passes/FE-A1.1-W01-critical-1791675948769.json), [reports/a1-passes/FE-A1.1-W01-execution-1791678575943.json](../reports/a1-passes/FE-A1.1-W01-execution-1791678575943.json), [reports/a1-passes/FE-A1.1-W01-critical-1791678645251.json](../reports/a1-passes/FE-A1.1-W01-critical-1791678645251.json), [reports/a1-passes/FE-A1.1-W01-execution-1791681282679.json](../reports/a1-passes/FE-A1.1-W01-execution-1791681282679.json), [reports/a1-passes/FE-A1.1-W01-critical-1791681337814.json](../reports/a1-passes/FE-A1.1-W01-critical-1791681337814.json), [reports/a1-passes/FE-A1.1-W01-execution-1791683734054.json](../reports/a1-passes/FE-A1.1-W01-execution-1791683734054.json), [reports/a1-passes/FE-A1.1-W01-critical-1791683746756.json](../reports/a1-passes/FE-A1.1-W01-critical-1791683746756.json)
-- **Completion evidence:**
-  - [reports/a1-passes/FE-A1.1-W01-execution-1791684120131.json](../reports/a1-passes/FE-A1.1-W01-execution-1791684120131.json); `node --test --test-reporter=tap scripts/a1/copilot-hierarchy.test.mjs`. Live production layout, retained actual managed-model Q/A, navigation, composer, disclosure and Workspace presentation only. No new model invocation, proposal command, native examiner, cycle or overall A1 acceptance is inferred.
-  - [reports/a1-passes/FE-A1.1-W01-critical-1791684133038.json](../reports/a1-passes/FE-A1.1-W01-critical-1791684133038.json); `node --test --test-reporter=tap scripts/a1/copilot-hierarchy.critical.test.mjs`. Live production layout, retained actual managed-model Q/A, navigation, composer, disclosure and Workspace presentation only. No new model invocation, proposal command, native examiner, cycle or overall A1 acceptance is inferred.
+- **Retained partial evidence:** [reports/FRONTEND-STEP2-AGENT-WORKSPACE.json](../reports/FRONTEND-STEP2-AGENT-WORKSPACE.json), [reports/a1-passes/FE-A1.1-W01-execution-1791675860000.json](../reports/a1-passes/FE-A1.1-W01-execution-1791675860000.json), [reports/a1-passes/FE-A1.1-W01-critical-1791675948769.json](../reports/a1-passes/FE-A1.1-W01-critical-1791675948769.json), [reports/a1-passes/FE-A1.1-W01-execution-1791678575943.json](../reports/a1-passes/FE-A1.1-W01-execution-1791678575943.json), [reports/a1-passes/FE-A1.1-W01-critical-1791678645251.json](../reports/a1-passes/FE-A1.1-W01-critical-1791678645251.json), [reports/a1-passes/FE-A1.1-W01-execution-1791681282679.json](../reports/a1-passes/FE-A1.1-W01-execution-1791681282679.json), [reports/a1-passes/FE-A1.1-W01-critical-1791681337814.json](../reports/a1-passes/FE-A1.1-W01-critical-1791681337814.json), [reports/a1-passes/FE-A1.1-W01-execution-1791683734054.json](../reports/a1-passes/FE-A1.1-W01-execution-1791683734054.json), [reports/a1-passes/FE-A1.1-W01-critical-1791683746756.json](../reports/a1-passes/FE-A1.1-W01-critical-1791683746756.json), [reports/a1-passes/FE-A1.1-W01-execution-1791684120131.json](../reports/a1-passes/FE-A1.1-W01-execution-1791684120131.json), [reports/a1-passes/FE-A1.1-W01-critical-1791684133038.json](../reports/a1-passes/FE-A1.1-W01-critical-1791684133038.json)
+- **Completion evidence:** Missing; this item cannot close.
 
 <a id="fe-a11-w02"></a>
 
@@ -298,7 +296,7 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 
 #### FE-A1.2-W01 — Retain outcome-first definition drafting
 
-- **State:** `complete`; **owner:** runtime.
+- **State:** `planned`; **owner:** runtime.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.0-W01](#fe-a10-w01)
 - **Contracts:** D018, D024, UX-REQ-004.
 - **Construct:** Keep the server-owned definition draft preserving original wording, Project kernel, proposed objective, outputs, assumptions, capabilities, and unsupported behavior; examples remain optional.
@@ -306,10 +304,8 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
   - Scientific, controlled-writing, and unrelated outcomes use the same entry.
   - Changed draft content and unaccepted consequential assumptions are rejected.
   - No mandatory profile picker precedes the outcome.
-- **Retained partial evidence:** [reports/FRONTEND-STEP3-AGNOSTIC-PROJECT-CREATION.json](../reports/FRONTEND-STEP3-AGNOSTIC-PROJECT-CREATION.json), [reports/a1-passes/FE-A1.2-W01-execution-1791679529391.json](../reports/a1-passes/FE-A1.2-W01-execution-1791679529391.json), [reports/a1-passes/FE-A1.2-W01-critical-1791679570413.json](../reports/a1-passes/FE-A1.2-W01-critical-1791679570413.json)
-- **Completion evidence:**
-  - [reports/a1-passes/FE-A1.2-W01-execution-1791681414148.json](../reports/a1-passes/FE-A1.2-W01-execution-1791681414148.json); `node --test --test-reporter=tap scripts/a1/outcome-drafting.test.mjs`. Existing outcome-first draft construction and its exact authority are being verified. Live browser uses one ordinary pre-Project session and three retained draft revisions, with no model invocation or accepted Project creation against inspection data. Isolated PostgreSQL proves real creation/atomicity and rejection. This does not close definition composition, intake model functions, native examiner execution or overall A1.
-  - [reports/a1-passes/FE-A1.2-W01-critical-1791681529436.json](../reports/a1-passes/FE-A1.2-W01-critical-1791681529436.json); `node --test --test-reporter=tap scripts/a1/outcome-drafting.critical.test.mjs`. Existing outcome-first draft construction and its exact authority are being verified. Live browser uses one ordinary pre-Project session and three retained draft revisions, with no model invocation or accepted Project creation against inspection data. Isolated PostgreSQL proves real creation/atomicity and rejection. This does not close definition composition, intake model functions, native examiner execution or overall A1.
+- **Retained partial evidence:** [reports/FRONTEND-STEP3-AGNOSTIC-PROJECT-CREATION.json](../reports/FRONTEND-STEP3-AGNOSTIC-PROJECT-CREATION.json), [reports/a1-passes/FE-A1.2-W01-execution-1791679529391.json](../reports/a1-passes/FE-A1.2-W01-execution-1791679529391.json), [reports/a1-passes/FE-A1.2-W01-critical-1791679570413.json](../reports/a1-passes/FE-A1.2-W01-critical-1791679570413.json), [reports/a1-passes/FE-A1.2-W01-execution-1791681414148.json](../reports/a1-passes/FE-A1.2-W01-execution-1791681414148.json), [reports/a1-passes/FE-A1.2-W01-critical-1791681529436.json](../reports/a1-passes/FE-A1.2-W01-critical-1791681529436.json)
+- **Completion evidence:** Missing; this item cannot close.
 
 <a id="fe-a12-w02"></a>
 
@@ -390,7 +386,7 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 
 #### FE-A1.2-W07 — Compose definitions and revisions across Project types
 
-- **State:** `complete`; **owner:** runtime.
+- **State:** `planned`; **owner:** runtime.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.2-W01](#fe-a12-w01), [FE-A1.3-W03](#fe-a13-w03)
 - **Contracts:** D018, UX-REQ-004, UX-REQ-021.
 - **Construct:** Resolve registered object/relationship descriptors, inquiry roles, examiners, language rules, validators, outputs, and place capabilities from the exact ProjectDefinition; semantic revisions follow D018.
@@ -398,10 +394,8 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
   - The same shell can load different domain components without scientific conditionals.
   - Unsupported execution is named precisely without rejecting a valid Project.
   - A definition revision cannot silently reinterpret retained candidates or turns.
-- **Retained partial evidence:** [reports/FRONTEND-STEP3-AGNOSTIC-PROJECT-CREATION.json](../reports/FRONTEND-STEP3-AGNOSTIC-PROJECT-CREATION.json), [reports/a1-passes/FE-A1.2-W07-execution-1791681705286.json](../reports/a1-passes/FE-A1.2-W07-execution-1791681705286.json), [reports/a1-passes/FE-A1.2-W07-critical-1791681950358.json](../reports/a1-passes/FE-A1.2-W07-critical-1791681950358.json), [reports/a1-passes/FE-A1.2-W07-execution-1791684183544.json](../reports/a1-passes/FE-A1.2-W07-execution-1791684183544.json), [reports/a1-passes/FE-A1.2-W07-critical-1791684214939.json](../reports/a1-passes/FE-A1.2-W07-critical-1791684214939.json)
-- **Completion evidence:**
-  - [reports/a1-passes/FE-A1.2-W07-execution-1791684943733.json](../reports/a1-passes/FE-A1.2-W07-execution-1791684943733.json); `node --test --test-reporter=tap scripts/a1/definition-components.test.mjs`. Exact immutable definition reads and generic component negotiation across declared domain registrations. Schema admission is separate from an installed examiner or executor; unavailable capability does not invalidate a valid Project. Existing immutable history owners preserve the original basis. This does not certify missing native writing interpretation/third-type examiners, new model roles, proposed commands, or overall A1.
-  - [reports/a1-passes/FE-A1.2-W07-critical-1791684975453.json](../reports/a1-passes/FE-A1.2-W07-critical-1791684975453.json); `node --test --test-reporter=tap scripts/a1/definition-components.critical.test.mjs`. Exact immutable definition reads and generic component negotiation across declared domain registrations. Schema admission is separate from an installed examiner or executor; unavailable capability does not invalidate a valid Project. Existing immutable history owners preserve the original basis. This does not certify missing native writing interpretation/third-type examiners, new model roles, proposed commands, or overall A1.
+- **Retained partial evidence:** [reports/FRONTEND-STEP3-AGNOSTIC-PROJECT-CREATION.json](../reports/FRONTEND-STEP3-AGNOSTIC-PROJECT-CREATION.json), [reports/a1-passes/FE-A1.2-W07-execution-1791681705286.json](../reports/a1-passes/FE-A1.2-W07-execution-1791681705286.json), [reports/a1-passes/FE-A1.2-W07-critical-1791681950358.json](../reports/a1-passes/FE-A1.2-W07-critical-1791681950358.json), [reports/a1-passes/FE-A1.2-W07-execution-1791684183544.json](../reports/a1-passes/FE-A1.2-W07-execution-1791684183544.json), [reports/a1-passes/FE-A1.2-W07-critical-1791684214939.json](../reports/a1-passes/FE-A1.2-W07-critical-1791684214939.json), [reports/a1-passes/FE-A1.2-W07-execution-1791684943733.json](../reports/a1-passes/FE-A1.2-W07-execution-1791684943733.json), [reports/a1-passes/FE-A1.2-W07-critical-1791684975453.json](../reports/a1-passes/FE-A1.2-W07-critical-1791684975453.json)
+- **Completion evidence:** Missing; this item cannot close.
 
 ### FE-A1.3 — Durable grounded conversation and AG-UI
 
@@ -409,24 +403,22 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 
 #### FE-A1.3-W01 — Register genuine conversational interaction contracts
 
-- **State:** `complete`; **owner:** runtime.
+- **State:** `in_progress`; **owner:** runtime.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.0-W01](#fe-a10-w01)
 - **Contracts:** D007, D008, D013, UX-REQ-006, UX-REQ-021.
-- **Construct:** Add versioned intake, Project evidence-question, follow-up, and scene-explanation interaction contracts with bounded inputs, response schemas, speech acts, policy, and validated references; preserve the fixed M1 synthesist contract.
+- **Construct:** Add versioned intake, Project evidence-question, follow-up, and scene-explanation interaction contracts with bounded inputs, response schemas, speech acts, policy, and validated references; preserve the fixed M1 synthesist contract. Register the immutable typed human command-decision contract over complete existing native request schemas; it cannot grant capability, approve domain truth, or substitute for the ordinary command owner.
 - **Complete only when:**
   - Ordinary questions and follow-ups execute through registered runtime owners.
   - Editing the fixed certified question cannot bypass its guard.
   - Each new interaction declares model-role eligibility, output validation, and authority limits.
-- **Retained partial evidence:** [reports/FE-A1-CONSTRUCTION-CHECKS.json](../reports/FE-A1-CONSTRUCTION-CHECKS.json)
-- **Completion evidence:**
-  - [reports/a1-passes/FE-A1.3-W01-execution-1791664110538.json](../reports/a1-passes/FE-A1.3-W01-execution-1791664110538.json); `node --test --test-reporter=tap scripts/a1/conversation-contracts.test.mjs`. Conversation contract and runtime boundary verification, using controlled repository/provider ports and a real local HTTP M1 route. Actual managed-model eligibility is separately required by FE-A1.3-W02; canonical Thread/Run integration, action proposals, native examiners and connected cycles remain open.
-  - [reports/a1-passes/FE-A1.3-W01-critical-1791664123560.json](../reports/a1-passes/FE-A1.3-W01-critical-1791664123560.json); `node --test --test-reporter=tap scripts/a1/conversation-contracts.critical.test.mjs`. Conversation contract and runtime boundary verification, using controlled repository/provider ports and a real local HTTP M1 route. Actual managed-model eligibility is separately required by FE-A1.3-W02; canonical Thread/Run integration, action proposals, native examiners and connected cycles remain open.
+- **Retained partial evidence:** [reports/FE-A1-CONSTRUCTION-CHECKS.json](../reports/FE-A1-CONSTRUCTION-CHECKS.json), [reports/a1-passes/FE-A1.3-W01-execution-1791664110538.json](../reports/a1-passes/FE-A1.3-W01-execution-1791664110538.json), [reports/a1-passes/FE-A1.3-W01-critical-1791664123560.json](../reports/a1-passes/FE-A1.3-W01-critical-1791664123560.json)
+- **Completion evidence:** Missing; this item cannot close.
 
 <a id="fe-a13-w02"></a>
 
 #### FE-A1.3-W02 — Establish eligible model routes for the new interactions
 
-- **State:** `complete`; **owner:** runtime.
+- **State:** `planned`; **owner:** runtime.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.3-W01](#fe-a13-w01)
 - **Contracts:** D007, D008, D017, UX-REQ-021.
 - **Construct:** Register and prove eligible provider/model/role routes for conversational questions, working structure, and explanations with exact prompt/schema/profile revisions, grounding, privacy/egress, cost, and fallback rules.
@@ -434,35 +426,31 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
   - A real eligible model answers a normal question and follow-up in the application.
   - Readiness failure is visible and preserves input.
   - No old fixed-prompt certification is treated as certification for a new role.
-- **Retained partial evidence:** [reports/FE-A1-CONSTRUCTION-CHECKS.json](../reports/FE-A1-CONSTRUCTION-CHECKS.json), [reports/a1-history/2026-10-07-model-eligibility/manifest.json](../reports/a1-history/2026-10-07-model-eligibility/manifest.json), [reports/a1-passes/FE-A1.3-W02-execution-1791665512698.json](../reports/a1-passes/FE-A1.3-W02-execution-1791665512698.json), [reports/a1-passes/FE-A1.3-W02-critical-1791665549548.json](../reports/a1-passes/FE-A1.3-W02-critical-1791665549548.json)
-- **Completion evidence:**
-  - [reports/a1-passes/FE-A1.3-W02-execution-1791683152658.json](../reports/a1-passes/FE-A1.3-W02-execution-1791683152658.json); `node --test --test-reporter=tap scripts/a1/model-routes.test.mjs`. Actual managed QA question/follow-up through the live production browser and PostgreSQL, separate actual-model typed working-plan eligibility, and production unavailable-model recovery. Role-native proposal probes use committed synthetic records; canonical ProjectThread/InteractionRun, durable proposal decisions/commands, native examiners and connected cycles remain separate required A1 work and are not claimed complete.
-  - [reports/a1-passes/FE-A1.3-W02-critical-1791683179542.json](../reports/a1-passes/FE-A1.3-W02-critical-1791683179542.json); `node --test --test-reporter=tap scripts/a1/model-routes.critical.test.mjs`. Actual managed QA question/follow-up through the live production browser and PostgreSQL, separate actual-model typed working-plan eligibility, and production unavailable-model recovery. Role-native proposal probes use committed synthetic records; canonical ProjectThread/InteractionRun, durable proposal decisions/commands, native examiners and connected cycles remain separate required A1 work and are not claimed complete.
+- **Retained partial evidence:** [reports/FE-A1-CONSTRUCTION-CHECKS.json](../reports/FE-A1-CONSTRUCTION-CHECKS.json), [reports/a1-history/2026-10-07-model-eligibility/manifest.json](../reports/a1-history/2026-10-07-model-eligibility/manifest.json), [reports/a1-passes/FE-A1.3-W02-execution-1791665512698.json](../reports/a1-passes/FE-A1.3-W02-execution-1791665512698.json), [reports/a1-passes/FE-A1.3-W02-critical-1791665549548.json](../reports/a1-passes/FE-A1.3-W02-critical-1791665549548.json), [reports/a1-passes/FE-A1.3-W02-execution-1791683152658.json](../reports/a1-passes/FE-A1.3-W02-execution-1791683152658.json), [reports/a1-passes/FE-A1.3-W02-critical-1791683179542.json](../reports/a1-passes/FE-A1.3-W02-critical-1791683179542.json)
+- **Completion evidence:** Missing; this item cannot close.
 
 <a id="fe-a13-w03"></a>
 
 #### FE-A1.3-W03 — Persist and read exact user and assistant turns
 
-- **State:** `complete`; **owner:** runtime.
+- **State:** `planned`; **owner:** runtime.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.3-W01](#fe-a13-w01)
 - **Contracts:** D013, UX-REQ-006, UX-REQ-023.
-- **Construct:** Sequence: (1) expose current model and permission readiness; (2) require an explicit reviewed owner-only RunProjectCopilot grant and immutable receipt before new conversation Work or historical adoption, preserving existing authorized Work management grants; (3) retain exact private question/native-context/result Artifacts and canonical Thread/Run/Work atomically; (4) resolve exact applicable inquiry, Work, Review and cycle lineage before release; (5) page original readable content and restore questions, answers, citations and outcomes in a fresh browser; (6) reject owner substitution, widened permission, stale proposals, late partial commits and duplicate effects in the distinct critical pass.
+- **Construct:** Sequence: (1) expose current model and permission readiness; (2) require an explicit reviewed owner-only RunProjectCopilot grant and immutable receipt before new conversation Work or historical adoption, preserving existing authorized Work management grants; (3) retain exact private question/native-context/result Artifacts and canonical Thread/Run/Work atomically; (4) resolve exact applicable inquiry, Work, Review and cycle lineage before release; (5) page original readable content and restore questions, answers, citations and outcomes in a fresh browser; (6) reject owner substitution, widened permission, stale proposals, late partial commits and duplicate effects in the distinct critical pass. Retain working-plan proposal activities as exact private input/output Artifacts with their own bounded WorkUnit and InteractionRun, attached to the immutable canonical origin turn. Preserve typed proposal meaning and exact human decision/observed receipt lineage separately; never relabel proposals as advisory answers or fabricate domain approval.
 - **Complete only when:**
   - A fresh browser restores actual question and answer content, citations, and outcomes.
   - A thread metadata list is insufficient.
   - Unauthorized or mismatched Project/content references reveal no bytes. New Projects require explicit reviewed owner-only conversation permission; questions and model output cannot grant capabilities.
   - Every retained Project turn resolves to the existing canonical ProjectThread and InteractionRun; a parallel conversation store cannot substitute for those owners.
   - Turn context and result references preserve exact inquiry, Work, Review and cycle lineage where applicable; replay must not create a second effect.
-- **Retained partial evidence:** [reports/FE-A1-CONSTRUCTION-CHECKS.json](../reports/FE-A1-CONSTRUCTION-CHECKS.json), [reports/a1-passes/FE-A1.3-W03-execution-1791671233189.json](../reports/a1-passes/FE-A1.3-W03-execution-1791671233189.json), [reports/a1-passes/FE-A1.3-W03-critical-1791671280023.json](../reports/a1-passes/FE-A1.3-W03-critical-1791671280023.json), [reports/a1-passes/FE-A1.3-W03-execution-1791680978364.json](../reports/a1-passes/FE-A1.3-W03-execution-1791680978364.json), [reports/a1-passes/FE-A1.3-W03-critical-1791681035780.json](../reports/a1-passes/FE-A1.3-W03-critical-1791681035780.json), [reports/a1-passes/FE-A1.3-W03-execution-1791683584165.json](../reports/a1-passes/FE-A1.3-W03-execution-1791683584165.json), [reports/a1-passes/FE-A1.3-W03-critical-1791683648878.json](../reports/a1-passes/FE-A1.3-W03-critical-1791683648878.json)
-- **Completion evidence:**
-  - [reports/a1-passes/FE-A1.3-W03-execution-1791683965472.json](../reports/a1-passes/FE-A1.3-W03-execution-1791683965472.json); `node --test --test-reporter=tap scripts/a1/owned-conversation.test.mjs`. Canonical ownership and retained readable advisory conversation only. Provider internal CPU, memory, network, tokens and price remain unavailable; unknown values never satisfy applicable hard limits. Historical adoption records actual import Work and preserves original bytes without reconstructing original execution authority. Proposal decisions/commands, progressive AG-UI activities/interrupts, native examiners, reactive Workspace graph cycles and A1 product acceptance remain open required ledger items.
-  - [reports/a1-passes/FE-A1.3-W03-critical-1791684034936.json](../reports/a1-passes/FE-A1.3-W03-critical-1791684034936.json); `node --test --test-reporter=tap scripts/a1/owned-conversation.critical.test.mjs`. Canonical ownership and retained readable advisory conversation only. Provider internal CPU, memory, network, tokens and price remain unavailable; unknown values never satisfy applicable hard limits. Historical adoption records actual import Work and preserves original bytes without reconstructing original execution authority. Proposal decisions/commands, progressive AG-UI activities/interrupts, native examiners, reactive Workspace graph cycles and A1 product acceptance remain open required ledger items.
+- **Retained partial evidence:** [reports/FE-A1-CONSTRUCTION-CHECKS.json](../reports/FE-A1-CONSTRUCTION-CHECKS.json), [reports/a1-passes/FE-A1.3-W03-execution-1791671233189.json](../reports/a1-passes/FE-A1.3-W03-execution-1791671233189.json), [reports/a1-passes/FE-A1.3-W03-critical-1791671280023.json](../reports/a1-passes/FE-A1.3-W03-critical-1791671280023.json), [reports/a1-passes/FE-A1.3-W03-execution-1791680978364.json](../reports/a1-passes/FE-A1.3-W03-execution-1791680978364.json), [reports/a1-passes/FE-A1.3-W03-critical-1791681035780.json](../reports/a1-passes/FE-A1.3-W03-critical-1791681035780.json), [reports/a1-passes/FE-A1.3-W03-execution-1791683584165.json](../reports/a1-passes/FE-A1.3-W03-execution-1791683584165.json), [reports/a1-passes/FE-A1.3-W03-critical-1791683648878.json](../reports/a1-passes/FE-A1.3-W03-critical-1791683648878.json), [reports/a1-passes/FE-A1.3-W03-execution-1791683965472.json](../reports/a1-passes/FE-A1.3-W03-execution-1791683965472.json), [reports/a1-passes/FE-A1.3-W03-critical-1791684034936.json](../reports/a1-passes/FE-A1.3-W03-critical-1791684034936.json)
+- **Completion evidence:** Missing; this item cannot close.
 
 <a id="fe-a13-w04"></a>
 
 #### FE-A1.3-W04 — Compile exact bounded context for every turn
 
-- **State:** `complete`; **owner:** runtime.
+- **State:** `planned`; **owner:** runtime.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.3-W01](#fe-a13-w01), [FE-A1.2-W07](#fe-a12-w07)
 - **Contracts:** D008, UX-REQ-006, UX-REQ-022.
 - **Construct:** Compose Project definition, objective, inquiry, selected object revisions, graph query/scene references, sources, packets, Work/proposals, omissions, snapshot, privacy, and budget without inheriting ambient route state.
@@ -470,16 +458,14 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
   - A follow-up explicitly binds prior turn and current or original basis.
   - Included/excluded context and limitations are inspectable.
   - Mixed-snapshot, stale, unavailable, or restricted basis cannot silently become current.
-- **Retained partial evidence:** [reports/FRONTEND-ADAPTATION-MILESTONE.md](../reports/FRONTEND-ADAPTATION-MILESTONE.md), [reports/FE-A1-CONSTRUCTION-CHECKS.json](../reports/FE-A1-CONSTRUCTION-CHECKS.json), [reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log](../reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log), [reports/a1-passes/FE-A1.3-W04-execution-1791684264454.json](../reports/a1-passes/FE-A1.3-W04-execution-1791684264454.json), [reports/a1-passes/FE-A1.3-W04-critical-1791684289531.json](../reports/a1-passes/FE-A1.3-W04-critical-1791684289531.json)
-- **Completion evidence:**
-  - [reports/a1-passes/FE-A1.3-W04-execution-1791685030732.json](../reports/a1-passes/FE-A1.3-W04-execution-1791685030732.json); `node --test --test-reporter=tap scripts/a1/exact-context.test.mjs`. Exact bounded advisory turn context only. Original-basis branching, action previews/commands, missing native examiners and connected graph cycles remain their own required A1 items. Work inputs/proposals/output and inquiry framing/source bytes are explicitly withheld on metadata paths; no fact, approval, examination, resolved inquiry or completed domain work is inferred.
-  - [reports/a1-passes/FE-A1.3-W04-critical-1791685054359.json](../reports/a1-passes/FE-A1.3-W04-critical-1791685054359.json); `node --test --test-reporter=tap scripts/a1/exact-context.critical.test.mjs`. Exact bounded advisory turn context only. Original-basis branching, action previews/commands, missing native examiners and connected graph cycles remain their own required A1 items. Work inputs/proposals/output and inquiry framing/source bytes are explicitly withheld on metadata paths; no fact, approval, examination, resolved inquiry or completed domain work is inferred.
+- **Retained partial evidence:** [reports/FRONTEND-ADAPTATION-MILESTONE.md](../reports/FRONTEND-ADAPTATION-MILESTONE.md), [reports/FE-A1-CONSTRUCTION-CHECKS.json](../reports/FE-A1-CONSTRUCTION-CHECKS.json), [reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log](../reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log), [reports/a1-passes/FE-A1.3-W04-execution-1791684264454.json](../reports/a1-passes/FE-A1.3-W04-execution-1791684264454.json), [reports/a1-passes/FE-A1.3-W04-critical-1791684289531.json](../reports/a1-passes/FE-A1.3-W04-critical-1791684289531.json), [reports/a1-passes/FE-A1.3-W04-execution-1791685030732.json](../reports/a1-passes/FE-A1.3-W04-execution-1791685030732.json), [reports/a1-passes/FE-A1.3-W04-critical-1791685054359.json](../reports/a1-passes/FE-A1.3-W04-critical-1791685054359.json)
+- **Completion evidence:** Missing; this item cannot close.
 
 <a id="fe-a13-w05"></a>
 
 #### FE-A1.3-W05 — Connect the official AG-UI stream to Petra view models
 
-- **State:** `complete`; **owner:** runtime.
+- **State:** `planned`; **owner:** runtime.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.3-W01](#fe-a13-w01), [FE-A1.3-W03](#fe-a13-w03)
 - **Contracts:** D013, UX-REQ-021, UX-REQ-022.
 - **Construct:** Use pinned official SDK client/server adapters for run, text, activity, tool, state, interrupt, custom, and terminal events; translate them into typed conversation/Work/Workspace models. Sequence: define presentation-only view models and a closed versioned disclosure activity; preserve the existing canonical terminal encoder while adding retained block references; resolve each disclosed block through the exact actor-authorized retained owner read before exposing bytes; map registered Work, tool and interrupt events separately from advisory role authority; mount typed live activity in the actual copilot; verify live managed-model delivery, canonical Work links and independent hostile-event/version/scope/replay cases. Revalidate the hierarchy after integration changes its presentation.
@@ -487,10 +473,8 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
   - The real conversation progressively renders validated state through the official client.
   - Custom events are versioned and allowlisted.
   - Core and feature components do not parse raw AG-UI protocol types.
-- **Retained partial evidence:** [reports/FRONTEND-ADAPTATION-MILESTONE.md](../reports/FRONTEND-ADAPTATION-MILESTONE.md), [reports/FE-A1-CONSTRUCTION-CHECKS.json](../reports/FE-A1-CONSTRUCTION-CHECKS.json), [reports/a1-passes/FE-A1.3-W05-execution-1791678381373.json](../reports/a1-passes/FE-A1.3-W05-execution-1791678381373.json), [reports/a1-passes/FE-A1.3-W05-critical-1791678409663.json](../reports/a1-passes/FE-A1.3-W05-critical-1791678409663.json), [reports/a1-passes/FE-A1.3-W05-execution-1791681143770.json](../reports/a1-passes/FE-A1.3-W05-execution-1791681143770.json), [reports/a1-passes/FE-A1.3-W05-critical-1791681205090.json](../reports/a1-passes/FE-A1.3-W05-critical-1791681205090.json), [reports/a1-passes/FE-A1.3-W05-execution-1791683691615.json](../reports/a1-passes/FE-A1.3-W05-execution-1791683691615.json), [reports/a1-passes/FE-A1.3-W05-critical-1791683703592.json](../reports/a1-passes/FE-A1.3-W05-critical-1791683703592.json)
-- **Completion evidence:**
-  - [reports/a1-passes/FE-A1.3-W05-execution-1791684077519.json](../reports/a1-passes/FE-A1.3-W05-execution-1791684077519.json); `node --test --test-reporter=tap scripts/a1/progressive-copilot.test.mjs`. Typed presentation and official AG-UI transport only. Execution checks actual managed model and canonical ownership in the live browser; critical checks adverse events and actual same-identity replay/auth denial. Controlled owner ports test disclosure guards, not canonical persistence. Command mediation, native examiners, cyclic verification and overall A1 acceptance remain separate open requirements.
-  - [reports/a1-passes/FE-A1.3-W05-critical-1791684089444.json](../reports/a1-passes/FE-A1.3-W05-critical-1791684089444.json); `node --test --test-reporter=tap scripts/a1/progressive-copilot.critical.test.mjs`. Typed presentation and official AG-UI transport only. Execution checks actual managed model and canonical ownership in the live browser; critical checks adverse events and actual same-identity replay/auth denial. Controlled owner ports test disclosure guards, not canonical persistence. Command mediation, native examiners, cyclic verification and overall A1 acceptance remain separate open requirements.
+- **Retained partial evidence:** [reports/FRONTEND-ADAPTATION-MILESTONE.md](../reports/FRONTEND-ADAPTATION-MILESTONE.md), [reports/FE-A1-CONSTRUCTION-CHECKS.json](../reports/FE-A1-CONSTRUCTION-CHECKS.json), [reports/a1-passes/FE-A1.3-W05-execution-1791678381373.json](../reports/a1-passes/FE-A1.3-W05-execution-1791678381373.json), [reports/a1-passes/FE-A1.3-W05-critical-1791678409663.json](../reports/a1-passes/FE-A1.3-W05-critical-1791678409663.json), [reports/a1-passes/FE-A1.3-W05-execution-1791681143770.json](../reports/a1-passes/FE-A1.3-W05-execution-1791681143770.json), [reports/a1-passes/FE-A1.3-W05-critical-1791681205090.json](../reports/a1-passes/FE-A1.3-W05-critical-1791681205090.json), [reports/a1-passes/FE-A1.3-W05-execution-1791683691615.json](../reports/a1-passes/FE-A1.3-W05-execution-1791683691615.json), [reports/a1-passes/FE-A1.3-W05-critical-1791683703592.json](../reports/a1-passes/FE-A1.3-W05-critical-1791683703592.json), [reports/a1-passes/FE-A1.3-W05-execution-1791684077519.json](../reports/a1-passes/FE-A1.3-W05-execution-1791684077519.json), [reports/a1-passes/FE-A1.3-W05-critical-1791684089444.json](../reports/a1-passes/FE-A1.3-W05-critical-1791684089444.json)
+- **Completion evidence:** Missing; this item cannot close.
 
 <a id="fe-a13-w06"></a>
 
@@ -514,7 +498,7 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** runtime.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.3-W05](#fe-a13-w05)
 - **Contracts:** D005, D013, UX-REQ-003.
-- **Construct:** Resolve conversation proposals into existing registered SuggestedAction, Work, source, Review, and recovery previews; complete arguments must pass actor, capability, policy, revision, and idempotency checks.
+- **Construct:** Sequence: (1) resolve the exact authorized canonical origin turn; (2) read eligible native SuggestedAction, Work/recovery, source-processing and Review checkpoints; (3) construct complete server-owned immutable previews and ordinary operation IDs; (4) invoke the existing separately eligible working-plan role and retain its actual proposed-only output through canonical Artifact/Work/Run owners; (5) show that exact preview in the conversation and require a separate explicit human accept/reject decision; (6) retain the immutable decision and serialize the command claim; (7) revalidate Actor, capability, policy and exact native revisions through the existing ordinary command owner, preserving its command ID and idempotency key; (8) validate and retain the observed native receipt, distinguish reconciliation-required outcomes, and expose its exact Workspace result; (9) prove restart/replay/concurrency, stale or malformed arguments, revoked rights, foreign receipts and proposal-without-decision cannot create another effect; (10) execute distinct functional and critical checks before contractual closure. Advisory prose, ready role metadata, pure preview helpers and route-local forms cannot close this item.
 - **Complete only when:**
   - A recommendation does not execute itself.
   - Direct and conversational invocation use identical operation IDs and exact command outcomes.
