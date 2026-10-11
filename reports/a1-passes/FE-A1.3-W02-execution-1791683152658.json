@@ -1,0 +1,167 @@
+{
+  "schema_name": "petra.a1-verification-pass",
+  "schema_version": "1.0.0",
+  "work_item": "FE-A1.3-W02",
+  "pass": "execution",
+  "contract_hash": "sha256:3a9bcb4c7094ad3c49fd76ceccede72e3a76f34e8f0a076a7ef6fef79c61abca",
+  "status": "passed",
+  "candidate_commit": "c1827fc1821de0da74d3fc7d2443a69ce4f61fac",
+  "started_at": "2026-10-11T01:45:04.831Z",
+  "finished_at": "2026-10-11T01:45:52.658Z",
+  "criteria": [
+    {
+      "id": "FE-A1.3-W02-AC01",
+      "result": "passed",
+      "test": "FE-A1.3-W02-AC01 execution: actual application questions follow-ups and role readiness execute",
+      "observation": "Observed two actual managed-model turns through production HTTP, PostgreSQL, the official AG-UI client and the browser, plus exact own-role readiness and a new-document retained reload."
+    },
+    {
+      "id": "FE-A1.3-W02-AC02",
+      "result": "passed",
+      "test": "FE-A1.3-W02-AC02 execution: exact deployment readiness is a read and native proposals preserve input",
+      "observation": "The deployed proposal role is read without a provider invocation; scientific and writing-native proposed changes preserve their immutable inputs and execute no owner command."
+    },
+    {
+      "id": "FE-A1.3-W02-AC03",
+      "result": "passed",
+      "test": "FE-A1.3-W02-AC03 execution: new roles retain independent actual-model eligibility and exact source identities",
+      "observation": "Nine actual QA/intake/scene probes and four independent typed working-plan functional/adverse probes are retained with provider turn identities and matching deployed source hashes."
+    }
+  ],
+  "sources": [
+    {
+      "path": "apps/server/src/copilot-working-plan-model.ts",
+      "hash": "sha256:af2d10cbb135b07957808339f822435be8ee67c3b90fcf23e0d6dce9bee0b9b8"
+    },
+    {
+      "path": "apps/server/src/copilot-working-plan-routes.ts",
+      "hash": "sha256:0afedecffcd912a75c96c80a8ce8cac2901fc59fef94263955d618eb1458cbc8"
+    },
+    {
+      "path": "apps/server/src/project-copilot-model.ts",
+      "hash": "sha256:b9c12a86fc9923b5761838695b7241a16f5f00ca8204cfe514e06a899416559c"
+    },
+    {
+      "path": "apps/server/test/copilot-working-plan-model.test.ts",
+      "hash": "sha256:a398d9be86c2bc17b506269c8d17280ba2c8c7d8b12dfdc969e6e2e338048024"
+    },
+    {
+      "path": "apps/server/test/copilot-working-plan-routes.test.ts",
+      "hash": "sha256:b16487057a70b75ad49ed0310e387a6b43546032045bcf69822d5aa469ac092e"
+    },
+    {
+      "path": "apps/workbench/test/a1-conversation-model-browser.mjs",
+      "hash": "sha256:e1c3d5e37b1f3fe5043dbe528cc67631572b280d181def0d7250e1d143d668fd"
+    },
+    {
+      "path": "apps/workbench/test/a1-model-unavailable-browser.mjs",
+      "hash": "sha256:dd733e831887b1f65703851e8dd861747799bffac8b878cf37447d564b18af93"
+    },
+    {
+      "path": "packages/adapters/src/codex-app-server.ts",
+      "hash": "sha256:e34e578644a37fec1af6e44e4c5528cf85179d63252cdf1bcbc056d33cf41fe3"
+    },
+    {
+      "path": "packages/adapters/src/codex-project-copilot.ts",
+      "hash": "sha256:4bce560a231caa2a105a195c404da947854a4a266ed7a0f93458865670c9e6a6"
+    },
+    {
+      "path": "packages/adapters/src/codex-working-plan.ts",
+      "hash": "sha256:5514de684bab0544bdc22f1375f96fde428cd3ea19bcb3a7c84eb3052b429579"
+    },
+    {
+      "path": "packages/adapters/test/copilot-working-plan.test.ts",
+      "hash": "sha256:3538b83bb7be32f2f428b643dee61405e9858997a8beb069f279f22d1b763ed3"
+    },
+    {
+      "path": "packages/contracts/schemas/claim/1.0.0/schema.json",
+      "hash": "sha256:9a230acd26e5fce3cb4480872ee847ada57aff1e1d180e21e0da29b60d532147"
+    },
+    {
+      "path": "packages/contracts/schemas/controlled-writing-requirement/1.0.0/schema.json",
+      "hash": "sha256:fb72eca9dc5245ed576a5602b6ff81c98bba8f6ef6c577f7fb9d3f5ce108d7b8"
+    },
+    {
+      "path": "packages/contracts/schemas/copilot-context/1.0.0/schema.json",
+      "hash": "sha256:6a72d94b40a532349d96307139c0dae32ead975b24795a75564aeef49c0b48f1"
+    },
+    {
+      "path": "packages/contracts/schemas/copilot-output/1.0.0/schema.json",
+      "hash": "sha256:09fcd9561408d41b0d3ff1014f210af028a5ea2ac0b4f2c22d8a5c4c791f44bd"
+    },
+    {
+      "path": "packages/contracts/schemas/copilot-working-plan/1.0.0/schema.json",
+      "hash": "sha256:6eebce71d224c722b06d16b472db422017cc4f6b0fee0dc1644cbf2af21260f8"
+    },
+    {
+      "path": "packages/core/src/copilot-working-plan.ts",
+      "hash": "sha256:d34b059143805c8b015e0f0c4b650f9e7557764bcfc26f60a108373ee3513d7f"
+    },
+    {
+      "path": "packages/core/src/project-copilot.ts",
+      "hash": "sha256:3329ca4ebfb82972746a63b502e96b3b446b777dc061a21632746d99d86efc66"
+    },
+    {
+      "path": "packages/core/test/copilot-working-plan.test.ts",
+      "hash": "sha256:2ff1298ff104db6235dd805e93e9308f37ee3d03b5f4165339106396981a34b5"
+    },
+    {
+      "path": "reports/FE-A1-COPILOT-ROLE-EVALUATION.json",
+      "hash": "sha256:4d77be39f38c3a56164872799089aa83e4ab2d9ad4675a52c50b8d284068e57a"
+    },
+    {
+      "path": "reports/FE-A1-WORKING-PLAN-ROLE-EVALUATION.json",
+      "hash": "sha256:aa35bca6000137f20e7d58baf25e0f78ca8b59ec81d3590b2ec13db868b18b36"
+    },
+    {
+      "path": "reports/model-certifications/codex-project-copilot-1.0.0.json",
+      "hash": "sha256:d62b3df3788e119f766eb18533efb9e16ec67c5def2d095cc076643266778e4f"
+    },
+    {
+      "path": "reports/model-certifications/codex-working-plan-1.0.0.json",
+      "hash": "sha256:c0333a50f6c23ff58ff0408da23651d906e05e36068a7750614b790228cafc26"
+    },
+    {
+      "path": "scripts/a1/model-routes.critical.test.mjs",
+      "hash": "sha256:2cbf9f9cecc2e0b4b8587dd3853ab2d7ab92dadb02ef0258451ca15d681520c5"
+    },
+    {
+      "path": "scripts/a1/model-routes.test.mjs",
+      "hash": "sha256:fe274960cea23274d1184243bad9c814ed3cc59ab535eab5fc8f847c1611999f"
+    },
+    {
+      "path": "scripts/a1/run-browser.mjs",
+      "hash": "sha256:8ae34eb1951d73bba1bcde36082b00ff1b3fcd4eade32d371f02a92f0e08da09"
+    },
+    {
+      "path": "scripts/a1/run-vitest.mjs",
+      "hash": "sha256:4c2c635a474e84dba08144dfc9d68046281a9ccedff03e8fbf29954604a11d76"
+    },
+    {
+      "path": "scripts/a1/start-readiness-preview.mjs",
+      "hash": "sha256:95a5b2edc570d4c82dfff34eb7ddd2c78ac733b5cfe6b9b0f399ea50181255bf"
+    },
+    {
+      "path": "scripts/evaluate-a1-copilot.mjs",
+      "hash": "sha256:550cb1ec7328fa2a99d9900c9c0d27cb87795c2de8e348633a8a8a0799ecefb3"
+    },
+    {
+      "path": "scripts/evaluate-a1-working-plan.mjs",
+      "hash": "sha256:3a758c11563c697c04bf412b0d3b87c06bfb928a8563dae345a71ab343ee27e6"
+    }
+  ],
+  "runs": [
+    {
+      "argv": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "scripts/a1/model-routes.test.mjs"
+      ],
+      "exit_code": 0,
+      "output": "reports/a1-passes/FE-A1.3-W02-execution-1791683152658.tap",
+      "output_hash": "sha256:b392f42a6dcb33577e23902c0f3cf1bd08bf4a6f8de6c3c91ed1ef422411455b"
+    }
+  ],
+  "boundary": "Actual managed QA question/follow-up through the live production browser and PostgreSQL, separate actual-model typed working-plan eligibility, and production unavailable-model recovery. Role-native proposal probes use committed synthetic records; canonical ProjectThread/InteractionRun, durable proposal decisions/commands, native examiners and connected cycles remain separate required A1 work and are not claimed complete."
+}

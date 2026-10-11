@@ -6,7 +6,7 @@ This is the required execution breakdown for FE-A1. It records implementation ob
 
 The canonical work/status/dependency register is [scripts/frontend-a1-work-inventory.json](../scripts/frontend-a1-work-inventory.json). This report is generated from it with `npm run roadmap:frontend-a1`; `npm run audit:frontend-a1` checks coverage and document agreement. The existing [reports/FRONTEND-ADAPTATION-MILESTONE.md](../reports/FRONTEND-ADAPTATION-MILESTONE.md) retains historical implementation evidence.
 
-Roadmap/execution binding: `sha256:9e85233b5abe8300aa917e1fbc5cdd0966f799538db15731638931c67bb7f4df`. [scripts/frontend-a1-execution.md](../scripts/frontend-a1-execution.md) contains the same functions and criteria in prerequisite order. D025 requires one active item, an execution pass, a distinct critical pass, optional repair, and broad diagnosis after repeated failure. Both execution worktrees must match before work starts, verification is recorded, completion is accepted, or a later wave advances.
+Roadmap/execution binding: `sha256:f19b40a377ecc2a546c0bc71894ce3ce8ab77bc0efd5f48865c4c994522e889c`. [scripts/frontend-a1-execution.md](../scripts/frontend-a1-execution.md) contains the same functions and criteria in prerequisite order. D025 requires one active item, an execution pass, a distinct critical pass, optional repair, and broad diagnosis after repeated failure. Both execution worktrees must match before work starts, verification is recorded, completion is accepted, or a later wave advances.
 
 ## Controlling contract and scope
 
@@ -68,7 +68,7 @@ The wave controller checks the ledger before Wave 7 or later worker execution, r
 | FE-A1.0   | Contract reconciliation and execution control                              | 6 / 6            | complete    |
 | FE-A1.1   | Copilot shell and interaction design                                       | 0 / 7            | in_progress |
 | FE-A1.2   | Conversational zero/empty Project entry                                    | 1 / 7            | in_progress |
-| FE-A1.3   | Durable grounded conversation and AG-UI                                    | 1 / 18           | in_progress |
+| FE-A1.3   | Durable grounded conversation and AG-UI                                    | 2 / 18           | in_progress |
 | FE-A1.4   | Reactive Workspace, compositional examination and cyclic graph-guided work | 0 / 23           | in_progress |
 | FE-A1.5   | Progressive inspection and complete authority receipts                     | 0 / 9            | in_progress |
 | FE-A1.6   | Complete migration and operation conformance                               | 1 / 7            | in_progress |
@@ -422,7 +422,7 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 
 #### FE-A1.3-W02 — Establish eligible model routes for the new interactions
 
-- **State:** `in_progress`; **owner:** runtime.
+- **State:** `complete`; **owner:** runtime.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.3-W01](#fe-a13-w01)
 - **Contracts:** D007, D008, D017, UX-REQ-021.
 - **Construct:** Register and prove eligible provider/model/role routes for conversational questions, working structure, and explanations with exact prompt/schema/profile revisions, grounding, privacy/egress, cost, and fallback rules.
@@ -431,13 +431,15 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
   - Readiness failure is visible and preserves input.
   - No old fixed-prompt certification is treated as certification for a new role.
 - **Retained partial evidence:** [reports/FE-A1-CONSTRUCTION-CHECKS.json](../reports/FE-A1-CONSTRUCTION-CHECKS.json), [reports/a1-history/2026-10-07-model-eligibility/manifest.json](../reports/a1-history/2026-10-07-model-eligibility/manifest.json), [reports/a1-passes/FE-A1.3-W02-execution-1791665512698.json](../reports/a1-passes/FE-A1.3-W02-execution-1791665512698.json), [reports/a1-passes/FE-A1.3-W02-critical-1791665549548.json](../reports/a1-passes/FE-A1.3-W02-critical-1791665549548.json)
-- **Completion evidence:** Missing; this item cannot close.
+- **Completion evidence:**
+  - [reports/a1-passes/FE-A1.3-W02-execution-1791683152658.json](../reports/a1-passes/FE-A1.3-W02-execution-1791683152658.json); `node --test --test-reporter=tap scripts/a1/model-routes.test.mjs`. Actual managed QA question/follow-up through the live production browser and PostgreSQL, separate actual-model typed working-plan eligibility, and production unavailable-model recovery. Role-native proposal probes use committed synthetic records; canonical ProjectThread/InteractionRun, durable proposal decisions/commands, native examiners and connected cycles remain separate required A1 work and are not claimed complete.
+  - [reports/a1-passes/FE-A1.3-W02-critical-1791683179542.json](../reports/a1-passes/FE-A1.3-W02-critical-1791683179542.json); `node --test --test-reporter=tap scripts/a1/model-routes.critical.test.mjs`. Actual managed QA question/follow-up through the live production browser and PostgreSQL, separate actual-model typed working-plan eligibility, and production unavailable-model recovery. Role-native proposal probes use committed synthetic records; canonical ProjectThread/InteractionRun, durable proposal decisions/commands, native examiners and connected cycles remain separate required A1 work and are not claimed complete.
 
 <a id="fe-a13-w03"></a>
 
 #### FE-A1.3-W03 — Persist and read exact user and assistant turns
 
-- **State:** `planned`; **owner:** runtime.
+- **State:** `in_progress`; **owner:** runtime.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.3-W01](#fe-a13-w01)
 - **Contracts:** D013, UX-REQ-006, UX-REQ-023.
 - **Construct:** Sequence: (1) expose current model and permission readiness; (2) require an explicit reviewed owner-only RunProjectCopilot grant and immutable receipt before new conversation Work or historical adoption, preserving existing authorized Work management grants; (3) retain exact private question/native-context/result Artifacts and canonical Thread/Run/Work atomically; (4) resolve exact applicable inquiry, Work, Review and cycle lineage before release; (5) page original readable content and restore questions, answers, citations and outcomes in a fresh browser; (6) reject owner substitution, widened permission, stale proposals, late partial commits and duplicate effects in the distinct critical pass.

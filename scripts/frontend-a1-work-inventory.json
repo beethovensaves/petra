@@ -1793,7 +1793,7 @@
       "milestone": "FE-A1.3",
       "title": "Establish eligible model routes for the new interactions",
       "owner": "runtime",
-      "status": "in_progress",
+      "status": "complete",
       "implementation": "Register and prove eligible provider/model/role routes for conversational questions, working structure, and explanations with exact prompt/schema/profile revisions, grounding, privacy/egress, cost, and fallback rules.",
       "acceptance": [
         "A real eligible model answers a normal question and follow-up in the application.",
@@ -1818,7 +1818,20 @@
         "reports/a1-passes/FE-A1.3-W02-execution-1791665512698.json",
         "reports/a1-passes/FE-A1.3-W02-critical-1791665549548.json"
       ],
-      "completion_evidence": [],
+      "completion_evidence": [
+        {
+          "pass": "execution",
+          "artifact": "reports/a1-passes/FE-A1.3-W02-execution-1791683152658.json",
+          "command": "node --test --test-reporter=tap scripts/a1/model-routes.test.mjs",
+          "boundary": "Actual managed QA question/follow-up through the live production browser and PostgreSQL, separate actual-model typed working-plan eligibility, and production unavailable-model recovery. Role-native proposal probes use committed synthetic records; canonical ProjectThread/InteractionRun, durable proposal decisions/commands, native examiners and connected cycles remain separate required A1 work and are not claimed complete."
+        },
+        {
+          "pass": "critical",
+          "artifact": "reports/a1-passes/FE-A1.3-W02-critical-1791683179542.json",
+          "command": "node --test --test-reporter=tap scripts/a1/model-routes.critical.test.mjs",
+          "boundary": "Actual managed QA question/follow-up through the live production browser and PostgreSQL, separate actual-model typed working-plan eligibility, and production unavailable-model recovery. Role-native proposal probes use committed synthetic records; canonical ProjectThread/InteractionRun, durable proposal decisions/commands, native examiners and connected cycles remain separate required A1 work and are not claimed complete."
+        }
+      ],
       "optional_scenarios": [
         "A1-S02",
         "A1-S03",
@@ -1938,6 +1951,108 @@
             }
           ],
           "finished_at": "2026-10-10T20:52:57.337Z"
+        },
+        {
+          "item": "FE-A1.3-W02",
+          "phase": "critical",
+          "failed_attempts": 1,
+          "started_at": "2026-10-11T01:35:35.075Z",
+          "failures": [
+            {
+              "reason": "Context preparation type-check failed: helper required v1.0 instead of the registered shell union; corrected to shared structural fields.",
+              "phase": "execution",
+              "recorded_at": "2026-10-11T01:39:25.611Z"
+            },
+            {
+              "reason": "Context preparation test type-check failed: fixture repeated shell authority isolation; removed duplicate.",
+              "phase": "execution",
+              "recorded_at": "2026-10-11T01:39:30.691Z"
+            },
+            {
+              "reason": "Context preparation lint found fixture async/no-await and untyped excerpt assertions; no production source lint findings.",
+              "phase": "execution",
+              "recorded_at": "2026-10-11T01:40:55.826Z"
+            },
+            {
+              "reason": "The new stale-content test assumed a nonempty canonical graph fixture; its empty fixture caused a construction error, requiring an explicit synthetic stale node.",
+              "phase": "execution",
+              "recorded_at": "2026-10-11T01:41:00.748Z"
+            },
+            {
+              "reason": "Preparatory test typing exposed a minimum-three-entry tuple after lint removed an unnecessary assertion. Constructed the three entries explicitly; source/test type-check and lint now pass.",
+              "phase": "execution",
+              "recorded_at": "2026-10-11T01:44:23.444Z"
+            }
+          ],
+          "diagnoses": [
+            {
+              "contract": "Context compilation must support both registered shell read versions while preserving the exact definition, Project and authority basis. Product function tests passed; the initial type-check failures are not passing evidence.",
+              "architecture": "The new helper initially accepted the v1.0 enclosing schema instead of the stable Project/content fields shared by v1.0 and v1.1. It now depends on the common structural fields without casting away the production union.",
+              "dependencies": "The shell authority already includes repeatable-read isolation. The test fixture duplicated that field, triggering an independent TypeScript error. The redundant field was removed; production authority data is retained intact.",
+              "environment": "The broad server suite attempted localhost listeners under the restricted filesystem execution sandbox, producing EPERM in two HTTP suites. Those checks require the already authorized localhost escalation; they did not expose a model or product regression.",
+              "verification": "Fourteen focused context/service tests passed. Source and test type-checks were corrected separately. The broad server result recorded 167 passing tests and the listener failures; the corrected full suite must run with localhost permission before any integration closure.",
+              "changed_remedy": "Use a version-independent typed context helper, preserve the existing authority shape, and run listener/browser/database checks with their required environment access. Separate preparatory typing/environment failures from formal criterion evidence; execute both integration passes only after the source candidate is committed in both checkouts.",
+              "failures": [
+                {
+                  "reason": "Context preparation type-check failed: helper required v1.0 instead of the registered shell union; corrected to shared structural fields.",
+                  "phase": "execution",
+                  "recorded_at": "2026-10-11T01:39:25.611Z"
+                },
+                {
+                  "reason": "Context preparation test type-check failed: fixture repeated shell authority isolation; removed duplicate.",
+                  "phase": "execution",
+                  "recorded_at": "2026-10-11T01:39:30.691Z"
+                }
+              ],
+              "recorded_at": "2026-10-11T01:39:45.201Z"
+            },
+            {
+              "contract": "Context compilation must support both registered shell read versions while preserving the exact definition, Project and authority basis. Product function tests passed; the initial type-check failures are not passing evidence.",
+              "architecture": "The exact context service and helper pass their functional checks. Remaining lint and stale-content failures are test construction defects: use explicit Promise-returning test ports, typed excerpt reads and a deliberately constructed native node; do not rely on a nonempty canonical graph fixture.",
+              "dependencies": "The shell authority already includes repeatable-read isolation. The test fixture duplicated that field, triggering an independent TypeScript error. The redundant field was removed; production authority data is retained intact.",
+              "environment": "The broad server suite attempted localhost listeners under the restricted filesystem execution sandbox, producing EPERM in two HTTP suites. Those checks require the already authorized localhost escalation; they did not expose a model or product regression.",
+              "verification": "The authorized broad server suite passed 189 tests with seven unrelated database checks omitted. Subsequent preparatory lint found fixture-only async and untyped JSON issues; a newly added stale-content test assumed the canonical graph fixture contained a node, but that fixture intentionally represents an empty graph. No formal pass accepted these failures.",
+              "changed_remedy": "Correct the test ports and typed excerpt assertions, construct a real stale native node in the adversarial test, and rerun the affected focused checks. Retain the successful listener suite separately, and require fresh distinct execution and critical evidence after source integration instead of counting preparatory successes as closure.",
+              "failures": [
+                {
+                  "reason": "Context preparation type-check failed: helper required v1.0 instead of the registered shell union; corrected to shared structural fields.",
+                  "phase": "execution",
+                  "recorded_at": "2026-10-11T01:39:25.611Z"
+                },
+                {
+                  "reason": "Context preparation test type-check failed: fixture repeated shell authority isolation; removed duplicate.",
+                  "phase": "execution",
+                  "recorded_at": "2026-10-11T01:39:30.691Z"
+                },
+                {
+                  "reason": "Context preparation lint found fixture async/no-await and untyped excerpt assertions; no production source lint findings.",
+                  "phase": "execution",
+                  "recorded_at": "2026-10-11T01:40:55.826Z"
+                },
+                {
+                  "reason": "The new stale-content test assumed a nonempty canonical graph fixture; its empty fixture caused a construction error, requiring an explicit synthetic stale node.",
+                  "phase": "execution",
+                  "recorded_at": "2026-10-11T01:41:00.748Z"
+                }
+              ],
+              "recorded_at": "2026-10-11T01:41:05.726Z"
+            }
+          ],
+          "passes": [
+            {
+              "pass": "execution",
+              "artifact": "reports/a1-passes/FE-A1.3-W02-execution-1791683152658.json",
+              "command": "node --test --test-reporter=tap scripts/a1/model-routes.test.mjs",
+              "boundary": "Actual managed QA question/follow-up through the live production browser and PostgreSQL, separate actual-model typed working-plan eligibility, and production unavailable-model recovery. Role-native proposal probes use committed synthetic records; canonical ProjectThread/InteractionRun, durable proposal decisions/commands, native examiners and connected cycles remain separate required A1 work and are not claimed complete."
+            },
+            {
+              "pass": "critical",
+              "artifact": "reports/a1-passes/FE-A1.3-W02-critical-1791683179542.json",
+              "command": "node --test --test-reporter=tap scripts/a1/model-routes.critical.test.mjs",
+              "boundary": "Actual managed QA question/follow-up through the live production browser and PostgreSQL, separate actual-model typed working-plan eligibility, and production unavailable-model recovery. Role-native proposal probes use committed synthetic records; canonical ProjectThread/InteractionRun, durable proposal decisions/commands, native examiners and connected cycles remain separate required A1 work and are not claimed complete."
+            }
+          ],
+          "finished_at": "2026-10-11T01:46:45.085Z"
         }
       ],
       "historical_completion_evidence": [
@@ -1960,7 +2075,7 @@
       "milestone": "FE-A1.3",
       "title": "Persist and read exact user and assistant turns",
       "owner": "runtime",
-      "status": "planned",
+      "status": "in_progress",
       "implementation": "Sequence: (1) expose current model and permission readiness; (2) require an explicit reviewed owner-only RunProjectCopilot grant and immutable receipt before new conversation Work or historical adoption, preserving existing authorized Work management grants; (3) retain exact private question/native-context/result Artifacts and canonical Thread/Run/Work atomically; (4) resolve exact applicable inquiry, Work, Review and cycle lineage before release; (5) page original readable content and restore questions, answers, citations and outcomes in a fresh browser; (6) reject owner substitution, widened permission, stale proposals, late partial commits and duplicate effects in the distinct critical pass.",
       "acceptance": [
         "A fresh browser restores actual question and answer content, citations, and outcomes.",
@@ -8555,89 +8670,43 @@
     "synchronization": "Roadmap, generated execution packet, canonical ledger and both execution worktrees must agree before execution or closure."
   },
   "active_work": {
-    "item": "FE-A1.3-W02",
+    "item": "FE-A1.3-W03",
     "phase": "execution",
-    "failed_attempts": 1,
-    "started_at": "2026-10-11T01:35:35.075Z",
+    "failed_attempts": 0,
+    "started_at": "2026-10-11T01:46:50.734Z",
     "failures": [
       {
-        "reason": "Context preparation type-check failed: helper required v1.0 instead of the registered shell union; corrected to shared structural fields.",
+        "reason": "Verification failed: node --test --test-reporter=tap scripts/a1/owned-conversation.test.mjs; retained output reports/a1-passes/FE-A1.3-W03-execution-1791683260595.tap",
         "phase": "execution",
-        "recorded_at": "2026-10-11T01:39:25.611Z"
+        "recorded_at": "2026-10-11T01:47:40.596Z"
       },
       {
-        "reason": "Context preparation test type-check failed: fixture repeated shell authority isolation; removed duplicate.",
+        "reason": "Context disclosure preparation failed twice: repeated wording selected an older turn, then narrow Workspace selection hid the copilot. The canonical browser concurrently failed in Undici Parser.finish; stop and diagnose before retrying.",
         "phase": "execution",
-        "recorded_at": "2026-10-11T01:39:30.691Z"
-      },
-      {
-        "reason": "Context preparation lint found fixture async/no-await and untyped excerpt assertions; no production source lint findings.",
-        "phase": "execution",
-        "recorded_at": "2026-10-11T01:40:55.826Z"
-      },
-      {
-        "reason": "The new stale-content test assumed a nonempty canonical graph fixture; its empty fixture caused a construction error, requiring an explicit synthetic stale node.",
-        "phase": "execution",
-        "recorded_at": "2026-10-11T01:41:00.748Z"
-      },
-      {
-        "reason": "Preparatory test typing exposed a minimum-three-entry tuple after lint removed an unnecessary assertion. Constructed the three entries explicitly; source/test type-check and lint now pass.",
-        "phase": "execution",
-        "recorded_at": "2026-10-11T01:44:23.444Z"
+        "recorded_at": "2026-10-11T01:48:26.240Z"
       }
     ],
     "diagnoses": [
       {
-        "contract": "Context compilation must support both registered shell read versions while preserving the exact definition, Project and authority basis. Product function tests passed; the initial type-check failures are not passing evidence.",
-        "architecture": "The new helper initially accepted the v1.0 enclosing schema instead of the stable Project/content fields shared by v1.0 and v1.1. It now depends on the common structural fields without casting away the production union.",
-        "dependencies": "The shell authority already includes repeatable-read isolation. The test fixture duplicated that field, triggering an independent TypeScript error. The redundant field was removed; production authority data is retained intact.",
-        "environment": "The broad server suite attempted localhost listeners under the restricted filesystem execution sandbox, producing EPERM in two HTTP suites. Those checks require the already authorized localhost escalation; they did not expose a model or product regression.",
-        "verification": "Fourteen focused context/service tests passed. Source and test type-checks were corrected separately. The broad server result recorded 167 passing tests and the listener failures; the corrected full suite must run with localhost permission before any integration closure.",
-        "changed_remedy": "Use a version-independent typed context helper, preserve the existing authority shape, and run listener/browser/database checks with their required environment access. Separate preparatory typing/environment failures from formal criterion evidence; execute both integration passes only after the source candidate is committed in both checkouts.",
+        "contract": "Exact turn disclosure must be inspected through the normal visible copilot pane at desktop and narrow widths. Repeated question wording is not a unique retained-turn identity; hidden-pane innerText is not visible disclosure evidence.",
+        "architecture": "The first disclosure preflight selected the earliest repeated question. The second correctly selected the exact run but read the narrow copilot while the responsive shell still selected Workspace. Use the retained run identity and the normal Agent pane control, and await its state transition before assertions.",
+        "dependencies": "The retained input manifest contains the exact run identity and context hash, allowing an unambiguous locator without changing product owners. Responsive pane state remains React-owned and must be exercised through its existing button, without forcing product DOM or CSS state.",
+        "environment": "The canonical conversation pass passed its PostgreSQL functions, but its simultaneous browser process crashed inside Node 24 Undici Parser.finish with assert(!this.paused). A separate context preflight was using another CDP WebSocket concurrently. The browser transport failed before reporting successful canonical restoration; no product pass is accepted from that run.",
+        "verification": "Model integration completed both execution and critical passes. Canonical conversation execution retained its failed TAP output. Context preflight failed twice on locator/visible-pane assumptions. Preserve those failures, serialize browser verification, and require fresh complete canonical and context execution/critical evidence before closure.",
+        "changed_remedy": "Stop overlapping CDP checks, target the exact retained run rather than repeated wording, use the normal narrow Agent control and await its visible state. Commit the corrected preparatory check in both checkouts, rerun the canonical pass alone, then run context disclosure in sequence. A recurring transport failure requires another broad diagnosis rather than skipping browser evidence.",
         "failures": [
           {
-            "reason": "Context preparation type-check failed: helper required v1.0 instead of the registered shell union; corrected to shared structural fields.",
+            "reason": "Verification failed: node --test --test-reporter=tap scripts/a1/owned-conversation.test.mjs; retained output reports/a1-passes/FE-A1.3-W03-execution-1791683260595.tap",
             "phase": "execution",
-            "recorded_at": "2026-10-11T01:39:25.611Z"
+            "recorded_at": "2026-10-11T01:47:40.596Z"
           },
           {
-            "reason": "Context preparation test type-check failed: fixture repeated shell authority isolation; removed duplicate.",
+            "reason": "Context disclosure preparation failed twice: repeated wording selected an older turn, then narrow Workspace selection hid the copilot. The canonical browser concurrently failed in Undici Parser.finish; stop and diagnose before retrying.",
             "phase": "execution",
-            "recorded_at": "2026-10-11T01:39:30.691Z"
+            "recorded_at": "2026-10-11T01:48:26.240Z"
           }
         ],
-        "recorded_at": "2026-10-11T01:39:45.201Z"
-      },
-      {
-        "contract": "Context compilation must support both registered shell read versions while preserving the exact definition, Project and authority basis. Product function tests passed; the initial type-check failures are not passing evidence.",
-        "architecture": "The exact context service and helper pass their functional checks. Remaining lint and stale-content failures are test construction defects: use explicit Promise-returning test ports, typed excerpt reads and a deliberately constructed native node; do not rely on a nonempty canonical graph fixture.",
-        "dependencies": "The shell authority already includes repeatable-read isolation. The test fixture duplicated that field, triggering an independent TypeScript error. The redundant field was removed; production authority data is retained intact.",
-        "environment": "The broad server suite attempted localhost listeners under the restricted filesystem execution sandbox, producing EPERM in two HTTP suites. Those checks require the already authorized localhost escalation; they did not expose a model or product regression.",
-        "verification": "The authorized broad server suite passed 189 tests with seven unrelated database checks omitted. Subsequent preparatory lint found fixture-only async and untyped JSON issues; a newly added stale-content test assumed the canonical graph fixture contained a node, but that fixture intentionally represents an empty graph. No formal pass accepted these failures.",
-        "changed_remedy": "Correct the test ports and typed excerpt assertions, construct a real stale native node in the adversarial test, and rerun the affected focused checks. Retain the successful listener suite separately, and require fresh distinct execution and critical evidence after source integration instead of counting preparatory successes as closure.",
-        "failures": [
-          {
-            "reason": "Context preparation type-check failed: helper required v1.0 instead of the registered shell union; corrected to shared structural fields.",
-            "phase": "execution",
-            "recorded_at": "2026-10-11T01:39:25.611Z"
-          },
-          {
-            "reason": "Context preparation test type-check failed: fixture repeated shell authority isolation; removed duplicate.",
-            "phase": "execution",
-            "recorded_at": "2026-10-11T01:39:30.691Z"
-          },
-          {
-            "reason": "Context preparation lint found fixture async/no-await and untyped excerpt assertions; no production source lint findings.",
-            "phase": "execution",
-            "recorded_at": "2026-10-11T01:40:55.826Z"
-          },
-          {
-            "reason": "The new stale-content test assumed a nonempty canonical graph fixture; its empty fixture caused a construction error, requiring an explicit synthetic stale node.",
-            "phase": "execution",
-            "recorded_at": "2026-10-11T01:41:00.748Z"
-          }
-        ],
-        "recorded_at": "2026-10-11T01:41:05.726Z"
+        "recorded_at": "2026-10-11T01:48:32.315Z"
       }
     ],
     "passes": []

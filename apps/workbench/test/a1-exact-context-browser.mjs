@@ -21,6 +21,7 @@ assert.equal(response.status, 200);
 const before = await response.json();
 const turn = before.turns.findLast(
   (value) =>
+    value.terminal?.state === "completed" &&
     value.input_manifest &&
     value.context.records.some(
       (record) => record.kind === "project-definition-context",
@@ -66,10 +67,10 @@ try {
   });
   await send("Page.navigate", { url: `${origin}/projects/${projectId}/petra` });
   await until(
-    `Array.from(document.querySelectorAll('.copilot-exchange')).some(node=>node.innerText.includes(${JSON.stringify(turn.question)}))`,
+    `Array.from(document.querySelectorAll('.copilot-exchange')).some(node=>node.textContent.includes(${JSON.stringify(turn.run_id)}))`,
     "retained context turn",
   );
-  const inspect = `Array.from(document.querySelectorAll('.copilot-exchange')).find(node=>node.innerText.includes(${JSON.stringify(turn.question)})).querySelector('.copilot-input-manifest')`;
+  const inspect = `Array.from(document.querySelectorAll('.copilot-exchange')).find(node=>node.textContent.includes(${JSON.stringify(turn.run_id)})).querySelector('.copilot-input-manifest')`;
   await evaluate(
     `${inspect}.open=true; ${inspect}.querySelectorAll('details').forEach(node=>node.open=true)`,
   );
@@ -92,6 +93,13 @@ try {
     deviceScaleFactor: 1,
     mobile: false,
   });
+  await evaluate(
+    "Array.from(document.querySelectorAll('.reference-mobile-pane-switcher button')).find(button=>button.textContent.trim()==='Agent').click()",
+  );
+  await until(
+    "document.querySelector('[data-mobile-pane]').getAttribute('data-mobile-pane')==='agent'",
+    "visible narrow copilot pane",
+  );
   assert.equal(await evaluate(`${inspect}.innerText`), originalDisplayed);
   const overflow = await evaluate(
     `(()=>{const node=${inspect};return [...node.querySelectorAll('pre')].map(item=>({wrap:getComputedStyle(item).whiteSpace, width:item.getBoundingClientRect().width, container:node.getBoundingClientRect().width}))})()`,
