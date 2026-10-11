@@ -1,6 +1,6 @@
 # A1 execution instructions
 
-Roadmap binding: `sha256:d4299874f5831e48ced39a9236aa103bb9ad490330e6ca222a33f09e054e1f8b`. Generated from frontend-a1-work-inventory.json.
+Roadmap binding: `sha256:744fa3435a398bb0fe8d132823c5c87e9d66536078f1e4a1388b96b783ff4c36`. Generated from frontend-a1-work-inventory.json.
 
 D025 and D024 govern this execution. Historical frozen Wave 6 instructions are subordinate. Native screen-reader evaluation is excluded; browser semantics and functional peers remain mandatory. The sixteen late scenarios are optional.
 
@@ -250,7 +250,7 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 ### 16. FE-A1.1-W01: Rebuild the copilot and workspace hierarchy
 
-State: planned. Owner: frontend. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.0-W02, FE-A1.3-W05.
+State: complete. Owner: frontend. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.0-W02, FE-A1.3-W05.
 
 Build the persistent 30/70 desktop shell around a compact Project/objective header, continuous user/assistant thread, contextual progress/interventions, usable composer, and active Workspace result. Sequence: move Workspace destinations and inspection into Workspace chrome; reserve chat and composer space while bounding expandable support; reflect the opened answer or evidence in the Workspace heading and activate narrow Workspace presentation; verify ordinary desktop geometry and actual retained Q/A/draft continuity; critically challenge short/narrow viewports, expanded disclosures, keyboard activation and native return. After AG-UI integration, revalidate the whole hierarchy and keep long answer headings from shrinking the native return control into a vertical column.
 
