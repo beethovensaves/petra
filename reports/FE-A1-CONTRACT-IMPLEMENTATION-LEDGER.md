@@ -6,7 +6,7 @@ This is the required execution breakdown for FE-A1. It records implementation ob
 
 The canonical work/status/dependency register is [scripts/frontend-a1-work-inventory.json](../scripts/frontend-a1-work-inventory.json). This report is generated from it with `npm run roadmap:frontend-a1`; `npm run audit:frontend-a1` checks coverage and document agreement. The existing [reports/FRONTEND-ADAPTATION-MILESTONE.md](../reports/FRONTEND-ADAPTATION-MILESTONE.md) retains historical implementation evidence.
 
-Roadmap/execution binding: `sha256:41d490f63de2026c9b7c725e1ecd515aa808a2ba1e5a654922939ad9923a516e`. [scripts/frontend-a1-execution.md](../scripts/frontend-a1-execution.md) contains the same functions and criteria in prerequisite order. D025 requires one active item, an execution pass, a distinct critical pass, optional repair, and broad diagnosis after repeated failure. Both execution worktrees must match before work starts, verification is recorded, completion is accepted, or a later wave advances.
+Roadmap/execution binding: `sha256:7d05f99a536a1f2e514946cb4a3d6b4face3231cfff49f9ba6e97ee4f7fb6711`. [scripts/frontend-a1-execution.md](../scripts/frontend-a1-execution.md) contains the same functions and criteria in prerequisite order. D025 requires one active item, an execution pass, a distinct critical pass, optional repair, and broad diagnosis after repeated failure. Both execution worktrees must match before work starts, verification is recorded, completion is accepted, or a later wave advances.
 
 ## Controlling contract and scope
 
@@ -68,7 +68,7 @@ The wave controller checks the ledger before Wave 7 or later worker execution, r
 | FE-A1.0   | Contract reconciliation and execution control                              | 6 / 6            | complete    |
 | FE-A1.1   | Copilot shell and interaction design                                       | 0 / 7            | in_progress |
 | FE-A1.2   | Conversational zero/empty Project entry                                    | 0 / 7            | in_progress |
-| FE-A1.3   | Durable grounded conversation and AG-UI                                    | 0 / 18           | in_progress |
+| FE-A1.3   | Durable grounded conversation and AG-UI                                    | 1 / 18           | in_progress |
 | FE-A1.4   | Reactive Workspace, compositional examination and cyclic graph-guided work | 0 / 23           | in_progress |
 | FE-A1.5   | Progressive inspection and complete authority receipts                     | 0 / 9            | in_progress |
 | FE-A1.6   | Complete migration and operation conformance                               | 1 / 7            | in_progress |
@@ -403,7 +403,7 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 
 #### FE-A1.3-W01 — Register genuine conversational interaction contracts
 
-- **State:** `in_progress`; **owner:** runtime.
+- **State:** `complete`; **owner:** runtime.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.0-W01](#fe-a10-w01)
 - **Contracts:** D007, D008, D013, UX-REQ-006, UX-REQ-021.
 - **Construct:** Add versioned intake, Project evidence-question, follow-up, and scene-explanation interaction contracts with bounded inputs, response schemas, speech acts, policy, and validated references; preserve the fixed M1 synthesist contract. Register the immutable typed human command-decision contract over complete existing native request schemas; it cannot grant capability, approve domain truth, or substitute for the ordinary command owner.
@@ -412,13 +412,15 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
   - Editing the fixed certified question cannot bypass its guard.
   - Each new interaction declares model-role eligibility, output validation, and authority limits.
 - **Retained partial evidence:** [reports/FE-A1-CONSTRUCTION-CHECKS.json](../reports/FE-A1-CONSTRUCTION-CHECKS.json), [reports/a1-passes/FE-A1.3-W01-execution-1791664110538.json](../reports/a1-passes/FE-A1.3-W01-execution-1791664110538.json), [reports/a1-passes/FE-A1.3-W01-critical-1791664123560.json](../reports/a1-passes/FE-A1.3-W01-critical-1791664123560.json)
-- **Completion evidence:** Missing; this item cannot close.
+- **Completion evidence:**
+  - [reports/a1-passes/FE-A1.3-W01-execution-1791690537278.json](../reports/a1-passes/FE-A1.3-W01-execution-1791690537278.json); `node --test --test-reporter=tap scripts/a1/conversation-contracts.test.mjs`. Conversation and explicit human-decision contract boundary checks. Actual model eligibility, canonical proposal ownership, ordinary command effects, visible chat and Workspace convergence require their separate prerequisite and command-bridge items.
+  - [reports/a1-passes/FE-A1.3-W01-critical-1791690612931.json](../reports/a1-passes/FE-A1.3-W01-critical-1791690612931.json); `node --test --test-reporter=tap scripts/a1/conversation-contracts.critical.test.mjs`. Conversation and explicit human-decision contract boundary checks. Actual model eligibility, canonical proposal ownership, ordinary command effects, visible chat and Workspace convergence require their separate prerequisite and command-bridge items.
 
 <a id="fe-a13-w02"></a>
 
 #### FE-A1.3-W02 — Establish eligible model routes for the new interactions
 
-- **State:** `planned`; **owner:** runtime.
+- **State:** `in_progress`; **owner:** runtime.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.3-W01](#fe-a13-w01)
 - **Contracts:** D007, D008, D017, UX-REQ-021.
 - **Construct:** Register and prove eligible provider/model/role routes for conversational questions, working structure, and explanations with exact prompt/schema/profile revisions, grounding, privacy/egress, cost, and fallback rules.

@@ -1,10 +1,10 @@
 {
   "schema_name": "petra.a1-evidence-index",
   "schema_version": "1.0.0",
-  "roadmap_binding": "sha256:41d490f63de2026c9b7c725e1ecd515aa808a2ba1e5a654922939ad9923a516e",
+  "roadmap_binding": "sha256:7d05f99a536a1f2e514946cb4a3d6b4face3231cfff49f9ba6e97ee4f7fb6711",
   "current": {
     "required": 90,
-    "complete": 7,
+    "complete": 8,
     "user_acceptance": null,
     "proofs": [
       {
@@ -106,6 +106,23 @@
             "artifact": "reports/a1-passes/FE-A1.0-W06-critical-1791661626828.json",
             "command": "node --test --test-reporter=tap scripts/frontend-a1-process.critical.test.mjs",
             "boundary": "Delivery-control implementation only. Temporary Git/worktree fixtures test guards; they establish no copilot, Workspace, native examiner, model or cyclic verification product completion. Generated status views are checked from the current canonical ledger; static implementation and test files bind the committed candidate."
+          }
+        ]
+      },
+      {
+        "work_item": "FE-A1.3-W01",
+        "passes": [
+          {
+            "pass": "execution",
+            "artifact": "reports/a1-passes/FE-A1.3-W01-execution-1791690537278.json",
+            "command": "node --test --test-reporter=tap scripts/a1/conversation-contracts.test.mjs",
+            "boundary": "Conversation and explicit human-decision contract boundary checks. Actual model eligibility, canonical proposal ownership, ordinary command effects, visible chat and Workspace convergence require their separate prerequisite and command-bridge items."
+          },
+          {
+            "pass": "critical",
+            "artifact": "reports/a1-passes/FE-A1.3-W01-critical-1791690612931.json",
+            "command": "node --test --test-reporter=tap scripts/a1/conversation-contracts.critical.test.mjs",
+            "boundary": "Conversation and explicit human-decision contract boundary checks. Actual model eligibility, canonical proposal ownership, ordinary command effects, visible chat and Workspace convergence require their separate prerequisite and command-bridge items."
           }
         ]
       },
