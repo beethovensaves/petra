@@ -194,6 +194,10 @@ export interface ProjectShellPersistence {
   readonly profileCommands: ProjectProfileCommandAuthority;
   readonly profileRecovery: ProjectProfileCommandRecoveryReader;
   readonly definitionDrafts: ProjectDefinitionDraftReader;
+  readonly definitions: Pick<
+    ProjectDefinitionAuthorityRepository,
+    "getProjectDefinition"
+  >;
   readonly definitionDraftCommands: ProjectDefinitionDraftCommandAuthority;
   readonly importCommands: ProjectImportCommandAuthority;
   readonly importRecovery: ProjectImportCommandRecoveryReader;
@@ -813,6 +817,10 @@ export const createProjectShellPersistenceFromEnvironment = async (
         profileCommands: profileRuntime,
         profileRecovery: profileRuntime,
         definitionDrafts: profileRuntime,
+        definitions: new PostgresProjectDefinitionAuthorityRepository(
+          pool,
+          contracts,
+        ),
         definitionDraftCommands: profileRuntime,
         importCommands: importRuntime,
         importRecovery: importRuntime,
@@ -932,6 +940,10 @@ export const createProjectShellPersistenceFromEnvironment = async (
     profileCommands: profileRuntime,
     profileRecovery: profileRuntime,
     definitionDrafts: profileRuntime,
+    definitions: new PostgresProjectDefinitionAuthorityRepository(
+      pool,
+      contracts,
+    ),
     definitionDraftCommands: profileRuntime,
     importCommands: importRuntime,
     importRecovery: importRuntime,
@@ -1012,3 +1024,5 @@ export const createProjectShellPersistenceFromEnvironment = async (
     close,
   };
 };
+import { PostgresProjectDefinitionAuthorityRepository } from "@petra/postgres";
+import type { ProjectDefinitionAuthorityRepository } from "@petra/core";

@@ -1,0 +1,10 @@
+{
+  "work_item": "FE-A1.3-W03",
+  "boundary": "Definition-composition integration verification readiness; no passing evidence was recorded from these browser preflights.",
+  "contract": "Exact-definition reads are presentation GETs. Every read must bind the same Project, identity, revision and hash, preserve authority, and cause no command or model invocation. The contract does not require a single GET.",
+  "architecture": "The production root uses React StrictMode, which remounts development effects. The component correctly keys results by the immutable definition binding and keeps exact identity behind a nested optional Inspect disclosure.",
+  "dependencies": "The existing Chrome driver returns child, profile and socketUrl. A primary assertion must survive finally cleanup; process cleanup must finish before launching the next task-owned browser.",
+  "environment": "The Node 24 production factory is running on 4312 with Vite on 4313 against controlled inspection services. The check targets only the synthetic Project and performs no model or command operation.",
+  "verification": "Preflights made four invalid instrumentation assumptions: Chrome process field names, visible text inside a collapsed nested disclosure, safe cleanup overlapping an active child, and one read under development StrictMode. All preflight outcomes remain failures rather than completion evidence.",
+  "changed_remedy": "Use the inspected child/profile lifecycle, finish cleanup before launch, open both disclosures before visible identity assertions, and require all observed GETs to have one exact binding with no authority-changing operations rather than require one request."
+}

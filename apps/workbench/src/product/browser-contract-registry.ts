@@ -133,6 +133,7 @@ import Ajv2020, { type ValidateFunction } from "ajv/dist/2020.js";
 import addFormats from "ajv-formats";
 
 import claimSchema from "../../../../packages/contracts/schemas/claim/1.0.0/schema.json";
+import controlledWritingRequirementSchema from "../../../../packages/contracts/schemas/controlled-writing-requirement/1.0.0/schema.json";
 import commandEnvelopeSchema from "../../../../packages/contracts/schemas/command-envelope/1.0.0/schema.json";
 import commandEnvelopeV11Schema from "../../../../packages/contracts/schemas/command-envelope/1.1.0/schema.json";
 import commandEnvelopeV12Schema from "../../../../packages/contracts/schemas/command-envelope/1.2.0/schema.json";
@@ -215,6 +216,8 @@ type BrowserContractName =
   | "review-session-reject-result@1.0.0"
   | "review-recovery-assessment@1.0.0"
   | "claim@1.0.0"
+  | "project-definition@1.0.0"
+  | "controlled-writing-requirement@1.0.0"
   | "review-candidate-basis-revision-receipt@1.0.0"
   | "review-candidate-correction-receipt@1.0.0"
   | "review-session-separation-receipt@1.0.0"
@@ -445,6 +448,7 @@ const schemas = [
   definitionDependency(commandEnvelopeV12Schema),
   definitionDependency(commandEnvelopeV18Schema),
   claimSchema,
+  controlledWritingRequirementSchema,
   workingCandidateSchema,
   workingRelationshipSchema,
   definitionDependency(reviewSessionSchema),
@@ -514,6 +518,9 @@ const contractIds: Record<BrowserContractName, string> = {
   "review-session-reject-result@1.0.0": rejectResultSchema.$id,
   "review-recovery-assessment@1.0.0": recoveryAssessmentSchema.$id,
   "claim@1.0.0": claimSchema.$id,
+  "project-definition@1.0.0": projectDefinitionSchema.$id,
+  "controlled-writing-requirement@1.0.0":
+    controlledWritingRequirementSchema.$id,
   "review-candidate-basis-revision-receipt@1.0.0":
     basisRevisionReceiptSchema.$id,
   "review-candidate-correction-receipt@1.0.0": correctionReceiptSchema.$id,

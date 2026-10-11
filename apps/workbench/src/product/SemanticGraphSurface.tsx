@@ -5,18 +5,30 @@ import { useState } from "react";
 import { Link, useSearchParams } from "react-router";
 import type { PetraProjectSemanticGraphView } from "@petra/contracts";
 import { useCopilotWorkspace } from "./CopilotWorkspace.js";
+import {
+  ProjectDefinitionComponentsDisclosure,
+  useProjectDefinitionComponents,
+} from "./project-definition-components.js";
+import type { ProjectDefinitionComponents } from "@petra/core/project-definition-components";
 
 type Node = PetraProjectSemanticGraphView["content"]["nodes"][number];
 export const NativeMaterialExaminer = ({
   node,
   projectId,
   graphHash,
+  definition,
 }: {
   node: Node;
   projectId: string;
   graphHash: string;
+  definition?: ProjectDefinitionComponents;
 }): React.JSX.Element => {
-  const examination = nativeExamination({ node, projectId, graphHash });
+  const examination = nativeExamination({
+    node,
+    projectId,
+    graphHash,
+    ...(definition === undefined ? {} : { definition }),
+  });
   return (
     <article
       className="native-material-examiner"
@@ -135,6 +147,10 @@ export const SemanticGraphSurface = ({
   view: PetraProjectSemanticGraphView;
 }): React.JSX.Element => {
   const [params, setParams] = useSearchParams();
+  const definition = useProjectDefinitionComponents(
+    view.project_id,
+    view.content.definition_ref,
+  );
   const [mode, setMode] = useState<"graph" | "text" | "cycles">("graph");
   const copilot = useCopilotWorkspace();
   const [localKey, setLocalKey] = useState<string>();
@@ -203,6 +219,15 @@ export const SemanticGraphSurface = ({
           Open authority path
         </Link>
       </header>
+      {definition.status === "ready" ? (
+        <ProjectDefinitionComponentsDisclosure value={definition.value} />
+      ) : (
+        <p role="status">
+          {definition.status === "loading"
+            ? "Loading this Project’s exact examination components…"
+            : definition.reason}
+        </p>
+      )}
       <div className="semantic-graph-toolbar">
         <button
           type="button"
@@ -441,6 +466,9 @@ export const SemanticGraphSurface = ({
                 node={selected}
                 projectId={view.project_id}
                 graphHash={view.content_hash}
+                {...(definition.status === "ready"
+                  ? { definition: definition.value }
+                  : {})}
               />
               <button
                 type="button"

@@ -4,6 +4,10 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./project-definition-components": {
+      "types": "./dist/project-definition-components.d.ts",
+      "default": "./dist/project-definition-components.js"
+    },
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"

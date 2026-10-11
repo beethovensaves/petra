@@ -190,6 +190,14 @@ const apiToken = (): string => {
   return window.sessionStorage.getItem(TOKEN_STORAGE_KEY) ?? DEVELOPMENT_TOKEN;
 };
 
+export const getExactProjectDefinition = (
+  binding: ExactProjectDefinitionRead,
+): Promise<PetraProjectDefinition> =>
+  new ProjectDefinitionClient({
+    baseUrl: apiBaseUrl(),
+    token: apiToken(),
+  }).read(binding);
+
 const apiBaseUrl = (): string =>
   typeof window === "undefined" ? "http://petra.local" : window.location.origin;
 
@@ -9576,3 +9584,7 @@ export const executeReviewReject = async (
     token: apiToken(),
   }).reject(request);
 };
+import {
+  ProjectDefinitionClient,
+  type ExactProjectDefinitionRead,
+} from "@petra/adapters";

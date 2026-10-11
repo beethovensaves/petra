@@ -407,6 +407,9 @@ export class PostgresProjectSemanticGraphReader implements ProjectSemanticGraphR
         ...(await this.#sourceMaterial(client, candidate, native)),
         material_state:
           !registered ||
+          candidate.project_definition_ref.project_definition_id !==
+            definition.project_definition_id ||
+          candidate.project_definition_ref.revision !== definition.revision ||
           candidate.project_definition_ref.content_hash !==
             definition.content_hash
             ? "definition_stale"
