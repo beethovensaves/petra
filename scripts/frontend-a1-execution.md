@@ -1,6 +1,6 @@
 # A1 execution instructions
 
-Roadmap binding: `sha256:042d8ad70e8c0309f89c3f5fabe466178c901b947e79fa35cd7273db34972d7e`. Generated from frontend-a1-work-inventory.json.
+Roadmap binding: `sha256:3f20e51301aa3ced85d159c7c901136b7fffc39752696b96080f6e306e854ced`. Generated from frontend-a1-work-inventory.json.
 
 D025 and D024 govern this execution. Historical frozen Wave 6 instructions are subordinate. Native screen-reader evaluation is excluded; browser semantics and functional peers remain mandatory. The sixteen late scenarios are optional.
 
@@ -179,11 +179,11 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 ### 11. FE-A1.2-W01: Retain outcome-first definition drafting
 
-State: planned. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.0-W01.
+State: in_progress. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.0-W01.
 
 Keep the server-owned definition draft preserving original wording, Project kernel, proposed objective, outputs, assumptions, capabilities, and unsupported behavior; examples remain optional.
 
-Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
+Execution plan: [reports/a1-plans/FE-A1.2-W01-execution.json](../reports/a1-plans/FE-A1.2-W01-execution.json). Critical plan: [reports/a1-plans/FE-A1.2-W01-critical.json](../reports/a1-plans/FE-A1.2-W01-critical.json). Run each with `npm run a1:verify -- PLAN` in that order.
 
 - **FE-A1.2-W01-AC01:** Scientific, controlled-writing, and unrelated outcomes use the same entry.
 - **FE-A1.2-W01-AC02:** Changed draft content and unaccepted consequential assumptions are rejected.

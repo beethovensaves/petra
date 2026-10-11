@@ -1,0 +1,83 @@
+{
+  "work_item": "FE-A1.2-W01",
+  "pass": "critical",
+  "argv": [
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "scripts/a1/outcome-drafting.critical.test.mjs"
+  ],
+  "sources": [
+    "apps/server/src/app.ts",
+    "apps/server/src/intake-copilot-routes.ts",
+    "apps/server/src/intake-copilot.ts",
+    "apps/server/test/project-definition-draft-routes.test.ts",
+    "apps/workbench/src/product/IntakeCopilotConversation.tsx",
+    "apps/workbench/src/product/IntakeWorkspace.tsx",
+    "apps/workbench/src/product/ProjectProfileSurface.tsx",
+    "apps/workbench/src/product/ReferenceWorkbench.tsx",
+    "apps/workbench/src/product/project-data.ts",
+    "apps/workbench/src/product/project-profile.test.tsx",
+    "apps/workbench/test/a1-outcome-drafting-browser.mjs",
+    "apps/workbench/test/cumulative-production-browser-driver.mjs",
+    "infra/postgres/integration.compose.yaml",
+    "packages/adapters/src/intake-copilot-ag-ui.ts",
+    "packages/adapters/src/project-definition-draft-client.ts",
+    "packages/contracts/schemas/project-definition-draft-command-request/1.0.0/schema.json",
+    "packages/contracts/schemas/project-definition-draft-command-request/1.1.0/schema.json",
+    "packages/contracts/schemas/project-definition-draft-request/1.0.0/schema.json",
+    "packages/contracts/schemas/project-definition-draft-view/1.0.0/schema.json",
+    "packages/core/src/project-definition-draft.ts",
+    "packages/postgres/src/project-definition-authority-repository.ts",
+    "packages/postgres/src/project-profile-runtime.ts",
+    "packages/postgres/src/research-scope-repository.ts",
+    "packages/postgres/test/project-profile-runtime.test.ts",
+    "scripts/a1/outcome-drafting.critical.test.mjs",
+    "scripts/a1/outcome-drafting.test.mjs",
+    "scripts/a1/owned-postgres.mjs",
+    "scripts/a1/run-browser.mjs",
+    "scripts/a1/run-vitest.mjs"
+  ],
+  "criteria": [
+    {
+      "id": "FE-A1.2-W01-AC01",
+      "result": "passed",
+      "test": "FE-A1.2-W01-AC01 critical: ambiguous and unknown capability selection cannot silently borrow another definition",
+      "observation": "ambiguous and unknown capability selection cannot silently borrow another definition"
+    },
+    {
+      "id": "FE-A1.2-W01-AC02",
+      "result": "passed",
+      "test": "FE-A1.2-W01-AC02 critical: recomputed forged draft hashes and invented assumption acceptance cannot cross production command authority",
+      "observation": "recomputed forged draft hashes and invented assumption acceptance cannot cross production command authority"
+    },
+    {
+      "id": "FE-A1.2-W01-AC03",
+      "result": "passed",
+      "test": "FE-A1.2-W01-AC03 critical: missing optional example and whitespace outcome are handled before any Project creation",
+      "observation": "missing optional example and whitespace outcome are handled before any Project creation"
+    }
+  ],
+  "boundary": "Existing outcome-first draft construction and its exact authority are being verified. Live browser uses one ordinary pre-Project session and three retained draft revisions, with no model invocation or accepted Project creation against inspection data. Isolated PostgreSQL proves real creation/atomicity and rejection. This does not close definition composition, intake model functions, native examiner execution or overall A1.",
+  "review": {
+    "perspective": "Challenge normal drafting with a nonexistent registered example, a forged but recomputed content hash, invented assumption codes, overlapping command identities and whitespace outcomes. Actual production rejection codes must identify the intended authority guard; any generic schema or environment error fails the criterion.",
+    "challenges": [
+      {
+        "criterion": "FE-A1.2-W01-AC01",
+        "question": "FE-A1.2-W01-AC01 critical: ambiguous and unknown capability selection cannot silently borrow another definition",
+        "result": "ambiguous and unknown capability selection cannot silently borrow another definition"
+      },
+      {
+        "criterion": "FE-A1.2-W01-AC02",
+        "question": "FE-A1.2-W01-AC02 critical: recomputed forged draft hashes and invented assumption acceptance cannot cross production command authority",
+        "result": "recomputed forged draft hashes and invented assumption acceptance cannot cross production command authority"
+      },
+      {
+        "criterion": "FE-A1.2-W01-AC03",
+        "question": "FE-A1.2-W01-AC03 critical: missing optional example and whitespace outcome are handled before any Project creation",
+        "result": "missing optional example and whitespace outcome are handled before any Project creation"
+      }
+    ],
+    "findings": []
+  }
+}

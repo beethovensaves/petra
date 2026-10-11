@@ -1059,7 +1059,7 @@
       "milestone": "FE-A1.2",
       "title": "Retain outcome-first definition drafting",
       "owner": "runtime",
-      "status": "planned",
+      "status": "in_progress",
       "implementation": "Keep the server-owned definition draft preserving original wording, Project kernel, proposed objective, outputs, assumptions, capabilities, and unsupported behavior; examples remain optional.",
       "acceptance": [
         "Scientific, controlled-writing, and unrelated outcomes use the same entry.",
@@ -1098,7 +1098,11 @@
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
         }
-      ]
+      ],
+      "verification_plans": {
+        "execution": "reports/a1-plans/FE-A1.2-W01-execution.json",
+        "critical": "reports/a1-plans/FE-A1.2-W01-critical.json"
+      }
     },
     {
       "id": "FE-A1.2-W02",
@@ -6376,7 +6380,12 @@
     "repeated_failure_limit": 2,
     "synchronization": "Roadmap, generated execution packet, canonical ledger and both execution worktrees must agree before execution or closure."
   },
-  "active_work": null,
+  "active_work": {
+    "item": "FE-A1.2-W01",
+    "phase": "execution",
+    "failed_attempts": 0,
+    "started_at": "2026-10-11T00:32:59.324Z"
+  },
   "repair_sequence": [
     {
       "order": 1,
