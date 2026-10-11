@@ -1,6 +1,6 @@
 # A1 execution instructions
 
-Roadmap binding: `sha256:4f5951ca31f1462a5926f3c7320c01acf9b06a5b51d256b2e8c268d8bc84741e`. Generated from frontend-a1-work-inventory.json.
+Roadmap binding: `sha256:92ca9bba0f5f4bfa4b3aea0f5e0914c9e75c12ffe1b725c3858e95c7b876f2d6`. Generated from frontend-a1-work-inventory.json.
 
 D025 and D024 govern this execution. Historical frozen Wave 6 instructions are subordinate. Native screen-reader evaluation is excluded; browser semantics and functional peers remain mandatory. The sixteen late scenarios are optional.
 
@@ -193,7 +193,7 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 ### 12. FE-A1.2-W07: Compose definitions and revisions across Project types
 
-State: complete. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.2-W01, FE-A1.3-W03.
+State: in_progress. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.2-W01, FE-A1.3-W03.
 
 Resolve registered object/relationship descriptors, inquiry roles, examiners, language rules, validators, outputs, and place capabilities from the exact ProjectDefinition; semantic revisions follow D018.
 
@@ -207,7 +207,7 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 ### 13. FE-A1.3-W04: Compile exact bounded context for every turn
 
-State: complete. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.3-W01, FE-A1.2-W07.
+State: planned. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.3-W01, FE-A1.2-W07.
 
 Compose Project definition, objective, inquiry, selected object revisions, graph query/scene references, sources, packets, Work/proposals, omissions, snapshot, privacy, and budget without inheriting ambient route state.
 

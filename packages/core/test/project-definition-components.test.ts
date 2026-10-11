@@ -75,7 +75,7 @@ describe("ProjectDefinition component composition", () => {
         result.registrations.find(
           (r) =>
             r.registration.semantic_key ===
-            d.content.registrations[1].semantic_key,
+            d.content.registrations[1]!.semantic_key,
         )?.components,
       ).toEqual([installed]);
       expect(result.places).toEqual(d.content.supported_places);
@@ -117,7 +117,7 @@ describe("ProjectDefinition component composition", () => {
       expect(r.limitation).toContain("no component implements");
     }
     const unavailable = structuredClone(d);
-    unavailable.content.registrations[1].contract.content_hash = `sha256:${"0".repeat(64)}`;
+    unavailable.content.registrations[1]!.contract.content_hash = `sha256:${"0".repeat(64)}`;
     const r = resolveProjectDefinitionComponents(
       unavailable,
       binding(unavailable),

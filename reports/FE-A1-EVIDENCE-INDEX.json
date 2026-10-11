@@ -1,10 +1,10 @@
 {
   "schema_name": "petra.a1-evidence-index",
   "schema_version": "1.0.0",
-  "roadmap_binding": "sha256:4f5951ca31f1462a5926f3c7320c01acf9b06a5b51d256b2e8c268d8bc84741e",
+  "roadmap_binding": "sha256:92ca9bba0f5f4bfa4b3aea0f5e0914c9e75c12ffe1b725c3858e95c7b876f2d6",
   "current": {
     "required": 90,
-    "complete": 15,
+    "complete": 13,
     "user_acceptance": null,
     "proofs": [
       {
@@ -144,23 +144,6 @@
         ]
       },
       {
-        "work_item": "FE-A1.2-W07",
-        "passes": [
-          {
-            "pass": "execution",
-            "artifact": "reports/a1-passes/FE-A1.2-W07-execution-1791684183544.json",
-            "command": "node --test --test-reporter=tap scripts/a1/definition-components.test.mjs",
-            "boundary": "Exact immutable definition reads and generic component negotiation across declared domain registrations. Schema admission is separate from an installed examiner or executor; unavailable capability does not invalidate a valid Project. Existing immutable history owners preserve the original basis. This does not certify missing native writing interpretation/third-type examiners, new model roles, proposed commands, or overall A1."
-          },
-          {
-            "pass": "critical",
-            "artifact": "reports/a1-passes/FE-A1.2-W07-critical-1791684214939.json",
-            "command": "node --test --test-reporter=tap scripts/a1/definition-components.critical.test.mjs",
-            "boundary": "Exact immutable definition reads and generic component negotiation across declared domain registrations. Schema admission is separate from an installed examiner or executor; unavailable capability does not invalidate a valid Project. Existing immutable history owners preserve the original basis. This does not certify missing native writing interpretation/third-type examiners, new model roles, proposed commands, or overall A1."
-          }
-        ]
-      },
-      {
         "work_item": "FE-A1.3-W01",
         "passes": [
           {
@@ -208,23 +191,6 @@
             "artifact": "reports/a1-passes/FE-A1.3-W03-critical-1791684034936.json",
             "command": "node --test --test-reporter=tap scripts/a1/owned-conversation.critical.test.mjs",
             "boundary": "Canonical ownership and retained readable advisory conversation only. Provider internal CPU, memory, network, tokens and price remain unavailable; unknown values never satisfy applicable hard limits. Historical adoption records actual import Work and preserves original bytes without reconstructing original execution authority. Proposal decisions/commands, progressive AG-UI activities/interrupts, native examiners, reactive Workspace graph cycles and A1 product acceptance remain open required ledger items."
-          }
-        ]
-      },
-      {
-        "work_item": "FE-A1.3-W04",
-        "passes": [
-          {
-            "pass": "execution",
-            "artifact": "reports/a1-passes/FE-A1.3-W04-execution-1791684264454.json",
-            "command": "node --test --test-reporter=tap scripts/a1/exact-context.test.mjs",
-            "boundary": "Exact bounded advisory turn context only. Original-basis branching, action previews/commands, missing native examiners and connected graph cycles remain their own required A1 items. Work inputs/proposals/output and inquiry framing/source bytes are explicitly withheld on metadata paths; no fact, approval, examination, resolved inquiry or completed domain work is inferred."
-          },
-          {
-            "pass": "critical",
-            "artifact": "reports/a1-passes/FE-A1.3-W04-critical-1791684289531.json",
-            "command": "node --test --test-reporter=tap scripts/a1/exact-context.critical.test.mjs",
-            "boundary": "Exact bounded advisory turn context only. Original-basis branching, action previews/commands, missing native examiners and connected graph cycles remain their own required A1 items. Work inputs/proposals/output and inquiry framing/source bytes are explicitly withheld on metadata paths; no fact, approval, examination, resolved inquiry or completed domain work is inferred."
           }
         ]
       },

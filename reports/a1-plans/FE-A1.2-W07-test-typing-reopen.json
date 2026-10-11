@@ -1,0 +1,4 @@
+{
+  "work_item": "FE-A1.2-W07",
+  "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction."
+}
