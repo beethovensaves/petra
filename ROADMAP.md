@@ -351,11 +351,11 @@ The slice should use Petra's internal commands and queries from the beginning. I
 
 ## Controlling A1 execution
 
-Binding: `sha256:042d8ad70e8c0309f89c3f5fabe466178c901b947e79fa35cd7273db34972d7e`. 12/90 required items complete; 78 incomplete.
+Binding: `sha256:3f20e51301aa3ced85d159c7c901136b7fffc39752696b96080f6e306e854ced`. 12/90 required items complete; 78 incomplete.
 
 D024 governs the conversational copilot and reactive Workspace. D025 governs synchronized execution and two distinct validation passes. The canonical [function ledger](scripts/frontend-a1-work-inventory.json), [readable implementation ledger](reports/FE-A1-CONTRACT-IMPLEMENTATION-LEDGER.md), and [granular execution instructions](scripts/frontend-a1-execution.md) agree before work starts, evidence is recorded, completion is accepted, or another wave proceeds.
 
-Active work: none; select one prerequisite-ready item.
+Active work: FE-A1.2-W01, execution.
 
 | Stage   | Required behavior                                                          | Complete / required |
 | ------- | -------------------------------------------------------------------------- | ------------------- |
