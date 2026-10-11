@@ -652,7 +652,9 @@
         "reports/a1-passes/FE-A1.1-W01-execution-1791678575943.json",
         "reports/a1-passes/FE-A1.1-W01-critical-1791678645251.json",
         "reports/a1-passes/FE-A1.1-W01-execution-1791681282679.json",
-        "reports/a1-passes/FE-A1.1-W01-critical-1791681337814.json"
+        "reports/a1-passes/FE-A1.1-W01-critical-1791681337814.json",
+        "reports/a1-passes/FE-A1.1-W01-execution-1791683734054.json",
+        "reports/a1-passes/FE-A1.1-W01-critical-1791683746756.json"
       ],
       "completion_evidence": [],
       "optional_scenarios": [
@@ -678,6 +680,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.845Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ],
       "verification_plans": {
@@ -801,6 +808,27 @@
             }
           ],
           "finished_at": "2026-10-11T01:16:11.981Z"
+        },
+        {
+          "item": "FE-A1.1-W01",
+          "phase": "critical",
+          "failed_attempts": 0,
+          "started_at": "2026-10-11T01:55:20.674Z",
+          "passes": [
+            {
+              "pass": "execution",
+              "artifact": "reports/a1-passes/FE-A1.1-W01-execution-1791683734054.json",
+              "command": "node --test --test-reporter=tap scripts/a1/copilot-hierarchy.test.mjs",
+              "boundary": "Live production layout, retained actual managed-model Q/A, navigation, composer, disclosure and Workspace presentation only. No new model invocation, proposal command, native examiner, cycle or overall A1 acceptance is inferred."
+            },
+            {
+              "pass": "critical",
+              "artifact": "reports/a1-passes/FE-A1.1-W01-critical-1791683746756.json",
+              "command": "node --test --test-reporter=tap scripts/a1/copilot-hierarchy.critical.test.mjs",
+              "boundary": "Live production layout, retained actual managed-model Q/A, navigation, composer, disclosure and Workspace presentation only. No new model invocation, proposal command, native examiner, cycle or overall A1 acceptance is inferred."
+            }
+          ],
+          "finished_at": "2026-10-11T01:55:55.401Z"
         }
       ],
       "historical_completion_evidence": [
@@ -837,6 +865,18 @@
         {
           "pass": "critical",
           "artifact": "reports/a1-passes/FE-A1.1-W01-critical-1791681337814.json",
+          "command": "node --test --test-reporter=tap scripts/a1/copilot-hierarchy.critical.test.mjs",
+          "boundary": "Live production layout, retained actual managed-model Q/A, navigation, composer, disclosure and Workspace presentation only. No new model invocation, proposal command, native examiner, cycle or overall A1 acceptance is inferred."
+        },
+        {
+          "pass": "execution",
+          "artifact": "reports/a1-passes/FE-A1.1-W01-execution-1791683734054.json",
+          "command": "node --test --test-reporter=tap scripts/a1/copilot-hierarchy.test.mjs",
+          "boundary": "Live production layout, retained actual managed-model Q/A, navigation, composer, disclosure and Workspace presentation only. No new model invocation, proposal command, native examiner, cycle or overall A1 acceptance is inferred."
+        },
+        {
+          "pass": "critical",
+          "artifact": "reports/a1-passes/FE-A1.1-W01-critical-1791683746756.json",
           "command": "node --test --test-reporter=tap scripts/a1/copilot-hierarchy.critical.test.mjs",
           "boundary": "Live production layout, retained actual managed-model Q/A, navigation, composer, disclosure and Workspace presentation only. No new model invocation, proposal command, native examiner, cycle or overall A1 acceptance is inferred."
         }
@@ -894,6 +934,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -946,6 +991,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -1000,6 +1050,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -1052,6 +1107,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -1105,6 +1165,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -1157,6 +1222,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -1542,6 +1612,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -1595,6 +1675,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -1653,6 +1738,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ],
       "execution_history": [
@@ -1684,6 +1779,14 @@
             }
           ],
           "finished_at": "2026-10-11T01:27:23.583Z"
+        },
+        {
+          "item": "FE-A1.2-W07",
+          "phase": "execution",
+          "failed_attempts": 0,
+          "started_at": "2026-10-11T01:56:03.331Z",
+          "disposition": "reopened",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item."
         }
       ],
       "verification_plans": {
@@ -2100,7 +2203,9 @@
         "reports/a1-passes/FE-A1.3-W03-execution-1791671233189.json",
         "reports/a1-passes/FE-A1.3-W03-critical-1791671280023.json",
         "reports/a1-passes/FE-A1.3-W03-execution-1791680978364.json",
-        "reports/a1-passes/FE-A1.3-W03-critical-1791681035780.json"
+        "reports/a1-passes/FE-A1.3-W03-critical-1791681035780.json",
+        "reports/a1-passes/FE-A1.3-W03-execution-1791683584165.json",
+        "reports/a1-passes/FE-A1.3-W03-critical-1791683648878.json"
       ],
       "completion_evidence": [],
       "optional_scenarios": [
@@ -2122,6 +2227,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ],
       "verification_plans": {
@@ -2466,6 +2576,103 @@
             }
           ],
           "finished_at": "2026-10-11T01:11:41.911Z"
+        },
+        {
+          "item": "FE-A1.3-W03",
+          "phase": "critical",
+          "failed_attempts": 0,
+          "started_at": "2026-10-11T01:46:50.734Z",
+          "failures": [
+            {
+              "reason": "Verification failed: node --test --test-reporter=tap scripts/a1/owned-conversation.test.mjs; retained output reports/a1-passes/FE-A1.3-W03-execution-1791683260595.tap",
+              "phase": "execution",
+              "recorded_at": "2026-10-11T01:47:40.596Z"
+            },
+            {
+              "reason": "Context disclosure preparation failed twice: repeated wording selected an older turn, then narrow Workspace selection hid the copilot. The canonical browser concurrently failed in Undici Parser.finish; stop and diagnose before retrying.",
+              "phase": "execution",
+              "recorded_at": "2026-10-11T01:48:26.240Z"
+            },
+            {
+              "reason": "Verification failed: node --test --test-reporter=tap scripts/a1/owned-conversation.test.mjs; retained output reports/a1-passes/FE-A1.3-W03-execution-1791683379829.tap",
+              "phase": "execution",
+              "recorded_at": "2026-10-11T01:49:39.829Z"
+            },
+            {
+              "reason": "Read-only broad diagnostic reproduced the HTTP parser crash without a browser when the 82310-byte Thread response body was delayed. Immediate per-response JSON consumption succeeded; the previous CDP concurrency remedy was disproven.",
+              "phase": "execution",
+              "recorded_at": "2026-10-11T01:51:38.432Z"
+            }
+          ],
+          "diagnoses": [
+            {
+              "contract": "Exact turn disclosure must be inspected through the normal visible copilot pane at desktop and narrow widths. Repeated question wording is not a unique retained-turn identity; hidden-pane innerText is not visible disclosure evidence.",
+              "architecture": "The first disclosure preflight selected the earliest repeated question. The second correctly selected the exact run but read the narrow copilot while the responsive shell still selected Workspace. Use the retained run identity and the normal Agent pane control, and await its state transition before assertions.",
+              "dependencies": "The retained input manifest contains the exact run identity and context hash, allowing an unambiguous locator without changing product owners. Responsive pane state remains React-owned and must be exercised through its existing button, without forcing product DOM or CSS state.",
+              "environment": "The canonical conversation pass passed its PostgreSQL functions, but its simultaneous browser process crashed inside Node 24 Undici Parser.finish with assert(!this.paused). A separate context preflight was using another CDP WebSocket concurrently. The browser transport failed before reporting successful canonical restoration; no product pass is accepted from that run.",
+              "verification": "Model integration completed both execution and critical passes. Canonical conversation execution retained its failed TAP output. Context preflight failed twice on locator/visible-pane assumptions. Preserve those failures, serialize browser verification, and require fresh complete canonical and context execution/critical evidence before closure.",
+              "changed_remedy": "Stop overlapping CDP checks, target the exact retained run rather than repeated wording, use the normal narrow Agent control and await its visible state. Commit the corrected preparatory check in both checkouts, rerun the canonical pass alone, then run context disclosure in sequence. A recurring transport failure requires another broad diagnosis rather than skipping browser evidence.",
+              "failures": [
+                {
+                  "reason": "Verification failed: node --test --test-reporter=tap scripts/a1/owned-conversation.test.mjs; retained output reports/a1-passes/FE-A1.3-W03-execution-1791683260595.tap",
+                  "phase": "execution",
+                  "recorded_at": "2026-10-11T01:47:40.596Z"
+                },
+                {
+                  "reason": "Context disclosure preparation failed twice: repeated wording selected an older turn, then narrow Workspace selection hid the copilot. The canonical browser concurrently failed in Undici Parser.finish; stop and diagnose before retrying.",
+                  "phase": "execution",
+                  "recorded_at": "2026-10-11T01:48:26.240Z"
+                }
+              ],
+              "recorded_at": "2026-10-11T01:48:32.315Z"
+            },
+            {
+              "contract": "Canonical conversation verification must read the exact actual Thread and Work owners and restore readable history. Transport failure cannot be counted as successful owner verification or addressed by omitting those reads.",
+              "architecture": "The owner browser fetched two response headers in parallel, then consumed their bodies afterward. A retained Thread response grew to 82310 bytes. Delaying its body while the local proxy closes Connection: close pauses Node's HTTP parser; Parser.finish asserts that it is not paused.",
+              "dependencies": "Inspection of the actual Node 24.20.0 bundled HTTP parser located the same assertion at line 7388 and its socket-end call at line 7827. This is the HTTP fetch parser, not the CDP WebSocket parser. The previous simultaneous-browser hypothesis was disproven by a serialized rerun and a browser-free reproduction.",
+              "environment": "A read-only delayed-body request to the actual Thread endpoint returned HTTP 200 and Connection: close, then reproduced assert(!this.paused). Parallel requests that immediately parsed each body completed, preserving the registered Thread v1.1 and Work v1.1 views of 82310 and 9426 bytes. No provider call, owner substitution or Project mutation was part of the experiments.",
+              "verification": "Retain both failed canonical TAP runs. The delayed-body diagnostic reproduced the defect with exit 1; immediate-body consumption succeeded with exit 0. The browser now reads each exact response body within its own parallel task, still validates HTTP/schema/Project identity, and must complete fresh execution and distinct critical passes.",
+              "changed_remedy": "Consume every actual owner response immediately as its headers arrive, then join the parsed views. Preserve parallel independent reads and all canonical assertions. Commit the corrected owner browser in both checkouts, rerun canonical verification, and keep subsequent disclosure/AG-UI/hierarchy checks sequential so their outcomes remain attributable. Do not retry the disproven CDP remedy or bypass actual owner reads.",
+              "failures": [
+                {
+                  "reason": "Verification failed: node --test --test-reporter=tap scripts/a1/owned-conversation.test.mjs; retained output reports/a1-passes/FE-A1.3-W03-execution-1791683260595.tap",
+                  "phase": "execution",
+                  "recorded_at": "2026-10-11T01:47:40.596Z"
+                },
+                {
+                  "reason": "Context disclosure preparation failed twice: repeated wording selected an older turn, then narrow Workspace selection hid the copilot. The canonical browser concurrently failed in Undici Parser.finish; stop and diagnose before retrying.",
+                  "phase": "execution",
+                  "recorded_at": "2026-10-11T01:48:26.240Z"
+                },
+                {
+                  "reason": "Verification failed: node --test --test-reporter=tap scripts/a1/owned-conversation.test.mjs; retained output reports/a1-passes/FE-A1.3-W03-execution-1791683379829.tap",
+                  "phase": "execution",
+                  "recorded_at": "2026-10-11T01:49:39.829Z"
+                },
+                {
+                  "reason": "Read-only broad diagnostic reproduced the HTTP parser crash without a browser when the 82310-byte Thread response body was delayed. Immediate per-response JSON consumption succeeded; the previous CDP concurrency remedy was disproven.",
+                  "phase": "execution",
+                  "recorded_at": "2026-10-11T01:51:38.432Z"
+                }
+              ],
+              "recorded_at": "2026-10-11T01:51:44.129Z"
+            }
+          ],
+          "passes": [
+            {
+              "pass": "execution",
+              "artifact": "reports/a1-passes/FE-A1.3-W03-execution-1791683584165.json",
+              "command": "node --test --test-reporter=tap scripts/a1/owned-conversation.test.mjs",
+              "boundary": "Canonical ownership and retained readable advisory conversation only. Provider internal CPU, memory, network, tokens and price remain unavailable; unknown values never satisfy applicable hard limits. Historical adoption records actual import Work and preserves original bytes without reconstructing original execution authority. Proposal decisions/commands, progressive AG-UI activities/interrupts, native examiners, reactive Workspace graph cycles and A1 product acceptance remain open required ledger items."
+            },
+            {
+              "pass": "critical",
+              "artifact": "reports/a1-passes/FE-A1.3-W03-critical-1791683648878.json",
+              "command": "node --test --test-reporter=tap scripts/a1/owned-conversation.critical.test.mjs",
+              "boundary": "Canonical ownership and retained readable advisory conversation only. Provider internal CPU, memory, network, tokens and price remain unavailable; unknown values never satisfy applicable hard limits. Historical adoption records actual import Work and preserves original bytes without reconstructing original execution authority. Proposal decisions/commands, progressive AG-UI activities/interrupts, native examiners, reactive Workspace graph cycles and A1 product acceptance remain open required ledger items."
+            }
+          ],
+          "finished_at": "2026-10-11T01:54:22.310Z"
         }
       ],
       "historical_completion_evidence": [
@@ -2490,6 +2697,18 @@
         {
           "pass": "critical",
           "artifact": "reports/a1-passes/FE-A1.3-W03-critical-1791681035780.json",
+          "command": "node --test --test-reporter=tap scripts/a1/owned-conversation.critical.test.mjs",
+          "boundary": "Canonical ownership and retained readable advisory conversation only. Provider internal CPU, memory, network, tokens and price remain unavailable; unknown values never satisfy applicable hard limits. Historical adoption records actual import Work and preserves original bytes without reconstructing original execution authority. Proposal decisions/commands, progressive AG-UI activities/interrupts, native examiners, reactive Workspace graph cycles and A1 product acceptance remain open required ledger items."
+        },
+        {
+          "pass": "execution",
+          "artifact": "reports/a1-passes/FE-A1.3-W03-execution-1791683584165.json",
+          "command": "node --test --test-reporter=tap scripts/a1/owned-conversation.test.mjs",
+          "boundary": "Canonical ownership and retained readable advisory conversation only. Provider internal CPU, memory, network, tokens and price remain unavailable; unknown values never satisfy applicable hard limits. Historical adoption records actual import Work and preserves original bytes without reconstructing original execution authority. Proposal decisions/commands, progressive AG-UI activities/interrupts, native examiners, reactive Workspace graph cycles and A1 product acceptance remain open required ledger items."
+        },
+        {
+          "pass": "critical",
+          "artifact": "reports/a1-passes/FE-A1.3-W03-critical-1791683648878.json",
           "command": "node --test --test-reporter=tap scripts/a1/owned-conversation.critical.test.mjs",
           "boundary": "Canonical ownership and retained readable advisory conversation only. Provider internal CPU, memory, network, tokens and price remain unavailable; unknown values never satisfy applicable hard limits. Historical adoption records actual import Work and preserves original bytes without reconstructing original execution authority. Proposal decisions/commands, progressive AG-UI activities/interrupts, native examiners, reactive Workspace graph cycles and A1 product acceptance remain open required ledger items."
         }
@@ -2521,7 +2740,8 @@
       ],
       "retained_evidence": [
         "reports/FRONTEND-ADAPTATION-MILESTONE.md",
-        "reports/FE-A1-CONSTRUCTION-CHECKS.json"
+        "reports/FE-A1-CONSTRUCTION-CHECKS.json",
+        "reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log"
       ],
       "completion_evidence": [],
       "optional_scenarios": [
@@ -2554,6 +2774,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ],
       "execution_history": [
@@ -2601,7 +2831,9 @@
         "reports/a1-passes/FE-A1.3-W05-execution-1791678381373.json",
         "reports/a1-passes/FE-A1.3-W05-critical-1791678409663.json",
         "reports/a1-passes/FE-A1.3-W05-execution-1791681143770.json",
-        "reports/a1-passes/FE-A1.3-W05-critical-1791681205090.json"
+        "reports/a1-passes/FE-A1.3-W05-critical-1791681205090.json",
+        "reports/a1-passes/FE-A1.3-W05-execution-1791683691615.json",
+        "reports/a1-passes/FE-A1.3-W05-critical-1791683703592.json"
       ],
       "completion_evidence": [],
       "optional_scenarios": [
@@ -2629,6 +2861,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ],
       "execution_history": [
@@ -2723,6 +2960,27 @@
             }
           ],
           "finished_at": "2026-10-11T01:14:17.670Z"
+        },
+        {
+          "item": "FE-A1.3-W05",
+          "phase": "critical",
+          "failed_attempts": 0,
+          "started_at": "2026-10-11T01:54:29.709Z",
+          "passes": [
+            {
+              "pass": "execution",
+              "artifact": "reports/a1-passes/FE-A1.3-W05-execution-1791683691615.json",
+              "command": "node --test --test-reporter=tap scripts/a1/progressive-copilot.test.mjs",
+              "boundary": "Typed presentation and official AG-UI transport only. Execution checks actual managed model and canonical ownership in the live browser; critical checks adverse events and actual same-identity replay/auth denial. Controlled owner ports test disclosure guards, not canonical persistence. Command mediation, native examiners, cyclic verification and overall A1 acceptance remain separate open requirements."
+            },
+            {
+              "pass": "critical",
+              "artifact": "reports/a1-passes/FE-A1.3-W05-critical-1791683703592.json",
+              "command": "node --test --test-reporter=tap scripts/a1/progressive-copilot.critical.test.mjs",
+              "boundary": "Typed presentation and official AG-UI transport only. Execution checks actual managed model and canonical ownership in the live browser; critical checks adverse events and actual same-identity replay/auth denial. Controlled owner ports test disclosure guards, not canonical persistence. Command mediation, native examiners, cyclic verification and overall A1 acceptance remain separate open requirements."
+            }
+          ],
+          "finished_at": "2026-10-11T01:55:12.611Z"
         }
       ],
       "verification_plans": {
@@ -2751,6 +3009,18 @@
         {
           "pass": "critical",
           "artifact": "reports/a1-passes/FE-A1.3-W05-critical-1791681205090.json",
+          "command": "node --test --test-reporter=tap scripts/a1/progressive-copilot.critical.test.mjs",
+          "boundary": "Typed presentation and official AG-UI transport only. Execution checks actual managed model and canonical ownership in the live browser; critical checks adverse events and actual same-identity replay/auth denial. Controlled owner ports test disclosure guards, not canonical persistence. Command mediation, native examiners, cyclic verification and overall A1 acceptance remain separate open requirements."
+        },
+        {
+          "pass": "execution",
+          "artifact": "reports/a1-passes/FE-A1.3-W05-execution-1791683691615.json",
+          "command": "node --test --test-reporter=tap scripts/a1/progressive-copilot.test.mjs",
+          "boundary": "Typed presentation and official AG-UI transport only. Execution checks actual managed model and canonical ownership in the live browser; critical checks adverse events and actual same-identity replay/auth denial. Controlled owner ports test disclosure guards, not canonical persistence. Command mediation, native examiners, cyclic verification and overall A1 acceptance remain separate open requirements."
+        },
+        {
+          "pass": "critical",
+          "artifact": "reports/a1-passes/FE-A1.3-W05-critical-1791683703592.json",
           "command": "node --test --test-reporter=tap scripts/a1/progressive-copilot.critical.test.mjs",
           "boundary": "Typed presentation and official AG-UI transport only. Execution checks actual managed model and canonical ownership in the live browser; critical checks adverse events and actual same-identity replay/auth denial. Controlled owner ports test disclosure guards, not canonical persistence. Command mediation, native examiners, cyclic verification and overall A1 acceptance remain separate open requirements."
         }
@@ -2823,6 +3093,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -2878,6 +3153,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -2945,6 +3225,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -3013,6 +3298,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -3081,6 +3371,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -3139,6 +3434,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -3205,6 +3505,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -3261,6 +3571,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -3324,6 +3644,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -3385,6 +3715,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -3445,6 +3785,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -3517,6 +3867,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -3565,6 +3925,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -3630,6 +3995,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -3714,6 +4089,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -3795,6 +4180,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -3865,6 +4260,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -3939,6 +4344,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -4002,6 +4417,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -4074,6 +4499,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -4156,6 +4591,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -4237,6 +4682,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -4299,6 +4754,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -4362,6 +4827,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -4432,6 +4907,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -4517,6 +5002,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -4597,6 +5092,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -4679,6 +5184,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -4738,6 +5253,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -4820,6 +5345,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -4903,6 +5438,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -4986,6 +5531,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -5044,6 +5599,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -5124,6 +5689,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -5207,6 +5782,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -5287,6 +5872,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -5365,6 +5960,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -5446,6 +6051,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -5528,6 +6143,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -5611,6 +6236,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -5693,6 +6328,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -5774,6 +6419,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -5857,6 +6512,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -5939,6 +6604,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -6018,6 +6693,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -6093,6 +6778,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -6165,6 +6860,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -6245,6 +6950,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -6304,6 +7019,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -6381,6 +7106,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -6455,6 +7190,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -6605,6 +7350,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -6682,6 +7437,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -6760,6 +7525,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -6837,6 +7612,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -6919,6 +7704,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -6998,6 +7793,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -7079,6 +7884,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -7159,6 +7974,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -7243,6 +8068,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -7325,6 +8160,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -7407,6 +8252,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -7482,6 +8337,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     },
@@ -7556,6 +8421,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
           "recorded_at": "2026-10-11T01:35:29.846Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T01:57:09.488Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
+          "recorded_at": "2026-10-11T01:57:11.949Z"
         }
       ]
     }
@@ -8673,84 +9548,7 @@
     "item": "FE-A1.3-W03",
     "phase": "execution",
     "failed_attempts": 0,
-    "started_at": "2026-10-11T01:46:50.734Z",
-    "failures": [
-      {
-        "reason": "Verification failed: node --test --test-reporter=tap scripts/a1/owned-conversation.test.mjs; retained output reports/a1-passes/FE-A1.3-W03-execution-1791683260595.tap",
-        "phase": "execution",
-        "recorded_at": "2026-10-11T01:47:40.596Z"
-      },
-      {
-        "reason": "Context disclosure preparation failed twice: repeated wording selected an older turn, then narrow Workspace selection hid the copilot. The canonical browser concurrently failed in Undici Parser.finish; stop and diagnose before retrying.",
-        "phase": "execution",
-        "recorded_at": "2026-10-11T01:48:26.240Z"
-      },
-      {
-        "reason": "Verification failed: node --test --test-reporter=tap scripts/a1/owned-conversation.test.mjs; retained output reports/a1-passes/FE-A1.3-W03-execution-1791683379829.tap",
-        "phase": "execution",
-        "recorded_at": "2026-10-11T01:49:39.829Z"
-      },
-      {
-        "reason": "Read-only broad diagnostic reproduced the HTTP parser crash without a browser when the 82310-byte Thread response body was delayed. Immediate per-response JSON consumption succeeded; the previous CDP concurrency remedy was disproven.",
-        "phase": "execution",
-        "recorded_at": "2026-10-11T01:51:38.432Z"
-      }
-    ],
-    "diagnoses": [
-      {
-        "contract": "Exact turn disclosure must be inspected through the normal visible copilot pane at desktop and narrow widths. Repeated question wording is not a unique retained-turn identity; hidden-pane innerText is not visible disclosure evidence.",
-        "architecture": "The first disclosure preflight selected the earliest repeated question. The second correctly selected the exact run but read the narrow copilot while the responsive shell still selected Workspace. Use the retained run identity and the normal Agent pane control, and await its state transition before assertions.",
-        "dependencies": "The retained input manifest contains the exact run identity and context hash, allowing an unambiguous locator without changing product owners. Responsive pane state remains React-owned and must be exercised through its existing button, without forcing product DOM or CSS state.",
-        "environment": "The canonical conversation pass passed its PostgreSQL functions, but its simultaneous browser process crashed inside Node 24 Undici Parser.finish with assert(!this.paused). A separate context preflight was using another CDP WebSocket concurrently. The browser transport failed before reporting successful canonical restoration; no product pass is accepted from that run.",
-        "verification": "Model integration completed both execution and critical passes. Canonical conversation execution retained its failed TAP output. Context preflight failed twice on locator/visible-pane assumptions. Preserve those failures, serialize browser verification, and require fresh complete canonical and context execution/critical evidence before closure.",
-        "changed_remedy": "Stop overlapping CDP checks, target the exact retained run rather than repeated wording, use the normal narrow Agent control and await its visible state. Commit the corrected preparatory check in both checkouts, rerun the canonical pass alone, then run context disclosure in sequence. A recurring transport failure requires another broad diagnosis rather than skipping browser evidence.",
-        "failures": [
-          {
-            "reason": "Verification failed: node --test --test-reporter=tap scripts/a1/owned-conversation.test.mjs; retained output reports/a1-passes/FE-A1.3-W03-execution-1791683260595.tap",
-            "phase": "execution",
-            "recorded_at": "2026-10-11T01:47:40.596Z"
-          },
-          {
-            "reason": "Context disclosure preparation failed twice: repeated wording selected an older turn, then narrow Workspace selection hid the copilot. The canonical browser concurrently failed in Undici Parser.finish; stop and diagnose before retrying.",
-            "phase": "execution",
-            "recorded_at": "2026-10-11T01:48:26.240Z"
-          }
-        ],
-        "recorded_at": "2026-10-11T01:48:32.315Z"
-      },
-      {
-        "contract": "Canonical conversation verification must read the exact actual Thread and Work owners and restore readable history. Transport failure cannot be counted as successful owner verification or addressed by omitting those reads.",
-        "architecture": "The owner browser fetched two response headers in parallel, then consumed their bodies afterward. A retained Thread response grew to 82310 bytes. Delaying its body while the local proxy closes Connection: close pauses Node's HTTP parser; Parser.finish asserts that it is not paused.",
-        "dependencies": "Inspection of the actual Node 24.20.0 bundled HTTP parser located the same assertion at line 7388 and its socket-end call at line 7827. This is the HTTP fetch parser, not the CDP WebSocket parser. The previous simultaneous-browser hypothesis was disproven by a serialized rerun and a browser-free reproduction.",
-        "environment": "A read-only delayed-body request to the actual Thread endpoint returned HTTP 200 and Connection: close, then reproduced assert(!this.paused). Parallel requests that immediately parsed each body completed, preserving the registered Thread v1.1 and Work v1.1 views of 82310 and 9426 bytes. No provider call, owner substitution or Project mutation was part of the experiments.",
-        "verification": "Retain both failed canonical TAP runs. The delayed-body diagnostic reproduced the defect with exit 1; immediate-body consumption succeeded with exit 0. The browser now reads each exact response body within its own parallel task, still validates HTTP/schema/Project identity, and must complete fresh execution and distinct critical passes.",
-        "changed_remedy": "Consume every actual owner response immediately as its headers arrive, then join the parsed views. Preserve parallel independent reads and all canonical assertions. Commit the corrected owner browser in both checkouts, rerun canonical verification, and keep subsequent disclosure/AG-UI/hierarchy checks sequential so their outcomes remain attributable. Do not retry the disproven CDP remedy or bypass actual owner reads.",
-        "failures": [
-          {
-            "reason": "Verification failed: node --test --test-reporter=tap scripts/a1/owned-conversation.test.mjs; retained output reports/a1-passes/FE-A1.3-W03-execution-1791683260595.tap",
-            "phase": "execution",
-            "recorded_at": "2026-10-11T01:47:40.596Z"
-          },
-          {
-            "reason": "Context disclosure preparation failed twice: repeated wording selected an older turn, then narrow Workspace selection hid the copilot. The canonical browser concurrently failed in Undici Parser.finish; stop and diagnose before retrying.",
-            "phase": "execution",
-            "recorded_at": "2026-10-11T01:48:26.240Z"
-          },
-          {
-            "reason": "Verification failed: node --test --test-reporter=tap scripts/a1/owned-conversation.test.mjs; retained output reports/a1-passes/FE-A1.3-W03-execution-1791683379829.tap",
-            "phase": "execution",
-            "recorded_at": "2026-10-11T01:49:39.829Z"
-          },
-          {
-            "reason": "Read-only broad diagnostic reproduced the HTTP parser crash without a browser when the 82310-byte Thread response body was delayed. Immediate per-response JSON consumption succeeded; the previous CDP concurrency remedy was disproven.",
-            "phase": "execution",
-            "recorded_at": "2026-10-11T01:51:38.432Z"
-          }
-        ],
-        "recorded_at": "2026-10-11T01:51:44.129Z"
-      }
-    ],
-    "passes": []
+    "started_at": "2026-10-11T01:57:18.245Z"
   },
   "repair_sequence": [
     {

@@ -87,6 +87,12 @@
         "disposition": "resolved",
         "finding": "Native content could remain disclosed after its material basis became stale, and no final Project fence or post-recovery permission check stopped assembly-time drift/revocation.",
         "resolution": "Stale native bytes are withheld. Final Project/definition/objective/authority and permission checks run before retaining/invoking; tests assert no runtime start on drift or revocation."
+      },
+      {
+        "severity": "material",
+        "disposition": "resolved",
+        "finding": "A full shell definition copied all terms inside definition_ref, defeating entry omissions and rejecting legitimate large definitions. The critical test originally failed to include the real shell terminology projection.",
+        "resolution": "The definition reference now contains only immutable ID/revision/hash/family; all terms use the bounded whole-entry excerpt. The corrected test preserves full shell terminology and checks exact omitted/included counts under the actual byte budget."
       }
     ]
   }

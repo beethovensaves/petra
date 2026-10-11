@@ -1,0 +1,151 @@
+{
+  "schema_name": "petra.a1-verification-pass",
+  "schema_version": "1.0.0",
+  "work_item": "FE-A1.3-W05",
+  "pass": "execution",
+  "contract_hash": "sha256:1780fdbc7979d514bfc6bce60503f3f0212e2d78a20b929708b66c0053ae2d0d",
+  "status": "passed",
+  "candidate_commit": "de52a9c9100e48aff616a6c68713e298e9bbc3cf",
+  "started_at": "2026-10-11T01:54:37.056Z",
+  "finished_at": "2026-10-11T01:54:51.615Z",
+  "criteria": [
+    {
+      "id": "FE-A1.3-W05-AC01",
+      "result": "passed",
+      "test": "FE-A1.3-W05-AC01 execution: actual managed conversation visibly discloses owned blocks through one official SDK request",
+      "observation": "actual managed conversation visibly discloses owned blocks through one official SDK request"
+    },
+    {
+      "id": "FE-A1.3-W05-AC02",
+      "result": "passed",
+      "test": "FE-A1.3-W05-AC02 execution: disclosure and native custom events use closed registered version and authority profiles",
+      "observation": "disclosure and native custom events use closed registered version and authority profiles"
+    },
+    {
+      "id": "FE-A1.3-W05-AC03",
+      "result": "passed",
+      "test": "FE-A1.3-W05-AC03 execution: Core and feature components consume typed business presentations without SDK protocol interpretation",
+      "observation": "Core and feature components consume typed business presentations without SDK protocol interpretation"
+    }
+  ],
+  "sources": [
+    {
+      "path": "apps/workbench/src/product/AgentControlPlane.tsx",
+      "hash": "sha256:dc2df92413079f6902f90988ef1b3bc4516d0b1c6a97a6cc010d7a910899a952"
+    },
+    {
+      "path": "apps/workbench/src/product/CopilotLiveActivity.tsx",
+      "hash": "sha256:6b5475a1f465806cda52dede237acf9d4dd655d3d3cb60ee2b572bc332f8dd4e"
+    },
+    {
+      "path": "apps/workbench/src/product/PetraModelInteraction.tsx",
+      "hash": "sha256:fbc8395c1311414cadc50c5895c0673e58aac31e85aed4c9416205b6be18f535"
+    },
+    {
+      "path": "apps/workbench/src/product/agent-control-plane.css",
+      "hash": "sha256:ea9344571cb8fb07ecc68110c2abe3cf563d2b79f6d35c859f0982a44d39635e"
+    },
+    {
+      "path": "apps/workbench/src/product/petra-review-interrupt.ts",
+      "hash": "sha256:af90e985f85ee8132c4eca38d992d1878624c2a8c0987743fd7267dc3329aea4"
+    },
+    {
+      "path": "apps/workbench/test/a1-progressive-copilot-browser.mjs",
+      "hash": "sha256:6fd96ea821de30adc08b3c9ad38fc7b62e7f6b6c981bc45858f86d78060bfdb3"
+    },
+    {
+      "path": "apps/workbench/test/cumulative-production-browser-driver.mjs",
+      "hash": "sha256:20321ec18affbb376dd709dbf7565c09ed9e4a9af6a6da455dd193d1d32d5a4a"
+    },
+    {
+      "path": "packages/adapters/src/ag-ui.ts",
+      "hash": "sha256:077451f9fa274a5fd1e9141cd8ea73c657d7f7898fa2ff8411137d86464e75f9"
+    },
+    {
+      "path": "packages/adapters/src/copilot-progress-client.ts",
+      "hash": "sha256:5415c0eddeefe10835768d783060b8ea569345abe787181dcb9af75d423727ce"
+    },
+    {
+      "path": "packages/adapters/src/copilot-progress-profile.ts",
+      "hash": "sha256:f3553c570da893a4b2a962fb6fb7f3044cf0a1ba45b383ab9dc04ef500f1ed71"
+    },
+    {
+      "path": "packages/adapters/src/copilot-progress-server.ts",
+      "hash": "sha256:cb6d0a7079531b8054af35ca351e8feb78197cd96589800a9c55405be89966a7"
+    },
+    {
+      "path": "packages/adapters/src/interaction-presentation.ts",
+      "hash": "sha256:20b59170c9062ac74cdd1ef539148ae19ae953283a2d6a78ccd47e52052e9166"
+    },
+    {
+      "path": "packages/adapters/src/project-model-presentation.ts",
+      "hash": "sha256:17adf1cb7ff365c7680d48f46d02549e30782dde4a60c64a928c8dffcac5e76f"
+    },
+    {
+      "path": "packages/adapters/src/review-interrupt-presentation.ts",
+      "hash": "sha256:b5881a10fbfdf8fb212688865f99910979dc7076cf94e1cab0112462810de643"
+    },
+    {
+      "path": "packages/adapters/src/server.ts",
+      "hash": "sha256:9eacf9db1a8b476ed43d8f5778f213ec25aaa43ad659fc1b850017779c322e2c"
+    },
+    {
+      "path": "packages/adapters/test/copilot-progress-fixture.ts",
+      "hash": "sha256:7d975ed078df9010f2ce9c332da606eb879b3fb68ba682d41c27ebab42636369"
+    },
+    {
+      "path": "packages/adapters/test/copilot-progress.critical.test.ts",
+      "hash": "sha256:635f60dfc0e42b6e9b0ea6fa9902092ac778333c50e31da36a98b923743f96f7"
+    },
+    {
+      "path": "packages/adapters/test/copilot-progress.test.ts",
+      "hash": "sha256:1a1e8244e4d8adef84fbd737daec3840499d6abbfd9a0f51bceebc69a548c00a"
+    },
+    {
+      "path": "packages/core/package.json",
+      "hash": "sha256:36913f344f6d84d49fc759e47f2ee578b6e2288cee6b1e974db538e930208011"
+    },
+    {
+      "path": "packages/core/src/copilot-presentation.ts",
+      "hash": "sha256:71a7e7c373e27807d8cc514148744be13bddc7ca67a2bea0ff72ae64950b3c6a"
+    },
+    {
+      "path": "reports/FE-A1-INTAKE-FUNCTION-BROWSER.json",
+      "hash": "sha256:ecc6a4937cb72681457d455799a391cc5317c256d8505aa55d36265e97c70c8f"
+    },
+    {
+      "path": "scripts/a1/presentation-boundary.mjs",
+      "hash": "sha256:307c6b06af86318904631a87bbb4aba0e051d041b893ae5536e246132e4df7d2"
+    },
+    {
+      "path": "scripts/a1/progressive-copilot.critical.test.mjs",
+      "hash": "sha256:48f6716051cf464340d9edf35019f9009f3c40e4034aa923fc12228623696167"
+    },
+    {
+      "path": "scripts/a1/progressive-copilot.test.mjs",
+      "hash": "sha256:822aea9692bbadf6f80961ed9c234495e7c6c9f062983086cde9193c6445ad37"
+    },
+    {
+      "path": "scripts/a1/run-browser.mjs",
+      "hash": "sha256:8ae34eb1951d73bba1bcde36082b00ff1b3fcd4eade32d371f02a92f0e08da09"
+    },
+    {
+      "path": "scripts/a1/run-vitest.mjs",
+      "hash": "sha256:4c2c635a474e84dba08144dfc9d68046281a9ccedff03e8fbf29954604a11d76"
+    }
+  ],
+  "runs": [
+    {
+      "argv": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "scripts/a1/progressive-copilot.test.mjs"
+      ],
+      "exit_code": 0,
+      "output": "reports/a1-passes/FE-A1.3-W05-execution-1791683691615.tap",
+      "output_hash": "sha256:9fe4e1e3f4281ebf7c1f657c9545cc37c195f42f7fd55affa1f99f65a9360027"
+    }
+  ],
+  "boundary": "Typed presentation and official AG-UI transport only. Execution checks actual managed model and canonical ownership in the live browser; critical checks adverse events and actual same-identity replay/auth denial. Controlled owner ports test disclosure guards, not canonical persistence. Command mediation, native examiners, cyclic verification and overall A1 acceptance remain separate open requirements."
+}

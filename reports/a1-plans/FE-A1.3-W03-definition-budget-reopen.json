@@ -1,0 +1,4 @@
+{
+  "work_item": "FE-A1.3-W03",
+  "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure."
+}

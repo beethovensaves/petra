@@ -1,17 +1,17 @@
 {
-  "checked_at": "2026-10-11T01:12:22.616Z",
+  "checked_at": "2026-10-11T01:54:50.468Z",
   "project_id": "project_4GNM3G166Z7RCBSW5K6TXZ3XZ9",
-  "run_id": "run_1Y3Z8ZQR31MP1GX66FW6AVF6T1",
+  "run_id": "run_5TY3QKTGT6WDJG92JAQW9F004B",
   "actual_model": "gpt-6-astra",
-  "provider_turn_id": "01a12884-8170-7712-a49a-f3c103ef7179",
+  "provider_turn_id": "01a128ab-62a9-7c03-b5e4-c0b956507c51",
   "owner": {
     "capture": "native",
     "lineage": {
       "work": [
         {
           "revision": 4,
-          "record_id": "work_unit_78SEF6R905AWP8890NV2WC7ASM",
-          "record_hash": "sha256:a09f091bb5b2fc9054e4398919b563686653dee11210f0f3031bba716b9e8b75",
+          "record_id": "work_unit_04XQXH0MWZ6P0J3YAGJWXVD960",
+          "record_hash": "sha256:8202026aaeb6ff601213df639fbd9509ca24b7547044319697fe3661c99d6fa8",
           "schema_name": "petra.work-unit",
           "schema_version": "1.0.0"
         }
@@ -32,70 +32,70 @@
     "project_id": "project_4GNM3G166Z7RCBSW5K6TXZ3XZ9",
     "work_unit_ref": {
       "revision": 4,
-      "spec_hash": "sha256:b95045d046141520a8eeebd23d4a929b30deba8f2cad3f605e26564328cf6edf",
-      "work_unit_id": "work_unit_78SEF6R905AWP8890NV2WC7ASM"
+      "spec_hash": "sha256:f61218ae588c691ac7193f60f0013b26a09c64f7367b14c4e9b0c4a46fb02832",
+      "work_unit_id": "work_unit_04XQXH0MWZ6P0J3YAGJWXVD960"
     },
-    "project_turn_id": "project_turn_7HF91J7YSKE3JZSKB3GRM3XBX5",
-    "protocol_run_id": "run_1Y3Z8ZQR31MP1GX66FW6AVF6T1",
-    "turn_content_hash": "sha256:8273a5c9ef1ed1eb6b6416aa652ccb6832370e87c3b394ea871f45f011f00beb",
+    "project_turn_id": "project_turn_7GMKCJNK02K96Q6NF5WR6G4T8X",
+    "protocol_run_id": "run_5TY3QKTGT6WDJG92JAQW9F004B",
+    "turn_content_hash": "sha256:a7b5e8d7148556d530bf6426cee085388de3bf825c1969be13368f879fa481c1",
     "project_thread_ref": {
-      "revision": 14,
-      "content_hash": "sha256:4a078dbd97107f758eb76af2dcc7b2c7a963dccbd32257bbf74fe87ea50c5e2e",
+      "revision": 21,
+      "content_hash": "sha256:bd52b9d4d4d1dfaaf98c5b38fe66d0796f86aca645983c62eac51789b62c2500",
       "project_thread_id": "project_thread_18XKBE9XAAF8ZR41X1D4A3W7EZ"
     },
     "protocol_thread_id": "thread_417PHGY55GKB1GRA9ZVV8W75SB",
     "interaction_run_ref": {
       "revision": 2,
-      "content_hash": "sha256:dce126003175da387f9178efa5abf6c3babb14536f7e198fd5d5829329a88745",
-      "interaction_run_id": "interaction_run_5W8F8413VMX0KN6ZDEEFVA03N8"
+      "content_hash": "sha256:12fdb9a60c6f899f2c3a4c32382040752ece1632553eeb8877ee4f2cda3494d5",
+      "interaction_run_id": "interaction_run_1NDY86TK5ZXNVED833SZKMRVT5"
     }
   },
   "observations": [
     {
       "phase": "connecting",
-      "run": "run_1Y3Z8ZQR31MP1GX66FW6AVF6T1",
+      "run": "run_5TY3QKTGT6WDJG92JAQW9F004B",
       "blocks": []
     },
     {
       "phase": "running",
-      "run": "run_1Y3Z8ZQR31MP1GX66FW6AVF6T1",
+      "run": "run_5TY3QKTGT6WDJG92JAQW9F004B",
       "blocks": []
     },
     {
       "phase": "disclosing",
-      "run": "run_1Y3Z8ZQR31MP1GX66FW6AVF6T1",
+      "run": "run_5TY3QKTGT6WDJG92JAQW9F004B",
       "blocks": [
         {
           "index": 0,
-          "text": "Missing from the supplied context: intended users and outcome; activities, participant numbers and ages, location and timing; what the $500 covers and available donations; indoor activity and venue arrangements; safety and supervision responsibilities; and a draft checklist with review criteria."
+          "text": "Missing from the supplied context: intended users and specific volunteer outcome; activities, participant numbers and ages, location and timing; what the $500 covers and estimated costs; indoor rain activity and venue arrangements; safety and supervision responsibilities; and a draft checklist with review criteria."
         }
       ]
     },
     {
       "phase": "disclosing",
-      "run": "run_1Y3Z8ZQR31MP1GX66FW6AVF6T1",
+      "run": "run_5TY3QKTGT6WDJG92JAQW9F004B",
       "blocks": [
         {
           "index": 0,
-          "text": "Missing from the supplied context: intended users and outcome; activities, participant numbers and ages, location and timing; what the $500 covers and available donations; indoor activity and venue arrangements; safety and supervision responsibilities; and a draft checklist with review criteria."
+          "text": "Missing from the supplied context: intended users and specific volunteer outcome; activities, participant numbers and ages, location and timing; what the $500 covers and estimated costs; indoor rain activity and venue arrangements; safety and supervision responsibilities; and a draft checklist with review criteria."
         },
         {
           "index": 1,
-          "text": "Suggested bounded next examination: review one partial checklist for task owners, estimated costs against $500, and an indoor rain alternative. Identify gaps and separate proposals from confirmed arrangements. This would be advisory review, not verification or approval."
+          "text": "Suggested bounded next examination: review one partial checklist for task owners, estimated costs against $500, and an indoor rain alternative. Flag gaps and distinguish assumptions from arrangements supported by supplied References. This would be advisory review, not verification or approval."
         }
       ]
     },
     {
       "phase": "disclosing",
-      "run": "run_1Y3Z8ZQR31MP1GX66FW6AVF6T1",
+      "run": "run_5TY3QKTGT6WDJG92JAQW9F004B",
       "blocks": [
         {
           "index": 0,
-          "text": "Missing from the supplied context: intended users and outcome; activities, participant numbers and ages, location and timing; what the $500 covers and available donations; indoor activity and venue arrangements; safety and supervision responsibilities; and a draft checklist with review criteria."
+          "text": "Missing from the supplied context: intended users and specific volunteer outcome; activities, participant numbers and ages, location and timing; what the $500 covers and estimated costs; indoor rain activity and venue arrangements; safety and supervision responsibilities; and a draft checklist with review criteria."
         },
         {
           "index": 1,
-          "text": "Suggested bounded next examination: review one partial checklist for task owners, estimated costs against $500, and an indoor rain alternative. Identify gaps and separate proposals from confirmed arrangements. This would be advisory review, not verification or approval."
+          "text": "Suggested bounded next examination: review one partial checklist for task owners, estimated costs against $500, and an indoor rain alternative. Flag gaps and distinguish assumptions from arrangements supported by supplied References. This would be advisory review, not verification or approval."
         },
         {
           "index": 2,
@@ -105,14 +105,14 @@
     },
     {
       "phase": "completed",
-      "run": "run_1Y3Z8ZQR31MP1GX66FW6AVF6T1",
+      "run": "run_5TY3QKTGT6WDJG92JAQW9F004B",
       "blocks": []
     }
   ],
   "sdk_requests": 1,
   "sdk_input": {
     "threadId": "thread_417PHGY55GKB1GRA9ZVV8W75SB",
-    "runId": "run_1Y3Z8ZQR31MP1GX66FW6AVF6T1",
+    "runId": "run_5TY3QKTGT6WDJG92JAQW9F004B",
     "tools": [],
     "context": [],
     "forwardedProps": {
@@ -120,15 +120,15 @@
         "schema_name": "petra.copilot-request",
         "schema_version": "1.0.0",
         "project_id": "project_4GNM3G166Z7RCBSW5K6TXZ3XZ9",
-        "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
-        "parent_run_id": "run_3JPQ9JT2RSP3Q7S4EG1VS7PA4A",
+        "context_hash": "sha256:01cd4952db6a92c79d874dabd6aaaf5696d044051004a03ea4d4b16867290920",
+        "parent_run_id": "run_675T9J0HYFXB893YETKK9MM8DD",
         "focus_keys": []
       }
     },
     "state": {},
     "messages": [
       {
-        "id": "question-run_1Y3Z8ZQR31MP1GX66FW6AVF6T1",
+        "id": "question-run_5TY3QKTGT6WDJG92JAQW9F004B",
         "role": "user",
         "content": "Synthetic A1 progressive-disclosure inspection: provide three separate advisory blocks: first identify missing inputs, then suggest a bounded next examination, then ask one clarifying question. Do not treat advice as a verified claim."
       }
