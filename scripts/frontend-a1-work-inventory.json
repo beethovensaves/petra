@@ -2019,7 +2019,7 @@
       "milestone": "FE-A1.3",
       "title": "Register genuine conversational interaction contracts",
       "owner": "runtime",
-      "status": "in_progress",
+      "status": "complete",
       "implementation": "Add versioned intake, Project evidence-question, follow-up, and scene-explanation interaction contracts with bounded inputs, response schemas, speech acts, policy, and validated references; preserve the fixed M1 synthesist contract. Register the immutable typed human command-decision contract over complete existing native request schemas; it cannot grant capability, approve domain truth, or substitute for the ordinary command owner.",
       "acceptance": [
         "Ordinary questions and follow-ups execute through registered runtime owners.",
@@ -2044,7 +2044,20 @@
         "reports/a1-passes/FE-A1.3-W01-execution-1791664110538.json",
         "reports/a1-passes/FE-A1.3-W01-critical-1791664123560.json"
       ],
-      "completion_evidence": [],
+      "completion_evidence": [
+        {
+          "pass": "execution",
+          "artifact": "reports/a1-passes/FE-A1.3-W01-execution-1791690537278.json",
+          "command": "node --test --test-reporter=tap scripts/a1/conversation-contracts.test.mjs",
+          "boundary": "Conversation and explicit human-decision contract boundary checks. Actual model eligibility, canonical proposal ownership, ordinary command effects, visible chat and Workspace convergence require their separate prerequisite and command-bridge items."
+        },
+        {
+          "pass": "critical",
+          "artifact": "reports/a1-passes/FE-A1.3-W01-critical-1791690612931.json",
+          "command": "node --test --test-reporter=tap scripts/a1/conversation-contracts.critical.test.mjs",
+          "boundary": "Conversation and explicit human-decision contract boundary checks. Actual model eligibility, canonical proposal ownership, ordinary command effects, visible chat and Workspace convergence require their separate prerequisite and command-bridge items."
+        }
+      ],
       "optional_scenarios": [
         "A1-S01",
         "A1-S02",
@@ -2088,6 +2101,27 @@
             }
           ],
           "finished_at": "2026-10-10T20:29:03.137Z"
+        },
+        {
+          "item": "FE-A1.3-W01",
+          "phase": "critical",
+          "failed_attempts": 0,
+          "started_at": "2026-10-11T02:37:47.390Z",
+          "passes": [
+            {
+              "pass": "execution",
+              "artifact": "reports/a1-passes/FE-A1.3-W01-execution-1791690537278.json",
+              "command": "node --test --test-reporter=tap scripts/a1/conversation-contracts.test.mjs",
+              "boundary": "Conversation and explicit human-decision contract boundary checks. Actual model eligibility, canonical proposal ownership, ordinary command effects, visible chat and Workspace convergence require their separate prerequisite and command-bridge items."
+            },
+            {
+              "pass": "critical",
+              "artifact": "reports/a1-passes/FE-A1.3-W01-critical-1791690612931.json",
+              "command": "node --test --test-reporter=tap scripts/a1/conversation-contracts.critical.test.mjs",
+              "boundary": "Conversation and explicit human-decision contract boundary checks. Actual model eligibility, canonical proposal ownership, ordinary command effects, visible chat and Workspace convergence require their separate prerequisite and command-bridge items."
+            }
+          ],
+          "finished_at": "2026-10-11T03:51:01.833Z"
         }
       ],
       "historical_completion_evidence": [
@@ -2110,7 +2144,7 @@
       "milestone": "FE-A1.3",
       "title": "Establish eligible model routes for the new interactions",
       "owner": "runtime",
-      "status": "planned",
+      "status": "in_progress",
       "implementation": "Register and prove eligible provider/model/role routes for conversational questions, working structure, and explanations with exact prompt/schema/profile revisions, grounding, privacy/egress, cost, and fallback rules.",
       "acceptance": [
         "A real eligible model answers a normal question and follow-up in the application.",
@@ -11077,10 +11111,10 @@
     "synchronization": "Roadmap, generated execution packet, canonical ledger and both execution worktrees must agree before execution or closure."
   },
   "active_work": {
-    "item": "FE-A1.3-W01",
+    "item": "FE-A1.3-W02",
     "phase": "execution",
     "failed_attempts": 0,
-    "started_at": "2026-10-11T02:37:47.390Z"
+    "started_at": "2026-10-11T03:51:33.353Z"
   },
   "repair_sequence": [
     {

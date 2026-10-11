@@ -1,0 +1,244 @@
+{
+  "schema_name": "petra.a1-verification-pass",
+  "schema_version": "1.0.0",
+  "work_item": "FE-A1.3-W01",
+  "pass": "critical",
+  "contract_hash": "sha256:4a26c8d19333cce54a5d59b90d9e363736adf84678d9731153eb28fab6db265e",
+  "status": "passed",
+  "candidate_commit": "14c7413e02ad59f73a1379eca77e496377a50e44",
+  "started_at": "2026-10-11T03:50:08.101Z",
+  "finished_at": "2026-10-11T03:50:12.931Z",
+  "criteria": [
+    {
+      "id": "FE-A1.3-W01-AC01",
+      "result": "passed",
+      "test": "FE-A1.3-W01-AC01 critical: hashed foreign context and fabricated intake evidence are rejected",
+      "observation": "A validly hashed context from another Project is rejected before retention and before invocation; cross-Project context and fabricated source reports cannot acquire advisory authority."
+    },
+    {
+      "id": "FE-A1.3-W01-AC02",
+      "result": "passed",
+      "test": "FE-A1.3-W01-AC02 critical: editing the fixed synthesis question cannot borrow its authority",
+      "observation": "An altered fixed synthesis question is denied at the production route before the provider receives a turn."
+    },
+    {
+      "id": "FE-A1.3-W01-AC03",
+      "result": "passed",
+      "test": "FE-A1.3-W01-AC03 critical: tool activity model substitution and invented source wording fail",
+      "observation": "Changed deployed core bytes withhold readiness before provider access or repository recovery; prohibited tools, model substitution, uncited reports and invented authority are rejected. Partial ordinary bodies, editable command arguments, arbitrary tools and fabricated approval/receipt fields are rejected by the registered human decision contract. Typed activity transport preserves native origin/Work/Run identities and refuses Actor overrides or completed output under failed delivery."
+    }
+  ],
+  "sources": [
+    {
+      "path": "apps/server/src/m1-grounded-synthesis.ts",
+      "hash": "sha256:e67106d7d1022c56d3cbf92e7c1a4253d1b740308a62603d3ee4830c26c3fe6c"
+    },
+    {
+      "path": "apps/server/src/project-copilot-model.ts",
+      "hash": "sha256:b9c12a86fc9923b5761838695b7241a16f5f00ca8204cfe514e06a899416559c"
+    },
+    {
+      "path": "apps/server/test/m1-grounded-synthesis.test.ts",
+      "hash": "sha256:20a850a4a34d33222bd25b847024b56c6fabbf99b8169654d1b694686c462ee7"
+    },
+    {
+      "path": "apps/server/test/project-copilot-eligibility.test.ts",
+      "hash": "sha256:d650dc317afffbc5356b92087fb36ce39e4665c0f3cb26b1b4fa2e1ef2ebadca"
+    },
+    {
+      "path": "packages/adapters/src/codex-project-copilot.ts",
+      "hash": "sha256:4bce560a231caa2a105a195c404da947854a4a266ed7a0f93458865670c9e6a6"
+    },
+    {
+      "path": "packages/adapters/test/project-copilot.test.ts",
+      "hash": "sha256:3bb7b5189c5522df30751aa16f69cd9097cf91d5874a62646fdcabedae0929d0"
+    },
+    {
+      "path": "packages/contracts/fixtures/accepted/copilot-command-activity.json",
+      "hash": "sha256:622ab6da0d7ee00d75493cf73578ca7c06277191b566a2349d12821d84c050c4"
+    },
+    {
+      "path": "packages/contracts/fixtures/accepted/copilot-command-decision-request.json",
+      "hash": "sha256:88fb0928d3835d1c3ff95289a9dadcf0fd36d41eb353f555694a9c97418f7d3e"
+    },
+    {
+      "path": "packages/contracts/fixtures/accepted/copilot-command-proposal-request.json",
+      "hash": "sha256:53bdbbe53f1db860633457aab2cb9bdb24a55368a32412493c7129037f68afa4"
+    },
+    {
+      "path": "packages/contracts/fixtures/accepted/copilot-human-command-decision.json",
+      "hash": "sha256:b05631b91b14d91c4b915a7896be011d60de9f2a698608becd172503a914a879"
+    },
+    {
+      "path": "packages/contracts/fixtures/manifest.json",
+      "hash": "sha256:d2126edbaf6014c122e34968c5d0e43fb465591973c39ab1d7e975672ba7c8dd"
+    },
+    {
+      "path": "packages/contracts/fixtures/rejected/copilot-command-activity.json",
+      "hash": "sha256:55a2fb8e3831c3199299c5ac65cbaf9dbadd781b9f7c0f1d1a35c934bcc3b44b"
+    },
+    {
+      "path": "packages/contracts/fixtures/rejected/copilot-command-decision-request.json",
+      "hash": "sha256:5ffc7cabdc36d7ba8b860c339f1e965370d80289d28ee5f3c5d35e62ce653a45"
+    },
+    {
+      "path": "packages/contracts/fixtures/rejected/copilot-command-proposal-request.json",
+      "hash": "sha256:8bcaee7c0ed5923e1d7f9e31a039677d7c1e350810f301e12d309074514a0175"
+    },
+    {
+      "path": "packages/contracts/fixtures/rejected/copilot-human-command-decision.json",
+      "hash": "sha256:1318097baa4e80bdefc417ef8f3f4c0c565a9bce4345275a52ff4173a45a52e8"
+    },
+    {
+      "path": "packages/contracts/registry.json",
+      "hash": "sha256:efe6941c4d1691b61cb0be94e5441e5f3a94ce8aa49378d3798a966b30480218"
+    },
+    {
+      "path": "packages/contracts/schemas/copilot-command-activity/1.0.0/schema.json",
+      "hash": "sha256:8dc1eb2c28b7b7256268367f90783bfd0290a1dfe1636b079a3d57968b583d34"
+    },
+    {
+      "path": "packages/contracts/schemas/copilot-command-decision-request/1.0.0/schema.json",
+      "hash": "sha256:502e1de1c3aecdc8613328a0531b086be963d82c012fb72c376c23a52c9d2496"
+    },
+    {
+      "path": "packages/contracts/schemas/copilot-command-proposal-request/1.0.0/schema.json",
+      "hash": "sha256:cc39ee243d36de62428c27bfafce2fee29e6920fbe907a06ae525ccf45c89321"
+    },
+    {
+      "path": "packages/contracts/schemas/copilot-context/1.0.0/schema.json",
+      "hash": "sha256:6a72d94b40a532349d96307139c0dae32ead975b24795a75564aeef49c0b48f1"
+    },
+    {
+      "path": "packages/contracts/schemas/copilot-human-command-decision/1.0.0/schema.json",
+      "hash": "sha256:4fba59e7b5c86b5812168b6df32eb1aacee72a49cb2aed1eb89264af4a9e6001"
+    },
+    {
+      "path": "packages/contracts/schemas/copilot-output/1.0.0/schema.json",
+      "hash": "sha256:09fcd9561408d41b0d3ff1014f210af028a5ea2ac0b4f2c22d8a5c4c791f44bd"
+    },
+    {
+      "path": "packages/contracts/schemas/copilot-request/1.0.0/schema.json",
+      "hash": "sha256:63f01457e70d86f277c2dfa215ed3b9cc033181d0c70d6c588c1658a33814b96"
+    },
+    {
+      "path": "packages/contracts/schemas/copilot-request/1.1.0/schema.json",
+      "hash": "sha256:6dabcda9db72f8287101419055606d9166e95a9653de486313f71edf79eb39d5"
+    },
+    {
+      "path": "packages/contracts/schemas/copilot-turn/1.0.0/schema.json",
+      "hash": "sha256:56eb75f1908c30ea7e14d5369760b4d3e2daadb86fcb511bda98cdcdb5ca98ed"
+    },
+    {
+      "path": "packages/contracts/schemas/copilot-turn/1.1.0/schema.json",
+      "hash": "sha256:ad87653d6af9e2e0d17851c0318d7219a588bb0e6cf133706a461c438561cd3e"
+    },
+    {
+      "path": "packages/contracts/schemas/intake-copilot-context/1.0.0/schema.json",
+      "hash": "sha256:c35838093022dc1c2f54e67b75957bef58f84131a9b98faea575ab85e247111a"
+    },
+    {
+      "path": "packages/contracts/schemas/intake-copilot-request/1.0.0/schema.json",
+      "hash": "sha256:7c33b2ecc8389d2b73b649353c48b0ef1d7e9c5f983b5c76b677788f2d00df49"
+    },
+    {
+      "path": "packages/contracts/schemas/intake-copilot-turn/1.0.0/schema.json",
+      "hash": "sha256:7aa1c2d8c29b44ac9440187e5bd700441c01b5831320a3b6686d125e4dc87888"
+    },
+    {
+      "path": "packages/contracts/src/generated/copilot-command-activity.ts",
+      "hash": "sha256:73f8724a8b4e2ca2b8755a325211e02d2418d032642bdea778734b9894cc75d5"
+    },
+    {
+      "path": "packages/contracts/src/generated/copilot-command-decision-request.ts",
+      "hash": "sha256:813e2fcd8aed0b06939c2fa311111266d421771fd2654a70b266dc46b4099894"
+    },
+    {
+      "path": "packages/contracts/src/generated/copilot-command-proposal-request.ts",
+      "hash": "sha256:1eb663a090dbab3518127fe93fea4afb5634ac4d2a431850369cd7fd1efb63b4"
+    },
+    {
+      "path": "packages/contracts/src/generated/copilot-human-command-decision.ts",
+      "hash": "sha256:9f5cee86f4576ea68b0434c1149aad8c2cb6d93fc825e4be02a6f9a39698c471"
+    },
+    {
+      "path": "packages/contracts/test/copilot-human-command-decision.test.ts",
+      "hash": "sha256:ab43886cb6a60c4b16feed432b0ec534823dc2d26850f15e796fa461f59a0c56"
+    },
+    {
+      "path": "packages/core/src/intake-copilot.ts",
+      "hash": "sha256:8293caf3f4cf50d0a08537ef0f15bf82a37bd2e1ffb3791f0c16954aa5a44f5f"
+    },
+    {
+      "path": "packages/core/src/project-copilot.ts",
+      "hash": "sha256:3329ca4ebfb82972746a63b502e96b3b446b777dc061a21632746d99d86efc66"
+    },
+    {
+      "path": "packages/core/test/intake-copilot.test.ts",
+      "hash": "sha256:5fe148dd12d0107ea02afa9d3abeb149d6a17d8b0c716fa2dbbbae7b2278d8d5"
+    },
+    {
+      "path": "packages/core/test/project-copilot-conversation.test.ts",
+      "hash": "sha256:e88e52ef8c0777309df6a48cee2f22e1c35a687275967ce7eb4c398f93549b8c"
+    },
+    {
+      "path": "packages/core/test/project-copilot.test.ts",
+      "hash": "sha256:2a5fc492811b7d6ab6af197cc3df3581ed1799a40a177727213ffc82af94427f"
+    },
+    {
+      "path": "scripts/a1/conversation-contracts.critical.test.mjs",
+      "hash": "sha256:c7b1e8a747057597fe453e4c19bc43ce177197fa58f1bc4d8e45b2b4fde8cc04"
+    },
+    {
+      "path": "scripts/a1/conversation-contracts.test.mjs",
+      "hash": "sha256:7e45100be94cd179b051bd19ff2f84e6224acb5fe9983f031e7853fbc828bb25"
+    },
+    {
+      "path": "scripts/a1/run-vitest.mjs",
+      "hash": "sha256:4c2c635a474e84dba08144dfc9d68046281a9ccedff03e8fbf29954604a11d76"
+    }
+  ],
+  "runs": [
+    {
+      "argv": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "scripts/a1/conversation-contracts.critical.test.mjs"
+      ],
+      "exit_code": 0,
+      "output": "reports/a1-passes/FE-A1.3-W01-critical-1791690612931.tap",
+      "output_hash": "sha256:da1bdace9d01e8ba5fec301d798b572dd91d02efea939d7bfd7659908c71ae9a"
+    }
+  ],
+  "boundary": "Conversation and explicit human-decision contract boundary checks. Actual model eligibility, canonical proposal ownership, ordinary command effects, visible chat and Workspace convergence require their separate prerequisite and command-bridge items.",
+  "review": {
+    "perspective": "Attempt cross-Project retention and model invocation, fixed-role authority borrowing, deployment drift, prohibited tools and fabricated evidence rather than repeat the successful conversation.",
+    "challenges": [
+      {
+        "criterion": "FE-A1.3-W01-AC01",
+        "question": "FE-A1.3-W01-AC01 critical: hashed foreign context and fabricated intake evidence are rejected",
+        "result": "A validly hashed context from another Project is rejected before retention and before invocation; cross-Project context and fabricated source reports cannot acquire advisory authority."
+      },
+      {
+        "criterion": "FE-A1.3-W01-AC02",
+        "question": "FE-A1.3-W01-AC02 critical: editing the fixed synthesis question cannot borrow its authority",
+        "result": "An altered fixed synthesis question is denied at the production route before the provider receives a turn."
+      },
+      {
+        "criterion": "FE-A1.3-W01-AC03",
+        "question": "FE-A1.3-W01-AC03 critical: tool activity model substitution and invented source wording fail",
+        "result": "Changed deployed core bytes withhold readiness before provider access or repository recovery; prohibited tools, model substitution, uncited reports and invented authority are rejected. Partial ordinary bodies, editable command arguments, arbitrary tools and fabricated approval/receipt fields are rejected by the registered human decision contract. Typed activity transport preserves native origin/Work/Run identities and refuses Actor overrides or completed output under failed delivery."
+      }
+    ],
+    "findings": [
+      {
+        "severity": "material",
+        "status": "resolved",
+        "finding": "Core runtime previously accepted validly hashed context whose Project differed from its turn.",
+        "resolution": "The exact Project guard now precedes repository retention and model invocation; the critical test confirms neither receives bytes.",
+        "disposition": "resolved"
+      }
+    ]
+  }
+}
