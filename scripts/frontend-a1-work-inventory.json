@@ -6383,8 +6383,15 @@
   "active_work": {
     "item": "FE-A1.2-W01",
     "phase": "execution",
-    "failed_attempts": 0,
-    "started_at": "2026-10-11T00:32:59.324Z"
+    "failed_attempts": 1,
+    "started_at": "2026-10-11T00:32:59.324Z",
+    "failures": [
+      {
+        "reason": "Verification failed: node --test --test-reporter=tap scripts/a1/outcome-drafting.test.mjs; retained output reports/a1-passes/FE-A1.2-W01-execution-1791679092339.tap",
+        "phase": "execution",
+        "recorded_at": "2026-10-11T00:38:12.339Z"
+      }
+    ]
   },
   "repair_sequence": [
     {

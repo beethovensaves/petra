@@ -12,6 +12,7 @@
     "apps/server/src/intake-copilot-routes.ts",
     "apps/server/src/intake-copilot.ts",
     "apps/server/test/project-definition-draft-routes.test.ts",
+    "apps/workbench/src/design-system/primitives.tsx",
     "apps/workbench/src/product/IntakeCopilotConversation.tsx",
     "apps/workbench/src/product/IntakeWorkspace.tsx",
     "apps/workbench/src/product/ProjectProfileSurface.tsx",
@@ -78,6 +79,13 @@
         "result": "missing optional example and whitespace outcome are handled before any Project creation"
       }
     ],
-    "findings": []
+    "findings": [
+      {
+        "severity": "material",
+        "disposition": "resolved",
+        "finding": "The first browser check equated an unavailable command with native disabled, although the real accessible primitive uses aria-disabled plus guarded activation.",
+        "resolution": "Read actual unavailable semantics and activate the presented command before consent; assert that no production creation request is sent. Preserve the failed pass and keep independent forged-content/assumption-code attacks in the critical pass."
+      }
+    ]
   }
 }
