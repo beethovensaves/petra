@@ -1,6 +1,6 @@
 {
-  "checked_at": "2026-10-11T00:40:39.815Z",
-  "session_id": "intake_session_20Z0A22Y45EFZKSY6K1AFG4RMX",
+  "checked_at": "2026-10-11T00:45:21.823Z",
+  "session_id": "intake_session_6V94920BSC47D791TEWCNJGQK0",
   "observations": [
     {
       "outcome": "Compare scientific claims against scholarly evidence and retained sources.",
@@ -13,7 +13,7 @@
           },
           "request": {
             "outcome": "Compare scientific claims against scholarly evidence and retained sources.",
-            "request_id": "definition_draft_request_01M4M6F596MJ42ER92EY56N7QN",
+            "request_id": "definition_draft_request_01M4M6QRPB2VSE69Q9DFBHN1GS",
             "schema_name": "petra.project-definition-draft-request",
             "schema_version": "1.0.0"
           },
@@ -449,10 +449,10 @@
             "personal"
           ]
         },
-        "read_at": "2026-10-11T00:40:39.465Z",
-        "draft_id": "project_definition_draft_0ASNZJGVDJESNVY6K496J7R1E5",
+        "read_at": "2026-10-11T00:45:21.486Z",
+        "draft_id": "project_definition_draft_7C7KG8HDAAVW72MZ4EVGCYMK1Q",
         "schema_name": "petra.project-definition-draft-view",
-        "content_hash": "sha256:e6dd85eae6a9a978aa7deb866840274c1d0e0db6f9816d7e6e0f48132f6923b0",
+        "content_hash": "sha256:3813000ecb4394f46537d4e7b4549126956cc460203e1e7b91ac8b039f47dca2",
         "schema_version": "1.0.0"
       },
       "optional_example": {
@@ -473,7 +473,7 @@
           },
           "request": {
             "outcome": "Prepare a controlled writing procedure governed by auditable requirements.",
-            "request_id": "definition_draft_request_01M4M6F5CYJZMWKTRF7S3DETAE",
+            "request_id": "definition_draft_request_01M4M6QRSY1VJMKJZA68FH3WSQ",
             "schema_name": "petra.project-definition-draft-request",
             "schema_version": "1.0.0"
           },
@@ -675,10 +675,10 @@
             "personal"
           ]
         },
-        "read_at": "2026-10-11T00:40:39.585Z",
-        "draft_id": "project_definition_draft_3NYDWKTQYEHQA4WRPFGTJGJFJ0",
+        "read_at": "2026-10-11T00:45:21.600Z",
+        "draft_id": "project_definition_draft_5KJ3SDH28BJMVPAGS17BVZP19N",
         "schema_name": "petra.project-definition-draft-view",
-        "content_hash": "sha256:1c4d8c86799d96af8c2c5c658181cea9e6b56598e54eca323ce59a0cab17998c",
+        "content_hash": "sha256:0faae44afad5ca15258f3aa23f769064894c12b0be87d9ea0de0d44f9498e5e1",
         "schema_version": "1.0.0"
       },
       "optional_example": {
@@ -699,7 +699,7 @@
           },
           "request": {
             "outcome": "Plan a neighborhood block party with a budget, volunteer shifts, and a rain date.",
-            "request_id": "definition_draft_request_01M4M6F5GM8DGD1TKSXM0SMEE9",
+            "request_id": "definition_draft_request_01M4M6QRXGSBQQ73HGZ6Q0APY8",
             "schema_name": "petra.project-definition-draft-request",
             "schema_version": "1.0.0"
           },
@@ -832,10 +832,10 @@
             "personal"
           ]
         },
-        "read_at": "2026-10-11T00:40:39.703Z",
-        "draft_id": "project_definition_draft_04MXFP4G6S1BWDHX0ACVVKWBEX",
+        "read_at": "2026-10-11T00:45:21.715Z",
+        "draft_id": "project_definition_draft_5YGG565CKQPMK1TB5WQ8R26CFM",
         "schema_name": "petra.project-definition-draft-view",
-        "content_hash": "sha256:3a505e83f274a5fc3d5fe2757fc84e35404a36e3617b2523d2bad0c5646d626f",
+        "content_hash": "sha256:cb5441e3b8b2e44734b6a070c164c2cb4b7437b73ab9c9a18d556aa7e2bf0574",
         "schema_version": "1.0.0"
       },
       "optional_example": {
@@ -848,9 +848,9 @@
   ],
   "writes": [
     "http://127.0.0.1:4313/api/intake-sessions",
-    "http://127.0.0.1:4313/api/intake-sessions/intake_session_20Z0A22Y45EFZKSY6K1AFG4RMX/definition-draft",
-    "http://127.0.0.1:4313/api/intake-sessions/intake_session_20Z0A22Y45EFZKSY6K1AFG4RMX/definition-draft",
-    "http://127.0.0.1:4313/api/intake-sessions/intake_session_20Z0A22Y45EFZKSY6K1AFG4RMX/definition-draft"
+    "http://127.0.0.1:4313/api/intake-sessions/intake_session_6V94920BSC47D791TEWCNJGQK0/definition-draft",
+    "http://127.0.0.1:4313/api/intake-sessions/intake_session_6V94920BSC47D791TEWCNJGQK0/definition-draft",
+    "http://127.0.0.1:4313/api/intake-sessions/intake_session_6V94920BSC47D791TEWCNJGQK0/definition-draft"
   ],
   "boundary": "Actual empty-project intake and server-retained definition drafts through the same production UI entry for three outcome types. No model invocation, accepted Project creation, native examiner, command bridge, or overall A1 completion inferred."
 }
