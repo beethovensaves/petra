@@ -24,6 +24,12 @@ import type {
 } from "@petra/contracts";
 const contracts = new PetraContractRegistry();
 import type { ProjectShellPersistence } from "./project-shell-persistence.js";
+import {
+  contextShellBasis,
+  exactDefinitionContext,
+  projectActivityContext,
+  sameContextDefinition,
+} from "./project-copilot-context.js";
 
 const sharedPresentation = (
   source: GraphPresentationSource,
@@ -183,6 +189,37 @@ export class ProjectCopilotService {
       "Context contains a bounded selection of authorized current record summaries and working material. It is not an exhaustive evidence search or the complete bytes of a Source.",
       "Managed model execution uses the registered remote provider; Project routing preferences and per-call price accounting are not available through this role.",
     ];
+    records.push(
+      exactDefinitionContext(
+        shell,
+        await this.persistence.definitions?.getProjectDefinition(
+          projectId,
+          definition.revision,
+        ),
+      ),
+    );
+    const activity = projectActivityContext(
+      shell,
+      await this.persistence.inquiryViews
+        ?.listProjectInquiryView(projectId, { limit: 20 })
+        .catch((error: unknown) => {
+          if (
+            error instanceof Error &&
+            "code" in error &&
+            [
+              "PROJECT_INQUIRY_VIEW_MAPPING_UNAVAILABLE",
+              "PROJECT_INQUIRY_VIEW_DESTINATION_UNSUPPORTED",
+            ].includes(String(error.code))
+          )
+            return undefined;
+          throw error;
+        }),
+      await this.persistence.workViews?.listProjectWorkView(projectId, {
+        limit: 20,
+      }),
+    );
+    records.push(...activity.records);
+    limitations.push(...activity.limitations);
     const originBinding =
       await this.persistence.intakeCopilot?.bindingForProject?.(
         projectId,
@@ -251,12 +288,12 @@ export class ProjectCopilotService {
       if (binding?.parameters.renderer === "native_working")
         sharedScene = sharedPresentation(nativeView, binding);
       if (
+        nativeView.project_id !== projectId ||
         nativeView.content.authority.event_position !==
           authority.event_position ||
         nativeView.content.authority.stream_revision !==
           authority.stream_revision ||
-        nativeView.content.definition_ref.content_hash !==
-          definition.content_hash
+        !sameContextDefinition(definition, nativeView.content.definition_ref)
       )
         throw new CopilotBoundaryError(
           "CONTEXT_CHANGED",
@@ -273,15 +310,17 @@ export class ProjectCopilotService {
         )
         .slice(0, 40)) {
         const nativeText =
-          node.remote_context?.permitted !== true
-            ? "Native material is withheld from this remote role because its source egress rights are restricted or unresolved. The local examiner remains available."
-            : node.native_record === undefined
-              ? node.summary
-              : JSON.stringify({
-                  native_record: node.native_record,
-                  source_passages: node.source_passages,
-                  rights: node.remote_context,
-                });
+          node.material_state !== "available"
+            ? "Native bytes are withheld because the exact material basis is stale or unavailable. Its retained reference is not current evidence."
+            : node.remote_context?.permitted !== true
+              ? "Native material is withheld from this remote role because its source egress rights are restricted or unresolved. The local examiner remains available."
+              : node.native_record === undefined
+                ? node.summary
+                : JSON.stringify({
+                    native_record: node.native_record,
+                    source_passages: node.source_passages,
+                    rights: node.remote_context,
+                  });
         const text =
           nativeText.length <= 7500
             ? nativeText
@@ -578,10 +617,13 @@ export class ProjectCopilotService {
     if (graph !== undefined) {
       const position = graph.content.positions.authoritative.authority;
       if (
+        graph.project_id !== projectId ||
         position.event_position !== authority.event_position ||
         position.stream_revision !== authority.stream_revision ||
-        graph.content.profile.project_definition_ref.content_hash !==
-          definition.content_hash
+        !sameContextDefinition(
+          definition,
+          graph.content.profile.project_definition_ref,
+        )
       ) {
         throw new CopilotBoundaryError(
           "CONTEXT_CHANGED",
@@ -641,11 +683,14 @@ export class ProjectCopilotService {
       );
     if (working !== undefined && nativeView === undefined) {
       if (
+        working.project_id !== projectId ||
         working.content.authority.event_position !== authority.event_position ||
         working.content.authority.stream_revision !==
           authority.stream_revision ||
-        working.content.project_definition_ref.content_hash !==
-          definition.content_hash
+        !sameContextDefinition(
+          definition,
+          working.content.project_definition_ref,
+        )
       ) {
         throw new CopilotBoundaryError(
           "CONTEXT_CHANGED",
@@ -679,6 +724,24 @@ export class ProjectCopilotService {
         "Working material retains its native ProjectDefinition kind and has no domain authority. Validation does not approve or promote it.",
       );
     }
+    const finalShell =
+      await this.persistence.views.getProjectShellView(projectId);
+    if (
+      finalShell === undefined ||
+      copilotHash(contextShellBasis(finalShell)) !==
+        copilotHash(contextShellBasis(shell))
+    )
+      throw new CopilotBoundaryError(
+        "CONTEXT_CHANGED",
+        "The Project basis changed while assembling this turn. Refresh before asking; no model input was prepared.",
+      );
+    const finalPermission =
+      await this.persistence.copilotPermission?.read(projectId);
+    if (finalPermission?.state === "unavailable")
+      throw new CopilotBoundaryError(
+        "CONVERSATION_PERMISSION_UNAVAILABLE",
+        finalPermission.reason,
+      );
     const content = {
       schema_name: "petra.copilot-context" as const,
       schema_version: "1.0.0" as const,
@@ -717,13 +780,17 @@ export class ProjectCopilotService {
         (focusKeys.includes(b.key)
           ? 2
           : b.kind === "graph-presentation-context"
-            ? 1
-            : 0) -
+            ? 2
+            : b.kind === "project-definition-context"
+              ? 1
+              : 0) -
         (focusKeys.includes(a.key)
           ? 2
           : a.kind === "graph-presentation-context"
-            ? 1
-            : 0),
+            ? 2
+            : a.kind === "project-definition-context"
+              ? 1
+              : 0),
     );
     while (
       content.records.length > 60 ||
@@ -903,6 +970,14 @@ export class ProjectCopilotService {
         "This thread does not belong to the authenticated Project conversation.",
       );
     await runtime.repository.recover(runtime.instanceId);
+    const finalPermission = await this.persistence.copilotPermission?.read(
+      input.request.project_id,
+    );
+    if (finalPermission !== undefined && finalPermission.state !== "ready")
+      throw new CopilotBoundaryError(
+        "CONVERSATION_WORK_NOT_AUTHORIZED",
+        finalPermission.reason,
+      );
     return runtime.start({
       schema_name: "petra.copilot-turn",
       schema_version: shared_scene === undefined ? "1.0.0" : "1.1.0",

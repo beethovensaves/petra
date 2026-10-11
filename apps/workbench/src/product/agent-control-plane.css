@@ -467,6 +467,13 @@
   overflow-y: auto;
   font-size: 0.72rem;
 }
+
+.copilot-input-manifest pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-block-size: 12rem;
+  overflow: auto;
+}
 .copilot-live-activity {
   margin-block: 0.5rem;
   padding: 0.65rem 0.8rem;

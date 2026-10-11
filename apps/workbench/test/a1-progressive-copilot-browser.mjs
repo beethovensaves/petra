@@ -30,9 +30,13 @@ assert.equal(before.availability.state, "ready");
 assert(before.turns.every((turn) => turn.question.startsWith("Synthetic A1")));
 assert(
   before.context.records.every((record) =>
-    ["pre_project_discussion", "project-examination-scene"].includes(
-      record.kind,
-    ),
+    [
+      "pre_project_discussion",
+      "project-examination-scene",
+      "project-definition-context",
+      "project-inquiry-context",
+      "project-work-context",
+    ].includes(record.kind),
   ),
   "Only the disposable Project with no private source material may reach the provider.",
 );

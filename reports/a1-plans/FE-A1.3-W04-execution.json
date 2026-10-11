@@ -1,0 +1,59 @@
+{
+  "work_item": "FE-A1.3-W04",
+  "pass": "execution",
+  "argv": [
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "scripts/a1/exact-context.test.mjs"
+  ],
+  "sources": [
+    "apps/server/src/project-copilot.ts",
+    "apps/server/src/project-copilot-context.ts",
+    "apps/server/src/project-shell-persistence.ts",
+    "apps/server/test/project-copilot.test.ts",
+    "apps/server/test/project-copilot-context.test.ts",
+    "apps/workbench/src/product/ProjectCopilotConversation.tsx",
+    "apps/workbench/src/product/agent-control-plane.css",
+    "apps/workbench/test/a1-exact-context-browser.mjs",
+    "apps/workbench/test/cumulative-production-browser-driver.mjs",
+    "packages/core/src/project-copilot.ts",
+    "packages/core/test/project-copilot.test.ts",
+    "packages/core/test/project-copilot-conversation.test.ts",
+    "packages/postgres/src/project-copilot-repository.ts",
+    "packages/postgres/test/project-copilot-repository.test.ts",
+    "packages/contracts/schemas/copilot-context/1.0.0/schema.json",
+    "packages/contracts/schemas/copilot-request/1.0.0/schema.json",
+    "packages/contracts/schemas/copilot-request/1.1.0/schema.json",
+    "packages/contracts/schemas/copilot-input-manifest/1.0.0/schema.json",
+    "packages/contracts/registry.json",
+    "infra/postgres/integration.compose.yaml",
+    "reports/FE-A1-INTAKE-FUNCTION-BROWSER.json",
+    "scripts/a1/exact-context.test.mjs",
+    "scripts/a1/exact-context.critical.test.mjs",
+    "scripts/a1/run-browser.mjs",
+    "scripts/a1/run-vitest.mjs",
+    "scripts/a1/owned-postgres.mjs"
+  ],
+  "criteria": [
+    {
+      "id": "FE-A1.3-W04-AC01",
+      "result": "passed",
+      "test": "FE-A1.3-W04-AC01 execution: follow-ups bind the prior terminal turn and exact current basis",
+      "observation": "Exact original input, selected current metadata and privacy/omission disclosure are owner-bound and tested through the service, retained runtime, PostgreSQL and production browser."
+    },
+    {
+      "id": "FE-A1.3-W04-AC02",
+      "result": "passed",
+      "test": "FE-A1.3-W04-AC02 execution: definition inquiry Work and retained disclosure expose included and withheld context",
+      "observation": "Exact original input, selected current metadata and privacy/omission disclosure are owner-bound and tested through the service, retained runtime, PostgreSQL and production browser."
+    },
+    {
+      "id": "FE-A1.3-W04-AC03",
+      "result": "passed",
+      "test": "FE-A1.3-W04-AC03 execution: restricted native bytes and examination records retain their exact admission boundary",
+      "observation": "Exact original input, selected current metadata and privacy/omission disclosure are owner-bound and tested through the service, retained runtime, PostgreSQL and production browser."
+    }
+  ],
+  "boundary": "Exact bounded advisory turn context only. Original-basis branching, action previews/commands, missing native examiners and connected graph cycles remain their own required A1 items. Work inputs/proposals/output and inquiry framing/source bytes are explicitly withheld on metadata paths; no fact, approval, examination, resolved inquiry or completed domain work is inferred."
+}

@@ -48,9 +48,13 @@ assert(
 );
 assert(
   before.context.records.every((record) =>
-    ["pre_project_discussion", "project-examination-scene"].includes(
-      record.kind,
-    ),
+    [
+      "pre_project_discussion",
+      "project-examination-scene",
+      "project-definition-context",
+      "project-inquiry-context",
+      "project-work-context",
+    ].includes(record.kind),
   ),
   "The test Project must contain no private source bytes.",
 );

@@ -529,6 +529,32 @@ export const ProjectCopilotConversation = ({
                   ))}
                   <details className="copilot-input-manifest">
                     <summary>Inspect what this turn could use</summary>
+                    <p>
+                      This turn uses its retained Project and definition
+                      revisions. A follow-up binds its prior turn and refreshes
+                      the Project basis; it cannot replace this original input.
+                    </p>
+                    <ul>
+                      {turn.context.limitations.map((limitation, index) => (
+                        <li key={index}>{limitation}</li>
+                      ))}
+                    </ul>
+                    <details>
+                      <summary>Included context and withheld material</summary>
+                      {turn.context.records.map((record) => (
+                        <article key={record.key}>
+                          <strong>{record.label}</strong>
+                          <p>
+                            {record.kind} · revision {record.ref.revision}
+                          </p>
+                          {record.text === undefined ? (
+                            <p>Reference only; content withheld.</p>
+                          ) : (
+                            <pre>{record.text}</pre>
+                          )}
+                        </article>
+                      ))}
+                    </details>
                     {turn.input_manifest === undefined ? (
                       <p>
                         This earlier turn has no retained input disclosure

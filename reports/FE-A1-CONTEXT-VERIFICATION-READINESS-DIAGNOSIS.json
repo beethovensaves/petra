@@ -1,0 +1,8 @@
+{
+  "contract": "Context compilation must support both registered shell read versions while preserving the exact definition, Project and authority basis. Product function tests passed; the initial type-check failures are not passing evidence.",
+  "architecture": "The new helper initially accepted the v1.0 enclosing schema instead of the stable Project/content fields shared by v1.0 and v1.1. It now depends on the common structural fields without casting away the production union.",
+  "dependencies": "The shell authority already includes repeatable-read isolation. The test fixture duplicated that field, triggering an independent TypeScript error. The redundant field was removed; production authority data is retained intact.",
+  "environment": "The broad server suite attempted localhost listeners under the restricted filesystem execution sandbox, producing EPERM in two HTTP suites. Those checks require the already authorized localhost escalation; they did not expose a model or product regression.",
+  "verification": "Fourteen focused context/service tests passed. Source and test type-checks were corrected separately. The broad server result recorded 167 passing tests and the listener failures; the corrected full suite must run with localhost permission before any integration closure.",
+  "changed_remedy": "Use a version-independent typed context helper, preserve the existing authority shape, and run listener/browser/database checks with their required environment access. Separate preparatory typing/environment failures from formal criterion evidence; execute both integration passes only after the source candidate is committed in both checkouts."
+}

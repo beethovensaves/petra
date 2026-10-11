@@ -627,7 +627,7 @@
       "milestone": "FE-A1.1",
       "title": "Rebuild the copilot and workspace hierarchy",
       "owner": "frontend",
-      "status": "complete",
+      "status": "planned",
       "implementation": "Build the persistent 30/70 desktop shell around a compact Project/objective header, continuous user/assistant thread, contextual progress/interventions, usable composer, and active Workspace result. Sequence: move Workspace destinations and inspection into Workspace chrome; reserve chat and composer space while bounding expandable support; reflect the opened answer or evidence in the Workspace heading and activate narrow Workspace presentation; verify ordinary desktop geometry and actual retained Q/A/draft continuity; critically challenge short/narrow viewports, expanded disclosures, keyboard activation and native return. After AG-UI integration, revalidate the whole hierarchy and keep long answer headings from shrinking the native return control into a vertical column.",
       "acceptance": [
         "At ordinary desktop widths both the conversation and result remain legible.",
@@ -650,22 +650,11 @@
         "reports/a1-passes/FE-A1.1-W01-execution-1791675860000.json",
         "reports/a1-passes/FE-A1.1-W01-critical-1791675948769.json",
         "reports/a1-passes/FE-A1.1-W01-execution-1791678575943.json",
-        "reports/a1-passes/FE-A1.1-W01-critical-1791678645251.json"
+        "reports/a1-passes/FE-A1.1-W01-critical-1791678645251.json",
+        "reports/a1-passes/FE-A1.1-W01-execution-1791681282679.json",
+        "reports/a1-passes/FE-A1.1-W01-critical-1791681337814.json"
       ],
-      "completion_evidence": [
-        {
-          "pass": "execution",
-          "artifact": "reports/a1-passes/FE-A1.1-W01-execution-1791681282679.json",
-          "command": "node --test --test-reporter=tap scripts/a1/copilot-hierarchy.test.mjs",
-          "boundary": "Live production layout, retained actual managed-model Q/A, navigation, composer, disclosure and Workspace presentation only. No new model invocation, proposal command, native examiner, cycle or overall A1 acceptance is inferred."
-        },
-        {
-          "pass": "critical",
-          "artifact": "reports/a1-passes/FE-A1.1-W01-critical-1791681337814.json",
-          "command": "node --test --test-reporter=tap scripts/a1/copilot-hierarchy.critical.test.mjs",
-          "boundary": "Live production layout, retained actual managed-model Q/A, navigation, composer, disclosure and Workspace presentation only. No new model invocation, proposal command, native examiner, cycle or overall A1 acceptance is inferred."
-        }
-      ],
+      "completion_evidence": [],
       "optional_scenarios": [
         "A1-S14"
       ],
@@ -684,6 +673,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:12.758Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.845Z"
         }
       ],
       "verification_plans": {
@@ -833,6 +827,18 @@
           "artifact": "reports/a1-passes/FE-A1.1-W01-critical-1791678645251.json",
           "command": "node --test --test-reporter=tap scripts/a1/copilot-hierarchy.critical.test.mjs",
           "boundary": "Live production layout, retained actual managed-model Q/A, navigation, composer, disclosure and Workspace presentation only. No new model invocation, proposal command, native examiner, cycle or overall A1 acceptance is inferred."
+        },
+        {
+          "pass": "execution",
+          "artifact": "reports/a1-passes/FE-A1.1-W01-execution-1791681282679.json",
+          "command": "node --test --test-reporter=tap scripts/a1/copilot-hierarchy.test.mjs",
+          "boundary": "Live production layout, retained actual managed-model Q/A, navigation, composer, disclosure and Workspace presentation only. No new model invocation, proposal command, native examiner, cycle or overall A1 acceptance is inferred."
+        },
+        {
+          "pass": "critical",
+          "artifact": "reports/a1-passes/FE-A1.1-W01-critical-1791681337814.json",
+          "command": "node --test --test-reporter=tap scripts/a1/copilot-hierarchy.critical.test.mjs",
+          "boundary": "Live production layout, retained actual managed-model Q/A, navigation, composer, disclosure and Workspace presentation only. No new model invocation, proposal command, native examiner, cycle or overall A1 acceptance is inferred."
         }
       ]
     },
@@ -883,6 +889,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -930,6 +941,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -979,6 +995,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -1026,6 +1047,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -1074,6 +1100,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -1121,6 +1152,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -1491,6 +1527,21 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.111Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W02",
+          "reason": "The synthetic model/browser guard must admit and validate the newly bounded exact definition, inquiry and Work metadata. Revalidate actual question/follow-up and unavailable-role behavior on the integrated context candidate.",
+          "recorded_at": "2026-10-11T01:35:27.511Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -1539,6 +1590,11 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -1547,7 +1603,7 @@
       "milestone": "FE-A1.2",
       "title": "Compose definitions and revisions across Project types",
       "owner": "runtime",
-      "status": "complete",
+      "status": "planned",
       "implementation": "Resolve registered object/relationship descriptors, inquiry roles, examiners, language rules, validators, outputs, and place capabilities from the exact ProjectDefinition; semantic revisions follow D018.",
       "acceptance": [
         "The same shell can load different domain components without scientific conditionals.",
@@ -1567,22 +1623,11 @@
         "UX-REQ-021"
       ],
       "retained_evidence": [
-        "reports/FRONTEND-STEP3-AGNOSTIC-PROJECT-CREATION.json"
+        "reports/FRONTEND-STEP3-AGNOSTIC-PROJECT-CREATION.json",
+        "reports/a1-passes/FE-A1.2-W07-execution-1791681705286.json",
+        "reports/a1-passes/FE-A1.2-W07-critical-1791681950358.json"
       ],
-      "completion_evidence": [
-        {
-          "pass": "execution",
-          "artifact": "reports/a1-passes/FE-A1.2-W07-execution-1791681705286.json",
-          "command": "node --test --test-reporter=tap scripts/a1/definition-components.test.mjs",
-          "boundary": "Exact immutable definition reads and generic component negotiation across declared domain registrations. Schema admission is separate from an installed examiner or executor; unavailable capability does not invalidate a valid Project. Existing immutable history owners preserve the original basis. This does not certify missing native writing interpretation/third-type examiners, new model roles, proposed commands, or overall A1."
-        },
-        {
-          "pass": "critical",
-          "artifact": "reports/a1-passes/FE-A1.2-W07-critical-1791681950358.json",
-          "command": "node --test --test-reporter=tap scripts/a1/definition-components.critical.test.mjs",
-          "boundary": "Exact immutable definition reads and generic component negotiation across declared domain registrations. Schema admission is separate from an installed examiner or executor; unavailable capability does not invalidate a valid Project. Existing immutable history owners preserve the original basis. This does not certify missing native writing interpretation/third-type examiners, new model roles, proposed commands, or overall A1."
-        }
-      ],
+      "completion_evidence": [],
       "optional_scenarios": [
         "A1-S03",
         "A1-S04",
@@ -1603,6 +1648,11 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ],
       "execution_history": [
@@ -1639,7 +1689,21 @@
       "verification_plans": {
         "execution": "reports/a1-plans/FE-A1.2-W07-execution.json",
         "critical": "reports/a1-plans/FE-A1.2-W07-critical.json"
-      }
+      },
+      "historical_completion_evidence": [
+        {
+          "pass": "execution",
+          "artifact": "reports/a1-passes/FE-A1.2-W07-execution-1791681705286.json",
+          "command": "node --test --test-reporter=tap scripts/a1/definition-components.test.mjs",
+          "boundary": "Exact immutable definition reads and generic component negotiation across declared domain registrations. Schema admission is separate from an installed examiner or executor; unavailable capability does not invalidate a valid Project. Existing immutable history owners preserve the original basis. This does not certify missing native writing interpretation/third-type examiners, new model roles, proposed commands, or overall A1."
+        },
+        {
+          "pass": "critical",
+          "artifact": "reports/a1-passes/FE-A1.2-W07-critical-1791681950358.json",
+          "command": "node --test --test-reporter=tap scripts/a1/definition-components.critical.test.mjs",
+          "boundary": "Exact immutable definition reads and generic component negotiation across declared domain registrations. Schema admission is separate from an installed examiner or executor; unavailable capability does not invalidate a valid Project. Existing immutable history owners preserve the original basis. This does not certify missing native writing interpretation/third-type examiners, new model roles, proposed commands, or overall A1."
+        }
+      ]
     },
     {
       "id": "FE-A1.3-W01",
@@ -1729,7 +1793,7 @@
       "milestone": "FE-A1.3",
       "title": "Establish eligible model routes for the new interactions",
       "owner": "runtime",
-      "status": "complete",
+      "status": "in_progress",
       "implementation": "Register and prove eligible provider/model/role routes for conversational questions, working structure, and explanations with exact prompt/schema/profile revisions, grounding, privacy/egress, cost, and fallback rules.",
       "acceptance": [
         "A real eligible model answers a normal question and follow-up in the application.",
@@ -1750,22 +1814,11 @@
       ],
       "retained_evidence": [
         "reports/FE-A1-CONSTRUCTION-CHECKS.json",
-        "reports/a1-history/2026-10-07-model-eligibility/manifest.json"
+        "reports/a1-history/2026-10-07-model-eligibility/manifest.json",
+        "reports/a1-passes/FE-A1.3-W02-execution-1791665512698.json",
+        "reports/a1-passes/FE-A1.3-W02-critical-1791665549548.json"
       ],
-      "completion_evidence": [
-        {
-          "pass": "execution",
-          "artifact": "reports/a1-passes/FE-A1.3-W02-execution-1791665512698.json",
-          "command": "node --test --test-reporter=tap scripts/a1/model-routes.test.mjs",
-          "boundary": "Actual managed QA question/follow-up through the live production browser and PostgreSQL, separate actual-model typed working-plan eligibility, and production unavailable-model recovery. Role-native proposal probes use committed synthetic records; canonical ProjectThread/InteractionRun, durable proposal decisions/commands, native examiners and connected cycles remain separate required A1 work and are not claimed complete."
-        },
-        {
-          "pass": "critical",
-          "artifact": "reports/a1-passes/FE-A1.3-W02-critical-1791665549548.json",
-          "command": "node --test --test-reporter=tap scripts/a1/model-routes.critical.test.mjs",
-          "boundary": "Actual managed QA question/follow-up through the live production browser and PostgreSQL, separate actual-model typed working-plan eligibility, and production unavailable-model recovery. Role-native proposal probes use committed synthetic records; canonical ProjectThread/InteractionRun, durable proposal decisions/commands, native examiners and connected cycles remain separate required A1 work and are not claimed complete."
-        }
-      ],
+      "completion_evidence": [],
       "optional_scenarios": [
         "A1-S02",
         "A1-S03",
@@ -1777,6 +1830,11 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W02",
+          "reason": "The synthetic model/browser guard must admit and validate the newly bounded exact definition, inquiry and Work metadata. Revalidate actual question/follow-up and unavailable-role behavior on the integrated context candidate.",
+          "recorded_at": "2026-10-11T01:35:27.515Z"
         }
       ],
       "verification_plans": {
@@ -1881,6 +1939,20 @@
           ],
           "finished_at": "2026-10-10T20:52:57.337Z"
         }
+      ],
+      "historical_completion_evidence": [
+        {
+          "pass": "execution",
+          "artifact": "reports/a1-passes/FE-A1.3-W02-execution-1791665512698.json",
+          "command": "node --test --test-reporter=tap scripts/a1/model-routes.test.mjs",
+          "boundary": "Actual managed QA question/follow-up through the live production browser and PostgreSQL, separate actual-model typed working-plan eligibility, and production unavailable-model recovery. Role-native proposal probes use committed synthetic records; canonical ProjectThread/InteractionRun, durable proposal decisions/commands, native examiners and connected cycles remain separate required A1 work and are not claimed complete."
+        },
+        {
+          "pass": "critical",
+          "artifact": "reports/a1-passes/FE-A1.3-W02-critical-1791665549548.json",
+          "command": "node --test --test-reporter=tap scripts/a1/model-routes.critical.test.mjs",
+          "boundary": "Actual managed QA question/follow-up through the live production browser and PostgreSQL, separate actual-model typed working-plan eligibility, and production unavailable-model recovery. Role-native proposal probes use committed synthetic records; canonical ProjectThread/InteractionRun, durable proposal decisions/commands, native examiners and connected cycles remain separate required A1 work and are not claimed complete."
+        }
       ]
     },
     {
@@ -1888,7 +1960,7 @@
       "milestone": "FE-A1.3",
       "title": "Persist and read exact user and assistant turns",
       "owner": "runtime",
-      "status": "complete",
+      "status": "planned",
       "implementation": "Sequence: (1) expose current model and permission readiness; (2) require an explicit reviewed owner-only RunProjectCopilot grant and immutable receipt before new conversation Work or historical adoption, preserving existing authorized Work management grants; (3) retain exact private question/native-context/result Artifacts and canonical Thread/Run/Work atomically; (4) resolve exact applicable inquiry, Work, Review and cycle lineage before release; (5) page original readable content and restore questions, answers, citations and outcomes in a fresh browser; (6) reject owner substitution, widened permission, stale proposals, late partial commits and duplicate effects in the distinct critical pass.",
       "acceptance": [
         "A fresh browser restores actual question and answer content, citations, and outcomes.",
@@ -1911,22 +1983,11 @@
       "retained_evidence": [
         "reports/FE-A1-CONSTRUCTION-CHECKS.json",
         "reports/a1-passes/FE-A1.3-W03-execution-1791671233189.json",
-        "reports/a1-passes/FE-A1.3-W03-critical-1791671280023.json"
+        "reports/a1-passes/FE-A1.3-W03-critical-1791671280023.json",
+        "reports/a1-passes/FE-A1.3-W03-execution-1791680978364.json",
+        "reports/a1-passes/FE-A1.3-W03-critical-1791681035780.json"
       ],
-      "completion_evidence": [
-        {
-          "pass": "execution",
-          "artifact": "reports/a1-passes/FE-A1.3-W03-execution-1791680978364.json",
-          "command": "node --test --test-reporter=tap scripts/a1/owned-conversation.test.mjs",
-          "boundary": "Canonical ownership and retained readable advisory conversation only. Provider internal CPU, memory, network, tokens and price remain unavailable; unknown values never satisfy applicable hard limits. Historical adoption records actual import Work and preserves original bytes without reconstructing original execution authority. Proposal decisions/commands, progressive AG-UI activities/interrupts, native examiners, reactive Workspace graph cycles and A1 product acceptance remain open required ledger items."
-        },
-        {
-          "pass": "critical",
-          "artifact": "reports/a1-passes/FE-A1.3-W03-critical-1791681035780.json",
-          "command": "node --test --test-reporter=tap scripts/a1/owned-conversation.critical.test.mjs",
-          "boundary": "Canonical ownership and retained readable advisory conversation only. Provider internal CPU, memory, network, tokens and price remain unavailable; unknown values never satisfy applicable hard limits. Historical adoption records actual import Work and preserves original bytes without reconstructing original execution authority. Proposal decisions/commands, progressive AG-UI activities/interrupts, native examiners, reactive Workspace graph cycles and A1 product acceptance remain open required ledger items."
-        }
-      ],
+      "completion_evidence": [],
       "optional_scenarios": [
         "A1-S07",
         "A1-S09"
@@ -1941,6 +2002,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ],
       "verification_plans": {
@@ -2299,6 +2365,18 @@
           "artifact": "reports/a1-passes/FE-A1.3-W03-critical-1791671280023.json",
           "command": "node --test --test-reporter=tap scripts/a1/owned-conversation.critical.test.mjs",
           "boundary": "Canonical ownership and retained readable advisory conversation only. Provider internal CPU, memory, network, tokens and price remain unavailable; unknown values never satisfy applicable hard limits. Historical adoption records actual import Work and preserves original bytes without reconstructing original execution authority. Proposal decisions/commands, progressive AG-UI activities/interrupts, native examiners, reactive Workspace graph cycles and A1 product acceptance remain open required ledger items."
+        },
+        {
+          "pass": "execution",
+          "artifact": "reports/a1-passes/FE-A1.3-W03-execution-1791680978364.json",
+          "command": "node --test --test-reporter=tap scripts/a1/owned-conversation.test.mjs",
+          "boundary": "Canonical ownership and retained readable advisory conversation only. Provider internal CPU, memory, network, tokens and price remain unavailable; unknown values never satisfy applicable hard limits. Historical adoption records actual import Work and preserves original bytes without reconstructing original execution authority. Proposal decisions/commands, progressive AG-UI activities/interrupts, native examiners, reactive Workspace graph cycles and A1 product acceptance remain open required ledger items."
+        },
+        {
+          "pass": "critical",
+          "artifact": "reports/a1-passes/FE-A1.3-W03-critical-1791681035780.json",
+          "command": "node --test --test-reporter=tap scripts/a1/owned-conversation.critical.test.mjs",
+          "boundary": "Canonical ownership and retained readable advisory conversation only. Provider internal CPU, memory, network, tokens and price remain unavailable; unknown values never satisfy applicable hard limits. Historical adoption records actual import Work and preserves original bytes without reconstructing original execution authority. Proposal decisions/commands, progressive AG-UI activities/interrupts, native examiners, reactive Workspace graph cycles and A1 product acceptance remain open required ledger items."
         }
       ]
     },
@@ -2351,15 +2429,39 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
-      ]
+      ],
+      "execution_history": [
+        {
+          "item": "FE-A1.3-W04",
+          "phase": "execution",
+          "failed_attempts": 0,
+          "started_at": "2026-10-11T01:27:42.806Z",
+          "disposition": "reopened",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming."
+        }
+      ],
+      "verification_plans": {
+        "execution": "reports/a1-plans/FE-A1.3-W04-execution.json",
+        "critical": "reports/a1-plans/FE-A1.3-W04-critical.json"
+      }
     },
     {
       "id": "FE-A1.3-W05",
       "milestone": "FE-A1.3",
       "title": "Connect the official AG-UI stream to Petra view models",
       "owner": "runtime",
-      "status": "complete",
+      "status": "planned",
       "implementation": "Use pinned official SDK client/server adapters for run, text, activity, tool, state, interrupt, custom, and terminal events; translate them into typed conversation/Work/Workspace models. Sequence: define presentation-only view models and a closed versioned disclosure activity; preserve the existing canonical terminal encoder while adding retained block references; resolve each disclosed block through the exact actor-authorized retained owner read before exposing bytes; map registered Work, tool and interrupt events separately from advisory role authority; mount typed live activity in the actual copilot; verify live managed-model delivery, canonical Work links and independent hostile-event/version/scope/replay cases. Revalidate the hierarchy after integration changes its presentation.",
       "acceptance": [
         "The real conversation progressively renders validated state through the official client.",
@@ -2382,22 +2484,11 @@
         "reports/FRONTEND-ADAPTATION-MILESTONE.md",
         "reports/FE-A1-CONSTRUCTION-CHECKS.json",
         "reports/a1-passes/FE-A1.3-W05-execution-1791678381373.json",
-        "reports/a1-passes/FE-A1.3-W05-critical-1791678409663.json"
+        "reports/a1-passes/FE-A1.3-W05-critical-1791678409663.json",
+        "reports/a1-passes/FE-A1.3-W05-execution-1791681143770.json",
+        "reports/a1-passes/FE-A1.3-W05-critical-1791681205090.json"
       ],
-      "completion_evidence": [
-        {
-          "pass": "execution",
-          "artifact": "reports/a1-passes/FE-A1.3-W05-execution-1791681143770.json",
-          "command": "node --test --test-reporter=tap scripts/a1/progressive-copilot.test.mjs",
-          "boundary": "Typed presentation and official AG-UI transport only. Execution checks actual managed model and canonical ownership in the live browser; critical checks adverse events and actual same-identity replay/auth denial. Controlled owner ports test disclosure guards, not canonical persistence. Command mediation, native examiners, cyclic verification and overall A1 acceptance remain separate open requirements."
-        },
-        {
-          "pass": "critical",
-          "artifact": "reports/a1-passes/FE-A1.3-W05-critical-1791681205090.json",
-          "command": "node --test --test-reporter=tap scripts/a1/progressive-copilot.critical.test.mjs",
-          "boundary": "Typed presentation and official AG-UI transport only. Execution checks actual managed model and canonical ownership in the live browser; critical checks adverse events and actual same-identity replay/auth denial. Controlled owner ports test disclosure guards, not canonical persistence. Command mediation, native examiners, cyclic verification and overall A1 acceptance remain separate open requirements."
-        }
-      ],
+      "completion_evidence": [],
       "optional_scenarios": [
         "A1-S02",
         "A1-S06",
@@ -2418,6 +2509,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ],
       "execution_history": [
@@ -2530,6 +2626,18 @@
           "artifact": "reports/a1-passes/FE-A1.3-W05-critical-1791678409663.json",
           "command": "node --test --test-reporter=tap scripts/a1/progressive-copilot.critical.test.mjs",
           "boundary": "Typed presentation and official AG-UI transport only. Execution checks actual managed model and canonical ownership in the live browser; critical checks adverse events and actual same-identity replay/auth denial. Controlled owner ports test disclosure guards, not canonical persistence. Command mediation, native examiners, cyclic verification and overall A1 acceptance remain separate open requirements."
+        },
+        {
+          "pass": "execution",
+          "artifact": "reports/a1-passes/FE-A1.3-W05-execution-1791681143770.json",
+          "command": "node --test --test-reporter=tap scripts/a1/progressive-copilot.test.mjs",
+          "boundary": "Typed presentation and official AG-UI transport only. Execution checks actual managed model and canonical ownership in the live browser; critical checks adverse events and actual same-identity replay/auth denial. Controlled owner ports test disclosure guards, not canonical persistence. Command mediation, native examiners, cyclic verification and overall A1 acceptance remain separate open requirements."
+        },
+        {
+          "pass": "critical",
+          "artifact": "reports/a1-passes/FE-A1.3-W05-critical-1791681205090.json",
+          "command": "node --test --test-reporter=tap scripts/a1/progressive-copilot.critical.test.mjs",
+          "boundary": "Typed presentation and official AG-UI transport only. Execution checks actual managed model and canonical ownership in the live browser; critical checks adverse events and actual same-identity replay/auth denial. Controlled owner ports test disclosure guards, not canonical persistence. Command mediation, native examiners, cyclic verification and overall A1 acceptance remain separate open requirements."
         }
       ]
     },
@@ -2590,6 +2698,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W02",
+          "reason": "The synthetic model/browser guard must admit and validate the newly bounded exact definition, inquiry and Work metadata. Revalidate actual question/follow-up and unavailable-role behavior on the integrated context candidate.",
+          "recorded_at": "2026-10-11T01:35:27.515Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -2640,6 +2758,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -2697,6 +2820,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W02",
+          "reason": "The synthetic model/browser guard must admit and validate the newly bounded exact definition, inquiry and Work metadata. Revalidate actual question/follow-up and unavailable-role behavior on the integrated context candidate.",
+          "recorded_at": "2026-10-11T01:35:27.515Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -2755,6 +2888,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W02",
+          "reason": "The synthetic model/browser guard must admit and validate the newly bounded exact definition, inquiry and Work metadata. Revalidate actual question/follow-up and unavailable-role behavior on the integrated context candidate.",
+          "recorded_at": "2026-10-11T01:35:27.515Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -2813,6 +2956,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W02",
+          "reason": "The synthetic model/browser guard must admit and validate the newly bounded exact definition, inquiry and Work metadata. Revalidate actual question/follow-up and unavailable-role behavior on the integrated context candidate.",
+          "recorded_at": "2026-10-11T01:35:27.515Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -2866,6 +3019,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -2922,6 +3080,16 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -2973,6 +3141,11 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -3026,6 +3199,16 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -3077,6 +3260,16 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -3127,6 +3320,16 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -3189,6 +3392,16 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -3232,6 +3445,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -3292,6 +3510,11 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -3361,6 +3584,21 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W02",
+          "reason": "The synthetic model/browser guard must admit and validate the newly bounded exact definition, inquiry and Work metadata. Revalidate actual question/follow-up and unavailable-role behavior on the integrated context candidate.",
+          "recorded_at": "2026-10-11T01:35:27.515Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -3427,6 +3665,21 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W02",
+          "reason": "The synthetic model/browser guard must admit and validate the newly bounded exact definition, inquiry and Work metadata. Revalidate actual question/follow-up and unavailable-role behavior on the integrated context candidate.",
+          "recorded_at": "2026-10-11T01:35:27.515Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -3487,6 +3740,16 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -3551,6 +3814,16 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -3604,6 +3877,16 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -3666,6 +3949,16 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -3733,6 +4026,21 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W02",
+          "reason": "The synthetic model/browser guard must admit and validate the newly bounded exact definition, inquiry and Work metadata. Revalidate actual question/follow-up and unavailable-role behavior on the integrated context candidate.",
+          "recorded_at": "2026-10-11T01:35:27.515Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -3799,6 +4107,21 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W02",
+          "reason": "The synthetic model/browser guard must admit and validate the newly bounded exact definition, inquiry and Work metadata. Revalidate actual question/follow-up and unavailable-role behavior on the integrated context candidate.",
+          "recorded_at": "2026-10-11T01:35:27.515Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -3851,6 +4174,16 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -3904,6 +4237,16 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -3964,6 +4307,16 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -4034,6 +4387,21 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W02",
+          "reason": "The synthetic model/browser guard must admit and validate the newly bounded exact definition, inquiry and Work metadata. Revalidate actual question/follow-up and unavailable-role behavior on the integrated context candidate.",
+          "recorded_at": "2026-10-11T01:35:27.515Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -4099,6 +4467,21 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W02",
+          "reason": "The synthetic model/browser guard must admit and validate the newly bounded exact definition, inquiry and Work metadata. Revalidate actual question/follow-up and unavailable-role behavior on the integrated context candidate.",
+          "recorded_at": "2026-10-11T01:35:27.515Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -4166,6 +4549,21 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W02",
+          "reason": "The synthetic model/browser guard must admit and validate the newly bounded exact definition, inquiry and Work metadata. Revalidate actual question/follow-up and unavailable-role behavior on the integrated context candidate.",
+          "recorded_at": "2026-10-11T01:35:27.515Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -4215,6 +4613,16 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -4282,6 +4690,21 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W02",
+          "reason": "The synthetic model/browser guard must admit and validate the newly bounded exact definition, inquiry and Work metadata. Revalidate actual question/follow-up and unavailable-role behavior on the integrated context candidate.",
+          "recorded_at": "2026-10-11T01:35:27.515Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -4350,6 +4773,21 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W02",
+          "reason": "The synthetic model/browser guard must admit and validate the newly bounded exact definition, inquiry and Work metadata. Revalidate actual question/follow-up and unavailable-role behavior on the integrated context candidate.",
+          "recorded_at": "2026-10-11T01:35:27.515Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -4418,6 +4856,21 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W02",
+          "reason": "The synthetic model/browser guard must admit and validate the newly bounded exact definition, inquiry and Work metadata. Revalidate actual question/follow-up and unavailable-role behavior on the integrated context candidate.",
+          "recorded_at": "2026-10-11T01:35:27.515Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -4466,6 +4919,16 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -4531,6 +4994,21 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W02",
+          "reason": "The synthetic model/browser guard must admit and validate the newly bounded exact definition, inquiry and Work metadata. Revalidate actual question/follow-up and unavailable-role behavior on the integrated context candidate.",
+          "recorded_at": "2026-10-11T01:35:27.515Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -4599,6 +5077,21 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W02",
+          "reason": "The synthetic model/browser guard must admit and validate the newly bounded exact definition, inquiry and Work metadata. Revalidate actual question/follow-up and unavailable-role behavior on the integrated context candidate.",
+          "recorded_at": "2026-10-11T01:35:27.515Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -4664,6 +5157,21 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W02",
+          "reason": "The synthetic model/browser guard must admit and validate the newly bounded exact definition, inquiry and Work metadata. Revalidate actual question/follow-up and unavailable-role behavior on the integrated context candidate.",
+          "recorded_at": "2026-10-11T01:35:27.515Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -4727,6 +5235,21 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W02",
+          "reason": "The synthetic model/browser guard must admit and validate the newly bounded exact definition, inquiry and Work metadata. Revalidate actual question/follow-up and unavailable-role behavior on the integrated context candidate.",
+          "recorded_at": "2026-10-11T01:35:27.515Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -4793,6 +5316,21 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W02",
+          "reason": "The synthetic model/browser guard must admit and validate the newly bounded exact definition, inquiry and Work metadata. Revalidate actual question/follow-up and unavailable-role behavior on the integrated context candidate.",
+          "recorded_at": "2026-10-11T01:35:27.515Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -4860,6 +5398,21 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W02",
+          "reason": "The synthetic model/browser guard must admit and validate the newly bounded exact definition, inquiry and Work metadata. Revalidate actual question/follow-up and unavailable-role behavior on the integrated context candidate.",
+          "recorded_at": "2026-10-11T01:35:27.515Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -4928,6 +5481,21 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W02",
+          "reason": "The synthetic model/browser guard must admit and validate the newly bounded exact definition, inquiry and Work metadata. Revalidate actual question/follow-up and unavailable-role behavior on the integrated context candidate.",
+          "recorded_at": "2026-10-11T01:35:27.515Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -4995,6 +5563,21 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W02",
+          "reason": "The synthetic model/browser guard must admit and validate the newly bounded exact definition, inquiry and Work metadata. Revalidate actual question/follow-up and unavailable-role behavior on the integrated context candidate.",
+          "recorded_at": "2026-10-11T01:35:27.515Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -5061,6 +5644,21 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W02",
+          "reason": "The synthetic model/browser guard must admit and validate the newly bounded exact definition, inquiry and Work metadata. Revalidate actual question/follow-up and unavailable-role behavior on the integrated context candidate.",
+          "recorded_at": "2026-10-11T01:35:27.515Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -5129,6 +5727,21 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W02",
+          "reason": "The synthetic model/browser guard must admit and validate the newly bounded exact definition, inquiry and Work metadata. Revalidate actual question/follow-up and unavailable-role behavior on the integrated context candidate.",
+          "recorded_at": "2026-10-11T01:35:27.515Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -5196,6 +5809,21 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W02",
+          "reason": "The synthetic model/browser guard must admit and validate the newly bounded exact definition, inquiry and Work metadata. Revalidate actual question/follow-up and unavailable-role behavior on the integrated context candidate.",
+          "recorded_at": "2026-10-11T01:35:27.515Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -5260,6 +5888,21 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W02",
+          "reason": "The synthetic model/browser guard must admit and validate the newly bounded exact definition, inquiry and Work metadata. Revalidate actual question/follow-up and unavailable-role behavior on the integrated context candidate.",
+          "recorded_at": "2026-10-11T01:35:27.515Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -5320,6 +5963,21 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W02",
+          "reason": "The synthetic model/browser guard must admit and validate the newly bounded exact definition, inquiry and Work metadata. Revalidate actual question/follow-up and unavailable-role behavior on the integrated context candidate.",
+          "recorded_at": "2026-10-11T01:35:27.515Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -5377,6 +6035,21 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W02",
+          "reason": "The synthetic model/browser guard must admit and validate the newly bounded exact definition, inquiry and Work metadata. Revalidate actual question/follow-up and unavailable-role behavior on the integrated context candidate.",
+          "recorded_at": "2026-10-11T01:35:27.515Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -5442,6 +6115,21 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W02",
+          "reason": "The synthetic model/browser guard must admit and validate the newly bounded exact definition, inquiry and Work metadata. Revalidate actual question/follow-up and unavailable-role behavior on the integrated context candidate.",
+          "recorded_at": "2026-10-11T01:35:27.515Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -5491,6 +6179,16 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -5553,6 +6251,21 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W02",
+          "reason": "The synthetic model/browser guard must admit and validate the newly bounded exact definition, inquiry and Work metadata. Revalidate actual question/follow-up and unavailable-role behavior on the integrated context candidate.",
+          "recorded_at": "2026-10-11T01:35:27.515Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -5612,6 +6325,21 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W02",
+          "reason": "The synthetic model/browser guard must admit and validate the newly bounded exact definition, inquiry and Work metadata. Revalidate actual question/follow-up and unavailable-role behavior on the integrated context candidate.",
+          "recorded_at": "2026-10-11T01:35:27.515Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -5747,6 +6475,21 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W02",
+          "reason": "The synthetic model/browser guard must admit and validate the newly bounded exact definition, inquiry and Work metadata. Revalidate actual question/follow-up and unavailable-role behavior on the integrated context candidate.",
+          "recorded_at": "2026-10-11T01:35:27.515Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -5809,6 +6552,21 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W02",
+          "reason": "The synthetic model/browser guard must admit and validate the newly bounded exact definition, inquiry and Work metadata. Revalidate actual question/follow-up and unavailable-role behavior on the integrated context candidate.",
+          "recorded_at": "2026-10-11T01:35:27.515Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -5872,6 +6630,21 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W02",
+          "reason": "The synthetic model/browser guard must admit and validate the newly bounded exact definition, inquiry and Work metadata. Revalidate actual question/follow-up and unavailable-role behavior on the integrated context candidate.",
+          "recorded_at": "2026-10-11T01:35:27.515Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -5934,6 +6707,21 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W02",
+          "reason": "The synthetic model/browser guard must admit and validate the newly bounded exact definition, inquiry and Work metadata. Revalidate actual question/follow-up and unavailable-role behavior on the integrated context candidate.",
+          "recorded_at": "2026-10-11T01:35:27.515Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -6001,6 +6789,21 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W02",
+          "reason": "The synthetic model/browser guard must admit and validate the newly bounded exact definition, inquiry and Work metadata. Revalidate actual question/follow-up and unavailable-role behavior on the integrated context candidate.",
+          "recorded_at": "2026-10-11T01:35:27.515Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -6065,6 +6868,21 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W02",
+          "reason": "The synthetic model/browser guard must admit and validate the newly bounded exact definition, inquiry and Work metadata. Revalidate actual question/follow-up and unavailable-role behavior on the integrated context candidate.",
+          "recorded_at": "2026-10-11T01:35:27.515Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -6131,6 +6949,21 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W02",
+          "reason": "The synthetic model/browser guard must admit and validate the newly bounded exact definition, inquiry and Work metadata. Revalidate actual question/follow-up and unavailable-role behavior on the integrated context candidate.",
+          "recorded_at": "2026-10-11T01:35:27.515Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -6196,6 +7029,21 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W02",
+          "reason": "The synthetic model/browser guard must admit and validate the newly bounded exact definition, inquiry and Work metadata. Revalidate actual question/follow-up and unavailable-role behavior on the integrated context candidate.",
+          "recorded_at": "2026-10-11T01:35:27.515Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -6265,6 +7113,21 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W02",
+          "reason": "The synthetic model/browser guard must admit and validate the newly bounded exact definition, inquiry and Work metadata. Revalidate actual question/follow-up and unavailable-role behavior on the integrated context candidate.",
+          "recorded_at": "2026-10-11T01:35:27.515Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -6332,6 +7195,21 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W02",
+          "reason": "The synthetic model/browser guard must admit and validate the newly bounded exact definition, inquiry and Work metadata. Revalidate actual question/follow-up and unavailable-role behavior on the integrated context candidate.",
+          "recorded_at": "2026-10-11T01:35:27.515Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -6399,6 +7277,21 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W02",
+          "reason": "The synthetic model/browser guard must admit and validate the newly bounded exact definition, inquiry and Work metadata. Revalidate actual question/follow-up and unavailable-role behavior on the integrated context candidate.",
+          "recorded_at": "2026-10-11T01:35:27.515Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -6459,6 +7352,21 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W02",
+          "reason": "The synthetic model/browser guard must admit and validate the newly bounded exact definition, inquiry and Work metadata. Revalidate actual question/follow-up and unavailable-role behavior on the integrated context candidate.",
+          "recorded_at": "2026-10-11T01:35:27.515Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     },
@@ -6518,6 +7426,21 @@
           "prerequisite": "FE-A1.2-W01",
           "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
           "recorded_at": "2026-10-11T00:53:17.664Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W04",
+          "reason": "Suspend exact-context construction while affected completed model/browser and canonical conversation proofs are reopened; retain the active construction and require their integration checks before resuming.",
+          "recorded_at": "2026-10-11T01:35:20.112Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W02",
+          "reason": "The synthetic model/browser guard must admit and validate the newly bounded exact definition, inquiry and Work metadata. Revalidate actual question/follow-up and unavailable-role behavior on the integrated context candidate.",
+          "recorded_at": "2026-10-11T01:35:27.515Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate.",
+          "recorded_at": "2026-10-11T01:35:29.846Z"
         }
       ]
     }
@@ -7631,7 +8554,94 @@
     "repeated_failure_limit": 2,
     "synchronization": "Roadmap, generated execution packet, canonical ledger and both execution worktrees must agree before execution or closure."
   },
-  "active_work": null,
+  "active_work": {
+    "item": "FE-A1.3-W02",
+    "phase": "execution",
+    "failed_attempts": 1,
+    "started_at": "2026-10-11T01:35:35.075Z",
+    "failures": [
+      {
+        "reason": "Context preparation type-check failed: helper required v1.0 instead of the registered shell union; corrected to shared structural fields.",
+        "phase": "execution",
+        "recorded_at": "2026-10-11T01:39:25.611Z"
+      },
+      {
+        "reason": "Context preparation test type-check failed: fixture repeated shell authority isolation; removed duplicate.",
+        "phase": "execution",
+        "recorded_at": "2026-10-11T01:39:30.691Z"
+      },
+      {
+        "reason": "Context preparation lint found fixture async/no-await and untyped excerpt assertions; no production source lint findings.",
+        "phase": "execution",
+        "recorded_at": "2026-10-11T01:40:55.826Z"
+      },
+      {
+        "reason": "The new stale-content test assumed a nonempty canonical graph fixture; its empty fixture caused a construction error, requiring an explicit synthetic stale node.",
+        "phase": "execution",
+        "recorded_at": "2026-10-11T01:41:00.748Z"
+      },
+      {
+        "reason": "Preparatory test typing exposed a minimum-three-entry tuple after lint removed an unnecessary assertion. Constructed the three entries explicitly; source/test type-check and lint now pass.",
+        "phase": "execution",
+        "recorded_at": "2026-10-11T01:44:23.444Z"
+      }
+    ],
+    "diagnoses": [
+      {
+        "contract": "Context compilation must support both registered shell read versions while preserving the exact definition, Project and authority basis. Product function tests passed; the initial type-check failures are not passing evidence.",
+        "architecture": "The new helper initially accepted the v1.0 enclosing schema instead of the stable Project/content fields shared by v1.0 and v1.1. It now depends on the common structural fields without casting away the production union.",
+        "dependencies": "The shell authority already includes repeatable-read isolation. The test fixture duplicated that field, triggering an independent TypeScript error. The redundant field was removed; production authority data is retained intact.",
+        "environment": "The broad server suite attempted localhost listeners under the restricted filesystem execution sandbox, producing EPERM in two HTTP suites. Those checks require the already authorized localhost escalation; they did not expose a model or product regression.",
+        "verification": "Fourteen focused context/service tests passed. Source and test type-checks were corrected separately. The broad server result recorded 167 passing tests and the listener failures; the corrected full suite must run with localhost permission before any integration closure.",
+        "changed_remedy": "Use a version-independent typed context helper, preserve the existing authority shape, and run listener/browser/database checks with their required environment access. Separate preparatory typing/environment failures from formal criterion evidence; execute both integration passes only after the source candidate is committed in both checkouts.",
+        "failures": [
+          {
+            "reason": "Context preparation type-check failed: helper required v1.0 instead of the registered shell union; corrected to shared structural fields.",
+            "phase": "execution",
+            "recorded_at": "2026-10-11T01:39:25.611Z"
+          },
+          {
+            "reason": "Context preparation test type-check failed: fixture repeated shell authority isolation; removed duplicate.",
+            "phase": "execution",
+            "recorded_at": "2026-10-11T01:39:30.691Z"
+          }
+        ],
+        "recorded_at": "2026-10-11T01:39:45.201Z"
+      },
+      {
+        "contract": "Context compilation must support both registered shell read versions while preserving the exact definition, Project and authority basis. Product function tests passed; the initial type-check failures are not passing evidence.",
+        "architecture": "The exact context service and helper pass their functional checks. Remaining lint and stale-content failures are test construction defects: use explicit Promise-returning test ports, typed excerpt reads and a deliberately constructed native node; do not rely on a nonempty canonical graph fixture.",
+        "dependencies": "The shell authority already includes repeatable-read isolation. The test fixture duplicated that field, triggering an independent TypeScript error. The redundant field was removed; production authority data is retained intact.",
+        "environment": "The broad server suite attempted localhost listeners under the restricted filesystem execution sandbox, producing EPERM in two HTTP suites. Those checks require the already authorized localhost escalation; they did not expose a model or product regression.",
+        "verification": "The authorized broad server suite passed 189 tests with seven unrelated database checks omitted. Subsequent preparatory lint found fixture-only async and untyped JSON issues; a newly added stale-content test assumed the canonical graph fixture contained a node, but that fixture intentionally represents an empty graph. No formal pass accepted these failures.",
+        "changed_remedy": "Correct the test ports and typed excerpt assertions, construct a real stale native node in the adversarial test, and rerun the affected focused checks. Retain the successful listener suite separately, and require fresh distinct execution and critical evidence after source integration instead of counting preparatory successes as closure.",
+        "failures": [
+          {
+            "reason": "Context preparation type-check failed: helper required v1.0 instead of the registered shell union; corrected to shared structural fields.",
+            "phase": "execution",
+            "recorded_at": "2026-10-11T01:39:25.611Z"
+          },
+          {
+            "reason": "Context preparation test type-check failed: fixture repeated shell authority isolation; removed duplicate.",
+            "phase": "execution",
+            "recorded_at": "2026-10-11T01:39:30.691Z"
+          },
+          {
+            "reason": "Context preparation lint found fixture async/no-await and untyped excerpt assertions; no production source lint findings.",
+            "phase": "execution",
+            "recorded_at": "2026-10-11T01:40:55.826Z"
+          },
+          {
+            "reason": "The new stale-content test assumed a nonempty canonical graph fixture; its empty fixture caused a construction error, requiring an explicit synthetic stale node.",
+            "phase": "execution",
+            "recorded_at": "2026-10-11T01:41:00.748Z"
+          }
+        ],
+        "recorded_at": "2026-10-11T01:41:05.726Z"
+      }
+    ],
+    "passes": []
+  },
   "repair_sequence": [
     {
       "order": 1,

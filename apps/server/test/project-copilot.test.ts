@@ -34,6 +34,10 @@ const ports = (
 ): ProjectShellPersistence =>
   ({
     views: { getProjectShellView: () => Promise.resolve(read) },
+    definitions: {
+      getProjectDefinition: () =>
+        Promise.resolve(fixture("project-definition-scientific")),
+    },
     semanticGraphs: { getProjectSemanticGraph: () => Promise.resolve(graph) },
     workingStateSnapshots: {
       getProjectWorkingStateSnapshot: () => Promise.resolve(undefined),
@@ -48,7 +52,9 @@ describe("Project copilot's current basis and retained recovery", () => {
     const service = new ProjectCopilotService(ports(read), actor);
     const context = await service.context(read.project_id);
     expect(context.basis.objective).toBeNull();
-    expect(context.records).toEqual([]);
+    expect(context.records.map((record) => record.kind)).toEqual([
+      "project-definition-context",
+    ]);
     expect(context.objective_statement).toContain("No current outcome");
     expect(
       context.limitations.some((limit) => limit.includes("does not set")),
