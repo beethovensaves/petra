@@ -1,0 +1,94 @@
+TAP version 13
+# Fresh isolated PostgreSQL applied and validated all 67 migrations.
+# > @petra/core@0.0.0 test
+# > vitest run --config vitest.config.ts project-definition-components.test.ts --testNamePattern resolves scientific and writing --reporter=verbose
+#  RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/packages/core
+#  ✓ test/project-definition-components.test.ts > ProjectDefinition component composition > resolves scientific and writing components through exact registrations without a template lookup 9ms
+#  ↓ test/project-definition-components.test.ts > ProjectDefinition component composition > resolves every declared category and precisely distinguishes schema admission from installed execution
+#  ↓ test/project-definition-components.test.ts > ProjectDefinition component composition > does not reinterpret retained material under a newer revision even when its content hash is identical
+#  ↓ test/project-definition-components.test.ts > ProjectDefinition component composition > rejects crossed Projects revisions hashes duplicate meanings and examiner contracts with mismatched hashes
+#  Test Files  1 passed (1)
+#       Tests  1 passed | 3 skipped (4)
+#    Start at  22:02:47
+#    Duration  178ms (transform 18ms, setup 0ms, import 105ms, tests 9ms, environment 0ms)
+# > @petra/workbench@0.0.0 test
+# > vitest run project-definition-components.test.tsx --testNamePattern renders scientific writing|loads the actual writing --reporter=verbose
+#  RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/apps/workbench
+#  ✓ src/product/project-definition-components.test.tsx > definition-composed Workspace > renders scientific writing and unrelated definitions through one component disclosure without family conditionals 6ms
+#  ✓ src/product/project-definition-components.test.tsx > definition-composed Workspace > loads the actual writing examiner under its declared exact contract and the browser validates its native material 896ms
+#  ↓ src/product/project-definition-components.test.tsx > definition-composed Workspace > does not give stale unavailable undeclared or malformed material a current examiner or continuation
+#  Test Files  1 passed (1)
+#       Tests  2 passed | 1 skipped (3)
+#    Start at  22:02:47
+#    Duration  6.62s (transform 628ms, setup 0ms, import 5.66s, tests 903ms, environment 0ms)
+# > @petra/server@0.0.0 test
+# > vitest run --config vitest.config.ts project-definition-routes.test.ts --testNamePattern reads the exact retained --reporter=verbose
+#  RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/apps/server
+#  ✓ test/project-definition-routes.test.ts > exact ProjectDefinition reads > reads the exact retained revision through authenticated authority without consulting a template 104ms
+#  ↓ test/project-definition-routes.test.ts > exact ProjectDefinition reads > rejects identity and parameter substitution and does not replace an unavailable retained revision
+#  ↓ test/project-definition-routes.test.ts > exact ProjectDefinition reads > denies valid records from a foreign Project newer revision or corrupted immutable bytes
+#  Test Files  1 passed (1)
+#       Tests  1 passed | 2 skipped (3)
+#    Start at  22:02:54
+#    Duration  1.11s (transform 350ms, setup 0ms, import 947ms, tests 105ms, environment 0ms)
+# > @petra/adapters@0.0.0 test
+# > vitest run --config vitest.config.ts project-definition-client.test.ts --testNamePattern requests one authenticated --reporter=verbose
+#  RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/packages/adapters
+#  ✓ test/project-definition-client.test.ts > exact ProjectDefinition client > requests one authenticated retained revision and verifies its canonical bytes 81ms
+#  ↓ test/project-definition-client.test.ts > exact ProjectDefinition client > rejects foreign identity stale revision and rehashed or unhashed substitution without template fallback
+#  Test Files  1 passed (1)
+#       Tests  1 passed | 1 skipped (2)
+#    Start at  22:02:56
+#    Duration  171ms (transform 13ms, setup 0ms, import 30ms, tests 82ms, environment 0ms)
+# Exact definition components loaded in the production browser without an authority effect.
+# > @petra/core@0.0.0 test
+# > vitest run --config vitest.config.ts project-definition-components.test.ts --testNamePattern resolves every declared category --reporter=verbose
+#  RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/packages/core
+#  ↓ test/project-definition-components.test.ts > ProjectDefinition component composition > resolves scientific and writing components through exact registrations without a template lookup
+#  ✓ test/project-definition-components.test.ts > ProjectDefinition component composition > resolves every declared category and precisely distinguishes schema admission from installed execution 2ms
+#  ↓ test/project-definition-components.test.ts > ProjectDefinition component composition > does not reinterpret retained material under a newer revision even when its content hash is identical
+#  ↓ test/project-definition-components.test.ts > ProjectDefinition component composition > rejects crossed Projects revisions hashes duplicate meanings and examiner contracts with mismatched hashes
+#  Test Files  1 passed (1)
+#       Tests  1 passed | 3 skipped (4)
+#    Start at  22:03:02
+#    Duration  156ms (transform 16ms, setup 0ms, import 96ms, tests 2ms, environment 0ms)
+# > @petra/postgres@0.0.0 test
+# > vitest run --config vitest.config.ts project-definition-authority-repository.test.ts --testNamePattern retains definition and objective revisions --reporter=verbose
+#  RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/packages/postgres
+#  ✓ test/project-definition-authority-repository.test.ts > PostgreSQL ProjectDefinition authority repository > retains definition and objective revisions while moving one exact current focus 115ms
+#  ↓ test/project-definition-authority-repository.test.ts > PostgreSQL ProjectDefinition authority repository > fails closed on rebound revisions, gaps, unknown Objective kinds, and definition substitution
+#  ↓ test/project-definition-authority-repository.test.ts > PostgreSQL ProjectDefinition authority repository > enforces append-only semantic history and exact active focus in PostgreSQL
+#  ↓ test/project-definition-authority-repository.test.ts > PostgreSQL ProjectDefinition authority repository > composes list and detail shell reads from one exact repeatable-read snapshot
+#  ↓ test/project-definition-authority-repository.test.ts > PostgreSQL ProjectDefinition authority repository > executes bounded server-owned Project search across paired project-authored definitions
+#  ↓ test/project-definition-authority-repository.test.ts > PostgreSQL ProjectDefinition authority repository > refuses to interpret a Project that has no ProjectDefinition
+#  Test Files  1 passed (1)
+#       Tests  1 passed | 5 skipped (6)
+#    Start at  22:03:02
+#    Duration  762ms (transform 209ms, setup 0ms, import 580ms, tests 124ms, environment 0ms)
+# Subtest: FE-A1.2-W07-AC01 execution: exact scientific writing and unrelated definitions load through one shell and actual immutable reads
+ok 1 - FE-A1.2-W07-AC01 execution: exact scientific writing and unrelated definitions load through one shell and actual immutable reads
+  ---
+  duration_ms: 14533.602625
+  type: 'test'
+  ...
+# Subtest: FE-A1.2-W07-AC02 execution: every registered capability resolves its exact schema separately from installed execution
+ok 2 - FE-A1.2-W07-AC02 execution: every registered capability resolves its exact schema separately from installed execution
+  ---
+  duration_ms: 373.672834
+  type: 'test'
+  ...
+# Subtest: FE-A1.2-W07-AC03 execution: actual immutable definition revisions preserve exact historical objectives and bindings
+ok 3 - FE-A1.2-W07-AC03 execution: actual immutable definition revisions preserve exact historical objectives and bindings
+  ---
+  duration_ms: 987.378375
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 26037.46375

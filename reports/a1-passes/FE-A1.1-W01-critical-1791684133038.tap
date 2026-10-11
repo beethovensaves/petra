@@ -1,0 +1,28 @@
+TAP version 13
+# Subtest: FE-A1.1-W01-AC01 critical: short and narrow viewports preserve accessible composition and sequential panes
+ok 1 - FE-A1.1-W01-AC01 critical: short and narrow viewports preserve accessible composition and sequential panes
+  ---
+  duration_ms: 4494.174167
+  type: 'test'
+  ...
+# Subtest: FE-A1.1-W01-AC02 critical: expanded disclosures and a long objective cannot crowd out the composer
+ok 2 - FE-A1.1-W01-AC02 critical: expanded disclosures and a long objective cannot crowd out the composer
+  ---
+  duration_ms: 70.410584
+  type: 'test'
+  ...
+# Subtest: FE-A1.1-W01-AC03 critical: keyboard opening and dismissal preserve the exact answer and route identity
+ok 3 - FE-A1.1-W01-AC03 critical: keyboard opening and dismissal preserve the exact answer and route identity
+  ---
+  duration_ms: 116.255166
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4880.869458

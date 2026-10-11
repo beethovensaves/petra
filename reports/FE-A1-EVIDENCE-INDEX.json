@@ -1,10 +1,10 @@
 {
   "schema_name": "petra.a1-evidence-index",
   "schema_version": "1.0.0",
-  "roadmap_binding": "sha256:c698584bf89b03cdb9ba212967decd7046cf40067f990d687ca356815c8e8a45",
+  "roadmap_binding": "sha256:4f5951ca31f1462a5926f3c7320c01acf9b06a5b51d256b2e8c268d8bc84741e",
   "current": {
     "required": 90,
-    "complete": 10,
+    "complete": 15,
     "user_acceptance": null,
     "proofs": [
       {
@@ -110,6 +110,23 @@
         ]
       },
       {
+        "work_item": "FE-A1.1-W01",
+        "passes": [
+          {
+            "pass": "execution",
+            "artifact": "reports/a1-passes/FE-A1.1-W01-execution-1791684120131.json",
+            "command": "node --test --test-reporter=tap scripts/a1/copilot-hierarchy.test.mjs",
+            "boundary": "Live production layout, retained actual managed-model Q/A, navigation, composer, disclosure and Workspace presentation only. No new model invocation, proposal command, native examiner, cycle or overall A1 acceptance is inferred."
+          },
+          {
+            "pass": "critical",
+            "artifact": "reports/a1-passes/FE-A1.1-W01-critical-1791684133038.json",
+            "command": "node --test --test-reporter=tap scripts/a1/copilot-hierarchy.critical.test.mjs",
+            "boundary": "Live production layout, retained actual managed-model Q/A, navigation, composer, disclosure and Workspace presentation only. No new model invocation, proposal command, native examiner, cycle or overall A1 acceptance is inferred."
+          }
+        ]
+      },
+      {
         "work_item": "FE-A1.2-W01",
         "passes": [
           {
@@ -123,6 +140,23 @@
             "artifact": "reports/a1-passes/FE-A1.2-W01-critical-1791681529436.json",
             "command": "node --test --test-reporter=tap scripts/a1/outcome-drafting.critical.test.mjs",
             "boundary": "Existing outcome-first draft construction and its exact authority are being verified. Live browser uses one ordinary pre-Project session and three retained draft revisions, with no model invocation or accepted Project creation against inspection data. Isolated PostgreSQL proves real creation/atomicity and rejection. This does not close definition composition, intake model functions, native examiner execution or overall A1."
+          }
+        ]
+      },
+      {
+        "work_item": "FE-A1.2-W07",
+        "passes": [
+          {
+            "pass": "execution",
+            "artifact": "reports/a1-passes/FE-A1.2-W07-execution-1791684183544.json",
+            "command": "node --test --test-reporter=tap scripts/a1/definition-components.test.mjs",
+            "boundary": "Exact immutable definition reads and generic component negotiation across declared domain registrations. Schema admission is separate from an installed examiner or executor; unavailable capability does not invalidate a valid Project. Existing immutable history owners preserve the original basis. This does not certify missing native writing interpretation/third-type examiners, new model roles, proposed commands, or overall A1."
+          },
+          {
+            "pass": "critical",
+            "artifact": "reports/a1-passes/FE-A1.2-W07-critical-1791684214939.json",
+            "command": "node --test --test-reporter=tap scripts/a1/definition-components.critical.test.mjs",
+            "boundary": "Exact immutable definition reads and generic component negotiation across declared domain registrations. Schema admission is separate from an installed examiner or executor; unavailable capability does not invalidate a valid Project. Existing immutable history owners preserve the original basis. This does not certify missing native writing interpretation/third-type examiners, new model roles, proposed commands, or overall A1."
           }
         ]
       },
@@ -157,6 +191,57 @@
             "artifact": "reports/a1-passes/FE-A1.3-W02-critical-1791683179542.json",
             "command": "node --test --test-reporter=tap scripts/a1/model-routes.critical.test.mjs",
             "boundary": "Actual managed QA question/follow-up through the live production browser and PostgreSQL, separate actual-model typed working-plan eligibility, and production unavailable-model recovery. Role-native proposal probes use committed synthetic records; canonical ProjectThread/InteractionRun, durable proposal decisions/commands, native examiners and connected cycles remain separate required A1 work and are not claimed complete."
+          }
+        ]
+      },
+      {
+        "work_item": "FE-A1.3-W03",
+        "passes": [
+          {
+            "pass": "execution",
+            "artifact": "reports/a1-passes/FE-A1.3-W03-execution-1791683965472.json",
+            "command": "node --test --test-reporter=tap scripts/a1/owned-conversation.test.mjs",
+            "boundary": "Canonical ownership and retained readable advisory conversation only. Provider internal CPU, memory, network, tokens and price remain unavailable; unknown values never satisfy applicable hard limits. Historical adoption records actual import Work and preserves original bytes without reconstructing original execution authority. Proposal decisions/commands, progressive AG-UI activities/interrupts, native examiners, reactive Workspace graph cycles and A1 product acceptance remain open required ledger items."
+          },
+          {
+            "pass": "critical",
+            "artifact": "reports/a1-passes/FE-A1.3-W03-critical-1791684034936.json",
+            "command": "node --test --test-reporter=tap scripts/a1/owned-conversation.critical.test.mjs",
+            "boundary": "Canonical ownership and retained readable advisory conversation only. Provider internal CPU, memory, network, tokens and price remain unavailable; unknown values never satisfy applicable hard limits. Historical adoption records actual import Work and preserves original bytes without reconstructing original execution authority. Proposal decisions/commands, progressive AG-UI activities/interrupts, native examiners, reactive Workspace graph cycles and A1 product acceptance remain open required ledger items."
+          }
+        ]
+      },
+      {
+        "work_item": "FE-A1.3-W04",
+        "passes": [
+          {
+            "pass": "execution",
+            "artifact": "reports/a1-passes/FE-A1.3-W04-execution-1791684264454.json",
+            "command": "node --test --test-reporter=tap scripts/a1/exact-context.test.mjs",
+            "boundary": "Exact bounded advisory turn context only. Original-basis branching, action previews/commands, missing native examiners and connected graph cycles remain their own required A1 items. Work inputs/proposals/output and inquiry framing/source bytes are explicitly withheld on metadata paths; no fact, approval, examination, resolved inquiry or completed domain work is inferred."
+          },
+          {
+            "pass": "critical",
+            "artifact": "reports/a1-passes/FE-A1.3-W04-critical-1791684289531.json",
+            "command": "node --test --test-reporter=tap scripts/a1/exact-context.critical.test.mjs",
+            "boundary": "Exact bounded advisory turn context only. Original-basis branching, action previews/commands, missing native examiners and connected graph cycles remain their own required A1 items. Work inputs/proposals/output and inquiry framing/source bytes are explicitly withheld on metadata paths; no fact, approval, examination, resolved inquiry or completed domain work is inferred."
+          }
+        ]
+      },
+      {
+        "work_item": "FE-A1.3-W05",
+        "passes": [
+          {
+            "pass": "execution",
+            "artifact": "reports/a1-passes/FE-A1.3-W05-execution-1791684077519.json",
+            "command": "node --test --test-reporter=tap scripts/a1/progressive-copilot.test.mjs",
+            "boundary": "Typed presentation and official AG-UI transport only. Execution checks actual managed model and canonical ownership in the live browser; critical checks adverse events and actual same-identity replay/auth denial. Controlled owner ports test disclosure guards, not canonical persistence. Command mediation, native examiners, cyclic verification and overall A1 acceptance remain separate open requirements."
+          },
+          {
+            "pass": "critical",
+            "artifact": "reports/a1-passes/FE-A1.3-W05-critical-1791684089444.json",
+            "command": "node --test --test-reporter=tap scripts/a1/progressive-copilot.critical.test.mjs",
+            "boundary": "Typed presentation and official AG-UI transport only. Execution checks actual managed model and canonical ownership in the live browser; critical checks adverse events and actual same-identity replay/auth denial. Controlled owner ports test disclosure guards, not canonical persistence. Command mediation, native examiners, cyclic verification and overall A1 acceptance remain separate open requirements."
           }
         ]
       },

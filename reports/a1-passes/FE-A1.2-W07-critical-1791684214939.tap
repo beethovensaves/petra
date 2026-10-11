@@ -1,0 +1,123 @@
+TAP version 13
+# Fresh isolated PostgreSQL applied and validated all 67 migrations.
+# > @petra/server@0.0.0 test
+# > vitest run --config vitest.config.ts project-definition-routes.test.ts --testNamePattern rejects identity|denies valid records --reporter=verbose
+#  RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/apps/server
+#  ↓ test/project-definition-routes.test.ts > exact ProjectDefinition reads > reads the exact retained revision through authenticated authority without consulting a template
+#  ✓ test/project-definition-routes.test.ts > exact ProjectDefinition reads > rejects identity and parameter substitution and does not replace an unavailable retained revision 54ms
+#  ✓ test/project-definition-routes.test.ts > exact ProjectDefinition reads > denies valid records from a foreign Project newer revision or corrupted immutable bytes 244ms
+#  Test Files  1 passed (1)
+#       Tests  2 passed | 1 skipped (3)
+#    Start at  22:03:22
+#    Duration  1.33s (transform 370ms, setup 0ms, import 965ms, tests 298ms, environment 0ms)
+# > @petra/adapters@0.0.0 test
+# > vitest run --config vitest.config.ts project-definition-client.test.ts --testNamePattern rejects foreign identity --reporter=verbose
+#  RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/packages/adapters
+#  ↓ test/project-definition-client.test.ts > exact ProjectDefinition client > requests one authenticated retained revision and verifies its canonical bytes
+#  ✓ test/project-definition-client.test.ts > exact ProjectDefinition client > rejects foreign identity stale revision and rehashed or unhashed substitution without template fallback 269ms
+#  Test Files  1 passed (1)
+#       Tests  1 passed | 1 skipped (2)
+#    Start at  22:03:23
+#    Duration  361ms (transform 14ms, setup 0ms, import 31ms, tests 270ms, environment 0ms)
+# > @petra/core@0.0.0 test
+# > vitest run --config vitest.config.ts project-definition-components.test.ts --testNamePattern rejects crossed --reporter=verbose
+#  RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/packages/core
+#  ↓ test/project-definition-components.test.ts > ProjectDefinition component composition > resolves scientific and writing components through exact registrations without a template lookup
+#  ↓ test/project-definition-components.test.ts > ProjectDefinition component composition > resolves every declared category and precisely distinguishes schema admission from installed execution
+#  ↓ test/project-definition-components.test.ts > ProjectDefinition component composition > does not reinterpret retained material under a newer revision even when its content hash is identical
+#  ✓ test/project-definition-components.test.ts > ProjectDefinition component composition > rejects crossed Projects revisions hashes duplicate meanings and examiner contracts with mismatched hashes 2ms
+#  Test Files  1 passed (1)
+#       Tests  1 passed | 3 skipped (4)
+#    Start at  22:03:24
+#    Duration  157ms (transform 16ms, setup 0ms, import 97ms, tests 2ms, environment 0ms)
+# > @petra/workbench@0.0.0 test
+# > vitest run project-definition-components.test.tsx --testNamePattern does not give stale --reporter=verbose
+#  RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/apps/workbench
+#  ↓ src/product/project-definition-components.test.tsx > definition-composed Workspace > renders scientific writing and unrelated definitions through one component disclosure without family conditionals
+#  ↓ src/product/project-definition-components.test.tsx > definition-composed Workspace > loads the actual writing examiner under its declared exact contract and the browser validates its native material
+#  ✓ src/product/project-definition-components.test.tsx > definition-composed Workspace > does not give stale unavailable undeclared or malformed material a current examiner or continuation 5ms
+#  Test Files  1 passed (1)
+#       Tests  1 passed | 2 skipped (3)
+#    Start at  22:03:24
+#    Duration  5.65s (transform 625ms, setup 0ms, import 5.58s, tests 6ms, environment 0ms)
+# > @petra/core@0.0.0 test
+# > vitest run --config vitest.config.ts project-definition-components.test.ts --testNamePattern does not reinterpret retained --reporter=verbose
+#  RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/packages/core
+#  ↓ test/project-definition-components.test.ts > ProjectDefinition component composition > resolves scientific and writing components through exact registrations without a template lookup
+#  ↓ test/project-definition-components.test.ts > ProjectDefinition component composition > resolves every declared category and precisely distinguishes schema admission from installed execution
+#  ✓ test/project-definition-components.test.ts > ProjectDefinition component composition > does not reinterpret retained material under a newer revision even when its content hash is identical 1ms
+#  ↓ test/project-definition-components.test.ts > ProjectDefinition component composition > rejects crossed Projects revisions hashes duplicate meanings and examiner contracts with mismatched hashes
+#  Test Files  1 passed (1)
+#       Tests  1 passed | 3 skipped (4)
+#    Start at  22:03:30
+#    Duration  166ms (transform 17ms, setup 0ms, import 99ms, tests 2ms, environment 0ms)
+# > @petra/postgres@0.0.0 test
+# > vitest run --config vitest.config.ts working-state-authority-repository.test.ts --testNamePattern marks equal-content later --reporter=verbose
+#  RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/packages/postgres
+#  ↓ test/working-state-authority-repository.test.ts > PostgreSQL working-state authority > atomically admits and corrects current scientific working state with stable retries and a repeatable-read query
+#  ✓ test/working-state-authority-repository.test.ts > PostgreSQL working-state authority > marks equal-content later definition revisions stale without reinterpreting retained native candidates 315ms
+#  ↓ test/working-state-authority-repository.test.ts > PostgreSQL working-state authority > resolves exact native material and Project-bound passages while preserving remote egress restrictions
+#  ↓ test/working-state-authority-repository.test.ts > PostgreSQL working-state authority > authorizes two connected reviewed cycles through exact grants and atomic retained receipts
+#  ↓ test/working-state-authority-repository.test.ts > PostgreSQL working-state authority > retains canonical conversation lineage across actual inquiry Work Review and hypothesis cycle records
+#  ↓ test/working-state-authority-repository.test.ts > PostgreSQL working-state authority > persists two exact scoped examination revisions, preserves earlier cycle records, and forbids immutable mutation
+#  ↓ test/working-state-authority-repository.test.ts > PostgreSQL working-state authority > admits the five registered scientific relationship meanings without promoting working state
+#  ↓ test/working-state-authority-repository.test.ts > PostgreSQL working-state authority > rejects a resealed stored working record whose nested provenance self-hash is stale
+#  ↓ test/working-state-authority-repository.test.ts > PostgreSQL working-state authority > admits exact controlled-writing Requirement and GOVERNS records without adding authority or reusing evidence semantics
+#  ↓ test/working-state-authority-repository.test.ts > PostgreSQL working-state authority > composes the authoritative path with an exact superseded working endpoint and its distinct current head
+#  ↓ test/working-state-authority-repository.test.ts > PostgreSQL working-state authority > fails closed on definition, authority, projection, and source-view hash mismatches
+#  ↓ test/working-state-authority-repository.test.ts > PostgreSQL working-state authority > fails closed for stale, mismatched, unknown-profile, and unknown-validator inputs without partial working rows
+#  Test Files  1 passed (1)
+#       Tests  1 passed | 11 skipped (12)
+#    Start at  22:03:31
+#    Duration  1.52s (transform 299ms, setup 0ms, import 1.13s, tests 325ms, environment 0ms)
+# > @petra/postgres@0.0.0 test
+# > vitest run --config vitest.config.ts project-copilot-repository.test.ts --testNamePattern retains an immutable owner-bound input --reporter=verbose
+#  RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/packages/postgres
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > claims a concurrent identity exactly once and restores readable terminal text after repository restart
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > rejects conflicting retries, stale parents, and continuation while a prior turn is active
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > restores the original graph presentation after restart and a later semantic result
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > isolates reads by authenticated actor and Project
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > prevents updates and records expired uncertain invocation as failure without another model call
+#  ✓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > retains an immutable owner-bound input manifest across repository restart and rejects replacement or wrong actor 808ms
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > binds readable native question and result Artifacts to canonical Thread Run and Work owners
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > retains failed and cancelled native deliveries without successful scientific result aliases
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > adopts immutable historical content as an explicit import without fabricating its original execution authority
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > rolls back terminal content and every canonical owner when a late binding write fails
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > rejects validly rehashed foreign owners question substitution and hidden terminal state before releasing retained content
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > pages exact retained questions and answers without duplicate effects and keeps its anchor across later turns
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > denies malformed foreign and invalid page positions without releasing retained content
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > denies a copied material turn in a second canonical Thread even when every content hash is valid
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > denies substituted authority references false history imports missing material and a changed retry question
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > preserves a controlled-writing native basis in canonical conversation owners without a scientific snapshot
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > requires canonical ownership and cannot silently fall back to a private parallel store
+#  Test Files  1 passed (1)
+#       Tests  1 passed | 16 skipped (17)
+#    Start at  22:03:32
+#    Duration  1.65s (transform 244ms, setup 0ms, import 769ms, tests 820ms, environment 0ms)
+# Subtest: FE-A1.2-W07-AC01 critical: foreign stale and forged definition reads cannot select another component or template
+ok 1 - FE-A1.2-W07-AC01 critical: foreign stale and forged definition reads cannot select another component or template
+  ---
+  duration_ms: 2130.947375
+  type: 'test'
+  ...
+# Subtest: FE-A1.2-W07-AC02 critical: ambiguous installations malformed native material and schema hashes cannot imply execution
+ok 2 - FE-A1.2-W07-AC02 critical: ambiguous installations malformed native material and schema hashes cannot imply execution
+  ---
+  duration_ms: 6253.107541
+  type: 'test'
+  ...
+# Subtest: FE-A1.2-W07-AC03 critical: identical content in a newer definition cannot reinterpret retained candidates or original conversation inputs
+ok 3 - FE-A1.2-W07-AC03 critical: identical content in a newer definition cannot reinterpret retained candidates or original conversation inputs
+  ---
+  duration_ms: 4013.763375
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 22529.517792

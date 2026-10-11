@@ -1,0 +1,49 @@
+
+> @petra/server@0.0.0 test
+> vitest run --config vitest.config.ts project-copilot-context.test.ts --testNamePattern preserves whole definition --reporter=verbose
+
+
+ RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/apps/server
+
+ ↓ test/project-copilot-context.test.ts > exact bounded context compilation > enforces the total context budget and preserves selected whole records while naming omissions
+ ↓ test/project-copilot-context.test.ts > exact bounded context compilation > denies a revoked conversation permission after context assembly and recovery before invocation
+ ↓ test/project-copilot-context.test.ts > exact bounded context compilation > composes exact declared semantics and inquiry Work metadata without raw outputs or ambient route state
+ × test/project-copilot-context.test.ts > exact bounded context compilation > preserves whole definition entries and explicit omission counts within the actual byte budget 20ms
+   → The exact definition metadata exceeds the context budget.
+ ↓ test/project-copilot-context.test.ts > exact bounded context compilation > rejects missing corrupted foreign or equal-content different-revision definitions
+ ↓ test/project-copilot-context.test.ts > exact bounded context compilation > rejects validly rehashed foreign stale and mixed-snapshot activity views
+ ↓ test/project-copilot-context.test.ts > exact bounded context compilation > rechecks the final Project basis and denies drift before retaining or invoking a new turn
+ ↓ test/project-copilot-context.test.ts > exact bounded context compilation > rejects an equal-content stale native graph definition identity or revision
+ ↓ test/project-copilot-context.test.ts > exact bounded context compilation > preserves unavailable inquiry coverage and excludes conversation Work from metadata rather than duplicating private history
+ ↓ test/project-copilot-context.test.ts > exact bounded context compilation > withholds stale native bytes even when source egress is otherwise permitted
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/project-copilot-context.test.ts > exact bounded context compilation > preserves whole definition entries and explicit omission counts within the actual byte budget
+CopilotBoundaryError: The exact definition metadata exceeds the context budget.
+ ❯ exactDefinitionContext src/project-copilot-context.ts:97:13
+     95|     else if (omittedFlows.length) omittedFlows.pop();
+     96|     else
+     97|       throw new CopilotBoundaryError(
+       |             ^
+     98|         "CONTEXT_DEFINITION_BUDGET",
+     99|         "The exact definition metadata exceeds the context budget.",
+ ❯ test/project-copilot-context.test.ts:245:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'CONTEXT_DEFINITION_BUDGET' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 9 skipped (10)
+   Start at  21:56:33
+   Duration  574ms (transform 197ms, setup 0ms, import 493ms, tests 20ms, environment 0ms)
+
+npm error Lifecycle script `test` failed with error:
+npm error code 1
+npm error path /Users/felipe.casadei/vscode/graphRAG/petra/apps/server
+npm error workspace @petra/server@0.0.0
+npm error location /Users/felipe.casadei/vscode/graphRAG/petra/apps/server
+npm error command failed
+npm error command sh -c vitest run --config vitest.config.ts project-copilot-context.test.ts --testNamePattern 'preserves whole definition' --reporter=verbose

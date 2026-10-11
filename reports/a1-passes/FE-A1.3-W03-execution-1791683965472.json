@@ -1,0 +1,343 @@
+{
+  "schema_name": "petra.a1-verification-pass",
+  "schema_version": "1.0.0",
+  "work_item": "FE-A1.3-W03",
+  "pass": "execution",
+  "contract_hash": "sha256:60e855b5d9fae889e87c79a3e5d6586711ae19efee7481d052f26673bf2a7906",
+  "status": "passed",
+  "candidate_commit": "56bf4c6e7ca1e81520a9808f90f968325d070e97",
+  "started_at": "2026-10-11T01:58:12.991Z",
+  "finished_at": "2026-10-11T01:59:25.472Z",
+  "criteria": [
+    {
+      "id": "FE-A1.3-W03-AC01",
+      "result": "passed",
+      "test": "FE-A1.3-W03-AC01 execution: retained questions answers citations and outcomes restore in a new document",
+      "observation": "Actual managed-model browser delivery, new-document restoration and anchored PostgreSQL paging preserve original question, answer, citation labels and terminal outcomes."
+    },
+    {
+      "id": "FE-A1.3-W03-AC02",
+      "result": "passed",
+      "test": "FE-A1.3-W03-AC02 execution: actual readable content is backed by retained Artifacts rather than a metadata view",
+      "observation": "Canonical Thread/Work views remain metadata; exact retained private input and registered result Artifacts provide readable conversation bytes."
+    },
+    {
+      "id": "FE-A1.3-W03-AC03",
+      "result": "passed",
+      "test": "FE-A1.3-W03-AC03 execution: exact actor Project and immutable model input scope survives restart",
+      "observation": "Exact actor/Project reads and the immutable original model-input manifest remain owner-bound after repository restart. Explicit reviewed owner permission grants only RunProjectCopilot, creates no Work until Ask, and cannot authorize general Work management, examination or Apply."
+    },
+    {
+      "id": "FE-A1.3-W03-AC04",
+      "result": "passed",
+      "test": "FE-A1.3-W03-AC04 execution: completed failed cancelled and imported content resolves to existing native owners",
+      "observation": "Native completed/failed/cancelled conversation and explicit historical adoption resolve to actual canonical Thread, Run and Work; writing retains its native basis without a scientific snapshot."
+    },
+    {
+      "id": "FE-A1.3-W03-AC05",
+      "result": "passed",
+      "test": "FE-A1.3-W03-AC05 execution: actual inquiry Work Review and cycle lineage remains exact on replay",
+      "observation": "A positive PostgreSQL function resolves actual inquiry, additional Work, Review, hypothesis, assessment, posture and cycle records; repeated reads create no second Work."
+    }
+  ],
+  "sources": [
+    {
+      "path": "apps/server/src/app.ts",
+      "hash": "sha256:bef8a7442554991fb5305ebfc39ab1e5be788aa03b74a067491c540450407956"
+    },
+    {
+      "path": "apps/server/src/project-copilot-context.ts",
+      "hash": "sha256:a6104da456fa0c2d1d5d30599ed1331bb211958914320b959af7aa40aae4af07"
+    },
+    {
+      "path": "apps/server/src/project-copilot-routes.ts",
+      "hash": "sha256:940901c466146bcf2180c81a9b4b43d0cd5cc458ddd26e1347a3a5e15ade97d0"
+    },
+    {
+      "path": "apps/server/src/project-copilot.ts",
+      "hash": "sha256:1776d1115deaea4d6112757008dc49ba86aaa367eec4278d35d7244432e906b3"
+    },
+    {
+      "path": "apps/server/src/project-shell-persistence.ts",
+      "hash": "sha256:553e6b2ec79e8a924c308510ef206a7ce2eb6c73a80d00e39a23ce6602c45dc3"
+    },
+    {
+      "path": "apps/server/test/project-copilot.test.ts",
+      "hash": "sha256:300ad95f2a4a3d18f2fba22eb9e483f05fbae902cee4b0ec893598302fea4f7b"
+    },
+    {
+      "path": "apps/workbench/src/product/ProjectCopilotConversation.tsx",
+      "hash": "sha256:ffc2611117aed9955007994b9d1dc1e921d91a62f73fbbbbdccdb7aedccf5815"
+    },
+    {
+      "path": "apps/workbench/src/product/WorkPetraSurface.tsx",
+      "hash": "sha256:68ab988551609be5fa0ac67c70803ed80b3ae13d7889da9262907c4e96588c15"
+    },
+    {
+      "path": "apps/workbench/src/product/intake-browser-state.ts",
+      "hash": "sha256:245952253837cf225a6e78cbdf7bf5339e327d55a5342b16121e02c955e29d3d"
+    },
+    {
+      "path": "apps/workbench/src/product/project-data.ts",
+      "hash": "sha256:0ebe80b74d227ca8c09706123abc93b1b1eb6aa5b4504ae21926b6d8cbeeaad9"
+    },
+    {
+      "path": "apps/workbench/test/a1-owned-conversation-browser.mjs",
+      "hash": "sha256:9afd6a84ec062d252240ceab4c412d67d93ac239667b6715ea7924912d97a1ab"
+    },
+    {
+      "path": "infra/postgres/integration.compose.yaml",
+      "hash": "sha256:a266385a47477e46d2179894c30f40a6eced277627bddf0cf10327f0486c09ab"
+    },
+    {
+      "path": "infra/postgres/migrations/V066__canonical_copilot_conversation.sql",
+      "hash": "sha256:7f9c5b42ce0eb5c7ef88ee21f6909df1db871852baf614814e07adccfa12e4dd"
+    },
+    {
+      "path": "infra/postgres/migrations/V067__copilot_owner_permission.sql",
+      "hash": "sha256:d25292d00359d4d768d45360780af4c48260032e9839e6b8ff1a919440f2e0d5"
+    },
+    {
+      "path": "packages/adapters/src/project-copilot-ag-ui.ts",
+      "hash": "sha256:5774592406c38bcd93fcf2ccf4c8700abbece3ae779d10b1daedd096ca5db19f"
+    },
+    {
+      "path": "packages/adapters/src/project-work-client.ts",
+      "hash": "sha256:4f0122d2c1d461d752924b7fbe9398068e7cee166989589040f7bbdb1d709403"
+    },
+    {
+      "path": "packages/adapters/test/copilot-permission-client.test.ts",
+      "hash": "sha256:24cf6a7763f18d1bd2c4475de28c7a478a0ca99d7ef1e0b4cf42118715b93aa5"
+    },
+    {
+      "path": "packages/contracts/fixtures/accepted/capability-grant-v1-17.json",
+      "hash": "sha256:4f413b243814628a8667e14e1d09b486a3a09c6e03a9bcf6287619aa19d20461"
+    },
+    {
+      "path": "packages/contracts/fixtures/accepted/conversation-result.json",
+      "hash": "sha256:880de32613df2c4cdf048fc1ecd9e08ff45fb8b1f5d01fa451073ea8feb27905"
+    },
+    {
+      "path": "packages/contracts/fixtures/accepted/copilot-authority-receipt.json",
+      "hash": "sha256:22ff785d2e6904f808cb3ccbf9359f90a2ef8811a7db17199bdc8e8a713c17a4"
+    },
+    {
+      "path": "packages/contracts/fixtures/accepted/copilot-authority-request.json",
+      "hash": "sha256:2cdd54a07cfc06f79e8f284a041ebe9520bfbf87b85ce2d7e0f4f816d87b68fc"
+    },
+    {
+      "path": "packages/contracts/fixtures/accepted/project-thread-v1-1.json",
+      "hash": "sha256:6b0d0ed3a8ac72c938e35c495175879085d5e77be8e1631a803be1a166198004"
+    },
+    {
+      "path": "packages/contracts/fixtures/accepted/project-thread-view-v1-1.json",
+      "hash": "sha256:55237627f887343a53fcb858d640d9352cf56e4356dc4d38ab7cc8413352c98e"
+    },
+    {
+      "path": "packages/contracts/fixtures/accepted/worker-output-manifest-v1-1.json",
+      "hash": "sha256:15d3d7194ec3a59e176364c77c15f809c9b836554d10ce6d3e028a15b18c8152"
+    },
+    {
+      "path": "packages/contracts/registry.json",
+      "hash": "sha256:7029b241704e3845d75d07bf756ce61ffd84396d42778a93cbb5bf9d6251c7b0"
+    },
+    {
+      "path": "packages/contracts/schemas/capability-grant/1.17.0/schema.json",
+      "hash": "sha256:82e7ee58962151a71a7a43efc3b5946aeffc0aa0415560d36072f56c3a2856d8"
+    },
+    {
+      "path": "packages/contracts/schemas/conversation-result/1.0.0/schema.json",
+      "hash": "sha256:a4ad0364c0d4451a3cbdef15e8aeed233ffadaec7d914a21d369e92492812d22"
+    },
+    {
+      "path": "packages/contracts/schemas/copilot-authority-receipt/1.0.0/schema.json",
+      "hash": "sha256:ff952534d1676a59517c604d09d005456df33a021591322649ddd152b07bec77"
+    },
+    {
+      "path": "packages/contracts/schemas/copilot-authority-request/1.0.0/schema.json",
+      "hash": "sha256:5bdc97fecdb9c9768ae90d475cc4dc161dbd93aafa37efd6c3b98afabba085a0"
+    },
+    {
+      "path": "packages/contracts/schemas/project-thread-view/1.1.0/schema.json",
+      "hash": "sha256:7ec82bcb40bf794c6252ebb4949e4a6f6a8839bfb50e08032a6823ad33874588"
+    },
+    {
+      "path": "packages/contracts/schemas/project-thread/1.1.0/schema.json",
+      "hash": "sha256:577fe2b035a9a7dc9c36d601c490210da64565afb945155e09bf5f32c93564dd"
+    },
+    {
+      "path": "packages/contracts/schemas/worker-output-manifest/1.1.0/schema.json",
+      "hash": "sha256:038980e4a5039d72284cb995e37f2bc697b9a5ee2df87a1f051cf2c99b8c0952"
+    },
+    {
+      "path": "packages/contracts/src/generated/capability-grant-v1-17.ts",
+      "hash": "sha256:bf0abec72e3b577d81e1e8ebca59d57f48f0650aed9d532ef6f29a5b5d43db86"
+    },
+    {
+      "path": "packages/contracts/src/generated/conversation-result.ts",
+      "hash": "sha256:2bf7978c4243e8a4314910479f2b8c33b677371bc0f8510d234523ee00fd4d9d"
+    },
+    {
+      "path": "packages/contracts/src/generated/copilot-authority-receipt.ts",
+      "hash": "sha256:45ca85bc7053fc3579b45d7f99f210ce311302c7223b5a13f8c4bb801dfd36cc"
+    },
+    {
+      "path": "packages/contracts/src/generated/copilot-authority-request.ts",
+      "hash": "sha256:e4840356e795c694749fd0588918cf2b7c1033f4292a7b53b23df56fb3e997d9"
+    },
+    {
+      "path": "packages/contracts/src/generated/project-thread-v1-1.ts",
+      "hash": "sha256:61da826a71ad64be215136e1ab88e440221a4b586e67f4eff5636831eea8cdd6"
+    },
+    {
+      "path": "packages/contracts/src/generated/project-thread-view-v1-1.ts",
+      "hash": "sha256:7609551d5564a2bc9fa09a8dce97eb3c4b7507d58a04a41a495218a30623de66"
+    },
+    {
+      "path": "packages/contracts/src/generated/worker-output-manifest-v1-1.ts",
+      "hash": "sha256:1c04cac1c8b94744d8f9ee4eac5c972ae38f38223829a3fbf1faf46fa6b9b92c"
+    },
+    {
+      "path": "packages/contracts/src/index.ts",
+      "hash": "sha256:7d325d8a095d70daf2636f12a7a30beb31854d6d6fecf996f8b6c0f1ecba97f4"
+    },
+    {
+      "path": "packages/core/src/conversation-authority.ts",
+      "hash": "sha256:6c63a49932d0db23392592a3885778ba20b1d3d86ffa4a50aa0e8726ce85e871"
+    },
+    {
+      "path": "packages/core/src/conversation-permission.ts",
+      "hash": "sha256:9a30085aaca848432a29ec6189db6be574bb06fe6b618b4c9a0607a01c3aaff7"
+    },
+    {
+      "path": "packages/core/src/evidence-registry.ts",
+      "hash": "sha256:4d79d0211448f5ef66c9981c9d8776909751dfbb0b32b442c029e3a4c721b5e9"
+    },
+    {
+      "path": "packages/core/src/grounded-synthesis-terminal.ts",
+      "hash": "sha256:002bf7d94d2f8019948185f5e4bb7d59657f14acbd4a29b51662627aae0224d3"
+    },
+    {
+      "path": "packages/core/src/index.ts",
+      "hash": "sha256:98eac33ecdf6fce567e3ba6319425e0598c1983fc26e6cb560c28dd83786c42a"
+    },
+    {
+      "path": "packages/core/src/interaction-history.ts",
+      "hash": "sha256:27744fc6588f1a5cf1479aed5db183e40e85a772febd3707ff2aad99a9893713"
+    },
+    {
+      "path": "packages/core/src/project-thread.ts",
+      "hash": "sha256:3cfa6828d6dff56d7bb922e023fdb2dd12d4d7d4fcf829344c74e2f48cc0cc54"
+    },
+    {
+      "path": "packages/core/src/project-work-view.ts",
+      "hash": "sha256:5dc2977e2f2e18d53f22073d7482a605a2382d34e3904f49c14f17977d393701"
+    },
+    {
+      "path": "packages/core/src/review-interrupt-product-binding.ts",
+      "hash": "sha256:654b21bf642b374290c4ce758ecb47ef3e57de5348b65e2a8f4dbf1bcc15488f"
+    },
+    {
+      "path": "packages/core/src/work-unit-authority-repository.ts",
+      "hash": "sha256:f907ca575526ab0c62af034174f51d04780c17d05a103fe182ab3c883a56f1ec"
+    },
+    {
+      "path": "packages/core/src/work-unit-registry.ts",
+      "hash": "sha256:9f5868fe067551c24fd3e51fa02028189d50820a0d263a3f4de0168a12a402b9"
+    },
+    {
+      "path": "packages/core/test/conversation-resource-controls.test.ts",
+      "hash": "sha256:cc9c4c753a4f29c95721935af06b3d06f40808858f653566f55c5e3218742906"
+    },
+    {
+      "path": "packages/postgres/src/canonical-copilot-ownership.ts",
+      "hash": "sha256:8539d7fcd5571458761067c174b7291a5b9c6a7a9c1f2a5e323cbe73137a1dfa"
+    },
+    {
+      "path": "packages/postgres/src/capability-grant-authority-repository.ts",
+      "hash": "sha256:72c52d11b8bf0945940faa68fca4d83dc8645b44d27fa1317addcd5b8f5597d5"
+    },
+    {
+      "path": "packages/postgres/src/copilot-permission-authority.ts",
+      "hash": "sha256:edc10444c96b027cf73f4d3592fac894111afd5bfaf5b732a5f4c17e79fbe001"
+    },
+    {
+      "path": "packages/postgres/src/index.ts",
+      "hash": "sha256:c7a1adafcfbfd5ac3d4ff8ba1d01533e72c161e761f325969c45099b6640cb1e"
+    },
+    {
+      "path": "packages/postgres/src/interaction-authority-repository.ts",
+      "hash": "sha256:f557e1660f58cc5cc8237e62b973b878618d3fe7d83a8daf397c4b942966e2fc"
+    },
+    {
+      "path": "packages/postgres/src/project-copilot-repository.ts",
+      "hash": "sha256:8aa569281fba7cc51f47d6c2b6e51098df89cf44e2eb8ef44cf188be10cb77d8"
+    },
+    {
+      "path": "packages/postgres/src/project-thread-authority-repository.ts",
+      "hash": "sha256:061886dd125f6053ced8eab49d51234854ad8356c59be1c756c7f03e12bd04ff"
+    },
+    {
+      "path": "packages/postgres/src/project-thread-view-reader.ts",
+      "hash": "sha256:a4220106fc9a3bed2820709dd1e8f9fd7d9282f95de4ddef40bdb75e39ccdc46"
+    },
+    {
+      "path": "packages/postgres/src/project-work-view-reader.ts",
+      "hash": "sha256:d0bf591861d5613be54b0ff1459ddd23a837aaf5677175da43db2a788839bc3c"
+    },
+    {
+      "path": "packages/postgres/src/project-worker-output-manifest-reader.ts",
+      "hash": "sha256:a70cd99a45ea8f017a0879d37aa792457a4de5a2d7f0d869d19b75ed8a66ef93"
+    },
+    {
+      "path": "packages/postgres/src/work-unit-authority-repository.ts",
+      "hash": "sha256:352207279ca7f751d8e10c584e1037cd8b66f497cae1fd3f836cdd60672c3276"
+    },
+    {
+      "path": "packages/postgres/test/copilot-permission-authority.test.ts",
+      "hash": "sha256:66238c219adbca49d12e82572a5b480cdc0eb52cb44703683110a9c1da625b34"
+    },
+    {
+      "path": "packages/postgres/test/project-copilot-repository.test.ts",
+      "hash": "sha256:fb0030af5dc7c9a13d49b447f3a10995a0cecaf990755f14d7b4cc9a48e276fa"
+    },
+    {
+      "path": "packages/postgres/test/working-state-authority-repository.test.ts",
+      "hash": "sha256:250841bdd86b46603201c34c082f9fa9d0b1f3716f6fc76c64942718bcd0e98e"
+    },
+    {
+      "path": "scripts/a1/owned-conversation.critical.test.mjs",
+      "hash": "sha256:266005327d221adf6bcc66112c9b084259454c66a8de9df59c9e8e58fab387b9"
+    },
+    {
+      "path": "scripts/a1/owned-conversation.test.mjs",
+      "hash": "sha256:6f400fbaafac91d0b2bac6ca0c67e8709c814991bb532058ce44e951c7be35e1"
+    },
+    {
+      "path": "scripts/a1/owned-postgres.mjs",
+      "hash": "sha256:e4f66c42e9b215f0a3305ff02b93e9ef8a3e81d019db8530422c7f246eb606e6"
+    },
+    {
+      "path": "scripts/a1/run-browser.mjs",
+      "hash": "sha256:8ae34eb1951d73bba1bcde36082b00ff1b3fcd4eade32d371f02a92f0e08da09"
+    },
+    {
+      "path": "scripts/a1/run-vitest.mjs",
+      "hash": "sha256:4c2c635a474e84dba08144dfc9d68046281a9ccedff03e8fbf29954604a11d76"
+    }
+  ],
+  "runs": [
+    {
+      "argv": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "scripts/a1/owned-conversation.test.mjs"
+      ],
+      "exit_code": 0,
+      "output": "reports/a1-passes/FE-A1.3-W03-execution-1791683965472.tap",
+      "output_hash": "sha256:9d8c2aba798b5ac3bbc80e6f13d12c925fce663715cf801c09f115dc6a70606e"
+    }
+  ],
+  "boundary": "Canonical ownership and retained readable advisory conversation only. Provider internal CPU, memory, network, tokens and price remain unavailable; unknown values never satisfy applicable hard limits. Historical adoption records actual import Work and preserves original bytes without reconstructing original execution authority. Proposal decisions/commands, progressive AG-UI activities/interrupts, native examiners, reactive Workspace graph cycles and A1 product acceptance remain open required ledger items."
+}
