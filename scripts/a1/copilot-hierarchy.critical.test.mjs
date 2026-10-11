@@ -99,6 +99,15 @@ test("FE-A1.1-W01-AC03 critical: keyboard opening and dismissal preserve the exa
     ),
     "Petra answer",
   );
+  const narrowReturn = await surface.evaluate(
+    "(()=>{const e=document.querySelector('.copilot-workspace-result > header > button'),r=e.getBoundingClientRect();return {width:r.width,right:r.right,viewport:innerWidth,scrollWidth:document.documentElement.scrollWidth};})()",
+  );
+  assert(
+    narrowReturn.width >= 130 &&
+      narrowReturn.right <= narrowReturn.viewport + 1 &&
+      narrowReturn.scrollWidth <= narrowReturn.viewport + 1,
+    "Keeping the return label legible must not introduce narrow-view overflow.",
+  );
   await surface.evaluate(
     "Array.from(document.querySelectorAll('.copilot-workspace-result button')).find(e=>e.textContent==='Return to workspace').focus()",
   );
@@ -129,6 +138,7 @@ test("FE-A1.1-W01-AC03 critical: keyboard opening and dismissal preserve the exa
     exact_answer: true,
     keyboard_activation: true,
     route_after_dismissal: "brief",
+    return_control: narrowReturn,
     geometry: await surface.geometry(),
   });
 });

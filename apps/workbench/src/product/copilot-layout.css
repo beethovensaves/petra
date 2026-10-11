@@ -154,3 +154,11 @@
     margin-left: auto;
   }
 }
+.copilot-workspace-result > header > div {
+  min-inline-size: 0;
+}
+.copilot-workspace-result > header > button {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  align-self: flex-start;
+}
