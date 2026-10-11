@@ -6,7 +6,7 @@ This is the required execution breakdown for FE-A1. It records implementation ob
 
 The canonical work/status/dependency register is [scripts/frontend-a1-work-inventory.json](../scripts/frontend-a1-work-inventory.json). This report is generated from it with `npm run roadmap:frontend-a1`; `npm run audit:frontend-a1` checks coverage and document agreement. The existing [reports/FRONTEND-ADAPTATION-MILESTONE.md](../reports/FRONTEND-ADAPTATION-MILESTONE.md) retains historical implementation evidence.
 
-Roadmap/execution binding: `sha256:da6b9b45f4ca035706738e73ffc42ad5935733f06b3dd37e29c98a56d76373b6`. [scripts/frontend-a1-execution.md](../scripts/frontend-a1-execution.md) contains the same functions and criteria in prerequisite order. D025 requires one active item, an execution pass, a distinct critical pass, optional repair, and broad diagnosis after repeated failure. Both execution worktrees must match before work starts, verification is recorded, completion is accepted, or a later wave advances.
+Roadmap/execution binding: `sha256:042d8ad70e8c0309f89c3f5fabe466178c901b947e79fa35cd7273db34972d7e`. [scripts/frontend-a1-execution.md](../scripts/frontend-a1-execution.md) contains the same functions and criteria in prerequisite order. D025 requires one active item, an execution pass, a distinct critical pass, optional repair, and broad diagnosis after repeated failure. Both execution worktrees must match before work starts, verification is recorded, completion is accepted, or a later wave advances.
 
 ## Controlling contract and scope
 
@@ -66,7 +66,7 @@ The wave controller checks the ledger before Wave 7 or later worker execution, r
 | Milestone | Required result                                                            | Complete / total | State       |
 | --------- | -------------------------------------------------------------------------- | ---------------- | ----------- |
 | FE-A1.0   | Contract reconciliation and execution control                              | 6 / 6            | complete    |
-| FE-A1.1   | Copilot shell and interaction design                                       | 0 / 7            | in_progress |
+| FE-A1.1   | Copilot shell and interaction design                                       | 1 / 7            | in_progress |
 | FE-A1.2   | Conversational zero/empty Project entry                                    | 0 / 7            | in_progress |
 | FE-A1.3   | Durable grounded conversation and AG-UI                                    | 4 / 18           | in_progress |
 | FE-A1.4   | Reactive Workspace, compositional examination and cyclic graph-guided work | 0 / 23           | in_progress |
@@ -189,7 +189,7 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 
 #### FE-A1.1-W01 — Rebuild the copilot and workspace hierarchy
 
-- **State:** `in_progress`; **owner:** frontend.
+- **State:** `complete`; **owner:** frontend.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.0-W02](#fe-a10-w02), [FE-A1.3-W05](#fe-a13-w05)
 - **Contracts:** D024, UX-REQ-001.
 - **Construct:** Build the persistent 30/70 desktop shell around a compact Project/objective header, continuous user/assistant thread, contextual progress/interventions, usable composer, and active Workspace result. Sequence: move Workspace destinations and inspection into Workspace chrome; reserve chat and composer space while bounding expandable support; reflect the opened answer or evidence in the Workspace heading and activate narrow Workspace presentation; verify ordinary desktop geometry and actual retained Q/A/draft continuity; critically challenge short/narrow viewports, expanded disclosures, keyboard activation and native return. After AG-UI integration, revalidate the whole hierarchy and keep long answer headings from shrinking the native return control into a vertical column.
@@ -198,7 +198,9 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
   - The left panel reads and behaves as a normal conversational agent; route-owned forms do not dominate it.
   - The Workspace object carries the strongest visual hierarchy.
 - **Retained partial evidence:** [reports/FRONTEND-STEP2-AGENT-WORKSPACE.json](../reports/FRONTEND-STEP2-AGENT-WORKSPACE.json), [reports/a1-passes/FE-A1.1-W01-execution-1791675860000.json](../reports/a1-passes/FE-A1.1-W01-execution-1791675860000.json), [reports/a1-passes/FE-A1.1-W01-critical-1791675948769.json](../reports/a1-passes/FE-A1.1-W01-critical-1791675948769.json)
-- **Completion evidence:** Missing; this item cannot close.
+- **Completion evidence:**
+  - [reports/a1-passes/FE-A1.1-W01-execution-1791678575943.json](../reports/a1-passes/FE-A1.1-W01-execution-1791678575943.json); `node --test --test-reporter=tap scripts/a1/copilot-hierarchy.test.mjs`. Live production layout, retained actual managed-model Q/A, navigation, composer, disclosure and Workspace presentation only. No new model invocation, proposal command, native examiner, cycle or overall A1 acceptance is inferred.
+  - [reports/a1-passes/FE-A1.1-W01-critical-1791678645251.json](../reports/a1-passes/FE-A1.1-W01-critical-1791678645251.json); `node --test --test-reporter=tap scripts/a1/copilot-hierarchy.critical.test.mjs`. Live production layout, retained actual managed-model Q/A, navigation, composer, disclosure and Workspace presentation only. No new model invocation, proposal command, native examiner, cycle or overall A1 acceptance is inferred.
 
 <a id="fe-a11-w02"></a>
 
