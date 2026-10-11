@@ -1129,7 +1129,7 @@
       "milestone": "FE-A1.2",
       "title": "Retain outcome-first definition drafting",
       "owner": "runtime",
-      "status": "planned",
+      "status": "complete",
       "implementation": "Keep the server-owned definition draft preserving original wording, Project kernel, proposed objective, outputs, assumptions, capabilities, and unsupported behavior; examples remain optional.",
       "acceptance": [
         "Scientific, controlled-writing, and unrelated outcomes use the same entry.",
@@ -1152,7 +1152,20 @@
         "reports/a1-passes/FE-A1.2-W01-execution-1791679529391.json",
         "reports/a1-passes/FE-A1.2-W01-critical-1791679570413.json"
       ],
-      "completion_evidence": [],
+      "completion_evidence": [
+        {
+          "pass": "execution",
+          "artifact": "reports/a1-passes/FE-A1.2-W01-execution-1791681414148.json",
+          "command": "node --test --test-reporter=tap scripts/a1/outcome-drafting.test.mjs",
+          "boundary": "Existing outcome-first draft construction and its exact authority are being verified. Live browser uses one ordinary pre-Project session and three retained draft revisions, with no model invocation or accepted Project creation against inspection data. Isolated PostgreSQL proves real creation/atomicity and rejection. This does not close definition composition, intake model functions, native examiner execution or overall A1."
+        },
+        {
+          "pass": "critical",
+          "artifact": "reports/a1-passes/FE-A1.2-W01-critical-1791681529436.json",
+          "command": "node --test --test-reporter=tap scripts/a1/outcome-drafting.critical.test.mjs",
+          "boundary": "Existing outcome-first draft construction and its exact authority are being verified. Live browser uses one ordinary pre-Project session and three retained draft revisions, with no model invocation or accepted Project creation against inspection data. Isolated PostgreSQL proves real creation/atomicity and rejection. This does not close definition composition, intake model functions, native examiner execution or overall A1."
+        }
+      ],
       "optional_scenarios": [
         "A1-S01",
         "A1-S04"
@@ -1248,6 +1261,27 @@
             }
           ],
           "finished_at": "2026-10-11T00:46:55.208Z"
+        },
+        {
+          "item": "FE-A1.2-W01",
+          "phase": "critical",
+          "failed_attempts": 0,
+          "started_at": "2026-10-11T01:16:22.639Z",
+          "passes": [
+            {
+              "pass": "execution",
+              "artifact": "reports/a1-passes/FE-A1.2-W01-execution-1791681414148.json",
+              "command": "node --test --test-reporter=tap scripts/a1/outcome-drafting.test.mjs",
+              "boundary": "Existing outcome-first draft construction and its exact authority are being verified. Live browser uses one ordinary pre-Project session and three retained draft revisions, with no model invocation or accepted Project creation against inspection data. Isolated PostgreSQL proves real creation/atomicity and rejection. This does not close definition composition, intake model functions, native examiner execution or overall A1."
+            },
+            {
+              "pass": "critical",
+              "artifact": "reports/a1-passes/FE-A1.2-W01-critical-1791681529436.json",
+              "command": "node --test --test-reporter=tap scripts/a1/outcome-drafting.critical.test.mjs",
+              "boundary": "Existing outcome-first draft construction and its exact authority are being verified. Live browser uses one ordinary pre-Project session and three retained draft revisions, with no model invocation or accepted Project creation against inspection data. Isolated PostgreSQL proves real creation/atomicity and rejection. This does not close definition composition, intake model functions, native examiner execution or overall A1."
+            }
+          ],
+          "finished_at": "2026-10-11T01:20:58.904Z"
         }
       ]
     },
