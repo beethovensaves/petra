@@ -116,10 +116,18 @@ try {
     assert(draft.content.selected_capabilities.length > 0);
     assert(Array.isArray(draft.content.unsupported_capabilities));
     const visible = await evaluate(
-      "(()=>{const e=document.querySelector('.project-definition-review');return {text:e.innerText,confirmed:e.querySelector('input[type=checkbox]').checked,disabled:Array.from(e.querySelectorAll('button')).find(e=>e.textContent==='Create Project').disabled};})()",
+      "(()=>{const e=document.querySelector('.project-definition-review'),button=Array.from(e.querySelectorAll('button')).find(e=>e.textContent==='Create Project');return {text:e.innerText,confirmed:e.querySelector('input[type=checkbox]').checked,disabled:button.disabled || button.getAttribute('aria-disabled')==='true'};})()",
     );
     assert.equal(visible.confirmed, false);
     assert.equal(visible.disabled, true);
+    await evaluate(
+      "Array.from(document.querySelectorAll('.project-definition-review button')).find(e=>e.textContent==='Create Project').click()",
+    );
+    await evaluate("new Promise(done=>requestAnimationFrame(done))");
+    assert(
+      !writes.some((url) => /\/from-definition-draft$/u.test(url)),
+      "The actual unavailable button must send no creation command.",
+    );
     for (const assumption of draft.content.assumptions) {
       assert(visible.text.includes(assumption.statement));
       assert(visible.text.includes(assumption.consequence));

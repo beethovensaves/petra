@@ -12,6 +12,7 @@
     "apps/server/src/intake-copilot-routes.ts",
     "apps/server/src/intake-copilot.ts",
     "apps/server/test/project-definition-draft-routes.test.ts",
+    "apps/workbench/src/design-system/primitives.tsx",
     "apps/workbench/src/product/IntakeCopilotConversation.tsx",
     "apps/workbench/src/product/IntakeWorkspace.tsx",
     "apps/workbench/src/product/ProjectProfileSurface.tsx",
