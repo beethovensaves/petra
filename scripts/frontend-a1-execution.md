@@ -1,6 +1,6 @@
 # A1 execution instructions
 
-Roadmap binding: `sha256:d951c45189b635cfd707c081890c57eafca44ec63e78b68d3ce61d54bc9fbaf0`. Generated from frontend-a1-work-inventory.json.
+Roadmap binding: `sha256:6b2c52430758ffb51e49bafd5e3b2c4a1dca0d362530b7def50c13bfc16c0e2e`. Generated from frontend-a1-work-inventory.json.
 
 D025 and D024 govern this execution. Historical frozen Wave 6 instructions are subordinate. Native screen-reader evaluation is excluded; browser semantics and functional peers remain mandatory. The sixteen late scenarios are optional.
 
@@ -163,7 +163,7 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 ### 10. FE-A1.3-W03: Persist and read exact user and assistant turns
 
-State: in_progress. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.3-W01.
+State: complete. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.3-W01.
 
 Sequence: (1) expose current model and permission readiness; (2) require an explicit reviewed owner-only RunProjectCopilot grant and immutable receipt before new conversation Work or historical adoption, preserving existing authorized Work management grants; (3) retain exact private question/native-context/result Artifacts and canonical Thread/Run/Work atomically; (4) resolve exact applicable inquiry, Work, Review and cycle lineage before release; (5) page original readable content and restore questions, answers, citations and outcomes in a fresh browser; (6) reject owner substitution, widened permission, stale proposals, late partial commits and duplicate effects in the distinct critical pass.
 
