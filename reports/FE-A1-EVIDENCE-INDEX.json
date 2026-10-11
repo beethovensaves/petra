@@ -1,7 +1,7 @@
 {
   "schema_name": "petra.a1-evidence-index",
   "schema_version": "1.0.0",
-  "roadmap_binding": "sha256:cb6375e3dfc4dce25fee1246aef585a29102e8ef3e27460188586b4bf7b67934",
+  "roadmap_binding": "sha256:b6fe2fe934883e8019dc09cc391b38362e605b9c07c5784884d9c2f610d5d18a",
   "current": {
     "required": 90,
     "complete": 10,

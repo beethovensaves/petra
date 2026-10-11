@@ -1,6 +1,6 @@
 # A1 execution instructions
 
-Roadmap binding: `sha256:cb6375e3dfc4dce25fee1246aef585a29102e8ef3e27460188586b4bf7b67934`. Generated from frontend-a1-work-inventory.json.
+Roadmap binding: `sha256:b6fe2fe934883e8019dc09cc391b38362e605b9c07c5784884d9c2f610d5d18a`. Generated from frontend-a1-work-inventory.json.
 
 D025 and D024 govern this execution. Historical frozen Wave 6 instructions are subordinate. Native screen-reader evaluation is excluded; browser semantics and functional peers remain mandatory. The sixteen late scenarios are optional.
 
@@ -225,7 +225,7 @@ State: in_progress. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-
 
 Use pinned official SDK client/server adapters for run, text, activity, tool, state, interrupt, custom, and terminal events; translate them into typed conversation/Work/Workspace models. Sequence: define presentation-only view models and a closed versioned disclosure activity; preserve the existing canonical terminal encoder while adding retained block references; resolve each disclosed block through the exact actor-authorized retained owner read before exposing bytes; map registered Work, tool and interrupt events separately from advisory role authority; mount typed live activity in the actual copilot; verify live managed-model delivery, canonical Work links and independent hostile-event/version/scope/replay cases. Revalidate the hierarchy after integration changes its presentation.
 
-Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
+Execution plan: [reports/a1-plans/FE-A1.3-W05-execution.json](../reports/a1-plans/FE-A1.3-W05-execution.json). Critical plan: [reports/a1-plans/FE-A1.3-W05-critical.json](../reports/a1-plans/FE-A1.3-W05-critical.json). Run each with `npm run a1:verify -- PLAN` in that order.
 
 - **FE-A1.3-W05-AC01:** The real conversation progressively renders validated state through the official client.
 - **FE-A1.3-W05-AC02:** Custom events are versioned and allowlisted.
