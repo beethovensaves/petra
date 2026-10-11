@@ -1,0 +1,856 @@
+{
+  "checked_at": "2026-10-11T00:40:39.815Z",
+  "session_id": "intake_session_20Z0A22Y45EFZKSY6K1AFG4RMX",
+  "observations": [
+    {
+      "outcome": "Compare scientific claims against scholarly evidence and retained sources.",
+      "family": "petra.scientific-evidence",
+      "draft": {
+        "content": {
+          "project": {
+            "name": "Compare scientific claims against scholarly evidence and retained sources.",
+            "description": "Outcome-first Project created from the user's exact stated objective."
+          },
+          "request": {
+            "outcome": "Compare scientific claims against scholarly evidence and retained sources.",
+            "request_id": "definition_draft_request_01M4M6F596MJ42ER92EY56N7QN",
+            "schema_name": "petra.project-definition-draft-request",
+            "schema_version": "1.0.0"
+          },
+          "objective": {
+            "statement": "Compare scientific claims against scholarly evidence and retained sources.",
+            "objective_kind": "scientific.research-question"
+          },
+          "assumptions": [
+            {
+              "code": "project.private",
+              "statement": "The new Project is private to its creating actor.",
+              "consequence": "Only the authenticated Project owner receives creation authority in this step."
+            },
+            {
+              "code": "objective.exact-wording",
+              "statement": "The stated outcome becomes the first objective without rewriting.",
+              "consequence": "Petra preserves the user's wording as the authoritative starting objective."
+            },
+            {
+              "code": "definition.example-seed",
+              "statement": "The exact Scientific evidence inquiry example seeds the Project-owned definition.",
+              "consequence": "The Project receives an immutable copy and does not depend on later changes to the example."
+            }
+          ],
+          "definition_family": "petra.scientific-evidence",
+          "definition_origin": {
+            "origin_kind": "template_seed",
+            "template_id": "project_template_01K6P000000000000000000001",
+            "template_hash": "sha256:c077577b685363d084ff896bd30c45b1c5b64bacd9d34c5a953d0488929911e0",
+            "template_version": "1.5.0"
+          },
+          "definition_content": {
+            "label": "Scientific evidence inquiry",
+            "terms": [
+              {
+                "plural": "Research questions",
+                "singular": "Research question",
+                "definition": "A bounded question the Project is trying to answer.",
+                "semantic_key": "scientific.research-question",
+                "generic_family": "focus"
+              },
+              {
+                "plural": "Claims",
+                "singular": "Claim",
+                "definition": "A proposition with explicit scope, basis, and authority state.",
+                "semantic_key": "scientific.claim",
+                "generic_family": "finding"
+              },
+              {
+                "plural": "Sources",
+                "singular": "Source",
+                "definition": "A versioned and rights-governed basis available to the Project.",
+                "semantic_key": "scientific.literature",
+                "generic_family": "reference"
+              },
+              {
+                "plural": "Evidence links",
+                "singular": "Evidence link",
+                "definition": "An exact relationship connecting a Claim to its retained source basis.",
+                "semantic_key": "scientific.assertion",
+                "generic_family": "relationship"
+              },
+              {
+                "plural": "Return to evidence",
+                "singular": "Return to evidence",
+                "definition": "Return to the exact originating evidence object.",
+                "semantic_key": "scientific.graph.return",
+                "generic_family": "task"
+              },
+              {
+                "plural": "Show downstream effects",
+                "singular": "Show downstream effects",
+                "definition": "Reveal recorded downstream relationships within an exact bounded query.",
+                "semantic_key": "scientific.graph.show-downstream",
+                "generic_family": "task"
+              }
+            ],
+            "description": "Organizes research questions, claims, source relationships, grounded Work, Review, and provenance without changing Petra's shared authority rules.",
+            "omitted_flows": [
+              "External filesystem editing",
+              "Multi-user collaboration"
+            ],
+            "registrations": [
+              {
+                "contract": {
+                  "name": "petra.project-objective",
+                  "version": "1.0.0",
+                  "content_hash": "sha256:fc8a37e66cfd29feb5613f744497b3b82f6623372a2a19dda9ff0ada02fab792"
+                },
+                "semantic_key": "scientific.research-question",
+                "registration_kind": "objective_schema"
+              },
+              {
+                "contract": {
+                  "name": "petra.claim",
+                  "version": "1.0.0",
+                  "content_hash": "sha256:1cb1f7910202af21e0f8e610c0dcab605db50f8c8466a9c38f0acf69778db196"
+                },
+                "semantic_key": "scientific.claim",
+                "registration_kind": "object_schema"
+              },
+              {
+                "contract": {
+                  "name": "petra.assertion",
+                  "version": "1.0.0",
+                  "content_hash": "sha256:2c58656a9a93052112b26a9080c37811e570000de35d0f9240180da1742c8c91"
+                },
+                "semantic_key": "scientific.assertion",
+                "registration_kind": "relationship_schema"
+              },
+              {
+                "contract": {
+                  "name": "petra.rights-decision",
+                  "version": "1.0.0",
+                  "content_hash": "sha256:460d2ca3f9d3b9fff92f2b4280cf223c37ba3781b416b3a8c414b4ca44d93e94"
+                },
+                "semantic_key": "scientific.literature",
+                "registration_kind": "source_role"
+              },
+              {
+                "contract": {
+                  "name": "petra.work-unit",
+                  "version": "1.0.0",
+                  "content_hash": "sha256:6009a3c4ec45df4f7073189f8ef111e59428392a9c8fec1ee14508aeca04c316"
+                },
+                "semantic_key": "scientific.grounded-synthesis",
+                "registration_kind": "workflow"
+              },
+              {
+                "contract": {
+                  "name": "petra.model-role-certification",
+                  "version": "1.1.0",
+                  "content_hash": "sha256:7bab65763e37fc2bec0b9fa64d178ae37e769882717a445bb2a5f0fb650a40f1"
+                },
+                "semantic_key": "scientific.grounded-synthesist",
+                "registration_kind": "model_role"
+              },
+              {
+                "contract": {
+                  "name": "petra.review-session",
+                  "version": "1.1.0",
+                  "content_hash": "sha256:e563139dcc0b87024354900e709e96bd749b5550e1a1c1a2661f71ddd7fab627"
+                },
+                "semantic_key": "scientific.claim-review",
+                "registration_kind": "workflow"
+              },
+              {
+                "contract": {
+                  "name": "petra.focused-graph-view",
+                  "version": "1.0.0",
+                  "content_hash": "sha256:bc8e4cb6693778872d3d6806a0d809191cf039bec121069a2d940eba36f36ca6"
+                },
+                "semantic_key": "petra.focused-graph",
+                "registration_kind": "extension"
+              },
+              {
+                "contract": {
+                  "name": "petra.focused-graph-view",
+                  "version": "1.0.0",
+                  "content_hash": "sha256:bc8e4cb6693778872d3d6806a0d809191cf039bec121069a2d940eba36f36ca6"
+                },
+                "semantic_key": "scientific.graph.return",
+                "registration_kind": "extension"
+              },
+              {
+                "contract": {
+                  "name": "petra.focused-graph-view",
+                  "version": "1.1.0",
+                  "content_hash": "sha256:9074cdf0cb7eae9e5717808cd6cb69b554407b485d00d87f5f360f735d45c4a1"
+                },
+                "semantic_key": "scientific.graph.show-downstream",
+                "registration_kind": "extension"
+              },
+              {
+                "contract": {
+                  "name": "petra.hypothesis",
+                  "version": "1.0.0",
+                  "content_hash": "sha256:39cee3646fc7a1a0f9f604774a74d893c754e2dcc9edb9ea9be2648a02f2bfef"
+                },
+                "semantic_key": "scientific.hypothesis",
+                "registration_kind": "extension"
+              },
+              {
+                "contract": {
+                  "name": "petra.hypothesis-assessment",
+                  "version": "1.0.0",
+                  "content_hash": "sha256:e92132c64e31579974354d506394239c4f8de51a8d44294a4b4e8b8d64a16c05"
+                },
+                "semantic_key": "scientific.hypothesis-assessment",
+                "registration_kind": "extension"
+              },
+              {
+                "contract": {
+                  "name": "petra.posture-decision",
+                  "version": "1.0.0",
+                  "content_hash": "sha256:636ad244800382c55b8ba1017958cbe8537933e32b0220365a2ee0b45a57bd85"
+                },
+                "semantic_key": "scientific.posture",
+                "registration_kind": "extension"
+              },
+              {
+                "contract": {
+                  "name": "petra.cycle-disposition",
+                  "version": "1.0.0",
+                  "content_hash": "sha256:1dbffc7ce8776913feda8b51898f9e72ed696c49be1170ae9535ff308a732ac8"
+                },
+                "semantic_key": "scientific.cycle-disposition",
+                "registration_kind": "extension"
+              },
+              {
+                "contract": {
+                  "name": "petra.assessment-profile",
+                  "version": "1.0.0",
+                  "content_hash": "sha256:fc3c6ac2f779191eb7d3a59c0a436cc29a61e53fbf5278b96162f6f12993cdb5"
+                },
+                "semantic_key": "scientific.scoped-examination-v1",
+                "registration_kind": "validator"
+              },
+              {
+                "contract": {
+                  "name": "petra.assessment-policy",
+                  "version": "1.0.0",
+                  "content_hash": "sha256:2dd733aa6a232164001ecdd1cac9b857325739c874485b6b1dc65a355350b713"
+                },
+                "semantic_key": "scientific.scoped-examination-policy-v1",
+                "registration_kind": "extension"
+              }
+            ],
+            "supported_places": [
+              "brief",
+              "sources",
+              "review",
+              "graph",
+              "work",
+              "petra",
+              "composition",
+              "history",
+              "settings"
+            ],
+            "kernel_compatibility": "petra.project-kernel@1.0.0"
+          },
+          "initial_material_plan": [],
+          "selected_capabilities": [
+            {
+              "label": "Research question",
+              "reason": "Selected from the exact optional capability example Scientific evidence inquiry.",
+              "source": "registered_template",
+              "profile_ref": {
+                "profile_id": "project_template_01K6P000000000000000000001",
+                "content_hash": "sha256:c077577b685363d084ff896bd30c45b1c5b64bacd9d34c5a953d0488929911e0",
+                "profile_version": "1.5.0"
+              },
+              "capability_id": "scientific.research-question"
+            },
+            {
+              "label": "Claim",
+              "reason": "Selected from the exact optional capability example Scientific evidence inquiry.",
+              "source": "registered_template",
+              "profile_ref": {
+                "profile_id": "project_template_01K6P000000000000000000001",
+                "content_hash": "sha256:c077577b685363d084ff896bd30c45b1c5b64bacd9d34c5a953d0488929911e0",
+                "profile_version": "1.5.0"
+              },
+              "capability_id": "scientific.claim"
+            },
+            {
+              "label": "Evidence link",
+              "reason": "Selected from the exact optional capability example Scientific evidence inquiry.",
+              "source": "registered_template",
+              "profile_ref": {
+                "profile_id": "project_template_01K6P000000000000000000001",
+                "content_hash": "sha256:c077577b685363d084ff896bd30c45b1c5b64bacd9d34c5a953d0488929911e0",
+                "profile_version": "1.5.0"
+              },
+              "capability_id": "scientific.assertion"
+            },
+            {
+              "label": "Source",
+              "reason": "Selected from the exact optional capability example Scientific evidence inquiry.",
+              "source": "registered_template",
+              "profile_ref": {
+                "profile_id": "project_template_01K6P000000000000000000001",
+                "content_hash": "sha256:c077577b685363d084ff896bd30c45b1c5b64bacd9d34c5a953d0488929911e0",
+                "profile_version": "1.5.0"
+              },
+              "capability_id": "scientific.literature"
+            },
+            {
+              "label": "scientific.grounded-synthesis",
+              "reason": "Selected from the exact optional capability example Scientific evidence inquiry.",
+              "source": "registered_template",
+              "profile_ref": {
+                "profile_id": "project_template_01K6P000000000000000000001",
+                "content_hash": "sha256:c077577b685363d084ff896bd30c45b1c5b64bacd9d34c5a953d0488929911e0",
+                "profile_version": "1.5.0"
+              },
+              "capability_id": "scientific.grounded-synthesis"
+            },
+            {
+              "label": "scientific.grounded-synthesist",
+              "reason": "Selected from the exact optional capability example Scientific evidence inquiry.",
+              "source": "registered_template",
+              "profile_ref": {
+                "profile_id": "project_template_01K6P000000000000000000001",
+                "content_hash": "sha256:c077577b685363d084ff896bd30c45b1c5b64bacd9d34c5a953d0488929911e0",
+                "profile_version": "1.5.0"
+              },
+              "capability_id": "scientific.grounded-synthesist"
+            },
+            {
+              "label": "scientific.claim-review",
+              "reason": "Selected from the exact optional capability example Scientific evidence inquiry.",
+              "source": "registered_template",
+              "profile_ref": {
+                "profile_id": "project_template_01K6P000000000000000000001",
+                "content_hash": "sha256:c077577b685363d084ff896bd30c45b1c5b64bacd9d34c5a953d0488929911e0",
+                "profile_version": "1.5.0"
+              },
+              "capability_id": "scientific.claim-review"
+            },
+            {
+              "label": "petra.focused-graph",
+              "reason": "Selected from the exact optional capability example Scientific evidence inquiry.",
+              "source": "registered_template",
+              "profile_ref": {
+                "profile_id": "project_template_01K6P000000000000000000001",
+                "content_hash": "sha256:c077577b685363d084ff896bd30c45b1c5b64bacd9d34c5a953d0488929911e0",
+                "profile_version": "1.5.0"
+              },
+              "capability_id": "petra.focused-graph"
+            },
+            {
+              "label": "Return to evidence",
+              "reason": "Selected from the exact optional capability example Scientific evidence inquiry.",
+              "source": "registered_template",
+              "profile_ref": {
+                "profile_id": "project_template_01K6P000000000000000000001",
+                "content_hash": "sha256:c077577b685363d084ff896bd30c45b1c5b64bacd9d34c5a953d0488929911e0",
+                "profile_version": "1.5.0"
+              },
+              "capability_id": "scientific.graph.return"
+            },
+            {
+              "label": "Show downstream effects",
+              "reason": "Selected from the exact optional capability example Scientific evidence inquiry.",
+              "source": "registered_template",
+              "profile_ref": {
+                "profile_id": "project_template_01K6P000000000000000000001",
+                "content_hash": "sha256:c077577b685363d084ff896bd30c45b1c5b64bacd9d34c5a953d0488929911e0",
+                "profile_version": "1.5.0"
+              },
+              "capability_id": "scientific.graph.show-downstream"
+            },
+            {
+              "label": "scientific.hypothesis",
+              "reason": "Selected from the exact optional capability example Scientific evidence inquiry.",
+              "source": "registered_template",
+              "profile_ref": {
+                "profile_id": "project_template_01K6P000000000000000000001",
+                "content_hash": "sha256:c077577b685363d084ff896bd30c45b1c5b64bacd9d34c5a953d0488929911e0",
+                "profile_version": "1.5.0"
+              },
+              "capability_id": "scientific.hypothesis"
+            },
+            {
+              "label": "scientific.hypothesis-assessment",
+              "reason": "Selected from the exact optional capability example Scientific evidence inquiry.",
+              "source": "registered_template",
+              "profile_ref": {
+                "profile_id": "project_template_01K6P000000000000000000001",
+                "content_hash": "sha256:c077577b685363d084ff896bd30c45b1c5b64bacd9d34c5a953d0488929911e0",
+                "profile_version": "1.5.0"
+              },
+              "capability_id": "scientific.hypothesis-assessment"
+            },
+            {
+              "label": "scientific.posture",
+              "reason": "Selected from the exact optional capability example Scientific evidence inquiry.",
+              "source": "registered_template",
+              "profile_ref": {
+                "profile_id": "project_template_01K6P000000000000000000001",
+                "content_hash": "sha256:c077577b685363d084ff896bd30c45b1c5b64bacd9d34c5a953d0488929911e0",
+                "profile_version": "1.5.0"
+              },
+              "capability_id": "scientific.posture"
+            },
+            {
+              "label": "scientific.cycle-disposition",
+              "reason": "Selected from the exact optional capability example Scientific evidence inquiry.",
+              "source": "registered_template",
+              "profile_ref": {
+                "profile_id": "project_template_01K6P000000000000000000001",
+                "content_hash": "sha256:c077577b685363d084ff896bd30c45b1c5b64bacd9d34c5a953d0488929911e0",
+                "profile_version": "1.5.0"
+              },
+              "capability_id": "scientific.cycle-disposition"
+            },
+            {
+              "label": "scientific.scoped-examination-v1",
+              "reason": "Selected from the exact optional capability example Scientific evidence inquiry.",
+              "source": "registered_template",
+              "profile_ref": {
+                "profile_id": "project_template_01K6P000000000000000000001",
+                "content_hash": "sha256:c077577b685363d084ff896bd30c45b1c5b64bacd9d34c5a953d0488929911e0",
+                "profile_version": "1.5.0"
+              },
+              "capability_id": "scientific.scoped-examination-v1"
+            },
+            {
+              "label": "scientific.scoped-examination-policy-v1",
+              "reason": "Selected from the exact optional capability example Scientific evidence inquiry.",
+              "source": "registered_template",
+              "profile_ref": {
+                "profile_id": "project_template_01K6P000000000000000000001",
+                "content_hash": "sha256:c077577b685363d084ff896bd30c45b1c5b64bacd9d34c5a953d0488929911e0",
+                "profile_version": "1.5.0"
+              },
+              "capability_id": "scientific.scoped-examination-policy-v1"
+            }
+          ],
+          "unsupported_capabilities": [
+            {
+              "reason": "This capability is not registered by the proposed Project definition and will not be implied by the agent.",
+              "capability": "External filesystem editing"
+            },
+            {
+              "reason": "This capability is not registered by the proposed Project definition and will not be implied by the agent.",
+              "capability": "Multi-user collaboration"
+            }
+          ],
+          "enabled_evidence_namespaces": [
+            "scholarly",
+            "personal"
+          ]
+        },
+        "read_at": "2026-10-11T00:40:39.465Z",
+        "draft_id": "project_definition_draft_0ASNZJGVDJESNVY6K496J7R1E5",
+        "schema_name": "petra.project-definition-draft-view",
+        "content_hash": "sha256:e6dd85eae6a9a978aa7deb866840274c1d0e0db6f9816d7e6e0f48132f6923b0",
+        "schema_version": "1.0.0"
+      },
+      "optional_example": {
+        "open": false,
+        "selection": "",
+        "required": false
+      },
+      "unaccepted_creation_disabled": true
+    },
+    {
+      "outcome": "Prepare a controlled writing procedure governed by auditable requirements.",
+      "family": "petra.controlled-writing",
+      "draft": {
+        "content": {
+          "project": {
+            "name": "Prepare a controlled writing procedure governed by auditable requirements.",
+            "description": "Outcome-first Project created from the user's exact stated objective."
+          },
+          "request": {
+            "outcome": "Prepare a controlled writing procedure governed by auditable requirements.",
+            "request_id": "definition_draft_request_01M4M6F5CYJZMWKTRF7S3DETAE",
+            "schema_name": "petra.project-definition-draft-request",
+            "schema_version": "1.0.0"
+          },
+          "objective": {
+            "statement": "Prepare a controlled writing procedure governed by auditable requirements.",
+            "objective_kind": "writing.document-purpose"
+          },
+          "assumptions": [
+            {
+              "code": "project.private",
+              "statement": "The new Project is private to its creating actor.",
+              "consequence": "Only the authenticated Project owner receives creation authority in this step."
+            },
+            {
+              "code": "objective.exact-wording",
+              "statement": "The stated outcome becomes the first objective without rewriting.",
+              "consequence": "Petra preserves the user's wording as the authoritative starting objective."
+            },
+            {
+              "code": "definition.example-seed",
+              "statement": "The exact Controlled writing example seeds the Project-owned definition.",
+              "consequence": "The Project receives an immutable copy and does not depend on later changes to the example."
+            }
+          ],
+          "definition_family": "petra.controlled-writing",
+          "definition_origin": {
+            "origin_kind": "template_seed",
+            "template_id": "project_template_01K6P000000000000000000002",
+            "template_hash": "sha256:3c25a33d76349ff7b80bcdd0e00b8cf0b04548b135562d291fee65a81d0d1fbd",
+            "template_version": "1.0.0"
+          },
+          "definition_content": {
+            "label": "Controlled writing",
+            "terms": [
+              {
+                "plural": "Document purposes",
+                "singular": "Document purpose",
+                "definition": "A bounded outcome the controlled document is intended to achieve.",
+                "semantic_key": "writing.document-purpose",
+                "generic_family": "focus"
+              },
+              {
+                "plural": "Requirements",
+                "singular": "Requirement",
+                "definition": "An obligation or constraint whose origin, interpretation, and treatment remain inspectable.",
+                "semantic_key": "writing.requirement",
+                "generic_family": "finding"
+              },
+              {
+                "plural": "Authority sources",
+                "singular": "Authority source",
+                "definition": "A versioned basis that governs or informs the controlled document.",
+                "semantic_key": "writing.authority-source",
+                "generic_family": "reference"
+              },
+              {
+                "plural": "Governing links",
+                "singular": "Governing link",
+                "definition": "A relationship connecting an authority source or requirement to the content it governs.",
+                "semantic_key": "writing.governs",
+                "generic_family": "relationship"
+              }
+            ],
+            "description": "Organizes document purposes, requirements, authority sources, governing relationships, Review, revisions, outputs, and provenance without changing Petra's shared authority rules.",
+            "omitted_flows": [
+              "External filesystem editing",
+              "Multi-user collaboration"
+            ],
+            "registrations": [
+              {
+                "contract": {
+                  "name": "petra.project-objective",
+                  "version": "1.0.0",
+                  "content_hash": "sha256:fc8a37e66cfd29feb5613f744497b3b82f6623372a2a19dda9ff0ada02fab792"
+                },
+                "semantic_key": "writing.document-purpose",
+                "registration_kind": "objective_schema"
+              },
+              {
+                "contract": {
+                  "name": "petra.controlled-writing-requirement",
+                  "version": "1.0.0",
+                  "content_hash": "sha256:5a6d449b44078f2df1c2f29fe15164d22b0c4151a05c6f35dd8718964c3c3f1e"
+                },
+                "semantic_key": "writing.requirement",
+                "registration_kind": "object_schema"
+              },
+              {
+                "contract": {
+                  "name": "petra.controlled-writing-governing-relationship",
+                  "version": "1.0.0",
+                  "content_hash": "sha256:8875324fac5a6911a90aaf833289d0cc5ae2141c10f023d087a1cd876bd9e896"
+                },
+                "semantic_key": "writing.governs",
+                "registration_kind": "relationship_schema"
+              },
+              {
+                "contract": {
+                  "name": "petra.rights-decision",
+                  "version": "1.0.0",
+                  "content_hash": "sha256:460d2ca3f9d3b9fff92f2b4280cf223c37ba3781b416b3a8c414b4ca44d93e94"
+                },
+                "semantic_key": "writing.authority-source",
+                "registration_kind": "source_role"
+              },
+              {
+                "contract": {
+                  "name": "petra.review-session",
+                  "version": "1.1.0",
+                  "content_hash": "sha256:e563139dcc0b87024354900e709e96bd749b5550e1a1c1a2661f71ddd7fab627"
+                },
+                "semantic_key": "writing.requirement-review",
+                "registration_kind": "workflow"
+              }
+            ],
+            "supported_places": [
+              "brief",
+              "sources",
+              "review",
+              "graph",
+              "work",
+              "petra",
+              "composition",
+              "history",
+              "settings"
+            ],
+            "kernel_compatibility": "petra.project-kernel@1.0.0"
+          },
+          "initial_material_plan": [],
+          "selected_capabilities": [
+            {
+              "label": "Document purpose",
+              "reason": "Selected from the exact optional capability example Controlled writing.",
+              "source": "registered_template",
+              "profile_ref": {
+                "profile_id": "project_template_01K6P000000000000000000002",
+                "content_hash": "sha256:3c25a33d76349ff7b80bcdd0e00b8cf0b04548b135562d291fee65a81d0d1fbd",
+                "profile_version": "1.0.0"
+              },
+              "capability_id": "writing.document-purpose"
+            },
+            {
+              "label": "Requirement",
+              "reason": "Selected from the exact optional capability example Controlled writing.",
+              "source": "registered_template",
+              "profile_ref": {
+                "profile_id": "project_template_01K6P000000000000000000002",
+                "content_hash": "sha256:3c25a33d76349ff7b80bcdd0e00b8cf0b04548b135562d291fee65a81d0d1fbd",
+                "profile_version": "1.0.0"
+              },
+              "capability_id": "writing.requirement"
+            },
+            {
+              "label": "Governing link",
+              "reason": "Selected from the exact optional capability example Controlled writing.",
+              "source": "registered_template",
+              "profile_ref": {
+                "profile_id": "project_template_01K6P000000000000000000002",
+                "content_hash": "sha256:3c25a33d76349ff7b80bcdd0e00b8cf0b04548b135562d291fee65a81d0d1fbd",
+                "profile_version": "1.0.0"
+              },
+              "capability_id": "writing.governs"
+            },
+            {
+              "label": "Authority source",
+              "reason": "Selected from the exact optional capability example Controlled writing.",
+              "source": "registered_template",
+              "profile_ref": {
+                "profile_id": "project_template_01K6P000000000000000000002",
+                "content_hash": "sha256:3c25a33d76349ff7b80bcdd0e00b8cf0b04548b135562d291fee65a81d0d1fbd",
+                "profile_version": "1.0.0"
+              },
+              "capability_id": "writing.authority-source"
+            },
+            {
+              "label": "writing.requirement-review",
+              "reason": "Selected from the exact optional capability example Controlled writing.",
+              "source": "registered_template",
+              "profile_ref": {
+                "profile_id": "project_template_01K6P000000000000000000002",
+                "content_hash": "sha256:3c25a33d76349ff7b80bcdd0e00b8cf0b04548b135562d291fee65a81d0d1fbd",
+                "profile_version": "1.0.0"
+              },
+              "capability_id": "writing.requirement-review"
+            }
+          ],
+          "unsupported_capabilities": [
+            {
+              "reason": "This capability is not registered by the proposed Project definition and will not be implied by the agent.",
+              "capability": "External filesystem editing"
+            },
+            {
+              "reason": "This capability is not registered by the proposed Project definition and will not be implied by the agent.",
+              "capability": "Multi-user collaboration"
+            }
+          ],
+          "enabled_evidence_namespaces": [
+            "operational",
+            "personal"
+          ]
+        },
+        "read_at": "2026-10-11T00:40:39.585Z",
+        "draft_id": "project_definition_draft_3NYDWKTQYEHQA4WRPFGTJGJFJ0",
+        "schema_name": "petra.project-definition-draft-view",
+        "content_hash": "sha256:1c4d8c86799d96af8c2c5c658181cea9e6b56598e54eca323ce59a0cab17998c",
+        "schema_version": "1.0.0"
+      },
+      "optional_example": {
+        "open": false,
+        "selection": "",
+        "required": false
+      },
+      "unaccepted_creation_disabled": true
+    },
+    {
+      "outcome": "Plan a neighborhood block party with a budget, volunteer shifts, and a rain date.",
+      "family": "petra.project-authored",
+      "draft": {
+        "content": {
+          "project": {
+            "name": "Plan a neighborhood block party with a budget, volunteer shifts, and a rain date.",
+            "description": "Outcome-first Project created from the user's exact stated objective."
+          },
+          "request": {
+            "outcome": "Plan a neighborhood block party with a budget, volunteer shifts, and a rain date.",
+            "request_id": "definition_draft_request_01M4M6F5GM8DGD1TKSXM0SMEE9",
+            "schema_name": "petra.project-definition-draft-request",
+            "schema_version": "1.0.0"
+          },
+          "objective": {
+            "statement": "Plan a neighborhood block party with a budget, volunteer shifts, and a rain date.",
+            "objective_kind": "project.outcome"
+          },
+          "assumptions": [
+            {
+              "code": "project.private",
+              "statement": "The new Project is private to its creating actor.",
+              "consequence": "Only the authenticated Project owner receives creation authority in this step."
+            },
+            {
+              "code": "objective.exact-wording",
+              "statement": "The stated outcome becomes the first objective without rewriting.",
+              "consequence": "Petra preserves the user's wording as the authoritative starting objective."
+            },
+            {
+              "code": "definition.domain-neutral",
+              "statement": "No registered domain example was selected with enough confidence.",
+              "consequence": "The Project starts with a domain-neutral definition; specific capabilities can be registered later."
+            }
+          ],
+          "definition_family": "petra.project-authored",
+          "definition_origin": {
+            "origin_kind": "project_authored"
+          },
+          "definition_content": {
+            "label": "Outcome-led Project",
+            "terms": [
+              {
+                "plural": "Outcomes",
+                "singular": "Outcome",
+                "definition": "The exact result this Project is trying to produce.",
+                "semantic_key": "project.outcome",
+                "generic_family": "focus"
+              },
+              {
+                "plural": "Results",
+                "singular": "Result",
+                "definition": "A durable Project object produced while pursuing the outcome.",
+                "semantic_key": "project.result",
+                "generic_family": "finding"
+              },
+              {
+                "plural": "References",
+                "singular": "Reference",
+                "definition": "A retained source or other exact basis available to the Project.",
+                "semantic_key": "project.reference",
+                "generic_family": "reference"
+              },
+              {
+                "plural": "Relationships",
+                "singular": "Relationship",
+                "definition": "An explicit graph connection between Project objects.",
+                "semantic_key": "project.relationship",
+                "generic_family": "relationship"
+              }
+            ],
+            "description": "A domain-neutral Project definition that preserves the stated outcome and uses Petra's shared graph, evidence, Work, Review, and History capabilities.",
+            "omitted_flows": [
+              "Domain-specific automation not selected",
+              "External filesystem editing",
+              "Multi-user collaboration"
+            ],
+            "registrations": [
+              {
+                "contract": {
+                  "name": "petra.project-objective",
+                  "version": "1.0.0",
+                  "content_hash": "sha256:fc8a37e66cfd29feb5613f744497b3b82f6623372a2a19dda9ff0ada02fab792"
+                },
+                "semantic_key": "project.outcome",
+                "registration_kind": "objective_schema"
+              },
+              {
+                "contract": {
+                  "name": "petra.rights-decision",
+                  "version": "1.0.0",
+                  "content_hash": "sha256:460d2ca3f9d3b9fff92f2b4280cf223c37ba3781b416b3a8c414b4ca44d93e94"
+                },
+                "semantic_key": "project.reference",
+                "registration_kind": "source_role"
+              }
+            ],
+            "supported_places": [
+              "brief",
+              "sources",
+              "review",
+              "graph",
+              "work",
+              "petra",
+              "composition",
+              "history",
+              "settings"
+            ],
+            "kernel_compatibility": "petra.project-kernel@1.0.0"
+          },
+          "initial_material_plan": [],
+          "selected_capabilities": [
+            {
+              "label": "Outcome",
+              "reason": "The shared Petra kernel can hold the exact objective, durable results, graph relationships, evidence, Work, Review, and History without a domain template.",
+              "source": "petra_kernel",
+              "capability_id": "project.outcome"
+            },
+            {
+              "label": "Reference",
+              "reason": "The shared Petra rights boundary can register user-supplied references after explicit copy-specific review.",
+              "source": "petra_kernel",
+              "capability_id": "project.reference"
+            }
+          ],
+          "unsupported_capabilities": [
+            {
+              "reason": "This capability is not registered by the proposed Project definition and will not be implied by the agent.",
+              "capability": "Domain-specific automation not selected"
+            },
+            {
+              "reason": "This capability is not registered by the proposed Project definition and will not be implied by the agent.",
+              "capability": "External filesystem editing"
+            },
+            {
+              "reason": "This capability is not registered by the proposed Project definition and will not be implied by the agent.",
+              "capability": "Multi-user collaboration"
+            }
+          ],
+          "enabled_evidence_namespaces": [
+            "personal"
+          ]
+        },
+        "read_at": "2026-10-11T00:40:39.703Z",
+        "draft_id": "project_definition_draft_04MXFP4G6S1BWDHX0ACVVKWBEX",
+        "schema_name": "petra.project-definition-draft-view",
+        "content_hash": "sha256:3a505e83f274a5fc3d5fe2757fc84e35404a36e3617b2523d2bad0c5646d626f",
+        "schema_version": "1.0.0"
+      },
+      "optional_example": {
+        "open": false,
+        "selection": "",
+        "required": false
+      },
+      "unaccepted_creation_disabled": true
+    }
+  ],
+  "writes": [
+    "http://127.0.0.1:4313/api/intake-sessions",
+    "http://127.0.0.1:4313/api/intake-sessions/intake_session_20Z0A22Y45EFZKSY6K1AFG4RMX/definition-draft",
+    "http://127.0.0.1:4313/api/intake-sessions/intake_session_20Z0A22Y45EFZKSY6K1AFG4RMX/definition-draft",
+    "http://127.0.0.1:4313/api/intake-sessions/intake_session_20Z0A22Y45EFZKSY6K1AFG4RMX/definition-draft"
+  ],
+  "boundary": "Actual empty-project intake and server-retained definition drafts through the same production UI entry for three outcome types. No model invocation, accepted Project creation, native examiner, command bridge, or overall A1 completion inferred."
+}

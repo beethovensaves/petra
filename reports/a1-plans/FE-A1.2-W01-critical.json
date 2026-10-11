@@ -85,6 +85,12 @@
         "disposition": "resolved",
         "finding": "The first browser check equated an unavailable command with native disabled, although the real accessible primitive uses aria-disabled plus guarded activation.",
         "resolution": "Read actual unavailable semantics and activate the presented command before consent; assert that no production creation request is sent. Preserve the failed pass and keep independent forged-content/assumption-code attacks in the critical pass."
+      },
+      {
+        "severity": "material",
+        "disposition": "resolved",
+        "finding": "The unavailable-example attack used a malformed free-form profile ID, so it reached request-shape rejection rather than the exact-version availability guard.",
+        "resolution": "Use a valid template identity and unavailable exact version; validate the registered request before HTTP and require the owner-specific unavailable-example code. Prevalidate forged command requests as well, preserving expected stale-content and unaccepted-assumption outcomes."
       }
     ]
   }
