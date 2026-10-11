@@ -1727,7 +1727,7 @@
       "milestone": "FE-A1.2",
       "title": "Compose definitions and revisions across Project types",
       "owner": "runtime",
-      "status": "in_progress",
+      "status": "complete",
       "implementation": "Resolve registered object/relationship descriptors, inquiry roles, examiners, language rules, validators, outputs, and place capabilities from the exact ProjectDefinition; semantic revisions follow D018.",
       "acceptance": [
         "The same shell can load different domain components without scientific conditionals.",
@@ -1753,7 +1753,20 @@
         "reports/a1-passes/FE-A1.2-W07-execution-1791684183544.json",
         "reports/a1-passes/FE-A1.2-W07-critical-1791684214939.json"
       ],
-      "completion_evidence": [],
+      "completion_evidence": [
+        {
+          "pass": "execution",
+          "artifact": "reports/a1-passes/FE-A1.2-W07-execution-1791684943733.json",
+          "command": "node --test --test-reporter=tap scripts/a1/definition-components.test.mjs",
+          "boundary": "Exact immutable definition reads and generic component negotiation across declared domain registrations. Schema admission is separate from an installed examiner or executor; unavailable capability does not invalidate a valid Project. Existing immutable history owners preserve the original basis. This does not certify missing native writing interpretation/third-type examiners, new model roles, proposed commands, or overall A1."
+        },
+        {
+          "pass": "critical",
+          "artifact": "reports/a1-passes/FE-A1.2-W07-critical-1791684975453.json",
+          "command": "node --test --test-reporter=tap scripts/a1/definition-components.critical.test.mjs",
+          "boundary": "Exact immutable definition reads and generic component negotiation across declared domain registrations. Schema admission is separate from an installed examiner or executor; unavailable capability does not invalidate a valid Project. Existing immutable history owners preserve the original basis. This does not certify missing native writing interpretation/third-type examiners, new model roles, proposed commands, or overall A1."
+        }
+      ],
       "optional_scenarios": [
         "A1-S03",
         "A1-S04",
@@ -1854,6 +1867,27 @@
             }
           ],
           "finished_at": "2026-10-11T02:03:45.156Z"
+        },
+        {
+          "item": "FE-A1.2-W07",
+          "phase": "critical",
+          "failed_attempts": 0,
+          "started_at": "2026-10-11T02:13:46.782Z",
+          "passes": [
+            {
+              "pass": "execution",
+              "artifact": "reports/a1-passes/FE-A1.2-W07-execution-1791684943733.json",
+              "command": "node --test --test-reporter=tap scripts/a1/definition-components.test.mjs",
+              "boundary": "Exact immutable definition reads and generic component negotiation across declared domain registrations. Schema admission is separate from an installed examiner or executor; unavailable capability does not invalidate a valid Project. Existing immutable history owners preserve the original basis. This does not certify missing native writing interpretation/third-type examiners, new model roles, proposed commands, or overall A1."
+            },
+            {
+              "pass": "critical",
+              "artifact": "reports/a1-passes/FE-A1.2-W07-critical-1791684975453.json",
+              "command": "node --test --test-reporter=tap scripts/a1/definition-components.critical.test.mjs",
+              "boundary": "Exact immutable definition reads and generic component negotiation across declared domain registrations. Schema admission is separate from an installed examiner or executor; unavailable capability does not invalidate a valid Project. Existing immutable history owners preserve the original basis. This does not certify missing native writing interpretation/third-type examiners, new model roles, proposed commands, or overall A1."
+            }
+          ],
+          "finished_at": "2026-10-11T02:16:28.236Z"
         }
       ],
       "verification_plans": {
@@ -2832,7 +2866,7 @@
       "milestone": "FE-A1.3",
       "title": "Compile exact bounded context for every turn",
       "owner": "runtime",
-      "status": "planned",
+      "status": "complete",
       "implementation": "Compose Project definition, objective, inquiry, selected object revisions, graph query/scene references, sources, packets, Work/proposals, omissions, snapshot, privacy, and budget without inheriting ambient route state.",
       "acceptance": [
         "A follow-up explicitly binds prior turn and current or original basis.",
@@ -2858,7 +2892,20 @@
         "reports/a1-passes/FE-A1.3-W04-execution-1791684264454.json",
         "reports/a1-passes/FE-A1.3-W04-critical-1791684289531.json"
       ],
-      "completion_evidence": [],
+      "completion_evidence": [
+        {
+          "pass": "execution",
+          "artifact": "reports/a1-passes/FE-A1.3-W04-execution-1791685030732.json",
+          "command": "node --test --test-reporter=tap scripts/a1/exact-context.test.mjs",
+          "boundary": "Exact bounded advisory turn context only. Original-basis branching, action previews/commands, missing native examiners and connected graph cycles remain their own required A1 items. Work inputs/proposals/output and inquiry framing/source bytes are explicitly withheld on metadata paths; no fact, approval, examination, resolved inquiry or completed domain work is inferred."
+        },
+        {
+          "pass": "critical",
+          "artifact": "reports/a1-passes/FE-A1.3-W04-critical-1791685054359.json",
+          "command": "node --test --test-reporter=tap scripts/a1/exact-context.critical.test.mjs",
+          "boundary": "Exact bounded advisory turn context only. Original-basis branching, action previews/commands, missing native examiners and connected graph cycles remain their own required A1 items. Work inputs/proposals/output and inquiry framing/source bytes are explicitly withheld on metadata paths; no fact, approval, examination, resolved inquiry or completed domain work is inferred."
+        }
+      ],
       "optional_scenarios": [
         "A1-S02",
         "A1-S07",
@@ -2935,6 +2982,27 @@
             }
           ],
           "finished_at": "2026-10-11T02:05:51.169Z"
+        },
+        {
+          "item": "FE-A1.3-W04",
+          "phase": "critical",
+          "failed_attempts": 0,
+          "started_at": "2026-10-11T02:16:40.523Z",
+          "passes": [
+            {
+              "pass": "execution",
+              "artifact": "reports/a1-passes/FE-A1.3-W04-execution-1791685030732.json",
+              "command": "node --test --test-reporter=tap scripts/a1/exact-context.test.mjs",
+              "boundary": "Exact bounded advisory turn context only. Original-basis branching, action previews/commands, missing native examiners and connected graph cycles remain their own required A1 items. Work inputs/proposals/output and inquiry framing/source bytes are explicitly withheld on metadata paths; no fact, approval, examination, resolved inquiry or completed domain work is inferred."
+            },
+            {
+              "pass": "critical",
+              "artifact": "reports/a1-passes/FE-A1.3-W04-critical-1791685054359.json",
+              "command": "node --test --test-reporter=tap scripts/a1/exact-context.critical.test.mjs",
+              "boundary": "Exact bounded advisory turn context only. Original-basis branching, action previews/commands, missing native examiners and connected graph cycles remain their own required A1 items. Work inputs/proposals/output and inquiry framing/source bytes are explicitly withheld on metadata paths; no fact, approval, examination, resolved inquiry or completed domain work is inferred."
+            }
+          ],
+          "finished_at": "2026-10-11T02:20:35.718Z"
         }
       ],
       "verification_plans": {
@@ -10229,12 +10297,7 @@
     "repeated_failure_limit": 2,
     "synchronization": "Roadmap, generated execution packet, canonical ledger and both execution worktrees must agree before execution or closure."
   },
-  "active_work": {
-    "item": "FE-A1.2-W07",
-    "phase": "execution",
-    "failed_attempts": 0,
-    "started_at": "2026-10-11T02:13:46.782Z"
-  },
+  "active_work": null,
   "repair_sequence": [
     {
       "order": 1,
