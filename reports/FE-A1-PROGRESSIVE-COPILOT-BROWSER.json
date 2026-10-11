@@ -1,0 +1,139 @@
+{
+  "checked_at": "2026-10-11T00:26:20.137Z",
+  "project_id": "project_4GNM3G166Z7RCBSW5K6TXZ3XZ9",
+  "run_id": "run_0Y7C46CXSXHG4Z7KHBVZRW356W",
+  "actual_model": "gpt-6-astra",
+  "provider_turn_id": "01a1285a-585f-7b71-9656-b9a105e39a7e",
+  "owner": {
+    "capture": "native",
+    "lineage": {
+      "work": [
+        {
+          "revision": 4,
+          "record_id": "work_unit_03G91WY44YMVMRSAV92PC48EP0",
+          "record_hash": "sha256:6231e1bc3e725ff6a2a5244cde845371d51bd4f69cc968d52eb53e327df3861f",
+          "schema_name": "petra.work-unit",
+          "schema_version": "1.0.0"
+        }
+      ],
+      "cycles": [],
+      "reviews": [],
+      "inquiries": [
+        {
+          "revision": 1,
+          "record_id": "objective_0YK8W4VBK9GWDB1NTQ37WBNVSF",
+          "record_hash": "sha256:9283ef339b11f3caf01e3fdc29e38cf719d53e767f711cf07e0b6a90082cb4e3",
+          "schema_name": "petra.project-objective",
+          "schema_version": "1.0.0"
+        }
+      ]
+    },
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "project_id": "project_4GNM3G166Z7RCBSW5K6TXZ3XZ9",
+    "work_unit_ref": {
+      "revision": 4,
+      "spec_hash": "sha256:c9b769225e2f5e6288d6298e8fb6f61b2365b8d31dfdaa2369bf926ba9d0a049",
+      "work_unit_id": "work_unit_03G91WY44YMVMRSAV92PC48EP0"
+    },
+    "project_turn_id": "project_turn_6DKECBB0KWDQV788GB2DMG2ABK",
+    "protocol_run_id": "run_0Y7C46CXSXHG4Z7KHBVZRW356W",
+    "turn_content_hash": "sha256:a282dd8210e7ee348b9b24379fd802a2e847840a945a02cff5d90e5ac010c14e",
+    "project_thread_ref": {
+      "revision": 11,
+      "content_hash": "sha256:a9a015d2a238b69a0f5b803e9bb584f80e69fc1a72337eab71a88b574914a493",
+      "project_thread_id": "project_thread_18XKBE9XAAF8ZR41X1D4A3W7EZ"
+    },
+    "protocol_thread_id": "thread_417PHGY55GKB1GRA9ZVV8W75SB",
+    "interaction_run_ref": {
+      "revision": 2,
+      "content_hash": "sha256:1f3677cdb66892839fa3f2c60fc7cba0b942e6c56b0c855cc62b4bd68cb4a09a",
+      "interaction_run_id": "interaction_run_25RZJJCD41XTM9VN65Q0FEVB16"
+    }
+  },
+  "observations": [
+    {
+      "phase": "connecting",
+      "run": "run_0Y7C46CXSXHG4Z7KHBVZRW356W",
+      "blocks": []
+    },
+    {
+      "phase": "running",
+      "run": "run_0Y7C46CXSXHG4Z7KHBVZRW356W",
+      "blocks": []
+    },
+    {
+      "phase": "disclosing",
+      "run": "run_0Y7C46CXSXHG4Z7KHBVZRW356W",
+      "blocks": [
+        {
+          "index": 0,
+          "text": "Missing inputs in the supplied context: intended users and outcome; activities, family numbers and ages, location and timing; what the $500 covers and available donations; indoor activity and venue arrangements; safety and supervision responsibilities; and a draft checklist with review criteria."
+        }
+      ]
+    },
+    {
+      "phase": "disclosing",
+      "run": "run_0Y7C46CXSXHG4Z7KHBVZRW356W",
+      "blocks": [
+        {
+          "index": 0,
+          "text": "Missing inputs in the supplied context: intended users and outcome; activities, family numbers and ages, location and timing; what the $500 covers and available donations; indoor activity and venue arrangements; safety and supervision responsibilities; and a draft checklist with review criteria."
+        },
+        {
+          "index": 1,
+          "text": "Suggested bounded next examination: review one partial checklist for gaps in task ownership, estimated costs against $500, and indoor rain alternatives. Mark assumptions and arrangements needing confirmation separately. This would be an advisory gap review, not verification or approval."
+        }
+      ]
+    },
+    {
+      "phase": "disclosing",
+      "run": "run_0Y7C46CXSXHG4Z7KHBVZRW356W",
+      "blocks": [
+        {
+          "index": 0,
+          "text": "Missing inputs in the supplied context: intended users and outcome; activities, family numbers and ages, location and timing; what the $500 covers and available donations; indoor activity and venue arrangements; safety and supervision responsibilities; and a draft checklist with review criteria."
+        },
+        {
+          "index": 1,
+          "text": "Suggested bounded next examination: review one partial checklist for gaps in task ownership, estimated costs against $500, and indoor rain alternatives. Mark assumptions and arrangements needing confirmation separately. This would be an advisory gap review, not verification or approval."
+        },
+        {
+          "index": 2,
+          "text": "Should the checklist primarily serve organizers, participating families, or both?"
+        }
+      ]
+    },
+    {
+      "phase": "completed",
+      "run": "run_0Y7C46CXSXHG4Z7KHBVZRW356W",
+      "blocks": []
+    }
+  ],
+  "sdk_requests": 1,
+  "sdk_input": {
+    "threadId": "thread_417PHGY55GKB1GRA9ZVV8W75SB",
+    "runId": "run_0Y7C46CXSXHG4Z7KHBVZRW356W",
+    "tools": [],
+    "context": [],
+    "forwardedProps": {
+      "petra": {
+        "schema_name": "petra.copilot-request",
+        "schema_version": "1.0.0",
+        "project_id": "project_4GNM3G166Z7RCBSW5K6TXZ3XZ9",
+        "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+        "parent_run_id": "run_5N9WYQW7Y58APNYNEZY5R24BR5",
+        "focus_keys": []
+      }
+    },
+    "state": {},
+    "messages": [
+      {
+        "id": "question-run_0Y7C46CXSXHG4Z7KHBVZRW356W",
+        "role": "user",
+        "content": "Synthetic A1 progressive-disclosure inspection: provide three separate advisory blocks: first identify missing inputs, then suggest a bounded next examination, then ask one clarifying question. Do not treat advice as a verified claim."
+      }
+    ]
+  },
+  "authority_effect": "none",
+  "boundary": "Actual managed model, production authenticated API, canonical owner read, official SDK and visibly disclosed retained answer blocks. This does not establish command mediation, native examiner or cyclic verification completion."
+}
