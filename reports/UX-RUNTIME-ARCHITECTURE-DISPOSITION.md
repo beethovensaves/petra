@@ -1233,17 +1233,17 @@ and resulting evidence revisions.
 
 ## Controlling A1 execution
 
-Binding: `sha256:7a73e83168f4edc0a5ce896ebdc7810c3062c9509e913fa6c5a33d11e451503e`. 12/90 required items complete; 78 incomplete.
+Binding: `sha256:3fbd1856dc40eedcaae104545afccda9e9d520b1d13e1e86e44af9373ffe33f2`. 13/90 required items complete; 77 incomplete.
 
 D024 governs the conversational copilot and reactive Workspace. D025 governs synchronized execution and two distinct validation passes. The canonical [function ledger](../scripts/frontend-a1-work-inventory.json), [readable implementation ledger](FE-A1-CONTRACT-IMPLEMENTATION-LEDGER.md), and [granular execution instructions](../scripts/frontend-a1-execution.md) agree before work starts, evidence is recorded, completion is accepted, or another wave proceeds.
 
-Active work: FE-A1.2-W01, execution.
+Active work: none; select one prerequisite-ready item.
 
 | Stage   | Required behavior                                                          | Complete / required |
 | ------- | -------------------------------------------------------------------------- | ------------------- |
 | FE-A1.0 | Contract reconciliation and execution control                              | 6 / 6               |
 | FE-A1.1 | Copilot shell and interaction design                                       | 1 / 7               |
-| FE-A1.2 | Conversational zero/empty Project entry                                    | 0 / 7               |
+| FE-A1.2 | Conversational zero/empty Project entry                                    | 1 / 7               |
 | FE-A1.3 | Durable grounded conversation and AG-UI                                    | 4 / 18              |
 | FE-A1.4 | Reactive Workspace, compositional examination and cyclic graph-guided work | 0 / 23              |
 | FE-A1.5 | Progressive inspection and complete authority receipts                     | 0 / 9               |
