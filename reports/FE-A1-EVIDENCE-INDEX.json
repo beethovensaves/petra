@@ -1,10 +1,10 @@
 {
   "schema_name": "petra.a1-evidence-index",
   "schema_version": "1.0.0",
-  "roadmap_binding": "sha256:6b2c52430758ffb51e49bafd5e3b2c4a1dca0d362530b7def50c13bfc16c0e2e",
+  "roadmap_binding": "sha256:d4299874f5831e48ced39a9236aa103bb9ad490330e6ca222a33f09e054e1f8b",
   "current": {
     "required": 90,
-    "complete": 10,
+    "complete": 11,
     "user_acceptance": null,
     "proofs": [
       {
@@ -157,6 +157,23 @@
             "artifact": "reports/a1-passes/FE-A1.3-W03-critical-1791681035780.json",
             "command": "node --test --test-reporter=tap scripts/a1/owned-conversation.critical.test.mjs",
             "boundary": "Canonical ownership and retained readable advisory conversation only. Provider internal CPU, memory, network, tokens and price remain unavailable; unknown values never satisfy applicable hard limits. Historical adoption records actual import Work and preserves original bytes without reconstructing original execution authority. Proposal decisions/commands, progressive AG-UI activities/interrupts, native examiners, reactive Workspace graph cycles and A1 product acceptance remain open required ledger items."
+          }
+        ]
+      },
+      {
+        "work_item": "FE-A1.3-W05",
+        "passes": [
+          {
+            "pass": "execution",
+            "artifact": "reports/a1-passes/FE-A1.3-W05-execution-1791681143770.json",
+            "command": "node --test --test-reporter=tap scripts/a1/progressive-copilot.test.mjs",
+            "boundary": "Typed presentation and official AG-UI transport only. Execution checks actual managed model and canonical ownership in the live browser; critical checks adverse events and actual same-identity replay/auth denial. Controlled owner ports test disclosure guards, not canonical persistence. Command mediation, native examiners, cyclic verification and overall A1 acceptance remain separate open requirements."
+          },
+          {
+            "pass": "critical",
+            "artifact": "reports/a1-passes/FE-A1.3-W05-critical-1791681205090.json",
+            "command": "node --test --test-reporter=tap scripts/a1/progressive-copilot.critical.test.mjs",
+            "boundary": "Typed presentation and official AG-UI transport only. Execution checks actual managed model and canonical ownership in the live browser; critical checks adverse events and actual same-identity replay/auth denial. Controlled owner ports test disclosure guards, not canonical persistence. Command mediation, native examiners, cyclic verification and overall A1 acceptance remain separate open requirements."
           }
         ]
       },
