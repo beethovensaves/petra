@@ -1,0 +1,111 @@
+{
+  "work_item": "FE-A1.3-W05",
+  "pass": "critical",
+  "argv": [
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "scripts/a1/progressive-copilot.critical.test.mjs"
+  ],
+  "sources": [
+    "apps/workbench/src/product/AgentControlPlane.tsx",
+    "apps/workbench/src/product/CopilotLiveActivity.tsx",
+    "apps/workbench/src/product/PetraModelInteraction.tsx",
+    "apps/workbench/src/product/agent-control-plane.css",
+    "apps/workbench/src/product/petra-review-interrupt.ts",
+    "apps/workbench/test/a1-progressive-copilot-browser.mjs",
+    "apps/workbench/test/cumulative-production-browser-driver.mjs",
+    "packages/adapters/src/ag-ui.ts",
+    "packages/adapters/src/copilot-progress-client.ts",
+    "packages/adapters/src/copilot-progress-profile.ts",
+    "packages/adapters/src/copilot-progress-server.ts",
+    "packages/adapters/src/interaction-presentation.ts",
+    "packages/adapters/src/project-model-presentation.ts",
+    "packages/adapters/src/review-interrupt-presentation.ts",
+    "packages/adapters/src/server.ts",
+    "packages/adapters/test/copilot-progress-fixture.ts",
+    "packages/adapters/test/copilot-progress.critical.test.ts",
+    "packages/adapters/test/copilot-progress.test.ts",
+    "packages/core/package.json",
+    "packages/core/src/copilot-presentation.ts",
+    "reports/FE-A1-INTAKE-FUNCTION-BROWSER.json",
+    "scripts/a1/presentation-boundary.mjs",
+    "scripts/a1/progressive-copilot.critical.test.mjs",
+    "scripts/a1/progressive-copilot.test.mjs",
+    "scripts/a1/run-browser.mjs",
+    "scripts/a1/run-vitest.mjs"
+  ],
+  "criteria": [
+    {
+      "id": "FE-A1.3-W05-AC01",
+      "result": "passed",
+      "test": "FE-A1.3-W05-AC01 critical: hostile disclosure cannot substitute content ownership order or outcomes and exact production replay creates no new run",
+      "observation": "hostile disclosure cannot substitute content ownership order or outcomes and exact production replay creates no new run"
+    },
+    {
+      "id": "FE-A1.3-W05-AC02",
+      "result": "passed",
+      "test": "FE-A1.3-W05-AC02 critical: native Work tool and Review mappings reject unregistered custom authority and SDK subscriber-error loss",
+      "observation": "native Work tool and Review mappings reject unregistered custom authority and SDK subscriber-error loss"
+    },
+    {
+      "id": "FE-A1.3-W05-AC03",
+      "result": "passed",
+      "test": "FE-A1.3-W05-AC03 critical: protocol dependency guard catches imports and raw event interpretation concealed in a feature",
+      "observation": "protocol dependency guard catches imports and raw event interpretation concealed in a feature"
+    }
+  ],
+  "boundary": "Typed presentation and official AG-UI transport only. Execution checks actual managed model and canonical ownership in the live browser; critical checks adverse events and actual same-identity replay/auth denial. Controlled owner ports test disclosure guards, not canonical persistence. Command mediation, native examiners, cyclic verification and overall A1 acceptance remain separate open requirements.",
+  "review": {
+    "perspective": "Challenge the delivered presentation as a hostile transport rather than repeat normal delivery: reject scope/hash/version/order substitutions, SDK callback exception loss, abort races and advisory tool/interrupt claims. Independently replay the actual production identity and reject conflicting or unauthenticated reads. Audit architecture with deliberately injected raw protocol dependencies.",
+    "challenges": [
+      {
+        "criterion": "FE-A1.3-W05-AC01",
+        "result": "hostile disclosure cannot substitute content ownership order or outcomes and exact production replay creates no new run",
+        "question": "FE-A1.3-W05-AC01 critical: hostile disclosure cannot substitute content ownership order or outcomes and exact production replay creates no new run"
+      },
+      {
+        "criterion": "FE-A1.3-W05-AC02",
+        "result": "native Work tool and Review mappings reject unregistered custom authority and SDK subscriber-error loss",
+        "question": "FE-A1.3-W05-AC02 critical: native Work tool and Review mappings reject unregistered custom authority and SDK subscriber-error loss"
+      },
+      {
+        "criterion": "FE-A1.3-W05-AC03",
+        "result": "protocol dependency guard catches imports and raw event interpretation concealed in a feature",
+        "question": "FE-A1.3-W05-AC03 critical: protocol dependency guard catches imports and raw event interpretation concealed in a feature"
+      }
+    ],
+    "findings": [
+      {
+        "severity": "material",
+        "disposition": "resolved",
+        "finding": "The old terminal encoder was shared by empty-project intake, so replacing its public export with a Project-only function broke the intake boundary.",
+        "resolution": "Dispatch the registered intake turn through its existing generic encoder; Project-only disclosure and owner reads apply only to copilot-turn. Keep the separate intake regression."
+      },
+      {
+        "severity": "material",
+        "disposition": "resolved",
+        "finding": "The pinned SDK catches subscriber exceptions, allowing a validation throw to disappear before a collected result is returned.",
+        "resolution": "Record subscriber validation failure explicitly, stop propagation, and reject the result after SDK completion; a controlled official-client attack verifies this behavior."
+      },
+      {
+        "severity": "material",
+        "disposition": "resolved",
+        "finding": "An abort during an asynchronous owner read could race with disclosure, while SDK RUN_ERROR could overwrite a genuine canonical failure with disconnection.",
+        "resolution": "Recheck abort after each owner read and preserve failed/cancelled only when the exact retained terminal and matching error code are validated; independent adverse checks exercise both cases."
+      },
+      {
+        "severity": "material",
+        "disposition": "resolved",
+        "finding": "Feature components interpreted activity and terminal protocol strings directly.",
+        "resolution": "Move protocol interpretation and exact interrupt metadata parsing into adapter presentation modules; keep business type/function exports and existing feature regression tests. Core records retain their registered protocol metadata validation without importing the SDK."
+      },
+      {
+        "severity": "material",
+        "disposition": "resolved",
+        "finding": "The transient presentation store keyed only by Project could expose an earlier actor answer after a browser session changed.",
+        "resolution": "Use the exact authenticated token scope as part of the private store key; the component requests only its current browser session. Separate foreign-session reads cannot retrieve the previous presentation."
+      }
+    ]
+  }
+}

@@ -467,3 +467,21 @@
   overflow-y: auto;
   font-size: 0.72rem;
 }
+.copilot-live-activity {
+  margin-block: 0.5rem;
+  padding: 0.65rem 0.8rem;
+  border-inline-start: 2px solid var(--petra-accent, #6b6358);
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+.copilot-live-activity p {
+  margin-block: 0.35rem;
+}
+.copilot-live-answer {
+  max-block-size: 12rem;
+  overflow-y: auto;
+}
+.copilot-live-answer article + article {
+  border-block-start: 1px solid #ddd8cf;
+  padding-block-start: 0.5rem;
+}

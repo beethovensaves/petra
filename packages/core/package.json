@@ -19,6 +19,10 @@
     "./graph-presentation": {
       "types": "./dist/graph-presentation.d.ts",
       "default": "./dist/graph-presentation.js"
+    },
+    "./copilot-presentation": {
+      "types": "./dist/copilot-presentation.d.ts",
+      "default": "./dist/copilot-presentation.js"
     }
   },
   "scripts": {

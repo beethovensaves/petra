@@ -1,0 +1,59 @@
+{
+  "work_item": "FE-A1.3-W05",
+  "pass": "execution",
+  "argv": [
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "scripts/a1/progressive-copilot.test.mjs"
+  ],
+  "sources": [
+    "apps/workbench/src/product/AgentControlPlane.tsx",
+    "apps/workbench/src/product/CopilotLiveActivity.tsx",
+    "apps/workbench/src/product/PetraModelInteraction.tsx",
+    "apps/workbench/src/product/agent-control-plane.css",
+    "apps/workbench/src/product/petra-review-interrupt.ts",
+    "apps/workbench/test/a1-progressive-copilot-browser.mjs",
+    "apps/workbench/test/cumulative-production-browser-driver.mjs",
+    "packages/adapters/src/ag-ui.ts",
+    "packages/adapters/src/copilot-progress-client.ts",
+    "packages/adapters/src/copilot-progress-profile.ts",
+    "packages/adapters/src/copilot-progress-server.ts",
+    "packages/adapters/src/interaction-presentation.ts",
+    "packages/adapters/src/project-model-presentation.ts",
+    "packages/adapters/src/review-interrupt-presentation.ts",
+    "packages/adapters/src/server.ts",
+    "packages/adapters/test/copilot-progress-fixture.ts",
+    "packages/adapters/test/copilot-progress.critical.test.ts",
+    "packages/adapters/test/copilot-progress.test.ts",
+    "packages/core/package.json",
+    "packages/core/src/copilot-presentation.ts",
+    "reports/FE-A1-INTAKE-FUNCTION-BROWSER.json",
+    "scripts/a1/presentation-boundary.mjs",
+    "scripts/a1/progressive-copilot.critical.test.mjs",
+    "scripts/a1/progressive-copilot.test.mjs",
+    "scripts/a1/run-browser.mjs",
+    "scripts/a1/run-vitest.mjs"
+  ],
+  "criteria": [
+    {
+      "id": "FE-A1.3-W05-AC01",
+      "result": "passed",
+      "test": "FE-A1.3-W05-AC01 execution: actual managed conversation visibly discloses owned blocks through one official SDK request",
+      "observation": "actual managed conversation visibly discloses owned blocks through one official SDK request"
+    },
+    {
+      "id": "FE-A1.3-W05-AC02",
+      "result": "passed",
+      "test": "FE-A1.3-W05-AC02 execution: disclosure and native custom events use closed registered version and authority profiles",
+      "observation": "disclosure and native custom events use closed registered version and authority profiles"
+    },
+    {
+      "id": "FE-A1.3-W05-AC03",
+      "result": "passed",
+      "test": "FE-A1.3-W05-AC03 execution: Core and feature components consume typed business presentations without SDK protocol interpretation",
+      "observation": "Core and feature components consume typed business presentations without SDK protocol interpretation"
+    }
+  ],
+  "boundary": "Typed presentation and official AG-UI transport only. Execution checks actual managed model and canonical ownership in the live browser; critical checks adverse events and actual same-identity replay/auth denial. Controlled owner ports test disclosure guards, not canonical persistence. Command mediation, native examiners, cyclic verification and overall A1 acceptance remain separate open requirements."
+}

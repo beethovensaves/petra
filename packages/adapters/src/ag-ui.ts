@@ -1,9 +1,20 @@
 import { HttpAgent } from "@ag-ui/client";
+export * from "./project-model-presentation.js";
+export * from "./review-interrupt-presentation.js";
+import {
+  InteractionPresenter,
+  assertInteractionCustomEvent,
+} from "./interaction-presentation.js";
+import type { InteractionPresentation } from "@petra/core/copilot-presentation";
 export {
-  ProjectCopilotClient,
   CopilotRequestRejected,
   type CopilotDeliveryState,
 } from "./project-copilot-ag-ui.js";
+export {
+  ProgressiveProjectCopilotClient as ProjectCopilotClient,
+  readCopilotPresentation,
+  subscribeCopilotPresentation,
+} from "./copilot-progress-client.js";
 import {
   EventType,
   RunAgentInputSchema,
@@ -51,7 +62,7 @@ export const toAgUiCustomEvent = (
 ): BaseEvent => ({
   type: EventType.CUSTOM,
   name: event.event_name,
-  value: event,
+  value: assertInteractionCustomEvent(event.event_name, event),
   metadata,
 });
 
@@ -507,6 +518,7 @@ export interface PetraClientEvent {
 }
 
 export interface PetraInteractionResult {
+  presentation?: InteractionPresentation;
   events: PetraClientEvent[];
   messages: Array<{ id: string; role: string; content?: string }>;
   state: unknown;
@@ -514,6 +526,7 @@ export interface PetraInteractionResult {
 }
 
 export interface PetraInteractionClientOptions {
+  onPresentation?: (view: InteractionPresentation) => void;
   endpoint: string;
   reviewCommandEndpoint?: string;
   token: string;
@@ -528,16 +541,37 @@ type PetraHttpAgentRunParameters = NonNullable<
 const collectInteractionResult = async (
   agent: HttpAgent,
   parameters: PetraHttpAgentRunParameters,
+  onPresentation?: (view: InteractionPresentation) => void,
 ): Promise<PetraInteractionResult> => {
   const events: PetraClientEvent[] = [];
+  let validationError: unknown;
+  const presenter = new InteractionPresenter(
+    agent.threadId,
+    String(parameters.runId),
+  );
   await agent.runAgent(parameters, {
     onEvent: ({ event }) => {
-      const { type, ...payload } = event;
-      events.push({ type, payload });
+      if (validationError !== undefined) return { stopPropagation: true };
+      try {
+        const view = presenter.apply(event);
+        onPresentation?.(view);
+        const { type, ...payload } = event;
+        events.push({ type, payload });
+      } catch (error) {
+        // The SDK deliberately catches subscriber exceptions. Retain the
+        // rejection ourselves so an invalid stream cannot return as success.
+        validationError = error;
+        return { stopPropagation: true };
+      }
     },
   });
+  if (validationError !== undefined)
+    throw validationError instanceof Error
+      ? validationError
+      : new Error("Interaction presentation validation failed.");
 
   return {
+    presentation: presenter.view,
     events,
     messages: agent.messages.map((message) => ({
       id: message.id,
@@ -628,29 +662,33 @@ export class PetraInteractionClient {
         : { fetch: this.#options.fetch }),
     });
 
-    return collectInteractionResult(agent, {
-      runId: parameters.runId,
-      tools: [],
-      context: [],
-      forwardedProps: {
-        petra: {
-          workflow: parameters.workflow ?? "fixture",
-          ...((parameters.workflow ?? "fixture") === "grounded_synthesis"
-            ? {}
-            : { fixtureMode: parameters.fixtureMode ?? "success" }),
-          afterSequence: parameters.afterSequence ?? 0,
-          ...(parameters.connectionId === undefined
-            ? {}
-            : { connectionId: parameters.connectionId }),
-          ...(parameters.modelContext === undefined
-            ? {}
-            : { modelContext: parameters.modelContext }),
+    return collectInteractionResult(
+      agent,
+      {
+        runId: parameters.runId,
+        tools: [],
+        context: [],
+        forwardedProps: {
+          petra: {
+            workflow: parameters.workflow ?? "fixture",
+            ...((parameters.workflow ?? "fixture") === "grounded_synthesis"
+              ? {}
+              : { fixtureMode: parameters.fixtureMode ?? "success" }),
+            afterSequence: parameters.afterSequence ?? 0,
+            ...(parameters.connectionId === undefined
+              ? {}
+              : { connectionId: parameters.connectionId }),
+            ...(parameters.modelContext === undefined
+              ? {}
+              : { modelContext: parameters.modelContext }),
+          },
         },
+        ...(parameters.abortController === undefined
+          ? {}
+          : { abortController: parameters.abortController }),
       },
-      ...(parameters.abortController === undefined
-        ? {}
-        : { abortController: parameters.abortController }),
-    });
+      this.#options.onPresentation,
+    );
   }
 
   /**
@@ -709,14 +747,18 @@ export class PetraInteractionClient {
       },
     });
 
-    return collectInteractionResult(agent, {
-      runId: parameters.runId,
-      tools: [],
-      context: [],
-      ...(parameters.abortController === undefined
-        ? {}
-        : { abortController: parameters.abortController }),
-    });
+    return collectInteractionResult(
+      agent,
+      {
+        runId: parameters.runId,
+        tools: [],
+        context: [],
+        ...(parameters.abortController === undefined
+          ? {}
+          : { abortController: parameters.abortController }),
+      },
+      this.#options.onPresentation,
+    );
   }
 }
 

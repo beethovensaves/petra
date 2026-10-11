@@ -11,6 +11,7 @@ import type { PetraProjectModelReadinessView } from "@petra/contracts";
 
 import { PetraModelInteraction } from "./PetraModelInteraction.js";
 import { ProjectCopilotConversation } from "./ProjectCopilotConversation.js";
+import { CopilotLiveActivity } from "./CopilotLiveActivity.js";
 import {
   getLatestProjectPetraThread,
   getProjectModelReadiness,
@@ -213,6 +214,7 @@ export const AgentConversation = ({
   return (
     <>
       <ProjectCopilotConversation project={project} />
+      <CopilotLiveActivity projectId={project.id} />
       <div
         className="reference-agent-control-slot"
         ref={onControlTarget}
