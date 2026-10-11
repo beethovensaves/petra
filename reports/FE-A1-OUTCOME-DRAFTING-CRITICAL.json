@@ -1,0 +1,16 @@
+{
+  "checked_at": "2026-10-11T00:41:29.271Z",
+  "failures": [
+    {
+      "attack": "content",
+      "status": 409,
+      "code": "PROJECT_DEFINITION_DRAFT_STALE"
+    },
+    {
+      "attack": "assumptions",
+      "status": 422,
+      "code": "PROJECT_DEFINITION_DRAFT_ASSUMPTIONS_UNACCEPTED"
+    }
+  ],
+  "boundary": "Independent actual production authority attacks and real isolated PostgreSQL idempotency/atomicity challenge. No accepted creation is requested against the inspection database."
+}

@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import { readFileSync, writeFileSync } from "node:fs";
 import { ownedPostgres } from "./owned-postgres.mjs";
 import { runVitest } from "./run-vitest.mjs";
+import { PetraContractRegistry } from "@petra/contracts/validator";
+const contracts = new PetraContractRegistry();
 let database;
 before(() => {
   database = ownedPostgres();
@@ -28,10 +30,11 @@ test("FE-A1.2-W01-AC01 critical: ambiguous and unknown capability selection cann
     proof().observations[0].draft.content.request,
   );
   request.example_ref = {
-    profile_id: "profile-unregistered-critical",
-    profile_version: "1.0.0",
+    profile_id: "project_template_01K6P000000000000000000001",
+    profile_version: "99.99.99",
     content_hash: `sha256:${"0".repeat(64)}`,
   };
+  contracts.assertValid("project-definition-draft-request", "1.0.0", request);
   const response = await fetch(
     `${origin}/api/queries/project-definition-drafts`,
     { method: "POST", headers, body: JSON.stringify(request) },
@@ -66,6 +69,11 @@ test("FE-A1.2-W01-AC02 critical: recomputed forged draft hashes and invented ass
           ? changed.content.assumptions.map((a) => a.code)
           : ["unregistered.assumption"],
     };
+    contracts.assertValid(
+      "project-definition-draft-command-request",
+      "1.0.0",
+      request,
+    );
     const response = await fetch(
       `${origin}/api/commands/projects/from-definition-draft`,
       { method: "POST", headers, body: JSON.stringify(request) },

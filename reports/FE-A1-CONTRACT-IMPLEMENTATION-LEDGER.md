@@ -6,7 +6,7 @@ This is the required execution breakdown for FE-A1. It records implementation ob
 
 The canonical work/status/dependency register is [scripts/frontend-a1-work-inventory.json](../scripts/frontend-a1-work-inventory.json). This report is generated from it with `npm run roadmap:frontend-a1`; `npm run audit:frontend-a1` checks coverage and document agreement. The existing [reports/FRONTEND-ADAPTATION-MILESTONE.md](../reports/FRONTEND-ADAPTATION-MILESTONE.md) retains historical implementation evidence.
 
-Roadmap/execution binding: `sha256:154d7e4235739250c35e9beb920be9a630dfb1eeb1ad9421e57b53d6ddf3edd4`. [scripts/frontend-a1-execution.md](../scripts/frontend-a1-execution.md) contains the same functions and criteria in prerequisite order. D025 requires one active item, an execution pass, a distinct critical pass, optional repair, and broad diagnosis after repeated failure. Both execution worktrees must match before work starts, verification is recorded, completion is accepted, or a later wave advances.
+Roadmap/execution binding: `sha256:7a73e83168f4edc0a5ce896ebdc7810c3062c9509e913fa6c5a33d11e451503e`. [scripts/frontend-a1-execution.md](../scripts/frontend-a1-execution.md) contains the same functions and criteria in prerequisite order. D025 requires one active item, an execution pass, a distinct critical pass, optional repair, and broad diagnosis after repeated failure. Both execution worktrees must match before work starts, verification is recorded, completion is accepted, or a later wave advances.
 
 ## Controlling contract and scope
 
