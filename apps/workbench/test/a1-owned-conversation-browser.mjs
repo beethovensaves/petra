@@ -183,18 +183,24 @@ try {
     assert.equal(owner.capture, "native");
     assert.equal(owner.project_id, projectId);
     assert.equal(owner.protocol_run_id, turn.run_id);
-    const queries = await Promise.all([
-      fetch(
-        `${origin}/api/queries/projects/${projectId}/threads/${owner.project_thread_ref.project_thread_id}`,
-        { headers: { authorization: "Bearer petra-local-development" } },
-      ),
-      fetch(
-        `${origin}/api/queries/projects/${projectId}/work/${owner.work_unit_ref.work_unit_id}`,
-        { headers: { authorization: "Bearer petra-local-development" } },
-      ),
-    ]);
-    for (const response of queries) assert.equal(response.status, 200);
-    const views = await Promise.all(queries.map((response) => response.json()));
+    const views = await Promise.all(
+      [
+        `/threads/${owner.project_thread_ref.project_thread_id}`,
+        `/work/${owner.work_unit_ref.work_unit_id}`,
+      ].map(async (suffix) => {
+        const response = await fetch(
+          `${origin}/api/queries/projects/${projectId}${suffix}`,
+          {
+            headers: { authorization: "Bearer petra-local-development" },
+          },
+        );
+        assert.equal(response.status, 200);
+        // Consume each body as soon as its headers arrive. Holding a large
+        // unread response while awaiting another header can pause Node's HTTP
+        // parser before the local proxy closes the connection.
+        return response.json();
+      }),
+    );
     assert.equal(views[0].schema_version, "1.1.0");
     assert.equal(views[0].content.view_kind, "detail");
     assert.equal(views[1].content.view_kind, "detail");
