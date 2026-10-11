@@ -1,0 +1,4 @@
+{
+  "work_item": "FE-A1.3-W03",
+  "reason": "Exact turn context construction changes the shared server service and retained input disclosure; revalidate canonical ownership and history on the resulting source candidate."
+}

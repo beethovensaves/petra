@@ -1,0 +1,93 @@
+{
+  "work_item": "FE-A1.3-W04",
+  "pass": "critical",
+  "argv": [
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "scripts/a1/exact-context.critical.test.mjs"
+  ],
+  "sources": [
+    "apps/server/src/project-copilot.ts",
+    "apps/server/src/project-copilot-context.ts",
+    "apps/server/src/project-shell-persistence.ts",
+    "apps/server/test/project-copilot.test.ts",
+    "apps/server/test/project-copilot-context.test.ts",
+    "apps/workbench/src/product/ProjectCopilotConversation.tsx",
+    "apps/workbench/src/product/agent-control-plane.css",
+    "apps/workbench/test/a1-exact-context-browser.mjs",
+    "apps/workbench/test/cumulative-production-browser-driver.mjs",
+    "packages/core/src/project-copilot.ts",
+    "packages/core/test/project-copilot.test.ts",
+    "packages/core/test/project-copilot-conversation.test.ts",
+    "packages/postgres/src/project-copilot-repository.ts",
+    "packages/postgres/test/project-copilot-repository.test.ts",
+    "packages/contracts/schemas/copilot-context/1.0.0/schema.json",
+    "packages/contracts/schemas/copilot-request/1.0.0/schema.json",
+    "packages/contracts/schemas/copilot-request/1.1.0/schema.json",
+    "packages/contracts/schemas/copilot-input-manifest/1.0.0/schema.json",
+    "packages/contracts/registry.json",
+    "infra/postgres/integration.compose.yaml",
+    "reports/FE-A1-INTAKE-FUNCTION-BROWSER.json",
+    "scripts/a1/exact-context.test.mjs",
+    "scripts/a1/exact-context.critical.test.mjs",
+    "scripts/a1/run-browser.mjs",
+    "scripts/a1/run-vitest.mjs",
+    "scripts/a1/owned-postgres.mjs"
+  ],
+  "criteria": [
+    {
+      "id": "FE-A1.3-W04-AC01",
+      "result": "passed",
+      "test": "FE-A1.3-W04-AC01 critical: stale parents and changed rights cannot borrow prior private history or replace original inputs",
+      "observation": "Adversarial ownership, budget, rights, equal-content definition revision, final snapshot drift and revocation challenges preserve immutable original inputs and prevent invalid invocation."
+    },
+    {
+      "id": "FE-A1.3-W04-AC02",
+      "result": "passed",
+      "test": "FE-A1.3-W04-AC02 critical: unavailable coverage and omitted metadata cannot masquerade as complete evidence",
+      "observation": "Adversarial ownership, budget, rights, equal-content definition revision, final snapshot drift and revocation challenges preserve immutable original inputs and prevent invalid invocation."
+    },
+    {
+      "id": "FE-A1.3-W04-AC03",
+      "result": "passed",
+      "test": "FE-A1.3-W04-AC03 critical: equal-content changed identities mixed snapshots and revoked access stop before invocation",
+      "observation": "Adversarial ownership, budget, rights, equal-content definition revision, final snapshot drift and revocation challenges preserve immutable original inputs and prevent invalid invocation."
+    }
+  ],
+  "boundary": "Exact bounded advisory turn context only. Original-basis branching, action previews/commands, missing native examiners and connected graph cycles remain their own required A1 items. Work inputs/proposals/output and inquiry framing/source bytes are explicitly withheld on metadata paths; no fact, approval, examination, resolved inquiry or completed domain work is inferred.",
+  "review": {
+    "perspective": "Challenge current-basis claims independently of successful delivery: exact revisions and scope, snapshot drift, rights removal, meaningful whole-record budgets, unavailable coverage, retained history and actual visible input disclosure.",
+    "challenges": [
+      {
+        "criterion": "FE-A1.3-W04-AC01",
+        "question": "FE-A1.3-W04-AC01 critical: stale parents and changed rights cannot borrow prior private history or replace original inputs",
+        "result": "passed"
+      },
+      {
+        "criterion": "FE-A1.3-W04-AC02",
+        "question": "FE-A1.3-W04-AC02 critical: unavailable coverage and omitted metadata cannot masquerade as complete evidence",
+        "result": "passed"
+      },
+      {
+        "criterion": "FE-A1.3-W04-AC03",
+        "question": "FE-A1.3-W04-AC03 critical: equal-content changed identities mixed snapshots and revoked access stop before invocation",
+        "result": "passed"
+      }
+    ],
+    "findings": [
+      {
+        "severity": "material",
+        "disposition": "resolved",
+        "finding": "Content-hash-only graph joins allowed equal-content different definition identities or revisions to enter as the current basis.",
+        "resolution": "All graph/overlay/working joins now compare exact identity/revision/hash and Project scope; changed identities/revisions and mixed views are denied."
+      },
+      {
+        "severity": "material",
+        "disposition": "resolved",
+        "finding": "Native content could remain disclosed after its material basis became stale, and no final Project fence or post-recovery permission check stopped assembly-time drift/revocation.",
+        "resolution": "Stale native bytes are withheld. Final Project/definition/objective/authority and permission checks run before retaining/invoking; tests assert no runtime start on drift or revocation."
+      }
+    ]
+  }
+}

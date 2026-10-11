@@ -9,6 +9,7 @@
   ],
   "sources": [
     "apps/server/src/app.ts",
+    "apps/server/src/project-copilot-context.ts",
     "apps/server/src/project-copilot-routes.ts",
     "apps/server/src/project-copilot.ts",
     "apps/server/src/project-shell-persistence.ts",
