@@ -6,9 +6,18 @@ import type {
 } from "@petra/contracts";
 import { PetraContractRegistry } from "@petra/contracts/validator";
 import { HypothesisCycles } from "./HypothesisCycles.js";
+import {
+  resolveNativeDefinitionComponent,
+  type ProjectDefinitionComponents,
+} from "@petra/core/project-definition-components";
 
 type Node = PetraProjectSemanticGraphView["content"]["nodes"][number];
-type Props = { node: Node; projectId: string; graphHash: string };
+type Props = {
+  node: Node;
+  projectId: string;
+  graphHash: string;
+  definition?: ProjectDefinitionComponents;
+};
 type Examiner = {
   render: (props: Props) => React.JSX.Element;
   continuation?: (props: Props) => React.JSX.Element;
@@ -154,11 +163,9 @@ const writingRequirementExaminer: Examiner = {
 // The shared graph/Workspace resolves an exact record contract and role. Domain
 // components own their examination language and consequential continuation.
 const examiners = new Map<string, Examiner>([
-  ["petra.claim@1.0.0", claimExaminer],
-  ["petra.claim@1.1.0", claimExaminer],
-  ["petra.claim@1.2.0", claimExaminer],
-  ["petra.assertion@1.0.0", assertionExaminer],
-  ["petra.controlled-writing-requirement@1.0.0", writingRequirementExaminer],
+  ["scientific-claim", claimExaminer],
+  ["scientific-assertion", assertionExaminer],
+  ["writing-requirement", writingRequirementExaminer],
 ]);
 export const nativeExamination = (
   props: Props,
@@ -179,9 +186,65 @@ export const nativeExamination = (
         </p>
       ),
     };
-  const examiner = examiners.get(
-    `${node.record_ref.schema_name}@${node.record_ref.schema_version}`,
+  if (
+    props.definition === undefined ||
+    node.material_state === "definition_stale"
+  )
+    return {
+      body: (
+        <p role="status">
+          The original ProjectDefinition must be available before this material
+          can be examined. Its retained fields remain available in Inspect;
+          current meaning is not substituted.
+        </p>
+      ),
+    };
+  const definition = props.definition;
+  const nativeProject = node.native_record.project_id;
+  const nativeDefinition = node.native_record.project_definition_ref;
+  if (
+    (nativeProject !== undefined && nativeProject !== props.projectId) ||
+    (nativeDefinition !== undefined &&
+      (typeof nativeDefinition !== "object" ||
+        nativeDefinition === null ||
+        !("project_definition_id" in nativeDefinition) ||
+        nativeDefinition.project_definition_id !==
+          definition.binding.definitionId ||
+        !("revision" in nativeDefinition) ||
+        nativeDefinition.revision !== definition.binding.revision ||
+        !("content_hash" in nativeDefinition) ||
+        nativeDefinition.content_hash !== definition.binding.contentHash))
+  )
+    return {
+      body: (
+        <p role="status">
+          The native material belongs to a different Project or definition
+          revision. Its original interpretation must be restored before
+          examination.
+        </p>
+      ),
+    };
+  const material = {
+    projectId: props.projectId,
+    definition: definition.binding,
+    semanticKey: node.semantic_key,
+    schemaName: node.record_ref.schema_name,
+    schemaVersion: node.record_ref.schema_version,
+  };
+  const registration =
+    resolveNativeDefinitionComponent(definition, {
+      ...material,
+      kind: "object_schema",
+    }) ??
+    resolveNativeDefinitionComponent(definition, {
+      ...material,
+      kind: "relationship_schema",
+    });
+  const component = registration?.components.find(
+    (c) => c.capability === "examine",
   );
+  const examiner =
+    component === undefined ? undefined : examiners.get(component.componentId);
   if (examiner === undefined)
     return {
       body: (

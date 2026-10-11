@@ -1,0 +1,25 @@
+{
+  "status": "passed",
+  "boundary": "Actual production Project graph, immutable definition read, and browser component loading; no command or model invocation.",
+  "project_id": "project_4GNM3G166Z7RCBSW5K6TXZ3XZ9",
+  "definition_ref": {
+    "record_id": "project_definition_1YVF468MMHV3NMMRZ6W26Z5AXT",
+    "revision": 1,
+    "content_hash": "sha256:81f8cda949a62f2ff9dc453bd0b53a82cf12a8599ad17003ff43a2271cca6bcb"
+  },
+  "definition_requests": [
+    "http://127.0.0.1:4313/api/queries/projects/project_4GNM3G166Z7RCBSW5K6TXZ3XZ9/definition?definition_revision=1",
+    "http://127.0.0.1:4313/api/queries/projects/project_4GNM3G166Z7RCBSW5K6TXZ3XZ9/definition?definition_revision=1"
+  ],
+  "displayed": "What this Project can examine\n\nA domain-neutral Project definition that preserves the stated outcome and uses Petra's shared graph, evidence, Work, Review, and History capabilities.\n\nOutcome · Registered meaning\n\nThe exact result this Project is trying to produce.\n\nThe objective schema contract is installed; no component implements this capability in this runtime.\n\nReference · Registered meaning\n\nA retained source or other exact basis available to the Project.\n\nThe source role contract is installed; no component implements this capability in this runtime.\n\nUnavailable flows: Domain-specific automation not selected; External filesystem editing; Multi-user collaboration\n\nInspect definition binding\n\nproject_definition_1YVF468MMHV3NMMRZ6W26Z5AXT · revision 1\n\nsha256:81f8cda949a62f2ff9dc453bd0b53a82cf12a8599ad17003ff43a2271cca6bcb",
+  "commands": [],
+  "errors": [],
+  "authority_before": {
+    "event_position": 15,
+    "stream_revision": 0
+  },
+  "authority_after": {
+    "event_position": 15,
+    "stream_revision": 0
+  }
+}

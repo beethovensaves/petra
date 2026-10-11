@@ -794,6 +794,53 @@ describePostgres("PostgreSQL working-state authority", () => {
     });
   });
 
+  it("marks equal-content later definition revisions stale without reinterpreting retained native candidates", async () => {
+    const fixture = await setupAuthority();
+    const root = candidate(fixture);
+    await working.admitWorkingCandidateRevision({
+      candidate: root,
+      profileRecord: fixture.claim,
+    });
+    const original = await semanticGraphs.getProjectSemanticGraph(
+      fixture.project.project_id,
+    );
+    expect(original?.content.nodes[0]?.material_state).toBe("available");
+    const current = await definitions.getProjectDefinition(
+      fixture.project.project_id,
+    );
+    if (current === undefined)
+      throw new Error("Expected the retained ProjectDefinition.");
+    await definitions.registerDefinitionRevision({
+      ...current,
+      revision: current.revision + 1,
+      created_at: "2026-10-10T21:00:00.000Z",
+    });
+    const changed = await semanticGraphs.getProjectSemanticGraph(
+      fixture.project.project_id,
+    );
+    expect(changed?.content.definition_ref.revision).toBe(current.revision + 1);
+    expect(changed?.content.definition_ref.content_hash).toBe(
+      current.content_hash,
+    );
+    expect(changed?.content.nodes[0]?.material_state).toBe("definition_stale");
+    expect(changed?.content.nodes[0]?.native_record).toEqual(fixture.claim);
+    expect(
+      await definitions.getProjectDefinition(
+        fixture.project.project_id,
+        current.revision,
+      ),
+    ).toEqual(current);
+    expect(
+      (
+        await working.getWorkingCandidate(
+          root.project_id,
+          root.working_candidate_id,
+          1,
+        )
+      )?.project_definition_ref,
+    ).toEqual(root.project_definition_ref);
+  });
+
   it("resolves exact native material and Project-bound passages while preserving remote egress restrictions", async () => {
     const fixture = await setupAuthority();
     const empty = await semanticGraphs.getProjectSemanticGraph(

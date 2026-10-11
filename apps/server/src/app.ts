@@ -224,6 +224,10 @@ export interface PetraAppOptions {
   projectProfileCommands?: ProjectProfileCommandAuthority;
   projectProfileRecovery?: ProjectProfileCommandRecoveryReader;
   projectDefinitionDrafts?: ProjectDefinitionDraftReader;
+  projectDefinitions?: Pick<
+    ProjectDefinitionAuthorityRepository,
+    "getProjectDefinition"
+  >;
   projectDefinitionDraftCommands?: ProjectDefinitionDraftCommandAuthority;
   projectImportCommands?: ProjectImportCommandAuthority;
   projectImportRecovery?: ProjectImportCommandRecoveryReader;
@@ -1116,6 +1120,7 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
     options.projectSemanticGraphs,
   );
   mountProjectExaminationRoutes(app, options.projectExaminations);
+  mountProjectDefinitionRoutes(app, options.projectDefinitions);
 
   const resolveApplyAuthority = async (
     projectId: string,
@@ -10440,3 +10445,5 @@ export const createPetraApp = (options: PetraAppOptions = {}): PetraApp => {
 };
 import { mountProjectCopilotRoutes } from "./project-copilot-routes.js";
 import type { ProjectCopilotService } from "./project-copilot.js";
+import { mountProjectDefinitionRoutes } from "./project-definition-routes.js";
+import type { ProjectDefinitionAuthorityRepository } from "@petra/core";

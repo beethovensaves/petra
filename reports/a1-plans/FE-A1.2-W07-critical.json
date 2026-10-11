@@ -1,0 +1,111 @@
+{
+  "work_item": "FE-A1.2-W07",
+  "pass": "critical",
+  "argv": [
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "scripts/a1/definition-components.critical.test.mjs"
+  ],
+  "sources": [
+    "apps/server/src/app.ts",
+    "apps/server/src/project-definition-routes.ts",
+    "apps/server/src/project-shell-persistence.ts",
+    "apps/server/src/server.ts",
+    "apps/server/test/project-definition-routes.test.ts",
+    "apps/workbench/src/product/SemanticGraphSurface.tsx",
+    "apps/workbench/src/product/browser-contract-registry.ts",
+    "apps/workbench/src/product/native-examination-registry.tsx",
+    "apps/workbench/src/product/project-data.ts",
+    "apps/workbench/src/product/project-definition-components.test.tsx",
+    "apps/workbench/src/product/project-definition-components.tsx",
+    "apps/workbench/test/a1-definition-components-browser.mjs",
+    "apps/workbench/test/cumulative-production-browser-driver.mjs",
+    "infra/postgres/integration.compose.yaml",
+    "packages/adapters/src/index.ts",
+    "packages/adapters/src/project-definition-client.ts",
+    "packages/adapters/test/project-definition-client.test.ts",
+    "packages/contracts/fixtures/accepted/controlled-writing-requirement.json",
+    "packages/contracts/fixtures/accepted/project-definition-controlled-writing.json",
+    "packages/contracts/fixtures/accepted/registered-project-profile-controlled-writing.json",
+    "packages/contracts/fixtures/accepted/registered-project-profile-scientific-v1-5.json",
+    "packages/contracts/registry.json",
+    "packages/contracts/schemas/project-definition/1.0.0/schema.json",
+    "packages/core/package.json",
+    "packages/core/src/project-definition-components.ts",
+    "packages/core/test/project-definition-components.test.ts",
+    "packages/postgres/src/project-copilot-repository.ts",
+    "packages/postgres/src/project-definition-authority-repository.ts",
+    "packages/postgres/src/project-semantic-graph-reader.ts",
+    "packages/postgres/test/project-copilot-repository.test.ts",
+    "packages/postgres/test/project-definition-authority-repository.test.ts",
+    "packages/postgres/test/working-state-authority-repository.test.ts",
+    "reports/FE-A1-INTAKE-FUNCTION-BROWSER.json",
+    "scripts/a1/definition-components.critical.test.mjs",
+    "scripts/a1/definition-components.test.mjs",
+    "scripts/a1/owned-postgres.mjs",
+    "scripts/a1/run-browser.mjs",
+    "scripts/a1/run-vitest.mjs"
+  ],
+  "criteria": [
+    {
+      "id": "FE-A1.2-W07-AC01",
+      "result": "passed",
+      "test": "FE-A1.2-W07-AC01 critical: foreign stale and forged definition reads cannot select another component or template",
+      "observation": "foreign stale and forged definition reads cannot select another component or template"
+    },
+    {
+      "id": "FE-A1.2-W07-AC02",
+      "result": "passed",
+      "test": "FE-A1.2-W07-AC02 critical: ambiguous installations malformed native material and schema hashes cannot imply execution",
+      "observation": "ambiguous installations malformed native material and schema hashes cannot imply execution"
+    },
+    {
+      "id": "FE-A1.2-W07-AC03",
+      "result": "passed",
+      "test": "FE-A1.2-W07-AC03 critical: identical content in a newer definition cannot reinterpret retained candidates or original conversation inputs",
+      "observation": "identical content in a newer definition cannot reinterpret retained candidates or original conversation inputs"
+    }
+  ],
+  "boundary": "Exact immutable definition reads and generic component negotiation across declared domain registrations. Schema admission is separate from an installed examiner or executor; unavailable capability does not invalidate a valid Project. Existing immutable history owners preserve the original basis. This does not certify missing native writing interpretation/third-type examiners, new model roles, proposed commands, or overall A1.",
+  "review": {
+    "perspective": "Challenge substitution, ambiguity and false availability rather than replay normal loading: use authenticated foreign or stale reads, canonical byte mismatch, ambiguous installed examiners, malformed native payloads, and a real equal-content later definition revision. Require original candidates and original model-input manifests to retain their interpretation.",
+    "challenges": [
+      {
+        "criterion": "FE-A1.2-W07-AC01",
+        "question": "FE-A1.2-W07-AC01 critical: foreign stale and forged definition reads cannot select another component or template",
+        "result": "foreign stale and forged definition reads cannot select another component or template"
+      },
+      {
+        "criterion": "FE-A1.2-W07-AC02",
+        "question": "FE-A1.2-W07-AC02 critical: ambiguous installations malformed native material and schema hashes cannot imply execution",
+        "result": "ambiguous installations malformed native material and schema hashes cannot imply execution"
+      },
+      {
+        "criterion": "FE-A1.2-W07-AC03",
+        "question": "FE-A1.2-W07-AC03 critical: identical content in a newer definition cannot reinterpret retained candidates or original conversation inputs",
+        "result": "identical content in a newer definition cannot reinterpret retained candidates or original conversation inputs"
+      }
+    ],
+    "findings": [
+      {
+        "severity": "material",
+        "disposition": "resolved",
+        "finding": "The graph compared only definition content hashes, so a later revision with identical content could silently appear current.",
+        "resolution": "Compare definition identity, revision and content hash; a real retained candidate remains stale after an equal-content additive revision and its original fields and definition are preserved."
+      },
+      {
+        "severity": "material",
+        "disposition": "resolved",
+        "finding": "Native examiner selection relied on schema alone and named unregistered Claim versions; the browser also lacked the installed writing requirement validator.",
+        "resolution": "Select through the exact definition and installed contract hash, register the actual browser native validator, deny stale and foreign payloads, and remove nonexistent schema version choices."
+      },
+      {
+        "severity": "material",
+        "disposition": "resolved",
+        "finding": "Choosing the first matching installed component concealed ambiguity.",
+        "resolution": "Exclude ambiguous capabilities and report a precise limitation without rejecting the valid Project."
+      }
+    ]
+  }
+}

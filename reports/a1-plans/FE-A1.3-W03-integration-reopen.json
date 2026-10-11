@@ -1,0 +1,4 @@
+{
+  "work_item": "FE-A1.3-W03",
+  "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate."
+}

@@ -1,6 +1,6 @@
 # A1 execution instructions
 
-Roadmap binding: `sha256:3fbd1856dc40eedcaae104545afccda9e9d520b1d13e1e86e44af9373ffe33f2`. Generated from frontend-a1-work-inventory.json.
+Roadmap binding: `sha256:d951c45189b635cfd707c081890c57eafca44ec63e78b68d3ce61d54bc9fbaf0`. Generated from frontend-a1-work-inventory.json.
 
 D025 and D024 govern this execution. Historical frozen Wave 6 instructions are subordinate. Native screen-reader evaluation is excluded; browser semantics and functional peers remain mandatory. The sixteen late scenarios are optional.
 
@@ -163,7 +163,7 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 ### 10. FE-A1.3-W03: Persist and read exact user and assistant turns
 
-State: complete. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.3-W01.
+State: in_progress. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.3-W01.
 
 Sequence: (1) expose current model and permission readiness; (2) require an explicit reviewed owner-only RunProjectCopilot grant and immutable receipt before new conversation Work or historical adoption, preserving existing authorized Work management grants; (3) retain exact private question/native-context/result Artifacts and canonical Thread/Run/Work atomically; (4) resolve exact applicable inquiry, Work, Review and cycle lineage before release; (5) page original readable content and restore questions, answers, citations and outcomes in a fresh browser; (6) reject owner substitution, widened permission, stale proposals, late partial commits and duplicate effects in the distinct critical pass.
 
@@ -179,7 +179,7 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 ### 11. FE-A1.2-W01: Retain outcome-first definition drafting
 
-State: complete. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.0-W01.
+State: planned. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.0-W01.
 
 Keep the server-owned definition draft preserving original wording, Project kernel, proposed objective, outputs, assumptions, capabilities, and unsupported behavior; examples remain optional.
 
@@ -193,11 +193,11 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 ### 12. FE-A1.2-W07: Compose definitions and revisions across Project types
 
-State: planned. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.2-W01.
+State: planned. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.2-W01, FE-A1.3-W03.
 
 Resolve registered object/relationship descriptors, inquiry roles, examiners, language rules, validators, outputs, and place capabilities from the exact ProjectDefinition; semantic revisions follow D018.
 
-Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
+Execution plan: [reports/a1-plans/FE-A1.2-W07-execution.json](../reports/a1-plans/FE-A1.2-W07-execution.json). Critical plan: [reports/a1-plans/FE-A1.2-W07-critical.json](../reports/a1-plans/FE-A1.2-W07-critical.json). Run each with `npm run a1:verify -- PLAN` in that order.
 
 - **FE-A1.2-W07-AC01:** The same shell can load different domain components without scientific conditionals.
 - **FE-A1.2-W07-AC02:** Unsupported execution is named precisely without rejecting a valid Project.
@@ -221,7 +221,7 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 ### 14. FE-A1.3-W05: Connect the official AG-UI stream to Petra view models
 
-State: complete. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.3-W01, FE-A1.3-W03.
+State: planned. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.3-W01, FE-A1.3-W03.
 
 Use pinned official SDK client/server adapters for run, text, activity, tool, state, interrupt, custom, and terminal events; translate them into typed conversation/Work/Workspace models. Sequence: define presentation-only view models and a closed versioned disclosure activity; preserve the existing canonical terminal encoder while adding retained block references; resolve each disclosed block through the exact actor-authorized retained owner read before exposing bytes; map registered Work, tool and interrupt events separately from advisory role authority; mount typed live activity in the actual copilot; verify live managed-model delivery, canonical Work links and independent hostile-event/version/scope/replay cases. Revalidate the hierarchy after integration changes its presentation.
 
@@ -250,7 +250,7 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 ### 16. FE-A1.1-W01: Rebuild the copilot and workspace hierarchy
 
-State: complete. Owner: frontend. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.0-W02, FE-A1.3-W05.
+State: planned. Owner: frontend. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.0-W02, FE-A1.3-W05.
 
 Build the persistent 30/70 desktop shell around a compact Project/objective header, continuous user/assistant thread, contextual progress/interventions, usable composer, and active Workspace result. Sequence: move Workspace destinations and inspection into Workspace chrome; reserve chat and composer space while bounding expandable support; reflect the opened answer or evidence in the Workspace heading and activate narrow Workspace presentation; verify ordinary desktop geometry and actual retained Q/A/draft continuity; critically challenge short/narrow viewports, expanded disclosures, keyboard activation and native return. After AG-UI integration, revalidate the whole hierarchy and keep long answer headings from shrinking the native return control into a vertical column.
 

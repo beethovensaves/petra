@@ -256,8 +256,23 @@ export const startPetraServer = async (
             codexWorkspaceRoot,
             options.codexSidecar?.command ?? "codex",
           ));
-    const intakeCopilot = options.intakeCopilot ?? (options.projectShellPersistence === undefined ? undefined : await createIntakeCopilotService(options.projectShellPersistence, projectCopilot, codexWorkspaceRoot));
-    const workingPlanDeployment = options.workingPlanDeployment ?? await createWorkingPlanDeployment(projectCopilot, ownedCopilotProvider, codexWorkspaceRoot, options.codexSidecar?.command ?? "codex");
+    const intakeCopilot =
+      options.intakeCopilot ??
+      (options.projectShellPersistence === undefined
+        ? undefined
+        : await createIntakeCopilotService(
+            options.projectShellPersistence,
+            projectCopilot,
+            codexWorkspaceRoot,
+          ));
+    const workingPlanDeployment =
+      options.workingPlanDeployment ??
+      (await createWorkingPlanDeployment(
+        projectCopilot,
+        ownedCopilotProvider,
+        codexWorkspaceRoot,
+        options.codexSidecar?.command ?? "codex",
+      ));
     petra = createPetraApp({
       workingPlanDeployment,
       ...options,
@@ -301,6 +316,13 @@ export const startPetraServer = async (
           : {
               projectProfileReads: options.projectShellPersistence.profileReads,
             }),
+      ...((options.projectDefinitions ??
+        options.projectShellPersistence?.definitions) === undefined
+        ? {}
+        : {
+            projectDefinitions: (options.projectDefinitions ??
+              options.projectShellPersistence?.definitions)!,
+          }),
       ...(options.projectProfileCommands !== undefined
         ? { projectProfileCommands: options.projectProfileCommands }
         : options.projectShellPersistence === undefined

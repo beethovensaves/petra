@@ -33,3 +33,4 @@ export * from "./project-working-state-client.js";
 export * from "./project-semantic-graph-client.js";
 
 export * from "./project-examination-client.js";
+export * from "./project-definition-client.js";

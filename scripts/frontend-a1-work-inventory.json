@@ -627,7 +627,7 @@
       "milestone": "FE-A1.1",
       "title": "Rebuild the copilot and workspace hierarchy",
       "owner": "frontend",
-      "status": "complete",
+      "status": "planned",
       "implementation": "Build the persistent 30/70 desktop shell around a compact Project/objective header, continuous user/assistant thread, contextual progress/interventions, usable composer, and active Workspace result. Sequence: move Workspace destinations and inspection into Workspace chrome; reserve chat and composer space while bounding expandable support; reflect the opened answer or evidence in the Workspace heading and activate narrow Workspace presentation; verify ordinary desktop geometry and actual retained Q/A/draft continuity; critically challenge short/narrow viewports, expanded disclosures, keyboard activation and native return. After AG-UI integration, revalidate the whole hierarchy and keep long answer headings from shrinking the native return control into a vertical column.",
       "acceptance": [
         "At ordinary desktop widths both the conversation and result remain legible.",
@@ -648,22 +648,11 @@
       "retained_evidence": [
         "reports/FRONTEND-STEP2-AGENT-WORKSPACE.json",
         "reports/a1-passes/FE-A1.1-W01-execution-1791675860000.json",
-        "reports/a1-passes/FE-A1.1-W01-critical-1791675948769.json"
+        "reports/a1-passes/FE-A1.1-W01-critical-1791675948769.json",
+        "reports/a1-passes/FE-A1.1-W01-execution-1791678575943.json",
+        "reports/a1-passes/FE-A1.1-W01-critical-1791678645251.json"
       ],
-      "completion_evidence": [
-        {
-          "pass": "execution",
-          "artifact": "reports/a1-passes/FE-A1.1-W01-execution-1791678575943.json",
-          "command": "node --test --test-reporter=tap scripts/a1/copilot-hierarchy.test.mjs",
-          "boundary": "Live production layout, retained actual managed-model Q/A, navigation, composer, disclosure and Workspace presentation only. No new model invocation, proposal command, native examiner, cycle or overall A1 acceptance is inferred."
-        },
-        {
-          "pass": "critical",
-          "artifact": "reports/a1-passes/FE-A1.1-W01-critical-1791678645251.json",
-          "command": "node --test --test-reporter=tap scripts/a1/copilot-hierarchy.critical.test.mjs",
-          "boundary": "Live production layout, retained actual managed-model Q/A, navigation, composer, disclosure and Workspace presentation only. No new model invocation, proposal command, native examiner, cycle or overall A1 acceptance is inferred."
-        }
-      ],
+      "completion_evidence": [],
       "optional_scenarios": [
         "A1-S14"
       ],
@@ -677,6 +666,11 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.758Z"
         }
       ],
       "verification_plans": {
@@ -793,6 +787,18 @@
           "artifact": "reports/a1-passes/FE-A1.1-W01-critical-1791675948769.json",
           "command": "node --test --test-reporter=tap scripts/a1/copilot-hierarchy.critical.test.mjs",
           "boundary": "Live production layout, retained actual managed-model Q/A, navigation, composer, disclosure and Workspace presentation only. No new model invocation, proposal command, native examiner, cycle or overall A1 acceptance is inferred."
+        },
+        {
+          "pass": "execution",
+          "artifact": "reports/a1-passes/FE-A1.1-W01-execution-1791678575943.json",
+          "command": "node --test --test-reporter=tap scripts/a1/copilot-hierarchy.test.mjs",
+          "boundary": "Live production layout, retained actual managed-model Q/A, navigation, composer, disclosure and Workspace presentation only. No new model invocation, proposal command, native examiner, cycle or overall A1 acceptance is inferred."
+        },
+        {
+          "pass": "critical",
+          "artifact": "reports/a1-passes/FE-A1.1-W01-critical-1791678645251.json",
+          "command": "node --test --test-reporter=tap scripts/a1/copilot-hierarchy.critical.test.mjs",
+          "boundary": "Live production layout, retained actual managed-model Q/A, navigation, composer, disclosure and Workspace presentation only. No new model invocation, proposal command, native examiner, cycle or overall A1 acceptance is inferred."
         }
       ]
     },
@@ -838,6 +844,11 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
         }
       ]
     },
@@ -880,6 +891,11 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
         }
       ]
     },
@@ -924,6 +940,11 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
         }
       ]
     },
@@ -966,6 +987,11 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
         }
       ]
     },
@@ -1009,6 +1035,11 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
         }
       ]
     },
@@ -1051,6 +1082,11 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
         }
       ]
     },
@@ -1059,7 +1095,7 @@
       "milestone": "FE-A1.2",
       "title": "Retain outcome-first definition drafting",
       "owner": "runtime",
-      "status": "complete",
+      "status": "planned",
       "implementation": "Keep the server-owned definition draft preserving original wording, Project kernel, proposed objective, outputs, assumptions, capabilities, and unsupported behavior; examples remain optional.",
       "acceptance": [
         "Scientific, controlled-writing, and unrelated outcomes use the same entry.",
@@ -1078,9 +1114,21 @@
         "UX-REQ-004"
       ],
       "retained_evidence": [
-        "reports/FRONTEND-STEP3-AGNOSTIC-PROJECT-CREATION.json"
+        "reports/FRONTEND-STEP3-AGNOSTIC-PROJECT-CREATION.json",
+        "reports/a1-passes/FE-A1.2-W01-execution-1791679529391.json",
+        "reports/a1-passes/FE-A1.2-W01-critical-1791679570413.json"
       ],
-      "completion_evidence": [
+      "completion_evidence": [],
+      "optional_scenarios": [
+        "A1-S01",
+        "A1-S04"
+      ],
+      "historical_completion_evidence": [
+        {
+          "artifact": "reports/FRONTEND-STEP3-AGNOSTIC-PROJECT-CREATION.json",
+          "command": "npm run test:frontend:step3-live",
+          "boundary": "Retained live outcome-first creation proof; does not prove conversational empty-state onboarding."
+        },
         {
           "pass": "execution",
           "artifact": "reports/a1-passes/FE-A1.2-W01-execution-1791679529391.json",
@@ -1094,22 +1142,16 @@
           "boundary": "Existing outcome-first draft construction and its exact authority are being verified. Live browser uses one ordinary pre-Project session and three retained draft revisions, with no model invocation or accepted Project creation against inspection data. Isolated PostgreSQL proves real creation/atomicity and rejection. This does not close definition composition, intake model functions, native examiner execution or overall A1."
         }
       ],
-      "optional_scenarios": [
-        "A1-S01",
-        "A1-S04"
-      ],
-      "historical_completion_evidence": [
-        {
-          "artifact": "reports/FRONTEND-STEP3-AGNOSTIC-PROJECT-CREATION.json",
-          "command": "npm run test:frontend:step3-live",
-          "boundary": "Retained live outcome-first creation proof; does not prove conversational empty-state onboarding."
-        }
-      ],
       "reopenings": [
         {
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.661Z"
         }
       ],
       "verification_plans": {
@@ -1217,6 +1259,11 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -1263,6 +1310,11 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -1301,6 +1353,11 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -1351,6 +1408,21 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -1389,6 +1461,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -1408,7 +1490,8 @@
         "FE-A1.0-W05",
         "FE-A1.6-W07",
         "FE-A1.0-W06",
-        "FE-A1.2-W01"
+        "FE-A1.2-W01",
+        "FE-A1.3-W03"
       ],
       "contracts": [
         "D018",
@@ -1429,8 +1512,32 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
-      ]
+      ],
+      "execution_history": [
+        {
+          "item": "FE-A1.2-W07",
+          "phase": "execution",
+          "failed_attempts": 0,
+          "started_at": "2026-10-11T00:49:44.117Z",
+          "disposition": "reopened",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item."
+        }
+      ],
+      "verification_plans": {
+        "execution": "reports/a1-plans/FE-A1.2-W07-execution.json",
+        "critical": "reports/a1-plans/FE-A1.2-W07-critical.json"
+      }
     },
     {
       "id": "FE-A1.3-W01",
@@ -1679,7 +1786,7 @@
       "milestone": "FE-A1.3",
       "title": "Persist and read exact user and assistant turns",
       "owner": "runtime",
-      "status": "complete",
+      "status": "in_progress",
       "implementation": "Sequence: (1) expose current model and permission readiness; (2) require an explicit reviewed owner-only RunProjectCopilot grant and immutable receipt before new conversation Work or historical adoption, preserving existing authorized Work management grants; (3) retain exact private question/native-context/result Artifacts and canonical Thread/Run/Work atomically; (4) resolve exact applicable inquiry, Work, Review and cycle lineage before release; (5) page original readable content and restore questions, answers, citations and outcomes in a fresh browser; (6) reject owner substitution, widened permission, stale proposals, late partial commits and duplicate effects in the distinct critical pass.",
       "acceptance": [
         "A fresh browser restores actual question and answer content, citations, and outcomes.",
@@ -1700,22 +1807,11 @@
         "UX-REQ-023"
       ],
       "retained_evidence": [
-        "reports/FE-A1-CONSTRUCTION-CHECKS.json"
+        "reports/FE-A1-CONSTRUCTION-CHECKS.json",
+        "reports/a1-passes/FE-A1.3-W03-execution-1791671233189.json",
+        "reports/a1-passes/FE-A1.3-W03-critical-1791671280023.json"
       ],
-      "completion_evidence": [
-        {
-          "pass": "execution",
-          "artifact": "reports/a1-passes/FE-A1.3-W03-execution-1791671233189.json",
-          "command": "node --test --test-reporter=tap scripts/a1/owned-conversation.test.mjs",
-          "boundary": "Canonical ownership and retained readable advisory conversation only. Provider internal CPU, memory, network, tokens and price remain unavailable; unknown values never satisfy applicable hard limits. Historical adoption records actual import Work and preserves original bytes without reconstructing original execution authority. Proposal decisions/commands, progressive AG-UI activities/interrupts, native examiners, reactive Workspace graph cycles and A1 product acceptance remain open required ledger items."
-        },
-        {
-          "pass": "critical",
-          "artifact": "reports/a1-passes/FE-A1.3-W03-critical-1791671280023.json",
-          "command": "node --test --test-reporter=tap scripts/a1/owned-conversation.critical.test.mjs",
-          "boundary": "Canonical ownership and retained readable advisory conversation only. Provider internal CPU, memory, network, tokens and price remain unavailable; unknown values never satisfy applicable hard limits. Historical adoption records actual import Work and preserves original bytes without reconstructing original execution authority. Proposal decisions/commands, progressive AG-UI activities/interrupts, native examiners, reactive Workspace graph cycles and A1 product acceptance remain open required ledger items."
-        }
-      ],
+      "completion_evidence": [],
       "optional_scenarios": [
         "A1-S07",
         "A1-S09"
@@ -1725,6 +1821,11 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
         }
       ],
       "verification_plans": {
@@ -2012,6 +2113,20 @@
           ],
           "finished_at": "2026-10-10T22:28:44.890Z"
         }
+      ],
+      "historical_completion_evidence": [
+        {
+          "pass": "execution",
+          "artifact": "reports/a1-passes/FE-A1.3-W03-execution-1791671233189.json",
+          "command": "node --test --test-reporter=tap scripts/a1/owned-conversation.test.mjs",
+          "boundary": "Canonical ownership and retained readable advisory conversation only. Provider internal CPU, memory, network, tokens and price remain unavailable; unknown values never satisfy applicable hard limits. Historical adoption records actual import Work and preserves original bytes without reconstructing original execution authority. Proposal decisions/commands, progressive AG-UI activities/interrupts, native examiners, reactive Workspace graph cycles and A1 product acceptance remain open required ledger items."
+        },
+        {
+          "pass": "critical",
+          "artifact": "reports/a1-passes/FE-A1.3-W03-critical-1791671280023.json",
+          "command": "node --test --test-reporter=tap scripts/a1/owned-conversation.critical.test.mjs",
+          "boundary": "Canonical ownership and retained readable advisory conversation only. Provider internal CPU, memory, network, tokens and price remain unavailable; unknown values never satisfy applicable hard limits. Historical adoption records actual import Work and preserves original bytes without reconstructing original execution authority. Proposal decisions/commands, progressive AG-UI activities/interrupts, native examiners, reactive Workspace graph cycles and A1 product acceptance remain open required ledger items."
+        }
       ]
     },
     {
@@ -2053,6 +2168,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -2061,7 +2186,7 @@
       "milestone": "FE-A1.3",
       "title": "Connect the official AG-UI stream to Petra view models",
       "owner": "runtime",
-      "status": "complete",
+      "status": "planned",
       "implementation": "Use pinned official SDK client/server adapters for run, text, activity, tool, state, interrupt, custom, and terminal events; translate them into typed conversation/Work/Workspace models. Sequence: define presentation-only view models and a closed versioned disclosure activity; preserve the existing canonical terminal encoder while adding retained block references; resolve each disclosed block through the exact actor-authorized retained owner read before exposing bytes; map registered Work, tool and interrupt events separately from advisory role authority; mount typed live activity in the actual copilot; verify live managed-model delivery, canonical Work links and independent hostile-event/version/scope/replay cases. Revalidate the hierarchy after integration changes its presentation.",
       "acceptance": [
         "The real conversation progressively renders validated state through the official client.",
@@ -2082,22 +2207,11 @@
       ],
       "retained_evidence": [
         "reports/FRONTEND-ADAPTATION-MILESTONE.md",
-        "reports/FE-A1-CONSTRUCTION-CHECKS.json"
+        "reports/FE-A1-CONSTRUCTION-CHECKS.json",
+        "reports/a1-passes/FE-A1.3-W05-execution-1791678381373.json",
+        "reports/a1-passes/FE-A1.3-W05-critical-1791678409663.json"
       ],
-      "completion_evidence": [
-        {
-          "pass": "execution",
-          "artifact": "reports/a1-passes/FE-A1.3-W05-execution-1791678381373.json",
-          "command": "node --test --test-reporter=tap scripts/a1/progressive-copilot.test.mjs",
-          "boundary": "Typed presentation and official AG-UI transport only. Execution checks actual managed model and canonical ownership in the live browser; critical checks adverse events and actual same-identity replay/auth denial. Controlled owner ports test disclosure guards, not canonical persistence. Command mediation, native examiners, cyclic verification and overall A1 acceptance remain separate open requirements."
-        },
-        {
-          "pass": "critical",
-          "artifact": "reports/a1-passes/FE-A1.3-W05-critical-1791678409663.json",
-          "command": "node --test --test-reporter=tap scripts/a1/progressive-copilot.critical.test.mjs",
-          "boundary": "Typed presentation and official AG-UI transport only. Execution checks actual managed model and canonical ownership in the live browser; critical checks adverse events and actual same-identity replay/auth denial. Controlled owner ports test disclosure guards, not canonical persistence. Command mediation, native examiners, cyclic verification and overall A1 acceptance remain separate open requirements."
-        }
-      ],
+      "completion_evidence": [],
       "optional_scenarios": [
         "A1-S02",
         "A1-S06",
@@ -2113,6 +2227,11 @@
           "prerequisite": "FE-A1.3-W05",
           "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
           "recorded_at": "2026-10-11T00:13:11.413Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
         }
       ],
       "execution_history": [
@@ -2191,7 +2310,21 @@
       "verification_plans": {
         "execution": "reports/a1-plans/FE-A1.3-W05-execution.json",
         "critical": "reports/a1-plans/FE-A1.3-W05-critical.json"
-      }
+      },
+      "historical_completion_evidence": [
+        {
+          "pass": "execution",
+          "artifact": "reports/a1-passes/FE-A1.3-W05-execution-1791678381373.json",
+          "command": "node --test --test-reporter=tap scripts/a1/progressive-copilot.test.mjs",
+          "boundary": "Typed presentation and official AG-UI transport only. Execution checks actual managed model and canonical ownership in the live browser; critical checks adverse events and actual same-identity replay/auth denial. Controlled owner ports test disclosure guards, not canonical persistence. Command mediation, native examiners, cyclic verification and overall A1 acceptance remain separate open requirements."
+        },
+        {
+          "pass": "critical",
+          "artifact": "reports/a1-passes/FE-A1.3-W05-critical-1791678409663.json",
+          "command": "node --test --test-reporter=tap scripts/a1/progressive-copilot.critical.test.mjs",
+          "boundary": "Typed presentation and official AG-UI transport only. Execution checks actual managed model and canonical ownership in the live browser; critical checks adverse events and actual same-identity replay/auth denial. Controlled owner ports test disclosure guards, not canonical persistence. Command mediation, native examiners, cyclic verification and overall A1 acceptance remain separate open requirements."
+        }
+      ]
     },
     {
       "id": "FE-A1.3-W06",
@@ -2245,6 +2378,11 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
         }
       ]
     },
@@ -2290,6 +2428,11 @@
           "prerequisite": "FE-A1.3-W05",
           "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
           "recorded_at": "2026-10-11T00:13:11.413Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
         }
       ]
     },
@@ -2342,6 +2485,11 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
         }
       ]
     },
@@ -2395,6 +2543,11 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
         }
       ]
     },
@@ -2448,6 +2601,11 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
         }
       ]
     },
@@ -2496,6 +2654,11 @@
           "prerequisite": "FE-A1.3-W05",
           "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
           "recorded_at": "2026-10-11T00:13:11.413Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
         }
       ]
     },
@@ -2537,6 +2700,21 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -2578,6 +2756,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -2621,6 +2809,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -2662,6 +2860,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -2702,6 +2910,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -2749,6 +2967,21 @@
           "prerequisite": "FE-A1.3-W05",
           "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
           "recorded_at": "2026-10-11T00:13:11.413Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -2787,6 +3020,11 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
         }
       ]
     },
@@ -2832,6 +3070,21 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -2886,6 +3139,21 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -2937,6 +3205,21 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -2982,6 +3265,21 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -3031,6 +3329,21 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -3074,6 +3387,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -3121,6 +3444,21 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -3173,6 +3511,21 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -3224,6 +3577,21 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -3266,6 +3634,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -3309,6 +3687,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -3354,6 +3742,21 @@
           "prerequisite": "FE-A1.3-W05",
           "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
           "recorded_at": "2026-10-11T00:13:11.413Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -3409,6 +3812,21 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -3459,6 +3877,21 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -3511,6 +3944,21 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -3550,6 +3998,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -3602,6 +4060,21 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -3655,6 +4128,21 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -3708,6 +4196,21 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -3746,6 +4249,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -3796,6 +4309,21 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -3849,6 +4377,21 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -3899,6 +4442,21 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -3947,6 +4505,21 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -3998,6 +4571,21 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -4050,6 +4638,21 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -4103,6 +4706,21 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -4155,6 +4773,21 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -4206,6 +4839,21 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -4259,6 +4907,21 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -4311,6 +4974,21 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -4360,6 +5038,21 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -4405,6 +5098,21 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -4447,6 +5155,21 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -4497,6 +5220,21 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -4536,6 +5274,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -4583,6 +5331,21 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -4627,6 +5390,21 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -4747,6 +5525,21 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -4794,6 +5587,21 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -4842,6 +5650,21 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -4889,6 +5712,21 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -4941,6 +5779,21 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -4990,6 +5843,21 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -5041,6 +5909,21 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -5091,6 +5974,21 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -5145,6 +6043,21 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -5197,6 +6110,21 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -5249,6 +6177,21 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -5294,6 +6237,21 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     },
@@ -5338,6 +6296,21 @@
           "prerequisite": "FE-A1.1-W01",
           "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
           "recorded_at": "2026-10-11T00:13:12.737Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item.",
+          "recorded_at": "2026-10-11T00:53:08.579Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W03",
+          "reason": "The definition composition integration adds the exact immutable definition read to the shared authenticated app and production persistence; revalidate canonical conversation ownership against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:12.759Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W01",
+          "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate.",
+          "recorded_at": "2026-10-11T00:53:17.664Z"
         }
       ]
     }
@@ -6451,7 +7424,50 @@
     "repeated_failure_limit": 2,
     "synchronization": "Roadmap, generated execution packet, canonical ledger and both execution worktrees must agree before execution or closure."
   },
-  "active_work": null,
+  "active_work": {
+    "item": "FE-A1.3-W03",
+    "phase": "execution",
+    "failed_attempts": 0,
+    "started_at": "2026-10-11T00:53:40.952Z",
+    "failures": [
+      {
+        "reason": "Definition integration browser preflight failed: assumed Chrome cleanup fields and visibility inside a collapsed nested Inspect disclosure.",
+        "phase": "execution",
+        "recorded_at": "2026-10-11T01:07:16.474Z"
+      },
+      {
+        "reason": "Definition integration browser preflight failed: overlapping cleanup interrupted an active check and StrictMode produced two exact read-only definition GETs.",
+        "phase": "execution",
+        "recorded_at": "2026-10-11T01:07:26.154Z"
+      }
+    ],
+    "diagnoses": [
+      {
+        "work_item": "FE-A1.3-W03",
+        "boundary": "Definition-composition integration verification readiness; no passing evidence was recorded from these browser preflights.",
+        "contract": "Exact-definition reads are presentation GETs. Every read must bind the same Project, identity, revision and hash, preserve authority, and cause no command or model invocation. The contract does not require a single GET.",
+        "architecture": "The production root uses React StrictMode, which remounts development effects. The component correctly keys results by the immutable definition binding and keeps exact identity behind a nested optional Inspect disclosure.",
+        "dependencies": "The existing Chrome driver returns child, profile and socketUrl. A primary assertion must survive finally cleanup; process cleanup must finish before launching the next task-owned browser.",
+        "environment": "The Node 24 production factory is running on 4312 with Vite on 4313 against controlled inspection services. The check targets only the synthetic Project and performs no model or command operation.",
+        "verification": "Preflights made four invalid instrumentation assumptions: Chrome process field names, visible text inside a collapsed nested disclosure, safe cleanup overlapping an active child, and one read under development StrictMode. All preflight outcomes remain failures rather than completion evidence.",
+        "changed_remedy": "Use the inspected child/profile lifecycle, finish cleanup before launch, open both disclosures before visible identity assertions, and require all observed GETs to have one exact binding with no authority-changing operations rather than require one request.",
+        "failures": [
+          {
+            "reason": "Definition integration browser preflight failed: assumed Chrome cleanup fields and visibility inside a collapsed nested Inspect disclosure.",
+            "phase": "execution",
+            "recorded_at": "2026-10-11T01:07:16.474Z"
+          },
+          {
+            "reason": "Definition integration browser preflight failed: overlapping cleanup interrupted an active check and StrictMode produced two exact read-only definition GETs.",
+            "phase": "execution",
+            "recorded_at": "2026-10-11T01:07:26.154Z"
+          }
+        ],
+        "recorded_at": "2026-10-11T01:07:33.123Z"
+      }
+    ],
+    "passes": []
+  },
   "repair_sequence": [
     {
       "order": 1,

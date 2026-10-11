@@ -1,0 +1,4 @@
+{
+  "work_item": "FE-A1.2-W01",
+  "reason": "The definition composition integration mounts an exact immutable definition read in the shared app and adds a definition loader to the shared data adapter; revalidate outcome-first drafting against the resulting candidate."
+}
