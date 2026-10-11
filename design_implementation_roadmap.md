@@ -1556,11 +1556,11 @@ criteria or release an incomplete A1 item.
 
 ## Controlling A1 execution
 
-Binding: `sha256:450fb385f85bfdcc1a251d848b118eddba5f838727843a82418044dfd6e46c46`. 11/90 required items complete; 79 incomplete.
+Binding: `sha256:da6b9b45f4ca035706738e73ffc42ad5935733f06b3dd37e29c98a56d76373b6`. 11/90 required items complete; 79 incomplete.
 
 D024 governs the conversational copilot and reactive Workspace. D025 governs synchronized execution and two distinct validation passes. The canonical [function ledger](scripts/frontend-a1-work-inventory.json), [readable implementation ledger](reports/FE-A1-CONTRACT-IMPLEMENTATION-LEDGER.md), and [granular execution instructions](scripts/frontend-a1-execution.md) agree before work starts, evidence is recorded, completion is accepted, or another wave proceeds.
 
-Active work: none; select one prerequisite-ready item.
+Active work: FE-A1.1-W01, execution.
 
 | Stage   | Required behavior                                                          | Complete / required |
 | ------- | -------------------------------------------------------------------------- | ------------------- |

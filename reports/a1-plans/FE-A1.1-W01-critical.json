@@ -96,6 +96,12 @@
         "disposition": "resolved",
         "finding": "The new CDP keyboard driver sent a virtual Enter code without carriage-return text, so browser default activation never occurred. The repository existing native drivers supply it.",
         "resolution": "Match native Enter keyDown text and retain the failing critical capture. Execute both passes again; do not replace keyboard activation with scripted clicks."
+      },
+      {
+        "severity": "material",
+        "disposition": "resolved",
+        "finding": "The actual AG-UI browser answer had a long question heading that shrank its Return to workspace button into a vertical column even though the earlier geometry assertions passed.",
+        "resolution": "Keep the title flexible and the native return control at its natural width. Execution measures the real long-heading control; the independent narrow keyboard check verifies the fix causes no overflow and preserves route identity."
       }
     ]
   }

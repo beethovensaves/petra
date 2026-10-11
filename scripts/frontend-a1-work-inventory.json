@@ -627,8 +627,8 @@
       "milestone": "FE-A1.1",
       "title": "Rebuild the copilot and workspace hierarchy",
       "owner": "frontend",
-      "status": "planned",
-      "implementation": "Build the persistent 30/70 desktop shell around a compact Project/objective header, continuous user/assistant thread, contextual progress/interventions, usable composer, and active Workspace result. Sequence: move Workspace destinations and inspection into Workspace chrome; reserve chat and composer space while bounding expandable support; reflect the opened answer or evidence in the Workspace heading and activate narrow Workspace presentation; verify ordinary desktop geometry and actual retained Q/A/draft continuity; critically challenge short/narrow viewports, expanded disclosures, keyboard activation and native return.",
+      "status": "in_progress",
+      "implementation": "Build the persistent 30/70 desktop shell around a compact Project/objective header, continuous user/assistant thread, contextual progress/interventions, usable composer, and active Workspace result. Sequence: move Workspace destinations and inspection into Workspace chrome; reserve chat and composer space while bounding expandable support; reflect the opened answer or evidence in the Workspace heading and activate narrow Workspace presentation; verify ordinary desktop geometry and actual retained Q/A/draft continuity; critically challenge short/narrow viewports, expanded disclosures, keyboard activation and native return. After AG-UI integration, revalidate the whole hierarchy and keep long answer headings from shrinking the native return control into a vertical column.",
       "acceptance": [
         "At ordinary desktop widths both the conversation and result remain legible.",
         "The left panel reads and behaves as a normal conversational agent; route-owned forms do not dominate it.",
@@ -638,7 +638,8 @@
         "FE-A1.0-W05",
         "FE-A1.6-W07",
         "FE-A1.0-W06",
-        "FE-A1.0-W02"
+        "FE-A1.0-W02",
+        "FE-A1.3-W05"
       ],
       "contracts": [
         "D024",
@@ -6341,7 +6342,12 @@
     "repeated_failure_limit": 2,
     "synchronization": "Roadmap, generated execution packet, canonical ledger and both execution worktrees must agree before execution or closure."
   },
-  "active_work": null,
+  "active_work": {
+    "item": "FE-A1.1-W01",
+    "phase": "execution",
+    "failed_attempts": 0,
+    "started_at": "2026-10-11T00:28:47.865Z"
+  },
   "repair_sequence": [
     {
       "order": 1,

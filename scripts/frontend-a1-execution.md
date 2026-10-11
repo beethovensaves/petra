@@ -1,6 +1,6 @@
 # A1 execution instructions
 
-Roadmap binding: `sha256:450fb385f85bfdcc1a251d848b118eddba5f838727843a82418044dfd6e46c46`. Generated from frontend-a1-work-inventory.json.
+Roadmap binding: `sha256:da6b9b45f4ca035706738e73ffc42ad5935733f06b3dd37e29c98a56d76373b6`. Generated from frontend-a1-work-inventory.json.
 
 D025 and D024 govern this execution. Historical frozen Wave 6 instructions are subordinate. Native screen-reader evaluation is excluded; browser semantics and functional peers remain mandatory. The sixteen late scenarios are optional.
 
@@ -250,9 +250,9 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 ### 16. FE-A1.1-W01: Rebuild the copilot and workspace hierarchy
 
-State: planned. Owner: frontend. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.0-W02.
+State: in_progress. Owner: frontend. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.0-W02, FE-A1.3-W05.
 
-Build the persistent 30/70 desktop shell around a compact Project/objective header, continuous user/assistant thread, contextual progress/interventions, usable composer, and active Workspace result. Sequence: move Workspace destinations and inspection into Workspace chrome; reserve chat and composer space while bounding expandable support; reflect the opened answer or evidence in the Workspace heading and activate narrow Workspace presentation; verify ordinary desktop geometry and actual retained Q/A/draft continuity; critically challenge short/narrow viewports, expanded disclosures, keyboard activation and native return.
+Build the persistent 30/70 desktop shell around a compact Project/objective header, continuous user/assistant thread, contextual progress/interventions, usable composer, and active Workspace result. Sequence: move Workspace destinations and inspection into Workspace chrome; reserve chat and composer space while bounding expandable support; reflect the opened answer or evidence in the Workspace heading and activate narrow Workspace presentation; verify ordinary desktop geometry and actual retained Q/A/draft continuity; critically challenge short/narrow viewports, expanded disclosures, keyboard activation and native return. After AG-UI integration, revalidate the whole hierarchy and keep long answer headings from shrinking the native return control into a vertical column.
 
 Execution plan: [reports/a1-plans/FE-A1.1-W01-execution.json](../reports/a1-plans/FE-A1.1-W01-execution.json). Critical plan: [reports/a1-plans/FE-A1.1-W01-critical.json](../reports/a1-plans/FE-A1.1-W01-critical.json). Run each with `npm run a1:verify -- PLAN` in that order.
 

@@ -97,6 +97,14 @@ test("FE-A1.1-W01-AC03 execution: opening an actual answer makes its Workspace o
   const g = await surface.geometry();
   assert(g.object.font >= 24 && g.object.font > g.heading.font);
   assert(g.workspace.width >= g.agent.width * 2.2);
+  const returnControl = await surface.evaluate(
+    "(()=>{const e=document.querySelector('.copilot-workspace-result > header > button'),r=e.getBoundingClientRect(),s=getComputedStyle(e);return {width:r.width,height:r.height,line:parseFloat(s.lineHeight),padding:parseFloat(s.paddingTop)+parseFloat(s.paddingBottom)};})()",
+  );
+  assert(
+    returnControl.width >= 130 &&
+      returnControl.height <= returnControl.line + returnControl.padding + 3,
+    "A long real question cannot shrink its return control into multiple vertical lines.",
+  );
   assert.equal(
     await surface.evaluate(
       "document.querySelector('.copilot-workspace-result').textContent.includes('Return to workspace')",
@@ -108,5 +116,6 @@ test("FE-A1.1-W01-AC03 execution: opening an actual answer makes its Workspace o
     question,
     geometry: g,
     workspace_heading: "Petra answer",
+    return_control: returnControl,
   });
 });
