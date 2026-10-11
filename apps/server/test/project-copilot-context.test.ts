@@ -241,6 +241,7 @@ describe("exact bounded context compilation", () => {
     ];
     definition.content_hash = copilotHash(definition.content);
     shell.content.definition.content_hash = definition.content_hash;
+    shell.content.definition.terms = definition.content.terms;
     const record = exactDefinitionContext(shell, definition);
     const excerpt = JSON.parse(record.text!) as {
       omitted_terms: number;

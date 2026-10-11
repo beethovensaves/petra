@@ -76,7 +76,12 @@ export function exactDefinitionContext(
   const omittedFlows = [...definition.content.omitted_flows];
   const excerpt = () => ({
     authority: "definition_semantics_only",
-    definition_ref: shell.content.definition,
+    definition_ref: {
+      project_definition_id: definition.project_definition_id,
+      revision: definition.revision,
+      content_hash: definition.content_hash,
+      definition_family: definition.definition_family,
+    },
     registrations,
     terms,
     supported_places: definition.content.supported_places,
