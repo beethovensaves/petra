@@ -1,0 +1,121 @@
+TAP version 13
+# > @petra/adapters@0.0.0 test
+# > vitest run --config vitest.config.ts copilot-progress.critical.test.ts --testNamePattern rejects hostile|withholds disclosure|refuses unsolicited|keeps genuine --reporter=verbose
+#  RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/packages/adapters
+#  ✓ test/copilot-progress.critical.test.ts > critical disclosure review > rejects hostile version scope hash sequence and missing block without displaying a completed answer 32ms
+#  ✓ test/copilot-progress.critical.test.ts > critical disclosure review > withholds disclosure for foreign owner and abortion during the retained read 2ms
+#  ✓ test/copilot-progress.critical.test.ts > critical disclosure review > refuses unsolicited tools custom decisions and interrupt outcomes in the advisory role 3ms
+#  ✓ test/copilot-progress.critical.test.ts > critical disclosure review > keeps genuine retained failure and cancellation distinct from connection loss 13ms
+#  ↓ test/copilot-progress.critical.test.ts > critical disclosure review > rejects unregistered native custom versions names fields and authority even when the SDK swallows subscriber errors
+#  ↓ test/copilot-progress.critical.test.ts > critical disclosure review > maps native Work tool and review models without turning a proposal into applied authority
+#  Test Files  1 passed (1)
+#       Tests  4 passed | 2 skipped (6)
+#    Start at  22:01:27
+#    Duration  775ms (transform 205ms, setup 0ms, import 666ms, tests 51ms, environment 0ms)
+# stderr | test/copilot-progress.critical.test.ts > critical disclosure review > refuses unsolicited tools custom decisions and interrupt outcomes in the advisory role
+# Agent execution failed: AGUIError: Cannot send 'RUN_FINISHED' while tool calls are still active: unauthorized
+#     at file:///Users/felipe.casadei/vscode/graphRAG/petra/node_modules/@ag-ui/client/dist/index.mjs:1:25501
+#     at Observable.init [as _subscribe] (/Users/felipe.casadei/vscode/graphRAG/petra/node_modules/@ag-ui/client/node_modules/rxjs/dist/cjs/internal/observable/throwError.js:8:64)
+#     at Observable._trySubscribe (/Users/felipe.casadei/vscode/graphRAG/petra/node_modules/@ag-ui/client/node_modules/rxjs/dist/cjs/internal/Observable.js:41:25)
+#     at /Users/felipe.casadei/vscode/graphRAG/petra/node_modules/@ag-ui/client/node_modules/rxjs/dist/cjs/internal/Observable.js:35:31
+#     at Object.errorContext (/Users/felipe.casadei/vscode/graphRAG/petra/node_modules/@ag-ui/client/node_modules/rxjs/dist/cjs/internal/util/errorContext.js:22:9)
+#     at Observable.subscribe (/Users/felipe.casadei/vscode/graphRAG/petra/node_modules/@ag-ui/client/node_modules/rxjs/dist/cjs/internal/Observable.js:26:24)
+#     at doInnerSub (/Users/felipe.casadei/vscode/graphRAG/petra/node_modules/@ag-ui/client/node_modules/rxjs/dist/cjs/internal/operators/mergeInternals.js:22:56)
+#     at outerNext (/Users/felipe.casadei/vscode/graphRAG/petra/node_modules/@ag-ui/client/node_modules/rxjs/dist/cjs/internal/operators/mergeInternals.js:17:70)
+#     at OperatorSubscriber._this._next (/Users/felipe.casadei/vscode/graphRAG/petra/node_modules/@ag-ui/client/node_modules/rxjs/dist/cjs/internal/operators/OperatorSubscriber.js:33:21)
+#     at OperatorSubscriber.Subscriber.next (/Users/felipe.casadei/vscode/graphRAG/petra/node_modules/@ag-ui/client/node_modules/rxjs/dist/cjs/internal/Subscriber.js:51:18)
+# stderr | test/copilot-progress.critical.test.ts > critical disclosure review > refuses unsolicited tools custom decisions and interrupt outcomes in the advisory role
+# Agent execution failed: ZodError: [
+#   {
+#     "code": "too_small",
+#     "minimum": 1,
+#     "type": "array",
+#     "inclusive": true,
+#     "exact": false,
+#     "message": "Array must contain at least 1 element(s)",
+#     "path": [
+#       "outcome",
+#       "interrupts"
+#     ]
+#   }
+# ]
+#     at Object.get error [as error] (file:///Users/felipe.casadei/vscode/graphRAG/petra/node_modules/zod/v3/types.js:39:31)
+#     at ZodDiscriminatedUnion.parse (file:///Users/felipe.casadei/vscode/graphRAG/petra/node_modules/zod/v3/types.js:114:22)
+#     at Object.next (file:///Users/felipe.casadei/vscode/graphRAG/petra/node_modules/@ag-ui/client/dist/index.mjs:3:1199)
+#     at ConsumerObserver.next (/Users/felipe.casadei/vscode/graphRAG/petra/node_modules/@ag-ui/client/node_modules/rxjs/dist/cjs/internal/Subscriber.js:113:33)
+#     at SafeSubscriber.Subscriber._next (/Users/felipe.casadei/vscode/graphRAG/petra/node_modules/@ag-ui/client/node_modules/rxjs/dist/cjs/internal/Subscriber.js:80:26)
+#     at SafeSubscriber.Subscriber.next (/Users/felipe.casadei/vscode/graphRAG/petra/node_modules/@ag-ui/client/node_modules/rxjs/dist/cjs/internal/Subscriber.js:51:18)
+#     at /Users/felipe.casadei/vscode/graphRAG/petra/node_modules/@ag-ui/client/node_modules/rxjs/dist/cjs/internal/Subject.js:69:34
+#     at Object.errorContext (/Users/felipe.casadei/vscode/graphRAG/petra/node_modules/@ag-ui/client/node_modules/rxjs/dist/cjs/internal/util/errorContext.js:22:9)
+#     at Subject.next (/Users/felipe.casadei/vscode/graphRAG/petra/node_modules/@ag-ui/client/node_modules/rxjs/dist/cjs/internal/Subject.js:59:24)
+#     at o (file:///Users/felipe.casadei/vscode/graphRAG/petra/node_modules/@ag-ui/client/dist/index.mjs:3:72) {
+#   issues: [
+#     {
+#       code: 'too_small',
+#       minimum: 1,
+#       type: 'array',
+#       inclusive: true,
+#       exact: false,
+#       message: 'Array must contain at least 1 element(s)',
+#       path: [Array]
+#     }
+#   ],
+#   addIssue: [Function (anonymous)],
+#   addIssues: [Function (anonymous)]
+# }
+# Agent execution failed: Error: HTTP 409: {"error":{"code":"RUN_ID_CONFLICT","message":"This run identity belongs to a different retained question."}}
+#     at file:///Users/felipe.casadei/vscode/graphRAG/petra/node_modules/@ag-ui/client/dist/index.mjs:1:27192
+#     at doInnerSub (/Users/felipe.casadei/vscode/graphRAG/petra/node_modules/@ag-ui/client/node_modules/rxjs/dist/cjs/internal/operators/mergeInternals.js:22:31)
+#     at outerNext (/Users/felipe.casadei/vscode/graphRAG/petra/node_modules/@ag-ui/client/node_modules/rxjs/dist/cjs/internal/operators/mergeInternals.js:17:70)
+#     at OperatorSubscriber._this._next (/Users/felipe.casadei/vscode/graphRAG/petra/node_modules/@ag-ui/client/node_modules/rxjs/dist/cjs/internal/operators/OperatorSubscriber.js:33:21)
+#     at Subscriber.next (/Users/felipe.casadei/vscode/graphRAG/petra/node_modules/@ag-ui/client/node_modules/rxjs/dist/cjs/internal/Subscriber.js:51:18)
+#     at /Users/felipe.casadei/vscode/graphRAG/petra/node_modules/@ag-ui/client/node_modules/rxjs/dist/cjs/internal/observable/innerFrom.js:120:28
+#     at process.processTicksAndRejections (node:internal/process/task_queues:104:5) {
+#   status: 409,
+#   payload: {
+#     error: {
+#       code: 'RUN_ID_CONFLICT',
+#       message: 'This run identity belongs to a different retained question.'
+#     }
+#   }
+# }
+# > @petra/adapters@0.0.0 test
+# > vitest run --config vitest.config.ts copilot-progress.critical.test.ts --testNamePattern rejects unregistered native|maps native Work --reporter=verbose
+#  RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/packages/adapters
+#  ↓ test/copilot-progress.critical.test.ts > critical disclosure review > rejects hostile version scope hash sequence and missing block without displaying a completed answer
+#  ↓ test/copilot-progress.critical.test.ts > critical disclosure review > withholds disclosure for foreign owner and abortion during the retained read
+#  ↓ test/copilot-progress.critical.test.ts > critical disclosure review > refuses unsolicited tools custom decisions and interrupt outcomes in the advisory role
+#  ↓ test/copilot-progress.critical.test.ts > critical disclosure review > keeps genuine retained failure and cancellation distinct from connection loss
+#  ✓ test/copilot-progress.critical.test.ts > critical disclosure review > rejects unregistered native custom versions names fields and authority even when the SDK swallows subscriber errors 23ms
+#  ✓ test/copilot-progress.critical.test.ts > critical disclosure review > maps native Work tool and review models without turning a proposal into applied authority 1ms
+#  Test Files  1 passed (1)
+#       Tests  2 passed | 4 skipped (6)
+#    Start at  22:01:28
+#    Duration  766ms (transform 208ms, setup 0ms, import 680ms, tests 25ms, environment 0ms)
+# Subtest: FE-A1.3-W05-AC01 critical: hostile disclosure cannot substitute content ownership order or outcomes and exact production replay creates no new run
+ok 1 - FE-A1.3-W05-AC01 critical: hostile disclosure cannot substitute content ownership order or outcomes and exact production replay creates no new run
+  ---
+  duration_ms: 1324.236958
+  type: 'test'
+  ...
+# Subtest: FE-A1.3-W05-AC02 critical: native Work tool and Review mappings reject unregistered custom authority and SDK subscriber-error loss
+ok 2 - FE-A1.3-W05-AC02 critical: native Work tool and Review mappings reject unregistered custom authority and SDK subscriber-error loss
+  ---
+  duration_ms: 1000.157584
+  type: 'test'
+  ...
+# Subtest: FE-A1.3-W05-AC03 critical: protocol dependency guard catches imports and raw event interpretation concealed in a feature
+ok 3 - FE-A1.3-W05-AC03 critical: protocol dependency guard catches imports and raw event interpretation concealed in a feature
+  ---
+  duration_ms: 2.81575
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2709.62525

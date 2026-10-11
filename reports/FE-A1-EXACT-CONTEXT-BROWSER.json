@@ -1,0 +1,219 @@
+{
+  "status": "passed",
+  "boundary": "Actual retained input disclosure in the production browser; no new command or model call. Whole admitted records and limitations remain exact at desktop and narrow widths.",
+  "project_id": "project_4GNM3G166Z7RCBSW5K6TXZ3XZ9",
+  "run_id": "run_6WFGRMDD9W61DM4DN1NE08EY6S",
+  "context_hash": "sha256:098ebdffd077af6e14bb31dcaa452f2d528aa574be082651a7d8ac5cfdf3ec09",
+  "input_manifest": {
+    "content": {
+      "run_id": "run_6WFGRMDD9W61DM4DN1NE08EY6S",
+      "history": [
+        {
+          "run_id": "run_4ZGFT7FXM154QR08T178KCE1N8",
+          "disclosure": "excluded_history_budget",
+          "answer_hash": "sha256:1211da2b1bfc52d0a9e183621530b54b8b1c51067ebb5c9d165e4cbbbf90ebbb",
+          "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+          "question_hash": "sha256:19783897bc75b83c3941e3f31b91345acd636042c0e6ad68d26ad182e416b562"
+        },
+        {
+          "run_id": "run_7BQ9E34CHVRVKRRN52R67AREDD",
+          "disclosure": "excluded_history_budget",
+          "answer_hash": "sha256:e15b5b864e941018c214d3ea55f72855567b1a1ac26f2fa13606007969ab442a",
+          "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+          "question_hash": "sha256:44c39eb6633bae27422dc22e252dbf5d8f4500f4343dd2a8de42ee5718e679b8"
+        },
+        {
+          "run_id": "run_0C8J3EEPBRMB5PPRZJTD3K3PTM",
+          "disclosure": "excluded_history_budget",
+          "answer_hash": "sha256:b8c6d3b141472e9b984bdb18a9a61fa50d5fe2f06a9de12e2578b597a43efeff",
+          "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+          "question_hash": "sha256:a6e643897278706b4395ebe0f8cb6867a0b84ac81319da447769437e2e19d9b4"
+        },
+        {
+          "run_id": "run_5YK8JJ2D2VHR8ZTZSBKP6FCRB9",
+          "disclosure": "excluded_history_budget",
+          "answer_hash": "sha256:eaf5dbafcc516b98c60b0e4eb42f15395766859d3b65274ae5779ab2dfc50c93",
+          "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+          "question_hash": "sha256:44c39eb6633bae27422dc22e252dbf5d8f4500f4343dd2a8de42ee5718e679b8"
+        },
+        {
+          "run_id": "run_0RM85C025KY7FERTHCYWG5WXK4",
+          "disclosure": "excluded_history_budget",
+          "answer_hash": "sha256:ef89980f5050796870d9d225927785fa75ed20abb9d8dbaf705d307584a08247",
+          "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+          "question_hash": "sha256:a6e643897278706b4395ebe0f8cb6867a0b84ac81319da447769437e2e19d9b4"
+        },
+        {
+          "run_id": "run_68EGGCCHVWX7A88XB72YR5B0BZ",
+          "disclosure": "excluded_history_budget",
+          "answer_hash": "sha256:b0dda2ac9584783ffef2804318f0245349364d41e43f93f9d802cb6f264498d9",
+          "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+          "question_hash": "sha256:44c39eb6633bae27422dc22e252dbf5d8f4500f4343dd2a8de42ee5718e679b8"
+        },
+        {
+          "run_id": "run_3EM89XY1W98BRV2XBCAETC0M2Y",
+          "disclosure": "excluded_history_budget",
+          "answer_hash": "sha256:08860e7ec01b5a852678b5ed1a2ec043e49cbac61d2ba91dab5775c17999a936",
+          "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+          "question_hash": "sha256:a6e643897278706b4395ebe0f8cb6867a0b84ac81319da447769437e2e19d9b4"
+        },
+        {
+          "run_id": "run_4EV6WSAGT5QXF6A4ZFND52N4A1",
+          "disclosure": "excluded_history_budget",
+          "answer_hash": "sha256:0ee292ab136982620fe33f7295bf6ad5bf39e38ea295b1103e219d3f18ba9df7",
+          "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+          "question_hash": "sha256:9ffeeefdf2f11df68de2391b2e5996d9ee2a804e7566cea47071f6638c1ae3bf"
+        },
+        {
+          "run_id": "run_5N9WYQW7Y58APNYNEZY5R24BR5",
+          "disclosure": "excluded_history_budget",
+          "answer_hash": "sha256:a708e277cea754be602ea0536476ea6e3164147187012c147c813ce2ae3b9ba4",
+          "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+          "question_hash": "sha256:24075f3385ece63502c3453bb98c275163c8d1f04cc117ce5b1c1e5522e9475b"
+        },
+        {
+          "run_id": "run_0Y7C46CXSXHG4Z7KHBVZRW356W",
+          "disclosure": "excluded_history_budget",
+          "answer_hash": "sha256:b81bae725708647cdc80378bc09f3f82083640f93e93e4dd1a2dbaf778b80c13",
+          "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+          "question_hash": "sha256:70344c30255ea78b64eb4cc3b5ea77e07168558a4e6a879780fba1165faef850"
+        },
+        {
+          "run_id": "run_2KBDEN526RH4WV9YY832Y1P6CY",
+          "disclosure": "included_current_basis",
+          "answer_hash": "sha256:a1623ce53deffecd1d6a4418f50267a4504ce970bf412d4e64759df2b9fd9177",
+          "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+          "question_hash": "sha256:9ffeeefdf2f11df68de2391b2e5996d9ee2a804e7566cea47071f6638c1ae3bf"
+        },
+        {
+          "run_id": "run_3JPQ9JT2RSP3Q7S4EG1VS7PA4A",
+          "disclosure": "included_current_basis",
+          "answer_hash": "sha256:6836a72455cceb8b261373e41c95cc1bf888f2b52311b7e1b7c086fc0785ea0d",
+          "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+          "question_hash": "sha256:24075f3385ece63502c3453bb98c275163c8d1f04cc117ce5b1c1e5522e9475b"
+        },
+        {
+          "run_id": "run_1Y3Z8ZQR31MP1GX66FW6AVF6T1",
+          "disclosure": "included_current_basis",
+          "answer_hash": "sha256:f0aa16c646083568304379cd7197b5d809f1bc957a512a5b768a390bf7eb673c",
+          "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+          "question_hash": "sha256:70344c30255ea78b64eb4cc3b5ea77e07168558a4e6a879780fba1165faef850"
+        },
+        {
+          "run_id": "run_58233FN1948677R43XAPDN5KMQ",
+          "disclosure": "withheld_changed_basis",
+          "answer_hash": "sha256:50021c55b62d94c0a5035069f1a030827766b34ece05d67430a6ff6a1faa4f22",
+          "context_hash": "sha256:b53d76797e07b7f75fbfe4b80297d10780e3d15862b153bb39ff2e53f33dc79c",
+          "question_hash": "sha256:a43a235ebc4136fe5dc346cef8a84ec94ad5fd04fcf77b3a474f02a7130fccfa"
+        },
+        {
+          "run_id": "run_0VG3SQHJ636Y5VC1ZMPPEPDTAW",
+          "disclosure": "withheld_changed_basis",
+          "answer_hash": "sha256:50021c55b62d94c0a5035069f1a030827766b34ece05d67430a6ff6a1faa4f22",
+          "context_hash": "sha256:d7262b483d6f2aff6362cbfacd8583d3728a85fec99949e84364ecd7e46bc616",
+          "question_hash": "sha256:a43a235ebc4136fe5dc346cef8a84ec94ad5fd04fcf77b3a474f02a7130fccfa"
+        },
+        {
+          "run_id": "run_1C0E6Q8JV79RAKRMT8V53FA6JJ",
+          "disclosure": "withheld_changed_basis",
+          "answer_hash": "sha256:50021c55b62d94c0a5035069f1a030827766b34ece05d67430a6ff6a1faa4f22",
+          "context_hash": "sha256:16d03dac7a881b55640134a125b6369b54d25cc895bf45a5b7e77527a1831604",
+          "question_hash": "sha256:a43a235ebc4136fe5dc346cef8a84ec94ad5fd04fcf77b3a474f02a7130fccfa"
+        },
+        {
+          "run_id": "run_10YDRANSG0T7B7GFS6ZXAX6CCM",
+          "disclosure": "withheld_changed_basis",
+          "answer_hash": "sha256:50021c55b62d94c0a5035069f1a030827766b34ece05d67430a6ff6a1faa4f22",
+          "context_hash": "sha256:8e41860b1d4a32b9f4e450fad59d7312f0f1421b08b557549c3991aadd1694a9",
+          "question_hash": "sha256:a43a235ebc4136fe5dc346cef8a84ec94ad5fd04fcf77b3a474f02a7130fccfa"
+        },
+        {
+          "run_id": "run_7XC027P29BYG5YDH37X2RRYA0A",
+          "disclosure": "withheld_changed_basis",
+          "answer_hash": "sha256:50021c55b62d94c0a5035069f1a030827766b34ece05d67430a6ff6a1faa4f22",
+          "context_hash": "sha256:53c58d4239f7cf0fd72ca77801885d2a2102b71e054776d378ff690d41fbf051",
+          "question_hash": "sha256:a43a235ebc4136fe5dc346cef8a84ec94ad5fd04fcf77b3a474f02a7130fccfa"
+        },
+        {
+          "run_id": "run_675T9J0HYFXB893YETKK9MM8DD",
+          "disclosure": "withheld_changed_basis",
+          "answer_hash": "sha256:50021c55b62d94c0a5035069f1a030827766b34ece05d67430a6ff6a1faa4f22",
+          "context_hash": "sha256:dddc688082ac5bd427ee8b9c6c47945c5c84b5409aa4dcadff0f2ca8566fa344",
+          "question_hash": "sha256:a43a235ebc4136fe5dc346cef8a84ec94ad5fd04fcf77b3a474f02a7130fccfa"
+        },
+        {
+          "run_id": "run_5TY3QKTGT6WDJG92JAQW9F004B",
+          "disclosure": "withheld_changed_basis",
+          "answer_hash": "sha256:50021c55b62d94c0a5035069f1a030827766b34ece05d67430a6ff6a1faa4f22",
+          "context_hash": "sha256:01cd4952db6a92c79d874dabd6aaaf5696d044051004a03ea4d4b16867290920",
+          "question_hash": "sha256:a43a235ebc4136fe5dc346cef8a84ec94ad5fd04fcf77b3a474f02a7130fccfa"
+        },
+        {
+          "run_id": "run_1YX7CSXCNNQTA24HEWYA32R1H8",
+          "disclosure": "included_current_basis",
+          "answer_hash": "sha256:31a62fc842f611d600456fd8b680364fe135606f44d89f9e4bf06eff922ade7c",
+          "context_hash": "sha256:2eb7da3fd10ba2627d7202dee35e43794f8f7d559f5e81a6e6bf3dbd87579f14",
+          "question_hash": "sha256:9ffeeefdf2f11df68de2391b2e5996d9ee2a804e7566cea47071f6638c1ae3bf"
+        },
+        {
+          "run_id": "run_3G5V83Z9RC5N885JHHTNP49GAX",
+          "disclosure": "included_current_basis",
+          "answer_hash": "sha256:74e3409f891ac182ccbfe7e6f245f917a657889cec3bf73ec9e0ee185f6758ec",
+          "context_hash": "sha256:274fcb2e80ce0c98fdcd0e720c3e2daa92c5f5f27a52a5e43dcd07c705d74d40",
+          "question_hash": "sha256:24075f3385ece63502c3453bb98c275163c8d1f04cc117ce5b1c1e5522e9475b"
+        }
+      ],
+      "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+      "authority": "advisory_input_only",
+      "thread_id": "thread_417PHGY55GKB1GRA9ZVV8W75SB",
+      "project_id": "project_4GNM3G166Z7RCBSW5K6TXZ3XZ9",
+      "input_bytes": 19845,
+      "prepared_at": "2026-10-11T02:01:08.502Z",
+      "context_hash": "sha256:098ebdffd077af6e14bb31dcaa452f2d528aa574be082651a7d8ac5cfdf3ec09",
+      "profile_hash": "sha256:39706626f815827e098a83c9a842900f73c9fe58c38f03688cfd48a08c51e00d",
+      "history_bytes": 10339,
+      "input_payload_hash": "sha256:e21e1ffe8739709ef27ff4a48e9130b35ffee0910c7ec0bcd8bc1f2c8cd7b63e",
+      "context_record_keys": [
+        "project-definition",
+        "pre-creation-discussion",
+        "scene:30d12a7e4c914227"
+      ],
+      "history_query_limit": 200,
+      "excluded_history_count": 10,
+      "retained_history_count": 22,
+      "history_query_may_have_omissions": false
+    },
+    "schema_name": "petra.copilot-input-manifest",
+    "content_hash": "sha256:a109ab12f6d26bae8d1323b84ad7752de62d6b8b93970021211f064b734948f2",
+    "schema_version": "1.0.0"
+  },
+  "record_keys": [
+    "project-definition",
+    "pre-creation-discussion",
+    "scene:30d12a7e4c914227"
+  ],
+  "errors": [],
+  "commands": [],
+  "overflow": [
+    {
+      "wrap": "pre-wrap",
+      "width": 564.40625,
+      "container": 564.40625
+    },
+    {
+      "wrap": "pre-wrap",
+      "width": 564.40625,
+      "container": 564.40625
+    },
+    {
+      "wrap": "pre-wrap",
+      "width": 564.40625,
+      "container": 564.40625
+    },
+    {
+      "wrap": "pre-wrap",
+      "width": 564.40625,
+      "container": 564.40625
+    }
+  ]
+}

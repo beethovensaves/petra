@@ -1,0 +1,127 @@
+TAP version 13
+# Fresh isolated PostgreSQL applied and validated all 67 migrations.
+# > @petra/postgres@0.0.0 test
+# > vitest run --config vitest.config.ts project-copilot-repository.test.ts --testNamePattern rejects conflicting retries|restores the original graph presentation --reporter=verbose
+#  RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/packages/postgres
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > claims a concurrent identity exactly once and restores readable terminal text after repository restart
+#  ✓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > rejects conflicting retries, stale parents, and continuation while a prior turn is active 648ms
+#  ✓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > restores the original graph presentation after restart and a later semantic result 548ms
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > isolates reads by authenticated actor and Project
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > prevents updates and records expired uncertain invocation as failure without another model call
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > retains an immutable owner-bound input manifest across repository restart and rejects replacement or wrong actor
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > binds readable native question and result Artifacts to canonical Thread Run and Work owners
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > retains failed and cancelled native deliveries without successful scientific result aliases
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > adopts immutable historical content as an explicit import without fabricating its original execution authority
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > rolls back terminal content and every canonical owner when a late binding write fails
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > rejects validly rehashed foreign owners question substitution and hidden terminal state before releasing retained content
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > pages exact retained questions and answers without duplicate effects and keeps its anchor across later turns
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > denies malformed foreign and invalid page positions without releasing retained content
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > denies a copied material turn in a second canonical Thread even when every content hash is valid
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > denies substituted authority references false history imports missing material and a changed retry question
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > preserves a controlled-writing native basis in canonical conversation owners without a scientific snapshot
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > requires canonical ownership and cannot silently fall back to a private parallel store
+#  Test Files  1 passed (1)
+#       Tests  2 passed | 15 skipped (17)
+#    Start at  22:04:44
+#    Duration  2.11s (transform 285ms, setup 0ms, import 832ms, tests 1.22s, environment 0ms)
+# > @petra/core@0.0.0 test
+# > vitest run --config vitest.config.ts project-copilot.test.ts --testNamePattern withholds old questions|persists the exact disclosed history --reporter=verbose
+#  RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/packages/core
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > binds empty native Project context without inventing evidence
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > rejects a context whose objective changed after hashing
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > rejects cross-Project destinations even with a matching context hash
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > rejects unsupported authoritative language force in structured output
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > rejects uncited source reports and citations outside the exact selection
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > allows exact admitted excerpts and rejects metadata citations or invented paraphrases
+#  ✓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > withholds old questions and answers after rights or basis changes without changing retained history 1ms
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > invokes once across concurrent delivery retries and retained replay
+#  ✓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > persists the exact disclosed history manifest before invoking the model and exposes withheld changed-basis history 17ms
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > retains failure and never invokes the model if its disclosure manifest cannot be persisted
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > retains invalid output as failure without publishing it
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > propagates explicit cancellation while leaving delivery wait harmless
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > does not cancel or reveal a run belonging to another actor
+#  Test Files  1 passed (1)
+#       Tests  2 passed | 11 skipped (13)
+#    Start at  22:04:46
+#    Duration  183ms (transform 22ms, setup 0ms, import 106ms, tests 19ms, environment 0ms)
+# > @petra/server@0.0.0 test
+# > vitest run --config vitest.config.ts project-copilot-context.test.ts --testNamePattern preserves unavailable inquiry|enforces the total context budget --reporter=verbose
+#  RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/apps/server
+#  ✓ test/project-copilot-context.test.ts > exact bounded context compilation > enforces the total context budget and preserves selected whole records while naming omissions 75ms
+#  ↓ test/project-copilot-context.test.ts > exact bounded context compilation > denies a revoked conversation permission after context assembly and recovery before invocation
+#  ↓ test/project-copilot-context.test.ts > exact bounded context compilation > composes exact declared semantics and inquiry Work metadata without raw outputs or ambient route state
+#  ↓ test/project-copilot-context.test.ts > exact bounded context compilation > preserves whole definition entries and explicit omission counts within the actual byte budget
+#  ↓ test/project-copilot-context.test.ts > exact bounded context compilation > rejects missing corrupted foreign or equal-content different-revision definitions
+#  ↓ test/project-copilot-context.test.ts > exact bounded context compilation > rejects validly rehashed foreign stale and mixed-snapshot activity views
+#  ↓ test/project-copilot-context.test.ts > exact bounded context compilation > rechecks the final Project basis and denies drift before retaining or invoking a new turn
+#  ↓ test/project-copilot-context.test.ts > exact bounded context compilation > rejects an equal-content stale native graph definition identity or revision
+#  ✓ test/project-copilot-context.test.ts > exact bounded context compilation > preserves unavailable inquiry coverage and excludes conversation Work from metadata rather than duplicating private history 1ms
+#  ↓ test/project-copilot-context.test.ts > exact bounded context compilation > withholds stale native bytes even when source egress is otherwise permitted
+#  Test Files  1 passed (1)
+#       Tests  2 passed | 8 skipped (10)
+#    Start at  22:04:47
+#    Duration  628ms (transform 193ms, setup 0ms, import 492ms, tests 76ms, environment 0ms)
+# > @petra/core@0.0.0 test
+# > vitest run --config vitest.config.ts project-copilot.test.ts --testNamePattern retains failure and never invokes --reporter=verbose
+#  RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/packages/core
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > binds empty native Project context without inventing evidence
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > rejects a context whose objective changed after hashing
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > rejects cross-Project destinations even with a matching context hash
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > rejects unsupported authoritative language force in structured output
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > rejects uncited source reports and citations outside the exact selection
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > allows exact admitted excerpts and rejects metadata citations or invented paraphrases
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > withholds old questions and answers after rights or basis changes without changing retained history
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > invokes once across concurrent delivery retries and retained replay
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > persists the exact disclosed history manifest before invoking the model and exposes withheld changed-basis history
+#  ✓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > retains failure and never invokes the model if its disclosure manifest cannot be persisted 17ms
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > retains invalid output as failure without publishing it
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > propagates explicit cancellation while leaving delivery wait harmless
+#  ↓ test/project-copilot.test.ts > Project copilot contract and invocation boundary > does not cancel or reveal a run belonging to another actor
+#  Test Files  1 passed (1)
+#       Tests  1 passed | 12 skipped (13)
+#    Start at  22:04:48
+#    Duration  196ms (transform 25ms, setup 0ms, import 115ms, tests 18ms, environment 0ms)
+# > @petra/server@0.0.0 test
+# > vitest run --config vitest.config.ts project-copilot-context.test.ts --testNamePattern rejects missing corrupted|rejects validly rehashed|rechecks the final|rejects an equal-content|withholds stale native|denies a revoked --reporter=verbose
+#  RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/apps/server
+#  ↓ test/project-copilot-context.test.ts > exact bounded context compilation > enforces the total context budget and preserves selected whole records while naming omissions
+#  ✓ test/project-copilot-context.test.ts > exact bounded context compilation > denies a revoked conversation permission after context assembly and recovery before invocation 64ms
+#  ↓ test/project-copilot-context.test.ts > exact bounded context compilation > composes exact declared semantics and inquiry Work metadata without raw outputs or ambient route state
+#  ↓ test/project-copilot-context.test.ts > exact bounded context compilation > preserves whole definition entries and explicit omission counts within the actual byte budget
+#  ✓ test/project-copilot-context.test.ts > exact bounded context compilation > rejects missing corrupted foreign or equal-content different-revision definitions 1ms
+#  ✓ test/project-copilot-context.test.ts > exact bounded context compilation > rejects validly rehashed foreign stale and mixed-snapshot activity views 1ms
+#  ✓ test/project-copilot-context.test.ts > exact bounded context compilation > rechecks the final Project basis and denies drift before retaining or invoking a new turn 1ms
+#  ✓ test/project-copilot-context.test.ts > exact bounded context compilation > rejects an equal-content stale native graph definition identity or revision 1ms
+#  ↓ test/project-copilot-context.test.ts > exact bounded context compilation > preserves unavailable inquiry coverage and excludes conversation Work from metadata rather than duplicating private history
+#  ✓ test/project-copilot-context.test.ts > exact bounded context compilation > withholds stale native bytes even when source egress is otherwise permitted 1ms
+#  Test Files  1 passed (1)
+#       Tests  6 passed | 4 skipped (10)
+#    Start at  22:04:48
+#    Duration  669ms (transform 223ms, setup 0ms, import 537ms, tests 69ms, environment 0ms)
+# Subtest: FE-A1.3-W04-AC01 critical: stale parents and changed rights cannot borrow prior private history or replace original inputs
+ok 1 - FE-A1.3-W04-AC01 critical: stale parents and changed rights cannot borrow prior private history or replace original inputs
+  ---
+  duration_ms: 2748.121292
+  type: 'test'
+  ...
+# Subtest: FE-A1.3-W04-AC02 critical: unavailable coverage and omitted metadata cannot masquerade as complete evidence
+ok 2 - FE-A1.3-W04-AC02 critical: unavailable coverage and omitted metadata cannot masquerade as complete evidence
+  ---
+  duration_ms: 1251.717417
+  type: 'test'
+  ...
+# Subtest: FE-A1.3-W04-AC03 critical: equal-content changed identities mixed snapshots and revoked access stop before invocation
+ok 3 - FE-A1.3-W04-AC03 critical: equal-content changed identities mixed snapshots and revoked access stop before invocation
+  ---
+  duration_ms: 907.234708
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 15083.670917

@@ -1,0 +1,211 @@
+TAP version 13
+# Fresh isolated PostgreSQL applied and validated all 67 migrations.
+# > @petra/postgres@0.0.0 test
+# > vitest run --config vitest.config.ts project-copilot-repository.test.ts --testNamePattern rejects conflicting retries|prevents updates --reporter=verbose
+#  RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/packages/postgres
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > claims a concurrent identity exactly once and restores readable terminal text after repository restart
+#  ✓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > rejects conflicting retries, stale parents, and continuation while a prior turn is active 646ms
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > restores the original graph presentation after restart and a later semantic result
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > isolates reads by authenticated actor and Project
+#  ✓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > prevents updates and records expired uncertain invocation as failure without another model call 348ms
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > retains an immutable owner-bound input manifest across repository restart and rejects replacement or wrong actor
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > binds readable native question and result Artifacts to canonical Thread Run and Work owners
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > retains failed and cancelled native deliveries without successful scientific result aliases
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > adopts immutable historical content as an explicit import without fabricating its original execution authority
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > rolls back terminal content and every canonical owner when a late binding write fails
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > rejects validly rehashed foreign owners question substitution and hidden terminal state before releasing retained content
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > pages exact retained questions and answers without duplicate effects and keeps its anchor across later turns
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > denies malformed foreign and invalid page positions without releasing retained content
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > denies a copied material turn in a second canonical Thread even when every content hash is valid
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > denies substituted authority references false history imports missing material and a changed retry question
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > preserves a controlled-writing native basis in canonical conversation owners without a scientific snapshot
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > requires canonical ownership and cannot silently fall back to a private parallel store
+#  Test Files  1 passed (1)
+#       Tests  2 passed | 15 skipped (17)
+#    Start at  22:00:21
+#    Duration  1.81s (transform 238ms, setup 0ms, import 747ms, tests 1.01s, environment 0ms)
+# > @petra/postgres@0.0.0 test
+# > vitest run --config vitest.config.ts project-copilot-repository.test.ts --testNamePattern requires canonical ownership|denies a copied material --reporter=verbose
+#  RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/packages/postgres
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > claims a concurrent identity exactly once and restores readable terminal text after repository restart
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > rejects conflicting retries, stale parents, and continuation while a prior turn is active
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > restores the original graph presentation after restart and a later semantic result
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > isolates reads by authenticated actor and Project
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > prevents updates and records expired uncertain invocation as failure without another model call
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > retains an immutable owner-bound input manifest across repository restart and rejects replacement or wrong actor
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > binds readable native question and result Artifacts to canonical Thread Run and Work owners
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > retains failed and cancelled native deliveries without successful scientific result aliases
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > adopts immutable historical content as an explicit import without fabricating its original execution authority
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > rolls back terminal content and every canonical owner when a late binding write fails
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > rejects validly rehashed foreign owners question substitution and hidden terminal state before releasing retained content
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > pages exact retained questions and answers without duplicate effects and keeps its anchor across later turns
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > denies malformed foreign and invalid page positions without releasing retained content
+#  ✓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > denies a copied material turn in a second canonical Thread even when every content hash is valid 632ms
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > denies substituted authority references false history imports missing material and a changed retry question
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > preserves a controlled-writing native basis in canonical conversation owners without a scientific snapshot
+#  ✓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > requires canonical ownership and cannot silently fall back to a private parallel store 182ms
+#  Test Files  1 passed (1)
+#       Tests  2 passed | 15 skipped (17)
+#    Start at  22:00:23
+#    Duration  1.64s (transform 244ms, setup 0ms, import 758ms, tests 826ms, environment 0ms)
+# > @petra/server@0.0.0 test
+# > vitest run --config vitest.config.ts project-copilot.test.ts --testNamePattern denies unavailable owner permission --reporter=verbose
+#  RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/apps/server
+#  ↓ test/project-copilot.test.ts > Project copilot's current basis and retained recovery > allows clarification for a Project with no selected outcome without inventing one
+#  ↓ test/project-copilot.test.ts > Project copilot's current basis and retained recovery > withholds restricted native source text while retaining registered relationship semantics
+#  ↓ test/project-copilot.test.ts > Project copilot's current basis and retained recovery > admits an examination record only through its exact current target and remote permission
+#  ↓ test/project-copilot.test.ts > Project copilot's current basis and retained recovery > restores an exact retained retry without requiring its old evidence projection to remain current
+#  ↓ test/project-copilot.test.ts > retains the exact filtered shared graph and refuses stale or mismatched peers before model execution
+#  ✓ test/project-copilot.test.ts > denies unavailable owner permission before context content reads or provider invocation 2ms
+#  ↓ test/project-copilot.test.ts > exposes required owner consent without adopting history or starting conversation Work
+#  Test Files  1 passed (1)
+#       Tests  1 passed | 6 skipped (7)
+#    Start at  22:00:25
+#    Duration  545ms (transform 191ms, setup 0ms, import 486ms, tests 2ms, environment 0ms)
+# > @petra/adapters@0.0.0 test
+# > vitest run --config vitest.config.ts copilot-permission-client.test.ts --testNamePattern denies rehashed receipt --reporter=verbose
+#  RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/packages/adapters
+#  ↓ test/copilot-permission-client.test.ts > Exact conversation permission client > submits only the exact explicit permission request and accepts its retained receipt
+#  ✓ test/copilot-permission-client.test.ts > Exact conversation permission client > denies rehashed receipt substitutions and widened authority before claiming permission 12ms
+#  Test Files  1 passed (1)
+#       Tests  1 passed | 1 skipped (2)
+#    Start at  22:00:26
+#    Duration  546ms (transform 180ms, setup 0ms, import 475ms, tests 13ms, environment 0ms)
+# > @petra/postgres@0.0.0 test
+# > vitest run --config vitest.config.ts copilot-permission-authority.test.ts --testNamePattern denies widened|denies another actor --reporter=verbose
+#  RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/packages/postgres
+#  ↓ test/copilot-permission-authority.test.ts > Explicit native conversation permission > requires explicit reviewed owner permission before bounded native Work and preserves exact retry receipts
+#  ↓ test/copilot-permission-authority.test.ts > Explicit native conversation permission > converges concurrent identical consent on one actual grant and immutable receipt
+#  ✓ test/copilot-permission-authority.test.ts > Explicit native conversation permission > denies widened capabilities stale owner references future review and receipt identity substitution before writes 158ms
+#  ✓ test/copilot-permission-authority.test.ts > Explicit native conversation permission > denies another actor or Project and rolls back a grant when receipt retention fails 159ms
+#  Test Files  1 passed (1)
+#       Tests  2 passed | 2 skipped (4)
+#    Start at  22:00:27
+#    Duration  1.02s (transform 250ms, setup 0ms, import 637ms, tests 319ms, environment 0ms)
+# > @petra/postgres@0.0.0 test
+# > vitest run --config vitest.config.ts project-copilot-repository.test.ts --testNamePattern denies malformed foreign|rejects validly rehashed --reporter=verbose
+#  RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/packages/postgres
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > claims a concurrent identity exactly once and restores readable terminal text after repository restart
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > rejects conflicting retries, stale parents, and continuation while a prior turn is active
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > restores the original graph presentation after restart and a later semantic result
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > isolates reads by authenticated actor and Project
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > prevents updates and records expired uncertain invocation as failure without another model call
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > retains an immutable owner-bound input manifest across repository restart and rejects replacement or wrong actor
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > binds readable native question and result Artifacts to canonical Thread Run and Work owners
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > retains failed and cancelled native deliveries without successful scientific result aliases
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > adopts immutable historical content as an explicit import without fabricating its original execution authority
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > rolls back terminal content and every canonical owner when a late binding write fails
+#  ✓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > rejects validly rehashed foreign owners question substitution and hidden terminal state before releasing retained content 581ms
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > pages exact retained questions and answers without duplicate effects and keeps its anchor across later turns
+#  ✓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > denies malformed foreign and invalid page positions without releasing retained content 311ms
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > denies a copied material turn in a second canonical Thread even when every content hash is valid
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > denies substituted authority references false history imports missing material and a changed retry question
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > preserves a controlled-writing native basis in canonical conversation owners without a scientific snapshot
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > requires canonical ownership and cannot silently fall back to a private parallel store
+#  Test Files  1 passed (1)
+#       Tests  2 passed | 15 skipped (17)
+#    Start at  22:00:28
+#    Duration  1.72s (transform 240ms, setup 0ms, import 755ms, tests 903ms, environment 0ms)
+# > @petra/core@0.0.0 test
+# > vitest run --config vitest.config.ts conversation-resource-controls.test.ts --testNamePattern unknown|retains an actual|preserves provider usage --reporter=verbose
+#  RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/packages/core
+#  ✓ test/conversation-resource-controls.test.ts > preserves provider usage as unavailable without inventing zero 2ms
+#  ✓ test/conversation-resource-controls.test.ts > cannot certify an unknown cpu measurement under an applicable hard limit 1ms
+#  ✓ test/conversation-resource-controls.test.ts > cannot certify an unknown memory measurement under an applicable hard limit 0ms
+#  ✓ test/conversation-resource-controls.test.ts > cannot certify an unknown network measurement under an applicable hard limit 0ms
+#  ✓ test/conversation-resource-controls.test.ts > cannot certify an unknown tokens measurement under an applicable hard limit 0ms
+#  ✓ test/conversation-resource-controls.test.ts > cannot certify an unknown money measurement under an applicable hard limit 0ms
+#  ✓ test/conversation-resource-controls.test.ts > retains an actual worker_failed failure after an exceeded budget without accepting an output manifest 0ms
+#  ✓ test/conversation-resource-controls.test.ts > retains an actual resource_exhausted failure after an exceeded budget without accepting an output manifest 0ms
+#  ✓ test/conversation-resource-controls.test.ts > retains an actual timed_out failure after an exceeded budget without accepting an output manifest 0ms
+#  Test Files  1 passed (1)
+#       Tests  9 passed (9)
+#    Start at  22:00:30
+#    Duration  480ms (transform 206ms, setup 0ms, import 416ms, tests 5ms, environment 0ms)
+# > @petra/postgres@0.0.0 test
+# > vitest run --config vitest.config.ts project-copilot-repository.test.ts --testNamePattern rolls back terminal content --reporter=verbose
+#  RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/packages/postgres
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > claims a concurrent identity exactly once and restores readable terminal text after repository restart
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > rejects conflicting retries, stale parents, and continuation while a prior turn is active
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > restores the original graph presentation after restart and a later semantic result
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > isolates reads by authenticated actor and Project
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > prevents updates and records expired uncertain invocation as failure without another model call
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > retains an immutable owner-bound input manifest across repository restart and rejects replacement or wrong actor
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > binds readable native question and result Artifacts to canonical Thread Run and Work owners
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > retains failed and cancelled native deliveries without successful scientific result aliases
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > adopts immutable historical content as an explicit import without fabricating its original execution authority
+#  ✓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > rolls back terminal content and every canonical owner when a late binding write fails 544ms
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > rejects validly rehashed foreign owners question substitution and hidden terminal state before releasing retained content
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > pages exact retained questions and answers without duplicate effects and keeps its anchor across later turns
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > denies malformed foreign and invalid page positions without releasing retained content
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > denies a copied material turn in a second canonical Thread even when every content hash is valid
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > denies substituted authority references false history imports missing material and a changed retry question
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > preserves a controlled-writing native basis in canonical conversation owners without a scientific snapshot
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > requires canonical ownership and cannot silently fall back to a private parallel store
+#  Test Files  1 passed (1)
+#       Tests  1 passed | 16 skipped (17)
+#    Start at  22:00:31
+#    Duration  1.44s (transform 283ms, setup 0ms, import 825ms, tests 552ms, environment 0ms)
+# > @petra/postgres@0.0.0 test
+# > vitest run --config vitest.config.ts project-copilot-repository.test.ts --testNamePattern denies substituted authority|rejects validly rehashed --reporter=verbose
+#  RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/packages/postgres
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > claims a concurrent identity exactly once and restores readable terminal text after repository restart
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > rejects conflicting retries, stale parents, and continuation while a prior turn is active
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > restores the original graph presentation after restart and a later semantic result
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > isolates reads by authenticated actor and Project
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > prevents updates and records expired uncertain invocation as failure without another model call
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > retains an immutable owner-bound input manifest across repository restart and rejects replacement or wrong actor
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > binds readable native question and result Artifacts to canonical Thread Run and Work owners
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > retains failed and cancelled native deliveries without successful scientific result aliases
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > adopts immutable historical content as an explicit import without fabricating its original execution authority
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > rolls back terminal content and every canonical owner when a late binding write fails
+#  ✓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > rejects validly rehashed foreign owners question substitution and hidden terminal state before releasing retained content 591ms
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > pages exact retained questions and answers without duplicate effects and keeps its anchor across later turns
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > denies malformed foreign and invalid page positions without releasing retained content
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > denies a copied material turn in a second canonical Thread even when every content hash is valid
+#  ✓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > denies substituted authority references false history imports missing material and a changed retry question 333ms
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > preserves a controlled-writing native basis in canonical conversation owners without a scientific snapshot
+#  ↓ test/project-copilot-repository.test.ts > PostgreSQL immutable copilot conversation > requires canonical ownership and cannot silently fall back to a private parallel store
+#  Test Files  1 passed (1)
+#       Tests  2 passed | 15 skipped (17)
+#    Start at  22:00:32
+#    Duration  1.76s (transform 242ms, setup 0ms, import 764ms, tests 934ms, environment 0ms)
+# Subtest: FE-A1.3-W03-AC01 critical: retry mutation and uncertain delivery cannot replace history or launch a second effect
+ok 1 - FE-A1.3-W03-AC01 critical: retry mutation and uncertain delivery cannot replace history or launch a second effect
+  ---
+  duration_ms: 2035.654958
+  type: 'test'
+  ...
+# Subtest: FE-A1.3-W03-AC02 critical: a metadata store cannot masquerade as canonical conversation authority
+ok 2 - FE-A1.3-W03-AC02 critical: a metadata store cannot masquerade as canonical conversation authority
+  ---
+  duration_ms: 1886.394042
+  type: 'test'
+  ...
+# Subtest: FE-A1.3-W03-AC03 critical: malformed foreign history cursors and validly rehashed foreign owners release no content
+ok 3 - FE-A1.3-W03-AC03 critical: malformed foreign history cursors and validly rehashed foreign owners release no content
+  ---
+  duration_ms: 4717.426875
+  type: 'test'
+  ...
+# Subtest: FE-A1.3-W03-AC04 critical: unknown measurements cannot satisfy limits and actual timeout failures cannot invent output
+ok 4 - FE-A1.3-W03-AC04 critical: unknown measurements cannot satisfy limits and actual timeout failures cannot invent output
+  ---
+  duration_ms: 2415.925708
+  type: 'test'
+  ...
+# Subtest: FE-A1.3-W03-AC05 critical: substituted controls false imports missing material and changed retry content are denied
+ok 5 - FE-A1.3-W03-AC05 critical: substituted controls false imports missing material and changed retry content are denied
+  ---
+  duration_ms: 1976.379417
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 23142.69525

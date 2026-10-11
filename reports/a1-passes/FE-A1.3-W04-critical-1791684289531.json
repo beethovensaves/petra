@@ -1,0 +1,191 @@
+{
+  "schema_name": "petra.a1-verification-pass",
+  "schema_version": "1.0.0",
+  "work_item": "FE-A1.3-W04",
+  "pass": "critical",
+  "contract_hash": "sha256:3b0c7855551eba36426a6a3eb4854fca3bef5bf49337d058fd39cf84f10fc496",
+  "status": "passed",
+  "candidate_commit": "56bf4c6e7ca1e81520a9808f90f968325d070e97",
+  "started_at": "2026-10-11T02:04:34.418Z",
+  "finished_at": "2026-10-11T02:04:49.531Z",
+  "criteria": [
+    {
+      "id": "FE-A1.3-W04-AC01",
+      "result": "passed",
+      "test": "FE-A1.3-W04-AC01 critical: stale parents and changed rights cannot borrow prior private history or replace original inputs",
+      "observation": "Adversarial ownership, budget, rights, equal-content definition revision, final snapshot drift and revocation challenges preserve immutable original inputs and prevent invalid invocation."
+    },
+    {
+      "id": "FE-A1.3-W04-AC02",
+      "result": "passed",
+      "test": "FE-A1.3-W04-AC02 critical: unavailable coverage and omitted metadata cannot masquerade as complete evidence",
+      "observation": "Adversarial ownership, budget, rights, equal-content definition revision, final snapshot drift and revocation challenges preserve immutable original inputs and prevent invalid invocation."
+    },
+    {
+      "id": "FE-A1.3-W04-AC03",
+      "result": "passed",
+      "test": "FE-A1.3-W04-AC03 critical: equal-content changed identities mixed snapshots and revoked access stop before invocation",
+      "observation": "Adversarial ownership, budget, rights, equal-content definition revision, final snapshot drift and revocation challenges preserve immutable original inputs and prevent invalid invocation."
+    }
+  ],
+  "sources": [
+    {
+      "path": "apps/server/src/project-copilot-context.ts",
+      "hash": "sha256:a6104da456fa0c2d1d5d30599ed1331bb211958914320b959af7aa40aae4af07"
+    },
+    {
+      "path": "apps/server/src/project-copilot.ts",
+      "hash": "sha256:1776d1115deaea4d6112757008dc49ba86aaa367eec4278d35d7244432e906b3"
+    },
+    {
+      "path": "apps/server/src/project-shell-persistence.ts",
+      "hash": "sha256:553e6b2ec79e8a924c308510ef206a7ce2eb6c73a80d00e39a23ce6602c45dc3"
+    },
+    {
+      "path": "apps/server/test/project-copilot-context.test.ts",
+      "hash": "sha256:ab9e6c5f9cd7c22156f58ef7d0a1bb53347930e8fa4ba7af9eda6e6f313d11cc"
+    },
+    {
+      "path": "apps/server/test/project-copilot.test.ts",
+      "hash": "sha256:300ad95f2a4a3d18f2fba22eb9e483f05fbae902cee4b0ec893598302fea4f7b"
+    },
+    {
+      "path": "apps/workbench/src/product/ProjectCopilotConversation.tsx",
+      "hash": "sha256:ffc2611117aed9955007994b9d1dc1e921d91a62f73fbbbbdccdb7aedccf5815"
+    },
+    {
+      "path": "apps/workbench/src/product/agent-control-plane.css",
+      "hash": "sha256:ea9344571cb8fb07ecc68110c2abe3cf563d2b79f6d35c859f0982a44d39635e"
+    },
+    {
+      "path": "apps/workbench/test/a1-exact-context-browser.mjs",
+      "hash": "sha256:046d5cbe15209d4c545d88dd6127cdeffb92013f8ce03ec0d485ac4a98fc2149"
+    },
+    {
+      "path": "apps/workbench/test/cumulative-production-browser-driver.mjs",
+      "hash": "sha256:20321ec18affbb376dd709dbf7565c09ed9e4a9af6a6da455dd193d1d32d5a4a"
+    },
+    {
+      "path": "infra/postgres/integration.compose.yaml",
+      "hash": "sha256:a266385a47477e46d2179894c30f40a6eced277627bddf0cf10327f0486c09ab"
+    },
+    {
+      "path": "packages/contracts/registry.json",
+      "hash": "sha256:7029b241704e3845d75d07bf756ce61ffd84396d42778a93cbb5bf9d6251c7b0"
+    },
+    {
+      "path": "packages/contracts/schemas/copilot-context/1.0.0/schema.json",
+      "hash": "sha256:6a72d94b40a532349d96307139c0dae32ead975b24795a75564aeef49c0b48f1"
+    },
+    {
+      "path": "packages/contracts/schemas/copilot-input-manifest/1.0.0/schema.json",
+      "hash": "sha256:b2d5ceb120b21ed274cd9633a3c9c086178bf2ca70e5149b779b869f48e91f7d"
+    },
+    {
+      "path": "packages/contracts/schemas/copilot-request/1.0.0/schema.json",
+      "hash": "sha256:63f01457e70d86f277c2dfa215ed3b9cc033181d0c70d6c588c1658a33814b96"
+    },
+    {
+      "path": "packages/contracts/schemas/copilot-request/1.1.0/schema.json",
+      "hash": "sha256:6dabcda9db72f8287101419055606d9166e95a9653de486313f71edf79eb39d5"
+    },
+    {
+      "path": "packages/core/src/project-copilot.ts",
+      "hash": "sha256:3329ca4ebfb82972746a63b502e96b3b446b777dc061a21632746d99d86efc66"
+    },
+    {
+      "path": "packages/core/test/project-copilot-conversation.test.ts",
+      "hash": "sha256:e88e52ef8c0777309df6a48cee2f22e1c35a687275967ce7eb4c398f93549b8c"
+    },
+    {
+      "path": "packages/core/test/project-copilot.test.ts",
+      "hash": "sha256:2a5fc492811b7d6ab6af197cc3df3581ed1799a40a177727213ffc82af94427f"
+    },
+    {
+      "path": "packages/postgres/src/project-copilot-repository.ts",
+      "hash": "sha256:8aa569281fba7cc51f47d6c2b6e51098df89cf44e2eb8ef44cf188be10cb77d8"
+    },
+    {
+      "path": "packages/postgres/test/project-copilot-repository.test.ts",
+      "hash": "sha256:fb0030af5dc7c9a13d49b447f3a10995a0cecaf990755f14d7b4cc9a48e276fa"
+    },
+    {
+      "path": "reports/FE-A1-INTAKE-FUNCTION-BROWSER.json",
+      "hash": "sha256:ecc6a4937cb72681457d455799a391cc5317c256d8505aa55d36265e97c70c8f"
+    },
+    {
+      "path": "scripts/a1/exact-context.critical.test.mjs",
+      "hash": "sha256:dd228041f6af1ef2d58f9af94702c68639ec2c7ce8a7f6d4def7c73211c5ecf0"
+    },
+    {
+      "path": "scripts/a1/exact-context.test.mjs",
+      "hash": "sha256:a1efc06a312a00650c21ee5ebebbdd47a5fb6a268c968c556772879db8f8f35d"
+    },
+    {
+      "path": "scripts/a1/owned-postgres.mjs",
+      "hash": "sha256:e4f66c42e9b215f0a3305ff02b93e9ef8a3e81d019db8530422c7f246eb606e6"
+    },
+    {
+      "path": "scripts/a1/run-browser.mjs",
+      "hash": "sha256:8ae34eb1951d73bba1bcde36082b00ff1b3fcd4eade32d371f02a92f0e08da09"
+    },
+    {
+      "path": "scripts/a1/run-vitest.mjs",
+      "hash": "sha256:4c2c635a474e84dba08144dfc9d68046281a9ccedff03e8fbf29954604a11d76"
+    }
+  ],
+  "runs": [
+    {
+      "argv": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "scripts/a1/exact-context.critical.test.mjs"
+      ],
+      "exit_code": 0,
+      "output": "reports/a1-passes/FE-A1.3-W04-critical-1791684289531.tap",
+      "output_hash": "sha256:fe34357dcc35014a920e8b53286315e93374f1855dedb7929a1972b48da6c4b3"
+    }
+  ],
+  "boundary": "Exact bounded advisory turn context only. Original-basis branching, action previews/commands, missing native examiners and connected graph cycles remain their own required A1 items. Work inputs/proposals/output and inquiry framing/source bytes are explicitly withheld on metadata paths; no fact, approval, examination, resolved inquiry or completed domain work is inferred.",
+  "review": {
+    "perspective": "Challenge current-basis claims independently of successful delivery: exact revisions and scope, snapshot drift, rights removal, meaningful whole-record budgets, unavailable coverage, retained history and actual visible input disclosure.",
+    "challenges": [
+      {
+        "criterion": "FE-A1.3-W04-AC01",
+        "question": "FE-A1.3-W04-AC01 critical: stale parents and changed rights cannot borrow prior private history or replace original inputs",
+        "result": "passed"
+      },
+      {
+        "criterion": "FE-A1.3-W04-AC02",
+        "question": "FE-A1.3-W04-AC02 critical: unavailable coverage and omitted metadata cannot masquerade as complete evidence",
+        "result": "passed"
+      },
+      {
+        "criterion": "FE-A1.3-W04-AC03",
+        "question": "FE-A1.3-W04-AC03 critical: equal-content changed identities mixed snapshots and revoked access stop before invocation",
+        "result": "passed"
+      }
+    ],
+    "findings": [
+      {
+        "severity": "material",
+        "disposition": "resolved",
+        "finding": "Content-hash-only graph joins allowed equal-content different definition identities or revisions to enter as the current basis.",
+        "resolution": "All graph/overlay/working joins now compare exact identity/revision/hash and Project scope; changed identities/revisions and mixed views are denied."
+      },
+      {
+        "severity": "material",
+        "disposition": "resolved",
+        "finding": "Native content could remain disclosed after its material basis became stale, and no final Project fence or post-recovery permission check stopped assembly-time drift/revocation.",
+        "resolution": "Stale native bytes are withheld. Final Project/definition/objective/authority and permission checks run before retaining/invoking; tests assert no runtime start on drift or revocation."
+      },
+      {
+        "severity": "material",
+        "disposition": "resolved",
+        "finding": "A full shell definition copied all terms inside definition_ref, defeating entry omissions and rejecting legitimate large definitions. The critical test originally failed to include the real shell terminology projection.",
+        "resolution": "The definition reference now contains only immutable ID/revision/hash/family; all terms use the bounded whole-entry excerpt. The corrected test preserves full shell terminology and checks exact omitted/included counts under the actual byte budget."
+      }
+    ]
+  }
+}
