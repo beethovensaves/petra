@@ -1,7 +1,7 @@
 {
   "status": "passed",
   "pass": "critical",
-  "verified_at": "2026-10-11T00:21:48.376Z",
+  "verified_at": "2026-10-11T00:30:45.200Z",
   "project_id": "project_4GNM3G166Z7RCBSW5K6TXZ3XZ9",
   "observations": [
     {
@@ -301,6 +301,12 @@
       "exact_answer": true,
       "keyboard_activation": true,
       "route_after_dismissal": "brief",
+      "return_control": {
+        "width": 148.21875,
+        "right": 167.40625,
+        "viewport": 640,
+        "scrollWidth": 625
+      },
       "geometry": {
         "viewport": {
           "width": 1440,

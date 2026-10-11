@@ -1,7 +1,7 @@
 {
   "status": "passed",
   "pass": "execution",
-  "verified_at": "2026-10-10T23:44:19.949Z",
+  "verified_at": "2026-10-11T00:29:35.890Z",
   "project_id": "project_4GNM3G166Z7RCBSW5K6TXZ3XZ9",
   "observations": [
     {
@@ -296,13 +296,13 @@
     },
     {
       "criterion": "FE-A1.1-W01-AC02",
-      "retained_questions": 9,
+      "retained_questions": 10,
       "draft_retained": true,
       "visible_forms": 1
     },
     {
       "criterion": "FE-A1.1-W01-AC03",
-      "question": "Synthetic A1 canonical-owner inspection: which of those missing inputs should I clarify first, and why?",
+      "question": "Synthetic A1 progressive-disclosure inspection: provide three separate advisory blocks: first identify missing inputs, then suggest a bounded next examination, then ask one clarifying question. Do not treat advice as a verified claim.",
       "geometry": {
         "viewport": {
           "width": 1440,
@@ -388,17 +388,23 @@
         },
         "object": {
           "top": 284.984375,
-          "bottom": 352.171875,
+          "bottom": 419.359375,
           "left": 472,
-          "right": 1271.21875,
-          "width": 799.21875,
-          "height": 67.1875,
+          "right": 1235.78125,
+          "width": 763.78125,
+          "height": 134.375,
           "font": 24,
           "line": 33.6,
           "display": "block"
         }
       },
-      "workspace_heading": "Petra answer"
+      "workspace_heading": "Petra answer",
+      "return_control": {
+        "width": 148.21875,
+        "height": 38.125,
+        "line": 21.76,
+        "padding": 14.4
+      }
     }
   ],
   "browser_errors": [],

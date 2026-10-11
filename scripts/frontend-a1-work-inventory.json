@@ -627,7 +627,7 @@
       "milestone": "FE-A1.1",
       "title": "Rebuild the copilot and workspace hierarchy",
       "owner": "frontend",
-      "status": "in_progress",
+      "status": "complete",
       "implementation": "Build the persistent 30/70 desktop shell around a compact Project/objective header, continuous user/assistant thread, contextual progress/interventions, usable composer, and active Workspace result. Sequence: move Workspace destinations and inspection into Workspace chrome; reserve chat and composer space while bounding expandable support; reflect the opened answer or evidence in the Workspace heading and activate narrow Workspace presentation; verify ordinary desktop geometry and actual retained Q/A/draft continuity; critically challenge short/narrow viewports, expanded disclosures, keyboard activation and native return. After AG-UI integration, revalidate the whole hierarchy and keep long answer headings from shrinking the native return control into a vertical column.",
       "acceptance": [
         "At ordinary desktop widths both the conversation and result remain legible.",
@@ -650,7 +650,20 @@
         "reports/a1-passes/FE-A1.1-W01-execution-1791675860000.json",
         "reports/a1-passes/FE-A1.1-W01-critical-1791675948769.json"
       ],
-      "completion_evidence": [],
+      "completion_evidence": [
+        {
+          "pass": "execution",
+          "artifact": "reports/a1-passes/FE-A1.1-W01-execution-1791678575943.json",
+          "command": "node --test --test-reporter=tap scripts/a1/copilot-hierarchy.test.mjs",
+          "boundary": "Live production layout, retained actual managed-model Q/A, navigation, composer, disclosure and Workspace presentation only. No new model invocation, proposal command, native examiner, cycle or overall A1 acceptance is inferred."
+        },
+        {
+          "pass": "critical",
+          "artifact": "reports/a1-passes/FE-A1.1-W01-critical-1791678645251.json",
+          "command": "node --test --test-reporter=tap scripts/a1/copilot-hierarchy.critical.test.mjs",
+          "boundary": "Live production layout, retained actual managed-model Q/A, navigation, composer, disclosure and Workspace presentation only. No new model invocation, proposal command, native examiner, cycle or overall A1 acceptance is inferred."
+        }
+      ],
       "optional_scenarios": [
         "A1-S14"
       ],
@@ -745,6 +758,27 @@
             }
           ],
           "finished_at": "2026-10-10T23:46:23.026Z"
+        },
+        {
+          "item": "FE-A1.1-W01",
+          "phase": "critical",
+          "failed_attempts": 0,
+          "started_at": "2026-10-11T00:28:47.865Z",
+          "passes": [
+            {
+              "pass": "execution",
+              "artifact": "reports/a1-passes/FE-A1.1-W01-execution-1791678575943.json",
+              "command": "node --test --test-reporter=tap scripts/a1/copilot-hierarchy.test.mjs",
+              "boundary": "Live production layout, retained actual managed-model Q/A, navigation, composer, disclosure and Workspace presentation only. No new model invocation, proposal command, native examiner, cycle or overall A1 acceptance is inferred."
+            },
+            {
+              "pass": "critical",
+              "artifact": "reports/a1-passes/FE-A1.1-W01-critical-1791678645251.json",
+              "command": "node --test --test-reporter=tap scripts/a1/copilot-hierarchy.critical.test.mjs",
+              "boundary": "Live production layout, retained actual managed-model Q/A, navigation, composer, disclosure and Workspace presentation only. No new model invocation, proposal command, native examiner, cycle or overall A1 acceptance is inferred."
+            }
+          ],
+          "finished_at": "2026-10-11T00:31:27.222Z"
         }
       ],
       "historical_completion_evidence": [
@@ -6342,12 +6376,7 @@
     "repeated_failure_limit": 2,
     "synchronization": "Roadmap, generated execution packet, canonical ledger and both execution worktrees must agree before execution or closure."
   },
-  "active_work": {
-    "item": "FE-A1.1-W01",
-    "phase": "execution",
-    "failed_attempts": 0,
-    "started_at": "2026-10-11T00:28:47.865Z"
-  },
+  "active_work": null,
   "repair_sequence": [
     {
       "order": 1,
