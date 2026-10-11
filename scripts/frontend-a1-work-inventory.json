@@ -2009,7 +2009,7 @@
           "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy."
         }
       ],
-      "test_plans": {
+      "verification_plans": {
         "execution": "reports/a1-plans/FE-A1.3-W05-execution.json",
         "critical": "reports/a1-plans/FE-A1.3-W05-critical.json"
       }
@@ -6275,15 +6275,44 @@
   "active_work": {
     "item": "FE-A1.3-W05",
     "phase": "execution",
-    "failed_attempts": 1,
+    "failed_attempts": 0,
     "started_at": "2026-10-11T00:13:18.812Z",
     "failures": [
       {
         "reason": "Construction server regression check could not bind localhost under workspace sandbox (listen EPERM); its teardown failure is consequent to that missing listener. Rerun unchanged suite with approved localhost permissions; no product failure or passing evidence inferred.",
         "phase": "execution",
         "recorded_at": "2026-10-11T00:20:33.221Z"
+      },
+      {
+        "reason": "Verification capture was correctly refused before invoking tests/model: plan paths were registered under test_plans rather than verification_plans. No execution evidence was recorded. Inspect the executor registration and full readiness before retrying.",
+        "phase": "execution",
+        "recorded_at": "2026-10-11T00:25:29.315Z"
       }
-    ]
+    ],
+    "diagnoses": [
+      {
+        "contract": "W05 requires a live actual-model browser disclosure, closed custom versions, and adapter-owned protocol interpretation. Controlled ports and 165 adapter, 417 UI, and 179 server regression checks establish construction coverage; none closes the live criterion or overall A1.",
+        "architecture": "Core presentation models have no SDK dependency or command port. Project blocks resolve to actor-authorized canonical owner reads; intake uses the existing shared encoder. Transient presentation is authentication scoped. Native tool and Review mappings remain proposals with no applied authority.",
+        "dependencies": "Canonical W03 is closed. The changed hierarchy was reopened before its bound source changed and must be independently revalidated. Both roots contain candidate f654d3d. The plans exist but were not registered under the executor's actual verification_plans field, so the hard capture guard correctly refused execution.",
+        "environment": "Node 24, the pinned SDK, managed model, 67-migration disposable inspection services and preview are available. Server regression initially lacked localhost permission; the unchanged suite passed with that permission. Actual browser capture requires the same approved local-network/browser permission and an eligible synthetic Project.",
+        "verification": "The stopped attempt did not run tests or invoke the model. Inspect the CLI's registered-plan check and existing closed-item metadata, exact candidate/source bytes, both-worktree integration and mandatory review question/result fields before capture. Record no pass until the runner itself executes all named criteria.",
+        "changed_remedy": "Rename the erroneous item metadata field to verification_plans using the existing closed-item format, inspect the entire execution and critical plan shape against the current executor, synchronize and commit the registration in both roots, then run execution followed by the independent critical plan. Do not change the gate or import a report to bypass it.",
+        "failures": [
+          {
+            "reason": "Construction server regression check could not bind localhost under workspace sandbox (listen EPERM); its teardown failure is consequent to that missing listener. Rerun unchanged suite with approved localhost permissions; no product failure or passing evidence inferred.",
+            "phase": "execution",
+            "recorded_at": "2026-10-11T00:20:33.221Z"
+          },
+          {
+            "reason": "Verification capture was correctly refused before invoking tests/model: plan paths were registered under test_plans rather than verification_plans. No execution evidence was recorded. Inspect the executor registration and full readiness before retrying.",
+            "phase": "execution",
+            "recorded_at": "2026-10-11T00:25:29.315Z"
+          }
+        ],
+        "recorded_at": "2026-10-11T00:25:34.493Z"
+      }
+    ],
+    "passes": []
   },
   "repair_sequence": [
     {
