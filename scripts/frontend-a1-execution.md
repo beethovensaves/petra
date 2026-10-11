@@ -1,6 +1,6 @@
 # A1 execution instructions
 
-Roadmap binding: `sha256:744fa3435a398bb0fe8d132823c5c87e9d66536078f1e4a1388b96b783ff4c36`. Generated from frontend-a1-work-inventory.json.
+Roadmap binding: `sha256:5360723e68d6c0122bfcdf96e6476061bcdb64fd94bb32d469df1b053c7912ce`. Generated from frontend-a1-work-inventory.json.
 
 D025 and D024 govern this execution. Historical frozen Wave 6 instructions are subordinate. Native screen-reader evaluation is excluded; browser semantics and functional peers remain mandatory. The sixteen late scenarios are optional.
 
@@ -179,7 +179,7 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 ### 11. FE-A1.2-W01: Retain outcome-first definition drafting
 
-State: planned. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.0-W01.
+State: complete. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.0-W01.
 
 Keep the server-owned definition draft preserving original wording, Project kernel, proposed objective, outputs, assumptions, capabilities, and unsupported behavior; examples remain optional.
 

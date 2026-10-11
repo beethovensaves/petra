@@ -1,0 +1,167 @@
+{
+  "schema_name": "petra.a1-verification-pass",
+  "schema_version": "1.0.0",
+  "work_item": "FE-A1.2-W01",
+  "pass": "execution",
+  "contract_hash": "sha256:73b0e6af0b7abf3aaef07a74adfeceb46e2670df27d2e8a6ad679a1300c68c9a",
+  "status": "passed",
+  "candidate_commit": "5cbdb75a8a6bcd2906794c6ba5af5cbd73e550c1",
+  "started_at": "2026-10-11T01:16:30.962Z",
+  "finished_at": "2026-10-11T01:16:54.148Z",
+  "criteria": [
+    {
+      "id": "FE-A1.2-W01-AC01",
+      "result": "passed",
+      "test": "FE-A1.2-W01-AC01 execution: scientific writing and unrelated outcomes share production drafting and exact kernel creation",
+      "observation": "scientific writing and unrelated outcomes share production drafting and exact kernel creation"
+    },
+    {
+      "id": "FE-A1.2-W01-AC02",
+      "result": "passed",
+      "test": "FE-A1.2-W01-AC02 execution: changed draft content and unaccepted assumptions create no Project",
+      "observation": "changed draft content and unaccepted assumptions create no Project"
+    },
+    {
+      "id": "FE-A1.2-W01-AC03",
+      "result": "passed",
+      "test": "FE-A1.2-W01-AC03 execution: the outcome form treats registered examples as optional",
+      "observation": "the outcome form treats registered examples as optional"
+    }
+  ],
+  "sources": [
+    {
+      "path": "apps/server/src/app.ts",
+      "hash": "sha256:bef8a7442554991fb5305ebfc39ab1e5be788aa03b74a067491c540450407956"
+    },
+    {
+      "path": "apps/server/src/intake-copilot-routes.ts",
+      "hash": "sha256:78b20cd6538fbfecfe5bdd9404cc642c5596e62435089d3004510266331afb19"
+    },
+    {
+      "path": "apps/server/src/intake-copilot.ts",
+      "hash": "sha256:dc51f15d6882e9425280e238a5fafe258430907295e5dc1b5c93a3d45fa514b8"
+    },
+    {
+      "path": "apps/server/test/project-definition-draft-routes.test.ts",
+      "hash": "sha256:bda1e253295b780f213fc98b433117b0bd0e97a541a1be7765022df67d523618"
+    },
+    {
+      "path": "apps/workbench/src/design-system/primitives.tsx",
+      "hash": "sha256:fd5dbad4f211f7300c7cb4d828014ff283a8e84f4adfad4321aa16db20f320dc"
+    },
+    {
+      "path": "apps/workbench/src/product/IntakeCopilotConversation.tsx",
+      "hash": "sha256:ed1a3564b8e4c3c1a1b56e9c5e16e49c50ff87d152c3925fe1bb6293f15cd960"
+    },
+    {
+      "path": "apps/workbench/src/product/IntakeWorkspace.tsx",
+      "hash": "sha256:3c03e2bb4a47ba273c270944ab635759aa02d29943ef2054c44f838b34005726"
+    },
+    {
+      "path": "apps/workbench/src/product/ProjectProfileSurface.tsx",
+      "hash": "sha256:60ac4c55f83ea8f18b093d082ed98580cbc52405135a42ff016b9f830d423a2f"
+    },
+    {
+      "path": "apps/workbench/src/product/ReferenceWorkbench.tsx",
+      "hash": "sha256:a5573782ff44dfafbd75248a0288f9f095dab477628318359a6908c0ff4c4fa7"
+    },
+    {
+      "path": "apps/workbench/src/product/project-data.ts",
+      "hash": "sha256:0ebe80b74d227ca8c09706123abc93b1b1eb6aa5b4504ae21926b6d8cbeeaad9"
+    },
+    {
+      "path": "apps/workbench/src/product/project-profile.test.tsx",
+      "hash": "sha256:9c3903959082176491a10c83c8f01f9ac6f72a448ac2f940e494e93658200652"
+    },
+    {
+      "path": "apps/workbench/test/a1-outcome-drafting-browser.mjs",
+      "hash": "sha256:5ebf05b3c9b6d05872ec1faa29f22a5a3408841d5829f89048f43032a4935e1d"
+    },
+    {
+      "path": "apps/workbench/test/cumulative-production-browser-driver.mjs",
+      "hash": "sha256:20321ec18affbb376dd709dbf7565c09ed9e4a9af6a6da455dd193d1d32d5a4a"
+    },
+    {
+      "path": "infra/postgres/integration.compose.yaml",
+      "hash": "sha256:a266385a47477e46d2179894c30f40a6eced277627bddf0cf10327f0486c09ab"
+    },
+    {
+      "path": "packages/adapters/src/intake-copilot-ag-ui.ts",
+      "hash": "sha256:9390dc3d94cc0cd0b7bc07462aa61da955de5e9920cb08769e706d81c037a569"
+    },
+    {
+      "path": "packages/adapters/src/project-definition-draft-client.ts",
+      "hash": "sha256:77602a317d70b78671007c73a4ada0ef23c9cc25c8de84c0832e2408e2d44771"
+    },
+    {
+      "path": "packages/contracts/schemas/project-definition-draft-command-request/1.0.0/schema.json",
+      "hash": "sha256:b2df8f51bbc6d1c39ebded9603addae37ea543738c4624e05ccbefc85398c0b6"
+    },
+    {
+      "path": "packages/contracts/schemas/project-definition-draft-command-request/1.1.0/schema.json",
+      "hash": "sha256:cec8a500305468b76b2d6232473214431051a027d87094ded061d5adb8af33e8"
+    },
+    {
+      "path": "packages/contracts/schemas/project-definition-draft-request/1.0.0/schema.json",
+      "hash": "sha256:003be5c7038a604ff5f82992e39cd2b2b604ca396d0b3244b91a4d09b06b2a58"
+    },
+    {
+      "path": "packages/contracts/schemas/project-definition-draft-view/1.0.0/schema.json",
+      "hash": "sha256:09ba0fcbb836dcb53da1feddbb2996c044825e8ce365d3556b5330cb5f008ca5"
+    },
+    {
+      "path": "packages/core/src/project-definition-draft.ts",
+      "hash": "sha256:fb86d90b08a4414fd2a12979d439b066e5d15a6f5bdd646571a2c98eae99d07f"
+    },
+    {
+      "path": "packages/postgres/src/project-definition-authority-repository.ts",
+      "hash": "sha256:765c06d82f3865d7fa175a811ca8f692a986a71afcc15f1e07de4410595b2241"
+    },
+    {
+      "path": "packages/postgres/src/project-profile-runtime.ts",
+      "hash": "sha256:5c239b829f80629527980d48ab2b782510b8304cf3de76d4730ad9fdcf8f2adb"
+    },
+    {
+      "path": "packages/postgres/src/research-scope-repository.ts",
+      "hash": "sha256:774971a7f2320f42d1c2e03ed23a1fec4e4f163f77e2aa25b81cc698b4d5efb2"
+    },
+    {
+      "path": "packages/postgres/test/project-profile-runtime.test.ts",
+      "hash": "sha256:bda9c8d2a249d8cfad3b02e52831dcff870346929f52f26c87a35e0d45f215ef"
+    },
+    {
+      "path": "scripts/a1/outcome-drafting.critical.test.mjs",
+      "hash": "sha256:773ba7c57ce8718d8c27dabbbd10bbd4c2d736cf27c6355f4879f92fe1088a93"
+    },
+    {
+      "path": "scripts/a1/outcome-drafting.test.mjs",
+      "hash": "sha256:e68ee3792a8f2cd36d3e617c13cf60003cbd8864ba606192a0b6651ebc0458be"
+    },
+    {
+      "path": "scripts/a1/owned-postgres.mjs",
+      "hash": "sha256:e4f66c42e9b215f0a3305ff02b93e9ef8a3e81d019db8530422c7f246eb606e6"
+    },
+    {
+      "path": "scripts/a1/run-browser.mjs",
+      "hash": "sha256:8ae34eb1951d73bba1bcde36082b00ff1b3fcd4eade32d371f02a92f0e08da09"
+    },
+    {
+      "path": "scripts/a1/run-vitest.mjs",
+      "hash": "sha256:4c2c635a474e84dba08144dfc9d68046281a9ccedff03e8fbf29954604a11d76"
+    }
+  ],
+  "runs": [
+    {
+      "argv": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "scripts/a1/outcome-drafting.test.mjs"
+      ],
+      "exit_code": 0,
+      "output": "reports/a1-passes/FE-A1.2-W01-execution-1791681414148.tap",
+      "output_hash": "sha256:0acd0dc37631a9f6c177da5de053edf6b469f10327188f384241f4e767548e7d"
+    }
+  ],
+  "boundary": "Existing outcome-first draft construction and its exact authority are being verified. Live browser uses one ordinary pre-Project session and three retained draft revisions, with no model invocation or accepted Project creation against inspection data. Isolated PostgreSQL proves real creation/atomicity and rejection. This does not close definition composition, intake model functions, native examiner execution or overall A1."
+}

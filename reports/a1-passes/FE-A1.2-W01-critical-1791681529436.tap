@@ -1,0 +1,61 @@
+TAP version 13
+# Fresh isolated PostgreSQL applied and validated all 67 migrations.
+# > @petra/postgres@0.0.0 test
+# > vitest run --config vitest.config.ts project-profile-runtime.test.ts --testNamePattern fails closed for unknown profile|returns a safe unsupported taxonomy --reporter=verbose
+#  RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/packages/postgres
+#  ↓ test/project-profile-runtime.test.ts > PostgreSQL registered Project profile runtime > creates scientific, writing, and unrelated Projects from the same outcome-first draft path
+#  ↓ test/project-profile-runtime.test.ts > PostgreSQL registered Project profile runtime > rejects a changed draft and unaccepted assumptions without creating a Project
+#  ↓ test/project-profile-runtime.test.ts > PostgreSQL registered Project profile runtime > serializes overlapping command and idempotency identities into one effect or a typed conflict
+#  ↓ test/project-profile-runtime.test.ts > PostgreSQL registered Project profile runtime > creates paired profile Projects and returns their exact versioned taxonomies
+#  ✓ test/project-profile-runtime.test.ts > PostgreSQL registered Project profile runtime > fails closed for unknown profile selection without creating a Project 100ms
+#  ✓ test/project-profile-runtime.test.ts > PostgreSQL registered Project profile runtime > returns a safe unsupported taxonomy when a retained Project names an unregistered profile 72ms
+#  ↓ test/project-profile-runtime.test.ts > PostgreSQL registered Project profile runtime > resets additively by archiving the exact prior Project and creating the selected paired profile
+#  ↓ test/project-profile-runtime.test.ts > PostgreSQL registered Project profile runtime > reconciles unknown, confirmed, and conflicting Project command effects without a second mutation
+#  ↓ test/project-profile-runtime.test.ts > PostgreSQL registered Project profile runtime > executes UX1.6-TAXONOMY/registered-profile-runtime through production owners
+#  Test Files  1 passed (1)
+#       Tests  2 passed | 7 skipped (9)
+#    Start at  21:18:47
+#    Duration  822ms (transform 199ms, setup 0ms, import 581ms, tests 183ms, environment 0ms)
+# Subtest: FE-A1.2-W01-AC01 critical: ambiguous and unknown capability selection cannot silently borrow another definition
+ok 1 - FE-A1.2-W01-AC01 critical: ambiguous and unknown capability selection cannot silently borrow another definition
+  ---
+  duration_ms: 1086.8515
+  type: 'test'
+  ...
+# > @petra/postgres@0.0.0 test
+# > vitest run --config vitest.config.ts project-profile-runtime.test.ts --testNamePattern serializes overlapping command and idempotency --reporter=verbose
+#  RUN  v4.1.11 /Users/felipe.casadei/vscode/graphRAG/petra/packages/postgres
+#  ↓ test/project-profile-runtime.test.ts > PostgreSQL registered Project profile runtime > creates scientific, writing, and unrelated Projects from the same outcome-first draft path
+#  ↓ test/project-profile-runtime.test.ts > PostgreSQL registered Project profile runtime > rejects a changed draft and unaccepted assumptions without creating a Project
+#  ✓ test/project-profile-runtime.test.ts > PostgreSQL registered Project profile runtime > serializes overlapping command and idempotency identities into one effect or a typed conflict 107ms
+#  ↓ test/project-profile-runtime.test.ts > PostgreSQL registered Project profile runtime > creates paired profile Projects and returns their exact versioned taxonomies
+#  ↓ test/project-profile-runtime.test.ts > PostgreSQL registered Project profile runtime > fails closed for unknown profile selection without creating a Project
+#  ↓ test/project-profile-runtime.test.ts > PostgreSQL registered Project profile runtime > returns a safe unsupported taxonomy when a retained Project names an unregistered profile
+#  ↓ test/project-profile-runtime.test.ts > PostgreSQL registered Project profile runtime > resets additively by archiving the exact prior Project and creating the selected paired profile
+#  ↓ test/project-profile-runtime.test.ts > PostgreSQL registered Project profile runtime > reconciles unknown, confirmed, and conflicting Project command effects without a second mutation
+#  ↓ test/project-profile-runtime.test.ts > PostgreSQL registered Project profile runtime > executes UX1.6-TAXONOMY/registered-profile-runtime through production owners
+#  Test Files  1 passed (1)
+#       Tests  1 passed | 8 skipped (9)
+#    Start at  21:18:48
+#    Duration  782ms (transform 203ms, setup 0ms, import 607ms, tests 118ms, environment 0ms)
+# Subtest: FE-A1.2-W01-AC02 critical: recomputed forged draft hashes and invented assumption acceptance cannot cross production command authority
+ok 2 - FE-A1.2-W01-AC02 critical: recomputed forged draft hashes and invented assumption acceptance cannot cross production command authority
+  ---
+  duration_ms: 1030.582292
+  type: 'test'
+  ...
+# Subtest: FE-A1.2-W01-AC03 critical: missing optional example and whitespace outcome are handled before any Project creation
+ok 3 - FE-A1.2-W01-AC03 critical: missing optional example and whitespace outcome are handled before any Project creation
+  ---
+  duration_ms: 2.643166
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 12288.7875

@@ -6,7 +6,7 @@ This is the required execution breakdown for FE-A1. It records implementation ob
 
 The canonical work/status/dependency register is [scripts/frontend-a1-work-inventory.json](../scripts/frontend-a1-work-inventory.json). This report is generated from it with `npm run roadmap:frontend-a1`; `npm run audit:frontend-a1` checks coverage and document agreement. The existing [reports/FRONTEND-ADAPTATION-MILESTONE.md](../reports/FRONTEND-ADAPTATION-MILESTONE.md) retains historical implementation evidence.
 
-Roadmap/execution binding: `sha256:744fa3435a398bb0fe8d132823c5c87e9d66536078f1e4a1388b96b783ff4c36`. [scripts/frontend-a1-execution.md](../scripts/frontend-a1-execution.md) contains the same functions and criteria in prerequisite order. D025 requires one active item, an execution pass, a distinct critical pass, optional repair, and broad diagnosis after repeated failure. Both execution worktrees must match before work starts, verification is recorded, completion is accepted, or a later wave advances.
+Roadmap/execution binding: `sha256:5360723e68d6c0122bfcdf96e6476061bcdb64fd94bb32d469df1b053c7912ce`. [scripts/frontend-a1-execution.md](../scripts/frontend-a1-execution.md) contains the same functions and criteria in prerequisite order. D025 requires one active item, an execution pass, a distinct critical pass, optional repair, and broad diagnosis after repeated failure. Both execution worktrees must match before work starts, verification is recorded, completion is accepted, or a later wave advances.
 
 ## Controlling contract and scope
 
@@ -67,7 +67,7 @@ The wave controller checks the ledger before Wave 7 or later worker execution, r
 | --------- | -------------------------------------------------------------------------- | ---------------- | ----------- |
 | FE-A1.0   | Contract reconciliation and execution control                              | 6 / 6            | complete    |
 | FE-A1.1   | Copilot shell and interaction design                                       | 1 / 7            | in_progress |
-| FE-A1.2   | Conversational zero/empty Project entry                                    | 0 / 7            | in_progress |
+| FE-A1.2   | Conversational zero/empty Project entry                                    | 1 / 7            | in_progress |
 | FE-A1.3   | Durable grounded conversation and AG-UI                                    | 4 / 18           | in_progress |
 | FE-A1.4   | Reactive Workspace, compositional examination and cyclic graph-guided work | 0 / 23           | in_progress |
 | FE-A1.5   | Progressive inspection and complete authority receipts                     | 0 / 9            | in_progress |
@@ -298,7 +298,7 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 
 #### FE-A1.2-W01 — Retain outcome-first definition drafting
 
-- **State:** `planned`; **owner:** runtime.
+- **State:** `complete`; **owner:** runtime.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.0-W01](#fe-a10-w01)
 - **Contracts:** D018, D024, UX-REQ-004.
 - **Construct:** Keep the server-owned definition draft preserving original wording, Project kernel, proposed objective, outputs, assumptions, capabilities, and unsupported behavior; examples remain optional.
@@ -307,7 +307,9 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
   - Changed draft content and unaccepted consequential assumptions are rejected.
   - No mandatory profile picker precedes the outcome.
 - **Retained partial evidence:** [reports/FRONTEND-STEP3-AGNOSTIC-PROJECT-CREATION.json](../reports/FRONTEND-STEP3-AGNOSTIC-PROJECT-CREATION.json), [reports/a1-passes/FE-A1.2-W01-execution-1791679529391.json](../reports/a1-passes/FE-A1.2-W01-execution-1791679529391.json), [reports/a1-passes/FE-A1.2-W01-critical-1791679570413.json](../reports/a1-passes/FE-A1.2-W01-critical-1791679570413.json)
-- **Completion evidence:** Missing; this item cannot close.
+- **Completion evidence:**
+  - [reports/a1-passes/FE-A1.2-W01-execution-1791681414148.json](../reports/a1-passes/FE-A1.2-W01-execution-1791681414148.json); `node --test --test-reporter=tap scripts/a1/outcome-drafting.test.mjs`. Existing outcome-first draft construction and its exact authority are being verified. Live browser uses one ordinary pre-Project session and three retained draft revisions, with no model invocation or accepted Project creation against inspection data. Isolated PostgreSQL proves real creation/atomicity and rejection. This does not close definition composition, intake model functions, native examiner execution or overall A1.
+  - [reports/a1-passes/FE-A1.2-W01-critical-1791681529436.json](../reports/a1-passes/FE-A1.2-W01-critical-1791681529436.json); `node --test --test-reporter=tap scripts/a1/outcome-drafting.critical.test.mjs`. Existing outcome-first draft construction and its exact authority are being verified. Live browser uses one ordinary pre-Project session and three retained draft revisions, with no model invocation or accepted Project creation against inspection data. Isolated PostgreSQL proves real creation/atomicity and rejection. This does not close definition composition, intake model functions, native examiner execution or overall A1.
 
 <a id="fe-a12-w02"></a>
 

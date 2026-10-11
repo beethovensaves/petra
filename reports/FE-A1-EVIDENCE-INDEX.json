@@ -1,10 +1,10 @@
 {
   "schema_name": "petra.a1-evidence-index",
   "schema_version": "1.0.0",
-  "roadmap_binding": "sha256:744fa3435a398bb0fe8d132823c5c87e9d66536078f1e4a1388b96b783ff4c36",
+  "roadmap_binding": "sha256:5360723e68d6c0122bfcdf96e6476061bcdb64fd94bb32d469df1b053c7912ce",
   "current": {
     "required": 90,
-    "complete": 12,
+    "complete": 13,
     "user_acceptance": null,
     "proofs": [
       {
@@ -123,6 +123,23 @@
             "artifact": "reports/a1-passes/FE-A1.1-W01-critical-1791681337814.json",
             "command": "node --test --test-reporter=tap scripts/a1/copilot-hierarchy.critical.test.mjs",
             "boundary": "Live production layout, retained actual managed-model Q/A, navigation, composer, disclosure and Workspace presentation only. No new model invocation, proposal command, native examiner, cycle or overall A1 acceptance is inferred."
+          }
+        ]
+      },
+      {
+        "work_item": "FE-A1.2-W01",
+        "passes": [
+          {
+            "pass": "execution",
+            "artifact": "reports/a1-passes/FE-A1.2-W01-execution-1791681414148.json",
+            "command": "node --test --test-reporter=tap scripts/a1/outcome-drafting.test.mjs",
+            "boundary": "Existing outcome-first draft construction and its exact authority are being verified. Live browser uses one ordinary pre-Project session and three retained draft revisions, with no model invocation or accepted Project creation against inspection data. Isolated PostgreSQL proves real creation/atomicity and rejection. This does not close definition composition, intake model functions, native examiner execution or overall A1."
+          },
+          {
+            "pass": "critical",
+            "artifact": "reports/a1-passes/FE-A1.2-W01-critical-1791681529436.json",
+            "command": "node --test --test-reporter=tap scripts/a1/outcome-drafting.critical.test.mjs",
+            "boundary": "Existing outcome-first draft construction and its exact authority are being verified. Live browser uses one ordinary pre-Project session and three retained draft revisions, with no model invocation or accepted Project creation against inspection data. Isolated PostgreSQL proves real creation/atomicity and rejection. This does not close definition composition, intake model functions, native examiner execution or overall A1."
           }
         ]
       },
