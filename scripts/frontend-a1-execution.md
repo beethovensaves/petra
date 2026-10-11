@@ -1,6 +1,6 @@
 # A1 execution instructions
 
-Roadmap binding: `sha256:b6fe2fe934883e8019dc09cc391b38362e605b9c07c5784884d9c2f610d5d18a`. Generated from frontend-a1-work-inventory.json.
+Roadmap binding: `sha256:450fb385f85bfdcc1a251d848b118eddba5f838727843a82418044dfd6e46c46`. Generated from frontend-a1-work-inventory.json.
 
 D025 and D024 govern this execution. Historical frozen Wave 6 instructions are subordinate. Native screen-reader evaluation is excluded; browser semantics and functional peers remain mandatory. The sixteen late scenarios are optional.
 
@@ -221,7 +221,7 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 ### 14. FE-A1.3-W05: Connect the official AG-UI stream to Petra view models
 
-State: in_progress. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.3-W01, FE-A1.3-W03.
+State: complete. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.3-W01, FE-A1.3-W03.
 
 Use pinned official SDK client/server adapters for run, text, activity, tool, state, interrupt, custom, and terminal events; translate them into typed conversation/Work/Workspace models. Sequence: define presentation-only view models and a closed versioned disclosure activity; preserve the existing canonical terminal encoder while adding retained block references; resolve each disclosed block through the exact actor-authorized retained owner read before exposing bytes; map registered Work, tool and interrupt events separately from advisory role authority; mount typed live activity in the actual copilot; verify live managed-model delivery, canonical Work links and independent hostile-event/version/scope/replay cases. Revalidate the hierarchy after integration changes its presentation.
 

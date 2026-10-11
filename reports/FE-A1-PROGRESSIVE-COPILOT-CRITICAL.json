@@ -1,0 +1,60 @@
+{
+  "checked_at": "2026-10-11T00:26:48.608Z",
+  "project_id": "project_4GNM3G166Z7RCBSW5K6TXZ3XZ9",
+  "run_id": "run_0Y7C46CXSXHG4Z7KHBVZRW356W",
+  "phases": [
+    "connecting",
+    "answering",
+    "completed"
+  ],
+  "immutable_owner": {
+    "capture": "native",
+    "lineage": {
+      "work": [
+        {
+          "revision": 4,
+          "record_id": "work_unit_03G91WY44YMVMRSAV92PC48EP0",
+          "record_hash": "sha256:6231e1bc3e725ff6a2a5244cde845371d51bd4f69cc968d52eb53e327df3861f",
+          "schema_name": "petra.work-unit",
+          "schema_version": "1.0.0"
+        }
+      ],
+      "cycles": [],
+      "reviews": [],
+      "inquiries": [
+        {
+          "revision": 1,
+          "record_id": "objective_0YK8W4VBK9GWDB1NTQ37WBNVSF",
+          "record_hash": "sha256:9283ef339b11f3caf01e3fdc29e38cf719d53e767f711cf07e0b6a90082cb4e3",
+          "schema_name": "petra.project-objective",
+          "schema_version": "1.0.0"
+        }
+      ]
+    },
+    "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+    "project_id": "project_4GNM3G166Z7RCBSW5K6TXZ3XZ9",
+    "work_unit_ref": {
+      "revision": 4,
+      "spec_hash": "sha256:c9b769225e2f5e6288d6298e8fb6f61b2365b8d31dfdaa2369bf926ba9d0a049",
+      "work_unit_id": "work_unit_03G91WY44YMVMRSAV92PC48EP0"
+    },
+    "project_turn_id": "project_turn_6DKECBB0KWDQV788GB2DMG2ABK",
+    "protocol_run_id": "run_0Y7C46CXSXHG4Z7KHBVZRW356W",
+    "turn_content_hash": "sha256:a282dd8210e7ee348b9b24379fd802a2e847840a945a02cff5d90e5ac010c14e",
+    "project_thread_ref": {
+      "revision": 11,
+      "content_hash": "sha256:a9a015d2a238b69a0f5b803e9bb584f80e69fc1a72337eab71a88b574914a493",
+      "project_thread_id": "project_thread_18XKBE9XAAF8ZR41X1D4A3W7EZ"
+    },
+    "protocol_thread_id": "thread_417PHGY55GKB1GRA9ZVV8W75SB",
+    "interaction_run_ref": {
+      "revision": 2,
+      "content_hash": "sha256:1f3677cdb66892839fa3f2c60fc7cba0b942e6c56b0c855cc62b4bd68cb4a09a",
+      "interaction_run_id": "interaction_run_25RZJJCD41XTM9VN65Q0FEVB16"
+    }
+  },
+  "conflicting_replay": "rejected",
+  "foreign_read": "rejected",
+  "unchanged_retained_turn": true,
+  "boundary": "Separate hostile SDK/owner-port checks plus real production replay, identity-conflict rejection and denied authentication. No new model or Work invocation was inferred."
+}
