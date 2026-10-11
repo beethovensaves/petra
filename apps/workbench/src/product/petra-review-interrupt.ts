@@ -1,7 +1,11 @@
 import {
   InteractionInputError,
   PetraInteractionClient,
-  type PetraInteractionResult,
+  type ProjectReviewInterruptPresentation,
+} from "@petra/adapters/ag-ui";
+export {
+  projectReviewInterruptsFromInteraction,
+  type ProjectReviewInterruptPresentation,
 } from "@petra/adapters/ag-ui";
 import type { PetraReviewInterruptResponse } from "@petra/contracts";
 
@@ -9,10 +13,6 @@ const DEVELOPMENT_TOKEN = "petra-local-development";
 const TOKEN_STORAGE_KEY = "petra.auth.token";
 const RETAINED_RESPONSE_PREFIX = "petra.review-interrupt-response.";
 const HASH = /^sha256:[0-9a-f]{64}$/u;
-const INTERACTION_RUN_ID = /^interaction_run_[0-9A-HJKMNP-TV-Z]{26}$/u;
-const INTERACTION_INTERRUPT_ID =
-  /^interaction_interrupt_[0-9A-HJKMNP-TV-Z]{26}$/u;
-const CHANGE_SET_ID = /^change_set_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const PROJECT_THREAD_ID = /^project_thread_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const REVIEW_SESSION_ID = /^review_session_[0-9A-HJKMNP-TV-Z]{26}$/u;
 const REVIEW_MEMBER_ID = /^review_member_[0-9A-HJKMNP-TV-Z]{26}$/u;
@@ -30,15 +30,6 @@ const stringField = (
   key: string,
 ): string | undefined =>
   typeof value[key] === "string" ? value[key] : undefined;
-
-export interface ProjectReviewInterruptPresentation {
-  readonly projectId: string;
-  readonly interactionRunId: string;
-  readonly interruptRef: PetraReviewInterruptResponse["interrupt_ref"];
-  readonly changeSetRef: PetraReviewInterruptResponse["change_set_ref"];
-  readonly reason: "changeset_review";
-  readonly message: string;
-}
 
 export interface ProjectReviewInterruptReturnContext {
   readonly projectThreadRef: {
@@ -106,100 +97,6 @@ const exactRef = (
     return undefined;
   }
   return { id, revision: value.revision, contentHash };
-};
-
-const pendingReviewMetadata = (
-  value: unknown,
-  projectId: string,
-): ProjectReviewInterruptPresentation | undefined => {
-  if (
-    !isRecord(value) ||
-    value.reason !== "changeset_review" ||
-    typeof value.id !== "string" ||
-    !isRecord(value.metadata)
-  ) {
-    return undefined;
-  }
-  const metadata = value.metadata;
-  const interruptRef = exactRef(
-    metadata.interactionInterruptRef,
-    "interaction_interrupt_id",
-    INTERACTION_INTERRUPT_ID,
-  );
-  const changeSetRef = exactRef(
-    metadata.changeSetRef,
-    "change_set_id",
-    CHANGE_SET_ID,
-  );
-  if (
-    metadata.projectId !== projectId ||
-    typeof metadata.interactionRunId !== "string" ||
-    !INTERACTION_RUN_ID.test(metadata.interactionRunId) ||
-    interruptRef === undefined ||
-    changeSetRef === undefined ||
-    value.id !== interruptRef.id
-  ) {
-    return undefined;
-  }
-  return {
-    projectId,
-    interactionRunId: metadata.interactionRunId,
-    interruptRef: {
-      interaction_interrupt_id: interruptRef.id,
-      revision: interruptRef.revision,
-      content_hash: interruptRef.contentHash,
-    },
-    changeSetRef: {
-      change_set_id: changeSetRef.id,
-      revision: changeSetRef.revision,
-      content_hash: changeSetRef.contentHash,
-    },
-    reason: "changeset_review",
-    message:
-      typeof value.message === "string" && value.message.trim().length > 0
-        ? value.message
-        : "Review the exact proposed ChangeSet before it becomes authoritative.",
-  };
-};
-
-/**
- * Reads only the exact server event metadata that the AG-UI adapter paired with
- * the pending interrupt. A pending SDK label without those identities is not a
- * command surface.
- */
-export const projectReviewInterruptsFromInteraction = (
-  result: PetraInteractionResult,
-  projectId: string,
-): ProjectReviewInterruptPresentation[] => {
-  const pendingIds = new Set(
-    result.pendingInterrupts
-      .filter((interrupt) => interrupt.reason === "changeset_review")
-      .map((interrupt) => interrupt.id),
-  );
-  const presentations = result.events.flatMap((event) => {
-    if (event.type !== "RUN_FINISHED") return [];
-    const outcome = event.payload.outcome;
-    if (!isRecord(outcome) || !Array.isArray(outcome.interrupts)) return [];
-    return outcome.interrupts.flatMap((interrupt) => {
-      const presentation = pendingReviewMetadata(interrupt, projectId);
-      return presentation === undefined ||
-        !pendingIds.has(presentation.interruptRef.interaction_interrupt_id)
-        ? []
-        : [presentation];
-    });
-  });
-  const unique = new Map(
-    presentations.map((presentation) => [
-      presentation.interruptRef.interaction_interrupt_id,
-      presentation,
-    ]),
-  );
-  if (unique.size !== pendingIds.size) {
-    throw new Error(
-      "Petra withheld a pending Review response because its exact server-owned interrupt identity was unavailable or inconsistent.",
-    );
-  }
-  return [...unique.values()];
 };
 
 const CROCKFORD_BASE32 = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";

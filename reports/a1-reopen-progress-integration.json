@@ -1,0 +1,4 @@
+{
+  "work_item": "FE-A1.3-W05",
+  "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy."
+}

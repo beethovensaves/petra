@@ -627,7 +627,7 @@
       "milestone": "FE-A1.1",
       "title": "Rebuild the copilot and workspace hierarchy",
       "owner": "frontend",
-      "status": "complete",
+      "status": "planned",
       "implementation": "Build the persistent 30/70 desktop shell around a compact Project/objective header, continuous user/assistant thread, contextual progress/interventions, usable composer, and active Workspace result. Sequence: move Workspace destinations and inspection into Workspace chrome; reserve chat and composer space while bounding expandable support; reflect the opened answer or evidence in the Workspace heading and activate narrow Workspace presentation; verify ordinary desktop geometry and actual retained Q/A/draft continuity; critically challenge short/narrow viewports, expanded disclosures, keyboard activation and native return.",
       "acceptance": [
         "At ordinary desktop widths both the conversation and result remain legible.",
@@ -645,22 +645,11 @@
         "UX-REQ-001"
       ],
       "retained_evidence": [
-        "reports/FRONTEND-STEP2-AGENT-WORKSPACE.json"
+        "reports/FRONTEND-STEP2-AGENT-WORKSPACE.json",
+        "reports/a1-passes/FE-A1.1-W01-execution-1791675860000.json",
+        "reports/a1-passes/FE-A1.1-W01-critical-1791675948769.json"
       ],
-      "completion_evidence": [
-        {
-          "pass": "execution",
-          "artifact": "reports/a1-passes/FE-A1.1-W01-execution-1791675860000.json",
-          "command": "node --test --test-reporter=tap scripts/a1/copilot-hierarchy.test.mjs",
-          "boundary": "Live production layout, retained actual managed-model Q/A, navigation, composer, disclosure and Workspace presentation only. No new model invocation, proposal command, native examiner, cycle or overall A1 acceptance is inferred."
-        },
-        {
-          "pass": "critical",
-          "artifact": "reports/a1-passes/FE-A1.1-W01-critical-1791675948769.json",
-          "command": "node --test --test-reporter=tap scripts/a1/copilot-hierarchy.critical.test.mjs",
-          "boundary": "Live production layout, retained actual managed-model Q/A, navigation, composer, disclosure and Workspace presentation only. No new model invocation, proposal command, native examiner, cycle or overall A1 acceptance is inferred."
-        }
-      ],
+      "completion_evidence": [],
       "optional_scenarios": [
         "A1-S14"
       ],
@@ -669,6 +658,11 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ],
       "verification_plans": {
@@ -751,6 +745,20 @@
           ],
           "finished_at": "2026-10-10T23:46:23.026Z"
         }
+      ],
+      "historical_completion_evidence": [
+        {
+          "pass": "execution",
+          "artifact": "reports/a1-passes/FE-A1.1-W01-execution-1791675860000.json",
+          "command": "node --test --test-reporter=tap scripts/a1/copilot-hierarchy.test.mjs",
+          "boundary": "Live production layout, retained actual managed-model Q/A, navigation, composer, disclosure and Workspace presentation only. No new model invocation, proposal command, native examiner, cycle or overall A1 acceptance is inferred."
+        },
+        {
+          "pass": "critical",
+          "artifact": "reports/a1-passes/FE-A1.1-W01-critical-1791675948769.json",
+          "command": "node --test --test-reporter=tap scripts/a1/copilot-hierarchy.critical.test.mjs",
+          "boundary": "Live production layout, retained actual managed-model Q/A, navigation, composer, disclosure and Workspace presentation only. No new model invocation, proposal command, native examiner, cycle or overall A1 acceptance is inferred."
+        }
       ]
     },
     {
@@ -790,6 +798,11 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     },
@@ -827,6 +840,11 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     },
@@ -866,6 +884,11 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     },
@@ -903,6 +926,11 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     },
@@ -941,6 +969,11 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     },
@@ -978,6 +1011,11 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     },
@@ -1193,6 +1231,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W05",
+          "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
+          "recorded_at": "2026-10-11T00:13:11.412Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     },
@@ -1903,8 +1951,8 @@
       "milestone": "FE-A1.3",
       "title": "Connect the official AG-UI stream to Petra view models",
       "owner": "runtime",
-      "status": "planned",
-      "implementation": "Use pinned official SDK client/server adapters for run, text, activity, tool, state, interrupt, custom, and terminal events; translate them into typed conversation/Work/Workspace models.",
+      "status": "in_progress",
+      "implementation": "Use pinned official SDK client/server adapters for run, text, activity, tool, state, interrupt, custom, and terminal events; translate them into typed conversation/Work/Workspace models. Sequence: define presentation-only view models and a closed versioned disclosure activity; preserve the existing canonical terminal encoder while adding retained block references; resolve each disclosed block through the exact actor-authorized retained owner read before exposing bytes; map registered Work, tool and interrupt events separately from advisory role authority; mount typed live activity in the actual copilot; verify live managed-model delivery, canonical Work links and independent hostile-event/version/scope/replay cases. Revalidate the hierarchy after integration changes its presentation.",
       "acceptance": [
         "The real conversation progressively renders validated state through the official client.",
         "Custom events are versioned and allowlisted.",
@@ -1937,8 +1985,34 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W05",
+          "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
+          "recorded_at": "2026-10-11T00:13:11.413Z"
         }
-      ]
+      ],
+      "execution_history": [
+        {
+          "item": "FE-A1.3-W05",
+          "phase": "execution",
+          "failed_attempts": 1,
+          "started_at": "2026-10-10T23:51:37.206Z",
+          "failures": [
+            {
+              "reason": "Construction SDK test launcher failed before tests: --root changed config resolution to packages/adapters/packages/adapters. Use adapters workdir and local config; no product verification claimed.",
+              "phase": "execution",
+              "recorded_at": "2026-10-11T00:12:41.040Z"
+            }
+          ],
+          "disposition": "reopened",
+          "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy."
+        }
+      ],
+      "test_plans": {
+        "execution": "reports/a1-plans/FE-A1.3-W05-execution.json",
+        "critical": "reports/a1-plans/FE-A1.3-W05-critical.json"
+      }
     },
     {
       "id": "FE-A1.3-W06",
@@ -1982,6 +2056,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W05",
+          "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
+          "recorded_at": "2026-10-11T00:13:11.413Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     },
@@ -2022,6 +2106,11 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W05",
+          "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
+          "recorded_at": "2026-10-11T00:13:11.413Z"
         }
       ]
     },
@@ -2064,6 +2153,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W05",
+          "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
+          "recorded_at": "2026-10-11T00:13:11.413Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     },
@@ -2107,6 +2206,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W05",
+          "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
+          "recorded_at": "2026-10-11T00:13:11.413Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     },
@@ -2150,6 +2259,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W05",
+          "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
+          "recorded_at": "2026-10-11T00:13:11.413Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     },
@@ -2193,6 +2312,11 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W05",
+          "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
+          "recorded_at": "2026-10-11T00:13:11.413Z"
         }
       ]
     },
@@ -2441,6 +2565,11 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W05",
+          "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
+          "recorded_at": "2026-10-11T00:13:11.413Z"
         }
       ]
     },
@@ -2519,6 +2648,11 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     },
@@ -2563,6 +2697,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W05",
+          "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
+          "recorded_at": "2026-10-11T00:13:11.413Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     },
@@ -2604,6 +2748,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W05",
+          "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
+          "recorded_at": "2026-10-11T00:13:11.413Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     },
@@ -2644,6 +2798,11 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     },
@@ -2688,6 +2847,11 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     },
@@ -2773,6 +2937,11 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     },
@@ -2815,6 +2984,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W05",
+          "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
+          "recorded_at": "2026-10-11T00:13:11.413Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     },
@@ -2856,6 +3035,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W05",
+          "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
+          "recorded_at": "2026-10-11T00:13:11.413Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     },
@@ -2981,6 +3170,11 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W05",
+          "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
+          "recorded_at": "2026-10-11T00:13:11.413Z"
         }
       ]
     },
@@ -3026,6 +3220,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W05",
+          "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
+          "recorded_at": "2026-10-11T00:13:11.413Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     },
@@ -3066,6 +3270,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W05",
+          "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
+          "recorded_at": "2026-10-11T00:13:11.413Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     },
@@ -3108,6 +3322,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W05",
+          "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
+          "recorded_at": "2026-10-11T00:13:11.413Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     },
@@ -3189,6 +3413,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W05",
+          "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
+          "recorded_at": "2026-10-11T00:13:11.413Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     },
@@ -3232,6 +3466,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W05",
+          "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
+          "recorded_at": "2026-10-11T00:13:11.413Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     },
@@ -3275,6 +3519,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W05",
+          "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
+          "recorded_at": "2026-10-11T00:13:11.413Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     },
@@ -3353,6 +3607,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W05",
+          "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
+          "recorded_at": "2026-10-11T00:13:11.413Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     },
@@ -3396,6 +3660,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W05",
+          "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
+          "recorded_at": "2026-10-11T00:13:11.413Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     },
@@ -3436,6 +3710,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W05",
+          "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
+          "recorded_at": "2026-10-11T00:13:11.413Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     },
@@ -3474,6 +3758,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W05",
+          "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
+          "recorded_at": "2026-10-11T00:13:11.413Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     },
@@ -3515,6 +3809,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W05",
+          "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
+          "recorded_at": "2026-10-11T00:13:11.413Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     },
@@ -3557,6 +3861,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W05",
+          "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
+          "recorded_at": "2026-10-11T00:13:11.413Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     },
@@ -3600,6 +3914,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W05",
+          "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
+          "recorded_at": "2026-10-11T00:13:11.413Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     },
@@ -3642,6 +3966,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W05",
+          "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
+          "recorded_at": "2026-10-11T00:13:11.413Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     },
@@ -3683,6 +4017,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W05",
+          "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
+          "recorded_at": "2026-10-11T00:13:11.413Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     },
@@ -3726,6 +4070,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W05",
+          "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
+          "recorded_at": "2026-10-11T00:13:11.413Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     },
@@ -3768,6 +4122,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W05",
+          "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
+          "recorded_at": "2026-10-11T00:13:11.413Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     },
@@ -3807,6 +4171,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W05",
+          "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
+          "recorded_at": "2026-10-11T00:13:11.413Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     },
@@ -3842,6 +4216,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W05",
+          "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
+          "recorded_at": "2026-10-11T00:13:11.413Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     },
@@ -3874,6 +4258,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W05",
+          "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
+          "recorded_at": "2026-10-11T00:13:11.413Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     },
@@ -3914,6 +4308,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W05",
+          "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
+          "recorded_at": "2026-10-11T00:13:11.413Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     },
@@ -3990,6 +4394,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W05",
+          "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
+          "recorded_at": "2026-10-11T00:13:11.413Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     },
@@ -4024,6 +4438,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W05",
+          "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
+          "recorded_at": "2026-10-11T00:13:11.413Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     },
@@ -4134,6 +4558,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W05",
+          "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
+          "recorded_at": "2026-10-11T00:13:11.413Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     },
@@ -4171,6 +4605,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W05",
+          "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
+          "recorded_at": "2026-10-11T00:13:11.413Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     },
@@ -4209,6 +4653,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W05",
+          "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
+          "recorded_at": "2026-10-11T00:13:11.413Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     },
@@ -4246,6 +4700,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W05",
+          "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
+          "recorded_at": "2026-10-11T00:13:11.413Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     },
@@ -4288,6 +4752,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W05",
+          "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
+          "recorded_at": "2026-10-11T00:13:11.413Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     },
@@ -4327,6 +4801,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W05",
+          "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
+          "recorded_at": "2026-10-11T00:13:11.413Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     },
@@ -4368,6 +4852,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W05",
+          "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
+          "recorded_at": "2026-10-11T00:13:11.413Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     },
@@ -4408,6 +4902,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W05",
+          "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
+          "recorded_at": "2026-10-11T00:13:11.413Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     },
@@ -4452,6 +4956,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W05",
+          "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
+          "recorded_at": "2026-10-11T00:13:11.413Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     },
@@ -4494,6 +5008,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W05",
+          "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
+          "recorded_at": "2026-10-11T00:13:11.413Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     },
@@ -4536,6 +5060,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W05",
+          "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
+          "recorded_at": "2026-10-11T00:13:11.413Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     },
@@ -4571,6 +5105,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W05",
+          "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
+          "recorded_at": "2026-10-11T00:13:11.413Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     },
@@ -4605,6 +5149,16 @@
           "prerequisite": "FE-A1.0-W06",
           "reason": "The critical regression suite depended on bootstrap ledger state and must remain valid after item closure. Revalidate the repaired suite and add rejection recovery.",
           "recorded_at": "2026-10-10T19:32:41.126Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W05",
+          "reason": "Suspend the active construction without discarding its history so the verified hierarchy can be reopened before live activity changes its bound presentation source. Resume this same prerequisite-ready AG-UI item immediately after reopening the hierarchy.",
+          "recorded_at": "2026-10-11T00:13:11.413Z"
+        },
+        {
+          "prerequisite": "FE-A1.1-W01",
+          "reason": "Live typed AG-UI activity must be mounted in AgentControlPlane, a hierarchy proof source. Preserve prior layout proof as history and revalidate functional and independent critical browser criteria on the integrated candidate.",
+          "recorded_at": "2026-10-11T00:13:12.737Z"
         }
       ]
     }
@@ -5718,7 +6272,19 @@
     "repeated_failure_limit": 2,
     "synchronization": "Roadmap, generated execution packet, canonical ledger and both execution worktrees must agree before execution or closure."
   },
-  "active_work": null,
+  "active_work": {
+    "item": "FE-A1.3-W05",
+    "phase": "execution",
+    "failed_attempts": 1,
+    "started_at": "2026-10-11T00:13:18.812Z",
+    "failures": [
+      {
+        "reason": "Construction server regression check could not bind localhost under workspace sandbox (listen EPERM); its teardown failure is consequent to that missing listener. Rerun unchanged suite with approved localhost permissions; no product failure or passing evidence inferred.",
+        "phase": "execution",
+        "recorded_at": "2026-10-11T00:20:33.221Z"
+      }
+    ]
+  },
   "repair_sequence": [
     {
       "order": 1,

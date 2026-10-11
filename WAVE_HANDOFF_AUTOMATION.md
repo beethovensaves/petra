@@ -95,16 +95,16 @@ wave requires its own reviewed packet before it can be initialized.
 
 ## Controlling A1 execution
 
-Binding: `sha256:874ef0b2b9b24f01987be0982ccfa918b8d482a62dff225dea41cb867bb7e8d7`. 11/90 required items complete; 79 incomplete.
+Binding: `sha256:cb6375e3dfc4dce25fee1246aef585a29102e8ef3e27460188586b4bf7b67934`. 10/90 required items complete; 80 incomplete.
 
 D024 governs the conversational copilot and reactive Workspace. D025 governs synchronized execution and two distinct validation passes. The canonical [function ledger](scripts/frontend-a1-work-inventory.json), [readable implementation ledger](reports/FE-A1-CONTRACT-IMPLEMENTATION-LEDGER.md), and [granular execution instructions](scripts/frontend-a1-execution.md) agree before work starts, evidence is recorded, completion is accepted, or another wave proceeds.
 
-Active work: none; select one prerequisite-ready item.
+Active work: FE-A1.3-W05, execution.
 
 | Stage   | Required behavior                                                          | Complete / required |
 | ------- | -------------------------------------------------------------------------- | ------------------- |
 | FE-A1.0 | Contract reconciliation and execution control                              | 6 / 6               |
-| FE-A1.1 | Copilot shell and interaction design                                       | 1 / 7               |
+| FE-A1.1 | Copilot shell and interaction design                                       | 0 / 7               |
 | FE-A1.2 | Conversational zero/empty Project entry                                    | 0 / 7               |
 | FE-A1.3 | Durable grounded conversation and AG-UI                                    | 3 / 18              |
 | FE-A1.4 | Reactive Workspace, compositional examination and cyclic graph-guided work | 0 / 23              |
