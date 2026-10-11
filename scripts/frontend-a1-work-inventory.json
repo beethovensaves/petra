@@ -1656,6 +1656,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -1722,7 +1727,7 @@
       "milestone": "FE-A1.2",
       "title": "Compose definitions and revisions across Project types",
       "owner": "runtime",
-      "status": "complete",
+      "status": "in_progress",
       "implementation": "Resolve registered object/relationship descriptors, inquiry roles, examiners, language rules, validators, outputs, and place capabilities from the exact ProjectDefinition; semantic revisions follow D018.",
       "acceptance": [
         "The same shell can load different domain components without scientific conditionals.",
@@ -1744,22 +1749,11 @@
       "retained_evidence": [
         "reports/FRONTEND-STEP3-AGNOSTIC-PROJECT-CREATION.json",
         "reports/a1-passes/FE-A1.2-W07-execution-1791681705286.json",
-        "reports/a1-passes/FE-A1.2-W07-critical-1791681950358.json"
+        "reports/a1-passes/FE-A1.2-W07-critical-1791681950358.json",
+        "reports/a1-passes/FE-A1.2-W07-execution-1791684183544.json",
+        "reports/a1-passes/FE-A1.2-W07-critical-1791684214939.json"
       ],
-      "completion_evidence": [
-        {
-          "pass": "execution",
-          "artifact": "reports/a1-passes/FE-A1.2-W07-execution-1791684183544.json",
-          "command": "node --test --test-reporter=tap scripts/a1/definition-components.test.mjs",
-          "boundary": "Exact immutable definition reads and generic component negotiation across declared domain registrations. Schema admission is separate from an installed examiner or executor; unavailable capability does not invalidate a valid Project. Existing immutable history owners preserve the original basis. This does not certify missing native writing interpretation/third-type examiners, new model roles, proposed commands, or overall A1."
-        },
-        {
-          "pass": "critical",
-          "artifact": "reports/a1-passes/FE-A1.2-W07-critical-1791684214939.json",
-          "command": "node --test --test-reporter=tap scripts/a1/definition-components.critical.test.mjs",
-          "boundary": "Exact immutable definition reads and generic component negotiation across declared domain registrations. Schema admission is separate from an installed examiner or executor; unavailable capability does not invalidate a valid Project. Existing immutable history owners preserve the original basis. This does not certify missing native writing interpretation/third-type examiners, new model roles, proposed commands, or overall A1."
-        }
-      ],
+      "completion_evidence": [],
       "optional_scenarios": [
         "A1-S03",
         "A1-S04",
@@ -1795,6 +1789,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ],
       "execution_history": [
@@ -1871,6 +1870,18 @@
         {
           "pass": "critical",
           "artifact": "reports/a1-passes/FE-A1.2-W07-critical-1791681950358.json",
+          "command": "node --test --test-reporter=tap scripts/a1/definition-components.critical.test.mjs",
+          "boundary": "Exact immutable definition reads and generic component negotiation across declared domain registrations. Schema admission is separate from an installed examiner or executor; unavailable capability does not invalidate a valid Project. Existing immutable history owners preserve the original basis. This does not certify missing native writing interpretation/third-type examiners, new model roles, proposed commands, or overall A1."
+        },
+        {
+          "pass": "execution",
+          "artifact": "reports/a1-passes/FE-A1.2-W07-execution-1791684183544.json",
+          "command": "node --test --test-reporter=tap scripts/a1/definition-components.test.mjs",
+          "boundary": "Exact immutable definition reads and generic component negotiation across declared domain registrations. Schema admission is separate from an installed examiner or executor; unavailable capability does not invalidate a valid Project. Existing immutable history owners preserve the original basis. This does not certify missing native writing interpretation/third-type examiners, new model roles, proposed commands, or overall A1."
+        },
+        {
+          "pass": "critical",
+          "artifact": "reports/a1-passes/FE-A1.2-W07-critical-1791684214939.json",
           "command": "node --test --test-reporter=tap scripts/a1/definition-components.critical.test.mjs",
           "boundary": "Exact immutable definition reads and generic component negotiation across declared domain registrations. Schema admission is separate from an installed examiner or executor; unavailable capability does not invalidate a valid Project. Existing immutable history owners preserve the original basis. This does not certify missing native writing interpretation/third-type examiners, new model roles, proposed commands, or overall A1."
         }
@@ -2821,7 +2832,7 @@
       "milestone": "FE-A1.3",
       "title": "Compile exact bounded context for every turn",
       "owner": "runtime",
-      "status": "complete",
+      "status": "planned",
       "implementation": "Compose Project definition, objective, inquiry, selected object revisions, graph query/scene references, sources, packets, Work/proposals, omissions, snapshot, privacy, and budget without inheriting ambient route state.",
       "acceptance": [
         "A follow-up explicitly binds prior turn and current or original basis.",
@@ -2843,22 +2854,11 @@
       "retained_evidence": [
         "reports/FRONTEND-ADAPTATION-MILESTONE.md",
         "reports/FE-A1-CONSTRUCTION-CHECKS.json",
-        "reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log"
+        "reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log",
+        "reports/a1-passes/FE-A1.3-W04-execution-1791684264454.json",
+        "reports/a1-passes/FE-A1.3-W04-critical-1791684289531.json"
       ],
-      "completion_evidence": [
-        {
-          "pass": "execution",
-          "artifact": "reports/a1-passes/FE-A1.3-W04-execution-1791684264454.json",
-          "command": "node --test --test-reporter=tap scripts/a1/exact-context.test.mjs",
-          "boundary": "Exact bounded advisory turn context only. Original-basis branching, action previews/commands, missing native examiners and connected graph cycles remain their own required A1 items. Work inputs/proposals/output and inquiry framing/source bytes are explicitly withheld on metadata paths; no fact, approval, examination, resolved inquiry or completed domain work is inferred."
-        },
-        {
-          "pass": "critical",
-          "artifact": "reports/a1-passes/FE-A1.3-W04-critical-1791684289531.json",
-          "command": "node --test --test-reporter=tap scripts/a1/exact-context.critical.test.mjs",
-          "boundary": "Exact bounded advisory turn context only. Original-basis branching, action previews/commands, missing native examiners and connected graph cycles remain their own required A1 items. Work inputs/proposals/output and inquiry framing/source bytes are explicitly withheld on metadata paths; no fact, approval, examination, resolved inquiry or completed domain work is inferred."
-        }
-      ],
+      "completion_evidence": [],
       "optional_scenarios": [
         "A1-S02",
         "A1-S07",
@@ -2899,6 +2899,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ],
       "execution_history": [
@@ -2935,7 +2940,21 @@
       "verification_plans": {
         "execution": "reports/a1-plans/FE-A1.3-W04-execution.json",
         "critical": "reports/a1-plans/FE-A1.3-W04-critical.json"
-      }
+      },
+      "historical_completion_evidence": [
+        {
+          "pass": "execution",
+          "artifact": "reports/a1-passes/FE-A1.3-W04-execution-1791684264454.json",
+          "command": "node --test --test-reporter=tap scripts/a1/exact-context.test.mjs",
+          "boundary": "Exact bounded advisory turn context only. Original-basis branching, action previews/commands, missing native examiners and connected graph cycles remain their own required A1 items. Work inputs/proposals/output and inquiry framing/source bytes are explicitly withheld on metadata paths; no fact, approval, examination, resolved inquiry or completed domain work is inferred."
+        },
+        {
+          "pass": "critical",
+          "artifact": "reports/a1-passes/FE-A1.3-W04-critical-1791684289531.json",
+          "command": "node --test --test-reporter=tap scripts/a1/exact-context.critical.test.mjs",
+          "boundary": "Exact bounded advisory turn context only. Original-basis branching, action previews/commands, missing native examiners and connected graph cycles remain their own required A1 items. Work inputs/proposals/output and inquiry framing/source bytes are explicitly withheld on metadata paths; no fact, approval, examination, resolved inquiry or completed domain work is inferred."
+        }
+      ]
     },
     {
       "id": "FE-A1.3-W05",
@@ -3328,6 +3347,57 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W07",
+          "reason": "Suspend partial command-preview construction to fix and revalidate the completed definition-component test typing exposed by the full Core test check; preserve construction without claiming the command bridge complete.",
+          "recorded_at": "2026-10-11T02:13:33.269Z"
+        }
+      ],
+      "execution_history": [
+        {
+          "item": "FE-A1.3-W07",
+          "phase": "execution",
+          "failed_attempts": 0,
+          "started_at": "2026-10-11T02:06:05.366Z",
+          "failures": [
+            {
+              "reason": "Command preview preparation used the schema-only context fixture with a placeholder hash; runtime integrity checks correctly rejected it. Recompute the synthetic context hash in the test without weakening production validation.",
+              "phase": "execution",
+              "recorded_at": "2026-10-11T02:11:29.751Z"
+            },
+            {
+              "reason": "Full Core test type-check failed at project-definition-components.test.ts lines 78 and 120: known fixture registration index one lacks the required non-null type assertion. Production build and the new preview tests passed.",
+              "phase": "execution",
+              "recorded_at": "2026-10-11T02:13:21.532Z"
+            }
+          ],
+          "diagnoses": [
+            {
+              "contract": "Typed command proposals must preserve complete ordinary request contracts, exact context and targets, with no model-selected endpoints or Actor/grant overrides. The pure preview catalogue remains partial construction until canonical proposal ownership, human decision, actual command and observed Workspace receipt are connected.",
+              "architecture": "The first preview tests correctly failed on the schema-only CopilotContext fixture's placeholder hash. The synthetic test context is now canonically sealed before passing the production integrity boundary; runtime validation is unchanged.",
+              "dependencies": "Three focused preview functions and lint passed. Full production TypeScript build passed, but the broader Core test type-check exposed two earlier definition-component test accesses to optional array index one. They belong to completed definition composition and must be corrected through reopening rather than silently edited under the command bridge.",
+              "environment": "The Node 24 toolchain and local test environment ran normally. This is a fixture fidelity and test typing failure, without a provider, browser transport, database migration or Project command effect.",
+              "verification": "Retain the initial context-hash failure and the two exact TypeScript locations in project-definition-components.test.ts. Preserve the three passing command-preview tests as preparation only. Correct the known fixture accesses, run source and full Core test type-checks, and revalidate affected definition/context pairs before resuming proposal construction.",
+              "changed_remedy": "Use canonically sealed context fixtures and explicitly typed known definition fixture entries. Suspend command-bridge construction, reopen the affected definition proof and dependent exact-context proof, keep the test-only repair separate from product ownership claims, and run both distinct affected passes before returning to the command bridge.",
+              "failures": [
+                {
+                  "reason": "Command preview preparation used the schema-only context fixture with a placeholder hash; runtime integrity checks correctly rejected it. Recompute the synthetic context hash in the test without weakening production validation.",
+                  "phase": "execution",
+                  "recorded_at": "2026-10-11T02:11:29.751Z"
+                },
+                {
+                  "reason": "Full Core test type-check failed at project-definition-components.test.ts lines 78 and 120: known fixture registration index one lacks the required non-null type assertion. Production build and the new preview tests passed.",
+                  "phase": "execution",
+                  "recorded_at": "2026-10-11T02:13:21.532Z"
+                }
+              ],
+              "recorded_at": "2026-10-11T02:13:30.607Z"
+            }
+          ],
+          "passes": [],
+          "disposition": "reopened",
+          "reason": "Suspend partial command-preview construction to fix and revalidate the completed definition-component test typing exposed by the full Core test check; preserve construction without claiming the command bridge complete."
         }
       ]
     },
@@ -3400,6 +3470,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W07",
+          "reason": "Suspend partial command-preview construction to fix and revalidate the completed definition-component test typing exposed by the full Core test check; preserve construction without claiming the command bridge complete.",
+          "recorded_at": "2026-10-11T02:13:33.269Z"
         }
       ]
     },
@@ -3685,6 +3760,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -3751,6 +3831,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -3824,6 +3909,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -3895,6 +3985,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -3965,6 +4060,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -4047,6 +4147,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W07",
+          "reason": "Suspend partial command-preview construction to fix and revalidate the completed definition-component test typing exposed by the full Core test check; preserve construction without claiming the command bridge complete.",
+          "recorded_at": "2026-10-11T02:13:33.269Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -4175,6 +4285,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -4269,6 +4384,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -4360,6 +4480,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -4440,6 +4565,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -4524,6 +4654,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -4597,6 +4732,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -4679,6 +4819,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -4771,6 +4916,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W07",
+          "reason": "Suspend partial command-preview construction to fix and revalidate the completed definition-component test typing exposed by the full Core test check; preserve construction without claiming the command bridge complete.",
+          "recorded_at": "2026-10-11T02:13:33.269Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -4862,6 +5017,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -4934,6 +5094,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -5007,6 +5172,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -5087,6 +5257,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W07",
+          "reason": "Suspend partial command-preview construction to fix and revalidate the completed definition-component test typing exposed by the full Core test check; preserve construction without claiming the command bridge complete.",
+          "recorded_at": "2026-10-11T02:13:33.269Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -5182,6 +5362,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W07",
+          "reason": "Suspend partial command-preview construction to fix and revalidate the completed definition-component test typing exposed by the full Core test check; preserve construction without claiming the command bridge complete.",
+          "recorded_at": "2026-10-11T02:13:33.269Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -5272,6 +5462,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W07",
+          "reason": "Suspend partial command-preview construction to fix and revalidate the completed definition-component test typing exposed by the full Core test check; preserve construction without claiming the command bridge complete.",
+          "recorded_at": "2026-10-11T02:13:33.269Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -5364,6 +5564,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W07",
+          "reason": "Suspend partial command-preview construction to fix and revalidate the completed definition-component test typing exposed by the full Core test check; preserve construction without claiming the command bridge complete.",
+          "recorded_at": "2026-10-11T02:13:33.269Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -5433,6 +5643,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -5525,6 +5740,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -5618,6 +5838,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -5711,6 +5936,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W07",
+          "reason": "Suspend partial command-preview construction to fix and revalidate the completed definition-component test typing exposed by the full Core test check; preserve construction without claiming the command bridge complete.",
+          "recorded_at": "2026-10-11T02:13:33.269Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -5779,6 +6014,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -5869,6 +6109,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -5962,6 +6207,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -6052,6 +6302,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -6140,6 +6395,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -6231,6 +6491,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -6323,6 +6588,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W07",
+          "reason": "Suspend partial command-preview construction to fix and revalidate the completed definition-component test typing exposed by the full Core test check; preserve construction without claiming the command bridge complete.",
+          "recorded_at": "2026-10-11T02:13:33.269Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -6416,6 +6691,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W07",
+          "reason": "Suspend partial command-preview construction to fix and revalidate the completed definition-component test typing exposed by the full Core test check; preserve construction without claiming the command bridge complete.",
+          "recorded_at": "2026-10-11T02:13:33.269Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -6508,6 +6793,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W07",
+          "reason": "Suspend partial command-preview construction to fix and revalidate the completed definition-component test typing exposed by the full Core test check; preserve construction without claiming the command bridge complete.",
+          "recorded_at": "2026-10-11T02:13:33.269Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -6599,6 +6894,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W07",
+          "reason": "Suspend partial command-preview construction to fix and revalidate the completed definition-component test typing exposed by the full Core test check; preserve construction without claiming the command bridge complete.",
+          "recorded_at": "2026-10-11T02:13:33.269Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -6692,6 +6997,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W07",
+          "reason": "Suspend partial command-preview construction to fix and revalidate the completed definition-component test typing exposed by the full Core test check; preserve construction without claiming the command bridge complete.",
+          "recorded_at": "2026-10-11T02:13:33.269Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -6784,6 +7099,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W07",
+          "reason": "Suspend partial command-preview construction to fix and revalidate the completed definition-component test typing exposed by the full Core test check; preserve construction without claiming the command bridge complete.",
+          "recorded_at": "2026-10-11T02:13:33.269Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -6873,6 +7198,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W07",
+          "reason": "Suspend partial command-preview construction to fix and revalidate the completed definition-component test typing exposed by the full Core test check; preserve construction without claiming the command bridge complete.",
+          "recorded_at": "2026-10-11T02:13:33.269Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -6958,6 +7293,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W07",
+          "reason": "Suspend partial command-preview construction to fix and revalidate the completed definition-component test typing exposed by the full Core test check; preserve construction without claiming the command bridge complete.",
+          "recorded_at": "2026-10-11T02:13:33.269Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -7040,6 +7385,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W07",
+          "reason": "Suspend partial command-preview construction to fix and revalidate the completed definition-component test typing exposed by the full Core test check; preserve construction without claiming the command bridge complete.",
+          "recorded_at": "2026-10-11T02:13:33.269Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -7130,6 +7485,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W07",
+          "reason": "Suspend partial command-preview construction to fix and revalidate the completed definition-component test typing exposed by the full Core test check; preserve construction without claiming the command bridge complete.",
+          "recorded_at": "2026-10-11T02:13:33.269Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -7199,6 +7564,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -7286,6 +7656,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W07",
+          "reason": "Suspend partial command-preview construction to fix and revalidate the completed definition-component test typing exposed by the full Core test check; preserve construction without claiming the command bridge complete.",
+          "recorded_at": "2026-10-11T02:13:33.269Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -7370,6 +7750,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W07",
+          "reason": "Suspend partial command-preview construction to fix and revalidate the completed definition-component test typing exposed by the full Core test check; preserve construction without claiming the command bridge complete.",
+          "recorded_at": "2026-10-11T02:13:33.269Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -7530,6 +7920,11 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -7617,6 +8012,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W07",
+          "reason": "Suspend partial command-preview construction to fix and revalidate the completed definition-component test typing exposed by the full Core test check; preserve construction without claiming the command bridge complete.",
+          "recorded_at": "2026-10-11T02:13:33.269Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -7705,6 +8110,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W07",
+          "reason": "Suspend partial command-preview construction to fix and revalidate the completed definition-component test typing exposed by the full Core test check; preserve construction without claiming the command bridge complete.",
+          "recorded_at": "2026-10-11T02:13:33.269Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -7792,6 +8207,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W07",
+          "reason": "Suspend partial command-preview construction to fix and revalidate the completed definition-component test typing exposed by the full Core test check; preserve construction without claiming the command bridge complete.",
+          "recorded_at": "2026-10-11T02:13:33.269Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -7884,6 +8309,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W07",
+          "reason": "Suspend partial command-preview construction to fix and revalidate the completed definition-component test typing exposed by the full Core test check; preserve construction without claiming the command bridge complete.",
+          "recorded_at": "2026-10-11T02:13:33.269Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -7973,6 +8408,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W07",
+          "reason": "Suspend partial command-preview construction to fix and revalidate the completed definition-component test typing exposed by the full Core test check; preserve construction without claiming the command bridge complete.",
+          "recorded_at": "2026-10-11T02:13:33.269Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -8064,6 +8509,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W07",
+          "reason": "Suspend partial command-preview construction to fix and revalidate the completed definition-component test typing exposed by the full Core test check; preserve construction without claiming the command bridge complete.",
+          "recorded_at": "2026-10-11T02:13:33.269Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -8154,6 +8609,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W07",
+          "reason": "Suspend partial command-preview construction to fix and revalidate the completed definition-component test typing exposed by the full Core test check; preserve construction without claiming the command bridge complete.",
+          "recorded_at": "2026-10-11T02:13:33.269Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -8248,6 +8713,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W07",
+          "reason": "Suspend partial command-preview construction to fix and revalidate the completed definition-component test typing exposed by the full Core test check; preserve construction without claiming the command bridge complete.",
+          "recorded_at": "2026-10-11T02:13:33.269Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -8340,6 +8815,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W07",
+          "reason": "Suspend partial command-preview construction to fix and revalidate the completed definition-component test typing exposed by the full Core test check; preserve construction without claiming the command bridge complete.",
+          "recorded_at": "2026-10-11T02:13:33.269Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -8432,6 +8917,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W07",
+          "reason": "Suspend partial command-preview construction to fix and revalidate the completed definition-component test typing exposed by the full Core test check; preserve construction without claiming the command bridge complete.",
+          "recorded_at": "2026-10-11T02:13:33.269Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -8517,6 +9012,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W07",
+          "reason": "Suspend partial command-preview construction to fix and revalidate the completed definition-component test typing exposed by the full Core test check; preserve construction without claiming the command bridge complete.",
+          "recorded_at": "2026-10-11T02:13:33.269Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     },
@@ -8601,6 +9106,16 @@
           "prerequisite": "FE-A1.3-W03",
           "reason": "Critical exact-context review reproduced CONTEXT_DEFINITION_BUDGET for a legitimate large definition because the shell definition reference duplicated the complete terminology outside the bounded excerpt. Retain reports/FE-A1-CONTEXT-LARGE-DEFINITION-CHALLENGE.log; reopen the affected context source and dependent proofs, use only immutable reference identities, and rerun distinct checks before closure.",
           "recorded_at": "2026-10-11T01:57:11.949Z"
+        },
+        {
+          "prerequisite": "FE-A1.3-W07",
+          "reason": "Suspend partial command-preview construction to fix and revalidate the completed definition-component test typing exposed by the full Core test check; preserve construction without claiming the command bridge complete.",
+          "recorded_at": "2026-10-11T02:13:33.269Z"
+        },
+        {
+          "prerequisite": "FE-A1.2-W07",
+          "reason": "Full Core test typing exposed two unsafe accesses to known fixture registration index one in the completed definition tests. Correct those fixture accesses, retain production semantics, and rerun distinct definition and dependent exact-context checks before resuming command-bridge construction.",
+          "recorded_at": "2026-10-11T02:13:36.743Z"
         }
       ]
     }
@@ -9714,7 +10229,12 @@
     "repeated_failure_limit": 2,
     "synchronization": "Roadmap, generated execution packet, canonical ledger and both execution worktrees must agree before execution or closure."
   },
-  "active_work": null,
+  "active_work": {
+    "item": "FE-A1.2-W07",
+    "phase": "execution",
+    "failed_attempts": 0,
+    "started_at": "2026-10-11T02:13:46.782Z"
+  },
   "repair_sequence": [
     {
       "order": 1,

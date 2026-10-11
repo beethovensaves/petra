@@ -1,0 +1,4 @@
+{
+  "work_item": "FE-A1.3-W07",
+  "reason": "Suspend partial command-preview construction to fix and revalidate the completed definition-component test typing exposed by the full Core test check; preserve construction without claiming the command bridge complete."
+}

@@ -1220,18 +1220,18 @@ Flyway OSS becomes the default only if `DISC-04-T01`–`DISC-04-T10` pass withou
 
 ## Controlling A1 execution
 
-Binding: `sha256:4f5951ca31f1462a5926f3c7320c01acf9b06a5b51d256b2e8c268d8bc84741e`. 15/90 required items complete; 75 incomplete.
+Binding: `sha256:92ca9bba0f5f4bfa4b3aea0f5e0914c9e75c12ffe1b725c3858e95c7b876f2d6`. 13/90 required items complete; 77 incomplete.
 
 D024 governs the conversational copilot and reactive Workspace. D025 governs synchronized execution and two distinct validation passes. The canonical [function ledger](scripts/frontend-a1-work-inventory.json), [readable implementation ledger](reports/FE-A1-CONTRACT-IMPLEMENTATION-LEDGER.md), and [granular execution instructions](scripts/frontend-a1-execution.md) agree before work starts, evidence is recorded, completion is accepted, or another wave proceeds.
 
-Active work: none; select one prerequisite-ready item.
+Active work: FE-A1.2-W07, execution.
 
 | Stage   | Required behavior                                                          | Complete / required |
 | ------- | -------------------------------------------------------------------------- | ------------------- |
 | FE-A1.0 | Contract reconciliation and execution control                              | 6 / 6               |
 | FE-A1.1 | Copilot shell and interaction design                                       | 1 / 7               |
-| FE-A1.2 | Conversational zero/empty Project entry                                    | 2 / 7               |
-| FE-A1.3 | Durable grounded conversation and AG-UI                                    | 5 / 18              |
+| FE-A1.2 | Conversational zero/empty Project entry                                    | 1 / 7               |
+| FE-A1.3 | Durable grounded conversation and AG-UI                                    | 4 / 18              |
 | FE-A1.4 | Reactive Workspace, compositional examination and cyclic graph-guided work | 0 / 23              |
 | FE-A1.5 | Progressive inspection and complete authority receipts                     | 0 / 9               |
 | FE-A1.6 | Complete migration and operation conformance                               | 1 / 7               |
