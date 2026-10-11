@@ -1786,7 +1786,7 @@
       "milestone": "FE-A1.3",
       "title": "Persist and read exact user and assistant turns",
       "owner": "runtime",
-      "status": "in_progress",
+      "status": "complete",
       "implementation": "Sequence: (1) expose current model and permission readiness; (2) require an explicit reviewed owner-only RunProjectCopilot grant and immutable receipt before new conversation Work or historical adoption, preserving existing authorized Work management grants; (3) retain exact private question/native-context/result Artifacts and canonical Thread/Run/Work atomically; (4) resolve exact applicable inquiry, Work, Review and cycle lineage before release; (5) page original readable content and restore questions, answers, citations and outcomes in a fresh browser; (6) reject owner substitution, widened permission, stale proposals, late partial commits and duplicate effects in the distinct critical pass.",
       "acceptance": [
         "A fresh browser restores actual question and answer content, citations, and outcomes.",
@@ -1811,7 +1811,20 @@
         "reports/a1-passes/FE-A1.3-W03-execution-1791671233189.json",
         "reports/a1-passes/FE-A1.3-W03-critical-1791671280023.json"
       ],
-      "completion_evidence": [],
+      "completion_evidence": [
+        {
+          "pass": "execution",
+          "artifact": "reports/a1-passes/FE-A1.3-W03-execution-1791680978364.json",
+          "command": "node --test --test-reporter=tap scripts/a1/owned-conversation.test.mjs",
+          "boundary": "Canonical ownership and retained readable advisory conversation only. Provider internal CPU, memory, network, tokens and price remain unavailable; unknown values never satisfy applicable hard limits. Historical adoption records actual import Work and preserves original bytes without reconstructing original execution authority. Proposal decisions/commands, progressive AG-UI activities/interrupts, native examiners, reactive Workspace graph cycles and A1 product acceptance remain open required ledger items."
+        },
+        {
+          "pass": "critical",
+          "artifact": "reports/a1-passes/FE-A1.3-W03-critical-1791681035780.json",
+          "command": "node --test --test-reporter=tap scripts/a1/owned-conversation.critical.test.mjs",
+          "boundary": "Canonical ownership and retained readable advisory conversation only. Provider internal CPU, memory, network, tokens and price remain unavailable; unknown values never satisfy applicable hard limits. Historical adoption records actual import Work and preserves original bytes without reconstructing original execution authority. Proposal decisions/commands, progressive AG-UI activities/interrupts, native examiners, reactive Workspace graph cycles and A1 product acceptance remain open required ledger items."
+        }
+      ],
       "optional_scenarios": [
         "A1-S07",
         "A1-S09"
@@ -2112,6 +2125,64 @@
             }
           ],
           "finished_at": "2026-10-10T22:28:44.890Z"
+        },
+        {
+          "item": "FE-A1.3-W03",
+          "phase": "critical",
+          "failed_attempts": 0,
+          "started_at": "2026-10-11T00:53:40.952Z",
+          "failures": [
+            {
+              "reason": "Definition integration browser preflight failed: assumed Chrome cleanup fields and visibility inside a collapsed nested Inspect disclosure.",
+              "phase": "execution",
+              "recorded_at": "2026-10-11T01:07:16.474Z"
+            },
+            {
+              "reason": "Definition integration browser preflight failed: overlapping cleanup interrupted an active check and StrictMode produced two exact read-only definition GETs.",
+              "phase": "execution",
+              "recorded_at": "2026-10-11T01:07:26.154Z"
+            }
+          ],
+          "diagnoses": [
+            {
+              "work_item": "FE-A1.3-W03",
+              "boundary": "Definition-composition integration verification readiness; no passing evidence was recorded from these browser preflights.",
+              "contract": "Exact-definition reads are presentation GETs. Every read must bind the same Project, identity, revision and hash, preserve authority, and cause no command or model invocation. The contract does not require a single GET.",
+              "architecture": "The production root uses React StrictMode, which remounts development effects. The component correctly keys results by the immutable definition binding and keeps exact identity behind a nested optional Inspect disclosure.",
+              "dependencies": "The existing Chrome driver returns child, profile and socketUrl. A primary assertion must survive finally cleanup; process cleanup must finish before launching the next task-owned browser.",
+              "environment": "The Node 24 production factory is running on 4312 with Vite on 4313 against controlled inspection services. The check targets only the synthetic Project and performs no model or command operation.",
+              "verification": "Preflights made four invalid instrumentation assumptions: Chrome process field names, visible text inside a collapsed nested disclosure, safe cleanup overlapping an active child, and one read under development StrictMode. All preflight outcomes remain failures rather than completion evidence.",
+              "changed_remedy": "Use the inspected child/profile lifecycle, finish cleanup before launch, open both disclosures before visible identity assertions, and require all observed GETs to have one exact binding with no authority-changing operations rather than require one request.",
+              "failures": [
+                {
+                  "reason": "Definition integration browser preflight failed: assumed Chrome cleanup fields and visibility inside a collapsed nested Inspect disclosure.",
+                  "phase": "execution",
+                  "recorded_at": "2026-10-11T01:07:16.474Z"
+                },
+                {
+                  "reason": "Definition integration browser preflight failed: overlapping cleanup interrupted an active check and StrictMode produced two exact read-only definition GETs.",
+                  "phase": "execution",
+                  "recorded_at": "2026-10-11T01:07:26.154Z"
+                }
+              ],
+              "recorded_at": "2026-10-11T01:07:33.123Z"
+            }
+          ],
+          "passes": [
+            {
+              "pass": "execution",
+              "artifact": "reports/a1-passes/FE-A1.3-W03-execution-1791680978364.json",
+              "command": "node --test --test-reporter=tap scripts/a1/owned-conversation.test.mjs",
+              "boundary": "Canonical ownership and retained readable advisory conversation only. Provider internal CPU, memory, network, tokens and price remain unavailable; unknown values never satisfy applicable hard limits. Historical adoption records actual import Work and preserves original bytes without reconstructing original execution authority. Proposal decisions/commands, progressive AG-UI activities/interrupts, native examiners, reactive Workspace graph cycles and A1 product acceptance remain open required ledger items."
+            },
+            {
+              "pass": "critical",
+              "artifact": "reports/a1-passes/FE-A1.3-W03-critical-1791681035780.json",
+              "command": "node --test --test-reporter=tap scripts/a1/owned-conversation.critical.test.mjs",
+              "boundary": "Canonical ownership and retained readable advisory conversation only. Provider internal CPU, memory, network, tokens and price remain unavailable; unknown values never satisfy applicable hard limits. Historical adoption records actual import Work and preserves original bytes without reconstructing original execution authority. Proposal decisions/commands, progressive AG-UI activities/interrupts, native examiners, reactive Workspace graph cycles and A1 product acceptance remain open required ledger items."
+            }
+          ],
+          "finished_at": "2026-10-11T01:11:41.911Z"
         }
       ],
       "historical_completion_evidence": [
@@ -7424,50 +7495,7 @@
     "repeated_failure_limit": 2,
     "synchronization": "Roadmap, generated execution packet, canonical ledger and both execution worktrees must agree before execution or closure."
   },
-  "active_work": {
-    "item": "FE-A1.3-W03",
-    "phase": "execution",
-    "failed_attempts": 0,
-    "started_at": "2026-10-11T00:53:40.952Z",
-    "failures": [
-      {
-        "reason": "Definition integration browser preflight failed: assumed Chrome cleanup fields and visibility inside a collapsed nested Inspect disclosure.",
-        "phase": "execution",
-        "recorded_at": "2026-10-11T01:07:16.474Z"
-      },
-      {
-        "reason": "Definition integration browser preflight failed: overlapping cleanup interrupted an active check and StrictMode produced two exact read-only definition GETs.",
-        "phase": "execution",
-        "recorded_at": "2026-10-11T01:07:26.154Z"
-      }
-    ],
-    "diagnoses": [
-      {
-        "work_item": "FE-A1.3-W03",
-        "boundary": "Definition-composition integration verification readiness; no passing evidence was recorded from these browser preflights.",
-        "contract": "Exact-definition reads are presentation GETs. Every read must bind the same Project, identity, revision and hash, preserve authority, and cause no command or model invocation. The contract does not require a single GET.",
-        "architecture": "The production root uses React StrictMode, which remounts development effects. The component correctly keys results by the immutable definition binding and keeps exact identity behind a nested optional Inspect disclosure.",
-        "dependencies": "The existing Chrome driver returns child, profile and socketUrl. A primary assertion must survive finally cleanup; process cleanup must finish before launching the next task-owned browser.",
-        "environment": "The Node 24 production factory is running on 4312 with Vite on 4313 against controlled inspection services. The check targets only the synthetic Project and performs no model or command operation.",
-        "verification": "Preflights made four invalid instrumentation assumptions: Chrome process field names, visible text inside a collapsed nested disclosure, safe cleanup overlapping an active child, and one read under development StrictMode. All preflight outcomes remain failures rather than completion evidence.",
-        "changed_remedy": "Use the inspected child/profile lifecycle, finish cleanup before launch, open both disclosures before visible identity assertions, and require all observed GETs to have one exact binding with no authority-changing operations rather than require one request.",
-        "failures": [
-          {
-            "reason": "Definition integration browser preflight failed: assumed Chrome cleanup fields and visibility inside a collapsed nested Inspect disclosure.",
-            "phase": "execution",
-            "recorded_at": "2026-10-11T01:07:16.474Z"
-          },
-          {
-            "reason": "Definition integration browser preflight failed: overlapping cleanup interrupted an active check and StrictMode produced two exact read-only definition GETs.",
-            "phase": "execution",
-            "recorded_at": "2026-10-11T01:07:26.154Z"
-          }
-        ],
-        "recorded_at": "2026-10-11T01:07:33.123Z"
-      }
-    ],
-    "passes": []
-  },
+  "active_work": null,
   "repair_sequence": [
     {
       "order": 1,
