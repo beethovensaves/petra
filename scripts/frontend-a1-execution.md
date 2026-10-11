@@ -1,6 +1,6 @@
 # A1 execution instructions
 
-Roadmap binding: `sha256:5360723e68d6c0122bfcdf96e6476061bcdb64fd94bb32d469df1b053c7912ce`. Generated from frontend-a1-work-inventory.json.
+Roadmap binding: `sha256:03d2bb26b07c3e7cc8603fb1ee5cb1caef1f4062ed233f506c9e10a0e096d137`. Generated from frontend-a1-work-inventory.json.
 
 D025 and D024 govern this execution. Historical frozen Wave 6 instructions are subordinate. Native screen-reader evaluation is excluded; browser semantics and functional peers remain mandatory. The sixteen late scenarios are optional.
 
@@ -193,7 +193,7 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 ### 12. FE-A1.2-W07: Compose definitions and revisions across Project types
 
-State: planned. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.2-W01, FE-A1.3-W03.
+State: complete. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.2-W01, FE-A1.3-W03.
 
 Resolve registered object/relationship descriptors, inquiry roles, examiners, language rules, validators, outputs, and place capabilities from the exact ProjectDefinition; semantic revisions follow D018.
 

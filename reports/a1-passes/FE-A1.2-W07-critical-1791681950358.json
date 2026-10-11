@@ -1,0 +1,239 @@
+{
+  "schema_name": "petra.a1-verification-pass",
+  "schema_version": "1.0.0",
+  "work_item": "FE-A1.2-W07",
+  "pass": "critical",
+  "contract_hash": "sha256:b38ddaad1f61b8500181bd5dfd17f34dad8ec72734ed91ebcbb822520228b693",
+  "status": "passed",
+  "candidate_commit": "c072dcd7dd748579bfaccef15f426c88871bdcc6",
+  "started_at": "2026-10-11T01:25:28.063Z",
+  "finished_at": "2026-10-11T01:25:50.358Z",
+  "criteria": [
+    {
+      "id": "FE-A1.2-W07-AC01",
+      "result": "passed",
+      "test": "FE-A1.2-W07-AC01 critical: foreign stale and forged definition reads cannot select another component or template",
+      "observation": "foreign stale and forged definition reads cannot select another component or template"
+    },
+    {
+      "id": "FE-A1.2-W07-AC02",
+      "result": "passed",
+      "test": "FE-A1.2-W07-AC02 critical: ambiguous installations malformed native material and schema hashes cannot imply execution",
+      "observation": "ambiguous installations malformed native material and schema hashes cannot imply execution"
+    },
+    {
+      "id": "FE-A1.2-W07-AC03",
+      "result": "passed",
+      "test": "FE-A1.2-W07-AC03 critical: identical content in a newer definition cannot reinterpret retained candidates or original conversation inputs",
+      "observation": "identical content in a newer definition cannot reinterpret retained candidates or original conversation inputs"
+    }
+  ],
+  "sources": [
+    {
+      "path": "apps/server/src/app.ts",
+      "hash": "sha256:bef8a7442554991fb5305ebfc39ab1e5be788aa03b74a067491c540450407956"
+    },
+    {
+      "path": "apps/server/src/project-definition-routes.ts",
+      "hash": "sha256:62ee6611e762470e9562ddd50167f16151322e211827e1158222587d421e22b6"
+    },
+    {
+      "path": "apps/server/src/project-shell-persistence.ts",
+      "hash": "sha256:553e6b2ec79e8a924c308510ef206a7ce2eb6c73a80d00e39a23ce6602c45dc3"
+    },
+    {
+      "path": "apps/server/src/server.ts",
+      "hash": "sha256:b03699568ccfeb8f3fc9c5cad56b50e2889b3c5bf18d9a50bd48434753795481"
+    },
+    {
+      "path": "apps/server/test/project-definition-routes.test.ts",
+      "hash": "sha256:95eb761cfda72cc06c560b2e251d9731d6d40b512dffc6cb23982e2713057939"
+    },
+    {
+      "path": "apps/workbench/src/product/SemanticGraphSurface.tsx",
+      "hash": "sha256:c98261b9abb20cc4d03389d21c2992296fb1f29f3349451fff75b433ef595095"
+    },
+    {
+      "path": "apps/workbench/src/product/browser-contract-registry.ts",
+      "hash": "sha256:0ef54a500a4ac488a74908f31e5749815b25ee3d7e9b214ff0db2bdcf13162bf"
+    },
+    {
+      "path": "apps/workbench/src/product/native-examination-registry.tsx",
+      "hash": "sha256:73996fc2953eca08cd486bb3ba93587f990ccc11e760ee4e93181e3f158d8463"
+    },
+    {
+      "path": "apps/workbench/src/product/project-data.ts",
+      "hash": "sha256:0ebe80b74d227ca8c09706123abc93b1b1eb6aa5b4504ae21926b6d8cbeeaad9"
+    },
+    {
+      "path": "apps/workbench/src/product/project-definition-components.test.tsx",
+      "hash": "sha256:672a03b19b1956d3e21fcc2c22f42d1c4a0d84c2ebfd25b2f387fbde7ca92263"
+    },
+    {
+      "path": "apps/workbench/src/product/project-definition-components.tsx",
+      "hash": "sha256:c40c8cce3c6fc9df0ba78bd52a6a65af3efc1474e95deae5bdd66663f9047991"
+    },
+    {
+      "path": "apps/workbench/test/a1-definition-components-browser.mjs",
+      "hash": "sha256:ccba8db78ca3a1b9493dccb1c48519cd9816a4bc24d06fb9657955398fb6de3e"
+    },
+    {
+      "path": "apps/workbench/test/cumulative-production-browser-driver.mjs",
+      "hash": "sha256:20321ec18affbb376dd709dbf7565c09ed9e4a9af6a6da455dd193d1d32d5a4a"
+    },
+    {
+      "path": "infra/postgres/integration.compose.yaml",
+      "hash": "sha256:a266385a47477e46d2179894c30f40a6eced277627bddf0cf10327f0486c09ab"
+    },
+    {
+      "path": "packages/adapters/src/index.ts",
+      "hash": "sha256:b6cb557b287f3be15c0cc6053e2bf6e9685dcabe0e7957e2c1d6625dfc2bba6f"
+    },
+    {
+      "path": "packages/adapters/src/project-definition-client.ts",
+      "hash": "sha256:f033f3fde203bc5103c7c32073efce4724479aa1e9f8b2eb9c5246db7d14cf6d"
+    },
+    {
+      "path": "packages/adapters/test/project-definition-client.test.ts",
+      "hash": "sha256:4639989af21e12c3958bb20af2a8f490f00386c137d13649eb3d3e24bf34a369"
+    },
+    {
+      "path": "packages/contracts/fixtures/accepted/controlled-writing-requirement.json",
+      "hash": "sha256:22cccd8b85f052acc0089bdc46d4fec0b5f8ecea55b368c7aac5167683b15742"
+    },
+    {
+      "path": "packages/contracts/fixtures/accepted/project-definition-controlled-writing.json",
+      "hash": "sha256:e4561a5856a17ae772917d41e0b8dc4572519c900c528d71d3b1128ae03a14c4"
+    },
+    {
+      "path": "packages/contracts/fixtures/accepted/registered-project-profile-controlled-writing.json",
+      "hash": "sha256:55142d539e4110dfb44303154fe0e462a3ec5bed9eb8a988b886efa7e8265ca9"
+    },
+    {
+      "path": "packages/contracts/fixtures/accepted/registered-project-profile-scientific-v1-5.json",
+      "hash": "sha256:acfd3ce04b71861e89821783e73bf1bfa6622a26c1584dd43aadb62119e38cb4"
+    },
+    {
+      "path": "packages/contracts/registry.json",
+      "hash": "sha256:7029b241704e3845d75d07bf756ce61ffd84396d42778a93cbb5bf9d6251c7b0"
+    },
+    {
+      "path": "packages/contracts/schemas/project-definition/1.0.0/schema.json",
+      "hash": "sha256:6128b01e4927ae93138de4647e9f5979bfb5bee21d3a9d749702d2365ead5f48"
+    },
+    {
+      "path": "packages/core/package.json",
+      "hash": "sha256:36913f344f6d84d49fc759e47f2ee578b6e2288cee6b1e974db538e930208011"
+    },
+    {
+      "path": "packages/core/src/project-definition-components.ts",
+      "hash": "sha256:fd402035c0b5b793623cfe4b0ffd07075c3c283e6ffd55ac2870258a3fe796e7"
+    },
+    {
+      "path": "packages/core/test/project-definition-components.test.ts",
+      "hash": "sha256:844d923a692b26ad6cb804466c34774b8f346b330cf2187045b22397d51a19ec"
+    },
+    {
+      "path": "packages/postgres/src/project-copilot-repository.ts",
+      "hash": "sha256:8aa569281fba7cc51f47d6c2b6e51098df89cf44e2eb8ef44cf188be10cb77d8"
+    },
+    {
+      "path": "packages/postgres/src/project-definition-authority-repository.ts",
+      "hash": "sha256:765c06d82f3865d7fa175a811ca8f692a986a71afcc15f1e07de4410595b2241"
+    },
+    {
+      "path": "packages/postgres/src/project-semantic-graph-reader.ts",
+      "hash": "sha256:fafb23e7fc397f2bb8a71bdccc4ffd4033cb0a3a5477b5e07ff5a6d80ad98b7b"
+    },
+    {
+      "path": "packages/postgres/test/project-copilot-repository.test.ts",
+      "hash": "sha256:fb0030af5dc7c9a13d49b447f3a10995a0cecaf990755f14d7b4cc9a48e276fa"
+    },
+    {
+      "path": "packages/postgres/test/project-definition-authority-repository.test.ts",
+      "hash": "sha256:577e53b1f731b8e7f7992e62a99d74cf26110c7f5521012eed3964820be9653e"
+    },
+    {
+      "path": "packages/postgres/test/working-state-authority-repository.test.ts",
+      "hash": "sha256:250841bdd86b46603201c34c082f9fa9d0b1f3716f6fc76c64942718bcd0e98e"
+    },
+    {
+      "path": "reports/FE-A1-INTAKE-FUNCTION-BROWSER.json",
+      "hash": "sha256:ecc6a4937cb72681457d455799a391cc5317c256d8505aa55d36265e97c70c8f"
+    },
+    {
+      "path": "scripts/a1/definition-components.critical.test.mjs",
+      "hash": "sha256:0650d71866da353b6d7e95bf47a27a2112aac912f227ef366a176f905405645a"
+    },
+    {
+      "path": "scripts/a1/definition-components.test.mjs",
+      "hash": "sha256:abb2d080542c1947c3887f76e449bfa1d383538db35fc38e35b2e25ee988a5f3"
+    },
+    {
+      "path": "scripts/a1/owned-postgres.mjs",
+      "hash": "sha256:e4f66c42e9b215f0a3305ff02b93e9ef8a3e81d019db8530422c7f246eb606e6"
+    },
+    {
+      "path": "scripts/a1/run-browser.mjs",
+      "hash": "sha256:8ae34eb1951d73bba1bcde36082b00ff1b3fcd4eade32d371f02a92f0e08da09"
+    },
+    {
+      "path": "scripts/a1/run-vitest.mjs",
+      "hash": "sha256:4c2c635a474e84dba08144dfc9d68046281a9ccedff03e8fbf29954604a11d76"
+    }
+  ],
+  "runs": [
+    {
+      "argv": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "scripts/a1/definition-components.critical.test.mjs"
+      ],
+      "exit_code": 0,
+      "output": "reports/a1-passes/FE-A1.2-W07-critical-1791681950358.tap",
+      "output_hash": "sha256:961110383dca33f53e8306d32a77dbde95b5c431135d0aa47d0ab23eb8298a17"
+    }
+  ],
+  "boundary": "Exact immutable definition reads and generic component negotiation across declared domain registrations. Schema admission is separate from an installed examiner or executor; unavailable capability does not invalidate a valid Project. Existing immutable history owners preserve the original basis. This does not certify missing native writing interpretation/third-type examiners, new model roles, proposed commands, or overall A1.",
+  "review": {
+    "perspective": "Challenge substitution, ambiguity and false availability rather than replay normal loading: use authenticated foreign or stale reads, canonical byte mismatch, ambiguous installed examiners, malformed native payloads, and a real equal-content later definition revision. Require original candidates and original model-input manifests to retain their interpretation.",
+    "challenges": [
+      {
+        "criterion": "FE-A1.2-W07-AC01",
+        "question": "FE-A1.2-W07-AC01 critical: foreign stale and forged definition reads cannot select another component or template",
+        "result": "foreign stale and forged definition reads cannot select another component or template"
+      },
+      {
+        "criterion": "FE-A1.2-W07-AC02",
+        "question": "FE-A1.2-W07-AC02 critical: ambiguous installations malformed native material and schema hashes cannot imply execution",
+        "result": "ambiguous installations malformed native material and schema hashes cannot imply execution"
+      },
+      {
+        "criterion": "FE-A1.2-W07-AC03",
+        "question": "FE-A1.2-W07-AC03 critical: identical content in a newer definition cannot reinterpret retained candidates or original conversation inputs",
+        "result": "identical content in a newer definition cannot reinterpret retained candidates or original conversation inputs"
+      }
+    ],
+    "findings": [
+      {
+        "severity": "material",
+        "disposition": "resolved",
+        "finding": "The graph compared only definition content hashes, so a later revision with identical content could silently appear current.",
+        "resolution": "Compare definition identity, revision and content hash; a real retained candidate remains stale after an equal-content additive revision and its original fields and definition are preserved."
+      },
+      {
+        "severity": "material",
+        "disposition": "resolved",
+        "finding": "Native examiner selection relied on schema alone and named unregistered Claim versions; the browser also lacked the installed writing requirement validator.",
+        "resolution": "Select through the exact definition and installed contract hash, register the actual browser native validator, deny stale and foreign payloads, and remove nonexistent schema version choices."
+      },
+      {
+        "severity": "material",
+        "disposition": "resolved",
+        "finding": "Choosing the first matching installed component concealed ambiguity.",
+        "resolution": "Exclude ambiguous capabilities and report a precise limitation without rejecting the valid Project."
+      }
+    ]
+  }
+}

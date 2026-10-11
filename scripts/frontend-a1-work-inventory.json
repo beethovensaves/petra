@@ -1547,7 +1547,7 @@
       "milestone": "FE-A1.2",
       "title": "Compose definitions and revisions across Project types",
       "owner": "runtime",
-      "status": "planned",
+      "status": "complete",
       "implementation": "Resolve registered object/relationship descriptors, inquiry roles, examiners, language rules, validators, outputs, and place capabilities from the exact ProjectDefinition; semantic revisions follow D018.",
       "acceptance": [
         "The same shell can load different domain components without scientific conditionals.",
@@ -1569,7 +1569,20 @@
       "retained_evidence": [
         "reports/FRONTEND-STEP3-AGNOSTIC-PROJECT-CREATION.json"
       ],
-      "completion_evidence": [],
+      "completion_evidence": [
+        {
+          "pass": "execution",
+          "artifact": "reports/a1-passes/FE-A1.2-W07-execution-1791681705286.json",
+          "command": "node --test --test-reporter=tap scripts/a1/definition-components.test.mjs",
+          "boundary": "Exact immutable definition reads and generic component negotiation across declared domain registrations. Schema admission is separate from an installed examiner or executor; unavailable capability does not invalidate a valid Project. Existing immutable history owners preserve the original basis. This does not certify missing native writing interpretation/third-type examiners, new model roles, proposed commands, or overall A1."
+        },
+        {
+          "pass": "critical",
+          "artifact": "reports/a1-passes/FE-A1.2-W07-critical-1791681950358.json",
+          "command": "node --test --test-reporter=tap scripts/a1/definition-components.critical.test.mjs",
+          "boundary": "Exact immutable definition reads and generic component negotiation across declared domain registrations. Schema admission is separate from an installed examiner or executor; unavailable capability does not invalidate a valid Project. Existing immutable history owners preserve the original basis. This does not certify missing native writing interpretation/third-type examiners, new model roles, proposed commands, or overall A1."
+        }
+      ],
       "optional_scenarios": [
         "A1-S03",
         "A1-S04",
@@ -1600,6 +1613,27 @@
           "started_at": "2026-10-11T00:49:44.117Z",
           "disposition": "reopened",
           "reason": "Suspend definition composition for integration changes to completed source boundaries; retain construction and revalidate prerequisites before resuming this item."
+        },
+        {
+          "item": "FE-A1.2-W07",
+          "phase": "critical",
+          "failed_attempts": 0,
+          "started_at": "2026-10-11T01:21:10.226Z",
+          "passes": [
+            {
+              "pass": "execution",
+              "artifact": "reports/a1-passes/FE-A1.2-W07-execution-1791681705286.json",
+              "command": "node --test --test-reporter=tap scripts/a1/definition-components.test.mjs",
+              "boundary": "Exact immutable definition reads and generic component negotiation across declared domain registrations. Schema admission is separate from an installed examiner or executor; unavailable capability does not invalidate a valid Project. Existing immutable history owners preserve the original basis. This does not certify missing native writing interpretation/third-type examiners, new model roles, proposed commands, or overall A1."
+            },
+            {
+              "pass": "critical",
+              "artifact": "reports/a1-passes/FE-A1.2-W07-critical-1791681950358.json",
+              "command": "node --test --test-reporter=tap scripts/a1/definition-components.critical.test.mjs",
+              "boundary": "Exact immutable definition reads and generic component negotiation across declared domain registrations. Schema admission is separate from an installed examiner or executor; unavailable capability does not invalidate a valid Project. Existing immutable history owners preserve the original basis. This does not certify missing native writing interpretation/third-type examiners, new model roles, proposed commands, or overall A1."
+            }
+          ],
+          "finished_at": "2026-10-11T01:27:23.583Z"
         }
       ],
       "verification_plans": {

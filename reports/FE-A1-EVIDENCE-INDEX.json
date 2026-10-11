@@ -1,10 +1,10 @@
 {
   "schema_name": "petra.a1-evidence-index",
   "schema_version": "1.0.0",
-  "roadmap_binding": "sha256:5360723e68d6c0122bfcdf96e6476061bcdb64fd94bb32d469df1b053c7912ce",
+  "roadmap_binding": "sha256:03d2bb26b07c3e7cc8603fb1ee5cb1caef1f4062ed233f506c9e10a0e096d137",
   "current": {
     "required": 90,
-    "complete": 13,
+    "complete": 14,
     "user_acceptance": null,
     "proofs": [
       {
@@ -140,6 +140,23 @@
             "artifact": "reports/a1-passes/FE-A1.2-W01-critical-1791681529436.json",
             "command": "node --test --test-reporter=tap scripts/a1/outcome-drafting.critical.test.mjs",
             "boundary": "Existing outcome-first draft construction and its exact authority are being verified. Live browser uses one ordinary pre-Project session and three retained draft revisions, with no model invocation or accepted Project creation against inspection data. Isolated PostgreSQL proves real creation/atomicity and rejection. This does not close definition composition, intake model functions, native examiner execution or overall A1."
+          }
+        ]
+      },
+      {
+        "work_item": "FE-A1.2-W07",
+        "passes": [
+          {
+            "pass": "execution",
+            "artifact": "reports/a1-passes/FE-A1.2-W07-execution-1791681705286.json",
+            "command": "node --test --test-reporter=tap scripts/a1/definition-components.test.mjs",
+            "boundary": "Exact immutable definition reads and generic component negotiation across declared domain registrations. Schema admission is separate from an installed examiner or executor; unavailable capability does not invalidate a valid Project. Existing immutable history owners preserve the original basis. This does not certify missing native writing interpretation/third-type examiners, new model roles, proposed commands, or overall A1."
+          },
+          {
+            "pass": "critical",
+            "artifact": "reports/a1-passes/FE-A1.2-W07-critical-1791681950358.json",
+            "command": "node --test --test-reporter=tap scripts/a1/definition-components.critical.test.mjs",
+            "boundary": "Exact immutable definition reads and generic component negotiation across declared domain registrations. Schema admission is separate from an installed examiner or executor; unavailable capability does not invalidate a valid Project. Existing immutable history owners preserve the original basis. This does not certify missing native writing interpretation/third-type examiners, new model roles, proposed commands, or overall A1."
           }
         ]
       },
