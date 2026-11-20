@@ -1,0 +1,183 @@
+TAP version 13
+# Subtest: Planning execution: preserve all required IDs, operations, requests and flows
+ok 1 - Planning execution: preserve all required IDs, operations, requests and flows
+  ---
+  duration_ms: 1597.607583
+  type: 'test'
+  ...
+# Subtest: Planning execution: no active product work and explicit approval prerequisite
+ok 2 - Planning execution: no active product work and explicit approval prerequisite
+  ---
+  duration_ms: 0.175
+  type: 'test'
+  ...
+# Subtest: Planning execution: each pending construction has ordered steps and two distinct check recipes
+ok 3 - Planning execution: each pending construction has ordered steps and two distinct check recipes
+  ---
+  duration_ms: 0.265334
+  type: 'test'
+  ...
+# Subtest: Planning execution: dependency order is acyclic, complete and copilot-first
+ok 4 - Planning execution: dependency order is acyclic, complete and copilot-first
+  ---
+  duration_ms: 0.230666
+  type: 'test'
+  ...
+# Subtest: Planning execution: generic turn ownership and complete action mediation are separate
+not ok 5 - Planning execution: generic turn ownership and complete action mediation are separate
+  ---
+  duration_ms: 0.348208
+  type: 'test'
+  location: '/Users/felipe.casadei/vscode/graphRAG/petra/reports/a1-roadmap-review/roadmap.execution.test.mjs:81:1'
+  failureType: 'testCodeFailure'
+  error: 'command item omits ordinary'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    ownership (file:///Users/felipe.casadei/vscode/graphRAG/petra/reports/a1-roadmap-review/helpers.mjs:100:12)
+    TestContext.<anonymous> (file:///Users/felipe.casadei/vscode/graphRAG/petra/reports/a1-roadmap-review/roadmap.execution.test.mjs:82:3)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1397:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:969:18)
+    Test.postRun (node:internal/test_runner/test:1537:19)
+    Test.run (node:internal/test_runner/test:1462:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:969:7)
+  ...
+# Subtest: Planning execution: three native definitions and complete repeated-cycle dependencies remain mandatory
+ok 6 - Planning execution: three native definitions and complete repeated-cycle dependencies remain mandatory
+  ---
+  duration_ms: 0.083708
+  type: 'test'
+  ...
+# Subtest: Planning execution: all seven diagnoses retain ordered owners
+ok 7 - Planning execution: all seven diagnoses retain ordered owners
+  ---
+  duration_ms: 0.332292
+  type: 'test'
+  ...
+# Subtest: Planning execution: optional late scenarios and excluded native screen-reader evaluation retain their scope
+ok 8 - Planning execution: optional late scenarios and excluded native screen-reader evaluation retain their scope
+  ---
+  duration_ms: 0.262
+  type: 'test'
+  ...
+# Subtest: Planning execution: all generated roadmaps and both configured execution copies agree
+ok 9 - Planning execution: all generated roadmaps and both configured execution copies agree
+  ---
+  duration_ms: 408.538208
+  type: 'test'
+  ...
+# Subtest: Planning execution: scope binding identifies the exact proposed contract
+ok 10 - Planning execution: scope binding identifies the exact proposed contract
+  ---
+  duration_ms: 51.419625
+  type: 'test'
+  ...
+# Subtest: Planning execution: existing pure selection gate rejects every product item before approval
+ok 11 - Planning execution: existing pure selection gate rejects every product item before approval
+  ---
+  duration_ms: 67.426917
+  type: 'test'
+  ...
+# Subtest: Planning execution: legacy and later-wave mutation gates remain closed
+ok 12 - Planning execution: legacy and later-wave mutation gates remain closed
+  ---
+  duration_ms: 31614.694875
+  type: 'test'
+  ...
+# Subtest: Planning execution: interrupted work and old proofs remain historical
+ok 13 - Planning execution: interrupted work and old proofs remain historical
+  ---
+  duration_ms: 0.111458
+  type: 'test'
+  ...
+# Subtest: Planning execution: no product or controller files changed in either worktree
+ok 14 - Planning execution: no product or controller files changed in either worktree
+  ---
+  duration_ms: 556.063917
+  type: 'test'
+  ...
+# Subtest: FE-A1.0-W01-AC01 execution: inspection rejection remains explicit
+ok 15 - FE-A1.0-W01-AC01 execution: inspection rejection remains explicit
+  ---
+  duration_ms: 0.781708
+  type: 'test'
+  ...
+# Subtest: FE-A1.0-W01-AC02 execution: historical mechanics retain their original limits
+ok 16 - FE-A1.0-W01-AC02 execution: historical mechanics retain their original limits
+  ---
+  duration_ms: 0.19075
+  type: 'test'
+  ...
+# Subtest: FE-A1.0-W02-AC01 execution: all eight stages retain granular criteria and owners
+ok 17 - FE-A1.0-W02-AC01 execution: all eight stages retain granular criteria and owners
+  ---
+  duration_ms: 1596.535833
+  type: 'test'
+  ...
+# Subtest: FE-A1.0-W02-AC02 execution: completion requires criterion evidence and prerequisites
+ok 18 - FE-A1.0-W02-AC02 execution: completion requires criterion evidence and prerequisites
+  ---
+  duration_ms: 0.206125
+  type: 'test'
+  ...
+# Subtest: FE-A1.0-W03-AC01 execution: all 97 adapted operations have exact A1 owners
+ok 19 - FE-A1.0-W03-AC01 execution: all 97 adapted operations have exact A1 owners
+  ---
+  duration_ms: 0.159375
+  type: 'test'
+  ...
+# Subtest: FE-A1.0-W03-AC02 execution: later-wave operations keep explicit boundaries
+ok 20 - FE-A1.0-W03-AC02 execution: later-wave operations keep explicit boundaries
+  ---
+  duration_ms: 0.0575
+  type: 'test'
+  ...
+# Subtest: FE-A1.0-W03-AC03 execution: connected cycles remain independent required construction
+ok 21 - FE-A1.0-W03-AC03 execution: connected cycles remain independent required construction
+  ---
+  duration_ms: 0.109542
+  type: 'test'
+  ...
+# Subtest: FE-A1.0-W04-AC01 execution: incomplete A1 blocks all mutating delivery entries
+ok 22 - FE-A1.0-W04-AC01 execution: incomplete A1 blocks all mutating delivery entries
+  ---
+  duration_ms: 31691.438875
+  type: 'test'
+  ...
+# Subtest: FE-A1.0-W04-AC02 execution: status and stop remain available
+ok 23 - FE-A1.0-W04-AC02 execution: status and stop remain available
+  ---
+  duration_ms: 0.189291
+  type: 'test'
+  ...
+# Subtest: FE-A1.0-W04-AC03 execution: controller preserves actual user acceptance authority
+ok 24 - FE-A1.0-W04-AC03 execution: controller preserves actual user acceptance authority
+  ---
+  duration_ms: 0.226209
+  type: 'test'
+  ...
+# Subtest: FE-A1.0-W05-AC01 execution: every current roadmap agrees with the canonical queue
+ok 25 - FE-A1.0-W05-AC01 execution: every current roadmap agrees with the canonical queue
+  ---
+  duration_ms: 380.248917
+  type: 'test'
+  ...
+# Subtest: FE-A1.0-W05-AC02 execution: the immediate sequence ends at explicit acceptance
+ok 26 - FE-A1.0-W05-AC02 execution: the immediate sequence ends at explicit acceptance
+  ---
+  duration_ms: 0.452042
+  type: 'test'
+  ...
+1..26
+# tests 26
+# suites 0
+# pass 25
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 34365.371333

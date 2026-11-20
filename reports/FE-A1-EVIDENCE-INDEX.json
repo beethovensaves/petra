@@ -1,10 +1,10 @@
 {
   "schema_name": "petra.a1-evidence-index",
   "schema_version": "1.0.0",
-  "roadmap_binding": "sha256:7d05f99a536a1f2e514946cb4a3d6b4face3231cfff49f9ba6e97ee4f7fb6711",
+  "roadmap_binding": "sha256:c5eb57bc2a5b1d258cb6a784b0defac09161da8fb8b87b8c264313ca0f98be93",
   "current": {
     "required": 90,
-    "complete": 8,
+    "complete": 5,
     "user_acceptance": null,
     "proofs": [
       {
@@ -76,23 +76,6 @@
         ]
       },
       {
-        "work_item": "FE-A1.0-W05",
-        "passes": [
-          {
-            "pass": "execution",
-            "artifact": "reports/a1-passes/FE-A1.0-W05-execution-1791661778349.json",
-            "command": "node --test --test-reporter=tap scripts/a1/contract-reconciliation.test.mjs",
-            "boundary": "Contract reconciliation, dependency/operation accounting and delivery controls only. Live canonical documents and controlled adverse fixtures are examined; no product copilot, examiner, graph or cyclic-work completion is claimed."
-          },
-          {
-            "pass": "critical",
-            "artifact": "reports/a1-passes/FE-A1.0-W05-critical-1791661788097.json",
-            "command": "node --test --test-reporter=tap scripts/a1/contract-reconciliation.critical.test.mjs",
-            "boundary": "Contract reconciliation, dependency/operation accounting and delivery controls only. Live canonical documents and controlled adverse fixtures are examined; no product copilot, examiner, graph or cyclic-work completion is claimed."
-          }
-        ]
-      },
-      {
         "work_item": "FE-A1.0-W06",
         "passes": [
           {
@@ -106,40 +89,6 @@
             "artifact": "reports/a1-passes/FE-A1.0-W06-critical-1791661626828.json",
             "command": "node --test --test-reporter=tap scripts/frontend-a1-process.critical.test.mjs",
             "boundary": "Delivery-control implementation only. Temporary Git/worktree fixtures test guards; they establish no copilot, Workspace, native examiner, model or cyclic verification product completion. Generated status views are checked from the current canonical ledger; static implementation and test files bind the committed candidate."
-          }
-        ]
-      },
-      {
-        "work_item": "FE-A1.3-W01",
-        "passes": [
-          {
-            "pass": "execution",
-            "artifact": "reports/a1-passes/FE-A1.3-W01-execution-1791690537278.json",
-            "command": "node --test --test-reporter=tap scripts/a1/conversation-contracts.test.mjs",
-            "boundary": "Conversation and explicit human-decision contract boundary checks. Actual model eligibility, canonical proposal ownership, ordinary command effects, visible chat and Workspace convergence require their separate prerequisite and command-bridge items."
-          },
-          {
-            "pass": "critical",
-            "artifact": "reports/a1-passes/FE-A1.3-W01-critical-1791690612931.json",
-            "command": "node --test --test-reporter=tap scripts/a1/conversation-contracts.critical.test.mjs",
-            "boundary": "Conversation and explicit human-decision contract boundary checks. Actual model eligibility, canonical proposal ownership, ordinary command effects, visible chat and Workspace convergence require their separate prerequisite and command-bridge items."
-          }
-        ]
-      },
-      {
-        "work_item": "FE-A1.6-W07",
-        "passes": [
-          {
-            "pass": "execution",
-            "artifact": "reports/a1-passes/FE-A1.6-W07-execution-1791661798178.json",
-            "command": "node --test --test-reporter=tap scripts/a1/accounting.test.mjs",
-            "boundary": "Current accounting and release-control logic only. Synthetic work/candidate fixtures prove closure, rejection and retry guards; they establish no adapted operation or product integration."
-          },
-          {
-            "pass": "critical",
-            "artifact": "reports/a1-passes/FE-A1.6-W07-critical-1791661801980.json",
-            "command": "node --test --test-reporter=tap scripts/a1/accounting.critical.test.mjs",
-            "boundary": "Current accounting and release-control logic only. Synthetic work/candidate fixtures prove closure, rejection and retry guards; they establish no adapted operation or product integration."
           }
         ]
       }
@@ -290,7 +239,7 @@
       {
         "path": "apps/server/src/server.ts",
         "recorded_hash": "sha256:d5ad340fc0540f5cb5999901e3fcf501bfb443f35a5dda6830f8f8dda3bf5be5",
-        "current_hash": "sha256:b03699568ccfeb8f3fc9c5cad56b50e2889b3c5bf18d9a50bd48434753795481",
+        "current_hash": "sha256:8dcd1f6994fe149ca6afbf6d61b232ef103f47f531c9ec6de0297152170a9d0c",
         "reuse": "stale_or_missing_not_current_evidence"
       },
       {

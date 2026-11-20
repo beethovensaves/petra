@@ -1,12 +1,12 @@
 # FE-A1 contractual implementation ledger
 
-Updated: 2026-10-10. Status: `in_progress`. **Wave 7 and Wave 8 remain blocked.**
+Updated: 2026-10-10. Status: `blocked`. **Wave 7 and Wave 8 remain blocked.**
 
 This is the required execution breakdown for FE-A1. It records implementation obligations, not a promise that the current product meets them. The user rejected the inspected candidate on 2026-10-07. Its retained command, layout, and persistence evidence remains useful; the requested frontend and connected work cycles remain unfinished.
 
 The canonical work/status/dependency register is [scripts/frontend-a1-work-inventory.json](../scripts/frontend-a1-work-inventory.json). This report is generated from it with `npm run roadmap:frontend-a1`; `npm run audit:frontend-a1` checks coverage and document agreement. The existing [reports/FRONTEND-ADAPTATION-MILESTONE.md](../reports/FRONTEND-ADAPTATION-MILESTONE.md) retains historical implementation evidence.
 
-Roadmap/execution binding: `sha256:7d05f99a536a1f2e514946cb4a3d6b4face3231cfff49f9ba6e97ee4f7fb6711`. [scripts/frontend-a1-execution.md](../scripts/frontend-a1-execution.md) contains the same functions and criteria in prerequisite order. D025 requires one active item, an execution pass, a distinct critical pass, optional repair, and broad diagnosis after repeated failure. Both execution worktrees must match before work starts, verification is recorded, completion is accepted, or a later wave advances.
+Roadmap/execution binding: `sha256:c5eb57bc2a5b1d258cb6a784b0defac09161da8fb8b87b8c264313ca0f98be93`. [scripts/frontend-a1-execution.md](../scripts/frontend-a1-execution.md) contains the same functions and criteria in prerequisite order. D025 requires one active item, an execution pass, a distinct critical pass, optional repair, and broad diagnosis after repeated failure. Both execution worktrees must match before work starts, verification is recorded, completion is accepted, or a later wave advances.
 
 ## Controlling contract and scope
 
@@ -22,17 +22,17 @@ A1 implements the scoped assessment/posture/obligation/closure/invalidation beha
 
 ## Diagnosed repair sequence
 
-1. **Diagnoses 5, 6, 7:** Repair dependency accounting, evidence gates and synchronized roadmap/execution before continuing product construction. Required owners: [FE-A1.0-W06](#fe-a10-w06), [FE-A1.0-W01](#fe-a10-w01), [FE-A1.0-W02](#fe-a10-w02), [FE-A1.0-W03](#fe-a10-w03), [FE-A1.0-W04](#fe-a10-w04), [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07).
+1. **Diagnoses 5, 6, 7:** Finish the specific readable roadmap and matching granular execution instructions, run distinct planning execution and critical passes, then obtain explicit user approval. FE-A1.0-W05 remains blocked; no backend/frontend/model/migration/product-test construction proceeds while approval is absent. Required owners: [FE-A1.0-W06](#fe-a10-w06), [FE-A1.0-W01](#fe-a10-w01), [FE-A1.0-W02](#fe-a10-w02), [FE-A1.0-W03](#fe-a10-w03), [FE-A1.0-W04](#fe-a10-w04), [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07).
 
-2. **Diagnoses 3:** Reconcile conversational contracts, exact retained content and lineage with existing ProjectThread and InteractionRun owners before connecting commands. Required owners: [FE-A1.3-W01](#fe-a13-w01), [FE-A1.3-W02](#fe-a13-w02), [FE-A1.3-W03](#fe-a13-w03), [FE-A1.3-W04](#fe-a13-w04), [FE-A1.3-W05](#fe-a13-w05).
+2. **Diagnoses 1, 3:** After approval, construct the normal copilot shell/components first; then register contracts, retain canonical readable turns, certify eligible roles, compose definitions/context, connect official AG-UI and Q&A, and make Workspace selection/results reactive. The exact prerequisite queue governs interleaved construction; contract or component checks cannot claim integrated behavior. Required owners: [FE-A1.1-W01](#fe-a11-w01), [FE-A1.1-W02](#fe-a11-w02), [FE-A1.1-W03](#fe-a11-w03), [FE-A1.1-W04](#fe-a11-w04), [FE-A1.1-W05](#fe-a11-w05), [FE-A1.1-W06](#fe-a11-w06), [FE-A1.1-W07](#fe-a11-w07), [FE-A1.3-W01](#fe-a13-w01), [FE-A1.3-W02](#fe-a13-w02), [FE-A1.3-W03](#fe-a13-w03), [FE-A1.3-W04](#fe-a13-w04), [FE-A1.3-W05](#fe-a13-w05), [FE-A1.2-W01](#fe-a12-w01), [FE-A1.2-W02](#fe-a12-w02), [FE-A1.2-W03](#fe-a12-w03), [FE-A1.2-W04](#fe-a12-w04), [FE-A1.2-W07](#fe-a12-w07), [FE-A1.3-W06](#fe-a13-w06), [FE-A1.3-W13](#fe-a13-w13), [FE-A1.3-W14](#fe-a13-w14), [FE-A1.3-W15](#fe-a13-w15), [FE-A1.3-W16](#fe-a13-w16), [FE-A1.4-W01](#fe-a14-w01), [FE-A1.4-W02](#fe-a14-w02), [FE-A1.4-W03](#fe-a14-w03), [FE-A1.4-W04](#fe-a14-w04).
 
-3. **Diagnoses 2:** Connect typed conversational proposals, consequential decisions, Work steering and observed receipts to canonical owners. Required owners: [FE-A1.3-W07](#fe-a13-w07), [FE-A1.3-W08](#fe-a13-w08), [FE-A1.3-W09](#fe-a13-w09), [FE-A1.3-W15](#fe-a13-w15), [FE-A1.3-W16](#fe-a13-w16), [FE-A1.3-W18](#fe-a13-w18).
+3. **Diagnoses 4:** Complete the common examiner registry, native scientific Claim/Assertion/Hypothesis, writing Requirement and Interpretation, and unrelated event-planning adapters. Connect native Review preflight and actual Work-result routing before the action bridge can close. Required owners: [FE-A1.2-W07](#fe-a12-w07), [FE-A1.4-W05](#fe-a14-w05), [FE-A1.4-W06](#fe-a14-w06), [FE-A1.4-W07](#fe-a14-w07).
 
-4. **Diagnoses 4:** Complete native scientific, writing requirement/interpretation, and unrelated compatible definition composition and examiners. Required owners: [FE-A1.2-W07](#fe-a12-w07), [FE-A1.4-W05](#fe-a14-w05), [FE-A1.4-W06](#fe-a14-w06).
+4. **Diagnoses 2:** After canonical conversation and native candidates are ready, connect full command previews, model proposals, separate human decisions, ordinary operation execution and observed Workspace receipts. W07 owns the proposal/decision execution machinery; W03 owns generic readable turn retention. Required owners: [FE-A1.3-W07](#fe-a13-w07), [FE-A1.3-W08](#fe-a13-w08), [FE-A1.3-W09](#fe-a13-w09), [FE-A1.3-W15](#fe-a13-w15), [FE-A1.3-W16](#fe-a13-w16), [FE-A1.3-W18](#fe-a13-w18), [FE-A1.3-W06](#fe-a13-w06), [FE-A1.3-W10](#fe-a13-w10), [FE-A1.3-W11](#fe-a13-w11), [FE-A1.4-W09](#fe-a14-w09).
 
-5. **Diagnoses 1, 3:** Finish normal copilot hierarchy, reactive Workspace and progressive disclosure; connect inquiry, exact evidence, Work, Review, graph-guided assessments, obligations, disposition and selective invalidation across repeated cycles. Required owners: [FE-A1.1-W01](#fe-a11-w01), [FE-A1.3-W06](#fe-a13-w06), [FE-A1.4-W02](#fe-a14-w02), [FE-A1.4-W03](#fe-a14-w03), [FE-A1.4-W10](#fe-a14-w10), [FE-A1.4-W11](#fe-a14-w11), [FE-A1.4-W12](#fe-a14-w12), [FE-A1.4-W13](#fe-a14-w13), [FE-A1.4-W14](#fe-a14-w14), [FE-A1.4-W15](#fe-a14-w15), [FE-A1.4-W19](#fe-a14-w19), [FE-A1.5-W07](#fe-a15-w07).
+5. **Diagnoses 1, 3:** Connect progressive copilot/Workspace disclosure, actual graph selection and agent context, scoped assessments, obligations, explicit closure, selective invalidation and at least two repeated cycles. Build closure/invalidation owners before closing the integrated cycle item. Required owners: [FE-A1.1-W01](#fe-a11-w01), [FE-A1.3-W06](#fe-a13-w06), [FE-A1.4-W02](#fe-a14-w02), [FE-A1.4-W03](#fe-a14-w03), [FE-A1.4-W10](#fe-a14-w10), [FE-A1.4-W11](#fe-a14-w11), [FE-A1.4-W12](#fe-a14-w12), [FE-A1.4-W13](#fe-a14-w13), [FE-A1.4-W14](#fe-a14-w14), [FE-A1.4-W15](#fe-a14-w15), [FE-A1.4-W19](#fe-a14-w19), [FE-A1.5-W07](#fe-a15-w07).
 
-6. **Diagnoses 1, 5, 6, 7:** Close all 97 adapted operation functions and remaining required work; execute integrated functional and separate critical verification; synchronize the reviewable candidate and obtain actual user acceptance before later waves. Required owners: [FE-A1.6-W01](#fe-a16-w01), [FE-A1.6-W06](#fe-a16-w06), [FE-A1.7-W07](#fe-a17-w07), [FE-A1.7-W12](#fe-a17-w12), [FE-A1.7-W13](#fe-a17-w13).
+6. **Diagnoses 1, 5, 6, 7:** Close all required functions and 97 adapted operations with actual functional and distinct critical evidence. Keep the sixteen late scenarios optional. Publish the exact integrated candidate for a second, final user product-acceptance decision; only then may later waves proceed. Required owners: [FE-A1.6-W01](#fe-a16-w01), [FE-A1.6-W06](#fe-a16-w06), [FE-A1.7-W07](#fe-a17-w07), [FE-A1.7-W12](#fe-a17-w12), [FE-A1.7-W13](#fe-a17-w13).
 
 The detailed dependency order below controls construction. A repaired delivery gate cannot close the product integration it protects.
 
@@ -65,13 +65,13 @@ The wave controller checks the ledger before Wave 7 or later worker execution, r
 
 | Milestone | Required result                                                            | Complete / total | State       |
 | --------- | -------------------------------------------------------------------------- | ---------------- | ----------- |
-| FE-A1.0   | Contract reconciliation and execution control                              | 6 / 6            | complete    |
+| FE-A1.0   | Contract reconciliation and execution control                              | 5 / 6            | in_progress |
 | FE-A1.1   | Copilot shell and interaction design                                       | 0 / 7            | in_progress |
 | FE-A1.2   | Conversational zero/empty Project entry                                    | 0 / 7            | in_progress |
-| FE-A1.3   | Durable grounded conversation and AG-UI                                    | 1 / 18           | in_progress |
+| FE-A1.3   | Durable grounded conversation and AG-UI                                    | 0 / 18           | in_progress |
 | FE-A1.4   | Reactive Workspace, compositional examination and cyclic graph-guided work | 0 / 23           | in_progress |
 | FE-A1.5   | Progressive inspection and complete authority receipts                     | 0 / 9            | in_progress |
-| FE-A1.6   | Complete migration and operation conformance                               | 1 / 7            | in_progress |
+| FE-A1.6   | Complete migration and operation conformance                               | 0 / 7            | in_progress |
 | FE-A1.7   | Functional verification and explicit user acceptance                       | 0 / 13           | in_progress |
 
 Counts reflect verified contractual closure, not effort, product percentage, or an ETA. Historical evidence remains retained while affected completions are revalidated under D025.
@@ -150,17 +150,31 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 
 #### FE-A1.0-W05 — Reconcile every roadmap entry and immediate sequence
 
-- **State:** `complete`; **owner:** integration.
+- **State:** `blocked`; **owner:** integration.
 - **Prerequisites:** [FE-A1.0-W06](#fe-a10-w06), [FE-A1.0-W01](#fe-a10-w01), [FE-A1.0-W02](#fe-a10-w02), [FE-A1.0-W03](#fe-a10-w03), [FE-A1.0-W04](#fe-a10-w04)
 - **Contracts:** D024, D013, D018.
-- **Construct:** Make ROADMAP, implementation roadmap, design roadmap, adaptation report, backend handoff, and runtime disposition point to this ledger for A1 execution.
+- **Construct:** Execute this roadmap-only sequence before seeking approval:
+
+1. Read D024/D025, accepted requirements and all seven recorded resolutions; enumerate their mandatory functions and retained work.
+2. Assign each construction to its existing stable item; separate interface, runtime, proposal, examiner and cycle ownership.
+3. Correct prerequisites and publish a readable approval roadmap plus the same granular execution packet.
+4. Run the planning execution checks, then independent scope and bypass challenges; repair material findings and synchronize both copies.
+5. Keep this item blocked until the user approves the exact scope; record that statement before reopening any product work.
+
+Execution pass: Compare all 90 IDs, 116 operation assignments, 23 requests and 18 flows; regenerate documents and verify both execution copies. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge omitted functions, false completion, hidden backend dependencies, optional-scenario promotion, premature product start and stale or forged approval. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
-  - Broad mechanical completion labels cannot contradict the A1 work status.
-  - The immediate sequence ends in user acceptance before Wave 7 begins.
-- **Retained partial evidence:** [reports/FE-A1-CONTRACT-RECONCILIATION-CHECKS.json](../reports/FE-A1-CONTRACT-RECONCILIATION-CHECKS.json)
-- **Completion evidence:**
-  - [reports/a1-passes/FE-A1.0-W05-execution-1791661778349.json](../reports/a1-passes/FE-A1.0-W05-execution-1791661778349.json); `node --test --test-reporter=tap scripts/a1/contract-reconciliation.test.mjs`. Contract reconciliation, dependency/operation accounting and delivery controls only. Live canonical documents and controlled adverse fixtures are examined; no product copilot, examiner, graph or cyclic-work completion is claimed.
-  - [reports/a1-passes/FE-A1.0-W05-critical-1791661788097.json](../reports/a1-passes/FE-A1.0-W05-critical-1791661788097.json); `node --test --test-reporter=tap scripts/a1/contract-reconciliation.critical.test.mjs`. Contract reconciliation, dependency/operation accounting and delivery controls only. Live canonical documents and controlled adverse fixtures are examined; no product copilot, examiner, graph or cyclic-work completion is claimed.
+  - The readable approval roadmap, full function ledger and granular execution instructions contain the same required scope, ownership and prerequisite order in both configured worktrees.
+  - Every one of the seven recorded resolutions maps to required work, ordered construction and distinct execution/critical verification; no mandatory function is deferred or replaced by optional scenarios.
+  - Every product item states its construction steps, observable functional checks and distinct critical challenges; existing code and old evidence are identified as retained partial work.
+  - The user explicitly approves the exact proposed scope binding before any backend/frontend construction, model execution, migration, product testing or worker launch. The roadmap approval is separate from final A1 product acceptance.
+  - A failed synchronization, changed material scope, rejected approval or repeated failure keeps execution blocked; the broad diagnosis records contract, architecture, dependencies, environment, verification and a changed remedy.
+- **Retained partial evidence:** [reports/FE-A1-CONTRACT-RECONCILIATION-CHECKS.json](../reports/FE-A1-CONTRACT-RECONCILIATION-CHECKS.json), [reports/a1-passes/FE-A1.0-W05-execution-1791661778349.json](../reports/a1-passes/FE-A1.0-W05-execution-1791661778349.json), [reports/a1-passes/FE-A1.0-W05-critical-1791661788097.json](../reports/a1-passes/FE-A1.0-W05-critical-1791661788097.json)
+- **Completion evidence:** Missing; this item cannot close.
 
 <a id="fe-a10-w06"></a>
 
@@ -190,13 +204,24 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 #### FE-A1.1-W01 — Rebuild the copilot and workspace hierarchy
 
 - **State:** `planned`; **owner:** frontend.
-- **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.0-W02](#fe-a10-w02), [FE-A1.3-W05](#fe-a13-w05)
+- **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.0-W02](#fe-a10-w02)
 - **Contracts:** D024, UX-REQ-001.
-- **Construct:** Build the persistent 30/70 desktop shell around a compact Project/objective header, continuous user/assistant thread, contextual progress/interventions, usable composer, and active Workspace result. Sequence: move Workspace destinations and inspection into Workspace chrome; reserve chat and composer space while bounding expandable support; reflect the opened answer or evidence in the Workspace heading and activate narrow Workspace presentation; verify ordinary desktop geometry and actual retained Q/A/draft continuity; critically challenge short/narrow viewports, expanded disclosures, keyboard activation and native return. After AG-UI integration, revalidate the whole hierarchy and keep long answer headings from shrinking the native return control into a vertical column.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Compose the default 30/70 transcript/composer and active-object layout with representative contract-shaped content.
+2. Give the Workspace the active object, compact navigation and contextual Inspect entry.
+3. Preserve transcript reading and composer space with long turns and expanded decisions.
+
+Execution pass: Measure readable conversation and Workspace bounds in the actual shell at normal desktop sizes. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge long content, short height, expanded disclosures and hidden route forms; verify controls remain reachable without clipping. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
-  - At ordinary desktop widths both the conversation and result remain legible.
-  - The left panel reads and behaves as a normal conversational agent; route-owned forms do not dominate it.
-  - The Workspace object carries the strongest visual hierarchy.
+  - The actual shell preserves a readable default 30/70 copilot/Workspace composition with representative long questions, answers, citations and decisions.
+  - The left pane is a transcript with a persistent composer and contextual interventions; route forms do not dominate the conversation.
+  - The Workspace object carries the strongest hierarchy, navigation is compact, and no third permanent diagnostic rail appears. Live integrated Q&A is separately required by W06.
 - **Retained partial evidence:** [reports/FRONTEND-STEP2-AGENT-WORKSPACE.json](../reports/FRONTEND-STEP2-AGENT-WORKSPACE.json), [reports/a1-passes/FE-A1.1-W01-execution-1791675860000.json](../reports/a1-passes/FE-A1.1-W01-execution-1791675860000.json), [reports/a1-passes/FE-A1.1-W01-critical-1791675948769.json](../reports/a1-passes/FE-A1.1-W01-critical-1791675948769.json), [reports/a1-passes/FE-A1.1-W01-execution-1791678575943.json](../reports/a1-passes/FE-A1.1-W01-execution-1791678575943.json), [reports/a1-passes/FE-A1.1-W01-critical-1791678645251.json](../reports/a1-passes/FE-A1.1-W01-critical-1791678645251.json), [reports/a1-passes/FE-A1.1-W01-execution-1791681282679.json](../reports/a1-passes/FE-A1.1-W01-execution-1791681282679.json), [reports/a1-passes/FE-A1.1-W01-critical-1791681337814.json](../reports/a1-passes/FE-A1.1-W01-critical-1791681337814.json), [reports/a1-passes/FE-A1.1-W01-execution-1791683734054.json](../reports/a1-passes/FE-A1.1-W01-execution-1791683734054.json), [reports/a1-passes/FE-A1.1-W01-critical-1791683746756.json](../reports/a1-passes/FE-A1.1-W01-critical-1791683746756.json), [reports/a1-passes/FE-A1.1-W01-execution-1791684120131.json](../reports/a1-passes/FE-A1.1-W01-execution-1791684120131.json), [reports/a1-passes/FE-A1.1-W01-critical-1791684133038.json](../reports/a1-passes/FE-A1.1-W01-critical-1791684133038.json)
 - **Completion evidence:** Missing; this item cannot close.
 
@@ -207,7 +232,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** frontend.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.1-W01](#fe-a11-w01)
 - **Contracts:** D006, D013, UX-REQ-021.
-- **Construct:** Implement user turns, assistant turns, citations, partial/limited responses, compact activity, typed action previews, clarification forms, approval cards, and terminal-result links as distinct components.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Define typed question, answer, citation, plan, decision and observed-outcome components.
+2. Compose them around one persistent composer and origin-turn identity.
+3. Keep consequential controls contextual and expose exact object actions.
+
+Execution pass: Exercise each component's keyboard/pointer behavior and retained identity using registered content. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge mismatched turn references, duplicated actions, long citations and controls presented as already-authorized outcomes. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - A question and answer are readable without opening metadata records.
   - Only eligible task controls appear beside the relevant turn.
@@ -222,7 +258,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** frontend.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.1-W01](#fe-a11-w01)
 - **Contracts:** D024.
-- **Construct:** Apply neutral canvas, restrained accent, reading widths, typography, spacing, density, borders, icons, focus, error states, and motion to real conversation and Workspace content.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Apply the restrained neutral palette, functional accent, type scale and spacing to actual shell content.
+2. Style empty, running, limited, failed, proposed and applied states consistently.
+3. Review content density and hierarchy together across copilot and Workspace.
+
+Execution pass: Inspect complete representative content and state transitions in the actual shell. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge visual authority confusion, truncated decisions, color-only states and decorative controls that obscure the task. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - Long questions, citations, object descriptors, and decisions wrap without clipping.
   - Empty, running, failed, limited, and applied states have consistent hierarchy.
@@ -237,7 +284,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** frontend.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.1-W01](#fe-a11-w01)
 - **Contracts:** D024, UX-REQ-001, UX-REQ-023.
-- **Construct:** Retain Agent/Workspace switching and resizing with exact selection, current run, pending interrupt, drafts, scroll, and return focus.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Implement bounded pane resizing and task-preserving Agent/Workspace switching.
+2. Retain selected object, run, pending decision, drafts, scroll and return focus.
+3. Support the same interaction at 420px and 200 percent text scale.
+
+Execution pass: Complete pane switches and resizing by keyboard, pointer and touch with retained task identities. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge interrupted decisions, long content, minimum widths, zoom overflow and focus return after switching. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - Keyboard and pointer resizing obey tested readable bounds.
   - At 420 px and 200 percent text scale the same task can be completed.
@@ -252,7 +310,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** frontend.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.1-W02](#fe-a11-w02)
 - **Contracts:** D024, UX-REQ-022.
-- **Construct:** Implement landmarks, labelled turns/actions, keyboard navigation, sensible focus, reduced motion, non-color state cues, and controlled live announcements.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Add landmarks, labelled transcript/actions and logical keyboard order.
+2. Control streaming announcements, focus movement and reduced-motion behavior.
+3. Provide semantic graph-peer actions with the same operation identities.
+
+Execution pass: Exercise keyboard interaction, browser accessibility semantics and restrained live updates. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge focus theft, announcement flooding, non-color cues and a graph peer missing a consequential action; native screen-reader evaluation remains excluded. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - Streaming does not repeatedly steal focus or flood announcements.
   - Every intervention and cited-object action is keyboard usable.
@@ -267,7 +336,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** frontend.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.1-W01](#fe-a11-w01)
 - **Contracts:** D024, UX-REQ-008.
-- **Construct:** Present Project switching, active outcome, current task, contextual graph entry, one Inspect entry, and exact return without restoring module-heavy permanent navigation.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Keep Project switching, objective and current task in compact navigation.
+2. Add a contextual graph entry and one Inspect entry within the Workspace.
+3. Preserve exact Project/object revisions and return destinations.
+
+Execution pass: Navigate Project, graph, evidence and task destinations with exact identity and return. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge stale deep links, unavailable revisions and accidental restoration of a permanent module or diagnostic rail. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - Project and object changes carry their exact identities.
   - A discoverable graph can be opened from the active task or evidence without becoming the default home.
@@ -282,7 +362,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** frontend.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.1-W02](#fe-a11-w02)
 - **Contracts:** D018, D024, UX-REQ-023.
-- **Construct:** Construct coherent zero-Project, empty-Project, no-evidence, no-working-candidate, unsupported-capability, blocked-model, lost-access, and unknown-effect states in the same copilot shell.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Specify and render zero-Project, empty-Project and no-evidence states.
+2. Add missing-candidate, unsupported-capability, unavailable-model, lost-access and unknown-effect states.
+3. Show only eligible next actions while retaining drafts and the same copilot composition.
+
+Execution pass: Exercise every state with its named next action and retained user input. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge invented demo data, misleading completion, unavailable actions and inaccessible states that substitute a different Project. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - Each state explains what can be done next through an eligible action.
   - Empty Projects retain outcome framing, questions, intake, definitions, and required clarification.
@@ -299,7 +390,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** runtime.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.0-W01](#fe-a10-w01)
 - **Contracts:** D018, D024, UX-REQ-004.
-- **Construct:** Keep the server-owned definition draft preserving original wording, Project kernel, proposed objective, outputs, assumptions, capabilities, and unsupported behavior; examples remain optional.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Preserve the user's unrestricted outcome in the server-owned definition draft.
+2. Preview objective, outputs, constraints, consequential assumptions and installed capability limits.
+3. Keep scientific, writing and event-planning examples optional.
+
+Execution pass: Draft and review three unrelated outcomes through the same entry, preserving exact original wording. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge changed draft hashes, silently accepted assumptions and mandatory profile selection. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - Scientific, controlled-writing, and unrelated outcomes use the same entry.
   - Changed draft content and unaccepted consequential assumptions are rejected.
@@ -314,7 +416,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** runtime.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.2-W01](#fe-a12-w01)
 - **Contracts:** D018, UX-REQ-004, UX-REQ-008.
-- **Construct:** Keep validated atomic Project, immutable definition, objective, focus, and receipt creation with actor, revision, idempotency, and exact draft bindings.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Bind the reviewed draft to the authenticated actor and exact definition/objective revisions.
+2. Create Project, immutable definition, objective and focus atomically through the existing command.
+3. Return the authoritative Project destination and retained receipt.
+
+Execution pass: Create a Project and repeat the same idempotent request against real persistence. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge partial writes, foreign actor, changed draft and uncertain creation before an authoritative recovery read. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - A repeated exact command returns the same outcome.
   - No partially created Project or silently substituted definition is returned.
@@ -329,7 +442,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** frontend.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.2-W02](#fe-a12-w02)
 - **Contracts:** D018, UX-REQ-009, UX-REQ-010.
-- **Construct:** Carry optional initial files from the outcome draft into the existing source and rights review after creation, preserving local bytes until explicit registration.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Carry optional local material from outcome drafting to the new Project's intake task.
+2. Present existing source identity, rights and registration consequences.
+3. Register bytes only through the explicit authorized intake action.
+
+Execution pass: Create with and without a file and verify exact new-Project handoff. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge failed creation, revoked intake permission, rights refusal and accidental upload before consent. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - Creation without material works.
   - An optional file enters the exact new Project source task.
@@ -344,7 +468,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** runtime.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.3-W01](#fe-a13-w01), [FE-A1.2-W02](#fe-a12-w02)
 - **Contracts:** D013, D018, D024, UX-REQ-006.
-- **Construct:** Define an authorized intake-session interaction for normal outcome Q&A before Project identity exists; retain accepted wording and consequential clarification, then explicitly bind the accepted intake to the created Project thread.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Define bounded actor-owned intake conversation before Project identity exists.
+2. Retain outcome Q&A and consequential clarification against the exact draft.
+3. Bind only the accepted intake turns to the created canonical Project thread.
+
+Execution pass: Converse, review the definition and create a Project through the actual eligible intake role. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge another actor's intake, stale drafts, unsupported outcomes and pre-creation domain authority. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - A zero-Project user can converse and review the proposed outcome/definition.
   - Intake has actor, privacy, model eligibility, cost, retention, and exact draft boundaries.
@@ -359,7 +494,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** frontend.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.2-W04](#fe-a12-w04), [FE-A1.3-W06](#fe-a13-w06), [FE-A1.4-W02](#fe-a14-w02)
 - **Contracts:** D024, UX-REQ-002, UX-REQ-003.
-- **Construct:** Offer outcome revision, material intake, question framing, missing-input clarification, a ready bounded next action, and explicit capability limitations in a created Project with no evidence.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Restore the created Project's objective and empty-evidence state in the same copilot.
+2. Offer grounded no-evidence Q&A, outcome revision, intake and necessary clarification.
+3. Execute a first eligible bounded action and display its actual Workspace result.
+
+Execution pass: Complete an empty-Project conversation through its first real retained result. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge fabricated evidence, unsupported produced output, model failure and an action with unmet prerequisites. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - The user can ask a normal question and receive a grounded no-evidence or clarification response.
   - No unsupported output is presented as produced.
@@ -374,7 +520,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** integration.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.2-W04](#fe-a12-w04), [FE-A1.3-W03](#fe-a13-w03)
 - **Contracts:** UX-REQ-006, UX-REQ-023.
-- **Construct:** Restore an intake session, unsent outcome/composer draft, pending definition preview, creation receipt, and exact Project after interruption or reload under explicit local-versus-durable retention rules.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Specify local draft versus durable intake/preview/receipt retention.
+2. Restore exact accepted outcome and creation state after reload or interruption.
+3. Resolve unknown creation effects before offering an eligible retry.
+
+Execution pass: Reload draft, intake and completed-creation states and recover their exact identities. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge lost access, cross-Project restore, duplicate creation and restored drafts that execute automatically. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - Unknown creation effect is resolved by an authoritative read before retry.
   - Restored drafts do not execute automatically.
@@ -389,7 +546,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** runtime.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.2-W01](#fe-a12-w01), [FE-A1.3-W03](#fe-a13-w03)
 - **Contracts:** D018, UX-REQ-004, UX-REQ-021.
-- **Construct:** Resolve registered object/relationship descriptors, inquiry roles, examiners, language rules, validators, outputs, and place capabilities from the exact ProjectDefinition; semantic revisions follow D018.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Resolve native objects, relationships, inquiry roles and terminology from the exact ProjectDefinition.
+2. Resolve admitted examiners, validators, outputs and place capabilities with explicit missing-adapter boundaries.
+3. Apply reviewed additive definition revisions without reinterpreting old turns or candidates.
+
+Execution pass: Resolve three definitions and their revisions through shared registered descriptors. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge stale definitions, unsupported component versions and historical objects reinterpreted with current terminology. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - The same shell can load different domain components without scientific conditionals.
   - Unsupported execution is named precisely without rejecting a valid Project.
@@ -403,32 +571,52 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 
 #### FE-A1.3-W01 — Register genuine conversational interaction contracts
 
-- **State:** `complete`; **owner:** runtime.
-- **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.0-W01](#fe-a10-w01)
+- **State:** `planned`; **owner:** runtime.
+- **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.0-W01](#fe-a10-w01), [FE-A1.1-W01](#fe-a11-w01), [FE-A1.1-W02](#fe-a11-w02), [FE-A1.1-W03](#fe-a11-w03), [FE-A1.1-W04](#fe-a11-w04), [FE-A1.1-W05](#fe-a11-w05), [FE-A1.1-W06](#fe-a11-w06), [FE-A1.1-W07](#fe-a11-w07)
 - **Contracts:** D007, D008, D013, UX-REQ-006, UX-REQ-021.
-- **Construct:** Add versioned intake, Project evidence-question, follow-up, and scene-explanation interaction contracts with bounded inputs, response schemas, speech acts, policy, and validated references; preserve the fixed M1 synthesist contract. Register the immutable typed human command-decision contract over complete existing native request schemas; it cannot grant capability, approve domain truth, or substitute for the ordinary command owner.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Register each intake, Q&A, follow-up, scene and working-plan input/output contract.
+2. Declare bounded references, privacy, speech acts, role requirements and non-authoritative output meaning.
+3. Retain accepted/rejected fixtures and the separate fixed M1 guard.
+
+Execution pass: Validate every interaction kind and its declared owner/role requirements through the contract registry. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge malformed references, undeclared interaction kinds, action authority in prose and fixed-prompt certification reuse. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
-  - Ordinary questions and follow-ups execute through registered runtime owners.
-  - Editing the fixed certified question cannot bypass its guard.
-  - Each new interaction declares model-role eligibility, output validation, and authority limits.
-- **Retained partial evidence:** [reports/FE-A1-CONSTRUCTION-CHECKS.json](../reports/FE-A1-CONSTRUCTION-CHECKS.json), [reports/a1-passes/FE-A1.3-W01-execution-1791664110538.json](../reports/a1-passes/FE-A1.3-W01-execution-1791664110538.json), [reports/a1-passes/FE-A1.3-W01-critical-1791664123560.json](../reports/a1-passes/FE-A1.3-W01-critical-1791664123560.json)
-- **Completion evidence:**
-  - [reports/a1-passes/FE-A1.3-W01-execution-1791690537278.json](../reports/a1-passes/FE-A1.3-W01-execution-1791690537278.json); `node --test --test-reporter=tap scripts/a1/conversation-contracts.test.mjs`. Conversation and explicit human-decision contract boundary checks. Actual model eligibility, canonical proposal ownership, ordinary command effects, visible chat and Workspace convergence require their separate prerequisite and command-bridge items.
-  - [reports/a1-passes/FE-A1.3-W01-critical-1791690612931.json](../reports/a1-passes/FE-A1.3-W01-critical-1791690612931.json); `node --test --test-reporter=tap scripts/a1/conversation-contracts.critical.test.mjs`. Conversation and explicit human-decision contract boundary checks. Actual model eligibility, canonical proposal ownership, ordinary command effects, visible chat and Workspace convergence require their separate prerequisite and command-bridge items.
+  - Every required interaction has registered input/output schemas, bounded references, privacy and authority limits; accepted and rejected fixtures cover each interaction kind.
+  - The fixed M1 synthesist guard remains intact; ordinary Q&A does not claim its certification.
+  - Each interaction declares its runtime owner and model-role requirements; live model eligibility and integrated user behavior close under W02 and W06, respectively.
+- **Retained partial evidence:** [reports/FE-A1-CONSTRUCTION-CHECKS.json](../reports/FE-A1-CONSTRUCTION-CHECKS.json), [reports/a1-passes/FE-A1.3-W01-execution-1791664110538.json](../reports/a1-passes/FE-A1.3-W01-execution-1791664110538.json), [reports/a1-passes/FE-A1.3-W01-critical-1791664123560.json](../reports/a1-passes/FE-A1.3-W01-critical-1791664123560.json), [reports/a1-passes/FE-A1.3-W01-execution-1791690537278.json](../reports/a1-passes/FE-A1.3-W01-execution-1791690537278.json), [reports/a1-passes/FE-A1.3-W01-critical-1791690612931.json](../reports/a1-passes/FE-A1.3-W01-critical-1791690612931.json)
+- **Completion evidence:** Missing; this item cannot close.
 
 <a id="fe-a13-w02"></a>
 
 #### FE-A1.3-W02 — Establish eligible model routes for the new interactions
 
-- **State:** `in_progress`; **owner:** runtime.
-- **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.3-W01](#fe-a13-w01)
+- **State:** `planned`; **owner:** runtime.
+- **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.3-W01](#fe-a13-w01), [FE-A1.3-W03](#fe-a13-w03)
 - **Contracts:** D007, D008, D017, UX-REQ-021.
-- **Construct:** Register and prove eligible provider/model/role routes for conversational questions, working structure, and explanations with exact prompt/schema/profile revisions, grounding, privacy/egress, cost, and fallback rules.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Bind each required conversation/intake/explanation/working-plan role to exact prompt, schema and profile revisions.
+2. Establish actual provider/model eligibility with grounding, privacy, cost and fallback limits.
+3. Expose readiness and input-preserving unavailable-role behavior.
+
+Execution pass: Invoke every required role through its production route; answer a normal question and follow-up in the actual app. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge unavailable or changed certifications, wrong role revisions, unsupported adapters and a fallback that changes semantics or loses input. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - A real eligible model answers a normal question and follow-up in the application.
   - Readiness failure is visible and preserves input.
   - No old fixed-prompt certification is treated as certification for a new role.
-- **Retained partial evidence:** [reports/FE-A1-CONSTRUCTION-CHECKS.json](../reports/FE-A1-CONSTRUCTION-CHECKS.json), [reports/a1-history/2026-10-07-model-eligibility/manifest.json](../reports/a1-history/2026-10-07-model-eligibility/manifest.json), [reports/a1-passes/FE-A1.3-W02-execution-1791665512698.json](../reports/a1-passes/FE-A1.3-W02-execution-1791665512698.json), [reports/a1-passes/FE-A1.3-W02-critical-1791665549548.json](../reports/a1-passes/FE-A1.3-W02-critical-1791665549548.json), [reports/a1-passes/FE-A1.3-W02-execution-1791683152658.json](../reports/a1-passes/FE-A1.3-W02-execution-1791683152658.json), [reports/a1-passes/FE-A1.3-W02-critical-1791683179542.json](../reports/a1-passes/FE-A1.3-W02-critical-1791683179542.json)
+- **Retained partial evidence:** [reports/FE-A1-CONSTRUCTION-CHECKS.json](../reports/FE-A1-CONSTRUCTION-CHECKS.json), [reports/a1-history/2026-10-07-model-eligibility/manifest.json](../reports/a1-history/2026-10-07-model-eligibility/manifest.json), [reports/a1-passes/FE-A1.3-W02-execution-1791665512698.json](../reports/a1-passes/FE-A1.3-W02-execution-1791665512698.json), [reports/a1-passes/FE-A1.3-W02-critical-1791665549548.json](../reports/a1-passes/FE-A1.3-W02-critical-1791665549548.json), [reports/a1-passes/FE-A1.3-W02-execution-1791683152658.json](../reports/a1-passes/FE-A1.3-W02-execution-1791683152658.json), [reports/a1-passes/FE-A1.3-W02-critical-1791683179542.json](../reports/a1-passes/FE-A1.3-W02-critical-1791683179542.json), [reports/a1-passes/FE-A1.3-W02-execution-1791690766387.json](../reports/a1-passes/FE-A1.3-W02-execution-1791690766387.json), [reports/a1-passes/FE-A1.3-W02-critical-1791690816475.json](../reports/a1-passes/FE-A1.3-W02-critical-1791690816475.json)
 - **Completion evidence:** Missing; this item cannot close.
 
 <a id="fe-a13-w03"></a>
@@ -438,13 +626,23 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** runtime.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.3-W01](#fe-a13-w01)
 - **Contracts:** D013, UX-REQ-006, UX-REQ-023.
-- **Construct:** Sequence: (1) expose current model and permission readiness; (2) require an explicit reviewed owner-only RunProjectCopilot grant and immutable receipt before new conversation Work or historical adoption, preserving existing authorized Work management grants; (3) retain exact private question/native-context/result Artifacts and canonical Thread/Run/Work atomically; (4) resolve exact applicable inquiry, Work, Review and cycle lineage before release; (5) page original readable content and restore questions, answers, citations and outcomes in a fresh browser; (6) reject owner substitution, widened permission, stale proposals, late partial commits and duplicate effects in the distinct critical pass. Retain working-plan proposal activities as exact private input/output Artifacts with their own bounded WorkUnit and InteractionRun, attached to the immutable canonical origin turn. Preserve typed proposal meaning and exact human decision/observed receipt lineage separately; never relabel proposals as advisory answers or fabricate domain approval.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Check the exact Project, actor and reviewed conversation permission before retaining bytes.
+2. Atomically retain question/context/result Artifacts with canonical Thread, Run and Work lineage.
+3. Restore paged readable turns, citations and outcomes under their original semantic versions.
+
+Execution pass: Submit and restore exact conversation content through real canonical persistence and a fresh browser. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge foreign or corrupted references, widened grants, partial writes, repeated submission and late terminal results; do not credit W07 command execution. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
-  - A fresh browser restores actual question and answer content, citations, and outcomes.
-  - A thread metadata list is insufficient.
-  - Unauthorized or mismatched Project/content references reveal no bytes. New Projects require explicit reviewed owner-only conversation permission; questions and model output cannot grant capabilities.
-  - Every retained Project turn resolves to the existing canonical ProjectThread and InteractionRun; a parallel conversation store cannot substitute for those owners.
-  - Turn context and result references preserve exact inquiry, Work, Review and cycle lineage where applicable; replay must not create a second effect.
+  - A fresh browser restores exact question, answer, citations, outcome and original semantic versions; metadata alone cannot satisfy restoration.
+  - Every retained turn uses the canonical ProjectThread and InteractionRun, with exact Work and applicable inquiry/result references; no parallel conversation truth is introduced.
+  - New conversation Work requires the reviewed narrow conversation permission; unauthorized, foreign or corrupted content references reveal no bytes.
+  - Interrupted persistence and repeated submission produce a retained terminal state or explicit recovery boundary without duplicate effects; proposal/decision execution remains owned by W07.
 - **Retained partial evidence:** [reports/FE-A1-CONSTRUCTION-CHECKS.json](../reports/FE-A1-CONSTRUCTION-CHECKS.json), [reports/a1-passes/FE-A1.3-W03-execution-1791671233189.json](../reports/a1-passes/FE-A1.3-W03-execution-1791671233189.json), [reports/a1-passes/FE-A1.3-W03-critical-1791671280023.json](../reports/a1-passes/FE-A1.3-W03-critical-1791671280023.json), [reports/a1-passes/FE-A1.3-W03-execution-1791680978364.json](../reports/a1-passes/FE-A1.3-W03-execution-1791680978364.json), [reports/a1-passes/FE-A1.3-W03-critical-1791681035780.json](../reports/a1-passes/FE-A1.3-W03-critical-1791681035780.json), [reports/a1-passes/FE-A1.3-W03-execution-1791683584165.json](../reports/a1-passes/FE-A1.3-W03-execution-1791683584165.json), [reports/a1-passes/FE-A1.3-W03-critical-1791683648878.json](../reports/a1-passes/FE-A1.3-W03-critical-1791683648878.json), [reports/a1-passes/FE-A1.3-W03-execution-1791683965472.json](../reports/a1-passes/FE-A1.3-W03-execution-1791683965472.json), [reports/a1-passes/FE-A1.3-W03-critical-1791684034936.json](../reports/a1-passes/FE-A1.3-W03-critical-1791684034936.json)
 - **Completion evidence:** Missing; this item cannot close.
 
@@ -455,7 +653,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** runtime.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.3-W01](#fe-a13-w01), [FE-A1.2-W07](#fe-a12-w07)
 - **Contracts:** D008, UX-REQ-006, UX-REQ-022.
-- **Construct:** Compose Project definition, objective, inquiry, selected object revisions, graph query/scene references, sources, packets, Work/proposals, omissions, snapshot, privacy, and budget without inheriting ambient route state.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Read exact definition, objective, inquiry, selected revisions and applicable query/scene references.
+2. Assemble bounded source, packet, Work and result context with privacy, budget and omission records.
+3. Bind follow-ups to their original or declared current basis.
+
+Execution pass: Compare retained input to the exact displayed turn and include/exclude disclosure. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge mixed snapshots, restricted basis, large definitions, stale selections and an ambient route silently supplying context. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - A follow-up explicitly binds prior turn and current or original basis.
   - Included/excluded context and limitations are inspectable.
@@ -468,9 +677,20 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 #### FE-A1.3-W05 — Connect the official AG-UI stream to Petra view models
 
 - **State:** `planned`; **owner:** runtime.
-- **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.3-W01](#fe-a13-w01), [FE-A1.3-W03](#fe-a13-w03)
+- **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.3-W01](#fe-a13-w01), [FE-A1.3-W03](#fe-a13-w03), [FE-A1.3-W02](#fe-a13-w02), [FE-A1.3-W04](#fe-a13-w04)
 - **Contracts:** D013, UX-REQ-021, UX-REQ-022.
-- **Construct:** Use pinned official SDK client/server adapters for run, text, activity, tool, state, interrupt, custom, and terminal events; translate them into typed conversation/Work/Workspace models. Sequence: define presentation-only view models and a closed versioned disclosure activity; preserve the existing canonical terminal encoder while adding retained block references; resolve each disclosed block through the exact actor-authorized retained owner read before exposing bytes; map registered Work, tool and interrupt events separately from advisory role authority; mount typed live activity in the actual copilot; verify live managed-model delivery, canonical Work links and independent hostile-event/version/scope/replay cases. Revalidate the hierarchy after integration changes its presentation.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Map official SDK run/text/activity/tool/state/interrupt/terminal events into Petra-owned view models.
+2. Validate versioned custom activities and resolve their content through exact authorized owner reads.
+3. Mount progressive delivery in the real copilot with separate Work and command semantics.
+
+Execution pass: Capture actual official-client progressive rendering and retained canonical identities. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge malformed, unregistered, reordered, duplicate and late events; provisional text or tools cannot create authority. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - The real conversation progressively renders validated state through the official client.
   - Custom events are versioned and allowlisted.
@@ -485,7 +705,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** frontend.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.1-W02](#fe-a11-w02), [FE-A1.3-W02](#fe-a13-w02), [FE-A1.3-W03](#fe-a13-w03), [FE-A1.3-W05](#fe-a13-w05)
 - **Contracts:** D024, UX-REQ-006, UX-REQ-021.
-- **Construct:** Render the durable thread and streamed turn, submit ordinary questions, continue with follow-ups, expose cited-object actions, and show validated partial/limited/error/final states with a persistent composer.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Render the canonical transcript and normal streamed question/answer with a persistent composer.
+2. Submit follow-ups with exact prior-turn and declared basis references.
+3. Link citations, retained results and Inspect while preserving partial/limited/error states.
+
+Execution pass: Ask a real question and follow-up while reading the Workspace; restore both after reload. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge a fixed-question substitute, stale follow-up, unsupported citations, input loss and a terminal answer without retained output. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - The left panel supports a readable question, answer, and follow-up during Workspace use.
   - No fixed-question warning masquerades as normal conversational support.
@@ -498,9 +729,23 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 #### FE-A1.3-W07 — Mediate typed action proposals through one command path
 
 - **State:** `planned`; **owner:** runtime.
-- **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.3-W05](#fe-a13-w05)
+- **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.3-W05](#fe-a13-w05), [FE-A1.3-W06](#fe-a13-w06), [FE-A1.3-W09](#fe-a13-w09), [FE-A1.3-W15](#fe-a13-w15), [FE-A1.3-W16](#fe-a13-w16), [FE-A1.3-W18](#fe-a13-w18), [FE-A1.4-W07](#fe-a14-w07), [FE-A1.4-W09](#fe-a14-w09), [FE-A1.3-W11](#fe-a13-w11)
 - **Contracts:** D005, D013, UX-REQ-003.
-- **Construct:** Sequence: (1) resolve the exact authorized canonical origin turn; (2) read eligible native SuggestedAction, Work/recovery, source-processing and Review checkpoints; (3) construct complete server-owned immutable previews and ordinary operation IDs; (4) invoke the existing separately eligible working-plan role and retain its actual proposed-only output through canonical Artifact/Work/Run owners; (5) show that exact preview in the conversation and require a separate explicit human accept/reject decision; (6) retain the immutable decision and serialize the command claim; (7) revalidate Actor, capability, policy and exact native revisions through the existing ordinary command owner, preserving its command ID and idempotency key; (8) validate and retain the observed native receipt, distinguish reconciliation-required outcomes, and expose its exact Workspace result; (9) prove restart/replay/concurrency, stale or malformed arguments, revoked rights, foreign receipts and proposal-without-decision cannot create another effect; (10) execute distinct functional and critical checks before contractual closure. Advisory prose, ready role metadata, pure preview helpers and route-local forms cannot close this item.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Read the canonical origin turn and eligible native SuggestedAction, Work/recovery, Source and Review previews.
+2. Audit the retained proposal/decision schemas, migration V068 and native owners; reuse valid work, and register only identified missing contracts under this item after approval.
+3. Validate complete server-owned command arguments and retain the eligible model's proposed-only output.
+4. Show the exact proposed command in chat and retain a separate immutable human accept/reject decision.
+5. Serialize the execution claim and revalidate actor, policy, capability, revisions and idempotency through the existing ordinary command owner.
+6. Retain the observed native receipt and open the exact resulting Workspace object; preserve explicit unknown-effect reconciliation.
+
+Execution pass: Exercise proposal, reject and accept in the actual chat with real owners and production eligible command selection across every admitted command family. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge revoked rights, changed payload, stale context, foreign receipts, concurrent acceptance, crash after claim and restart/replay; neither model prose nor a pure helper closes this flow. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - A recommendation does not execute itself.
   - Direct and conversational invocation use identical operation IDs and exact command outcomes.
@@ -516,7 +761,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** integration.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.3-W07](#fe-a13-w07), [FE-A1.3-W06](#fe-a13-w06)
 - **Contracts:** D005, D013, D021, UX-REQ-012.
-- **Construct:** Present clarification, missing input, exact Review approval/rejection/deferral, correction, and budget escalation in the conversation; correlate each response to its operation and owning Work/ChangeSet revision.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Present clarification, missing input, Review approval/rejection/deferral, correction and budget decisions in chat.
+2. Bind responses to exact Work/ChangeSet and consequential previews.
+3. Resume through the owning command and restore pending decisions after reconnect.
+
+Execution pass: Complete each interrupt through its actual command and retained receipt. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge outdated decisions, duplicate approval, hidden consequence and reply correlation to a different Work or Review revision. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - A user can inspect the exact consequence before deciding.
   - The decision reaches the canonical command and observed receipt.
@@ -531,7 +787,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** frontend.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.3-W05](#fe-a13-w05), [FE-A1.3-W06](#fe-a13-w06)
 - **Contracts:** D013, UX-REQ-014, UX-REQ-016.
-- **Construct:** Compose compact live plan/stage/activity, Work identity, progress, resource limits, required input, candidate/result/decision links, and real terminal state around the active turn. Apply explicit steering and eligible branch priority through the existing Work owners; preserve consumed input manifests, record plan revisions and exact scheduling cutover, retain shared prerequisites, and expose validated reuse or a fresh bounded attempt.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Compose actual plan/stage/activity, Work identity, input needs, resource limits and terminal results.
+2. Apply explicit steering or branch priority only through existing authorized Work operations.
+3. Retain consumed manifests, revised plans, cutover boundaries and shared-prerequisite reuse.
+
+Execution pass: Steer live Work and inspect actual progress, plan revision, cost and scheduling cutover. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge invented progress, old successors starting after changed input, graph selection altering priority and Work success falsely closing an inquiry. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - A running step, proposed candidate, and applied outcome have distinct language.
   - Cost/latency statements come from retained runtime observations.
@@ -548,7 +815,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** integration.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.3-W05](#fe-a13-w05), [FE-A1.3-W09](#fe-a13-w09)
 - **Contracts:** D013, UX-REQ-014, UX-REQ-023, D024.
-- **Construct:** Resolve D024 pause/resume through registered Work actions, expose delivery stop and eligible cancel with their separate lifecycles, and display interruption/cancellation races and the retained actual effect.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Audit the native Work pause/resume owners; implement an identified missing registered pause action under this item after approval, with execution semantics separate from delivery stop and cancellation.
+2. Show each lifecycle and authorization consequence in the copilot.
+3. Read late or uncertain effects before presenting the next action.
+
+Execution pass: Exercise delivery stop, authorized pause/resume and cancel against their native owners. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge stream abort presented as paused Work, cancellation races and unknown effects automatically retried. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - Closing/aborting the stream leaves durable Work unchanged.
   - Explicit cancel commits through its typed owner.
@@ -564,7 +842,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** integration.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.3-W03](#fe-a13-w03), [FE-A1.3-W05](#fe-a13-w05)
 - **Contracts:** D013, UX-REQ-006, UX-REQ-014, UX-REQ-023.
-- **Construct:** Restore streamed turns/activity/state from retained identity and cursor; handle duplicate, out-of-order, late, failed, and terminal events; distinguish reconnect, retry, resume, and start-again eligibility.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Restore turns and activities from retained identities and replay cursors.
+2. Deduplicate and order events while preserving terminal outcomes.
+3. Separate reconnect from eligible retry, resume and start-again.
+
+Execution pass: Reconnect and restart delivery without another model or command invocation. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge duplicate, out-of-order and late terminal events, expired cursors and retry offered without native eligibility. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - Reconnect does not rerun a model or command.
   - Retry/new execution requires authoritative eligibility and preserves the prior result.
@@ -579,7 +868,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** runtime.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.3-W03](#fe-a13-w03), [FE-A1.3-W04](#fe-a13-w04)
 - **Contracts:** UX-REQ-006, UX-REQ-015, UX-REQ-016.
-- **Construct:** Implement Continue from original snapshot, Compare with current, and Start from current state with exact parent turn, lineage, context, and safe destinations.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Detect material changes between retained turn basis and current state.
+2. Offer continue-original, compare-current and start-current choices with exact parent lineage.
+3. Preserve safe destinations and declared branch context.
+
+Execution pass: Continue and branch across a changed snapshot while retaining original turns. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge silent rebasing, view focus changing inquiry meaning and stale branch destinations. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - A changed basis forces a declared continuation choice where material.
   - Branching preserves original turns and their meaning.
@@ -594,7 +894,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** runtime.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.3-W01](#fe-a13-w01), [FE-A1.2-W07](#fe-a12-w07)
 - **Contracts:** D006, UX-REQ-021.
-- **Construct:** Build communication-plan segments for attributed report, inference, author judgment, assessment, recommendation, clarification, proposal, action report, limitation, and status; bind language/reference/schema/validator versions and repair receipts.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Compose registered communication segments with source report, inference, judgment, assessment, proposal, action and limitation meanings.
+2. Bind language/reference/schema validators to each released segment.
+3. Retain repairs without changing scope, force, uncertainty or action consequence.
+
+Execution pass: Validate released normal, limited and repaired communication against its retained meaning. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge unsupported authority, inference presented as source report, partial text released as grounded and a repair strengthening the claim. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - Source reports and Petra inference remain distinguishable.
   - Partial text is not released as grounded merely because it streamed.
@@ -609,7 +920,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** runtime.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.3-W04](#fe-a13-w04), [FE-A1.3-W13](#fe-a13-w13)
 - **Contracts:** D006, D008, UX-REQ-008, UX-REQ-009.
-- **Construct:** Resolve each material answer segment to authorized object/source/span/revision references with safe semantic destinations and available basis/limitations.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Resolve material answer references to authorized object/source/span/revision identities.
+2. Link each reference to its exact semantic destination and available basis.
+3. Expose citation versus evidentiary-support meaning and missing-reference limitations.
+
+Execution pass: Open citations from the real answer at the exact retained passage and revision. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge invented spans, foreign or restricted objects, mismatched revisions and citations asserted as scientific support. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - Clicking a citation opens the cited revision and passage.
   - Invented, restricted, mismatched, or unsupported references block or limit the response.
@@ -624,7 +946,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** runtime.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.3-W01](#fe-a13-w01), [FE-A1.2-W07](#fe-a12-w07), [FE-A1.3-W04](#fe-a13-w04)
 - **Contracts:** D005, UX-REQ-011.
-- **Construct:** Admit profile-valid non-authoritative candidates from turns, Work, extraction, import, and direct edits with exact producer, target, context, schema, basis, uncertainty, validation, and supersession lineage.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Admit native candidate revisions from turns, Work, extraction, import and direct edits.
+2. Retain producer, target, schema, context, basis, uncertainty and supersession lineage.
+3. Restore candidates independently of the browser and keep promotion in Review.
+
+Execution pass: Persist and read scientific, writing and event-planning candidates through canonical owners. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge unknown types, stale basis, orphan producer references and retained/displayed candidates silently promoted to trusted state. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - Working candidates survive reload independently of browser state.
   - Unknown types or references are rejected.
@@ -639,7 +972,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** runtime.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.3-W15](#fe-a13-w15)
 - **Contracts:** D005, UX-REQ-011, UX-REQ-013.
-- **Construct:** Compose typed working relationship revisions and a snapshot-consistent overlay with source/native versus inferred origin, direction, predicate meaning, exclusions, provenance, and textual peers.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Retain native working relationship revisions with exact endpoints, direction and predicates.
+2. Query a snapshot-consistent overlay with source-native versus inferred origin, exclusions and textual peer.
+3. Route promotion through the existing Review owner.
+
+Execution pass: Read typed scientific and writing/event-planning relationships and their native meanings. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge mixed endpoint revisions, inverted predicates, silent source/inference blending and overlay display granting authority. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - Scientific support/challenge and writing dependencies preserve different registered meanings.
   - Old endpoints and new edges cannot be blended into current authority.
@@ -654,7 +998,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** integration.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.3-W13](#fe-a13-w13), [FE-A1.3-W15](#fe-a13-w15), [FE-A1.3-W07](#fe-a13-w07)
 - **Contracts:** D005, D006, UX-REQ-011, UX-REQ-012, UX-REQ-021.
-- **Construct:** Route wording/reference corrections to communication revision, domain/basis corrections to new working revisions and Review, and scope changes to exact action/definition previews.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Classify communication repair, substantive candidate/basis correction and definition/scope change.
+2. Produce the corresponding communication revision, working diff or reviewed definition/action preview.
+3. Apply authority changes only through the ordinary Review receipt.
+
+Execution pass: Correct a candidate in normal language, inspect its exact diff and observe the native outcome. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge mechanical repair resolving ambiguity, silent promotion and an action whose meaning differs from direct Review. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - The user can correct a candidate in normal language and inspect the resulting diff.
   - Mechanical repair does not settle substantive ambiguity.
@@ -669,7 +1024,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** runtime.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.3-W03](#fe-a13-w03)
 - **Contracts:** UX-REQ-006, UX-REQ-021, UX-REQ-022, UX-REQ-023.
-- **Construct:** Specify and implement intake/thread/message/scene retention and redaction without deleting retained Work, outputs, model traces, approvals, events, or provenance required for audit.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Define intake/thread/message/scene retention and redaction against existing audit obligations.
+2. Add authorized historical text reads under original semantic versions.
+3. Preserve Work, outputs, approvals, events and provenance when conversation is hidden or redacted.
+
+Execution pass: Read authorized historical content and redact conversation without losing effects. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge restricted historical bytes, current-schema reinterpretation and redaction erasing a command receipt or approval. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - Historical content uses its original semantic versions.
   - Hiding/deleting conversation does not erase authoritative effects.
@@ -686,7 +1052,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** frontend.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.1-W01](#fe-a11-w01), [FE-A1.2-W07](#fe-a12-w07)
 - **Contracts:** D024, UX-REQ-001, UX-REQ-008.
-- **Construct:** Compose Outcome, Source, Review, Work, Artifact boundary, and Inspect renderers from server-owned semantic destinations and exact ProjectDefinition role mappings.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Resolve Outcome, Source, Review, Work, Artifact-boundary and Inspect renderers from server-owned destinations.
+2. Bind exact ProjectDefinition roles, object revisions and permitted actions.
+3. Render explicit unsupported or unavailable boundaries.
+
+Execution pass: Open every admitted object family through the same renderer registry. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge guessed route authority, foreign Project references and a missing renderer substituted with an unrelated object. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - Every supported object resolves to its exact permitted renderer.
   - Unsupported roles return an honest scoped boundary.
@@ -701,7 +1078,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** frontend.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.4-W01](#fe-a14-w01), [FE-A1.3-W06](#fe-a13-w06), [FE-A1.3-W14](#fe-a13-w14)
 - **Contracts:** D013, D024, UX-REQ-006, UX-REQ-008, UX-REQ-022.
-- **Construct:** Add a typed selection/result/context controller: cited object or turn opens/selects the Workspace result; direct selection supplies explicit bounded context to the next turn; late updates retain exact run/query identity.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Bind answer/result/citation selections to the exact Workspace object and originating turn.
+2. Feed explicit direct selection into bounded next-turn context.
+3. Fence late run/query responses while preserving active drafts.
+
+Execution pass: Ask, open evidence, directly select an object and continue in the same task. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge old responses replacing current objects, hidden selection changes and Workspace updates stealing drafts or focus. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - An answer updates the visible durable result and evidence selection.
   - Direct reading/review continues in the same copilot task.
@@ -716,7 +1104,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** frontend.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.4-W02](#fe-a14-w02), [FE-A1.3-W13](#fe-a13-w13)
 - **Contracts:** D024, UX-REQ-002, UX-REQ-021.
-- **Construct:** Render a bounded answer/result with material segments, selected claim or requirement, cited passage, contrary basis, limitations, validation status, next inquiry/action, graph entry, and exact return to its turn.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Retain structured evidence-answer results with material segments and selected native objects.
+2. Render exact passages, contrary basis, omissions, validation and next eligible inquiry/action.
+3. Link graph entry and return to the originating turn.
+
+Execution pass: Traverse question, durable result, evidence, graph and originating conversation. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge prose-only results, missing contrary basis and a return that loses selected revision or task identity. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - The result exists as retained structured content rather than only chat prose.
   - Question, result, evidence, graph, and turn preserve one identity chain.
@@ -731,7 +1130,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** frontend.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.4-W01](#fe-a14-w01), [FE-A1.3-W14](#fe-a13-w14)
 - **Contracts:** UX-REQ-009, UX-REQ-010.
-- **Construct:** Compose canonical source identity, immutable revision, rights, original/derived representation, exact SourceSpan, processing depth, and quoted context with answer/graph/Review links.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Resolve canonical Source, revision, rights and original/derived representation.
+2. Open exact SourceSpan bytes and processing-depth context.
+3. Preview replacement, removal or local-copy consequences through existing lifecycle owners.
+
+Execution pass: Read exact passages and complete authorized intake/lifecycle previews. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge unavailable bytes, revoked rights, removed revisions and a source-native statement reconstructed from model prose. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - A source-native statement resolves to exact bytes or an explicit unavailable boundary.
   - Rights and inspection capability are visible before intake/use.
@@ -746,11 +1156,22 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** frontend.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.4-W01](#fe-a14-w01), [FE-A1.3-W15](#fe-a13-w15), [FE-A1.2-W07](#fe-a12-w07)
 - **Contracts:** D005, D006, UX-REQ-004, UX-REQ-011, UX-REQ-012.
-- **Construct:** Create an examiner registry that composes shared identity, basis, provenance, working/authority state, scope, uncertainty, validation, comparison, and action slots with ProjectDefinition-specific object and relationship components.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Define common examiner slots for identity, basis, scope, uncertainty, provenance and working/authority state.
+2. Resolve comparison, validation and eligible-action slots through exact native descriptors.
+3. Compose missing/versioned adapter states without a scientific default.
+
+Execution pass: Resolve the registry for registered native descriptors with no client-authored authority. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge absent adapters, version mismatches and shared slots silently recasting domain meaning. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
-  - A scientific Claim/Assertion examiner distinguishes source report, inference, stance, evidence scope, and review state.
-  - Writing requirement and interpretation examiners both use native textual basis, competing readings, scope and validator meaning.
-  - The shell does not recast all Projects as scientific Claims.
+  - An examiner registry resolves common identity, scope, basis, uncertainty, provenance, comparison, validation and action slots from exact registered descriptors.
+  - Domain adapters retain their native object and relationship meaning; shared layout cannot fabricate an assessment or authority state.
+  - Missing or version-mismatched adapters produce an explicit limitation. Native scientific, writing and unrelated adapter conformance is owned by W06.
 - **Retained partial evidence:** [reports/FE-A1-CONSTRUCTION-CHECKS.json](../reports/FE-A1-CONSTRUCTION-CHECKS.json)
 - **Completion evidence:** Missing; this item cannot close.
 
@@ -759,14 +1180,27 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 #### FE-A1.4-W06 — Implement registered examiners for required Project types
 
 - **State:** `planned`; **owner:** runtime.
-- **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.2-W07](#fe-a12-w07), [FE-A1.3-W16](#fe-a13-w16)
+- **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.2-W07](#fe-a12-w07), [FE-A1.3-W16](#fe-a13-w16), [FE-A1.4-W05](#fe-a14-w05), [FE-A1.4-W04](#fe-a14-w04)
 - **Contracts:** D018, UX-REQ-004, UX-REQ-011, UX-REQ-012.
-- **Construct:** Supply native object/relationship, inquiry, basis, comparison, validation, terminology, and examiner adapters for scientific, controlled-writing, and one unrelated compatible Project definition.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Connect scientific Claim/Assertion and Hypothesis descriptors, basis, relations and examiner components.
+2. Connect both controlled-writing Requirement and Interpretation with textual basis and competing readings.
+3. Connect event-planning requirements, constraints and options with supplied evidence and native relations.
+4. Validate each definition through shared candidate, Review and examination owners.
+
+Execution pass: Examine real retained native objects and relationships in all three definitions. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge writing-as-science aliases, missing Interpretation, renamed third-domain fixtures and unsupported external actions presented as completed examination. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
-  - All three execute through shared governance and presentation contracts.
-  - Writing interpretation is not treated as scientific support.
-  - A missing adapter is an explicit limitation and cannot count as completing its required functions.
-  - The unrelated compatible definition supplies native object and relationship schemas, basis, inquiry, validators and examiner slots; a synthetic Q&A example or empty shell cannot satisfy it.
+  - All three definitions use shared governance, canonical candidates, Review and the common examiner registry while supplying their own object, relationship, basis and validator semantics.
+  - Scientific Claim/Assertion examination preserves attributed report, inference, support/challenge scope and review state; Hypothesis assessment remains governed by D010.
+  - Controlled-writing Requirement and Interpretation both have native textual basis, competing readings and scope; neither is represented as scientific support.
+  - Event-planning requirements, constraints and options have native descriptors, relationships, supplied basis and scoped validation; a renamed scientific fixture or Q&A-only example is insufficient.
+  - A missing required adapter keeps this item incomplete; an explicitly unsupported external capability cannot be used to defer the required native examination.
 - **Retained partial evidence:** [reports/FE-A1-CONSTRUCTION-CHECKS.json](../reports/FE-A1-CONSTRUCTION-CHECKS.json)
 - **Completion evidence:** Missing; this item cannot close.
 
@@ -775,9 +1209,20 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 #### FE-A1.4-W07 — Complete candidate and Review examination
 
 - **State:** `planned`; **owner:** frontend.
-- **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.4-W05](#fe-a14-w05), [FE-A1.4-W06](#fe-a14-w06)
+- **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.4-W05](#fe-a14-w05), [FE-A1.4-W06](#fe-a14-w06), [FE-A1.4-W04](#fe-a14-w04)
 - **Contracts:** D005, D020, D021, UX-REQ-012.
-- **Construct:** Render exact member selection, basis, source context, proposed/current comparison, correction, separate/batch semantics, ChangeSet preparation, stale refresh, and eligibility beside the active conversation.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Show exact Review member, source basis, current/proposed comparison and eligibility.
+2. Support correction, individual/batch meaning and ChangeSet preparation.
+3. Retain stale refresh and accepted/rejected/deferred/reopened outcomes.
+
+Execution pass: Inspect and correct each member before applying through the canonical Review task. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge stale comparison, client-calculated eligibility, wrong batch membership and correction applied to a different candidate revision. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - The user can inspect and correct every proposed member before applying.
   - Counts, posture, diffs, and eligibility come from canonical reads.
@@ -792,7 +1237,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** integration.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.4-W07](#fe-a14-w07), [FE-A1.3-W08](#fe-a13-w08)
 - **Contracts:** D005, D021, UX-REQ-012, UX-REQ-023.
-- **Construct:** Connect Agent decision cards and direct Review to exact prepared ChangeSet/Approval commands, retained receipts, events, and represented graph position.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Bind chat and direct Review decisions to the same exact prepared ChangeSet and Approval command.
+2. Retain receipts/events and distinguish applied authority from projection freshness.
+3. Restore rejection, deferral, reopening and uncertain Apply effects.
+
+Execution pass: Compare direct and conversational decisions and observe real retained native effects. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge fabricated policy, duplicate Apply, lagging projection claimed as current and retries before resolving uncertain effect. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - Human approval is exact; no absent ReviewPolicy is fabricated.
   - Applied authority and lagging graph projection are shown separately.
@@ -807,7 +1263,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** integration.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.4-W02](#fe-a14-w02), [FE-A1.3-W09](#fe-a13-w09)
 - **Contracts:** UX-REQ-014, UX-REQ-015, UX-REQ-016.
-- **Construct:** Compose Work stages, required input, outcomes, retained failures, and result delivery into read-only answer, working candidate/Review, artifact boundary, or originating inquiry with exact identities.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Map actual Work stages, input, result and retained failure to its semantic continuation.
+2. Route read-only answers, candidates/Review and Artifact boundaries to exact destinations.
+3. Preserve inquiry links and shared result identities at every terminal outcome.
+
+Execution pass: Complete successful, partial, failed and cancelled Work and return to the right inquiry/result. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge terminal Work closing an inquiry, duplicate shared results and a wrong continuation caused by route inference. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - Success, failure, cancellation, and partial outcomes each have a terminal and return path.
   - Execution success never closes an unresolved inquiry.
@@ -822,7 +1289,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** runtime.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.4-W06](#fe-a14-w06), [FE-A1.3-W15](#fe-a13-w15)
 - **Contracts:** UX-REQ-016, UX-REQ-014, UX-REQ-015.
-- **Construct:** Resolve profile-native questions/Hypotheses/other inquiry roles with framing, purpose, exact basis, open questions, alternatives, history, recommendations, and zero/many/shared Work/turn/result links.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Resolve native questions, Hypotheses and other inquiry roles with purpose and exact basis.
+2. Retain alternatives, criteria, open questions, history and zero/many/shared Work links.
+3. Present recommendations separately from scheduler prerequisites.
+
+Execution pass: Follow one durable inquiry across focus changes, several turns and shared Work results. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge every inquiry forced into a Hypothesis, recommendations treated as locks and task completion deleting unresolved inquiry. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - An inquiry survives task completion and focus changes.
   - Alternatives, criteria, and exploratory questions are not all forced into Hypotheses.
@@ -837,7 +1315,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** runtime.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.4-W10](#fe-a14-w10), [FE-A1.4-W06](#fe-a14-w06), [FE-A1.3-W04](#fe-a13-w04)
 - **Contracts:** D010, D005, D008, UX-REQ-016.
-- **Construct:** Register and persist the exact Hypothesis identity/revision, target Claim, descriptor and scoped reference, plus the D010 assessment envelope and applicable scientific indicator/finding/axis validators for the A1 evidence cycle; bind target revision, snapshot, as-of/temporal scope, basis, search coverage, methods, actor, alternatives and limitations.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Register exact Hypothesis/target revision and D010 scoped assessment records.
+2. Retain basis, snapshot, temporal scope, coverage, methods, actor, alternatives and limitations.
+3. Validate separate assessment axes and supporting/challenging/mixed/insufficient findings.
+
+Execution pass: Assess retained hypotheses against named scoped criteria and inspect their exact evidence/method. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge a universal truth score, unknown axes assigned values, omitted contrary basis and a model assigning authoritative warrant. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - Development, activity, warrant, lifecycle, standing, alternatives, dependence, and stakes remain separate; unassessed axes stay unknown.
   - A scoped supporting/challenging/mixed/insufficient finding has exact basis and method.
@@ -852,7 +1341,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** runtime.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.4-W11](#fe-a14-w11), [FE-A1.3-W07](#fe-a13-w07)
 - **Contracts:** D010, D008, UX-REQ-003, UX-REQ-016.
-- **Construct:** Register the applicable explore/clarify/challenge/discriminate/reproduce/consolidate posture and obligation/SuggestedAction mappings for A1; compose hypotheses, rivals, gaps, evidence needs, eligible Work, stop rules, and resource limits.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Resolve registered posture and obligation meanings from assessment findings.
+2. Bind rivals, gaps, evidence needs and bounded eligible Work previews to their motivating records.
+3. Expose stop rules, resources and user inquiry choices.
+
+Execution pass: Derive an eligible next-cycle plan from recorded findings and obligations. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge unregistered considerations controlling execution, advice changing warrant and plans bypassing real prerequisites. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - A next action records the finding/obligation that motivates it.
   - Novel unregistered considerations can be discussed but cannot control execution.
@@ -865,9 +1365,21 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 #### FE-A1.4-W13 — Execute the cyclic examine and verify workflow
 
 - **State:** `planned`; **owner:** integration.
-- **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.4-W12](#fe-a14-w12), [FE-A1.4-W08](#fe-a14-w08), [FE-A1.4-W09](#fe-a14-w09), [FE-A1.4-W19](#fe-a14-w19)
+- **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.4-W12](#fe-a14-w12), [FE-A1.4-W08](#fe-a14-w08), [FE-A1.4-W09](#fe-a14-w09), [FE-A1.4-W19](#fe-a14-w19), [FE-A1.4-W14](#fe-a14-w14), [FE-A1.4-W15](#fe-a14-w15)
 - **Contracts:** D005, D008, D010, D024, UX-REQ-016.
-- **Construct:** Connect inquiry/Hypothesis framing, bounded evidence retrieval or intake, source/candidate examination, alternative/challenge evaluation, governed decision, graph update, reassessment, and next-cycle planning in one Agent–Workspace task.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Connect inquiry framing, bounded evidence retrieval/intake and native object examination.
+2. Compare alternatives, pass governed decisions and observe graph/result updates.
+3. Reassess and record disposition, remaining obligations and next-cycle plan.
+4. Repeat against a changed basis or rival with selective invalidation already connected.
+
+Execution pass: Run at least two connected cycles through actual owners from inquiry to examined result and the next declared basis. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge fluent answers or successful Work counted as verification, unexamined rivals, missing receipts and old closure remaining current after evidence changes. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - At least two connected cycles run from a question to an examined result and then a changed basis or rival.
   - Verification means meeting named scoped criteria with retained evidence; task success and fluent prose are insufficient.
@@ -882,7 +1394,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** runtime.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.4-W11](#fe-a14-w11), [FE-A1.4-W12](#fe-a14-w12), [FE-A1.4-W08](#fe-a14-w08)
 - **Contracts:** D010, UX-REQ-016, UX-REQ-012.
-- **Construct:** Implement a profile-valid exact closure/disposition record linking objective/inquiry, assessment/check criteria, supporting and contrary basis, Review/decisions, outstanding obligations, limitations, snapshot, and user/runtime authority.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Define exact native closure/disposition with inquiry, criteria, basis and contrary evidence.
+2. Bind assessment, Review decisions, obligations, limitations, snapshot and allowed authority.
+3. Admit supported, challenged, insufficient, deferred or further-cycle outcomes under registered meaning.
+
+Execution pass: Record each allowed scoped disposition and restore its evidence and decision lineage. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge satisfied closure with open mandatory obligations, missing required basis, universal truth claims and Work completion substituted for resolution. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - A cycle can conclude with a supported scoped finding, challenge, insufficiency, defer, or further cycle as the registered meaning permits.
   - Open mandatory obligations or unexamined required basis prevent a satisfied disposition.
@@ -897,7 +1420,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** runtime.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.4-W11](#fe-a14-w11), [FE-A1.4-W14](#fe-a14-w14)
 - **Contracts:** D008, D010, UX-REQ-007, UX-REQ-016.
-- **Construct:** Track exact source/object/relationship/definition/method dependencies and affected findings/axes/closures; changed basis yields stale/invalid status, retained old assessment, recomputation or new examination, and explicit continuation.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Register exact source/object/relationship/definition/method dependencies of findings and closures.
+2. Mark only affected results stale or invalid while retaining earlier versions.
+3. Recompute or start a declared next examination and return to its inquiry.
+
+Execution pass: Change or retract basis and observe selective invalidation plus a new assessment version. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge an old verified status surviving retraction, unrelated axes invalidated indiscriminately and silent reuse of changed semantic definitions. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - Changing or retracting supporting evidence prevents old verification from remaining current.
   - Unaffected axes/results remain distinguishable from invalidated ones.
@@ -912,7 +1446,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** runtime.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.3-W16](#fe-a13-w16), [FE-A1.4-W06](#fe-a14-w06)
 - **Contracts:** UX-REQ-013, D008.
-- **Construct:** Compose profile-resolved exact objects/edges, path steps, layers, revisions, snapshots, projection freshness, facets/count units, omissions, finite expansion references, capabilities, and safe semantic destinations.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Resolve bounded graph objects/edges/paths from native definitions and exact snapshots.
+2. Preserve layers, revisions, projection freshness, facets, omissions and finite expansion references.
+3. Expose permitted semantic destinations through the common query owner.
+
+Execution pass: Compare direct and conversational bounded queries against real graph/read owners. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge silently blended history, dangling endpoints, hidden totals treated as complete and unlimited cyclic traversal. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - Current, working, and historical members never mix silently.
   - Cycles, hidden/unknown totals, limited traversal, missing endpoints, and unsupported capabilities have explicit semantics.
@@ -927,7 +1472,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** frontend.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.4-W16](#fe-a14-w16), [FE-A1.4-W02](#fe-a14-w02), [FE-A1.1-W06](#fe-a11-w06)
 - **Contracts:** D024, UX-REQ-013, UX-REQ-022.
-- **Construct:** Mount the graph as an in-Workspace task/Inspect mode with focus, selection, typed edges, legend, layer position, expansion, filter, saved question, Details/source access, comparison, time, impact, Review correction, and exact return.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Display the real bounded graph within the active Workspace or Inspect task.
+2. Connect focus, typed edges, legend, expansion, filtering, Details, sources, Review and return.
+3. Provide complete semantic-peer selection and action parity.
+
+Execution pass: Open evidence's graph, select a native object and update its examiner/next-turn context. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge a decorative graph, missing peer actions, layout used as evidence and graph navigation losing the task. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - Opening evidence or asking for its graph shows a real bounded result.
   - Graph selection updates the examiner and next-turn context.
@@ -942,7 +1498,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** runtime.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.4-W17](#fe-a14-w17), [FE-A1.3-W04](#fe-a13-w04), [FE-A1.3-W13](#fe-a13-w13)
 - **Contracts:** D013, UX-REQ-022, UX-REQ-021.
-- **Construct:** Add immutable non-authoritative presentation context: exact semantic query/result, scene membership/layout/version, selection, groups/filter/legend/viewport/omissions, peer identity/parity, snapshot, actor, and model-context use.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Bind semantic query/result and rendered scene membership/layout/version to the exact turn.
+2. Retain selection, filters, groups, legend, viewport, omissions, snapshot and actor.
+3. Bind the semantic peer and declare model context use; vision remains optional.
+
+Execution pass: Explain the actual shared graph scene and its omissions from retained semantic context. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge mismatched scene/peer, stale snapshot and unauthorized capture; semantic explanation cannot imply unsupported visual observation. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - Petra explains the graph currently shared with the turn, including filters and omissions.
   - Stale or mismatched scene/peer bindings limit or block layout explanations.
@@ -955,9 +1522,20 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 #### FE-A1.4-W19 — Guide agent context and next work from the graph
 
 - **State:** `planned`; **owner:** runtime.
-- **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.4-W18](#fe-a14-w18), [FE-A1.4-W12](#fe-a14-w12), [FE-A1.3-W07](#fe-a13-w07)
+- **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.4-W18](#fe-a14-w18), [FE-A1.4-W12](#fe-a14-w12), [FE-A1.3-W07](#fe-a13-w07), [FE-A1.4-W21](#fe-a14-w21)
 - **Contracts:** D008, D010, D013, UX-REQ-013, UX-REQ-022.
-- **Construct:** Compile registered graph paths, evidence gaps, dependencies, alternatives, and obligations into bounded turn context and exact eligible next-action previews; preserve explanation and query/scene provenance.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Read recorded graph paths, alternatives, dependencies, gaps and obligations.
+2. Compile bounded agent context and eligible native next-examination previews with query/scene provenance.
+3. Send any chosen action through the ordinary W07 Work/Review path.
+
+Execution pass: Explain selected basis and choose the next recorded examination in the real task. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge visual proximity, colors or counts interpreted as causality/support/priority and a graph recommendation bypassing approval. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - An agent can explain selected basis and propose the next examination from recorded semantics.
   - Graph layout, colors, edge counts, and visual proximity do not imply support, causality, or priority.
@@ -972,7 +1550,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** integration.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.4-W16](#fe-a14-w16)
 - **Contracts:** UX-REQ-007, UX-REQ-013.
-- **Construct:** Connect exact current/working/historical positions and supported temporal dimensions to comparison and impact reads with named bases, freshness, coverage, supplied dependency facts, and explicit unsupported reconstruction.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Compose current/working/historical graph positions and supported time dimensions.
+2. Read supplied dependency and impact facts with named scope and freshness.
+3. Preserve compare/history return and explicit unsupported reconstruction.
+
+Execution pass: Compare exact positions and inspect recorded dependency impact in the same inquiry. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge limited-result absence called deletion, dependency claimed as assessed consequence and unsupported historical reconstruction. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - No missing node in a limited result is described as a deletion.
   - Recorded dependencies and assessed consequences remain distinct.
@@ -987,7 +1576,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** integration.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.4-W16](#fe-a14-w16), [FE-A1.4-W17](#fe-a14-w17)
 - **Contracts:** UX-REQ-013, UX-REQ-022, UX-REQ-023.
-- **Construct:** Reject late query/continuation responses; recheck access, exact scope and layers; represent lagging projections, restricted endpoints, dense/cyclic/limited results, and safe authoritative Details/Review destinations.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Fence query/continuation results by exact request, selection, scope and current access.
+2. Label lagging projections and restricted/dense/cyclic/limited states consistently.
+3. Resolve Details and Review to safe authoritative destinations.
+
+Execution pass: Exercise fresh, stale and limited graph reads with their semantic peers. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge late overwrite, restricted label/count/path leaks and a stale visual graph paired with an unlabelled current peer. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - An old graph result cannot overwrite a newer selection.
   - Restricted objects leak no labels, counts, or connection paths.
@@ -1002,7 +1602,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** frontend.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.4-W01](#fe-a14-w01), [FE-A1.4-W09](#fe-a14-w09)
 - **Contracts:** D012, D024, UX-REQ-005, UX-REQ-017, UX-REQ-018, UX-REQ-019.
-- **Construct:** Show retained output identity, provenance/validation availability, originating turn/Work, and exact Artifact destination; retain an explicit boundary for the full document editor/export operation family.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Read retained output identity and exact Artifact destination with originating turn/Work.
+2. Expose available provenance and validation without fabricating missing records.
+3. Preserve the explicit Wave 7 document-authoring/export boundary.
+
+Execution pass: Inspect A1 output and follow its exact basis and retained Artifact identity. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge missing provenance implied as validated, output editing pulled into A1 and examiner/cycle work deferred as Composition. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - An output produced in A1 remains inspectable and linked to its basis.
   - The 15 document Composition operations stay assigned to Wave 7.
@@ -1017,7 +1628,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** frontend.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.4-W01](#fe-a14-w01), [FE-A1.4-W02](#fe-a14-w02)
 - **Contracts:** UX-REQ-008, UX-REQ-023.
-- **Construct:** Complete safe direct links, server selection, historical/unavailable destinations, task-aware return, local unsent drafts, durable submitted candidates, focus and selection across all renderers and graph modes.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Resolve exact direct links and historical/unavailable object destinations.
+2. Preserve local unsent drafts separately from durable submitted candidates.
+3. Restore selection, focus and initiating task across source, graph, Review, History and Inspect.
+
+Execution pass: Refresh/deep-link every renderer and return to the exact initiating task. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge malformed addresses, substituted Projects, stale revisions and unsent draft loss during graph or Inspect navigation. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - Refresh/direct links resolve the intended revision or a safe exact failure.
   - Local drafts and durable working records have explicit different retention.
@@ -1034,7 +1656,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** frontend.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.4-W23](#fe-a14-w23), [FE-A1.3-W06](#fe-a13-w06)
 - **Contracts:** D024.
-- **Construct:** Add one Inspect entry to every material answer, candidate, Work action/result, Review decision, source change, inquiry assessment/closure, and Workspace object.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Add one contextual Inspect entry for every material turn, object, candidate, Work and decision.
+2. Bind the entry to its exact request/result/revision and origin.
+3. Render inspection within the Workspace and retain conversation/return state.
+
+Execution pass: Open Inspect from every required object/action family and return with retained focus/draft. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge orphan inspection, wrong origin, missing consequence families and a permanent diagnostic rail replacing the task. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - All required object/action families open exact inspection from their origin.
   - Inspect occupies the Workspace and preserves the conversation.
@@ -1049,7 +1682,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** runtime.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.5-W01](#fe-a15-w01), [FE-A1.3-W14](#fe-a13-w14)
 - **Contracts:** D024, D006, UX-REQ-009, UX-REQ-021.
-- **Construct:** Return the exact request, outcome/state/reason, objective/definition/snapshot, source/evidence/packet/assessment references, alternatives, scope, omissions, uncertainty, and validation limitations.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Read exact request/outcome/reason and definition/objective/snapshot basis.
+2. Compose authorized evidence, packet, assessment, alternatives and limitations.
+3. Preserve original meanings and explicitly absent records.
+
+Execution pass: Trace a material result to available exact basis through authoritative reads. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge facts reconstructed from chat, changed historical semantics and missing basis presented as established. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - Each material claim has an inspectable basis or explicit limitation.
   - The Inspector does not reconstruct missing facts from chat or UI state.
@@ -1064,7 +1708,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** runtime.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.5-W01](#fe-a15-w01), [FE-A1.3-W07](#fe-a13-w07)
 - **Contracts:** D005, D021, D024, UX-REQ-020.
-- **Construct:** Add retained exact operation/command, actor/grant, definition/objective, input/output revisions, applicable policy and validation findings, approval or absence, command fingerprint, and real availability.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Read retained operation/command, actor/grant and exact input/output revisions.
+2. Display applicable policy, prerequisites, validators, approval or their actual absence.
+3. Show command fingerprint and availability without granting authority.
+
+Execution pass: Inspect authorized and denied actions with their real retained control records. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge a current grant substituted for past authority, fabricated default policy and inspection triggering a state change. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - Every material action explains its authority and failed prerequisites.
   - Absent automation/control policy is explicitly absent.
@@ -1079,7 +1734,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** runtime.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.5-W03](#fe-a15-w03), [FE-A1.4-W14](#fe-a14-w14)
 - **Contracts:** D024, UX-REQ-007, UX-REQ-023.
-- **Construct:** Audit and supply authenticated durable receipt reads for creation/objective/definition, source lifecycle, Work, candidate/Review/Apply, model interaction, recovery/Revert, inquiry assessment and closure; bind record hashes and exact origin.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Inventory receipt reads for creation, definition, Source, Work, Review, recovery, model and inquiry outcomes.
+2. Supply only missing authenticated read connections to existing canonical owners.
+3. Bind hashes, origin and effect availability across reload.
+
+Execution pass: Read each family's actual retained receipt in a fresh browser. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge ephemeral callbacks claimed as receipts, corrupted hashes, foreign ownership and missing records supporting an applied claim. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - A fresh browser can inspect each observed command/effect after reload.
   - An ephemeral callback or new current grant does not stand in for a retained receipt.
@@ -1094,7 +1760,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** runtime.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.5-W02](#fe-a15-w02), [FE-A1.5-W04](#fe-a15-w04), [FE-A1.4-W18](#fe-a14-w18)
 - **Contracts:** D024, UX-REQ-007, UX-REQ-013.
-- **Construct:** Connect turn/run, context/query/scene, evidence, working revision, ChangeSet, decision, event, projection, assessment/closure, and retained History to a bounded inspectable lineage.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Link turn/run/context/query/scene to evidence, working revision, ChangeSet and decision.
+2. Extend exact event/projection/assessment/closure/History lineage with bounded omissions.
+3. Preserve safe source/graph/History destinations and return.
+
+Execution pass: Reconstruct an actual result's authority and evidence lineage through retained records. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge missing links guessed from UI, mixed revisions and restricted History details exposed by provenance traversal. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - The user can reconstruct how a result and authority state arose.
   - Lineage names omissions and unavailable links.
@@ -1109,7 +1786,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** integration.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.5-W05](#fe-a15-w05), [FE-A1.4-W15](#fe-a14-w15)
 - **Contracts:** D005, UX-REQ-007, UX-REQ-023.
-- **Construct:** Compose recorded dependency impact, recovery assessment, compensating command preview, explicit confirmation, retained execution receipt, revalidation/invalidation, and updated graph/Workspace result.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Read recorded impact and native recovery assessment for an uncertain or changed effect.
+2. Preview and explicitly confirm eligible compensating commands.
+3. Retain compensation receipt and reflect resulting invalidation in the next inquiry cycle.
+
+Execution pass: Resolve an unknown effect and complete eligible compensation with exact resulting basis. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge history deletion presented as Revert, compensation repeated after restart and old verification retained after changed basis. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - Revert is a governed compensation rather than history deletion.
   - Unknown effect uses an authoritative read before eligible recovery.
@@ -1124,7 +1812,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** frontend.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.5-W02](#fe-a15-w02), [FE-A1.5-W03](#fe-a15-w03), [FE-A1.5-W05](#fe-a15-w05), [FE-A1.4-W05](#fe-a14-w05)
 - **Contracts:** D024, UX-REQ-012, UX-REQ-021.
-- **Construct:** Build Explanation, Basis, Control, and Graph/History levels using compositional object/action sections; keep current question, necessary decision, critical validation and unknown effect visible at the appropriate task level.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Compose Explanation, Basis, Control and Graph/History levels in one task hierarchy.
+2. Keep necessary decision, critical validation and unknown effect visible at the current level.
+3. Resolve deeper sections compositionally for all three definitions.
+
+Execution pass: Complete an ordinary task without diagnostics, then inspect enough basis before a consequential decision. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge required warnings hidden behind optional depth, unrelated Inspect routes and domain-specific disclosure violating the shared hierarchy. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - An ordinary user can finish a task without opening diagnostic details.
   - Evidence examination reveals enough basis before a consequential decision.
@@ -1139,7 +1838,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** frontend.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.5-W07](#fe-a15-w07), [FE-A1.1-W05](#fe-a11-w05)
 - **Contracts:** D006, D013, D024, UX-REQ-022.
-- **Construct:** Render readable exact records, path/basis tables, legends, policy findings, diffs and receipt summaries with semantic peer actions; keep raw diagnostics secondary.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Present readable records, paths, basis tables, diffs, legends and receipt summaries.
+2. Add labelled semantic actions, keyboard order, focus return and high-zoom wrapping.
+3. Keep raw diagnostics secondary and exclude private reasoning.
+
+Execution pass: Use all disclosure levels and graph peers through browser semantics and keyboard. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge clipped identifiers, keyboard-inaccessible decisions, missing peer actions and an Inspect feature requiring private reasoning; native screen-reader evaluation stays excluded. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - All four disclosure levels are usable with keyboard and browser accessibility semantics.
   - Names, reference descriptions, and long values wrap at high zoom.
@@ -1155,7 +1865,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** integration.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.5-W04](#fe-a15-w04), [FE-A1.5-W05](#fe-a15-w05)
 - **Contracts:** UX-REQ-008, UX-REQ-023.
-- **Construct:** Test actor/Project/object/revision/hash binding, historical access, denied or lost access, record corruption, stale selection, retained receipt ownership, and safe retry/return for every Inspector read owner.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Bind every inspection read to exact actor, Project, object, revision and hash.
+2. Retain historical access, record-corruption, stale-selection and unavailable-receipt outcomes.
+3. Preserve drafts and native Work state on safe retry/return.
+
+Execution pass: Read permitted current/historical owners and recover named failures. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge foreign receipts, descriptor leaks, accessible-neighbor substitution and failed reads changing pending Work. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - No inspector fallback selects a nearby accessible object.
   - A read error leaves existing user drafts and pending Work unchanged.
@@ -1170,9 +1891,20 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 #### FE-A1.6-W01 — Reconcile all 97 live operation presentations
 
 - **State:** `planned`; **owner:** integration.
-- **Prerequisites:** [FE-A1.0-W06](#fe-a10-w06), [FE-A1.4-W23](#fe-a14-w23), [FE-A1.5-W09](#fe-a15-w09)
+- **Prerequisites:** [FE-A1.0-W06](#fe-a10-w06), [FE-A1.4-W23](#fe-a14-w23), [FE-A1.5-W09](#fe-a15-w09), [FE-A1.0-W05](#fe-a10-w05)
 - **Contracts:** D024.
-- **Construct:** Run every assigned Wave 6 operation through its mapped entry, result, exposure, exact identity, eligible command/read owner, terminal result, recovery, and return; retain operation-specific conformance evidence.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Compare all 116 frozen operation presentation entries with their current contractual ownership.
+2. Exercise each of the 97 A1 operations through its mapped live entry and native read/command owner.
+3. Retain per-operation result, terminal/recovery/return and coverage evidence.
+
+Execution pass: Account for every A1 operation with actual adapted functional evidence. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge one omitted operation, duplicate mapping, DOM-only evidence and a mechanically complete operation without usable task presentation. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - Every one of the 97 operations has live adapted evidence.
   - All 116 retain one audited presentation-map entry.
@@ -1185,9 +1917,20 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 #### FE-A1.6-W02 — Remove the superseded customer interface and compatibility debt
 
 - **State:** `planned`; **owner:** frontend.
-- **Prerequisites:** [FE-A1.0-W06](#fe-a10-w06), [FE-A1.6-W01](#fe-a16-w01)
+- **Prerequisites:** [FE-A1.0-W06](#fe-a10-w06), [FE-A1.6-W01](#fe-a16-w01), [FE-A1.0-W05](#fe-a10-w05)
 - **Contracts:** D024.
-- **Construct:** Remove or quarantine module-grid/control-gallery entry, duplicate Inspect routes, obsolete components, permanent automatic/test controls, and route forms that replace the conversational copilot; keep required mechanics accessible contextually.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Inventory obsolete customer entry points and their mapped functioning replacements.
+2. Remove or quarantine duplicate routes/components and automatic/test controls.
+3. Verify the customer root enters the approved copilot/outcome experience.
+
+Execution pass: Reach each retained capability through its new contextual entry after cleanup. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge deleted capability paths, old root navigation resurfacing and conformance/reset controls shown as product flow. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - The customer root opens the accepted copilot/outcome experience.
   - Every removed control has a mapped functioning replacement.
@@ -1200,9 +1943,20 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 #### FE-A1.6-W03 — Complete quiet automatic orchestration
 
 - **State:** `planned`; **owner:** integration.
-- **Prerequisites:** [FE-A1.0-W06](#fe-a10-w06), [FE-A1.3-W11](#fe-a13-w11), [FE-A1.4-W09](#fe-a14-w09), [FE-A1.3-W08](#fe-a13-w08)
+- **Prerequisites:** [FE-A1.0-W06](#fe-a10-w06), [FE-A1.3-W11](#fe-a13-w11), [FE-A1.4-W09](#fe-a14-w09), [FE-A1.3-W08](#fe-a13-w08), [FE-A1.0-W05](#fe-a10-w05)
 - **Contracts:** D024, UX-REQ-003, UX-REQ-014.
-- **Construct:** Make healthy Project/task resume, Work delivery/reconnect/replay, eligible stale Review refresh, attention surfacing, and result routing automatic where the server allows it; retain intervention for material meaning/authority/failure.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Restore healthy task/Work delivery and eligible stale Review reads automatically.
+2. Route attention and retained results to the current task without extra modules.
+3. Preserve visible intervention for meaning, authority, required decisions and unknown effects.
+
+Execution pass: Complete a supported outcome without navigating Work, History, Settings or Graph. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge automation invoking a new model/command, spending beyond eligibility or hiding an unresolved required decision. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - A representative outcome completes without visiting Work/History/Settings/Graph.
   - Automatic behavior does not run a new model, approve, cancel, or spend beyond eligibility.
@@ -1215,9 +1969,20 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 #### FE-A1.6-W04 — Remove profile-specific terminology from the shared shell
 
 - **State:** `planned`; **owner:** frontend.
-- **Prerequisites:** [FE-A1.0-W06](#fe-a10-w06), [FE-A1.4-W06](#fe-a14-w06), [FE-A1.3-W13](#fe-a13-w13)
+- **Prerequisites:** [FE-A1.0-W06](#fe-a10-w06), [FE-A1.4-W06](#fe-a14-w06), [FE-A1.3-W13](#fe-a13-w13), [FE-A1.0-W05](#fe-a10-w05)
 - **Contracts:** D006, D018, D024, UX-REQ-004, UX-REQ-021.
-- **Construct:** Audit shared entry, navigation, composer, status, interruptions, empty states, and Inspect copy; resolve domain labels through the ProjectDefinition terminology/descriptors and communication contract.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Audit shared shell, entry, navigation, composer, status and Inspect terminology.
+2. Resolve domain labels through exact native definition descriptors and communication contracts.
+3. Retain original historical labels and meanings.
+
+Execution pass: Use scientific, writing and event-planning definitions through the same shared grammar. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge universal science terms, current labels applied to old revisions and definition-specific conditionals in shared shell behavior. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - Three unrelated definitions use the same shared shell grammar.
   - Historical object labels retain their original semantic binding.
@@ -1230,9 +1995,20 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 #### FE-A1.6-W05 — Keep unsupported capabilities explicit without deferring A1
 
 - **State:** `planned`; **owner:** integration.
-- **Prerequisites:** [FE-A1.0-W06](#fe-a10-w06), [FE-A1.4-W13](#fe-a14-w13), [FE-A1.4-W22](#fe-a14-w22), [FE-A1.5-W04](#fe-a15-w04)
+- **Prerequisites:** [FE-A1.0-W06](#fe-a10-w06), [FE-A1.4-W13](#fe-a14-w13), [FE-A1.4-W22](#fe-a14-w22), [FE-A1.5-W04](#fe-a15-w04), [FE-A1.0-W05](#fe-a10-w05)
 - **Contracts:** D024, D010, UX-REQ-004.
-- **Construct:** Audit all limited states against this ledger: unsupported external/experimental/output capabilities remain honest, while required conversational, examiner, graph, scene, inquiry, verification-cycle and receipt capabilities are implemented before acceptance.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Compare every limited state and deferred capability against the approved A1 function list.
+2. Keep full document authoring/export, general experiment execution and later external capabilities explicitly assigned.
+3. Reject any transfer of required conversation, examiners, graph, cycles or receipts to later waves.
+
+Execution pass: Verify every required A1 function remains owned and every later capability has an explicit boundary. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge a missing required adapter hidden as unsupported and a renamed Composition boundary releasing incomplete examination. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - No required A1 work is moved to Wave 7, Wave 8, M2, or M3 to pass the gate.
   - Full document editing/export and general experiment execution retain later ownership.
@@ -1245,9 +2021,20 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 #### FE-A1.6-W06 — Integrate the prerequisite into all delivery branches and packets
 
 - **State:** `planned`; **owner:** integration.
-- **Prerequisites:** [FE-A1.0-W06](#fe-a10-w06), [FE-A1.0-W04](#fe-a10-w04), [FE-A1.6-W01](#fe-a16-w01)
+- **Prerequisites:** [FE-A1.0-W06](#fe-a10-w06), [FE-A1.0-W04](#fe-a10-w04), [FE-A1.6-W01](#fe-a16-w01), [FE-A1.0-W05](#fe-a10-w05)
 - **Contracts:** D024.
-- **Construct:** Carry the A1 ledger/gate into coordinator and backend/design worktrees before later-wave workers are launched; update Wave 7/8 packets to require the accepted A1 candidate and preserve its regression suite.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Reconcile approved A1 contract and execution copies across delivery branches.
+2. Audit initialization/resume/extension/acceptance packets and regression obligations.
+3. Keep architecture disposition wave numbering separate from delivery waves.
+
+Execution pass: Check both worktrees and every delivery entry against the accepted A1 candidate and current instructions. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge missing/stale copies, an existing worker bypassing A1 and historical Wave 6 instructions superseding current scope. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - Initialization, resumed/existing workers, extension, and later-wave acceptance cannot bypass A1.
   - Missing/stale ledger integration is a blocker.
@@ -1260,20 +2047,29 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 
 #### FE-A1.6-W07 — Keep completion and evidence accounting current
 
-- **State:** `complete`; **owner:** integration.
+- **State:** `planned`; **owner:** integration.
 - **Prerequisites:** [FE-A1.0-W06](#fe-a10-w06), [FE-A1.0-W05](#fe-a10-w05)
 - **Contracts:** D024.
-- **Construct:** Update work status, dependencies, scoped retained evidence and completion artifacts in the same change as each delivered slice; append newly discovered required work before it can be waived or forgotten. Enforce one prerequisite-ready active item and criterion-bound execution/critical evidence, synchronize roadmap and execution views, and stop repeated failures for broad diagnosis under D025.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Bind each selected item to exact approved scope, prerequisites and candidate.
+2. Retain distinct criterion-level execution/critical evidence and unresolved findings.
+3. Record each numbered step and synchronize status/evidence copies; count construction and preparatory failures as well as formal verification, stop after two consecutive unsuccessful attempts, and obtain renewed approval for material scope changes.
+
+Execution pass: Close only items whose criteria, sources and dependencies remain current. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge forged/stale evidence, copied execution as critical, silent attempt reset and user rejection that leaves release open. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - A complete item has evidence against its own acceptance criteria and completed dependencies.
   - A stage is complete only when every mandatory child is complete.
   - User rejection reopens affected items and revokes the wave release.
   - Execution and critical tests evaluate distinct questions on the same exact candidate.
   - Two unsuccessful attempts cannot silently restart or advance another item.
-- **Retained partial evidence:** None assigned; no implementation claim.
-- **Completion evidence:**
-  - [reports/a1-passes/FE-A1.6-W07-execution-1791661798178.json](../reports/a1-passes/FE-A1.6-W07-execution-1791661798178.json); `node --test --test-reporter=tap scripts/a1/accounting.test.mjs`. Current accounting and release-control logic only. Synthetic work/candidate fixtures prove closure, rejection and retry guards; they establish no adapted operation or product integration.
-  - [reports/a1-passes/FE-A1.6-W07-critical-1791661801980.json](../reports/a1-passes/FE-A1.6-W07-critical-1791661801980.json); `node --test --test-reporter=tap scripts/a1/accounting.critical.test.mjs`. Current accounting and release-control logic only. Synthetic work/candidate fixtures prove closure, rejection and retry guards; they establish no adapted operation or product integration.
+- **Retained partial evidence:** [reports/a1-passes/FE-A1.6-W07-execution-1791661798178.json](../reports/a1-passes/FE-A1.6-W07-execution-1791661798178.json), [reports/a1-passes/FE-A1.6-W07-critical-1791661801980.json](../reports/a1-passes/FE-A1.6-W07-critical-1791661801980.json)
+- **Completion evidence:** Missing; this item cannot close.
 
 ### FE-A1.7 — Functional verification and explicit user acceptance
 
@@ -1284,7 +2080,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** validation.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.2-W05](#fe-a12-w05), [FE-A1.2-W06](#fe-a12-w06), [FE-A1.1-W07](#fe-a11-w07)
 - **Contracts:** D024.
-- **Construct:** Verify normal copilot intake, definition review, atomic creation, no-evidence Q&A, initial material, recovery and first bounded result against the individual functional acceptance criteria using production boundaries.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Exercise each zero-Project and empty-Project function through actual owners.
+2. Retain definition review, creation, no-evidence Q&A, intake and first-result evidence independently.
+3. Challenge interruption/recovery in a separate pass.
+
+Execution pass: Use real HTTP, persistence, official AG-UI and eligible models wherever each function requires them. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge fixture-only integration claims, duplicate creation, fabricated evidence and unsupported output marked produced. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - Model-dependent functions use their production HTTP, persistence, official AG-UI adapter and an eligible actual model.
   - Retain exact input, identity, observable result and adverse-state evidence for each function.
@@ -1299,7 +2106,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** validation.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.4-W13](#fe-a14-w13), [FE-A1.5-W08](#fe-a15-w08), [FE-A1.3-W18](#fe-a13-w18)
 - **Contracts:** D024, D006.
-- **Construct:** Verify normal question/follow-up, exact source/passages, Claim/Assertion examination, typed relations, working versus trusted layers, Review, graph, Inspect and readable reload against their own criteria.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Verify scientific normal Q&A/follow-up and exact evidence reading.
+2. Verify native examination, relationships, Review, graph and Inspect functions independently.
+3. Retain actual model, receipt and snapshot evidence with reload.
+
+Execution pass: Demonstrate Workspace reaction and scoped supporting/contrary basis through production functions. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge stale basis, source/inference confusion, invalid citations and working content shown as trusted without Review. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - The Workspace responds to the conversation and direct manipulation.
   - Answer force, evidence scope, contrary basis and omissions validate.
@@ -1314,7 +2132,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** validation.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.4-W06](#fe-a14-w06), [FE-A1.4-W07](#fe-a14-w07), [FE-A1.5-W08](#fe-a15-w08), [FE-A1.3-W18](#fe-a13-w18)
 - **Contracts:** D018, D024.
-- **Construct:** Verify native requirement/interpretation, competing readings, source basis, working relations, correction/Review, graph and progressive disclosure through their shared compositional contracts.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Verify native writing Requirement and Interpretation with textual basis and competing readings.
+2. Verify correction, Review, working relationships, graph and progressive disclosure.
+3. Restore actual questions, decisions and results.
+
+Execution pass: Demonstrate both writing object kinds through shared production governance. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge missing Interpretation, scientific aliases and full document editing incorrectly used as an A1 prerequisite. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - No scientific object alias supplies writing semantics.
   - Question, follow-up, examination and decision are live and durable.
@@ -1329,7 +2158,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** validation.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.4-W06](#fe-a14-w06), [FE-A1.2-W07](#fe-a12-w07), [FE-A1.5-W08](#fe-a15-w08)
 - **Contracts:** D018, D024.
-- **Construct:** Verify independently authored compatible definition resolution, normal Q&A, native object/inquiry, bounded action, result/graph/examiner, limitations and exact return against the same shared functional contracts.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Verify the independent event-planning definition and native requirement/constraint/option semantics.
+2. Complete normal Q&A, bounded action, examiner, graph and result return.
+3. Expose unsupported booking/purchase/external scheduling separately.
+
+Execution pass: Demonstrate the third definition's real persisted objects, native relationships and validators. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge a renamed fixture, Q&A-only proof, fabricated operational capability and a missing native examiner counted complete. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - The definition is not a renamed scientific or writing example.
   - The same shared governance, thread, and Workspace contracts apply.
@@ -1344,7 +2184,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** validation.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.3-W10](#fe-a13-w10), [FE-A1.3-W11](#fe-a13-w11), [FE-A1.5-W06](#fe-a15-w06), [FE-A1.5-W09](#fe-a15-w09)
 - **Contracts:** D013, UX-REQ-023.
-- **Construct:** Verify missing input, preview/approve/reject/defer, stop versus cancel, reconnect/replay, retry/resume/start-again, lost access, unknown effect, exact receipts and compensation against each owning function.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Verify each required input, preview, approval, reject/defer and delivery control function.
+2. Verify native retry/resume/start-again, reconnect and lost-access recovery.
+3. Verify uncertain-effect reads, receipts and eligible compensation.
+
+Execution pass: Reach retained terminal/return states while preserving drafts and pending decisions. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge duplicate model/command/Review effects, unsafe retries and restored decisions acting automatically. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - Each path reaches a retained terminal state and safe return.
   - No duplicate command, Review application, model request, or scientific result is produced by replay.
@@ -1359,7 +2210,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** validation.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.3-W05](#fe-a13-w05), [FE-A1.3-W07](#fe-a13-w07), [FE-A1.4-W21](#fe-a14-w21), [FE-A1.3-W13](#fe-a13-w13)
 - **Contracts:** D013, D007, UX-REQ-022.
-- **Construct:** Exercise real adapter ordering and terminal semantics with adversarial malformed/partial/unregistered tool events, stale turns, mixed snapshots, wrong actors, restricted refs, scene mismatch, duplicate delivery, provider failure and invalid output.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Verify adapter containment and actual ordering/terminal behavior.
+2. Inject malformed, partial, unregistered and foreign tool/reference events.
+3. Retain separate adverse protocol and authority observations.
+
+Execution pass: Observe recoverable product behavior through real adapter and owner boundaries. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge mixed snapshots, stale scenes, revoked access, invalid provider output and rejected events still producing effects. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - Rejected input produces no authority change or extra model/command execution.
   - Feature and core protocol-containment checks pass.
@@ -1374,7 +2236,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** validation.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.4-W13](#fe-a14-w13), [FE-A1.4-W14](#fe-a14-w14), [FE-A1.4-W15](#fe-a14-w15), [FE-A1.5-W06](#fe-a15-w06)
 - **Contracts:** D010, D008.
-- **Construct:** Verify target/rival and scoped criteria, repeated examination, exact assessment/posture/obligation links, explicit disposition, changed/retracted basis and stale/reopened/reassessed behavior against each cyclic-function contract.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Verify scoped target/rival criteria, assessment and posture/obligation links.
+2. Run repeated examination with explicit disposition.
+3. Change/retract basis and retain stale/reopened/reassessed versions.
+
+Execution pass: Demonstrate cyclic-function closure and selective invalidation with exact dependencies. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge open mandatory obligations, Work completion assigning warrant and old assessment basis presented as current. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - No unresolved mandatory obligation is silently closed.
   - A terminal Work state never changes warrant by itself.
@@ -1389,7 +2262,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** validation.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.7-W01](#fe-a17-w01), [FE-A1.7-W02](#fe-a17-w02), [FE-A1.7-W03](#fe-a17-w03), [FE-A1.7-W04](#fe-a17-w04)
 - **Contracts:** D024.
-- **Construct:** Review the integrated functions with actual content at desktop, resized, compact, empty and adverse states; correct hierarchy, reading density, composer usability, graph discoverability, response coupling, decisions and return.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Evaluate the complete scientific, writing, event-planning and empty-entry tasks.
+2. Review hierarchy, density, composer, graph discovery, Workspace coupling and decisions.
+3. Link every material visual/interaction finding to its owning repair.
+
+Execution pass: Inspect the integrated product with real content across desktop, resized and adverse states. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge apparently complete components whose combined task has dead ends, misleading authority or unusable density. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - Review includes complete scientific, writing, unrelated and empty-Project tasks.
   - The copilot conversation, responsive Workspace and graph are evaluated together.
@@ -1404,7 +2288,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** validation.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.1-W04](#fe-a11-w04), [FE-A1.1-W05](#fe-a11-w05), [FE-A1.5-W08](#fe-a15-w08), [FE-A1.7-W01](#fe-a17-w01), [FE-A1.7-W02](#fe-a17-w02), [FE-A1.7-W03](#fe-a17-w03), [FE-A1.7-W04](#fe-a17-w04)
 - **Contracts:** D024, UX-REQ-022.
-- **Construct:** Verify required functions using keyboard and browser accessibility semantics, focus/return, 420 px, high zoom/text scale, touch, reduced motion, non-color cues, long labels and graph semantic-peer parity.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Complete the required tasks by keyboard, touch and semantic graph peers.
+2. Exercise narrow width, zoom/text scale, reduced motion, long labels and non-color cues.
+3. Retain focus/return, readable streaming and pending input.
+
+Execution pass: Reach the same decisions and terminals through each supported presentation. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge trapped focus, clipping, lost drafts and semantic peers missing actions; native screen-reader evaluation remains excluded. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - Tasks can reach the same decisions and terminal outcomes in visual and accessible peers.
   - No clipping, horizontal overflow, trapped focus, or lost pending input prevents completion.
@@ -1420,7 +2315,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** validation.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.6-W01](#fe-a16-w01), [FE-A1.6-W02](#fe-a16-w02), [FE-A1.6-W03](#fe-a16-w03), [FE-A1.6-W04](#fe-a16-w04), [FE-A1.6-W05](#fe-a16-w05), [FE-A1.6-W06](#fe-a16-w06)
 - **Contracts:** D024, D013.
-- **Construct:** Run all 116 presentation mappings, all 97 adapted live-operation evidence checks, ledger coverage/dependencies, protocol/domain boundaries, relevant repository checks, real persistence/projection integration and evidence for each required function.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Run complete ledger/operation/presentation and protocol/domain conformance gates.
+2. Run appropriate repository and real persistence/projection integration checks.
+3. Bind every completed function to exact candidate, inputs, results, provider/owner and limits.
+
+Execution pass: Verify all required engineering checks and retained per-function evidence on one integrated candidate. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge skipped gates, substituted DOM assertions, stale proof sources and broad test counts offered as functional completion. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - Every completed work item links exact retained evidence with command, inputs, candidate commit, backend/provider, result and coverage limits.
   - No required gate is skipped or replaced by a DOM-element assertion.
@@ -1435,7 +2341,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** validation.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.7-W05](#fe-a17-w05), [FE-A1.7-W06](#fe-a17-w06), [FE-A1.7-W07](#fe-a17-w07), [FE-A1.7-W08](#fe-a17-w08), [FE-A1.7-W09](#fe-a17-w09)
 - **Contracts:** D024.
-- **Construct:** Review apparent authority, misleading completion, hidden uncertainty, cognitive load, lost context, dead ends, unsupported fallback, stale graph scenes and recovery across the integrated tasks.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Review the integrated tasks for authority, uncertainty, cognitive load and recovery.
+2. Challenge graph/cycle semantics, scope limitations and apparent completion.
+3. Resolve material findings with affected functional and critical reruns.
+
+Execution pass: Confirm findings map to exact required functions and repaired candidate evidence. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge concealed uncertainty, stale scenes, broken task return and repeated positive checks offered as independent critical review. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - No unresolved critical finding remains.
   - Every material finding is linked to its repair and rerun.
@@ -1450,7 +2367,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** integration.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.7-W10](#fe-a17-w10), [FE-A1.7-W11](#fe-a17-w11)
 - **Contracts:** D024.
-- **Construct:** Provide a stable inspection URL, valid root/deep links, exact candidate commit and runtime identity, clean-start instructions, a review guide for required functions, known limits and the complete implementation evidence index; enter needs_user.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Publish the exact fully verified candidate identity and inspection instructions.
+2. Verify root/deep links and clean-start behavior.
+3. Assemble per-function evidence and known limits for user inspection.
+
+Execution pass: Open the inspection root and exact objects against the identified runtime/candidate. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge unavailable routes, different served commits, missing proof and a pending user decision releasing Wave 7. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - The inspection root and exact object links are browser-verified.
   - The candidate includes all engineering work and passed evidence.
@@ -1465,7 +2393,18 @@ Counts reflect verified contractual closure, not effort, product percentage, or 
 - **State:** `planned`; **owner:** user.
 - **Prerequisites:** [FE-A1.0-W05](#fe-a10-w05), [FE-A1.6-W07](#fe-a16-w07), [FE-A1.0-W06](#fe-a10-w06), [FE-A1.7-W12](#fe-a17-w12)
 - **Contracts:** D024.
-- **Construct:** Have the user inspect the actual A1 candidate and accept the copilot, empty entry, compositional examination, progressive disclosure, reactive Workspace, graph-guided cyclic verification and recovery; retain the exact decision against the candidate.
+- **Construct:** After explicit roadmap approval, execute in this order:
+
+1. Present the actual integrated A1 candidate and evidence to the user.
+2. Record only the user's explicit accept or changes-requested statement against that candidate.
+3. Release later waves only after all engineering criteria and final product acceptance close.
+
+Execution pass: Match the actual user decision to the exact candidate and approved required contract. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge agent-created acceptance, changed candidate, unanswered approval and rejection that fails to reopen affected work. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
 - **Complete only when:**
   - Only an explicit user acceptance can create the acceptance record.
   - Changes requested reopen affected work and leave the gate closed.

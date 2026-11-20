@@ -1,5 +1,13 @@
 # Automated Wave 4 handoff
 
+<!-- A1-APPROVAL-HOLD:START -->
+
+**Execution hold, 2026-10-11: this packet does not authorize product work.**
+
+The user requires the [reconciled A1 roadmap](../reports/FE-A1-ROADMAP-APPROVAL.md) to be finished and explicitly approved before any backend/frontend construction, product builds/tests, model invocation, migrations or worker execution. FE-A1.0-W05 is blocked and no product item is active. This historical packet is subordinate to that approval hold and the current granular A1 instructions. Roadmap approval is separate from final A1 product acceptance; later delivery waves also require the complete accepted product. Only planning reconciliation and planning-only checks may proceed now.
+
+<!-- A1-APPROVAL-HOLD:END -->
+
 This execution packet is subordinate to Petra's accepted decisions, graph
 model, runtime contracts, implementation roadmap, frozen UX brief, UX backend
 handoff, and UX runtime architecture disposition. It coordinates bounded work;

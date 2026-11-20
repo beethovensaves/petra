@@ -1,5 +1,13 @@
 # UX runtime architecture disposition and implementation sequence
 
+<!-- A1-APPROVAL-HOLD:START -->
+
+**Current instruction, 2026-10-11: finish the roadmap first. Product construction is blocked pending explicit user approval.**
+
+Review the [reconciled A1 roadmap](FE-A1-ROADMAP-APPROVAL.md), scope `sha256:3438657eca7150a5c7f6c6b4e61c13def514963f444ef06f6baf96cd65bd7a4a`. Only roadmap documents, granular execution instructions and planning checks may change now. Do not build backend/frontend code, run product builds/tests or model calls, apply migrations, or launch product workers. FE-A1.0-W05 is blocked and no product item is active. Older milestone claims and worker launch instructions below retain their historical context; they do not authorize current execution. Roadmap approval and final A1 product acceptance are separate decisions. Material scope changes require renewed approval; matching copies or passing tests cannot supply it.
+
+<!-- A1-APPROVAL-HOLD:END -->
+
 Current execution amendment — 2026-10-07: the
 [A1 function ledger](FE-A1-CONTRACT-IMPLEMENTATION-LEDGER.md) controls remaining
 implementation order, dependencies and completion. All required A1 functions
@@ -1233,21 +1241,21 @@ and resulting evidence revisions.
 
 ## Controlling A1 execution
 
-Binding: `sha256:7d05f99a536a1f2e514946cb4a3d6b4face3231cfff49f9ba6e97ee4f7fb6711`. 8/90 required items complete; 82 incomplete.
+Binding: `sha256:c5eb57bc2a5b1d258cb6a784b0defac09161da8fb8b87b8c264313ca0f98be93`. 5/90 required items complete; 85 incomplete.
 
 D024 governs the conversational copilot and reactive Workspace. D025 governs synchronized execution and two distinct validation passes. The canonical [function ledger](../scripts/frontend-a1-work-inventory.json), [readable implementation ledger](FE-A1-CONTRACT-IMPLEMENTATION-LEDGER.md), and [granular execution instructions](../scripts/frontend-a1-execution.md) agree before work starts, evidence is recorded, completion is accepted, or another wave proceeds.
 
-Active work: FE-A1.3-W02, execution.
+Active work: none; select one prerequisite-ready item.
 
 | Stage   | Required behavior                                                          | Complete / required |
 | ------- | -------------------------------------------------------------------------- | ------------------- |
-| FE-A1.0 | Contract reconciliation and execution control                              | 6 / 6               |
+| FE-A1.0 | Contract reconciliation and execution control                              | 5 / 6               |
 | FE-A1.1 | Copilot shell and interaction design                                       | 0 / 7               |
 | FE-A1.2 | Conversational zero/empty Project entry                                    | 0 / 7               |
-| FE-A1.3 | Durable grounded conversation and AG-UI                                    | 1 / 18              |
+| FE-A1.3 | Durable grounded conversation and AG-UI                                    | 0 / 18              |
 | FE-A1.4 | Reactive Workspace, compositional examination and cyclic graph-guided work | 0 / 23              |
 | FE-A1.5 | Progressive inspection and complete authority receipts                     | 0 / 9               |
-| FE-A1.6 | Complete migration and operation conformance                               | 1 / 7               |
+| FE-A1.6 | Complete migration and operation conformance                               | 0 / 7               |
 | FE-A1.7 | Functional verification and explicit user acceptance                       | 0 / 13              |
 
 Select one prerequisite-ready item. Execute every criterion with proper tests; then challenge the delivered behavior in a separate critical pass with distinct tests. Repair findings when needed. Two unsuccessful attempts require broad diagnosis before more local retries. Preserve earlier partial evidence. The sixteen late scenarios are optional; browser semantics are required and native screen-reader evaluation remains excluded. Wave 7/8 stay blocked until all required functions pass and the user accepts the exact candidate.

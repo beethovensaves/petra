@@ -1,6 +1,6 @@
 # A1 execution instructions
 
-Roadmap binding: `sha256:7d05f99a536a1f2e514946cb4a3d6b4face3231cfff49f9ba6e97ee4f7fb6711`. Generated from frontend-a1-work-inventory.json.
+Roadmap binding: `sha256:c5eb57bc2a5b1d258cb6a784b0defac09161da8fb8b87b8c264313ca0f98be93`. Generated from frontend-a1-work-inventory.json.
 
 D025 and D024 govern this execution. Historical frozen Wave 6 instructions are subordinate. Native screen-reader evaluation is excluded; browser semantics and functional peers remain mandatory. The sixteen late scenarios are optional.
 
@@ -16,17 +16,17 @@ D025 and D024 govern this execution. Historical frozen Wave 6 instructions are s
 
 ## Diagnosed repair sequence
 
-1. **Diagnoses 5, 6, 7:** Repair dependency accounting, evidence gates and synchronized roadmap/execution before continuing product construction. Owners: FE-A1.0-W06, FE-A1.0-W01, FE-A1.0-W02, FE-A1.0-W03, FE-A1.0-W04, FE-A1.0-W05, FE-A1.6-W07.
+1. **Diagnoses 5, 6, 7:** Finish the specific readable roadmap and matching granular execution instructions, run distinct planning execution and critical passes, then obtain explicit user approval. FE-A1.0-W05 remains blocked; no backend/frontend/model/migration/product-test construction proceeds while approval is absent. Owners: FE-A1.0-W06, FE-A1.0-W01, FE-A1.0-W02, FE-A1.0-W03, FE-A1.0-W04, FE-A1.0-W05, FE-A1.6-W07.
 
-2. **Diagnoses 3:** Reconcile conversational contracts, exact retained content and lineage with existing ProjectThread and InteractionRun owners before connecting commands. Owners: FE-A1.3-W01, FE-A1.3-W02, FE-A1.3-W03, FE-A1.3-W04, FE-A1.3-W05.
+2. **Diagnoses 1, 3:** After approval, construct the normal copilot shell/components first; then register contracts, retain canonical readable turns, certify eligible roles, compose definitions/context, connect official AG-UI and Q&A, and make Workspace selection/results reactive. The exact prerequisite queue governs interleaved construction; contract or component checks cannot claim integrated behavior. Owners: FE-A1.1-W01, FE-A1.1-W02, FE-A1.1-W03, FE-A1.1-W04, FE-A1.1-W05, FE-A1.1-W06, FE-A1.1-W07, FE-A1.3-W01, FE-A1.3-W02, FE-A1.3-W03, FE-A1.3-W04, FE-A1.3-W05, FE-A1.2-W01, FE-A1.2-W02, FE-A1.2-W03, FE-A1.2-W04, FE-A1.2-W07, FE-A1.3-W06, FE-A1.3-W13, FE-A1.3-W14, FE-A1.3-W15, FE-A1.3-W16, FE-A1.4-W01, FE-A1.4-W02, FE-A1.4-W03, FE-A1.4-W04.
 
-3. **Diagnoses 2:** Connect typed conversational proposals, consequential decisions, Work steering and observed receipts to canonical owners. Owners: FE-A1.3-W07, FE-A1.3-W08, FE-A1.3-W09, FE-A1.3-W15, FE-A1.3-W16, FE-A1.3-W18.
+3. **Diagnoses 4:** Complete the common examiner registry, native scientific Claim/Assertion/Hypothesis, writing Requirement and Interpretation, and unrelated event-planning adapters. Connect native Review preflight and actual Work-result routing before the action bridge can close. Owners: FE-A1.2-W07, FE-A1.4-W05, FE-A1.4-W06, FE-A1.4-W07.
 
-4. **Diagnoses 4:** Complete native scientific, writing requirement/interpretation, and unrelated compatible definition composition and examiners. Owners: FE-A1.2-W07, FE-A1.4-W05, FE-A1.4-W06.
+4. **Diagnoses 2:** After canonical conversation and native candidates are ready, connect full command previews, model proposals, separate human decisions, ordinary operation execution and observed Workspace receipts. W07 owns the proposal/decision execution machinery; W03 owns generic readable turn retention. Owners: FE-A1.3-W07, FE-A1.3-W08, FE-A1.3-W09, FE-A1.3-W15, FE-A1.3-W16, FE-A1.3-W18, FE-A1.3-W06, FE-A1.3-W10, FE-A1.3-W11, FE-A1.4-W09.
 
-5. **Diagnoses 1, 3:** Finish normal copilot hierarchy, reactive Workspace and progressive disclosure; connect inquiry, exact evidence, Work, Review, graph-guided assessments, obligations, disposition and selective invalidation across repeated cycles. Owners: FE-A1.1-W01, FE-A1.3-W06, FE-A1.4-W02, FE-A1.4-W03, FE-A1.4-W10, FE-A1.4-W11, FE-A1.4-W12, FE-A1.4-W13, FE-A1.4-W14, FE-A1.4-W15, FE-A1.4-W19, FE-A1.5-W07.
+5. **Diagnoses 1, 3:** Connect progressive copilot/Workspace disclosure, actual graph selection and agent context, scoped assessments, obligations, explicit closure, selective invalidation and at least two repeated cycles. Build closure/invalidation owners before closing the integrated cycle item. Owners: FE-A1.1-W01, FE-A1.3-W06, FE-A1.4-W02, FE-A1.4-W03, FE-A1.4-W10, FE-A1.4-W11, FE-A1.4-W12, FE-A1.4-W13, FE-A1.4-W14, FE-A1.4-W15, FE-A1.4-W19, FE-A1.5-W07.
 
-6. **Diagnoses 1, 5, 6, 7:** Close all 97 adapted operation functions and remaining required work; execute integrated functional and separate critical verification; synchronize the reviewable candidate and obtain actual user acceptance before later waves. Owners: FE-A1.6-W01, FE-A1.6-W06, FE-A1.7-W07, FE-A1.7-W12, FE-A1.7-W13.
+6. **Diagnoses 1, 5, 6, 7:** Close all required functions and 97 adapted operations with actual functional and distinct critical evidence. Keep the sixteen late scenarios optional. Publish the exact integrated candidate for a second, final user product-acceptance decision; only then may later waves proceed. Owners: FE-A1.6-W01, FE-A1.6-W06, FE-A1.7-W07, FE-A1.7-W12, FE-A1.7-W13.
 
 Construction follows the prerequisites below. Independent shell work can run before runtime integration; it cannot close runtime or integrated behavior criteria.
 
@@ -106,24 +106,49 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 ### 6. FE-A1.0-W05: Reconcile every roadmap entry and immediate sequence
 
-State: complete. Owner: integration. Prerequisites: FE-A1.0-W06, FE-A1.0-W01, FE-A1.0-W02, FE-A1.0-W03, FE-A1.0-W04.
+State: blocked. Owner: integration. Prerequisites: FE-A1.0-W06, FE-A1.0-W01, FE-A1.0-W02, FE-A1.0-W03, FE-A1.0-W04.
 
-Make ROADMAP, implementation roadmap, design roadmap, adaptation report, backend handoff, and runtime disposition point to this ledger for A1 execution.
+Execute this roadmap-only sequence before seeking approval:
 
-Execution plan: [reports/a1-plans/FE-A1.0-W05-execution.json](../reports/a1-plans/FE-A1.0-W05-execution.json). Critical plan: [reports/a1-plans/FE-A1.0-W05-critical.json](../reports/a1-plans/FE-A1.0-W05-critical.json). Run each with `npm run a1:verify -- PLAN` in that order.
+1. Read D024/D025, accepted requirements and all seven recorded resolutions; enumerate their mandatory functions and retained work.
+2. Assign each construction to its existing stable item; separate interface, runtime, proposal, examiner and cycle ownership.
+3. Correct prerequisites and publish a readable approval roadmap plus the same granular execution packet.
+4. Run the planning execution checks, then independent scope and bypass challenges; repair material findings and synchronize both copies.
+5. Keep this item blocked until the user approves the exact scope; record that statement before reopening any product work.
 
-- **FE-A1.0-W05-AC01:** Broad mechanical completion labels cannot contradict the A1 work status.
-- **FE-A1.0-W05-AC02:** The immediate sequence ends in user acceptance before Wave 7 begins.
+Execution pass: Compare all 90 IDs, 116 operation assignments, 23 requests and 18 flows; regenerate documents and verify both execution copies. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge omitted functions, false completion, hidden backend dependencies, optional-scenario promotion, premature product start and stale or forged approval. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
+Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
+
+- **FE-A1.0-W05-AC01:** The readable approval roadmap, full function ledger and granular execution instructions contain the same required scope, ownership and prerequisite order in both configured worktrees.
+- **FE-A1.0-W05-AC02:** Every one of the seven recorded resolutions maps to required work, ordered construction and distinct execution/critical verification; no mandatory function is deferred or replaced by optional scenarios.
+- **FE-A1.0-W05-AC03:** Every product item states its construction steps, observable functional checks and distinct critical challenges; existing code and old evidence are identified as retained partial work.
+- **FE-A1.0-W05-AC04:** The user explicitly approves the exact proposed scope binding before any backend/frontend construction, model execution, migration, product testing or worker launch. The roadmap approval is separate from final A1 product acceptance.
+- **FE-A1.0-W05-AC05:** A failed synchronization, changed material scope, rejected approval or repeated failure keeps execution blocked; the broad diagnosis records contract, architecture, dependencies, environment, verification and a changed remedy.
 
 Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
 
 ### 7. FE-A1.6-W07: Keep completion and evidence accounting current
 
-State: complete. Owner: integration. Prerequisites: FE-A1.0-W06, FE-A1.0-W05.
+State: planned. Owner: integration. Prerequisites: FE-A1.0-W06, FE-A1.0-W05.
 
-Update work status, dependencies, scoped retained evidence and completion artifacts in the same change as each delivered slice; append newly discovered required work before it can be waived or forgotten. Enforce one prerequisite-ready active item and criterion-bound execution/critical evidence, synchronize roadmap and execution views, and stop repeated failures for broad diagnosis under D025.
+After explicit roadmap approval, execute in this order:
 
-Execution plan: [reports/a1-plans/FE-A1.6-W07-execution.json](../reports/a1-plans/FE-A1.6-W07-execution.json). Critical plan: [reports/a1-plans/FE-A1.6-W07-critical.json](../reports/a1-plans/FE-A1.6-W07-critical.json). Run each with `npm run a1:verify -- PLAN` in that order.
+1. Bind each selected item to exact approved scope, prerequisites and candidate.
+2. Retain distinct criterion-level execution/critical evidence and unresolved findings.
+3. Record each numbered step and synchronize status/evidence copies; count construction and preparatory failures as well as formal verification, stop after two consecutive unsuccessful attempts, and obtain renewed approval for material scope changes.
+
+Execution pass: Close only items whose criteria, sources and dependencies remain current. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge forged/stale evidence, copied execution as critical, silent attempt reset and user rejection that leaves release open. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
+Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
 - **FE-A1.6-W07-AC01:** A complete item has evidence against its own acceptance criteria and completed dependencies.
 - **FE-A1.6-W07-AC02:** A stage is complete only when every mandatory child is complete.
@@ -133,140 +158,45 @@ Execution plan: [reports/a1-plans/FE-A1.6-W07-execution.json](../reports/a1-plan
 
 Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
 
-### 8. FE-A1.3-W01: Register genuine conversational interaction contracts
+### 8. FE-A1.1-W01: Rebuild the copilot and workspace hierarchy
 
-State: complete. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.0-W01.
+State: planned. Owner: frontend. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.0-W02.
 
-Add versioned intake, Project evidence-question, follow-up, and scene-explanation interaction contracts with bounded inputs, response schemas, speech acts, policy, and validated references; preserve the fixed M1 synthesist contract. Register the immutable typed human command-decision contract over complete existing native request schemas; it cannot grant capability, approve domain truth, or substitute for the ordinary command owner.
+After explicit roadmap approval, execute in this order:
 
-Execution plan: [reports/a1-plans/FE-A1.3-W01-execution.json](../reports/a1-plans/FE-A1.3-W01-execution.json). Critical plan: [reports/a1-plans/FE-A1.3-W01-critical.json](../reports/a1-plans/FE-A1.3-W01-critical.json). Run each with `npm run a1:verify -- PLAN` in that order.
+1. Compose the default 30/70 transcript/composer and active-object layout with representative contract-shaped content.
+2. Give the Workspace the active object, compact navigation and contextual Inspect entry.
+3. Preserve transcript reading and composer space with long turns and expanded decisions.
 
-- **FE-A1.3-W01-AC01:** Ordinary questions and follow-ups execute through registered runtime owners.
-- **FE-A1.3-W01-AC02:** Editing the fixed certified question cannot bypass its guard.
-- **FE-A1.3-W01-AC03:** Each new interaction declares model-role eligibility, output validation, and authority limits.
+Execution pass: Measure readable conversation and Workspace bounds in the actual shell at normal desktop sizes. Retain evidence against each acceptance criterion independently.
 
-Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
+Critical pass: Challenge long content, short height, expanded disclosures and hidden route forms; verify controls remain reachable without clipping. Challenge each acceptance criterion and record findings, user consequence and disposition.
 
-### 9. FE-A1.3-W02: Establish eligible model routes for the new interactions
-
-State: in_progress. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.3-W01.
-
-Register and prove eligible provider/model/role routes for conversational questions, working structure, and explanations with exact prompt/schema/profile revisions, grounding, privacy/egress, cost, and fallback rules.
-
-Execution plan: [reports/a1-plans/FE-A1.3-W02-execution.json](../reports/a1-plans/FE-A1.3-W02-execution.json). Critical plan: [reports/a1-plans/FE-A1.3-W02-critical.json](../reports/a1-plans/FE-A1.3-W02-critical.json). Run each with `npm run a1:verify -- PLAN` in that order.
-
-- **FE-A1.3-W02-AC01:** A real eligible model answers a normal question and follow-up in the application.
-- **FE-A1.3-W02-AC02:** Readiness failure is visible and preserves input.
-- **FE-A1.3-W02-AC03:** No old fixed-prompt certification is treated as certification for a new role.
-
-Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
-
-### 10. FE-A1.3-W03: Persist and read exact user and assistant turns
-
-State: planned. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.3-W01.
-
-Sequence: (1) expose current model and permission readiness; (2) require an explicit reviewed owner-only RunProjectCopilot grant and immutable receipt before new conversation Work or historical adoption, preserving existing authorized Work management grants; (3) retain exact private question/native-context/result Artifacts and canonical Thread/Run/Work atomically; (4) resolve exact applicable inquiry, Work, Review and cycle lineage before release; (5) page original readable content and restore questions, answers, citations and outcomes in a fresh browser; (6) reject owner substitution, widened permission, stale proposals, late partial commits and duplicate effects in the distinct critical pass. Retain working-plan proposal activities as exact private input/output Artifacts with their own bounded WorkUnit and InteractionRun, attached to the immutable canonical origin turn. Preserve typed proposal meaning and exact human decision/observed receipt lineage separately; never relabel proposals as advisory answers or fabricate domain approval.
-
-Execution plan: [reports/a1-plans/FE-A1.3-W03-execution.json](../reports/a1-plans/FE-A1.3-W03-execution.json). Critical plan: [reports/a1-plans/FE-A1.3-W03-critical.json](../reports/a1-plans/FE-A1.3-W03-critical.json). Run each with `npm run a1:verify -- PLAN` in that order.
-
-- **FE-A1.3-W03-AC01:** A fresh browser restores actual question and answer content, citations, and outcomes.
-- **FE-A1.3-W03-AC02:** A thread metadata list is insufficient.
-- **FE-A1.3-W03-AC03:** Unauthorized or mismatched Project/content references reveal no bytes. New Projects require explicit reviewed owner-only conversation permission; questions and model output cannot grant capabilities.
-- **FE-A1.3-W03-AC04:** Every retained Project turn resolves to the existing canonical ProjectThread and InteractionRun; a parallel conversation store cannot substitute for those owners.
-- **FE-A1.3-W03-AC05:** Turn context and result references preserve exact inquiry, Work, Review and cycle lineage where applicable; replay must not create a second effect.
-
-Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
-
-### 11. FE-A1.2-W01: Retain outcome-first definition drafting
-
-State: planned. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.0-W01.
-
-Keep the server-owned definition draft preserving original wording, Project kernel, proposed objective, outputs, assumptions, capabilities, and unsupported behavior; examples remain optional.
-
-Execution plan: [reports/a1-plans/FE-A1.2-W01-execution.json](../reports/a1-plans/FE-A1.2-W01-execution.json). Critical plan: [reports/a1-plans/FE-A1.2-W01-critical.json](../reports/a1-plans/FE-A1.2-W01-critical.json). Run each with `npm run a1:verify -- PLAN` in that order.
-
-- **FE-A1.2-W01-AC01:** Scientific, controlled-writing, and unrelated outcomes use the same entry.
-- **FE-A1.2-W01-AC02:** Changed draft content and unaccepted consequential assumptions are rejected.
-- **FE-A1.2-W01-AC03:** No mandatory profile picker precedes the outcome.
-
-Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
-
-### 12. FE-A1.2-W07: Compose definitions and revisions across Project types
-
-State: planned. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.2-W01, FE-A1.3-W03.
-
-Resolve registered object/relationship descriptors, inquiry roles, examiners, language rules, validators, outputs, and place capabilities from the exact ProjectDefinition; semantic revisions follow D018.
-
-Execution plan: [reports/a1-plans/FE-A1.2-W07-execution.json](../reports/a1-plans/FE-A1.2-W07-execution.json). Critical plan: [reports/a1-plans/FE-A1.2-W07-critical.json](../reports/a1-plans/FE-A1.2-W07-critical.json). Run each with `npm run a1:verify -- PLAN` in that order.
-
-- **FE-A1.2-W07-AC01:** The same shell can load different domain components without scientific conditionals.
-- **FE-A1.2-W07-AC02:** Unsupported execution is named precisely without rejecting a valid Project.
-- **FE-A1.2-W07-AC03:** A definition revision cannot silently reinterpret retained candidates or turns.
-
-Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
-
-### 13. FE-A1.3-W04: Compile exact bounded context for every turn
-
-State: planned. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.3-W01, FE-A1.2-W07.
-
-Compose Project definition, objective, inquiry, selected object revisions, graph query/scene references, sources, packets, Work/proposals, omissions, snapshot, privacy, and budget without inheriting ambient route state.
-
-Execution plan: [reports/a1-plans/FE-A1.3-W04-execution.json](../reports/a1-plans/FE-A1.3-W04-execution.json). Critical plan: [reports/a1-plans/FE-A1.3-W04-critical.json](../reports/a1-plans/FE-A1.3-W04-critical.json). Run each with `npm run a1:verify -- PLAN` in that order.
-
-- **FE-A1.3-W04-AC01:** A follow-up explicitly binds prior turn and current or original basis.
-- **FE-A1.3-W04-AC02:** Included/excluded context and limitations are inspectable.
-- **FE-A1.3-W04-AC03:** Mixed-snapshot, stale, unavailable, or restricted basis cannot silently become current.
-
-Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
-
-### 14. FE-A1.3-W05: Connect the official AG-UI stream to Petra view models
-
-State: planned. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.3-W01, FE-A1.3-W03.
-
-Use pinned official SDK client/server adapters for run, text, activity, tool, state, interrupt, custom, and terminal events; translate them into typed conversation/Work/Workspace models. Sequence: define presentation-only view models and a closed versioned disclosure activity; preserve the existing canonical terminal encoder while adding retained block references; resolve each disclosed block through the exact actor-authorized retained owner read before exposing bytes; map registered Work, tool and interrupt events separately from advisory role authority; mount typed live activity in the actual copilot; verify live managed-model delivery, canonical Work links and independent hostile-event/version/scope/replay cases. Revalidate the hierarchy after integration changes its presentation.
-
-Execution plan: [reports/a1-plans/FE-A1.3-W05-execution.json](../reports/a1-plans/FE-A1.3-W05-execution.json). Critical plan: [reports/a1-plans/FE-A1.3-W05-critical.json](../reports/a1-plans/FE-A1.3-W05-critical.json). Run each with `npm run a1:verify -- PLAN` in that order.
-
-- **FE-A1.3-W05-AC01:** The real conversation progressively renders validated state through the official client.
-- **FE-A1.3-W05-AC02:** Custom events are versioned and allowlisted.
-- **FE-A1.3-W05-AC03:** Core and feature components do not parse raw AG-UI protocol types.
-
-Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
-
-### 15. FE-A1.3-W07: Mediate typed action proposals through one command path
-
-State: planned. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.3-W05.
-
-Sequence: (1) resolve the exact authorized canonical origin turn; (2) read eligible native SuggestedAction, Work/recovery, source-processing and Review checkpoints; (3) construct complete server-owned immutable previews and ordinary operation IDs; (4) invoke the existing separately eligible working-plan role and retain its actual proposed-only output through canonical Artifact/Work/Run owners; (5) show that exact preview in the conversation and require a separate explicit human accept/reject decision; (6) retain the immutable decision and serialize the command claim; (7) revalidate Actor, capability, policy and exact native revisions through the existing ordinary command owner, preserving its command ID and idempotency key; (8) validate and retain the observed native receipt, distinguish reconciliation-required outcomes, and expose its exact Workspace result; (9) prove restart/replay/concurrency, stale or malformed arguments, revoked rights, foreign receipts and proposal-without-decision cannot create another effect; (10) execute distinct functional and critical checks before contractual closure. Advisory prose, ready role metadata, pure preview helpers and route-local forms cannot close this item.
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
-- **FE-A1.3-W07-AC01:** A recommendation does not execute itself.
-- **FE-A1.3-W07-AC02:** Direct and conversational invocation use identical operation IDs and exact command outcomes.
-- **FE-A1.3-W07-AC03:** Malformed, partial, stale, or unregistered tool arguments are rejected.
-- **FE-A1.3-W07-AC04:** Typed proposals render their canonical preview, required decision, observed receipt and Workspace result in the conversation. Advisory prose and route-form placement cannot satisfy the command bridge.
+- **FE-A1.1-W01-AC01:** The actual shell preserves a readable default 30/70 copilot/Workspace composition with representative long questions, answers, citations and decisions.
+- **FE-A1.1-W01-AC02:** The left pane is a transcript with a persistent composer and contextual interventions; route forms do not dominate the conversation.
+- **FE-A1.1-W01-AC03:** The Workspace object carries the strongest hierarchy, navigation is compact, and no third permanent diagnostic rail appears. Live integrated Q&A is separately required by W06.
 
 Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
 
-### 16. FE-A1.1-W01: Rebuild the copilot and workspace hierarchy
-
-State: planned. Owner: frontend. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.0-W02, FE-A1.3-W05.
-
-Build the persistent 30/70 desktop shell around a compact Project/objective header, continuous user/assistant thread, contextual progress/interventions, usable composer, and active Workspace result. Sequence: move Workspace destinations and inspection into Workspace chrome; reserve chat and composer space while bounding expandable support; reflect the opened answer or evidence in the Workspace heading and activate narrow Workspace presentation; verify ordinary desktop geometry and actual retained Q/A/draft continuity; critically challenge short/narrow viewports, expanded disclosures, keyboard activation and native return. After AG-UI integration, revalidate the whole hierarchy and keep long answer headings from shrinking the native return control into a vertical column.
-
-Execution plan: [reports/a1-plans/FE-A1.1-W01-execution.json](../reports/a1-plans/FE-A1.1-W01-execution.json). Critical plan: [reports/a1-plans/FE-A1.1-W01-critical.json](../reports/a1-plans/FE-A1.1-W01-critical.json). Run each with `npm run a1:verify -- PLAN` in that order.
-
-- **FE-A1.1-W01-AC01:** At ordinary desktop widths both the conversation and result remain legible.
-- **FE-A1.1-W01-AC02:** The left panel reads and behaves as a normal conversational agent; route-owned forms do not dominate it.
-- **FE-A1.1-W01-AC03:** The Workspace object carries the strongest visual hierarchy.
-
-Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
-
-### 17. FE-A1.1-W02: Construct conversation and intervention components
+### 9. FE-A1.1-W02: Construct conversation and intervention components
 
 State: planned. Owner: frontend. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.1-W01.
 
-Implement user turns, assistant turns, citations, partial/limited responses, compact activity, typed action previews, clarification forms, approval cards, and terminal-result links as distinct components.
+After explicit roadmap approval, execute in this order:
+
+1. Define typed question, answer, citation, plan, decision and observed-outcome components.
+2. Compose them around one persistent composer and origin-turn identity.
+3. Keep consequential controls contextual and expose exact object actions.
+
+Execution pass: Exercise each component's keyboard/pointer behavior and retained identity using registered content. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge mismatched turn references, duplicated actions, long citations and controls presented as already-authorized outcomes. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
@@ -276,11 +206,21 @@ Publish exact criterion/test plans in the ledger before recording verification. 
 
 Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
 
-### 18. FE-A1.1-W03: Establish the final visual system
+### 10. FE-A1.1-W03: Establish the final visual system
 
 State: planned. Owner: frontend. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.1-W01.
 
-Apply neutral canvas, restrained accent, reading widths, typography, spacing, density, borders, icons, focus, error states, and motion to real conversation and Workspace content.
+After explicit roadmap approval, execute in this order:
+
+1. Apply the restrained neutral palette, functional accent, type scale and spacing to actual shell content.
+2. Style empty, running, limited, failed, proposed and applied states consistently.
+3. Review content density and hierarchy together across copilot and Workspace.
+
+Execution pass: Inspect complete representative content and state transitions in the actual shell. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge visual authority confusion, truncated decisions, color-only states and decorative controls that obscure the task. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
@@ -290,11 +230,21 @@ Publish exact criterion/test plans in the ledger before recording verification. 
 
 Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
 
-### 19. FE-A1.1-W04: Preserve the task across pane resizing and narrow layouts
+### 11. FE-A1.1-W04: Preserve the task across pane resizing and narrow layouts
 
 State: planned. Owner: frontend. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.1-W01.
 
-Retain Agent/Workspace switching and resizing with exact selection, current run, pending interrupt, drafts, scroll, and return focus.
+After explicit roadmap approval, execute in this order:
+
+1. Implement bounded pane resizing and task-preserving Agent/Workspace switching.
+2. Retain selected object, run, pending decision, drafts, scroll and return focus.
+3. Support the same interaction at 420px and 200 percent text scale.
+
+Execution pass: Complete pane switches and resizing by keyboard, pointer and touch with retained task identities. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge interrupted decisions, long content, minimum widths, zoom overflow and focus return after switching. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
@@ -304,11 +254,21 @@ Publish exact criterion/test plans in the ledger before recording verification. 
 
 Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
 
-### 20. FE-A1.1-W05: Build accessible conversation and status behavior
+### 12. FE-A1.1-W05: Build accessible conversation and status behavior
 
 State: planned. Owner: frontend. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.1-W02.
 
-Implement landmarks, labelled turns/actions, keyboard navigation, sensible focus, reduced motion, non-color state cues, and controlled live announcements.
+After explicit roadmap approval, execute in this order:
+
+1. Add landmarks, labelled transcript/actions and logical keyboard order.
+2. Control streaming announcements, focus movement and reduced-motion behavior.
+3. Provide semantic graph-peer actions with the same operation identities.
+
+Execution pass: Exercise keyboard interaction, browser accessibility semantics and restrained live updates. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge focus theft, announcement flooding, non-color cues and a graph peer missing a consequential action; native screen-reader evaluation remains excluded. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
@@ -318,11 +278,21 @@ Publish exact criterion/test plans in the ledger before recording verification. 
 
 Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
 
-### 21. FE-A1.1-W06: Keep navigation compact and exact
+### 13. FE-A1.1-W06: Keep navigation compact and exact
 
 State: planned. Owner: frontend. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.1-W01.
 
-Present Project switching, active outcome, current task, contextual graph entry, one Inspect entry, and exact return without restoring module-heavy permanent navigation.
+After explicit roadmap approval, execute in this order:
+
+1. Keep Project switching, objective and current task in compact navigation.
+2. Add a contextual graph entry and one Inspect entry within the Workspace.
+3. Preserve exact Project/object revisions and return destinations.
+
+Execution pass: Navigate Project, graph, evidence and task destinations with exact identity and return. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge stale deep links, unavailable revisions and accidental restoration of a permanent module or diagnostic rail. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
@@ -332,11 +302,21 @@ Publish exact criterion/test plans in the ledger before recording verification. 
 
 Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
 
-### 22. FE-A1.1-W07: Design all empty and interruption states
+### 14. FE-A1.1-W07: Design all empty and interruption states
 
 State: planned. Owner: frontend. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.1-W02.
 
-Construct coherent zero-Project, empty-Project, no-evidence, no-working-candidate, unsupported-capability, blocked-model, lost-access, and unknown-effect states in the same copilot shell.
+After explicit roadmap approval, execute in this order:
+
+1. Specify and render zero-Project, empty-Project and no-evidence states.
+2. Add missing-candidate, unsupported-capability, unavailable-model, lost-access and unknown-effect states.
+3. Show only eligible next actions while retaining drafts and the same copilot composition.
+
+Execution pass: Exercise every state with its named next action and retained user input. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge invented demo data, misleading completion, unavailable actions and inaccessible states that substitute a different Project. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
@@ -346,53 +326,190 @@ Publish exact criterion/test plans in the ledger before recording verification. 
 
 Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
 
-### 23. FE-A1.2-W02: Retain atomic Project creation
+### 15. FE-A1.3-W01: Register genuine conversational interaction contracts
 
-State: planned. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.2-W01.
+State: planned. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.0-W01, FE-A1.1-W01, FE-A1.1-W02, FE-A1.1-W03, FE-A1.1-W04, FE-A1.1-W05, FE-A1.1-W06, FE-A1.1-W07.
 
-Keep validated atomic Project, immutable definition, objective, focus, and receipt creation with actor, revision, idempotency, and exact draft bindings.
+After explicit roadmap approval, execute in this order:
 
-Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
+1. Register each intake, Q&A, follow-up, scene and working-plan input/output contract.
+2. Declare bounded references, privacy, speech acts, role requirements and non-authoritative output meaning.
+3. Retain accepted/rejected fixtures and the separate fixed M1 guard.
 
-- **FE-A1.2-W02-AC01:** A repeated exact command returns the same outcome.
-- **FE-A1.2-W02-AC02:** No partially created Project or silently substituted definition is returned.
-- **FE-A1.2-W02-AC03:** The new Project destination comes from the authoritative read.
+Execution pass: Validate every interaction kind and its declared owner/role requirements through the contract registry. Retain evidence against each acceptance criterion independently.
 
-Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
+Critical pass: Challenge malformed references, undeclared interaction kinds, action authority in prose and fixed-prompt certification reuse. Challenge each acceptance criterion and record findings, user consequence and disposition.
 
-### 24. FE-A1.2-W03: Retain optional initial-material handoff
-
-State: planned. Owner: frontend. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.2-W02.
-
-Carry optional initial files from the outcome draft into the existing source and rights review after creation, preserving local bytes until explicit registration.
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
-- **FE-A1.2-W03-AC01:** Creation without material works.
-- **FE-A1.2-W03-AC02:** An optional file enters the exact new Project source task.
-- **FE-A1.2-W03-AC03:** File bytes are not uploaded before the rights/intake action.
+- **FE-A1.3-W01-AC01:** Every required interaction has registered input/output schemas, bounded references, privacy and authority limits; accepted and rejected fixtures cover each interaction kind.
+- **FE-A1.3-W01-AC02:** The fixed M1 synthesist guard remains intact; ordinary Q&A does not claim its certification.
+- **FE-A1.3-W01-AC03:** Each interaction declares its runtime owner and model-role requirements; live model eligibility and integrated user behavior close under W02 and W06, respectively.
 
 Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
 
-### 25. FE-A1.2-W04: Implement conversation before the first Project exists
+### 16. FE-A1.3-W03: Persist and read exact user and assistant turns
 
-State: planned. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.3-W01, FE-A1.2-W02.
+State: planned. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.3-W01.
 
-Define an authorized intake-session interaction for normal outcome Q&A before Project identity exists; retain accepted wording and consequential clarification, then explicitly bind the accepted intake to the created Project thread.
+After explicit roadmap approval, execute in this order:
+
+1. Check the exact Project, actor and reviewed conversation permission before retaining bytes.
+2. Atomically retain question/context/result Artifacts with canonical Thread, Run and Work lineage.
+3. Restore paged readable turns, citations and outcomes under their original semantic versions.
+
+Execution pass: Submit and restore exact conversation content through real canonical persistence and a fresh browser. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge foreign or corrupted references, widened grants, partial writes, repeated submission and late terminal results; do not credit W07 command execution. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
-- **FE-A1.2-W04-AC01:** A zero-Project user can converse and review the proposed outcome/definition.
-- **FE-A1.2-W04-AC02:** Intake has actor, privacy, model eligibility, cost, retention, and exact draft boundaries.
-- **FE-A1.2-W04-AC03:** Creation binds the correct turns without fabricating pre-creation domain authority.
+- **FE-A1.3-W03-AC01:** A fresh browser restores exact question, answer, citations, outcome and original semantic versions; metadata alone cannot satisfy restoration.
+- **FE-A1.3-W03-AC02:** Every retained turn uses the canonical ProjectThread and InteractionRun, with exact Work and applicable inquiry/result references; no parallel conversation truth is introduced.
+- **FE-A1.3-W03-AC03:** New conversation Work requires the reviewed narrow conversation permission; unauthorized, foreign or corrupted content references reveal no bytes.
+- **FE-A1.3-W03-AC04:** Interrupted persistence and repeated submission produce a retained terminal state or explicit recovery boundary without duplicate effects; proposal/decision execution remains owned by W07.
 
 Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
 
-### 26. FE-A1.3-W06: Implement normal question-and-answer turns in the copilot
+### 17. FE-A1.3-W02: Establish eligible model routes for the new interactions
+
+State: planned. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.3-W01, FE-A1.3-W03.
+
+After explicit roadmap approval, execute in this order:
+
+1. Bind each required conversation/intake/explanation/working-plan role to exact prompt, schema and profile revisions.
+2. Establish actual provider/model eligibility with grounding, privacy, cost and fallback limits.
+3. Expose readiness and input-preserving unavailable-role behavior.
+
+Execution pass: Invoke every required role through its production route; answer a normal question and follow-up in the actual app. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge unavailable or changed certifications, wrong role revisions, unsupported adapters and a fallback that changes semantics or loses input. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
+Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
+
+- **FE-A1.3-W02-AC01:** A real eligible model answers a normal question and follow-up in the application.
+- **FE-A1.3-W02-AC02:** Readiness failure is visible and preserves input.
+- **FE-A1.3-W02-AC03:** No old fixed-prompt certification is treated as certification for a new role.
+
+Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
+
+### 18. FE-A1.2-W01: Retain outcome-first definition drafting
+
+State: planned. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.0-W01.
+
+After explicit roadmap approval, execute in this order:
+
+1. Preserve the user's unrestricted outcome in the server-owned definition draft.
+2. Preview objective, outputs, constraints, consequential assumptions and installed capability limits.
+3. Keep scientific, writing and event-planning examples optional.
+
+Execution pass: Draft and review three unrelated outcomes through the same entry, preserving exact original wording. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge changed draft hashes, silently accepted assumptions and mandatory profile selection. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
+Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
+
+- **FE-A1.2-W01-AC01:** Scientific, controlled-writing, and unrelated outcomes use the same entry.
+- **FE-A1.2-W01-AC02:** Changed draft content and unaccepted consequential assumptions are rejected.
+- **FE-A1.2-W01-AC03:** No mandatory profile picker precedes the outcome.
+
+Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
+
+### 19. FE-A1.2-W07: Compose definitions and revisions across Project types
+
+State: planned. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.2-W01, FE-A1.3-W03.
+
+After explicit roadmap approval, execute in this order:
+
+1. Resolve native objects, relationships, inquiry roles and terminology from the exact ProjectDefinition.
+2. Resolve admitted examiners, validators, outputs and place capabilities with explicit missing-adapter boundaries.
+3. Apply reviewed additive definition revisions without reinterpreting old turns or candidates.
+
+Execution pass: Resolve three definitions and their revisions through shared registered descriptors. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge stale definitions, unsupported component versions and historical objects reinterpreted with current terminology. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
+Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
+
+- **FE-A1.2-W07-AC01:** The same shell can load different domain components without scientific conditionals.
+- **FE-A1.2-W07-AC02:** Unsupported execution is named precisely without rejecting a valid Project.
+- **FE-A1.2-W07-AC03:** A definition revision cannot silently reinterpret retained candidates or turns.
+
+Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
+
+### 20. FE-A1.3-W04: Compile exact bounded context for every turn
+
+State: planned. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.3-W01, FE-A1.2-W07.
+
+After explicit roadmap approval, execute in this order:
+
+1. Read exact definition, objective, inquiry, selected revisions and applicable query/scene references.
+2. Assemble bounded source, packet, Work and result context with privacy, budget and omission records.
+3. Bind follow-ups to their original or declared current basis.
+
+Execution pass: Compare retained input to the exact displayed turn and include/exclude disclosure. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge mixed snapshots, restricted basis, large definitions, stale selections and an ambient route silently supplying context. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
+Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
+
+- **FE-A1.3-W04-AC01:** A follow-up explicitly binds prior turn and current or original basis.
+- **FE-A1.3-W04-AC02:** Included/excluded context and limitations are inspectable.
+- **FE-A1.3-W04-AC03:** Mixed-snapshot, stale, unavailable, or restricted basis cannot silently become current.
+
+Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
+
+### 21. FE-A1.3-W05: Connect the official AG-UI stream to Petra view models
+
+State: planned. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.3-W01, FE-A1.3-W03, FE-A1.3-W02, FE-A1.3-W04.
+
+After explicit roadmap approval, execute in this order:
+
+1. Map official SDK run/text/activity/tool/state/interrupt/terminal events into Petra-owned view models.
+2. Validate versioned custom activities and resolve their content through exact authorized owner reads.
+3. Mount progressive delivery in the real copilot with separate Work and command semantics.
+
+Execution pass: Capture actual official-client progressive rendering and retained canonical identities. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge malformed, unregistered, reordered, duplicate and late events; provisional text or tools cannot create authority. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
+Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
+
+- **FE-A1.3-W05-AC01:** The real conversation progressively renders validated state through the official client.
+- **FE-A1.3-W05-AC02:** Custom events are versioned and allowlisted.
+- **FE-A1.3-W05-AC03:** Core and feature components do not parse raw AG-UI protocol types.
+
+Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
+
+### 22. FE-A1.3-W06: Implement normal question-and-answer turns in the copilot
 
 State: planned. Owner: frontend. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.1-W02, FE-A1.3-W02, FE-A1.3-W03, FE-A1.3-W05.
 
-Render the durable thread and streamed turn, submit ordinary questions, continue with follow-ups, expose cited-object actions, and show validated partial/limited/error/final states with a persistent composer.
+After explicit roadmap approval, execute in this order:
+
+1. Render the canonical transcript and normal streamed question/answer with a persistent composer.
+2. Submit follow-ups with exact prior-turn and declared basis references.
+3. Link citations, retained results and Inspect while preserving partial/limited/error states.
+
+Execution pass: Ask a real question and follow-up while reading the Workspace; restore both after reload. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge a fixed-question substitute, stale follow-up, unsupported citations, input loss and a terminal answer without retained output. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
@@ -402,109 +519,21 @@ Publish exact criterion/test plans in the ledger before recording verification. 
 
 Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
 
-### 27. FE-A1.4-W01: Complete the domain-neutral Workspace renderer registry
-
-State: planned. Owner: frontend. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.1-W01, FE-A1.2-W07.
-
-Compose Outcome, Source, Review, Work, Artifact boundary, and Inspect renderers from server-owned semantic destinations and exact ProjectDefinition role mappings.
-
-Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
-
-- **FE-A1.4-W01-AC01:** Every supported object resolves to its exact permitted renderer.
-- **FE-A1.4-W01-AC02:** Unsupported roles return an honest scoped boundary.
-- **FE-A1.4-W01-AC03:** No renderer guesses authority or another Project from the route.
-
-Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
-
-### 28. FE-A1.3-W13: Validate communication and preserve scientific force
-
-State: planned. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.3-W01, FE-A1.2-W07.
-
-Build communication-plan segments for attributed report, inference, author judgment, assessment, recommendation, clarification, proposal, action report, limitation, and status; bind language/reference/schema/validator versions and repair receipts.
-
-Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
-
-- **FE-A1.3-W13-AC01:** Source reports and Petra inference remain distinguishable.
-- **FE-A1.3-W13-AC02:** Partial text is not released as grounded merely because it streamed.
-- **FE-A1.3-W13-AC03:** Repair cannot change meaning, uncertainty, scope, authority, or action consequence.
-
-Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
-
-### 29. FE-A1.3-W14: Resolve citations and references to exact evidence
-
-State: planned. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.3-W04, FE-A1.3-W13.
-
-Resolve each material answer segment to authorized object/source/span/revision references with safe semantic destinations and available basis/limitations.
-
-Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
-
-- **FE-A1.3-W14-AC01:** Clicking a citation opens the cited revision and passage.
-- **FE-A1.3-W14-AC02:** Invented, restricted, mismatched, or unsupported references block or limit the response.
-- **FE-A1.3-W14-AC03:** Scientific citation and evidentiary support are distinguished.
-
-Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
-
-### 30. FE-A1.4-W02: Synchronize conversation and Workspace in both directions
-
-State: planned. Owner: frontend. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.4-W01, FE-A1.3-W06, FE-A1.3-W14.
-
-Add a typed selection/result/context controller: cited object or turn opens/selects the Workspace result; direct selection supplies explicit bounded context to the next turn; late updates retain exact run/query identity.
-
-Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
-
-- **FE-A1.4-W02-AC01:** An answer updates the visible durable result and evidence selection.
-- **FE-A1.4-W02-AC02:** Direct reading/review continues in the same copilot task.
-- **FE-A1.4-W02-AC03:** A stale result cannot replace the current object or steal an active draft.
-
-Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
-
-### 31. FE-A1.2-W05: Implement the empty-Project copilot task
-
-State: planned. Owner: frontend. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.2-W04, FE-A1.3-W06, FE-A1.4-W02.
-
-Offer outcome revision, material intake, question framing, missing-input clarification, a ready bounded next action, and explicit capability limitations in a created Project with no evidence.
-
-Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
-
-- **FE-A1.2-W05-AC01:** The user can ask a normal question and receive a grounded no-evidence or clarification response.
-- **FE-A1.2-W05-AC02:** No unsupported output is presented as produced.
-- **FE-A1.2-W05-AC03:** The first eligible action updates the Workspace and preserves the conversation.
-
-Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
-
-### 32. FE-A1.2-W06: Recover creation and intake without losing user work
-
-State: planned. Owner: integration. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.2-W04, FE-A1.3-W03.
-
-Restore an intake session, unsent outcome/composer draft, pending definition preview, creation receipt, and exact Project after interruption or reload under explicit local-versus-durable retention rules.
-
-Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
-
-- **FE-A1.2-W06-AC01:** Unknown creation effect is resolved by an authoritative read before retry.
-- **FE-A1.2-W06-AC02:** Restored drafts do not execute automatically.
-- **FE-A1.2-W06-AC03:** Access loss does not substitute another Project.
-
-Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
-
-### 33. FE-A1.3-W08: Implement consequential interrupts and resumable decisions
-
-State: planned. Owner: integration. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.3-W07, FE-A1.3-W06.
-
-Present clarification, missing input, exact Review approval/rejection/deferral, correction, and budget escalation in the conversation; correlate each response to its operation and owning Work/ChangeSet revision.
-
-Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
-
-- **FE-A1.3-W08-AC01:** A user can inspect the exact consequence before deciding.
-- **FE-A1.3-W08-AC02:** The decision reaches the canonical command and observed receipt.
-- **FE-A1.3-W08-AC03:** Reload/reconnect restores the pending decision without duplicate approval.
-
-Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
-
-### 34. FE-A1.3-W09: Present plans, activity, required input, and actual outcomes
+### 23. FE-A1.3-W09: Present plans, activity, required input, and actual outcomes
 
 State: planned. Owner: frontend. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.3-W05, FE-A1.3-W06.
 
-Compose compact live plan/stage/activity, Work identity, progress, resource limits, required input, candidate/result/decision links, and real terminal state around the active turn. Apply explicit steering and eligible branch priority through the existing Work owners; preserve consumed input manifests, record plan revisions and exact scheduling cutover, retain shared prerequisites, and expose validated reuse or a fresh bounded attempt.
+After explicit roadmap approval, execute in this order:
+
+1. Compose actual plan/stage/activity, Work identity, input needs, resource limits and terminal results.
+2. Apply explicit steering or branch priority only through existing authorized Work operations.
+3. Retain consumed manifests, revised plans, cutover boundaries and shared-prerequisite reuse.
+
+Execution pass: Steer live Work and inspect actual progress, plan revision, cost and scheduling cutover. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge invented progress, old successors starting after changed input, graph selection altering priority and Work success falsely closing an inquiry. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
@@ -516,11 +545,508 @@ Publish exact criterion/test plans in the ledger before recording verification. 
 
 Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
 
-### 35. FE-A1.3-W10: Distinguish Work pause, delivery stop and authorized cancellation
+### 24. FE-A1.3-W15: Persist conversation-derived working candidate revisions
+
+State: planned. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.3-W01, FE-A1.2-W07, FE-A1.3-W04.
+
+After explicit roadmap approval, execute in this order:
+
+1. Admit native candidate revisions from turns, Work, extraction, import and direct edits.
+2. Retain producer, target, schema, context, basis, uncertainty and supersession lineage.
+3. Restore candidates independently of the browser and keep promotion in Review.
+
+Execution pass: Persist and read scientific, writing and event-planning candidates through canonical owners. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge unknown types, stale basis, orphan producer references and retained/displayed candidates silently promoted to trusted state. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
+Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
+
+- **FE-A1.3-W15-AC01:** Working candidates survive reload independently of browser state.
+- **FE-A1.3-W15-AC02:** Unknown types or references are rejected.
+- **FE-A1.3-W15-AC03:** Retention or display emits no trusted-domain promotion.
+
+Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
+
+### 25. FE-A1.3-W16: Persist and query working relationships
+
+State: planned. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.3-W15.
+
+After explicit roadmap approval, execute in this order:
+
+1. Retain native working relationship revisions with exact endpoints, direction and predicates.
+2. Query a snapshot-consistent overlay with source-native versus inferred origin, exclusions and textual peer.
+3. Route promotion through the existing Review owner.
+
+Execution pass: Read typed scientific and writing/event-planning relationships and their native meanings. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge mixed endpoint revisions, inverted predicates, silent source/inference blending and overlay display granting authority. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
+Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
+
+- **FE-A1.3-W16-AC01:** Scientific support/challenge and writing dependencies preserve different registered meanings.
+- **FE-A1.3-W16-AC02:** Old endpoints and new edges cannot be blended into current authority.
+- **FE-A1.3-W16-AC03:** Promotion is available only through the ordinary Review path.
+
+Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
+
+### 26. FE-A1.3-W18: Implement retention, redaction, and authorized historical text reads
+
+State: planned. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.3-W03.
+
+After explicit roadmap approval, execute in this order:
+
+1. Define intake/thread/message/scene retention and redaction against existing audit obligations.
+2. Add authorized historical text reads under original semantic versions.
+3. Preserve Work, outputs, approvals, events and provenance when conversation is hidden or redacted.
+
+Execution pass: Read authorized historical content and redact conversation without losing effects. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge restricted historical bytes, current-schema reinterpretation and redaction erasing a command receipt or approval. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
+Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
+
+- **FE-A1.3-W18-AC01:** Historical content uses its original semantic versions.
+- **FE-A1.3-W18-AC02:** Hiding/deleting conversation does not erase authoritative effects.
+- **FE-A1.3-W18-AC03:** Read failures and redaction return scoped explanations without leaking content.
+
+Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
+
+### 27. FE-A1.4-W01: Complete the domain-neutral Workspace renderer registry
+
+State: planned. Owner: frontend. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.1-W01, FE-A1.2-W07.
+
+After explicit roadmap approval, execute in this order:
+
+1. Resolve Outcome, Source, Review, Work, Artifact-boundary and Inspect renderers from server-owned destinations.
+2. Bind exact ProjectDefinition roles, object revisions and permitted actions.
+3. Render explicit unsupported or unavailable boundaries.
+
+Execution pass: Open every admitted object family through the same renderer registry. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge guessed route authority, foreign Project references and a missing renderer substituted with an unrelated object. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
+Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
+
+- **FE-A1.4-W01-AC01:** Every supported object resolves to its exact permitted renderer.
+- **FE-A1.4-W01-AC02:** Unsupported roles return an honest scoped boundary.
+- **FE-A1.4-W01-AC03:** No renderer guesses authority or another Project from the route.
+
+Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
+
+### 28. FE-A1.4-W05: Construct the compositional claim/object examiner
+
+State: planned. Owner: frontend. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.4-W01, FE-A1.3-W15, FE-A1.2-W07.
+
+After explicit roadmap approval, execute in this order:
+
+1. Define common examiner slots for identity, basis, scope, uncertainty, provenance and working/authority state.
+2. Resolve comparison, validation and eligible-action slots through exact native descriptors.
+3. Compose missing/versioned adapter states without a scientific default.
+
+Execution pass: Resolve the registry for registered native descriptors with no client-authored authority. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge absent adapters, version mismatches and shared slots silently recasting domain meaning. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
+Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
+
+- **FE-A1.4-W05-AC01:** An examiner registry resolves common identity, scope, basis, uncertainty, provenance, comparison, validation and action slots from exact registered descriptors.
+- **FE-A1.4-W05-AC02:** Domain adapters retain their native object and relationship meaning; shared layout cannot fabricate an assessment or authority state.
+- **FE-A1.4-W05-AC03:** Missing or version-mismatched adapters produce an explicit limitation. Native scientific, writing and unrelated adapter conformance is owned by W06.
+
+Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
+
+### 29. FE-A1.3-W13: Validate communication and preserve scientific force
+
+State: planned. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.3-W01, FE-A1.2-W07.
+
+After explicit roadmap approval, execute in this order:
+
+1. Compose registered communication segments with source report, inference, judgment, assessment, proposal, action and limitation meanings.
+2. Bind language/reference/schema validators to each released segment.
+3. Retain repairs without changing scope, force, uncertainty or action consequence.
+
+Execution pass: Validate released normal, limited and repaired communication against its retained meaning. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge unsupported authority, inference presented as source report, partial text released as grounded and a repair strengthening the claim. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
+Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
+
+- **FE-A1.3-W13-AC01:** Source reports and Petra inference remain distinguishable.
+- **FE-A1.3-W13-AC02:** Partial text is not released as grounded merely because it streamed.
+- **FE-A1.3-W13-AC03:** Repair cannot change meaning, uncertainty, scope, authority, or action consequence.
+
+Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
+
+### 30. FE-A1.3-W14: Resolve citations and references to exact evidence
+
+State: planned. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.3-W04, FE-A1.3-W13.
+
+After explicit roadmap approval, execute in this order:
+
+1. Resolve material answer references to authorized object/source/span/revision identities.
+2. Link each reference to its exact semantic destination and available basis.
+3. Expose citation versus evidentiary-support meaning and missing-reference limitations.
+
+Execution pass: Open citations from the real answer at the exact retained passage and revision. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge invented spans, foreign or restricted objects, mismatched revisions and citations asserted as scientific support. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
+Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
+
+- **FE-A1.3-W14-AC01:** Clicking a citation opens the cited revision and passage.
+- **FE-A1.3-W14-AC02:** Invented, restricted, mismatched, or unsupported references block or limit the response.
+- **FE-A1.3-W14-AC03:** Scientific citation and evidentiary support are distinguished.
+
+Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
+
+### 31. FE-A1.4-W04: Complete exact Source and passage reading
+
+State: planned. Owner: frontend. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.4-W01, FE-A1.3-W14.
+
+After explicit roadmap approval, execute in this order:
+
+1. Resolve canonical Source, revision, rights and original/derived representation.
+2. Open exact SourceSpan bytes and processing-depth context.
+3. Preview replacement, removal or local-copy consequences through existing lifecycle owners.
+
+Execution pass: Read exact passages and complete authorized intake/lifecycle previews. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge unavailable bytes, revoked rights, removed revisions and a source-native statement reconstructed from model prose. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
+Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
+
+- **FE-A1.4-W04-AC01:** A source-native statement resolves to exact bytes or an explicit unavailable boundary.
+- **FE-A1.4-W04-AC02:** Rights and inspection capability are visible before intake/use.
+- **FE-A1.4-W04-AC03:** Revision/removal/local-copy deletion previews preserve affected references and consequences.
+
+Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
+
+### 32. FE-A1.4-W06: Implement registered examiners for required Project types
+
+State: planned. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.2-W07, FE-A1.3-W16, FE-A1.4-W05, FE-A1.4-W04.
+
+After explicit roadmap approval, execute in this order:
+
+1. Connect scientific Claim/Assertion and Hypothesis descriptors, basis, relations and examiner components.
+2. Connect both controlled-writing Requirement and Interpretation with textual basis and competing readings.
+3. Connect event-planning requirements, constraints and options with supplied evidence and native relations.
+4. Validate each definition through shared candidate, Review and examination owners.
+
+Execution pass: Examine real retained native objects and relationships in all three definitions. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge writing-as-science aliases, missing Interpretation, renamed third-domain fixtures and unsupported external actions presented as completed examination. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
+Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
+
+- **FE-A1.4-W06-AC01:** All three definitions use shared governance, canonical candidates, Review and the common examiner registry while supplying their own object, relationship, basis and validator semantics.
+- **FE-A1.4-W06-AC02:** Scientific Claim/Assertion examination preserves attributed report, inference, support/challenge scope and review state; Hypothesis assessment remains governed by D010.
+- **FE-A1.4-W06-AC03:** Controlled-writing Requirement and Interpretation both have native textual basis, competing readings and scope; neither is represented as scientific support.
+- **FE-A1.4-W06-AC04:** Event-planning requirements, constraints and options have native descriptors, relationships, supplied basis and scoped validation; a renamed scientific fixture or Q&A-only example is insufficient.
+- **FE-A1.4-W06-AC05:** A missing required adapter keeps this item incomplete; an explicitly unsupported external capability cannot be used to defer the required native examination.
+
+Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
+
+### 33. FE-A1.4-W07: Complete candidate and Review examination
+
+State: planned. Owner: frontend. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.4-W05, FE-A1.4-W06, FE-A1.4-W04.
+
+After explicit roadmap approval, execute in this order:
+
+1. Show exact Review member, source basis, current/proposed comparison and eligibility.
+2. Support correction, individual/batch meaning and ChangeSet preparation.
+3. Retain stale refresh and accepted/rejected/deferred/reopened outcomes.
+
+Execution pass: Inspect and correct each member before applying through the canonical Review task. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge stale comparison, client-calculated eligibility, wrong batch membership and correction applied to a different candidate revision. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
+Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
+
+- **FE-A1.4-W07-AC01:** The user can inspect and correct every proposed member before applying.
+- **FE-A1.4-W07-AC02:** Counts, posture, diffs, and eligibility come from canonical reads.
+- **FE-A1.4-W07-AC03:** Accepted, rejected, deferred, reopened, and stale members retain exact outcomes.
+
+Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
+
+### 34. FE-A1.4-W02: Synchronize conversation and Workspace in both directions
+
+State: planned. Owner: frontend. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.4-W01, FE-A1.3-W06, FE-A1.3-W14.
+
+After explicit roadmap approval, execute in this order:
+
+1. Bind answer/result/citation selections to the exact Workspace object and originating turn.
+2. Feed explicit direct selection into bounded next-turn context.
+3. Fence late run/query responses while preserving active drafts.
+
+Execution pass: Ask, open evidence, directly select an object and continue in the same task. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge old responses replacing current objects, hidden selection changes and Workspace updates stealing drafts or focus. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
+Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
+
+- **FE-A1.4-W02-AC01:** An answer updates the visible durable result and evidence selection.
+- **FE-A1.4-W02-AC02:** Direct reading/review continues in the same copilot task.
+- **FE-A1.4-W02-AC03:** A stale result cannot replace the current object or steal an active draft.
+
+Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
+
+### 35. FE-A1.4-W09: Route Work results to the correct continuation
+
+State: planned. Owner: integration. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.4-W02, FE-A1.3-W09.
+
+After explicit roadmap approval, execute in this order:
+
+1. Map actual Work stages, input, result and retained failure to its semantic continuation.
+2. Route read-only answers, candidates/Review and Artifact boundaries to exact destinations.
+3. Preserve inquiry links and shared result identities at every terminal outcome.
+
+Execution pass: Complete successful, partial, failed and cancelled Work and return to the right inquiry/result. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge terminal Work closing an inquiry, duplicate shared results and a wrong continuation caused by route inference. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
+Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
+
+- **FE-A1.4-W09-AC01:** Success, failure, cancellation, and partial outcomes each have a terminal and return path.
+- **FE-A1.4-W09-AC02:** Execution success never closes an unresolved inquiry.
+- **FE-A1.4-W09-AC03:** Shared Work results retain one identity when linked to several inquiries.
+
+Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
+
+### 36. FE-A1.3-W11: Implement ordered replay, reconnect, and safe retry
+
+State: planned. Owner: integration. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.3-W03, FE-A1.3-W05.
+
+After explicit roadmap approval, execute in this order:
+
+1. Restore turns and activities from retained identities and replay cursors.
+2. Deduplicate and order events while preserving terminal outcomes.
+3. Separate reconnect from eligible retry, resume and start-again.
+
+Execution pass: Reconnect and restart delivery without another model or command invocation. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge duplicate, out-of-order and late terminal events, expired cursors and retry offered without native eligibility. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
+Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
+
+- **FE-A1.3-W11-AC01:** Reconnect does not rerun a model or command.
+- **FE-A1.3-W11-AC02:** Retry/new execution requires authoritative eligibility and preserves the prior result.
+- **FE-A1.3-W11-AC03:** Interrupted text and context survive a fresh browser/process restart.
+
+Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
+
+### 37. FE-A1.3-W07: Mediate typed action proposals through one command path
+
+State: planned. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.3-W05, FE-A1.3-W06, FE-A1.3-W09, FE-A1.3-W15, FE-A1.3-W16, FE-A1.3-W18, FE-A1.4-W07, FE-A1.4-W09, FE-A1.3-W11.
+
+After explicit roadmap approval, execute in this order:
+
+1. Read the canonical origin turn and eligible native SuggestedAction, Work/recovery, Source and Review previews.
+2. Audit the retained proposal/decision schemas, migration V068 and native owners; reuse valid work, and register only identified missing contracts under this item after approval.
+3. Validate complete server-owned command arguments and retain the eligible model's proposed-only output.
+4. Show the exact proposed command in chat and retain a separate immutable human accept/reject decision.
+5. Serialize the execution claim and revalidate actor, policy, capability, revisions and idempotency through the existing ordinary command owner.
+6. Retain the observed native receipt and open the exact resulting Workspace object; preserve explicit unknown-effect reconciliation.
+
+Execution pass: Exercise proposal, reject and accept in the actual chat with real owners and production eligible command selection across every admitted command family. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge revoked rights, changed payload, stale context, foreign receipts, concurrent acceptance, crash after claim and restart/replay; neither model prose nor a pure helper closes this flow. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
+Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
+
+- **FE-A1.3-W07-AC01:** A recommendation does not execute itself.
+- **FE-A1.3-W07-AC02:** Direct and conversational invocation use identical operation IDs and exact command outcomes.
+- **FE-A1.3-W07-AC03:** Malformed, partial, stale, or unregistered tool arguments are rejected.
+- **FE-A1.3-W07-AC04:** Typed proposals render their canonical preview, required decision, observed receipt and Workspace result in the conversation. Advisory prose and route-form placement cannot satisfy the command bridge.
+
+Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
+
+### 38. FE-A1.2-W02: Retain atomic Project creation
+
+State: planned. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.2-W01.
+
+After explicit roadmap approval, execute in this order:
+
+1. Bind the reviewed draft to the authenticated actor and exact definition/objective revisions.
+2. Create Project, immutable definition, objective and focus atomically through the existing command.
+3. Return the authoritative Project destination and retained receipt.
+
+Execution pass: Create a Project and repeat the same idempotent request against real persistence. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge partial writes, foreign actor, changed draft and uncertain creation before an authoritative recovery read. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
+Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
+
+- **FE-A1.2-W02-AC01:** A repeated exact command returns the same outcome.
+- **FE-A1.2-W02-AC02:** No partially created Project or silently substituted definition is returned.
+- **FE-A1.2-W02-AC03:** The new Project destination comes from the authoritative read.
+
+Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
+
+### 39. FE-A1.2-W03: Retain optional initial-material handoff
+
+State: planned. Owner: frontend. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.2-W02.
+
+After explicit roadmap approval, execute in this order:
+
+1. Carry optional local material from outcome drafting to the new Project's intake task.
+2. Present existing source identity, rights and registration consequences.
+3. Register bytes only through the explicit authorized intake action.
+
+Execution pass: Create with and without a file and verify exact new-Project handoff. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge failed creation, revoked intake permission, rights refusal and accidental upload before consent. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
+Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
+
+- **FE-A1.2-W03-AC01:** Creation without material works.
+- **FE-A1.2-W03-AC02:** An optional file enters the exact new Project source task.
+- **FE-A1.2-W03-AC03:** File bytes are not uploaded before the rights/intake action.
+
+Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
+
+### 40. FE-A1.2-W04: Implement conversation before the first Project exists
+
+State: planned. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.3-W01, FE-A1.2-W02.
+
+After explicit roadmap approval, execute in this order:
+
+1. Define bounded actor-owned intake conversation before Project identity exists.
+2. Retain outcome Q&A and consequential clarification against the exact draft.
+3. Bind only the accepted intake turns to the created canonical Project thread.
+
+Execution pass: Converse, review the definition and create a Project through the actual eligible intake role. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge another actor's intake, stale drafts, unsupported outcomes and pre-creation domain authority. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
+Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
+
+- **FE-A1.2-W04-AC01:** A zero-Project user can converse and review the proposed outcome/definition.
+- **FE-A1.2-W04-AC02:** Intake has actor, privacy, model eligibility, cost, retention, and exact draft boundaries.
+- **FE-A1.2-W04-AC03:** Creation binds the correct turns without fabricating pre-creation domain authority.
+
+Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
+
+### 41. FE-A1.2-W05: Implement the empty-Project copilot task
+
+State: planned. Owner: frontend. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.2-W04, FE-A1.3-W06, FE-A1.4-W02.
+
+After explicit roadmap approval, execute in this order:
+
+1. Restore the created Project's objective and empty-evidence state in the same copilot.
+2. Offer grounded no-evidence Q&A, outcome revision, intake and necessary clarification.
+3. Execute a first eligible bounded action and display its actual Workspace result.
+
+Execution pass: Complete an empty-Project conversation through its first real retained result. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge fabricated evidence, unsupported produced output, model failure and an action with unmet prerequisites. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
+Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
+
+- **FE-A1.2-W05-AC01:** The user can ask a normal question and receive a grounded no-evidence or clarification response.
+- **FE-A1.2-W05-AC02:** No unsupported output is presented as produced.
+- **FE-A1.2-W05-AC03:** The first eligible action updates the Workspace and preserves the conversation.
+
+Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
+
+### 42. FE-A1.2-W06: Recover creation and intake without losing user work
+
+State: planned. Owner: integration. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.2-W04, FE-A1.3-W03.
+
+After explicit roadmap approval, execute in this order:
+
+1. Specify local draft versus durable intake/preview/receipt retention.
+2. Restore exact accepted outcome and creation state after reload or interruption.
+3. Resolve unknown creation effects before offering an eligible retry.
+
+Execution pass: Reload draft, intake and completed-creation states and recover their exact identities. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge lost access, cross-Project restore, duplicate creation and restored drafts that execute automatically. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
+Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
+
+- **FE-A1.2-W06-AC01:** Unknown creation effect is resolved by an authoritative read before retry.
+- **FE-A1.2-W06-AC02:** Restored drafts do not execute automatically.
+- **FE-A1.2-W06-AC03:** Access loss does not substitute another Project.
+
+Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
+
+### 43. FE-A1.3-W08: Implement consequential interrupts and resumable decisions
+
+State: planned. Owner: integration. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.3-W07, FE-A1.3-W06.
+
+After explicit roadmap approval, execute in this order:
+
+1. Present clarification, missing input, Review approval/rejection/deferral, correction and budget decisions in chat.
+2. Bind responses to exact Work/ChangeSet and consequential previews.
+3. Resume through the owning command and restore pending decisions after reconnect.
+
+Execution pass: Complete each interrupt through its actual command and retained receipt. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge outdated decisions, duplicate approval, hidden consequence and reply correlation to a different Work or Review revision. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
+Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
+
+- **FE-A1.3-W08-AC01:** A user can inspect the exact consequence before deciding.
+- **FE-A1.3-W08-AC02:** The decision reaches the canonical command and observed receipt.
+- **FE-A1.3-W08-AC03:** Reload/reconnect restores the pending decision without duplicate approval.
+
+Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
+
+### 44. FE-A1.3-W10: Distinguish Work pause, delivery stop and authorized cancellation
 
 State: planned. Owner: integration. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.3-W05, FE-A1.3-W09.
 
-Resolve D024 pause/resume through registered Work actions, expose delivery stop and eligible cancel with their separate lifecycles, and display interruption/cancellation races and the retained actual effect.
+After explicit roadmap approval, execute in this order:
+
+1. Audit the native Work pause/resume owners; implement an identified missing registered pause action under this item after approval, with execution semantics separate from delivery stop and cancellation.
+2. Show each lifecycle and authorization consequence in the copilot.
+3. Read late or uncertain effects before presenting the next action.
+
+Execution pass: Exercise delivery stop, authorized pause/resume and cancel against their native owners. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge stream abort presented as paused Work, cancellation races and unknown effects automatically retried. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
@@ -531,25 +1057,21 @@ Publish exact criterion/test plans in the ledger before recording verification. 
 
 Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
 
-### 36. FE-A1.3-W11: Implement ordered replay, reconnect, and safe retry
-
-State: planned. Owner: integration. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.3-W03, FE-A1.3-W05.
-
-Restore streamed turns/activity/state from retained identity and cursor; handle duplicate, out-of-order, late, failed, and terminal events; distinguish reconnect, retry, resume, and start-again eligibility.
-
-Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
-
-- **FE-A1.3-W11-AC01:** Reconnect does not rerun a model or command.
-- **FE-A1.3-W11-AC02:** Retry/new execution requires authoritative eligibility and preserves the prior result.
-- **FE-A1.3-W11-AC03:** Interrupted text and context survive a fresh browser/process restart.
-
-Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
-
-### 37. FE-A1.3-W12: Resolve stale continuation and explicit thread branches
+### 45. FE-A1.3-W12: Resolve stale continuation and explicit thread branches
 
 State: planned. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.3-W03, FE-A1.3-W04.
 
-Implement Continue from original snapshot, Compare with current, and Start from current state with exact parent turn, lineage, context, and safe destinations.
+After explicit roadmap approval, execute in this order:
+
+1. Detect material changes between retained turn basis and current state.
+2. Offer continue-original, compare-current and start-current choices with exact parent lineage.
+3. Preserve safe destinations and declared branch context.
+
+Execution pass: Continue and branch across a changed snapshot while retaining original turns. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge silent rebasing, view focus changing inquiry meaning and stale branch destinations. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
@@ -559,39 +1081,21 @@ Publish exact criterion/test plans in the ledger before recording verification. 
 
 Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
 
-### 38. FE-A1.3-W15: Persist conversation-derived working candidate revisions
-
-State: planned. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.3-W01, FE-A1.2-W07, FE-A1.3-W04.
-
-Admit profile-valid non-authoritative candidates from turns, Work, extraction, import, and direct edits with exact producer, target, context, schema, basis, uncertainty, validation, and supersession lineage.
-
-Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
-
-- **FE-A1.3-W15-AC01:** Working candidates survive reload independently of browser state.
-- **FE-A1.3-W15-AC02:** Unknown types or references are rejected.
-- **FE-A1.3-W15-AC03:** Retention or display emits no trusted-domain promotion.
-
-Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
-
-### 39. FE-A1.3-W16: Persist and query working relationships
-
-State: planned. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.3-W15.
-
-Compose typed working relationship revisions and a snapshot-consistent overlay with source/native versus inferred origin, direction, predicate meaning, exclusions, provenance, and textual peers.
-
-Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
-
-- **FE-A1.3-W16-AC01:** Scientific support/challenge and writing dependencies preserve different registered meanings.
-- **FE-A1.3-W16-AC02:** Old endpoints and new edges cannot be blended into current authority.
-- **FE-A1.3-W16-AC03:** Promotion is available only through the ordinary Review path.
-
-Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
-
-### 40. FE-A1.3-W17: Support conversational correction without silent promotion
+### 46. FE-A1.3-W17: Support conversational correction without silent promotion
 
 State: planned. Owner: integration. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.3-W13, FE-A1.3-W15, FE-A1.3-W07.
 
-Route wording/reference corrections to communication revision, domain/basis corrections to new working revisions and Review, and scope changes to exact action/definition previews.
+After explicit roadmap approval, execute in this order:
+
+1. Classify communication repair, substantive candidate/basis correction and definition/scope change.
+2. Produce the corresponding communication revision, working diff or reviewed definition/action preview.
+3. Apply authority changes only through the ordinary Review receipt.
+
+Execution pass: Correct a candidate in normal language, inspect its exact diff and observe the native outcome. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge mechanical repair resolving ambiguity, silent promotion and an action whose meaning differs from direct Review. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
@@ -601,25 +1105,21 @@ Publish exact criterion/test plans in the ledger before recording verification. 
 
 Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
 
-### 41. FE-A1.3-W18: Implement retention, redaction, and authorized historical text reads
-
-State: planned. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.3-W03.
-
-Specify and implement intake/thread/message/scene retention and redaction without deleting retained Work, outputs, model traces, approvals, events, or provenance required for audit.
-
-Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
-
-- **FE-A1.3-W18-AC01:** Historical content uses its original semantic versions.
-- **FE-A1.3-W18-AC02:** Hiding/deleting conversation does not erase authoritative effects.
-- **FE-A1.3-W18-AC03:** Read failures and redaction return scoped explanations without leaking content.
-
-Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
-
-### 42. FE-A1.4-W03: Present evidence answers as durable inspectable Workspace results
+### 47. FE-A1.4-W03: Present evidence answers as durable inspectable Workspace results
 
 State: planned. Owner: frontend. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.4-W02, FE-A1.3-W13.
 
-Render a bounded answer/result with material segments, selected claim or requirement, cited passage, contrary basis, limitations, validation status, next inquiry/action, graph entry, and exact return to its turn.
+After explicit roadmap approval, execute in this order:
+
+1. Retain structured evidence-answer results with material segments and selected native objects.
+2. Render exact passages, contrary basis, omissions, validation and next eligible inquiry/action.
+3. Link graph entry and return to the originating turn.
+
+Execution pass: Traverse question, durable result, evidence, graph and originating conversation. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge prose-only results, missing contrary basis and a return that loses selected revision or task identity. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
@@ -629,68 +1129,21 @@ Publish exact criterion/test plans in the ledger before recording verification. 
 
 Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
 
-### 43. FE-A1.4-W04: Complete exact Source and passage reading
-
-State: planned. Owner: frontend. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.4-W01, FE-A1.3-W14.
-
-Compose canonical source identity, immutable revision, rights, original/derived representation, exact SourceSpan, processing depth, and quoted context with answer/graph/Review links.
-
-Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
-
-- **FE-A1.4-W04-AC01:** A source-native statement resolves to exact bytes or an explicit unavailable boundary.
-- **FE-A1.4-W04-AC02:** Rights and inspection capability are visible before intake/use.
-- **FE-A1.4-W04-AC03:** Revision/removal/local-copy deletion previews preserve affected references and consequences.
-
-Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
-
-### 44. FE-A1.4-W05: Construct the compositional claim/object examiner
-
-State: planned. Owner: frontend. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.4-W01, FE-A1.3-W15, FE-A1.2-W07.
-
-Create an examiner registry that composes shared identity, basis, provenance, working/authority state, scope, uncertainty, validation, comparison, and action slots with ProjectDefinition-specific object and relationship components.
-
-Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
-
-- **FE-A1.4-W05-AC01:** A scientific Claim/Assertion examiner distinguishes source report, inference, stance, evidence scope, and review state.
-- **FE-A1.4-W05-AC02:** Writing requirement and interpretation examiners both use native textual basis, competing readings, scope and validator meaning.
-- **FE-A1.4-W05-AC03:** The shell does not recast all Projects as scientific Claims.
-
-Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
-
-### 45. FE-A1.4-W06: Implement registered examiners for required Project types
-
-State: planned. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.2-W07, FE-A1.3-W16.
-
-Supply native object/relationship, inquiry, basis, comparison, validation, terminology, and examiner adapters for scientific, controlled-writing, and one unrelated compatible Project definition.
-
-Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
-
-- **FE-A1.4-W06-AC01:** All three execute through shared governance and presentation contracts.
-- **FE-A1.4-W06-AC02:** Writing interpretation is not treated as scientific support.
-- **FE-A1.4-W06-AC03:** A missing adapter is an explicit limitation and cannot count as completing its required functions.
-- **FE-A1.4-W06-AC04:** The unrelated compatible definition supplies native object and relationship schemas, basis, inquiry, validators and examiner slots; a synthetic Q&A example or empty shell cannot satisfy it.
-
-Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
-
-### 46. FE-A1.4-W07: Complete candidate and Review examination
-
-State: planned. Owner: frontend. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.4-W05, FE-A1.4-W06.
-
-Render exact member selection, basis, source context, proposed/current comparison, correction, separate/batch semantics, ChangeSet preparation, stale refresh, and eligibility beside the active conversation.
-
-Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
-
-- **FE-A1.4-W07-AC01:** The user can inspect and correct every proposed member before applying.
-- **FE-A1.4-W07-AC02:** Counts, posture, diffs, and eligibility come from canonical reads.
-- **FE-A1.4-W07-AC03:** Accepted, rejected, deferred, reopened, and stale members retain exact outcomes.
-
-Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
-
-### 47. FE-A1.4-W08: Complete governed decisions and observed projection
+### 48. FE-A1.4-W08: Complete governed decisions and observed projection
 
 State: planned. Owner: integration. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.4-W07, FE-A1.3-W08.
 
-Connect Agent decision cards and direct Review to exact prepared ChangeSet/Approval commands, retained receipts, events, and represented graph position.
+After explicit roadmap approval, execute in this order:
+
+1. Bind chat and direct Review decisions to the same exact prepared ChangeSet and Approval command.
+2. Retain receipts/events and distinguish applied authority from projection freshness.
+3. Restore rejection, deferral, reopening and uncertain Apply effects.
+
+Execution pass: Compare direct and conversational decisions and observe real retained native effects. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge fabricated policy, duplicate Apply, lagging projection claimed as current and retries before resolving uncertain effect. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
@@ -700,25 +1153,21 @@ Publish exact criterion/test plans in the ledger before recording verification. 
 
 Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
 
-### 48. FE-A1.4-W09: Route Work results to the correct continuation
-
-State: planned. Owner: integration. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.4-W02, FE-A1.3-W09.
-
-Compose Work stages, required input, outcomes, retained failures, and result delivery into read-only answer, working candidate/Review, artifact boundary, or originating inquiry with exact identities.
-
-Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
-
-- **FE-A1.4-W09-AC01:** Success, failure, cancellation, and partial outcomes each have a terminal and return path.
-- **FE-A1.4-W09-AC02:** Execution success never closes an unresolved inquiry.
-- **FE-A1.4-W09-AC03:** Shared Work results retain one identity when linked to several inquiries.
-
-Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
-
 ### 49. FE-A1.4-W10: Complete durable lines of inquiry and their Work links
 
 State: planned. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.4-W06, FE-A1.3-W15.
 
-Resolve profile-native questions/Hypotheses/other inquiry roles with framing, purpose, exact basis, open questions, alternatives, history, recommendations, and zero/many/shared Work/turn/result links.
+After explicit roadmap approval, execute in this order:
+
+1. Resolve native questions, Hypotheses and other inquiry roles with purpose and exact basis.
+2. Retain alternatives, criteria, open questions, history and zero/many/shared Work links.
+3. Present recommendations separately from scheduler prerequisites.
+
+Execution pass: Follow one durable inquiry across focus changes, several turns and shared Work results. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge every inquiry forced into a Hypothesis, recommendations treated as locks and task completion deleting unresolved inquiry. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
@@ -732,7 +1181,17 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 State: planned. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.4-W10, FE-A1.4-W06, FE-A1.3-W04.
 
-Register and persist the exact Hypothesis identity/revision, target Claim, descriptor and scoped reference, plus the D010 assessment envelope and applicable scientific indicator/finding/axis validators for the A1 evidence cycle; bind target revision, snapshot, as-of/temporal scope, basis, search coverage, methods, actor, alternatives and limitations.
+After explicit roadmap approval, execute in this order:
+
+1. Register exact Hypothesis/target revision and D010 scoped assessment records.
+2. Retain basis, snapshot, temporal scope, coverage, methods, actor, alternatives and limitations.
+3. Validate separate assessment axes and supporting/challenging/mixed/insufficient findings.
+
+Execution pass: Assess retained hypotheses against named scoped criteria and inspect their exact evidence/method. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge a universal truth score, unknown axes assigned values, omitted contrary basis and a model assigning authoritative warrant. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
@@ -746,7 +1205,17 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 State: planned. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.4-W11, FE-A1.3-W07.
 
-Register the applicable explore/clarify/challenge/discriminate/reproduce/consolidate posture and obligation/SuggestedAction mappings for A1; compose hypotheses, rivals, gaps, evidence needs, eligible Work, stop rules, and resource limits.
+After explicit roadmap approval, execute in this order:
+
+1. Resolve registered posture and obligation meanings from assessment findings.
+2. Bind rivals, gaps, evidence needs and bounded eligible Work previews to their motivating records.
+3. Expose stop rules, resources and user inquiry choices.
+
+Execution pass: Derive an eligible next-cycle plan from recorded findings and obligations. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge unregistered considerations controlling execution, advice changing warrant and plans bypassing real prerequisites. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
@@ -760,7 +1229,17 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 State: planned. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.3-W16, FE-A1.4-W06.
 
-Compose profile-resolved exact objects/edges, path steps, layers, revisions, snapshots, projection freshness, facets/count units, omissions, finite expansion references, capabilities, and safe semantic destinations.
+After explicit roadmap approval, execute in this order:
+
+1. Resolve bounded graph objects/edges/paths from native definitions and exact snapshots.
+2. Preserve layers, revisions, projection freshness, facets, omissions and finite expansion references.
+3. Expose permitted semantic destinations through the common query owner.
+
+Execution pass: Compare direct and conversational bounded queries against real graph/read owners. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge silently blended history, dangling endpoints, hidden totals treated as complete and unlimited cyclic traversal. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
@@ -774,7 +1253,17 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 State: planned. Owner: frontend. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.4-W16, FE-A1.4-W02, FE-A1.1-W06.
 
-Mount the graph as an in-Workspace task/Inspect mode with focus, selection, typed edges, legend, layer position, expansion, filter, saved question, Details/source access, comparison, time, impact, Review correction, and exact return.
+After explicit roadmap approval, execute in this order:
+
+1. Display the real bounded graph within the active Workspace or Inspect task.
+2. Connect focus, typed edges, legend, expansion, filtering, Details, sources, Review and return.
+3. Provide complete semantic-peer selection and action parity.
+
+Execution pass: Open evidence's graph, select a native object and update its examiner/next-turn context. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge a decorative graph, missing peer actions, layout used as evidence and graph navigation losing the task. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
@@ -788,7 +1277,17 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 State: planned. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.4-W17, FE-A1.3-W04, FE-A1.3-W13.
 
-Add immutable non-authoritative presentation context: exact semantic query/result, scene membership/layout/version, selection, groups/filter/legend/viewport/omissions, peer identity/parity, snapshot, actor, and model-context use.
+After explicit roadmap approval, execute in this order:
+
+1. Bind semantic query/result and rendered scene membership/layout/version to the exact turn.
+2. Retain selection, filters, groups, legend, viewport, omissions, snapshot and actor.
+3. Bind the semantic peer and declare model context use; vision remains optional.
+
+Execution pass: Explain the actual shared graph scene and its omissions from retained semantic context. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge mismatched scene/peer, stale snapshot and unauthorized capture; semantic explanation cannot imply unsupported visual observation. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
@@ -798,11 +1297,45 @@ Publish exact criterion/test plans in the ledger before recording verification. 
 
 Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
 
-### 55. FE-A1.4-W19: Guide agent context and next work from the graph
+### 55. FE-A1.4-W21: Protect graph interaction against stale and restricted results
 
-State: planned. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.4-W18, FE-A1.4-W12, FE-A1.3-W07.
+State: planned. Owner: integration. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.4-W16, FE-A1.4-W17.
 
-Compile registered graph paths, evidence gaps, dependencies, alternatives, and obligations into bounded turn context and exact eligible next-action previews; preserve explanation and query/scene provenance.
+After explicit roadmap approval, execute in this order:
+
+1. Fence query/continuation results by exact request, selection, scope and current access.
+2. Label lagging projections and restricted/dense/cyclic/limited states consistently.
+3. Resolve Details and Review to safe authoritative destinations.
+
+Execution pass: Exercise fresh, stale and limited graph reads with their semantic peers. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge late overwrite, restricted label/count/path leaks and a stale visual graph paired with an unlabelled current peer. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
+Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
+
+- **FE-A1.4-W21-AC01:** An old graph result cannot overwrite a newer selection.
+- **FE-A1.4-W21-AC02:** Restricted objects leak no labels, counts, or connection paths.
+- **FE-A1.4-W21-AC03:** A textual peer over a stale projection is labelled stale too.
+
+Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
+
+### 56. FE-A1.4-W19: Guide agent context and next work from the graph
+
+State: planned. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.4-W18, FE-A1.4-W12, FE-A1.3-W07, FE-A1.4-W21.
+
+After explicit roadmap approval, execute in this order:
+
+1. Read recorded graph paths, alternatives, dependencies, gaps and obligations.
+2. Compile bounded agent context and eligible native next-examination previews with query/scene provenance.
+3. Send any chosen action through the ordinary W07 Work/Review path.
+
+Execution pass: Explain selected basis and choose the next recorded examination in the real task. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge visual proximity, colors or counts interpreted as causality/support/priority and a graph recommendation bypassing approval. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
@@ -812,25 +1345,21 @@ Publish exact criterion/test plans in the ledger before recording verification. 
 
 Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
 
-### 56. FE-A1.4-W13: Execute the cyclic examine and verify workflow
-
-State: planned. Owner: integration. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.4-W12, FE-A1.4-W08, FE-A1.4-W09, FE-A1.4-W19.
-
-Connect inquiry/Hypothesis framing, bounded evidence retrieval or intake, source/candidate examination, alternative/challenge evaluation, governed decision, graph update, reassessment, and next-cycle planning in one Agent–Workspace task.
-
-Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
-
-- **FE-A1.4-W13-AC01:** At least two connected cycles run from a question to an examined result and then a changed basis or rival.
-- **FE-A1.4-W13-AC02:** Verification means meeting named scoped criteria with retained evidence; task success and fluent prose are insufficient.
-- **FE-A1.4-W13-AC03:** Evidence gaps and unresolved alternatives remain visible through every cycle.
-
-Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
-
 ### 57. FE-A1.4-W14: Record explicit cycle closure or unresolved disposition
 
 State: planned. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.4-W11, FE-A1.4-W12, FE-A1.4-W08.
 
-Implement a profile-valid exact closure/disposition record linking objective/inquiry, assessment/check criteria, supporting and contrary basis, Review/decisions, outstanding obligations, limitations, snapshot, and user/runtime authority.
+After explicit roadmap approval, execute in this order:
+
+1. Define exact native closure/disposition with inquiry, criteria, basis and contrary evidence.
+2. Bind assessment, Review decisions, obligations, limitations, snapshot and allowed authority.
+3. Admit supported, challenged, insufficient, deferred or further-cycle outcomes under registered meaning.
+
+Execution pass: Record each allowed scoped disposition and restore its evidence and decision lineage. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge satisfied closure with open mandatory obligations, missing required basis, universal truth claims and Work completion substituted for resolution. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
@@ -844,7 +1373,17 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 State: planned. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.4-W11, FE-A1.4-W14.
 
-Track exact source/object/relationship/definition/method dependencies and affected findings/axes/closures; changed basis yields stale/invalid status, retained old assessment, recomputation or new examination, and explicit continuation.
+After explicit roadmap approval, execute in this order:
+
+1. Register exact source/object/relationship/definition/method dependencies of findings and closures.
+2. Mark only affected results stale or invalid while retaining earlier versions.
+3. Recompute or start a declared next examination and return to its inquiry.
+
+Execution pass: Change or retract basis and observe selective invalidation plus a new assessment version. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge an old verified status surviving retraction, unrelated axes invalidated indiscriminately and silent reuse of changed semantic definitions. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
@@ -854,11 +1393,46 @@ Publish exact criterion/test plans in the ledger before recording verification. 
 
 Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
 
-### 59. FE-A1.4-W20: Compose graph comparisons, time, and impact honestly
+### 59. FE-A1.4-W13: Execute the cyclic examine and verify workflow
+
+State: planned. Owner: integration. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.4-W12, FE-A1.4-W08, FE-A1.4-W09, FE-A1.4-W19, FE-A1.4-W14, FE-A1.4-W15.
+
+After explicit roadmap approval, execute in this order:
+
+1. Connect inquiry framing, bounded evidence retrieval/intake and native object examination.
+2. Compare alternatives, pass governed decisions and observe graph/result updates.
+3. Reassess and record disposition, remaining obligations and next-cycle plan.
+4. Repeat against a changed basis or rival with selective invalidation already connected.
+
+Execution pass: Run at least two connected cycles through actual owners from inquiry to examined result and the next declared basis. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge fluent answers or successful Work counted as verification, unexamined rivals, missing receipts and old closure remaining current after evidence changes. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
+
+Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
+
+- **FE-A1.4-W13-AC01:** At least two connected cycles run from a question to an examined result and then a changed basis or rival.
+- **FE-A1.4-W13-AC02:** Verification means meeting named scoped criteria with retained evidence; task success and fluent prose are insufficient.
+- **FE-A1.4-W13-AC03:** Evidence gaps and unresolved alternatives remain visible through every cycle.
+
+Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
+
+### 60. FE-A1.4-W20: Compose graph comparisons, time, and impact honestly
 
 State: planned. Owner: integration. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.4-W16.
 
-Connect exact current/working/historical positions and supported temporal dimensions to comparison and impact reads with named bases, freshness, coverage, supplied dependency facts, and explicit unsupported reconstruction.
+After explicit roadmap approval, execute in this order:
+
+1. Compose current/working/historical graph positions and supported time dimensions.
+2. Read supplied dependency and impact facts with named scope and freshness.
+3. Preserve compare/history return and explicit unsupported reconstruction.
+
+Execution pass: Compare exact positions and inspect recorded dependency impact in the same inquiry. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge limited-result absence called deletion, dependency claimed as assessed consequence and unsupported historical reconstruction. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
@@ -868,25 +1442,21 @@ Publish exact criterion/test plans in the ledger before recording verification. 
 
 Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
 
-### 60. FE-A1.4-W21: Protect graph interaction against stale and restricted results
-
-State: planned. Owner: integration. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.4-W16, FE-A1.4-W17.
-
-Reject late query/continuation responses; recheck access, exact scope and layers; represent lagging projections, restricted endpoints, dense/cyclic/limited results, and safe authoritative Details/Review destinations.
-
-Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
-
-- **FE-A1.4-W21-AC01:** An old graph result cannot overwrite a newer selection.
-- **FE-A1.4-W21-AC02:** Restricted objects leak no labels, counts, or connection paths.
-- **FE-A1.4-W21-AC03:** A textual peer over a stale projection is labelled stale too.
-
-Execution: prove the observable outcome of each criterion. Critical: challenge each criterion with a distinct test and explain the user consequence of any finding. Both pass records bind this exact contract and candidate.
-
 ### 61. FE-A1.4-W22: Preserve exact Artifact result and Wave 7 handoff
 
 State: planned. Owner: frontend. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.4-W01, FE-A1.4-W09.
 
-Show retained output identity, provenance/validation availability, originating turn/Work, and exact Artifact destination; retain an explicit boundary for the full document editor/export operation family.
+After explicit roadmap approval, execute in this order:
+
+1. Read retained output identity and exact Artifact destination with originating turn/Work.
+2. Expose available provenance and validation without fabricating missing records.
+3. Preserve the explicit Wave 7 document-authoring/export boundary.
+
+Execution pass: Inspect A1 output and follow its exact basis and retained Artifact identity. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge missing provenance implied as validated, output editing pulled into A1 and examiner/cycle work deferred as Composition. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
@@ -900,7 +1470,17 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 State: planned. Owner: frontend. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.4-W01, FE-A1.4-W02.
 
-Complete safe direct links, server selection, historical/unavailable destinations, task-aware return, local unsent drafts, durable submitted candidates, focus and selection across all renderers and graph modes.
+After explicit roadmap approval, execute in this order:
+
+1. Resolve exact direct links and historical/unavailable object destinations.
+2. Preserve local unsent drafts separately from durable submitted candidates.
+3. Restore selection, focus and initiating task across source, graph, Review, History and Inspect.
+
+Execution pass: Refresh/deep-link every renderer and return to the exact initiating task. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge malformed addresses, substituted Projects, stale revisions and unsent draft loss during graph or Inspect navigation. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
@@ -914,7 +1494,17 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 State: planned. Owner: frontend. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.4-W23, FE-A1.3-W06.
 
-Add one Inspect entry to every material answer, candidate, Work action/result, Review decision, source change, inquiry assessment/closure, and Workspace object.
+After explicit roadmap approval, execute in this order:
+
+1. Add one contextual Inspect entry for every material turn, object, candidate, Work and decision.
+2. Bind the entry to its exact request/result/revision and origin.
+3. Render inspection within the Workspace and retain conversation/return state.
+
+Execution pass: Open Inspect from every required object/action family and return with retained focus/draft. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge orphan inspection, wrong origin, missing consequence families and a permanent diagnostic rail replacing the task. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
@@ -928,7 +1518,17 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 State: planned. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.5-W01, FE-A1.3-W14.
 
-Return the exact request, outcome/state/reason, objective/definition/snapshot, source/evidence/packet/assessment references, alternatives, scope, omissions, uncertainty, and validation limitations.
+After explicit roadmap approval, execute in this order:
+
+1. Read exact request/outcome/reason and definition/objective/snapshot basis.
+2. Compose authorized evidence, packet, assessment, alternatives and limitations.
+3. Preserve original meanings and explicitly absent records.
+
+Execution pass: Trace a material result to available exact basis through authoritative reads. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge facts reconstructed from chat, changed historical semantics and missing basis presented as established. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
@@ -942,7 +1542,17 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 State: planned. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.5-W01, FE-A1.3-W07.
 
-Add retained exact operation/command, actor/grant, definition/objective, input/output revisions, applicable policy and validation findings, approval or absence, command fingerprint, and real availability.
+After explicit roadmap approval, execute in this order:
+
+1. Read retained operation/command, actor/grant and exact input/output revisions.
+2. Display applicable policy, prerequisites, validators, approval or their actual absence.
+3. Show command fingerprint and availability without granting authority.
+
+Execution pass: Inspect authorized and denied actions with their real retained control records. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge a current grant substituted for past authority, fabricated default policy and inspection triggering a state change. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
@@ -956,7 +1566,17 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 State: planned. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.5-W03, FE-A1.4-W14.
 
-Audit and supply authenticated durable receipt reads for creation/objective/definition, source lifecycle, Work, candidate/Review/Apply, model interaction, recovery/Revert, inquiry assessment and closure; bind record hashes and exact origin.
+After explicit roadmap approval, execute in this order:
+
+1. Inventory receipt reads for creation, definition, Source, Work, Review, recovery, model and inquiry outcomes.
+2. Supply only missing authenticated read connections to existing canonical owners.
+3. Bind hashes, origin and effect availability across reload.
+
+Execution pass: Read each family's actual retained receipt in a fresh browser. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge ephemeral callbacks claimed as receipts, corrupted hashes, foreign ownership and missing records supporting an applied claim. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
@@ -970,7 +1590,17 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 State: planned. Owner: runtime. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.5-W02, FE-A1.5-W04, FE-A1.4-W18.
 
-Connect turn/run, context/query/scene, evidence, working revision, ChangeSet, decision, event, projection, assessment/closure, and retained History to a bounded inspectable lineage.
+After explicit roadmap approval, execute in this order:
+
+1. Link turn/run/context/query/scene to evidence, working revision, ChangeSet and decision.
+2. Extend exact event/projection/assessment/closure/History lineage with bounded omissions.
+3. Preserve safe source/graph/History destinations and return.
+
+Execution pass: Reconstruct an actual result's authority and evidence lineage through retained records. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge missing links guessed from UI, mixed revisions and restricted History details exposed by provenance traversal. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
@@ -984,7 +1614,17 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 State: planned. Owner: integration. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.5-W05, FE-A1.4-W15.
 
-Compose recorded dependency impact, recovery assessment, compensating command preview, explicit confirmation, retained execution receipt, revalidation/invalidation, and updated graph/Workspace result.
+After explicit roadmap approval, execute in this order:
+
+1. Read recorded impact and native recovery assessment for an uncertain or changed effect.
+2. Preview and explicitly confirm eligible compensating commands.
+3. Retain compensation receipt and reflect resulting invalidation in the next inquiry cycle.
+
+Execution pass: Resolve an unknown effect and complete eligible compensation with exact resulting basis. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge history deletion presented as Revert, compensation repeated after restart and old verification retained after changed basis. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
@@ -998,7 +1638,17 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 State: planned. Owner: frontend. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.5-W02, FE-A1.5-W03, FE-A1.5-W05, FE-A1.4-W05.
 
-Build Explanation, Basis, Control, and Graph/History levels using compositional object/action sections; keep current question, necessary decision, critical validation and unknown effect visible at the appropriate task level.
+After explicit roadmap approval, execute in this order:
+
+1. Compose Explanation, Basis, Control and Graph/History levels in one task hierarchy.
+2. Keep necessary decision, critical validation and unknown effect visible at the current level.
+3. Resolve deeper sections compositionally for all three definitions.
+
+Execution pass: Complete an ordinary task without diagnostics, then inspect enough basis before a consequential decision. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge required warnings hidden behind optional depth, unrelated Inspect routes and domain-specific disclosure violating the shared hierarchy. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
@@ -1012,7 +1662,17 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 State: planned. Owner: frontend. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.5-W07, FE-A1.1-W05.
 
-Render readable exact records, path/basis tables, legends, policy findings, diffs and receipt summaries with semantic peer actions; keep raw diagnostics secondary.
+After explicit roadmap approval, execute in this order:
+
+1. Present readable records, paths, basis tables, diffs, legends and receipt summaries.
+2. Add labelled semantic actions, keyboard order, focus return and high-zoom wrapping.
+3. Keep raw diagnostics secondary and exclude private reasoning.
+
+Execution pass: Use all disclosure levels and graph peers through browser semantics and keyboard. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge clipped identifiers, keyboard-inaccessible decisions, missing peer actions and an Inspect feature requiring private reasoning; native screen-reader evaluation stays excluded. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
@@ -1027,7 +1687,17 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 State: planned. Owner: integration. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.5-W04, FE-A1.5-W05.
 
-Test actor/Project/object/revision/hash binding, historical access, denied or lost access, record corruption, stale selection, retained receipt ownership, and safe retry/return for every Inspector read owner.
+After explicit roadmap approval, execute in this order:
+
+1. Bind every inspection read to exact actor, Project, object, revision and hash.
+2. Retain historical access, record-corruption, stale-selection and unavailable-receipt outcomes.
+3. Preserve drafts and native Work state on safe retry/return.
+
+Execution pass: Read permitted current/historical owners and recover named failures. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge foreign receipts, descriptor leaks, accessible-neighbor substitution and failed reads changing pending Work. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
@@ -1039,9 +1709,19 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 ### 72. FE-A1.6-W01: Reconcile all 97 live operation presentations
 
-State: planned. Owner: integration. Prerequisites: FE-A1.0-W06, FE-A1.4-W23, FE-A1.5-W09.
+State: planned. Owner: integration. Prerequisites: FE-A1.0-W06, FE-A1.4-W23, FE-A1.5-W09, FE-A1.0-W05.
 
-Run every assigned Wave 6 operation through its mapped entry, result, exposure, exact identity, eligible command/read owner, terminal result, recovery, and return; retain operation-specific conformance evidence.
+After explicit roadmap approval, execute in this order:
+
+1. Compare all 116 frozen operation presentation entries with their current contractual ownership.
+2. Exercise each of the 97 A1 operations through its mapped live entry and native read/command owner.
+3. Retain per-operation result, terminal/recovery/return and coverage evidence.
+
+Execution pass: Account for every A1 operation with actual adapted functional evidence. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge one omitted operation, duplicate mapping, DOM-only evidence and a mechanically complete operation without usable task presentation. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
@@ -1053,9 +1733,19 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 ### 73. FE-A1.6-W02: Remove the superseded customer interface and compatibility debt
 
-State: planned. Owner: frontend. Prerequisites: FE-A1.0-W06, FE-A1.6-W01.
+State: planned. Owner: frontend. Prerequisites: FE-A1.0-W06, FE-A1.6-W01, FE-A1.0-W05.
 
-Remove or quarantine module-grid/control-gallery entry, duplicate Inspect routes, obsolete components, permanent automatic/test controls, and route forms that replace the conversational copilot; keep required mechanics accessible contextually.
+After explicit roadmap approval, execute in this order:
+
+1. Inventory obsolete customer entry points and their mapped functioning replacements.
+2. Remove or quarantine duplicate routes/components and automatic/test controls.
+3. Verify the customer root enters the approved copilot/outcome experience.
+
+Execution pass: Reach each retained capability through its new contextual entry after cleanup. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge deleted capability paths, old root navigation resurfacing and conformance/reset controls shown as product flow. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
@@ -1067,9 +1757,19 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 ### 74. FE-A1.6-W03: Complete quiet automatic orchestration
 
-State: planned. Owner: integration. Prerequisites: FE-A1.0-W06, FE-A1.3-W11, FE-A1.4-W09, FE-A1.3-W08.
+State: planned. Owner: integration. Prerequisites: FE-A1.0-W06, FE-A1.3-W11, FE-A1.4-W09, FE-A1.3-W08, FE-A1.0-W05.
 
-Make healthy Project/task resume, Work delivery/reconnect/replay, eligible stale Review refresh, attention surfacing, and result routing automatic where the server allows it; retain intervention for material meaning/authority/failure.
+After explicit roadmap approval, execute in this order:
+
+1. Restore healthy task/Work delivery and eligible stale Review reads automatically.
+2. Route attention and retained results to the current task without extra modules.
+3. Preserve visible intervention for meaning, authority, required decisions and unknown effects.
+
+Execution pass: Complete a supported outcome without navigating Work, History, Settings or Graph. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge automation invoking a new model/command, spending beyond eligibility or hiding an unresolved required decision. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
@@ -1081,9 +1781,19 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 ### 75. FE-A1.6-W04: Remove profile-specific terminology from the shared shell
 
-State: planned. Owner: frontend. Prerequisites: FE-A1.0-W06, FE-A1.4-W06, FE-A1.3-W13.
+State: planned. Owner: frontend. Prerequisites: FE-A1.0-W06, FE-A1.4-W06, FE-A1.3-W13, FE-A1.0-W05.
 
-Audit shared entry, navigation, composer, status, interruptions, empty states, and Inspect copy; resolve domain labels through the ProjectDefinition terminology/descriptors and communication contract.
+After explicit roadmap approval, execute in this order:
+
+1. Audit shared shell, entry, navigation, composer, status and Inspect terminology.
+2. Resolve domain labels through exact native definition descriptors and communication contracts.
+3. Retain original historical labels and meanings.
+
+Execution pass: Use scientific, writing and event-planning definitions through the same shared grammar. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge universal science terms, current labels applied to old revisions and definition-specific conditionals in shared shell behavior. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
@@ -1095,9 +1805,19 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 ### 76. FE-A1.6-W05: Keep unsupported capabilities explicit without deferring A1
 
-State: planned. Owner: integration. Prerequisites: FE-A1.0-W06, FE-A1.4-W13, FE-A1.4-W22, FE-A1.5-W04.
+State: planned. Owner: integration. Prerequisites: FE-A1.0-W06, FE-A1.4-W13, FE-A1.4-W22, FE-A1.5-W04, FE-A1.0-W05.
 
-Audit all limited states against this ledger: unsupported external/experimental/output capabilities remain honest, while required conversational, examiner, graph, scene, inquiry, verification-cycle and receipt capabilities are implemented before acceptance.
+After explicit roadmap approval, execute in this order:
+
+1. Compare every limited state and deferred capability against the approved A1 function list.
+2. Keep full document authoring/export, general experiment execution and later external capabilities explicitly assigned.
+3. Reject any transfer of required conversation, examiners, graph, cycles or receipts to later waves.
+
+Execution pass: Verify every required A1 function remains owned and every later capability has an explicit boundary. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge a missing required adapter hidden as unsupported and a renamed Composition boundary releasing incomplete examination. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
@@ -1109,9 +1829,19 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 ### 77. FE-A1.6-W06: Integrate the prerequisite into all delivery branches and packets
 
-State: planned. Owner: integration. Prerequisites: FE-A1.0-W06, FE-A1.0-W04, FE-A1.6-W01.
+State: planned. Owner: integration. Prerequisites: FE-A1.0-W06, FE-A1.0-W04, FE-A1.6-W01, FE-A1.0-W05.
 
-Carry the A1 ledger/gate into coordinator and backend/design worktrees before later-wave workers are launched; update Wave 7/8 packets to require the accepted A1 candidate and preserve its regression suite.
+After explicit roadmap approval, execute in this order:
+
+1. Reconcile approved A1 contract and execution copies across delivery branches.
+2. Audit initialization/resume/extension/acceptance packets and regression obligations.
+3. Keep architecture disposition wave numbering separate from delivery waves.
+
+Execution pass: Check both worktrees and every delivery entry against the accepted A1 candidate and current instructions. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge missing/stale copies, an existing worker bypassing A1 and historical Wave 6 instructions superseding current scope. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
@@ -1126,7 +1856,17 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 State: planned. Owner: validation. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.2-W05, FE-A1.2-W06, FE-A1.1-W07.
 
-Verify normal copilot intake, definition review, atomic creation, no-evidence Q&A, initial material, recovery and first bounded result against the individual functional acceptance criteria using production boundaries.
+After explicit roadmap approval, execute in this order:
+
+1. Exercise each zero-Project and empty-Project function through actual owners.
+2. Retain definition review, creation, no-evidence Q&A, intake and first-result evidence independently.
+3. Challenge interruption/recovery in a separate pass.
+
+Execution pass: Use real HTTP, persistence, official AG-UI and eligible models wherever each function requires them. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge fixture-only integration claims, duplicate creation, fabricated evidence and unsupported output marked produced. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
@@ -1140,7 +1880,17 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 State: planned. Owner: validation. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.4-W13, FE-A1.5-W08, FE-A1.3-W18.
 
-Verify normal question/follow-up, exact source/passages, Claim/Assertion examination, typed relations, working versus trusted layers, Review, graph, Inspect and readable reload against their own criteria.
+After explicit roadmap approval, execute in this order:
+
+1. Verify scientific normal Q&A/follow-up and exact evidence reading.
+2. Verify native examination, relationships, Review, graph and Inspect functions independently.
+3. Retain actual model, receipt and snapshot evidence with reload.
+
+Execution pass: Demonstrate Workspace reaction and scoped supporting/contrary basis through production functions. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge stale basis, source/inference confusion, invalid citations and working content shown as trusted without Review. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
@@ -1154,7 +1904,17 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 State: planned. Owner: validation. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.4-W06, FE-A1.4-W07, FE-A1.5-W08, FE-A1.3-W18.
 
-Verify native requirement/interpretation, competing readings, source basis, working relations, correction/Review, graph and progressive disclosure through their shared compositional contracts.
+After explicit roadmap approval, execute in this order:
+
+1. Verify native writing Requirement and Interpretation with textual basis and competing readings.
+2. Verify correction, Review, working relationships, graph and progressive disclosure.
+3. Restore actual questions, decisions and results.
+
+Execution pass: Demonstrate both writing object kinds through shared production governance. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge missing Interpretation, scientific aliases and full document editing incorrectly used as an A1 prerequisite. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
@@ -1168,7 +1928,17 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 State: planned. Owner: validation. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.4-W06, FE-A1.2-W07, FE-A1.5-W08.
 
-Verify independently authored compatible definition resolution, normal Q&A, native object/inquiry, bounded action, result/graph/examiner, limitations and exact return against the same shared functional contracts.
+After explicit roadmap approval, execute in this order:
+
+1. Verify the independent event-planning definition and native requirement/constraint/option semantics.
+2. Complete normal Q&A, bounded action, examiner, graph and result return.
+3. Expose unsupported booking/purchase/external scheduling separately.
+
+Execution pass: Demonstrate the third definition's real persisted objects, native relationships and validators. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge a renamed fixture, Q&A-only proof, fabricated operational capability and a missing native examiner counted complete. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
@@ -1182,7 +1952,17 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 State: planned. Owner: validation. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.3-W10, FE-A1.3-W11, FE-A1.5-W06, FE-A1.5-W09.
 
-Verify missing input, preview/approve/reject/defer, stop versus cancel, reconnect/replay, retry/resume/start-again, lost access, unknown effect, exact receipts and compensation against each owning function.
+After explicit roadmap approval, execute in this order:
+
+1. Verify each required input, preview, approval, reject/defer and delivery control function.
+2. Verify native retry/resume/start-again, reconnect and lost-access recovery.
+3. Verify uncertain-effect reads, receipts and eligible compensation.
+
+Execution pass: Reach retained terminal/return states while preserving drafts and pending decisions. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge duplicate model/command/Review effects, unsafe retries and restored decisions acting automatically. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
@@ -1196,7 +1976,17 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 State: planned. Owner: validation. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.3-W05, FE-A1.3-W07, FE-A1.4-W21, FE-A1.3-W13.
 
-Exercise real adapter ordering and terminal semantics with adversarial malformed/partial/unregistered tool events, stale turns, mixed snapshots, wrong actors, restricted refs, scene mismatch, duplicate delivery, provider failure and invalid output.
+After explicit roadmap approval, execute in this order:
+
+1. Verify adapter containment and actual ordering/terminal behavior.
+2. Inject malformed, partial, unregistered and foreign tool/reference events.
+3. Retain separate adverse protocol and authority observations.
+
+Execution pass: Observe recoverable product behavior through real adapter and owner boundaries. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge mixed snapshots, stale scenes, revoked access, invalid provider output and rejected events still producing effects. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
@@ -1210,7 +2000,17 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 State: planned. Owner: validation. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.4-W13, FE-A1.4-W14, FE-A1.4-W15, FE-A1.5-W06.
 
-Verify target/rival and scoped criteria, repeated examination, exact assessment/posture/obligation links, explicit disposition, changed/retracted basis and stale/reopened/reassessed behavior against each cyclic-function contract.
+After explicit roadmap approval, execute in this order:
+
+1. Verify scoped target/rival criteria, assessment and posture/obligation links.
+2. Run repeated examination with explicit disposition.
+3. Change/retract basis and retain stale/reopened/reassessed versions.
+
+Execution pass: Demonstrate cyclic-function closure and selective invalidation with exact dependencies. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge open mandatory obligations, Work completion assigning warrant and old assessment basis presented as current. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
@@ -1224,7 +2024,17 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 State: planned. Owner: validation. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.7-W01, FE-A1.7-W02, FE-A1.7-W03, FE-A1.7-W04.
 
-Review the integrated functions with actual content at desktop, resized, compact, empty and adverse states; correct hierarchy, reading density, composer usability, graph discoverability, response coupling, decisions and return.
+After explicit roadmap approval, execute in this order:
+
+1. Evaluate the complete scientific, writing, event-planning and empty-entry tasks.
+2. Review hierarchy, density, composer, graph discovery, Workspace coupling and decisions.
+3. Link every material visual/interaction finding to its owning repair.
+
+Execution pass: Inspect the integrated product with real content across desktop, resized and adverse states. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge apparently complete components whose combined task has dead ends, misleading authority or unusable density. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
@@ -1238,7 +2048,17 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 State: planned. Owner: validation. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.1-W04, FE-A1.1-W05, FE-A1.5-W08, FE-A1.7-W01, FE-A1.7-W02, FE-A1.7-W03, FE-A1.7-W04.
 
-Verify required functions using keyboard and browser accessibility semantics, focus/return, 420 px, high zoom/text scale, touch, reduced motion, non-color cues, long labels and graph semantic-peer parity.
+After explicit roadmap approval, execute in this order:
+
+1. Complete the required tasks by keyboard, touch and semantic graph peers.
+2. Exercise narrow width, zoom/text scale, reduced motion, long labels and non-color cues.
+3. Retain focus/return, readable streaming and pending input.
+
+Execution pass: Reach the same decisions and terminals through each supported presentation. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge trapped focus, clipping, lost drafts and semantic peers missing actions; native screen-reader evaluation remains excluded. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
@@ -1253,7 +2073,17 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 State: planned. Owner: validation. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.6-W01, FE-A1.6-W02, FE-A1.6-W03, FE-A1.6-W04, FE-A1.6-W05, FE-A1.6-W06.
 
-Run all 116 presentation mappings, all 97 adapted live-operation evidence checks, ledger coverage/dependencies, protocol/domain boundaries, relevant repository checks, real persistence/projection integration and evidence for each required function.
+After explicit roadmap approval, execute in this order:
+
+1. Run complete ledger/operation/presentation and protocol/domain conformance gates.
+2. Run appropriate repository and real persistence/projection integration checks.
+3. Bind every completed function to exact candidate, inputs, results, provider/owner and limits.
+
+Execution pass: Verify all required engineering checks and retained per-function evidence on one integrated candidate. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge skipped gates, substituted DOM assertions, stale proof sources and broad test counts offered as functional completion. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
@@ -1267,7 +2097,17 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 State: planned. Owner: validation. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.7-W05, FE-A1.7-W06, FE-A1.7-W07, FE-A1.7-W08, FE-A1.7-W09.
 
-Review apparent authority, misleading completion, hidden uncertainty, cognitive load, lost context, dead ends, unsupported fallback, stale graph scenes and recovery across the integrated tasks.
+After explicit roadmap approval, execute in this order:
+
+1. Review the integrated tasks for authority, uncertainty, cognitive load and recovery.
+2. Challenge graph/cycle semantics, scope limitations and apparent completion.
+3. Resolve material findings with affected functional and critical reruns.
+
+Execution pass: Confirm findings map to exact required functions and repaired candidate evidence. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge concealed uncertainty, stale scenes, broken task return and repeated positive checks offered as independent critical review. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
@@ -1281,7 +2121,17 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 State: planned. Owner: integration. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.7-W10, FE-A1.7-W11.
 
-Provide a stable inspection URL, valid root/deep links, exact candidate commit and runtime identity, clean-start instructions, a review guide for required functions, known limits and the complete implementation evidence index; enter needs_user.
+After explicit roadmap approval, execute in this order:
+
+1. Publish the exact fully verified candidate identity and inspection instructions.
+2. Verify root/deep links and clean-start behavior.
+3. Assemble per-function evidence and known limits for user inspection.
+
+Execution pass: Open the inspection root and exact objects against the identified runtime/candidate. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge unavailable routes, different served commits, missing proof and a pending user decision releasing Wave 7. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
@@ -1295,7 +2145,17 @@ Execution: prove the observable outcome of each criterion. Critical: challenge e
 
 State: planned. Owner: user. Prerequisites: FE-A1.0-W05, FE-A1.6-W07, FE-A1.0-W06, FE-A1.7-W12.
 
-Have the user inspect the actual A1 candidate and accept the copilot, empty entry, compositional examination, progressive disclosure, reactive Workspace, graph-guided cyclic verification and recovery; retain the exact decision against the candidate.
+After explicit roadmap approval, execute in this order:
+
+1. Present the actual integrated A1 candidate and evidence to the user.
+2. Record only the user's explicit accept or changes-requested statement against that candidate.
+3. Release later waves only after all engineering criteria and final product acceptance close.
+
+Execution pass: Match the actual user decision to the exact candidate and approved required contract. Retain evidence against each acceptance criterion independently.
+
+Critical pass: Challenge agent-created acceptance, changed candidate, unanswered approval and rejection that fails to reopen affected work. Challenge each acceptance criterion and record findings, user consequence and disposition.
+
+Repair only material findings, rerun affected checks on one stable candidate, and exit repeated failure for the broad six-part diagnosis.
 
 Publish exact criterion/test plans in the ledger before recording verification. Invoke them through the capture runner, then run the separate critical plan.
 
