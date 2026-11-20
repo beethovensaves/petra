@@ -787,6 +787,40 @@ export class PostgresCopilotCommandProposalRepository implements CopilotCommandP
     };
   }
 
+  async find(
+    projectId: string,
+    actorId: string,
+    proposalId: string,
+  ): Promise<OwnedCopilotCommandProposal | undefined> {
+    await this.#authorize(projectId, actorId);
+    if ((await this.#start(projectId, actorId, proposalId)) === undefined)
+      return undefined;
+    return this.read(projectId, actorId, proposalId);
+  }
+
+  async listActivities(
+    projectId: string,
+    actorId: string,
+    originRunId: string,
+    limit = 20,
+  ): Promise<readonly OwnedCopilotCommandProposal[]> {
+    assertOwner(
+      Number.isSafeInteger(limit) && limit >= 1 && limit <= 20,
+      "An activity read requires a bounded limit from 1 to 20.",
+    );
+    await this.readOrigin(projectId, actorId, originRunId);
+    const rows = (
+      await this.pool.query<{ proposal_id: string }>(
+        "SELECT p.proposal_id FROM petra.copilot_command_proposals p JOIN petra.interaction_run_revisions r ON r.interaction_run_id=p.interaction_run_id AND r.revision=1 WHERE p.project_id=$1 AND p.actor_id=$2 AND p.origin_run_id=$3 ORDER BY r.payload->>'created_at' DESC,p.proposal_id LIMIT $4",
+        [projectId, actorId, originRunId, limit],
+      )
+    ).rows;
+    const activities: OwnedCopilotCommandProposal[] = [];
+    for (const row of rows)
+      activities.push(await this.read(projectId, actorId, row.proposal_id));
+    return activities;
+  }
+
   async read(
     projectId: string,
     actorId: string,

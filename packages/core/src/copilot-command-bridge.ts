@@ -1,4 +1,8 @@
-import type { PetraCopilotWorkingPlan } from "@petra/contracts";
+import type {
+  PetraCopilotWorkingPlan,
+  PetraCopilotCommandActivity,
+} from "@petra/contracts";
+import { PetraContractRegistry } from "@petra/contracts/validator";
 import {
   copilotCommandPreview,
   assertCopilotCommandPreview,
@@ -91,6 +95,17 @@ export interface OwnedCopilotCommandDecision {
  * conversation store. Decisions are immutable and command claims are serialized.
  */
 export interface CopilotCommandProposalRepository {
+  find?(
+    projectId: string,
+    actorId: string,
+    proposalId: string,
+  ): Promise<OwnedCopilotCommandProposal | undefined>;
+  listActivities?(
+    projectId: string,
+    actorId: string,
+    originRunId: string,
+    limit?: number,
+  ): Promise<readonly OwnedCopilotCommandProposal[]>;
   readOrigin(
     projectId: string,
     actorId: string,
@@ -175,6 +190,57 @@ const sameBasis = (a: CopilotContext, b: CopilotContext): boolean =>
   a.definition_family === b.definition_family &&
   copilotHash(a.basis) === copilotHash(b.basis);
 
+/** Exact public attachment, with no private model-input context substitution. */
+export function copilotCommandActivity(
+  proposal: OwnedCopilotCommandProposal,
+): PetraCopilotCommandActivity {
+  check(
+    proposal.input.project_id === proposal.origin.project_id &&
+      proposal.actor_id === proposal.origin.actor_id &&
+      proposal.input.question === proposal.origin.question &&
+      copilotHash(proposal.input.previews) ===
+        copilotHash(proposal.commands.map((command) => command.preview)),
+    "PROPOSAL_OWNER_MISMATCH",
+    "The attached activity must preserve its exact Project, Actor, original question and retained preview catalogue.",
+  );
+  validateWorkingPlanInput(proposal.input);
+  proposal.commands.forEach((command) =>
+    assertCopilotCommandPreview(command, proposal.input.context),
+  );
+  if (proposal.state === "completed") {
+    check(
+      proposal.output !== undefined &&
+        proposal.output_hash === copilotHash(proposal.output),
+      "PROPOSAL_OUTPUT_MISMATCH",
+      "The attached activity requires its exact retained typed output.",
+    );
+    validateWorkingPlan(proposal.output!, proposal.input);
+  }
+  const activity = {
+    schema_name: "petra.copilot-command-activity",
+    schema_version: "1.0.0",
+    project_id: proposal.origin.project_id,
+    actor_id: proposal.actor_id,
+    proposal_id: proposal.proposal_id,
+    context_hash: proposal.input.context.content_hash,
+    origin: structuredClone(proposal.origin),
+    work_unit_ref: proposal.work_unit_ref,
+    interaction_run_ref: proposal.interaction_run_ref,
+    state: proposal.state,
+    commands: structuredClone(proposal.commands),
+    ...(proposal.output === undefined
+      ? {}
+      : { output: proposal.output, output_hash: proposal.output_hash }),
+    ...(proposal.error === undefined ? {} : { error: proposal.error }),
+  };
+  new PetraContractRegistry().assertValid(
+    "copilot-command-activity",
+    "1.0.0",
+    activity,
+  );
+  return activity as PetraCopilotCommandActivity;
+}
+
 /** Proposal generation and human command execution have separate authority boundaries. */
 export class CopilotCommandBridge {
   constructor(readonly ports: CopilotCommandBridgePorts) {}
@@ -186,6 +252,22 @@ export class CopilotCommandBridge {
     proposal_id: string;
     expected_context_hash: string;
   }): Promise<OwnedCopilotCommandProposal> {
+    const retained = await this.ports.repository.find?.(
+      request.project_id,
+      request.actor_id,
+      request.proposal_id,
+    );
+    if (retained !== undefined) {
+      check(
+        retained.actor_id === request.actor_id &&
+          retained.origin.project_id === request.project_id &&
+          retained.origin.protocol_run_id === request.origin_run_id &&
+          retained.input.context.content_hash === request.expected_context_hash,
+        "PROPOSAL_OWNER_MISMATCH",
+        "A retry cannot rebind the immutable proposal to a different origin or context.",
+      );
+      return retained;
+    }
     const origin = await this.ports.repository.readOrigin(
       request.project_id,
       request.actor_id,

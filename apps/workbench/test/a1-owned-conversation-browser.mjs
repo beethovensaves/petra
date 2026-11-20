@@ -157,6 +157,7 @@ try {
   const turns = [];
   const owners = [];
   const ownerViews = [];
+  const activityReads = [];
   for (const question of questions) {
     await evaluate(
       `(() => { const input=document.getElementById('copilot-question'); Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value').set.call(input,${JSON.stringify(question)}); input.dispatchEvent(new Event('input',{bubbles:true})); })()`,
@@ -206,6 +207,26 @@ try {
     assert.equal(views[1].content.view_kind, "detail");
     owners.push(owner);
     ownerViews.push(views);
+    const activityResponse = await fetch(
+      `${origin}/api/projects/${projectId}/copilot/activities/${encodeURIComponent(turn.run_id)}`,
+      {
+        headers: { authorization: "Bearer petra-local-development" },
+      },
+    );
+    assert.equal(
+      activityResponse.status,
+      200,
+      "The configured graph-backed runtime must expose its canonical proposed-activity owner.",
+    );
+    const activityRead = await activityResponse.json();
+    assert.equal(activityRead.project_id, projectId);
+    assert.equal(activityRead.origin_run_id, turn.run_id);
+    assert.deepEqual(
+      activityRead.activities,
+      [],
+      "An advisory question cannot substitute an activity or execute a command.",
+    );
+    activityReads.push(activityRead);
     await until(
       `Array.from(document.querySelectorAll('.copilot-message a')).some(link=>link.getAttribute('href')===${JSON.stringify(`/projects/${projectId}/work/${owner.work_unit_ref.work_unit_id}`)})`,
       "readable canonical task link",
@@ -311,6 +332,7 @@ try {
     provider_model: turns[0].terminal.model,
     input_manifests: turns.map((turn) => turn.input_manifest),
     turns,
+    activity_reads: activityReads,
     owners,
     permission_receipt: permissionReceipt ?? null,
     owner_views: ownerViews,

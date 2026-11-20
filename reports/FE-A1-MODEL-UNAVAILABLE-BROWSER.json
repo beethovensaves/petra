@@ -1,6 +1,6 @@
 {
   "status": "passed",
-  "verified_at": "2026-10-11T01:46:17.644Z",
+  "verified_at": "2026-10-11T03:53:34.495Z",
   "scope": "Critical browser challenge against the production HTTP and PostgreSQL service configured without an eligible model provider. The actual readiness failure is visible, submit cannot start a turn, and the input survives reload. No provider call occurs.",
   "project_id": "project_4GNM3G166Z7RCBSW5K6TXZ3XZ9",
   "availability": {

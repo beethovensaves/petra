@@ -1,0 +1,256 @@
+TAP version 13
+# Subtest: Planning critical: a missing required function cannot be hidden by matching documents
+ok 1 - Planning critical: a missing required function cannot be hidden by matching documents
+  ---
+  duration_ms: 1.601875
+  type: 'test'
+  ...
+# Subtest: Planning critical: operation transfer to a later wave is rejected
+ok 2 - Planning critical: operation transfer to a later wave is rejected
+  ---
+  duration_ms: 1.693125
+  type: 'test'
+  ...
+# Subtest: Planning critical: successful tests or an agent assertion cannot release roadmap approval
+ok 3 - Planning critical: successful tests or an agent assertion cannot release roadmap approval
+  ---
+  duration_ms: 1077.113042
+  type: 'test'
+  ...
+# Subtest: Planning critical: model or backend readiness cannot bypass the user approval prerequisite
+ok 4 - Planning critical: model or backend readiness cannot bypass the user approval prerequisite
+  ---
+  duration_ms: 1.389083
+  type: 'test'
+  ...
+# Subtest: Planning critical: reintroducing backend-first construction is detected
+ok 5 - Planning critical: reintroducing backend-first construction is detected
+  ---
+  duration_ms: 1.478334
+  type: 'test'
+  ...
+# Subtest: Planning critical: action mediation without native Review or Workspace outcomes is incomplete
+ok 6 - Planning critical: action mediation without native Review or Workspace outcomes is incomplete
+  ---
+  duration_ms: 1.7445
+  type: 'test'
+  ...
+# Subtest: Planning critical: command execution added to generic turn retention breaks ownership
+ok 7 - Planning critical: command execution added to generic turn retention breaks ownership
+  ---
+  duration_ms: 0.999875
+  type: 'test'
+  ...
+# Subtest: Planning critical: a Q&A-only writing or unrelated example cannot replace native examination
+ok 8 - Planning critical: a Q&A-only writing or unrelated example cannot replace native examination
+  ---
+  duration_ms: 0.968709
+  type: 'test'
+  ...
+# Subtest: Planning critical: writing Requirement alone cannot close Interpretation
+ok 9 - Planning critical: writing Requirement alone cannot close Interpretation
+  ---
+  duration_ms: 0.913584
+  type: 'test'
+  ...
+# Subtest: Planning critical: repeated-cycle completion without disposition or invalidation is rejected
+ok 10 - Planning critical: repeated-cycle completion without disposition or invalidation is rejected
+  ---
+  duration_ms: 2.01675
+  type: 'test'
+  ...
+# Subtest: Planning critical: a contracted function cannot become deferred or an optional scenario gate
+ok 11 - Planning critical: a contracted function cannot become deferred or an optional scenario gate
+  ---
+  duration_ms: 1.960291
+  type: 'test'
+  ...
+# Subtest: Planning critical: changing scope without regenerated instructions fails the real synchronization check
+ok 12 - Planning critical: changing scope without regenerated instructions fails the real synchronization check
+  ---
+  duration_ms: 3.830708
+  type: 'test'
+  ...
+# Subtest: Planning critical: historical reports and purported final acceptance cannot close incomplete product work
+ok 13 - Planning critical: historical reports and purported final acceptance cannot close incomplete product work
+  ---
+  duration_ms: 1431.745709
+  type: 'test'
+  ...
+# Subtest: Planning critical: removing a recorded diagnosis owner cannot produce a complete repair sequence
+ok 14 - Planning critical: removing a recorded diagnosis owner cannot produce a complete repair sequence
+  ---
+  duration_ms: 1.262833
+  type: 'test'
+  ...
+# Subtest: FE-A1.0-W01-AC01 critical: an agent cannot reinterpret rejection as acceptance
+ok 15 - FE-A1.0-W01-AC01 critical: an agent cannot reinterpret rejection as acceptance
+  ---
+  duration_ms: 1323.6465
+  type: 'test'
+  ...
+# Subtest: FE-A1.0-W01-AC02 critical: retained test reports cannot close integrated product work
+ok 16 - FE-A1.0-W01-AC02 critical: retained test reports cannot close integrated product work
+  ---
+  duration_ms: 1.547792
+  type: 'test'
+  ...
+# Subtest: FE-A1.0-W02-AC01 critical: a missing required stage cannot become an executable plan
+ok 17 - FE-A1.0-W02-AC01 critical: a missing required stage cannot become an executable plan
+  ---
+  duration_ms: 1.197833
+  type: 'test'
+  ...
+# Subtest: FE-A1.0-W02-AC02 critical: required work cannot be deleted deferred or begun early
+ok 18 - FE-A1.0-W02-AC02 critical: required work cannot be deleted deferred or begun early
+  ---
+  duration_ms: 100.651667
+  type: 'test'
+  ...
+# Subtest: FE-A1.0-W03-AC01 critical: operation omission and duplication are rejected
+ok 19 - FE-A1.0-W03-AC01 critical: operation omission and duplication are rejected
+  ---
+  duration_ms: 2754.454375
+  type: 'test'
+  ...
+# Subtest: FE-A1.0-W03-AC02 critical: later-wave boundaries cannot absorb required A1 functions
+ok 20 - FE-A1.0-W03-AC02 critical: later-wave boundaries cannot absorb required A1 functions
+  ---
+  duration_ms: 1303.278125
+  type: 'test'
+  ...
+# Subtest: FE-A1.0-W03-AC03 critical: a diagnosed product gap cannot lose its required owner
+ok 21 - FE-A1.0-W03-AC03 critical: a diagnosed product gap cannot lose its required owner
+  ---
+  duration_ms: 1.249958
+  type: 'test'
+  ...
+# Subtest: FE-A1.0-W04-AC01 critical: missing or malformed ledgers fail before delivery mutation
+ok 22 - FE-A1.0-W04-AC01 critical: missing or malformed ledgers fail before delivery mutation
+  ---
+  duration_ms: 1.071584
+  type: 'test'
+  ...
+# Subtest: FE-A1.0-W04-AC02 critical: safe observation needs no writable acceptance state
+ok 23 - FE-A1.0-W04-AC02 critical: safe observation needs no writable acceptance state
+  ---
+  duration_ms: 95.281417
+  type: 'test'
+  ...
+# Subtest: FE-A1.0-W04-AC03 critical: a changed candidate and forged actor do not release A1
+ok 24 - FE-A1.0-W04-AC03 critical: a changed candidate and forged actor do not release A1
+  ---
+  duration_ms: 1367.05925
+  type: 'test'
+  ...
+# Subtest: FE-A1.0-W05-AC01 critical: a matching marker cannot excuse contradictory roadmap text
+ok 25 - FE-A1.0-W05-AC01 critical: a matching marker cannot excuse contradictory roadmap text
+  ---
+  duration_ms: 710.574709
+  type: 'test'
+  ...
+# Subtest: FE-A1.0-W05-AC02 critical: rejection reopens dependencies and revokes release
+ok 26 - FE-A1.0-W05-AC02 critical: rejection reopens dependencies and revokes release
+  ---
+  duration_ms: 101.812791
+  type: 'test'
+  ...
+# Subtest: AC01 critical: narrative drift fails even with an unchanged binding marker
+ok 27 - AC01 critical: narrative drift fails even with an unchanged binding marker
+  ---
+  duration_ms: 773.834583
+  type: 'test'
+  ...
+# Subtest: AC02 critical: concurrent work and unmet dependencies cannot hide as progress
+ok 28 - AC02 critical: concurrent work and unmet dependencies cannot hide as progress
+  ---
+  duration_ms: 1.8885
+  type: 'test'
+  ...
+# Subtest: AC03 critical: README and true cannot manufacture engineering completion
+ok 29 - AC03 critical: README and true cannot manufacture engineering completion
+  ---
+  duration_ms: 1.820708
+  type: 'test'
+  ...
+# Subtest: AC03 critical: source changes, missing criteria, foreign items and fake candidates fail
+ok 30 - AC03 critical: source changes, missing criteria, foreign items and fake candidates fail
+  ---
+  duration_ms: 210.523875
+  type: 'test'
+  ...
+# Subtest: AC03 critical: escaped and symlinked evidence cannot read outside the worktree
+ok 31 - AC03 critical: escaped and symlinked evidence cannot read outside the worktree
+  ---
+  duration_ms: 92.720625
+  type: 'test'
+  ...
+# Subtest: AC04 critical: duplicate tests, earlier review and unresolved findings cannot close
+ok 32 - AC04 critical: duplicate tests, earlier review and unresolved findings cannot close
+  ---
+  duration_ms: 282.679834
+  type: 'test'
+  ...
+# Subtest: AC04 critical: rejected pair leaves execution state intact
+ok 33 - AC04 critical: rejected pair leaves execution state intact
+  ---
+  duration_ms: 254.142375
+  type: 'test'
+  ...
+# Subtest: AC05 critical: repair cannot skip execution and repeated retries cannot reset themselves
+ok 34 - AC05 critical: repair cannot skip execution and repeated retries cannot reset themselves
+  ---
+  duration_ms: 145.290542
+  type: 'test'
+  ...
+# Subtest: AC06 critical: legacy Wave 6 cannot bypass A1 and read-only status remains available
+ok 35 - AC06 critical: legacy Wave 6 cannot bypass A1 and read-only status remains available
+  ---
+  duration_ms: 115.958375
+  type: 'test'
+  ...
+# Subtest: AC07 critical: forged authority and changed-candidate acceptance are rejected
+ok 36 - AC07 critical: forged authority and changed-candidate acceptance are rejected
+  ---
+  duration_ms: 2702.608833
+  type: 'test'
+  ...
+# Subtest: AC01 critical: a failed mirror write rolls back the published roadmap
+ok 37 - AC01 critical: a failed mirror write rolls back the published roadmap
+  ---
+  duration_ms: 389.464084
+  type: 'test'
+  ...
+# Subtest: AC03 critical: changed hashes cannot disguise uncommitted source
+ok 38 - AC03 critical: changed hashes cannot disguise uncommitted source
+  ---
+  duration_ms: 107.774875
+  type: 'test'
+  ...
+# Subtest: AC03 critical: skipped tests and comments cannot satisfy observed criteria
+ok 39 - AC03 critical: skipped tests and comments cannot satisfy observed criteria
+  ---
+  duration_ms: 162.628042
+  type: 'test'
+  ...
+# Subtest: AC02 critical: rejection revokes dependent completion without discarding evidence
+ok 40 - AC02 critical: rejection revokes dependent completion without discarding evidence
+  ---
+  duration_ms: 89.89875
+  type: 'test'
+  ...
+# Subtest: AC07 critical: accounting cannot alter accepted code identity but runtime changes do
+ok 41 - AC07 critical: accounting cannot alter accepted code identity but runtime changes do
+  ---
+  duration_ms: 189.054125
+  type: 'test'
+  ...
+1..41
+# tests 41
+# suites 0
+# pass 41
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 7823.041167

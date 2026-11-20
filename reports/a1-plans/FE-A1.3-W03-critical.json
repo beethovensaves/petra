@@ -78,14 +78,24 @@
     "scripts/a1/owned-conversation.test.mjs",
     "scripts/a1/owned-postgres.mjs",
     "scripts/a1/run-browser.mjs",
-    "scripts/a1/run-vitest.mjs"
+    "scripts/a1/run-vitest.mjs",
+    "apps/server/src/copilot-command-activity-routes.ts",
+    "apps/server/src/server.ts",
+    "apps/server/test/copilot-command-activity-routes.test.ts",
+    "packages/core/src/copilot-command-bridge.ts",
+    "packages/core/src/copilot-command-preview.ts",
+    "packages/core/src/copilot-command-receipt.ts",
+    "packages/core/test/copilot-command-bridge.test.ts",
+    "packages/postgres/src/copilot-command-proposal-repository.ts",
+    "packages/postgres/test/copilot-command-proposal-repository.test.ts",
+    "infra/postgres/migrations/V068__copilot_command_proposals.sql"
   ],
   "criteria": [
     {
       "id": "FE-A1.3-W03-AC01",
       "result": "passed",
       "test": "FE-A1.3-W03-AC01 critical: retry mutation and uncertain delivery cannot replace history or launch a second effect",
-      "observation": "Mutated retries, stale parents, active continuations, immutable-row updates and over-deadline uncertain delivery are rejected or retain the actual failed outcome without another invocation."
+      "observation": "Mutated retries, stale parents, active continuations, immutable-row updates and over-deadline uncertain delivery are rejected or retain the actual failed outcome without another invocation. Concurrent proposals invoke the role once; concurrent decisions produce one effect; claimed-but-unobserved restart cannot execute again."
     },
     {
       "id": "FE-A1.3-W03-AC02",
@@ -97,13 +107,13 @@
       "id": "FE-A1.3-W03-AC03",
       "result": "passed",
       "test": "FE-A1.3-W03-AC03 critical: malformed foreign history cursors and validly rehashed foreign owners release no content",
-      "observation": "Malformed/foreign cursors and rehashed foreign Run, changed question, false lineage and hidden terminal state fail the actual owner boundary. Explicit reviewed owner permission grants only RunProjectCopilot, creates no Work until Ask, and cannot authorize general Work management, examination or Apply."
+      "observation": "Malformed/foreign cursors and rehashed foreign Run, changed question, false lineage and hidden terminal state fail the actual owner boundary. Explicit reviewed owner permission grants only RunProjectCopilot, creates no Work until Ask, and cannot authorize general Work management, examination or Apply. Foreign context, forged native definition, substituted selected command/ordinary body, foreign receipt and access revoked after private read are denied."
     },
     {
       "id": "FE-A1.3-W03-AC04",
       "result": "passed",
       "test": "FE-A1.3-W03-AC04 critical: unknown measurements cannot satisfy limits and actual timeout failures cannot invent output",
-      "observation": "Unknown CPU/memory/network/token/cost cannot satisfy applicable limits; failure-only Work creates no output; a deliberate late persistence fault rolls back all terminal owners and replay converges once."
+      "observation": "Unknown CPU/memory/network/token/cost cannot satisfy applicable limits; failure-only Work creates no output; a deliberate late persistence fault rolls back all terminal owners and replay converges once. A provider that ignores cancellation still reaches the hard deadline; restart recovers expired proposal Work and rejects late successful output replacement."
     },
     {
       "id": "FE-A1.3-W03-AC05",
@@ -112,14 +122,14 @@
       "observation": "Validly rehashed substituted privacy/budget references, false historical capture, missing material and changed question with reused request identity fail before content release."
     }
   ],
-  "boundary": "Canonical ownership and retained readable advisory conversation only. Provider internal CPU, memory, network, tokens and price remain unavailable; unknown values never satisfy applicable hard limits. Historical adoption records actual import Work and preserves original bytes without reconstructing original execution authority. Proposal decisions/commands, progressive AG-UI activities/interrupts, native examiners, reactive Workspace graph cycles and A1 product acceptance remain open required ledger items.",
+  "boundary": "Canonical conversation and proposed-activity ownership with exact private Artifacts, actual Work/Run/origin lineage, current owner-bound read-only HTTP attachment, immutable decision/ordinary Work receipt retention and real QA restoration. Proposal fixtures use a controlled typed-role port and memory byte-store; production eligible-model command selection and visible chat human decisions/Workspace convergence remain separate command-bridge work. No native examiner or connected cycle closure is claimed.",
   "review": {
     "perspective": "Challenge whether successful persistence and metadata can conceal missing authority, content, lineage, measurements, rollback or replay. Use real same-Project records, valid hashes and deliberately late database failures; do not repeat the positive delivery pass.",
     "challenges": [
       {
         "criterion": "FE-A1.3-W03-AC01",
         "question": "FE-A1.3-W03-AC01 critical: retry mutation and uncertain delivery cannot replace history or launch a second effect",
-        "result": "Mutated retries, stale parents, active continuations, immutable-row updates and over-deadline uncertain delivery are rejected or retain the actual failed outcome without another invocation."
+        "result": "Mutated retries, stale parents, active continuations, immutable-row updates and over-deadline uncertain delivery are rejected or retain the actual failed outcome without another invocation. Concurrent proposals invoke the role once; concurrent decisions produce one effect; claimed-but-unobserved restart cannot execute again."
       },
       {
         "criterion": "FE-A1.3-W03-AC02",
@@ -129,12 +139,12 @@
       {
         "criterion": "FE-A1.3-W03-AC03",
         "question": "FE-A1.3-W03-AC03 critical: malformed foreign history cursors and validly rehashed foreign owners release no content",
-        "result": "Malformed/foreign cursors and rehashed foreign Run, changed question, false lineage and hidden terminal state fail the actual owner boundary."
+        "result": "Malformed/foreign cursors and rehashed foreign Run, changed question, false lineage and hidden terminal state fail the actual owner boundary. Explicit reviewed owner permission grants only RunProjectCopilot, creates no Work until Ask, and cannot authorize general Work management, examination or Apply. Foreign context, forged native definition, substituted selected command/ordinary body, foreign receipt and access revoked after private read are denied."
       },
       {
         "criterion": "FE-A1.3-W03-AC04",
         "question": "FE-A1.3-W03-AC04 critical: unknown measurements cannot satisfy limits and actual timeout failures cannot invent output",
-        "result": "Unknown CPU/memory/network/token/cost cannot satisfy applicable limits; failure-only Work creates no output; a deliberate late persistence fault rolls back all terminal owners and replay converges once."
+        "result": "Unknown CPU/memory/network/token/cost cannot satisfy applicable limits; failure-only Work creates no output; a deliberate late persistence fault rolls back all terminal owners and replay converges once. A provider that ignores cancellation still reaches the hard deadline; restart recovers expired proposal Work and rejects late successful output replacement."
       },
       {
         "criterion": "FE-A1.3-W03-AC05",
@@ -178,6 +188,27 @@
         "disposition": "resolved",
         "finding": "The actual new Project had no conversation Work grant, while authorized fixtures concealed the missing permission flow.",
         "resolution": "Explicit current owner consent binds the exact Project proposal to a narrow registered capability and an atomic immutable receipt; questions/model text have no permission-writing port. Stale, widened, foreign and late-failure/replay checks exercise the actual grant owner."
+      },
+      {
+        "severity": "material",
+        "status": "resolved",
+        "finding": "A transaction snapshot taken before waiting on serialization hid a concurrent committed proposal and collided on canonical Work identity.",
+        "resolution": "Acquire serialization before BEGIN; concurrent proposed activity and human decision checks prove one provider invocation and one ordinary effect.",
+        "disposition": "resolved"
+      },
+      {
+        "severity": "material",
+        "status": "resolved",
+        "finding": "A provider could ignore cancellation; repository callers could substitute model selection and crashed proposal or command claims had no truthful restart read.",
+        "resolution": "Enforce hard deadline, bounded expiry recovery, exact retained selection/body/receipt checks and a claimed-but-unobserved read that never repeats execution.",
+        "disposition": "resolved"
+      },
+      {
+        "severity": "material",
+        "status": "resolved",
+        "finding": "The new canonical activity owner was exposed only by the graph-free persistence return path while the actual preview used Neo4j.",
+        "resolution": "Construct shared conversation owners once for both paths; the actual factory configurations and fresh-browser native attachment read now require the owner to be present without substituting an activity.",
+        "disposition": "resolved"
       }
     ]
   }

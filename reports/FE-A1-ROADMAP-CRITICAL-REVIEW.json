@@ -1,0 +1,228 @@
+{
+  "schema_name": "petra.a1-roadmap-review-pass",
+  "schema_version": "1.0.0",
+  "status": "passed_for_user_review",
+  "recorded_at": "2026-10-11T04:59:55.171825+00:00",
+  "scope_binding": "sha256:3438657eca7150a5c7f6c6b4e61c13def514963f444ef06f6baf96cd65bd7a4a",
+  "document_set_binding": "sha256:06cef6d7048cbc5be74b0efa09bbc7d5a52be5a4fca2108f484c3636e03c11c7",
+  "captured_at": "2026-10-11T04:57:43.165150+00:00",
+  "candidate_base_commit": "752ca6393b833c25079439b6a198a4f0e2d90e5c",
+  "candidate_state": "Uncommitted planning proposal; interrupted product changes are preserved and excluded from this planning work.",
+  "sources": {
+    "ROADMAP.md": "sha256:20f57aeef7ef009f70a3da924850a5906c25443e1e319e2e10a0550dbe99a36a",
+    "WAVE_HANDOFF_AUTOMATION.md": "sha256:97596ad625df8570b9518ca17c029de6edf53707ed3987aa9aacac493b6c6067",
+    "design_implementation_roadmap.md": "sha256:b163e5a0bca959972ddb006ed3e64f85f625086ed7fdd88bd2574052573019c4",
+    "implementation_roadmap.md": "sha256:e512a186dfb8cf785c5e2472a0771f6532bcd972921db1226b58dd3e91303545",
+    "reports/FE-A1-CONTRACT-IMPLEMENTATION-LEDGER.md": "sha256:c34f74c26a27c691062560b02f1190aba8c0899ea37a36ca040ad438751c74f8",
+    "reports/FE-A1-EVIDENCE-INDEX.json": "sha256:84358dfebd35d2064abf070f887c6cb7c97f85cca0f725be0dc61aa3103c3441",
+    "reports/FE-A1-ROADMAP-APPROVAL.md": "sha256:052ebe71abc72e4b8e58eb26f8f92982681f7d7ee3d44be98d648099874001ba",
+    "reports/FRONTEND-ADAPTATION-MILESTONE.md": "sha256:8a037d86a96ce5332a23f17bae2098db5edb9849b94c5564f5ac497ab5cd640b",
+    "reports/UX-BACKEND-HANDOFF.md": "sha256:a83ef60b04c24e1182c2c5bec9de1a7d5d66137299b23a163e52f221c1cb9177",
+    "reports/UX-RUNTIME-ARCHITECTURE-DISPOSITION.md": "sha256:9a72d0207c5bc6052f356d4ed6c2118320560c76970e3483e5b759545e196ed3",
+    "reports/a1-roadmap-review/helpers.mjs": "sha256:4d5a64a346cdd5d5edb03d22514000dc6af313f6219b59914b15d20d2c14e2d5",
+    "reports/a1-roadmap-review/roadmap.critical.test.mjs": "sha256:a8502ffe6e14a0ae337a8afd38c6f6381fcc9fc221d2c30bd4fda57d8d4c155a",
+    "reports/a1-roadmap-review/roadmap.execution.test.mjs": "sha256:15ff02d1c38d39a65bfc395fe081e2d8c3a189024720cd948330361ac669ff6c",
+    "scripts/audit-frontend-a1.mjs": "sha256:1941cb03c99aa4951ea8aec976ae605d1626d3a1b966aa2c16b171fb17c1056b",
+    "scripts/frontend-a1-execute.mjs": "sha256:f692c6a1acaa1820a7a301c91b30672abd5bfdfa407f4a7b822e1e16a01e00cd",
+    "scripts/frontend-a1-execution.md": "sha256:56ff815df765d10bbd657b4f400b16d0e4f94af1ff51be9158f93083b81c56a0",
+    "scripts/frontend-a1-process.mjs": "sha256:70eaf0d24870e0b12a730e4c59045a9e13c7b738ad90a068bcee9ee5f85282ff",
+    "scripts/frontend-a1-work-inventory.json": "sha256:4c3aec7d5f9788f92528eeae98ea0fe73451f66679f4fcaa8a8eef325e893e03",
+    "scripts/wave-handoff-wave-3.md": "sha256:c9f5f4a4ee1528a3b07e563051d920d49c8472054fbd06474cdb0789d9cc229e",
+    "scripts/wave-handoff-wave-4.md": "sha256:63317e6433c977241902cf39a756ffc8e7ba302d4d2a421caadef62f94036e76",
+    "scripts/wave-handoff-wave-5.md": "sha256:eafc01876c90cb96307dfac481ce73d9954db2d28347e31e80b2efd418203396",
+    "scripts/wave-handoff-wave-6.md": "sha256:b5d499e1d08571627f28678e3601a0a4e91bd0a6cfd45bc431beceb32959b2fc",
+    "scripts/wave-handoff-wave-7.md": "sha256:b961d2ed604c58af12cc707355d5a0eed43ad3d4a4a02442de68daae9577628e",
+    "scripts/wave-handoff-wave-8.md": "sha256:f1d1bed7c4f69c79ec231e05d8d54c8a26351959412cfeb97190ad5964be46bd",
+    "scripts/wave-handoff.mjs": "sha256:dd5025e27ab82282f73bf12ab3d98ebd9b043e305c39268086d554bf9e5580e3"
+  },
+  "boundary": "Planning documents, scope, ownership, dependency sequence, existing execution gates and planning-only adverse fixtures. No backend/frontend construction, product builds/tests, model invocation or migration was performed. This evidence neither approves the roadmap nor closes product functions.",
+  "roadmap_approval": "pending_explicit_user_decision",
+  "product_acceptance": null,
+  "active_product_work": null,
+  "product_ready_items": [],
+  "product_and_controller_files_unchanged": {
+    "/Users/felipe.casadei/vscode/graphRAG/petra": {
+      "file_count": 1763,
+      "fingerprint": "7fd26283519ba750b7ab5b95b8c362df2c0e89eddbf446c99f6470d5eb831e23"
+    },
+    "/Users/felipe.casadei/vscode/graphRAG/petra-design": {
+      "file_count": 1761,
+      "fingerprint": "c231ff38557089d6ae6c17b31f1115b6647ad5ffd18c8dfcfc4d343e2b7d6a32"
+    }
+  },
+  "counts": {
+    "mandatory_items": 90,
+    "function_areas": 8,
+    "operation_assignments": 116,
+    "a1_operations": 97,
+    "wave_7_operations": 15,
+    "wave_8_operations": 4,
+    "accepted_requests": 23,
+    "accepted_flows": 18,
+    "optional_late_scenarios": 16,
+    "unchanged_scoped_control_closures": 5,
+    "previous_closures_retained": 9
+  },
+  "planning_criteria": [
+    {
+      "criterion": "Readable roadmap and exact generated instructions/copies agree",
+      "status": "passed"
+    },
+    {
+      "criterion": "Seven resolutions and all accepted mandatory functions retain owners",
+      "status": "passed"
+    },
+    {
+      "criterion": "Pending items contain ordered construction and separate check recipes",
+      "status": "passed"
+    },
+    {
+      "criterion": "No product execution before explicit user approval",
+      "status": "hold_verified_approval_pending"
+    },
+    {
+      "criterion": "Scope changes, critical findings and repeated failures require reconciliation",
+      "status": "planning_contract_and_adverse_gate_checks_passed"
+    }
+  ],
+  "pass": "critical",
+  "run": {
+    "argv": [
+      "/opt/homebrew/opt/node@24/bin/node",
+      "--test",
+      "--test-reporter=tap",
+      "reports/a1-roadmap-review/roadmap.critical.test.mjs",
+      "scripts/a1/contract-reconciliation.critical.test.mjs",
+      "scripts/frontend-a1-process.critical.test.mjs"
+    ],
+    "output": "reports/a1-roadmap-review/critical.tap",
+    "output_hash": "sha256:f1029b6461cc8cc7a52af7c8dc922f4b83d6ff8779f439566762d884012c0565",
+    "exit_code": 0,
+    "counts": {
+      "tests": 43,
+      "pass": 43,
+      "fail": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "test_names": [
+      "Planning critical: native examiners cannot close before exact Source reading",
+      "Planning critical: stale/restricted graph fencing is mandatory before agent guidance",
+      "Planning critical: a missing required function cannot be hidden by matching documents",
+      "Planning critical: operation transfer to a later wave is rejected",
+      "Planning critical: successful tests or an agent assertion cannot release roadmap approval",
+      "Planning critical: model or backend readiness cannot bypass the user approval prerequisite",
+      "Planning critical: reintroducing backend-first construction is detected",
+      "Planning critical: action mediation without native Review or Workspace outcomes is incomplete",
+      "Planning critical: command execution added to generic turn retention breaks ownership",
+      "Planning critical: a Q&A-only writing or unrelated example cannot replace native examination",
+      "Planning critical: writing Requirement alone cannot close Interpretation",
+      "Planning critical: repeated-cycle completion without disposition or invalidation is rejected",
+      "Planning critical: a contracted function cannot become deferred or an optional scenario gate",
+      "Planning critical: changing scope without regenerated instructions fails the real synchronization check",
+      "Planning critical: historical reports and purported final acceptance cannot close incomplete product work",
+      "Planning critical: removing a recorded diagnosis owner cannot produce a complete repair sequence",
+      "FE-A1.0-W01-AC01 critical: an agent cannot reinterpret rejection as acceptance",
+      "FE-A1.0-W01-AC02 critical: retained test reports cannot close integrated product work",
+      "FE-A1.0-W02-AC01 critical: a missing required stage cannot become an executable plan",
+      "FE-A1.0-W02-AC02 critical: required work cannot be deleted deferred or begun early",
+      "FE-A1.0-W03-AC01 critical: operation omission and duplication are rejected",
+      "FE-A1.0-W03-AC02 critical: later-wave boundaries cannot absorb required A1 functions",
+      "FE-A1.0-W03-AC03 critical: a diagnosed product gap cannot lose its required owner",
+      "FE-A1.0-W04-AC01 critical: missing or malformed ledgers fail before delivery mutation",
+      "FE-A1.0-W04-AC02 critical: safe observation needs no writable acceptance state",
+      "FE-A1.0-W04-AC03 critical: a changed candidate and forged actor do not release A1",
+      "FE-A1.0-W05-AC01 critical: a matching marker cannot excuse contradictory roadmap text",
+      "FE-A1.0-W05-AC02 critical: rejection reopens dependencies and revokes release",
+      "AC01 critical: narrative drift fails even with an unchanged binding marker",
+      "AC02 critical: concurrent work and unmet dependencies cannot hide as progress",
+      "AC03 critical: README and true cannot manufacture engineering completion",
+      "AC03 critical: source changes, missing criteria, foreign items and fake candidates fail",
+      "AC03 critical: escaped and symlinked evidence cannot read outside the worktree",
+      "AC04 critical: duplicate tests, earlier review and unresolved findings cannot close",
+      "AC04 critical: rejected pair leaves execution state intact",
+      "AC05 critical: repair cannot skip execution and repeated retries cannot reset themselves",
+      "AC06 critical: legacy Wave 6 cannot bypass A1 and read-only status remains available",
+      "AC07 critical: forged authority and changed-candidate acceptance are rejected",
+      "AC01 critical: a failed mirror write rolls back the published roadmap",
+      "AC03 critical: changed hashes cannot disguise uncommitted source",
+      "AC03 critical: skipped tests and comments cannot satisfy observed criteria",
+      "AC02 critical: rejection revokes dependent completion without discarding evidence",
+      "AC07 critical: accounting cannot alter accepted code identity but runtime changes do"
+    ]
+  },
+  "review": {
+    "perspective": "Evaluate whether the plan delivers the user-requested experience and prevents the same scope/order/accounting failure, beyond matching documents and passing positive structural checks. Challenge counterexamples against actual selection/synchronization gates and mutated planning fixtures. No claim is made about unimplemented product behavior.",
+    "findings": [
+      {
+        "severity": "major",
+        "location": "FE-A1.0-W05 and all product prerequisites",
+        "finding": "Roadmap repair had drifted into product construction before user approval.",
+        "resolution": "W05 is explicitly blocked, product work is suspended, every product item depends on W05, and approval holds appear in current roadmaps and legacy worker packets.",
+        "disposition": "resolved_in_proposed_roadmap"
+      },
+      {
+        "severity": "major",
+        "location": "FE-A1.3-W01/W03/W07",
+        "finding": "Generic conversation retention and interaction registration had absorbed action-decision execution machinery.",
+        "resolution": "W01 owns interaction contracts; W03 owns actual readable turns; W07 owns native proposals, decision contracts/storage, serialized execution and observed receipts.",
+        "disposition": "resolved_in_proposed_roadmap"
+      },
+      {
+        "severity": "major",
+        "location": "FE-A1.1-W01 and FE-A1.3-W01/W07",
+        "finding": "The construction order required runtime/AG-UI work before basic shell layout, and action mediation could precede native result presentation.",
+        "resolution": "Shell items precede runtime integration; ordinary Q&A, native Review preflight, replay and actual Work-result routing precede complete action mediation.",
+        "disposition": "resolved_in_proposed_roadmap"
+      },
+      {
+        "severity": "major",
+        "location": "FE-A1.4-W05/W06",
+        "finding": "Shared examiner slots could be mistaken for complete domain conformance.",
+        "resolution": "Separate registry construction from native scientific, writing Requirement/Interpretation and unrelated event-planning adapters. The third definition remains a proposal for the user approval decision.",
+        "disposition": "resolved_in_proposed_roadmap"
+      },
+      {
+        "severity": "major",
+        "location": "FE-A1.4-W06/W07 prerequisites",
+        "finding": "Native examination and Review preflight lacked an explicit prerequisite for exact Source reading.",
+        "resolution": "Both depend on FE-A1.4-W04; the critical omission fixture now rejects its removal.",
+        "disposition": "resolved_in_proposed_roadmap"
+      },
+      {
+        "severity": "major",
+        "location": "FE-A1.4-W19 prerequisite",
+        "finding": "Agent graph guidance could precede stale/restricted-result protection.",
+        "resolution": "Guidance depends on FE-A1.4-W21; the critical omission fixture rejects its removal.",
+        "disposition": "resolved_in_proposed_roadmap"
+      },
+      {
+        "severity": "major",
+        "location": "FE-A1.4-W13/W14/W15",
+        "finding": "The integrated repeated-cycle workflow could be closed before explicit disposition and selective invalidation owners.",
+        "resolution": "W13 depends on W14/W15 and recorded graph guidance, and still requires at least two connected actual cycles with scoped criteria and open-obligation limits.",
+        "disposition": "resolved_in_proposed_roadmap"
+      },
+      {
+        "severity": "moderate",
+        "location": "execution_policy and FE-A1.6-W07",
+        "finding": "Preparatory failures could escape the broad-diagnosis rule, sustaining local construction loops.",
+        "resolution": "The proposed policy counts construction/preparatory failures under the same owning item, preserves numbered step evidence and requires a changed remedy after repeated failure.",
+        "disposition": "resolved_in_proposed_roadmap"
+      }
+    ],
+    "unresolved_material_planning_findings": [],
+    "decision_reserved_for_user": "Approve or reject the exact proposed scope, including the unrelated event-planning definition. Product implementation remains blocked.",
+    "limits": [
+      "The diagnosis ID descriptions use the recorded repository repair sequence and accepted contracts; they do not claim a verbatim reproduction of an unavailable earlier chat response.",
+      "Planning tests establish a reviewable consistent plan and current execution hold; real copilot, examiners, graph cycles and native effects require the future production checks listed under each item.",
+      "Legacy worker launch instructions were subordinated by documentation; no controller code was modified to introduce a new software enforcement mechanism. Existing A1 selection and Wave 6/7/8 mutation gates were exercised read-only."
+    ]
+  },
+  "prior_attempts": [
+    {
+      "artifact": "reports/a1-roadmap-review/critical-before-repair.tap",
+      "result": "41 adverse planning checks passed. Manual critical review additionally identified missing Source-reading and graph-fencing dependencies; those were repaired before the final 43-check rerun."
+    }
+  ]
+}

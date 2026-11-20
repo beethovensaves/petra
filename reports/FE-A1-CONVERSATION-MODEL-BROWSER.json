@@ -1,133 +1,13 @@
 {
   "status": "passed",
-  "verified_at": "2026-10-11T01:45:31.832Z",
+  "verified_at": "2026-10-11T03:52:22.638Z",
   "scope": "Two actual managed-model turns through the production HTTP service, PostgreSQL persistence, official AG-UI client and browser; followed by durable readable reload. This does not establish canonical owner integration or A1 product acceptance.",
   "project_id": "project_4GNM3G166Z7RCBSW5K6TXZ3XZ9",
   "provider_model": "gpt-6-astra",
   "input_manifests": [
     {
       "content": {
-        "run_id": "run_58233FN1948677R43XAPDN5KMQ",
-        "history": [
-          {
-            "run_id": "run_4ZGFT7FXM154QR08T178KCE1N8",
-            "disclosure": "excluded_history_budget",
-            "answer_hash": "sha256:1211da2b1bfc52d0a9e183621530b54b8b1c51067ebb5c9d165e4cbbbf90ebbb",
-            "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
-            "question_hash": "sha256:19783897bc75b83c3941e3f31b91345acd636042c0e6ad68d26ad182e416b562"
-          },
-          {
-            "run_id": "run_7BQ9E34CHVRVKRRN52R67AREDD",
-            "disclosure": "included_current_basis",
-            "answer_hash": "sha256:e15b5b864e941018c214d3ea55f72855567b1a1ac26f2fa13606007969ab442a",
-            "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
-            "question_hash": "sha256:44c39eb6633bae27422dc22e252dbf5d8f4500f4343dd2a8de42ee5718e679b8"
-          },
-          {
-            "run_id": "run_0C8J3EEPBRMB5PPRZJTD3K3PTM",
-            "disclosure": "included_current_basis",
-            "answer_hash": "sha256:b8c6d3b141472e9b984bdb18a9a61fa50d5fe2f06a9de12e2578b597a43efeff",
-            "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
-            "question_hash": "sha256:a6e643897278706b4395ebe0f8cb6867a0b84ac81319da447769437e2e19d9b4"
-          },
-          {
-            "run_id": "run_5YK8JJ2D2VHR8ZTZSBKP6FCRB9",
-            "disclosure": "included_current_basis",
-            "answer_hash": "sha256:eaf5dbafcc516b98c60b0e4eb42f15395766859d3b65274ae5779ab2dfc50c93",
-            "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
-            "question_hash": "sha256:44c39eb6633bae27422dc22e252dbf5d8f4500f4343dd2a8de42ee5718e679b8"
-          },
-          {
-            "run_id": "run_0RM85C025KY7FERTHCYWG5WXK4",
-            "disclosure": "included_current_basis",
-            "answer_hash": "sha256:ef89980f5050796870d9d225927785fa75ed20abb9d8dbaf705d307584a08247",
-            "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
-            "question_hash": "sha256:a6e643897278706b4395ebe0f8cb6867a0b84ac81319da447769437e2e19d9b4"
-          },
-          {
-            "run_id": "run_68EGGCCHVWX7A88XB72YR5B0BZ",
-            "disclosure": "included_current_basis",
-            "answer_hash": "sha256:b0dda2ac9584783ffef2804318f0245349364d41e43f93f9d802cb6f264498d9",
-            "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
-            "question_hash": "sha256:44c39eb6633bae27422dc22e252dbf5d8f4500f4343dd2a8de42ee5718e679b8"
-          },
-          {
-            "run_id": "run_3EM89XY1W98BRV2XBCAETC0M2Y",
-            "disclosure": "included_current_basis",
-            "answer_hash": "sha256:08860e7ec01b5a852678b5ed1a2ec043e49cbac61d2ba91dab5775c17999a936",
-            "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
-            "question_hash": "sha256:a6e643897278706b4395ebe0f8cb6867a0b84ac81319da447769437e2e19d9b4"
-          },
-          {
-            "run_id": "run_4EV6WSAGT5QXF6A4ZFND52N4A1",
-            "disclosure": "included_current_basis",
-            "answer_hash": "sha256:0ee292ab136982620fe33f7295bf6ad5bf39e38ea295b1103e219d3f18ba9df7",
-            "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
-            "question_hash": "sha256:9ffeeefdf2f11df68de2391b2e5996d9ee2a804e7566cea47071f6638c1ae3bf"
-          },
-          {
-            "run_id": "run_5N9WYQW7Y58APNYNEZY5R24BR5",
-            "disclosure": "included_current_basis",
-            "answer_hash": "sha256:a708e277cea754be602ea0536476ea6e3164147187012c147c813ce2ae3b9ba4",
-            "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
-            "question_hash": "sha256:24075f3385ece63502c3453bb98c275163c8d1f04cc117ce5b1c1e5522e9475b"
-          },
-          {
-            "run_id": "run_0Y7C46CXSXHG4Z7KHBVZRW356W",
-            "disclosure": "included_current_basis",
-            "answer_hash": "sha256:b81bae725708647cdc80378bc09f3f82083640f93e93e4dd1a2dbaf778b80c13",
-            "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
-            "question_hash": "sha256:70344c30255ea78b64eb4cc3b5ea77e07168558a4e6a879780fba1165faef850"
-          },
-          {
-            "run_id": "run_2KBDEN526RH4WV9YY832Y1P6CY",
-            "disclosure": "included_current_basis",
-            "answer_hash": "sha256:a1623ce53deffecd1d6a4418f50267a4504ce970bf412d4e64759df2b9fd9177",
-            "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
-            "question_hash": "sha256:9ffeeefdf2f11df68de2391b2e5996d9ee2a804e7566cea47071f6638c1ae3bf"
-          },
-          {
-            "run_id": "run_3JPQ9JT2RSP3Q7S4EG1VS7PA4A",
-            "disclosure": "included_current_basis",
-            "answer_hash": "sha256:6836a72455cceb8b261373e41c95cc1bf888f2b52311b7e1b7c086fc0785ea0d",
-            "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
-            "question_hash": "sha256:24075f3385ece63502c3453bb98c275163c8d1f04cc117ce5b1c1e5522e9475b"
-          },
-          {
-            "run_id": "run_1Y3Z8ZQR31MP1GX66FW6AVF6T1",
-            "disclosure": "included_current_basis",
-            "answer_hash": "sha256:f0aa16c646083568304379cd7197b5d809f1bc957a512a5b768a390bf7eb673c",
-            "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
-            "question_hash": "sha256:70344c30255ea78b64eb4cc3b5ea77e07168558a4e6a879780fba1165faef850"
-          }
-        ],
-        "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
-        "authority": "advisory_input_only",
-        "thread_id": "thread_417PHGY55GKB1GRA9ZVV8W75SB",
-        "project_id": "project_4GNM3G166Z7RCBSW5K6TXZ3XZ9",
-        "input_bytes": 26612,
-        "prepared_at": "2026-10-11T01:45:10.442Z",
-        "context_hash": "sha256:b53d76797e07b7f75fbfe4b80297d10780e3d15862b153bb39ff2e53f33dc79c",
-        "profile_hash": "sha256:39706626f815827e098a83c9a842900f73c9fe58c38f03688cfd48a08c51e00d",
-        "history_bytes": 16018,
-        "input_payload_hash": "sha256:d289f18a4b9732870e2eecc56647519d2162300cc32dda0772ae2e4fcbe25798",
-        "context_record_keys": [
-          "project-definition",
-          "pre-creation-discussion",
-          "scene:30d12a7e4c914227"
-        ],
-        "history_query_limit": 200,
-        "excluded_history_count": 1,
-        "retained_history_count": 13,
-        "history_query_may_have_omissions": false
-      },
-      "schema_name": "petra.copilot-input-manifest",
-      "content_hash": "sha256:f064ba72636c75755b7520827136f22d39bd446366a553afcf83c8dece280588",
-      "schema_version": "1.0.0"
-    },
-    {
-      "content": {
-        "run_id": "run_0VG3SQHJ636Y5VC1ZMPPEPDTAW",
+        "run_id": "run_55AP6VN8EC8A1K89Q6GV4GBRZ1",
         "history": [
           {
             "run_id": "run_4ZGFT7FXM154QR08T178KCE1N8",
@@ -145,63 +25,63 @@
           },
           {
             "run_id": "run_0C8J3EEPBRMB5PPRZJTD3K3PTM",
-            "disclosure": "included_current_basis",
+            "disclosure": "excluded_history_budget",
             "answer_hash": "sha256:b8c6d3b141472e9b984bdb18a9a61fa50d5fe2f06a9de12e2578b597a43efeff",
             "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
             "question_hash": "sha256:a6e643897278706b4395ebe0f8cb6867a0b84ac81319da447769437e2e19d9b4"
           },
           {
             "run_id": "run_5YK8JJ2D2VHR8ZTZSBKP6FCRB9",
-            "disclosure": "included_current_basis",
+            "disclosure": "excluded_history_budget",
             "answer_hash": "sha256:eaf5dbafcc516b98c60b0e4eb42f15395766859d3b65274ae5779ab2dfc50c93",
             "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
             "question_hash": "sha256:44c39eb6633bae27422dc22e252dbf5d8f4500f4343dd2a8de42ee5718e679b8"
           },
           {
             "run_id": "run_0RM85C025KY7FERTHCYWG5WXK4",
-            "disclosure": "included_current_basis",
+            "disclosure": "excluded_history_budget",
             "answer_hash": "sha256:ef89980f5050796870d9d225927785fa75ed20abb9d8dbaf705d307584a08247",
             "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
             "question_hash": "sha256:a6e643897278706b4395ebe0f8cb6867a0b84ac81319da447769437e2e19d9b4"
           },
           {
             "run_id": "run_68EGGCCHVWX7A88XB72YR5B0BZ",
-            "disclosure": "included_current_basis",
+            "disclosure": "excluded_history_budget",
             "answer_hash": "sha256:b0dda2ac9584783ffef2804318f0245349364d41e43f93f9d802cb6f264498d9",
             "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
             "question_hash": "sha256:44c39eb6633bae27422dc22e252dbf5d8f4500f4343dd2a8de42ee5718e679b8"
           },
           {
             "run_id": "run_3EM89XY1W98BRV2XBCAETC0M2Y",
-            "disclosure": "included_current_basis",
+            "disclosure": "excluded_history_budget",
             "answer_hash": "sha256:08860e7ec01b5a852678b5ed1a2ec043e49cbac61d2ba91dab5775c17999a936",
             "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
             "question_hash": "sha256:a6e643897278706b4395ebe0f8cb6867a0b84ac81319da447769437e2e19d9b4"
           },
           {
             "run_id": "run_4EV6WSAGT5QXF6A4ZFND52N4A1",
-            "disclosure": "included_current_basis",
+            "disclosure": "excluded_history_budget",
             "answer_hash": "sha256:0ee292ab136982620fe33f7295bf6ad5bf39e38ea295b1103e219d3f18ba9df7",
             "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
             "question_hash": "sha256:9ffeeefdf2f11df68de2391b2e5996d9ee2a804e7566cea47071f6638c1ae3bf"
           },
           {
             "run_id": "run_5N9WYQW7Y58APNYNEZY5R24BR5",
-            "disclosure": "included_current_basis",
+            "disclosure": "excluded_history_budget",
             "answer_hash": "sha256:a708e277cea754be602ea0536476ea6e3164147187012c147c813ce2ae3b9ba4",
             "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
             "question_hash": "sha256:24075f3385ece63502c3453bb98c275163c8d1f04cc117ce5b1c1e5522e9475b"
           },
           {
             "run_id": "run_0Y7C46CXSXHG4Z7KHBVZRW356W",
-            "disclosure": "included_current_basis",
+            "disclosure": "excluded_history_budget",
             "answer_hash": "sha256:b81bae725708647cdc80378bc09f3f82083640f93e93e4dd1a2dbaf778b80c13",
             "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
             "question_hash": "sha256:70344c30255ea78b64eb4cc3b5ea77e07168558a4e6a879780fba1165faef850"
           },
           {
             "run_id": "run_2KBDEN526RH4WV9YY832Y1P6CY",
-            "disclosure": "included_current_basis",
+            "disclosure": "excluded_history_budget",
             "answer_hash": "sha256:a1623ce53deffecd1d6a4418f50267a4504ce970bf412d4e64759df2b9fd9177",
             "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
             "question_hash": "sha256:9ffeeefdf2f11df68de2391b2e5996d9ee2a804e7566cea47071f6638c1ae3bf"
@@ -222,9 +102,269 @@
           },
           {
             "run_id": "run_58233FN1948677R43XAPDN5KMQ",
-            "disclosure": "included_current_basis",
-            "answer_hash": "sha256:b79eb0139eb2a57de84afc4e12bc0039f7324bbbda8b07b162f33c54fbc13146",
+            "disclosure": "withheld_changed_basis",
+            "answer_hash": "sha256:50021c55b62d94c0a5035069f1a030827766b34ece05d67430a6ff6a1faa4f22",
             "context_hash": "sha256:b53d76797e07b7f75fbfe4b80297d10780e3d15862b153bb39ff2e53f33dc79c",
+            "question_hash": "sha256:a43a235ebc4136fe5dc346cef8a84ec94ad5fd04fcf77b3a474f02a7130fccfa"
+          },
+          {
+            "run_id": "run_0VG3SQHJ636Y5VC1ZMPPEPDTAW",
+            "disclosure": "withheld_changed_basis",
+            "answer_hash": "sha256:50021c55b62d94c0a5035069f1a030827766b34ece05d67430a6ff6a1faa4f22",
+            "context_hash": "sha256:d7262b483d6f2aff6362cbfacd8583d3728a85fec99949e84364ecd7e46bc616",
+            "question_hash": "sha256:a43a235ebc4136fe5dc346cef8a84ec94ad5fd04fcf77b3a474f02a7130fccfa"
+          },
+          {
+            "run_id": "run_1C0E6Q8JV79RAKRMT8V53FA6JJ",
+            "disclosure": "withheld_changed_basis",
+            "answer_hash": "sha256:50021c55b62d94c0a5035069f1a030827766b34ece05d67430a6ff6a1faa4f22",
+            "context_hash": "sha256:16d03dac7a881b55640134a125b6369b54d25cc895bf45a5b7e77527a1831604",
+            "question_hash": "sha256:a43a235ebc4136fe5dc346cef8a84ec94ad5fd04fcf77b3a474f02a7130fccfa"
+          },
+          {
+            "run_id": "run_10YDRANSG0T7B7GFS6ZXAX6CCM",
+            "disclosure": "withheld_changed_basis",
+            "answer_hash": "sha256:50021c55b62d94c0a5035069f1a030827766b34ece05d67430a6ff6a1faa4f22",
+            "context_hash": "sha256:8e41860b1d4a32b9f4e450fad59d7312f0f1421b08b557549c3991aadd1694a9",
+            "question_hash": "sha256:a43a235ebc4136fe5dc346cef8a84ec94ad5fd04fcf77b3a474f02a7130fccfa"
+          },
+          {
+            "run_id": "run_7XC027P29BYG5YDH37X2RRYA0A",
+            "disclosure": "withheld_changed_basis",
+            "answer_hash": "sha256:50021c55b62d94c0a5035069f1a030827766b34ece05d67430a6ff6a1faa4f22",
+            "context_hash": "sha256:53c58d4239f7cf0fd72ca77801885d2a2102b71e054776d378ff690d41fbf051",
+            "question_hash": "sha256:a43a235ebc4136fe5dc346cef8a84ec94ad5fd04fcf77b3a474f02a7130fccfa"
+          },
+          {
+            "run_id": "run_675T9J0HYFXB893YETKK9MM8DD",
+            "disclosure": "withheld_changed_basis",
+            "answer_hash": "sha256:50021c55b62d94c0a5035069f1a030827766b34ece05d67430a6ff6a1faa4f22",
+            "context_hash": "sha256:dddc688082ac5bd427ee8b9c6c47945c5c84b5409aa4dcadff0f2ca8566fa344",
+            "question_hash": "sha256:a43a235ebc4136fe5dc346cef8a84ec94ad5fd04fcf77b3a474f02a7130fccfa"
+          },
+          {
+            "run_id": "run_5TY3QKTGT6WDJG92JAQW9F004B",
+            "disclosure": "withheld_changed_basis",
+            "answer_hash": "sha256:50021c55b62d94c0a5035069f1a030827766b34ece05d67430a6ff6a1faa4f22",
+            "context_hash": "sha256:01cd4952db6a92c79d874dabd6aaaf5696d044051004a03ea4d4b16867290920",
+            "question_hash": "sha256:a43a235ebc4136fe5dc346cef8a84ec94ad5fd04fcf77b3a474f02a7130fccfa"
+          },
+          {
+            "run_id": "run_1YX7CSXCNNQTA24HEWYA32R1H8",
+            "disclosure": "included_current_basis",
+            "answer_hash": "sha256:31a62fc842f611d600456fd8b680364fe135606f44d89f9e4bf06eff922ade7c",
+            "context_hash": "sha256:2eb7da3fd10ba2627d7202dee35e43794f8f7d559f5e81a6e6bf3dbd87579f14",
+            "question_hash": "sha256:9ffeeefdf2f11df68de2391b2e5996d9ee2a804e7566cea47071f6638c1ae3bf"
+          },
+          {
+            "run_id": "run_3G5V83Z9RC5N885JHHTNP49GAX",
+            "disclosure": "included_current_basis",
+            "answer_hash": "sha256:74e3409f891ac182ccbfe7e6f245f917a657889cec3bf73ec9e0ee185f6758ec",
+            "context_hash": "sha256:274fcb2e80ce0c98fdcd0e720c3e2daa92c5f5f27a52a5e43dcd07c705d74d40",
+            "question_hash": "sha256:24075f3385ece63502c3453bb98c275163c8d1f04cc117ce5b1c1e5522e9475b"
+          },
+          {
+            "run_id": "run_6WFGRMDD9W61DM4DN1NE08EY6S",
+            "disclosure": "included_current_basis",
+            "answer_hash": "sha256:b77c310b24b313d1a700248b9fffd59494defd33000a021561be48fd84354008",
+            "context_hash": "sha256:098ebdffd077af6e14bb31dcaa452f2d528aa574be082651a7d8ac5cfdf3ec09",
+            "question_hash": "sha256:70344c30255ea78b64eb4cc3b5ea77e07168558a4e6a879780fba1165faef850"
+          }
+        ],
+        "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+        "authority": "advisory_input_only",
+        "thread_id": "thread_417PHGY55GKB1GRA9ZVV8W75SB",
+        "project_id": "project_4GNM3G166Z7RCBSW5K6TXZ3XZ9",
+        "input_bytes": 19604,
+        "prepared_at": "2026-10-11T03:52:01.239Z",
+        "context_hash": "sha256:c03b96e81b1d567de72d9e04e7d9100f2fa96e722456a386fadfcce338fba50f",
+        "profile_hash": "sha256:39706626f815827e098a83c9a842900f73c9fe58c38f03688cfd48a08c51e00d",
+        "history_bytes": 10218,
+        "input_payload_hash": "sha256:9ab575398feb2b1385c89c4111adb1640a5a53c61ea318315a39d152823ac1c3",
+        "context_record_keys": [
+          "project-definition",
+          "pre-creation-discussion",
+          "scene:30d12a7e4c914227"
+        ],
+        "history_query_limit": 200,
+        "excluded_history_count": 11,
+        "retained_history_count": 23,
+        "history_query_may_have_omissions": false
+      },
+      "schema_name": "petra.copilot-input-manifest",
+      "content_hash": "sha256:483a0d1e467380a8653151c3b4f492234e446bcdcce9dca5caa682813773a2f5",
+      "schema_version": "1.0.0"
+    },
+    {
+      "content": {
+        "run_id": "run_1CR2PH60PT0E4S1PEPQJRN3EGR",
+        "history": [
+          {
+            "run_id": "run_4ZGFT7FXM154QR08T178KCE1N8",
+            "disclosure": "excluded_history_budget",
+            "answer_hash": "sha256:1211da2b1bfc52d0a9e183621530b54b8b1c51067ebb5c9d165e4cbbbf90ebbb",
+            "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+            "question_hash": "sha256:19783897bc75b83c3941e3f31b91345acd636042c0e6ad68d26ad182e416b562"
+          },
+          {
+            "run_id": "run_7BQ9E34CHVRVKRRN52R67AREDD",
+            "disclosure": "excluded_history_budget",
+            "answer_hash": "sha256:e15b5b864e941018c214d3ea55f72855567b1a1ac26f2fa13606007969ab442a",
+            "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+            "question_hash": "sha256:44c39eb6633bae27422dc22e252dbf5d8f4500f4343dd2a8de42ee5718e679b8"
+          },
+          {
+            "run_id": "run_0C8J3EEPBRMB5PPRZJTD3K3PTM",
+            "disclosure": "excluded_history_budget",
+            "answer_hash": "sha256:b8c6d3b141472e9b984bdb18a9a61fa50d5fe2f06a9de12e2578b597a43efeff",
+            "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+            "question_hash": "sha256:a6e643897278706b4395ebe0f8cb6867a0b84ac81319da447769437e2e19d9b4"
+          },
+          {
+            "run_id": "run_5YK8JJ2D2VHR8ZTZSBKP6FCRB9",
+            "disclosure": "excluded_history_budget",
+            "answer_hash": "sha256:eaf5dbafcc516b98c60b0e4eb42f15395766859d3b65274ae5779ab2dfc50c93",
+            "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+            "question_hash": "sha256:44c39eb6633bae27422dc22e252dbf5d8f4500f4343dd2a8de42ee5718e679b8"
+          },
+          {
+            "run_id": "run_0RM85C025KY7FERTHCYWG5WXK4",
+            "disclosure": "excluded_history_budget",
+            "answer_hash": "sha256:ef89980f5050796870d9d225927785fa75ed20abb9d8dbaf705d307584a08247",
+            "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+            "question_hash": "sha256:a6e643897278706b4395ebe0f8cb6867a0b84ac81319da447769437e2e19d9b4"
+          },
+          {
+            "run_id": "run_68EGGCCHVWX7A88XB72YR5B0BZ",
+            "disclosure": "excluded_history_budget",
+            "answer_hash": "sha256:b0dda2ac9584783ffef2804318f0245349364d41e43f93f9d802cb6f264498d9",
+            "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+            "question_hash": "sha256:44c39eb6633bae27422dc22e252dbf5d8f4500f4343dd2a8de42ee5718e679b8"
+          },
+          {
+            "run_id": "run_3EM89XY1W98BRV2XBCAETC0M2Y",
+            "disclosure": "excluded_history_budget",
+            "answer_hash": "sha256:08860e7ec01b5a852678b5ed1a2ec043e49cbac61d2ba91dab5775c17999a936",
+            "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+            "question_hash": "sha256:a6e643897278706b4395ebe0f8cb6867a0b84ac81319da447769437e2e19d9b4"
+          },
+          {
+            "run_id": "run_4EV6WSAGT5QXF6A4ZFND52N4A1",
+            "disclosure": "excluded_history_budget",
+            "answer_hash": "sha256:0ee292ab136982620fe33f7295bf6ad5bf39e38ea295b1103e219d3f18ba9df7",
+            "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+            "question_hash": "sha256:9ffeeefdf2f11df68de2391b2e5996d9ee2a804e7566cea47071f6638c1ae3bf"
+          },
+          {
+            "run_id": "run_5N9WYQW7Y58APNYNEZY5R24BR5",
+            "disclosure": "excluded_history_budget",
+            "answer_hash": "sha256:a708e277cea754be602ea0536476ea6e3164147187012c147c813ce2ae3b9ba4",
+            "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+            "question_hash": "sha256:24075f3385ece63502c3453bb98c275163c8d1f04cc117ce5b1c1e5522e9475b"
+          },
+          {
+            "run_id": "run_0Y7C46CXSXHG4Z7KHBVZRW356W",
+            "disclosure": "excluded_history_budget",
+            "answer_hash": "sha256:b81bae725708647cdc80378bc09f3f82083640f93e93e4dd1a2dbaf778b80c13",
+            "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+            "question_hash": "sha256:70344c30255ea78b64eb4cc3b5ea77e07168558a4e6a879780fba1165faef850"
+          },
+          {
+            "run_id": "run_2KBDEN526RH4WV9YY832Y1P6CY",
+            "disclosure": "excluded_history_budget",
+            "answer_hash": "sha256:a1623ce53deffecd1d6a4418f50267a4504ce970bf412d4e64759df2b9fd9177",
+            "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+            "question_hash": "sha256:9ffeeefdf2f11df68de2391b2e5996d9ee2a804e7566cea47071f6638c1ae3bf"
+          },
+          {
+            "run_id": "run_3JPQ9JT2RSP3Q7S4EG1VS7PA4A",
+            "disclosure": "excluded_history_budget",
+            "answer_hash": "sha256:6836a72455cceb8b261373e41c95cc1bf888f2b52311b7e1b7c086fc0785ea0d",
+            "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+            "question_hash": "sha256:24075f3385ece63502c3453bb98c275163c8d1f04cc117ce5b1c1e5522e9475b"
+          },
+          {
+            "run_id": "run_1Y3Z8ZQR31MP1GX66FW6AVF6T1",
+            "disclosure": "included_current_basis",
+            "answer_hash": "sha256:f0aa16c646083568304379cd7197b5d809f1bc957a512a5b768a390bf7eb673c",
+            "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+            "question_hash": "sha256:70344c30255ea78b64eb4cc3b5ea77e07168558a4e6a879780fba1165faef850"
+          },
+          {
+            "run_id": "run_58233FN1948677R43XAPDN5KMQ",
+            "disclosure": "withheld_changed_basis",
+            "answer_hash": "sha256:50021c55b62d94c0a5035069f1a030827766b34ece05d67430a6ff6a1faa4f22",
+            "context_hash": "sha256:b53d76797e07b7f75fbfe4b80297d10780e3d15862b153bb39ff2e53f33dc79c",
+            "question_hash": "sha256:a43a235ebc4136fe5dc346cef8a84ec94ad5fd04fcf77b3a474f02a7130fccfa"
+          },
+          {
+            "run_id": "run_0VG3SQHJ636Y5VC1ZMPPEPDTAW",
+            "disclosure": "withheld_changed_basis",
+            "answer_hash": "sha256:50021c55b62d94c0a5035069f1a030827766b34ece05d67430a6ff6a1faa4f22",
+            "context_hash": "sha256:d7262b483d6f2aff6362cbfacd8583d3728a85fec99949e84364ecd7e46bc616",
+            "question_hash": "sha256:a43a235ebc4136fe5dc346cef8a84ec94ad5fd04fcf77b3a474f02a7130fccfa"
+          },
+          {
+            "run_id": "run_1C0E6Q8JV79RAKRMT8V53FA6JJ",
+            "disclosure": "withheld_changed_basis",
+            "answer_hash": "sha256:50021c55b62d94c0a5035069f1a030827766b34ece05d67430a6ff6a1faa4f22",
+            "context_hash": "sha256:16d03dac7a881b55640134a125b6369b54d25cc895bf45a5b7e77527a1831604",
+            "question_hash": "sha256:a43a235ebc4136fe5dc346cef8a84ec94ad5fd04fcf77b3a474f02a7130fccfa"
+          },
+          {
+            "run_id": "run_10YDRANSG0T7B7GFS6ZXAX6CCM",
+            "disclosure": "withheld_changed_basis",
+            "answer_hash": "sha256:50021c55b62d94c0a5035069f1a030827766b34ece05d67430a6ff6a1faa4f22",
+            "context_hash": "sha256:8e41860b1d4a32b9f4e450fad59d7312f0f1421b08b557549c3991aadd1694a9",
+            "question_hash": "sha256:a43a235ebc4136fe5dc346cef8a84ec94ad5fd04fcf77b3a474f02a7130fccfa"
+          },
+          {
+            "run_id": "run_7XC027P29BYG5YDH37X2RRYA0A",
+            "disclosure": "withheld_changed_basis",
+            "answer_hash": "sha256:50021c55b62d94c0a5035069f1a030827766b34ece05d67430a6ff6a1faa4f22",
+            "context_hash": "sha256:53c58d4239f7cf0fd72ca77801885d2a2102b71e054776d378ff690d41fbf051",
+            "question_hash": "sha256:a43a235ebc4136fe5dc346cef8a84ec94ad5fd04fcf77b3a474f02a7130fccfa"
+          },
+          {
+            "run_id": "run_675T9J0HYFXB893YETKK9MM8DD",
+            "disclosure": "withheld_changed_basis",
+            "answer_hash": "sha256:50021c55b62d94c0a5035069f1a030827766b34ece05d67430a6ff6a1faa4f22",
+            "context_hash": "sha256:dddc688082ac5bd427ee8b9c6c47945c5c84b5409aa4dcadff0f2ca8566fa344",
+            "question_hash": "sha256:a43a235ebc4136fe5dc346cef8a84ec94ad5fd04fcf77b3a474f02a7130fccfa"
+          },
+          {
+            "run_id": "run_5TY3QKTGT6WDJG92JAQW9F004B",
+            "disclosure": "withheld_changed_basis",
+            "answer_hash": "sha256:50021c55b62d94c0a5035069f1a030827766b34ece05d67430a6ff6a1faa4f22",
+            "context_hash": "sha256:01cd4952db6a92c79d874dabd6aaaf5696d044051004a03ea4d4b16867290920",
+            "question_hash": "sha256:a43a235ebc4136fe5dc346cef8a84ec94ad5fd04fcf77b3a474f02a7130fccfa"
+          },
+          {
+            "run_id": "run_1YX7CSXCNNQTA24HEWYA32R1H8",
+            "disclosure": "included_current_basis",
+            "answer_hash": "sha256:31a62fc842f611d600456fd8b680364fe135606f44d89f9e4bf06eff922ade7c",
+            "context_hash": "sha256:2eb7da3fd10ba2627d7202dee35e43794f8f7d559f5e81a6e6bf3dbd87579f14",
+            "question_hash": "sha256:9ffeeefdf2f11df68de2391b2e5996d9ee2a804e7566cea47071f6638c1ae3bf"
+          },
+          {
+            "run_id": "run_3G5V83Z9RC5N885JHHTNP49GAX",
+            "disclosure": "included_current_basis",
+            "answer_hash": "sha256:74e3409f891ac182ccbfe7e6f245f917a657889cec3bf73ec9e0ee185f6758ec",
+            "context_hash": "sha256:274fcb2e80ce0c98fdcd0e720c3e2daa92c5f5f27a52a5e43dcd07c705d74d40",
+            "question_hash": "sha256:24075f3385ece63502c3453bb98c275163c8d1f04cc117ce5b1c1e5522e9475b"
+          },
+          {
+            "run_id": "run_6WFGRMDD9W61DM4DN1NE08EY6S",
+            "disclosure": "included_current_basis",
+            "answer_hash": "sha256:b77c310b24b313d1a700248b9fffd59494defd33000a021561be48fd84354008",
+            "context_hash": "sha256:098ebdffd077af6e14bb31dcaa452f2d528aa574be082651a7d8ac5cfdf3ec09",
+            "question_hash": "sha256:70344c30255ea78b64eb4cc3b5ea77e07168558a4e6a879780fba1165faef850"
+          },
+          {
+            "run_id": "run_55AP6VN8EC8A1K89Q6GV4GBRZ1",
+            "disclosure": "included_current_basis",
+            "answer_hash": "sha256:2bd2e7d6e69758bb29e3d606ee84b23eba016be9c93bf79159dd1233fb95012f",
+            "context_hash": "sha256:c03b96e81b1d567de72d9e04e7d9100f2fa96e722456a386fadfcce338fba50f",
             "question_hash": "sha256:44c39eb6633bae27422dc22e252dbf5d8f4500f4343dd2a8de42ee5718e679b8"
           }
         ],
@@ -232,30 +372,30 @@
         "authority": "advisory_input_only",
         "thread_id": "thread_417PHGY55GKB1GRA9ZVV8W75SB",
         "project_id": "project_4GNM3G166Z7RCBSW5K6TXZ3XZ9",
-        "input_bytes": 26458,
-        "prepared_at": "2026-10-11T01:45:20.357Z",
-        "context_hash": "sha256:d7262b483d6f2aff6362cbfacd8583d3728a85fec99949e84364ecd7e46bc616",
+        "input_bytes": 19855,
+        "prepared_at": "2026-10-11T03:52:10.635Z",
+        "context_hash": "sha256:8f9657622eb5e9dceb984d5f6755f692d3bbd94b8d7b3d199df76a8b64dd28b2",
         "profile_hash": "sha256:39706626f815827e098a83c9a842900f73c9fe58c38f03688cfd48a08c51e00d",
-        "history_bytes": 15879,
-        "input_payload_hash": "sha256:d224748aa45c37dc013117537313cade5805580e47866e20004563ef7425d9e7",
+        "history_bytes": 10484,
+        "input_payload_hash": "sha256:df22b3d0e8ad0dd83f5313b01ae24e286020eee684cf3a21f71dec47f29305c6",
         "context_record_keys": [
           "project-definition",
           "pre-creation-discussion",
           "scene:30d12a7e4c914227"
         ],
         "history_query_limit": 200,
-        "excluded_history_count": 2,
-        "retained_history_count": 14,
+        "excluded_history_count": 12,
+        "retained_history_count": 24,
         "history_query_may_have_omissions": false
       },
       "schema_name": "petra.copilot-input-manifest",
-      "content_hash": "sha256:09552b19d7d105ffc38c81edaa0b083158b594147df6b2b010e75799c63d4743",
+      "content_hash": "sha256:05be356615cb78f8c094dcf59c0752b515521f14af02a595297c881dd52e2f85",
       "schema_version": "1.0.0"
     }
   ],
   "turns": [
     {
-      "run_id": "run_58233FN1948677R43XAPDN5KMQ",
+      "run_id": "run_55AP6VN8EC8A1K89Q6GV4GBRZ1",
       "context": {
         "basis": {
           "objective": {
@@ -281,7 +421,7 @@
               "record_hash": "sha256:dc59e90c4642a8a8ec98a5f8d0f5e104a7bef564d524c459ff914f34620ddb65"
             },
             "kind": "project-definition-context",
-            "text": "{\"authority\":\"definition_semantics_only\",\"definition_ref\":{\"project_definition_id\":\"project_definition_1YVF468MMHV3NMMRZ6W26Z5AXT\",\"revision\":1,\"content_hash\":\"sha256:81f8cda949a62f2ff9dc453bd0b53a82cf12a8599ad17003ff43a2271cca6bcb\",\"definition_family\":\"petra.project-authored\",\"label\":\"Outcome-led Project\",\"description\":\"A domain-neutral Project definition that preserves the stated outcome and uses Petra's shared graph, evidence, Work, Review, and History capabilities.\",\"kernel_compatibility\":\"petra.project-kernel@1.0.0\",\"terms\":[{\"plural\":\"Outcomes\",\"singular\":\"Outcome\",\"definition\":\"The exact result this Project is trying to produce.\",\"semantic_key\":\"project.outcome\",\"generic_family\":\"focus\"},{\"plural\":\"Results\",\"singular\":\"Result\",\"definition\":\"A durable Project object produced while pursuing the outcome.\",\"semantic_key\":\"project.result\",\"generic_family\":\"finding\"},{\"plural\":\"References\",\"singular\":\"Reference\",\"definition\":\"A retained source or other exact basis available to the Project.\",\"semantic_key\":\"project.reference\",\"generic_family\":\"reference\"},{\"plural\":\"Relationships\",\"singular\":\"Relationship\",\"definition\":\"An explicit graph connection between Project objects.\",\"semantic_key\":\"project.relationship\",\"generic_family\":\"relationship\"}],\"supported_places\":[\"brief\",\"sources\",\"review\",\"graph\",\"work\",\"petra\",\"composition\",\"history\",\"settings\"]},\"registrations\":[{\"contract\":{\"name\":\"petra.project-objective\",\"version\":\"1.0.0\",\"content_hash\":\"sha256:fc8a37e66cfd29feb5613f744497b3b82f6623372a2a19dda9ff0ada02fab792\"},\"semantic_key\":\"project.outcome\",\"registration_kind\":\"objective_schema\"},{\"contract\":{\"name\":\"petra.rights-decision\",\"version\":\"1.0.0\",\"content_hash\":\"sha256:460d2ca3f9d3b9fff92f2b4280cf223c37ba3781b416b3a8c414b4ca44d93e94\"},\"semantic_key\":\"project.reference\",\"registration_kind\":\"source_role\"}],\"terms\":[{\"plural\":\"Outcomes\",\"singular\":\"Outcome\",\"definition\":\"The exact result this Project is trying to produce.\",\"semantic_key\":\"project.outcome\",\"generic_family\":\"focus\"},{\"plural\":\"Results\",\"singular\":\"Result\",\"definition\":\"A durable Project object produced while pursuing the outcome.\",\"semantic_key\":\"project.result\",\"generic_family\":\"finding\"},{\"plural\":\"References\",\"singular\":\"Reference\",\"definition\":\"A retained source or other exact basis available to the Project.\",\"semantic_key\":\"project.reference\",\"generic_family\":\"reference\"},{\"plural\":\"Relationships\",\"singular\":\"Relationship\",\"definition\":\"An explicit graph connection between Project objects.\",\"semantic_key\":\"project.relationship\",\"generic_family\":\"relationship\"}],\"supported_places\":[\"brief\",\"sources\",\"review\",\"graph\",\"work\",\"petra\",\"composition\",\"history\",\"settings\"],\"omitted_flows\":[\"Domain-specific automation not selected\",\"External filesystem editing\",\"Multi-user collaboration\"],\"omitted_registrations\":0,\"omitted_terms\":0,\"omitted_flow_descriptions\":0,\"disclosure\":\"Exact declared contracts and meanings; registration alone proves no installed examiner, executable workflow, source egress permission, command authority or completed inquiry. Omitted entries are unavailable to this turn.\"}",
+            "text": "{\"authority\":\"definition_semantics_only\",\"definition_ref\":{\"project_definition_id\":\"project_definition_1YVF468MMHV3NMMRZ6W26Z5AXT\",\"revision\":1,\"content_hash\":\"sha256:81f8cda949a62f2ff9dc453bd0b53a82cf12a8599ad17003ff43a2271cca6bcb\",\"definition_family\":\"petra.project-authored\"},\"registrations\":[{\"contract\":{\"name\":\"petra.project-objective\",\"version\":\"1.0.0\",\"content_hash\":\"sha256:fc8a37e66cfd29feb5613f744497b3b82f6623372a2a19dda9ff0ada02fab792\"},\"semantic_key\":\"project.outcome\",\"registration_kind\":\"objective_schema\"},{\"contract\":{\"name\":\"petra.rights-decision\",\"version\":\"1.0.0\",\"content_hash\":\"sha256:460d2ca3f9d3b9fff92f2b4280cf223c37ba3781b416b3a8c414b4ca44d93e94\"},\"semantic_key\":\"project.reference\",\"registration_kind\":\"source_role\"}],\"terms\":[{\"plural\":\"Outcomes\",\"singular\":\"Outcome\",\"definition\":\"The exact result this Project is trying to produce.\",\"semantic_key\":\"project.outcome\",\"generic_family\":\"focus\"},{\"plural\":\"Results\",\"singular\":\"Result\",\"definition\":\"A durable Project object produced while pursuing the outcome.\",\"semantic_key\":\"project.result\",\"generic_family\":\"finding\"},{\"plural\":\"References\",\"singular\":\"Reference\",\"definition\":\"A retained source or other exact basis available to the Project.\",\"semantic_key\":\"project.reference\",\"generic_family\":\"reference\"},{\"plural\":\"Relationships\",\"singular\":\"Relationship\",\"definition\":\"An explicit graph connection between Project objects.\",\"semantic_key\":\"project.relationship\",\"generic_family\":\"relationship\"}],\"supported_places\":[\"brief\",\"sources\",\"review\",\"graph\",\"work\",\"petra\",\"composition\",\"history\",\"settings\"],\"omitted_flows\":[\"Domain-specific automation not selected\",\"External filesystem editing\",\"Multi-user collaboration\"],\"omitted_registrations\":0,\"omitted_terms\":0,\"omitted_flow_descriptions\":0,\"disclosure\":\"Exact declared contracts and meanings; registration alone proves no installed examiner, executable workflow, source egress permission, command authority or completed inquiry. Omitted entries are unavailable to this turn.\"}",
             "label": "Declared Project meaning",
             "destination": "/projects/project_4GNM3G166Z7RCBSW5K6TXZ3XZ9/profile"
           },
@@ -316,14 +456,14 @@
           "Context contains a bounded selection of authorized current record summaries and working material. It is not an exhaustive evidence search or the complete bytes of a Source.",
           "Managed model execution uses the registered remote provider; Project routing preferences and per-call price accounting are not available through this role.",
           "Inquiry metadata is unavailable on this read; no resolved inquiry or missing inquiry is inferred.",
-          "Work context contains lifecycle metadata from a bounded page; 0 entries lie outside this page; more available: false. 13 conversational Work entries are excluded here because exact prior-turn input is separately bound by the conversation manifest. Work proposals and packet/output bytes require their own exact authorized read and are not silently substituted.",
+          "Work context contains lifecycle metadata from a bounded page; 3 entries lie outside this page; more available: true. 20 conversational Work entries are excluded here because exact prior-turn input is separately bound by the conversation manifest. Work proposals and packet/output bytes require their own exact authorized read and are not silently substituted.",
           "The original pre-creation discussion is untrusted user wording and advisory answers, not Project evidence, an approved definition or a domain examination. Its excerpt preserves whole turns and declares omissions.",
           "Native working records are included as exact-schema excerpts. Their candidacy, stale definition basis, and lack of domain authority remain explicit. Only the first 40 working objects are selected.",
           "The examined graph basis is sha256:96d0674b7404a52ec8aed99fa803bad2b627cab0ea02586b2f2548df6e6c877f. Only 0 retained examination records from one bounded history page are selected; more history: false. Human assessment, posture and disposition records retain their own authority. They do not establish Work success or permit the copilot to act.",
           "No registered graph evidence selection is currently available for this Project."
         ],
         "schema_name": "petra.copilot-context",
-        "content_hash": "sha256:b53d76797e07b7f75fbfe4b80297d10780e3d15862b153bb39ff2e53f33dc79c",
+        "content_hash": "sha256:c03b96e81b1d567de72d9e04e7d9100f2fa96e722456a386fadfcce338fba50f",
         "project_label": "Plan a neighborhood volunteer checklist for families, with a $500 budget and an indoor rain option.",
         "schema_version": "1.0.0",
         "definition_family": "petra.project-authored",
@@ -334,11 +474,11 @@
       "thread_id": "thread_417PHGY55GKB1GRA9ZVV8W75SB",
       "focus_keys": [],
       "project_id": "project_4GNM3G166Z7RCBSW5K6TXZ3XZ9",
-      "started_at": "2026-10-11T01:45:10.163Z",
-      "instance_id": "copilot_instance_56C3BY959Z6QBHYG84DED27V3Q",
+      "started_at": "2026-10-11T03:52:01.023Z",
+      "instance_id": "copilot_instance_3DXGERNRWQS60ZR0MRZFYG7X87",
       "schema_name": "petra.copilot-turn",
-      "request_hash": "sha256:fc695af3e5eb9913b51001fa1f01de5674854c99c966973fa86df5e6d2493109",
-      "parent_run_id": "run_1Y3Z8ZQR31MP1GX66FW6AVF6T1",
+      "request_hash": "sha256:3137bd9ddcd1e48505409b10c7f2bf76927203c6929e677eec060a6b4b7c6b6c",
+      "parent_run_id": "run_6WFGRMDD9W61DM4DN1NE08EY6S",
       "schema_version": "1.0.0",
       "terminal": {
         "model": "gpt-6-astra",
@@ -347,17 +487,17 @@
           "blocks": [
             {
               "kind": "advice",
-              "text": "The supplied context still lacks:\n• A draft checklist and criteria for judging its usefulness or readiness.\n• Intended users—organizers, families, or both—and the volunteer outcome.\n• Activities, participant numbers and ages, location, date, and duration.\n• What the $500 covers, estimated costs, and donated resources.\n• Indoor rain activity, venue availability, capacity, accessibility, and permissions.\n• Task owners, supervision, safety and allergy constraints, and relevant venue rules.",
+              "text": "The supplied context lacks a draft checklist and settled details for:\n• Users and purpose: organizers, families, or both; intended volunteer outcome.\n• Scope: activities, participant numbers and ages, location, date, and duration.\n• Budget: what the $500 covers, cost estimates, and donations.\n• Rain option: indoor activity, venue availability, capacity, accessibility, and permissions.\n• Responsibilities: task owners, supervision, safety and allergy constraints, and who confirms arrangements.\n• Review basis: relevant rules, checklist format, and criteria for readiness.",
               "citations": []
             },
             {
               "kind": "advice",
-              "text": "A partial draft is enough for an initial gap review; not every arrangement must be settled first. Label assumptions and proposed arrangements separately from confirmed details. Such a review would not establish approval or readiness.",
+              "text": "A partial draft can receive an advisory gap review now; all arrangements need not be settled first. Mark assumptions and unconfirmed details explicitly. Review would not establish approval or readiness.",
               "citations": []
             },
             {
               "kind": "question",
-              "text": "Can you share a draft to examine, or should we first clarify who the checklist serves?",
+              "text": "Can you share a draft to examine, or should we first clarify who the checklist serves and what it should accomplish?",
               "citations": []
             }
           ],
@@ -368,252 +508,13 @@
           "schema_name": "petra.copilot-output",
           "schema_version": "1.0.0"
         },
-        "finished_at": "2026-10-11T01:45:19.675Z",
-        "provider_turn_id": "01a128a2-a663-7952-89a5-9a37810480b0",
-        "provider_thread_id": "01a128a2-a637-7151-a4b4-53870bec44f4"
+        "finished_at": "2026-10-11T03:52:09.951Z",
+        "provider_turn_id": "01a12916-c810-7eb1-a839-fdaaf60fdbe1",
+        "provider_thread_id": "01a12916-c7e7-7d61-aaf1-cc9bb125ee97"
       },
       "input_manifest": {
         "content": {
-          "run_id": "run_58233FN1948677R43XAPDN5KMQ",
-          "history": [
-            {
-              "run_id": "run_4ZGFT7FXM154QR08T178KCE1N8",
-              "disclosure": "excluded_history_budget",
-              "answer_hash": "sha256:1211da2b1bfc52d0a9e183621530b54b8b1c51067ebb5c9d165e4cbbbf90ebbb",
-              "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
-              "question_hash": "sha256:19783897bc75b83c3941e3f31b91345acd636042c0e6ad68d26ad182e416b562"
-            },
-            {
-              "run_id": "run_7BQ9E34CHVRVKRRN52R67AREDD",
-              "disclosure": "included_current_basis",
-              "answer_hash": "sha256:e15b5b864e941018c214d3ea55f72855567b1a1ac26f2fa13606007969ab442a",
-              "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
-              "question_hash": "sha256:44c39eb6633bae27422dc22e252dbf5d8f4500f4343dd2a8de42ee5718e679b8"
-            },
-            {
-              "run_id": "run_0C8J3EEPBRMB5PPRZJTD3K3PTM",
-              "disclosure": "included_current_basis",
-              "answer_hash": "sha256:b8c6d3b141472e9b984bdb18a9a61fa50d5fe2f06a9de12e2578b597a43efeff",
-              "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
-              "question_hash": "sha256:a6e643897278706b4395ebe0f8cb6867a0b84ac81319da447769437e2e19d9b4"
-            },
-            {
-              "run_id": "run_5YK8JJ2D2VHR8ZTZSBKP6FCRB9",
-              "disclosure": "included_current_basis",
-              "answer_hash": "sha256:eaf5dbafcc516b98c60b0e4eb42f15395766859d3b65274ae5779ab2dfc50c93",
-              "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
-              "question_hash": "sha256:44c39eb6633bae27422dc22e252dbf5d8f4500f4343dd2a8de42ee5718e679b8"
-            },
-            {
-              "run_id": "run_0RM85C025KY7FERTHCYWG5WXK4",
-              "disclosure": "included_current_basis",
-              "answer_hash": "sha256:ef89980f5050796870d9d225927785fa75ed20abb9d8dbaf705d307584a08247",
-              "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
-              "question_hash": "sha256:a6e643897278706b4395ebe0f8cb6867a0b84ac81319da447769437e2e19d9b4"
-            },
-            {
-              "run_id": "run_68EGGCCHVWX7A88XB72YR5B0BZ",
-              "disclosure": "included_current_basis",
-              "answer_hash": "sha256:b0dda2ac9584783ffef2804318f0245349364d41e43f93f9d802cb6f264498d9",
-              "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
-              "question_hash": "sha256:44c39eb6633bae27422dc22e252dbf5d8f4500f4343dd2a8de42ee5718e679b8"
-            },
-            {
-              "run_id": "run_3EM89XY1W98BRV2XBCAETC0M2Y",
-              "disclosure": "included_current_basis",
-              "answer_hash": "sha256:08860e7ec01b5a852678b5ed1a2ec043e49cbac61d2ba91dab5775c17999a936",
-              "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
-              "question_hash": "sha256:a6e643897278706b4395ebe0f8cb6867a0b84ac81319da447769437e2e19d9b4"
-            },
-            {
-              "run_id": "run_4EV6WSAGT5QXF6A4ZFND52N4A1",
-              "disclosure": "included_current_basis",
-              "answer_hash": "sha256:0ee292ab136982620fe33f7295bf6ad5bf39e38ea295b1103e219d3f18ba9df7",
-              "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
-              "question_hash": "sha256:9ffeeefdf2f11df68de2391b2e5996d9ee2a804e7566cea47071f6638c1ae3bf"
-            },
-            {
-              "run_id": "run_5N9WYQW7Y58APNYNEZY5R24BR5",
-              "disclosure": "included_current_basis",
-              "answer_hash": "sha256:a708e277cea754be602ea0536476ea6e3164147187012c147c813ce2ae3b9ba4",
-              "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
-              "question_hash": "sha256:24075f3385ece63502c3453bb98c275163c8d1f04cc117ce5b1c1e5522e9475b"
-            },
-            {
-              "run_id": "run_0Y7C46CXSXHG4Z7KHBVZRW356W",
-              "disclosure": "included_current_basis",
-              "answer_hash": "sha256:b81bae725708647cdc80378bc09f3f82083640f93e93e4dd1a2dbaf778b80c13",
-              "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
-              "question_hash": "sha256:70344c30255ea78b64eb4cc3b5ea77e07168558a4e6a879780fba1165faef850"
-            },
-            {
-              "run_id": "run_2KBDEN526RH4WV9YY832Y1P6CY",
-              "disclosure": "included_current_basis",
-              "answer_hash": "sha256:a1623ce53deffecd1d6a4418f50267a4504ce970bf412d4e64759df2b9fd9177",
-              "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
-              "question_hash": "sha256:9ffeeefdf2f11df68de2391b2e5996d9ee2a804e7566cea47071f6638c1ae3bf"
-            },
-            {
-              "run_id": "run_3JPQ9JT2RSP3Q7S4EG1VS7PA4A",
-              "disclosure": "included_current_basis",
-              "answer_hash": "sha256:6836a72455cceb8b261373e41c95cc1bf888f2b52311b7e1b7c086fc0785ea0d",
-              "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
-              "question_hash": "sha256:24075f3385ece63502c3453bb98c275163c8d1f04cc117ce5b1c1e5522e9475b"
-            },
-            {
-              "run_id": "run_1Y3Z8ZQR31MP1GX66FW6AVF6T1",
-              "disclosure": "included_current_basis",
-              "answer_hash": "sha256:f0aa16c646083568304379cd7197b5d809f1bc957a512a5b768a390bf7eb673c",
-              "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
-              "question_hash": "sha256:70344c30255ea78b64eb4cc3b5ea77e07168558a4e6a879780fba1165faef850"
-            }
-          ],
-          "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
-          "authority": "advisory_input_only",
-          "thread_id": "thread_417PHGY55GKB1GRA9ZVV8W75SB",
-          "project_id": "project_4GNM3G166Z7RCBSW5K6TXZ3XZ9",
-          "input_bytes": 26612,
-          "prepared_at": "2026-10-11T01:45:10.442Z",
-          "context_hash": "sha256:b53d76797e07b7f75fbfe4b80297d10780e3d15862b153bb39ff2e53f33dc79c",
-          "profile_hash": "sha256:39706626f815827e098a83c9a842900f73c9fe58c38f03688cfd48a08c51e00d",
-          "history_bytes": 16018,
-          "input_payload_hash": "sha256:d289f18a4b9732870e2eecc56647519d2162300cc32dda0772ae2e4fcbe25798",
-          "context_record_keys": [
-            "project-definition",
-            "pre-creation-discussion",
-            "scene:30d12a7e4c914227"
-          ],
-          "history_query_limit": 200,
-          "excluded_history_count": 1,
-          "retained_history_count": 13,
-          "history_query_may_have_omissions": false
-        },
-        "schema_name": "petra.copilot-input-manifest",
-        "content_hash": "sha256:f064ba72636c75755b7520827136f22d39bd446366a553afcf83c8dece280588",
-        "schema_version": "1.0.0"
-      }
-    },
-    {
-      "run_id": "run_0VG3SQHJ636Y5VC1ZMPPEPDTAW",
-      "context": {
-        "basis": {
-          "objective": {
-            "revision": 1,
-            "record_id": "objective_0YK8W4VBK9GWDB1NTQ37WBNVSF",
-            "content_hash": "sha256:8cb3ce4a8387caef06631f09854284fcde878e57b1f2828ca08d5b88e1011fc2"
-          },
-          "definition": {
-            "revision": 1,
-            "record_id": "project_definition_1YVF468MMHV3NMMRZ6W26Z5AXT",
-            "content_hash": "sha256:81f8cda949a62f2ff9dc453bd0b53a82cf12a8599ad17003ff43a2271cca6bcb"
-          },
-          "event_position": 15,
-          "stream_revision": 0,
-          "project_revision": 1
-        },
-        "records": [
-          {
-            "key": "project-definition",
-            "ref": {
-              "revision": 1,
-              "record_id": "project_definition_1YVF468MMHV3NMMRZ6W26Z5AXT",
-              "record_hash": "sha256:dc59e90c4642a8a8ec98a5f8d0f5e104a7bef564d524c459ff914f34620ddb65"
-            },
-            "kind": "project-definition-context",
-            "text": "{\"authority\":\"definition_semantics_only\",\"definition_ref\":{\"project_definition_id\":\"project_definition_1YVF468MMHV3NMMRZ6W26Z5AXT\",\"revision\":1,\"content_hash\":\"sha256:81f8cda949a62f2ff9dc453bd0b53a82cf12a8599ad17003ff43a2271cca6bcb\",\"definition_family\":\"petra.project-authored\",\"label\":\"Outcome-led Project\",\"description\":\"A domain-neutral Project definition that preserves the stated outcome and uses Petra's shared graph, evidence, Work, Review, and History capabilities.\",\"kernel_compatibility\":\"petra.project-kernel@1.0.0\",\"terms\":[{\"plural\":\"Outcomes\",\"singular\":\"Outcome\",\"definition\":\"The exact result this Project is trying to produce.\",\"semantic_key\":\"project.outcome\",\"generic_family\":\"focus\"},{\"plural\":\"Results\",\"singular\":\"Result\",\"definition\":\"A durable Project object produced while pursuing the outcome.\",\"semantic_key\":\"project.result\",\"generic_family\":\"finding\"},{\"plural\":\"References\",\"singular\":\"Reference\",\"definition\":\"A retained source or other exact basis available to the Project.\",\"semantic_key\":\"project.reference\",\"generic_family\":\"reference\"},{\"plural\":\"Relationships\",\"singular\":\"Relationship\",\"definition\":\"An explicit graph connection between Project objects.\",\"semantic_key\":\"project.relationship\",\"generic_family\":\"relationship\"}],\"supported_places\":[\"brief\",\"sources\",\"review\",\"graph\",\"work\",\"petra\",\"composition\",\"history\",\"settings\"]},\"registrations\":[{\"contract\":{\"name\":\"petra.project-objective\",\"version\":\"1.0.0\",\"content_hash\":\"sha256:fc8a37e66cfd29feb5613f744497b3b82f6623372a2a19dda9ff0ada02fab792\"},\"semantic_key\":\"project.outcome\",\"registration_kind\":\"objective_schema\"},{\"contract\":{\"name\":\"petra.rights-decision\",\"version\":\"1.0.0\",\"content_hash\":\"sha256:460d2ca3f9d3b9fff92f2b4280cf223c37ba3781b416b3a8c414b4ca44d93e94\"},\"semantic_key\":\"project.reference\",\"registration_kind\":\"source_role\"}],\"terms\":[{\"plural\":\"Outcomes\",\"singular\":\"Outcome\",\"definition\":\"The exact result this Project is trying to produce.\",\"semantic_key\":\"project.outcome\",\"generic_family\":\"focus\"},{\"plural\":\"Results\",\"singular\":\"Result\",\"definition\":\"A durable Project object produced while pursuing the outcome.\",\"semantic_key\":\"project.result\",\"generic_family\":\"finding\"},{\"plural\":\"References\",\"singular\":\"Reference\",\"definition\":\"A retained source or other exact basis available to the Project.\",\"semantic_key\":\"project.reference\",\"generic_family\":\"reference\"},{\"plural\":\"Relationships\",\"singular\":\"Relationship\",\"definition\":\"An explicit graph connection between Project objects.\",\"semantic_key\":\"project.relationship\",\"generic_family\":\"relationship\"}],\"supported_places\":[\"brief\",\"sources\",\"review\",\"graph\",\"work\",\"petra\",\"composition\",\"history\",\"settings\"],\"omitted_flows\":[\"Domain-specific automation not selected\",\"External filesystem editing\",\"Multi-user collaboration\"],\"omitted_registrations\":0,\"omitted_terms\":0,\"omitted_flow_descriptions\":0,\"disclosure\":\"Exact declared contracts and meanings; registration alone proves no installed examiner, executable workflow, source egress permission, command authority or completed inquiry. Omitted entries are unavailable to this turn.\"}",
-            "label": "Declared Project meaning",
-            "destination": "/projects/project_4GNM3G166Z7RCBSW5K6TXZ3XZ9/profile"
-          },
-          {
-            "key": "pre-creation-discussion",
-            "ref": {
-              "revision": 1,
-              "record_id": "intake_session_3GPA5AFC3NAA06XRHTWM5FDH34",
-              "record_hash": "sha256:16d5f0a320273248f90aa473e51209601377c614a04ad16722d164cceb5e6efd"
-            },
-            "kind": "pre_project_discussion",
-            "text": "{\"authority\":\"pre_project_advice_only\",\"creation_binding_hash\":\"sha256:128d5d5ff1f44c2f43fa2e8451fa5433246d8a6fedbead443c498680809fa5da\",\"retained_turn_count\":1,\"included_turn_count\":1,\"discussion\":[{\"run_id\":\"run_15XFFY7Q670C6KAV0PRV8KVM0W\",\"user_wording\":\"Synthetic A1 inspection: help me plan a neighborhood volunteer checklist for families, with a $500 budget and an indoor rain option. What consequential choices need clarification before I review a Project?\",\"advisory_answer\":{\"blocks\":[{\"kind\":\"question\",\"text\":\"Before proposing an outcome for your “neighborhood volunteer checklist for families,” these choices need clarification:\\n\\n1. Purpose: Is this a checklist for organizing a volunteer event, or for families choosing and doing volunteer tasks? What should it help them accomplish?\\n2. Audience: Who will use it—organizers, parents, or children? How many families and what age ranges should it accommodate?\\n3. Scope: What volunteer activities, neighborhood, date, and duration do you have in mind?\\n4. Budget: Is $500 an all-in cap? Must it cover supplies, food, venue, transport, or other costs? Are any donated resources already available?\\n5. Rain option: Should the same activity move indoors, or should there be a different indoor activity? Is a suitable space available, with sufficient capacity and accessibility?\\n6. Safety and responsibilities: What supervision, accessibility, allergy, safeguarding, venue-permission, or activity-specific constraints should the checklist address, and who will confirm them?\\n7. Inputs and output: Do you have activity details or venue rules to supply? Do you want a printable family checklist, an organizer checklist with assignments, a budget breakdown, or a combination?\",\"citations\":[]},{\"kind\":\"advice\",\"text\":\"Planning wording should distinguish confirmed arrangements from items someone still needs to check. Any proposed outcome would remain for human review—not an approved definition or a created Project.\",\"citations\":[]}],\"authority\":\"advisory_only\",\"focus_keys\":[],\"schema_name\":\"petra.copilot-output\",\"schema_version\":\"1.0.0\"},\"outcome\":\"completed\"}]}",
-            "label": "Original user wording and pre-creation advice",
-            "destination": "/projects/project_4GNM3G166Z7RCBSW5K6TXZ3XZ9/brief#copilot-intake-origin"
-          },
-          {
-            "key": "scene:30d12a7e4c914227",
-            "ref": {
-              "revision": 1,
-              "record_id": "graph_scene_3KH9X2CTHBCETMPBCHRY1MPRV6",
-              "record_hash": "sha256:df0cb0786bb1b661b706b313af0b1fa65ed5c6b419ec4464522500263f6138ff"
-            },
-            "kind": "project-examination-scene",
-            "text": "{\"scene_content_hash\":\"sha256:30d12a7e4c9142277cef5e9f045c09d7334fdeff258936078958d1d1c778d2b0\",\"graph_content_hash\":\"sha256:96d0674b7404a52ec8aed99fa803bad2b627cab0ea02586b2f2548df6e6c877f\",\"nodes\":[],\"relationships\":[],\"omitted_nodes\":0,\"omitted_relationships\":0,\"has_more_history\":false,\"limitations\":[\"This is a bounded derived scene of exact native material and retained examination lineage. Drawing a link creates no new relationship, verification, permission, or completed Work.\",\"Reference nodes may lie outside this history page or current working graph. Currentness is computed against the examined graph; earlier assessment content remains immutable.\",\"Only explicit criteria evidence and recorded obligation evidence form evidence links. Labels and layout provide navigation, never scientific support.\"],\"disclosure\":\"Exact identities and paths selected from the local scene. Native labels and any omitted nodes or paths are withheld; no support is inferred from layout.\"}",
-            "label": "Examination lineage semantic result",
-            "destination": "/projects/project_4GNM3G166Z7RCBSW5K6TXZ3XZ9/graph"
-          }
-        ],
-        "project_id": "project_4GNM3G166Z7RCBSW5K6TXZ3XZ9",
-        "limitations": [
-          "This role is advisory. Its answer creates no Project facts, permission, approval, assessment, closure, or completed Work.",
-          "Context contains a bounded selection of authorized current record summaries and working material. It is not an exhaustive evidence search or the complete bytes of a Source.",
-          "Managed model execution uses the registered remote provider; Project routing preferences and per-call price accounting are not available through this role.",
-          "Inquiry metadata is unavailable on this read; no resolved inquiry or missing inquiry is inferred.",
-          "Work context contains lifecycle metadata from a bounded page; 0 entries lie outside this page; more available: false. 14 conversational Work entries are excluded here because exact prior-turn input is separately bound by the conversation manifest. Work proposals and packet/output bytes require their own exact authorized read and are not silently substituted.",
-          "The original pre-creation discussion is untrusted user wording and advisory answers, not Project evidence, an approved definition or a domain examination. Its excerpt preserves whole turns and declares omissions.",
-          "Native working records are included as exact-schema excerpts. Their candidacy, stale definition basis, and lack of domain authority remain explicit. Only the first 40 working objects are selected.",
-          "The examined graph basis is sha256:96d0674b7404a52ec8aed99fa803bad2b627cab0ea02586b2f2548df6e6c877f. Only 0 retained examination records from one bounded history page are selected; more history: false. Human assessment, posture and disposition records retain their own authority. They do not establish Work success or permit the copilot to act.",
-          "No registered graph evidence selection is currently available for this Project."
-        ],
-        "schema_name": "petra.copilot-context",
-        "content_hash": "sha256:d7262b483d6f2aff6362cbfacd8583d3728a85fec99949e84364ecd7e46bc616",
-        "project_label": "Plan a neighborhood volunteer checklist for families, with a $500 budget and an indoor rain option.",
-        "schema_version": "1.0.0",
-        "definition_family": "petra.project-authored",
-        "objective_statement": "Plan a neighborhood volunteer checklist for families, with a $500 budget and an indoor rain option."
-      },
-      "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
-      "question": "Synthetic A1 model-route inspection: which of those missing inputs should I clarify first, and why?",
-      "thread_id": "thread_417PHGY55GKB1GRA9ZVV8W75SB",
-      "focus_keys": [],
-      "project_id": "project_4GNM3G166Z7RCBSW5K6TXZ3XZ9",
-      "started_at": "2026-10-11T01:45:20.228Z",
-      "instance_id": "copilot_instance_56C3BY959Z6QBHYG84DED27V3Q",
-      "schema_name": "petra.copilot-turn",
-      "request_hash": "sha256:8d52d163b90edfb7b0e2d3f510868b575ebef05e41a23ccc5fba1862c086ff24",
-      "parent_run_id": "run_58233FN1948677R43XAPDN5KMQ",
-      "schema_version": "1.0.0",
-      "terminal": {
-        "model": "gpt-6-astra",
-        "state": "completed",
-        "output": {
-          "blocks": [
-            {
-              "kind": "advice",
-              "text": "Clarify purpose and users first: organizers running an event, families doing volunteer tasks, or both—and the intended volunteer outcome. This determines checklist contents, responsibilities, and what makes it useful.",
-              "citations": []
-            },
-            {
-              "kind": "advice",
-              "text": "Next, settle activities, participant numbers and ages, and timing. Then consider indoor venue suitability, safety responsibilities, and what the $500 covers together, before committing to activities. Choose the final format afterward.\n\nThe supplied context does not settle these inputs; keep proposed arrangements separate from confirmed ones.",
-              "citations": []
-            },
-            {
-              "kind": "question",
-              "text": "Who should use the checklist, and what should their volunteering accomplish?",
-              "citations": []
-            }
-          ],
-          "authority": "advisory_only",
-          "focus_keys": [
-            "pre-creation-discussion"
-          ],
-          "schema_name": "petra.copilot-output",
-          "schema_version": "1.0.0"
-        },
-        "finished_at": "2026-10-11T01:45:27.480Z",
-        "provider_turn_id": "01a128a2-cd14-7312-85d4-95d264fb1092",
-        "provider_thread_id": "01a128a2-ccf2-7e53-8325-af2306416d40"
-      },
-      "input_manifest": {
-        "content": {
-          "run_id": "run_0VG3SQHJ636Y5VC1ZMPPEPDTAW",
+          "run_id": "run_55AP6VN8EC8A1K89Q6GV4GBRZ1",
           "history": [
             {
               "run_id": "run_4ZGFT7FXM154QR08T178KCE1N8",
@@ -631,63 +532,63 @@
             },
             {
               "run_id": "run_0C8J3EEPBRMB5PPRZJTD3K3PTM",
-              "disclosure": "included_current_basis",
+              "disclosure": "excluded_history_budget",
               "answer_hash": "sha256:b8c6d3b141472e9b984bdb18a9a61fa50d5fe2f06a9de12e2578b597a43efeff",
               "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
               "question_hash": "sha256:a6e643897278706b4395ebe0f8cb6867a0b84ac81319da447769437e2e19d9b4"
             },
             {
               "run_id": "run_5YK8JJ2D2VHR8ZTZSBKP6FCRB9",
-              "disclosure": "included_current_basis",
+              "disclosure": "excluded_history_budget",
               "answer_hash": "sha256:eaf5dbafcc516b98c60b0e4eb42f15395766859d3b65274ae5779ab2dfc50c93",
               "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
               "question_hash": "sha256:44c39eb6633bae27422dc22e252dbf5d8f4500f4343dd2a8de42ee5718e679b8"
             },
             {
               "run_id": "run_0RM85C025KY7FERTHCYWG5WXK4",
-              "disclosure": "included_current_basis",
+              "disclosure": "excluded_history_budget",
               "answer_hash": "sha256:ef89980f5050796870d9d225927785fa75ed20abb9d8dbaf705d307584a08247",
               "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
               "question_hash": "sha256:a6e643897278706b4395ebe0f8cb6867a0b84ac81319da447769437e2e19d9b4"
             },
             {
               "run_id": "run_68EGGCCHVWX7A88XB72YR5B0BZ",
-              "disclosure": "included_current_basis",
+              "disclosure": "excluded_history_budget",
               "answer_hash": "sha256:b0dda2ac9584783ffef2804318f0245349364d41e43f93f9d802cb6f264498d9",
               "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
               "question_hash": "sha256:44c39eb6633bae27422dc22e252dbf5d8f4500f4343dd2a8de42ee5718e679b8"
             },
             {
               "run_id": "run_3EM89XY1W98BRV2XBCAETC0M2Y",
-              "disclosure": "included_current_basis",
+              "disclosure": "excluded_history_budget",
               "answer_hash": "sha256:08860e7ec01b5a852678b5ed1a2ec043e49cbac61d2ba91dab5775c17999a936",
               "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
               "question_hash": "sha256:a6e643897278706b4395ebe0f8cb6867a0b84ac81319da447769437e2e19d9b4"
             },
             {
               "run_id": "run_4EV6WSAGT5QXF6A4ZFND52N4A1",
-              "disclosure": "included_current_basis",
+              "disclosure": "excluded_history_budget",
               "answer_hash": "sha256:0ee292ab136982620fe33f7295bf6ad5bf39e38ea295b1103e219d3f18ba9df7",
               "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
               "question_hash": "sha256:9ffeeefdf2f11df68de2391b2e5996d9ee2a804e7566cea47071f6638c1ae3bf"
             },
             {
               "run_id": "run_5N9WYQW7Y58APNYNEZY5R24BR5",
-              "disclosure": "included_current_basis",
+              "disclosure": "excluded_history_budget",
               "answer_hash": "sha256:a708e277cea754be602ea0536476ea6e3164147187012c147c813ce2ae3b9ba4",
               "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
               "question_hash": "sha256:24075f3385ece63502c3453bb98c275163c8d1f04cc117ce5b1c1e5522e9475b"
             },
             {
               "run_id": "run_0Y7C46CXSXHG4Z7KHBVZRW356W",
-              "disclosure": "included_current_basis",
+              "disclosure": "excluded_history_budget",
               "answer_hash": "sha256:b81bae725708647cdc80378bc09f3f82083640f93e93e4dd1a2dbaf778b80c13",
               "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
               "question_hash": "sha256:70344c30255ea78b64eb4cc3b5ea77e07168558a4e6a879780fba1165faef850"
             },
             {
               "run_id": "run_2KBDEN526RH4WV9YY832Y1P6CY",
-              "disclosure": "included_current_basis",
+              "disclosure": "excluded_history_budget",
               "answer_hash": "sha256:a1623ce53deffecd1d6a4418f50267a4504ce970bf412d4e64759df2b9fd9177",
               "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
               "question_hash": "sha256:9ffeeefdf2f11df68de2391b2e5996d9ee2a804e7566cea47071f6638c1ae3bf"
@@ -708,9 +609,388 @@
             },
             {
               "run_id": "run_58233FN1948677R43XAPDN5KMQ",
-              "disclosure": "included_current_basis",
-              "answer_hash": "sha256:b79eb0139eb2a57de84afc4e12bc0039f7324bbbda8b07b162f33c54fbc13146",
+              "disclosure": "withheld_changed_basis",
+              "answer_hash": "sha256:50021c55b62d94c0a5035069f1a030827766b34ece05d67430a6ff6a1faa4f22",
               "context_hash": "sha256:b53d76797e07b7f75fbfe4b80297d10780e3d15862b153bb39ff2e53f33dc79c",
+              "question_hash": "sha256:a43a235ebc4136fe5dc346cef8a84ec94ad5fd04fcf77b3a474f02a7130fccfa"
+            },
+            {
+              "run_id": "run_0VG3SQHJ636Y5VC1ZMPPEPDTAW",
+              "disclosure": "withheld_changed_basis",
+              "answer_hash": "sha256:50021c55b62d94c0a5035069f1a030827766b34ece05d67430a6ff6a1faa4f22",
+              "context_hash": "sha256:d7262b483d6f2aff6362cbfacd8583d3728a85fec99949e84364ecd7e46bc616",
+              "question_hash": "sha256:a43a235ebc4136fe5dc346cef8a84ec94ad5fd04fcf77b3a474f02a7130fccfa"
+            },
+            {
+              "run_id": "run_1C0E6Q8JV79RAKRMT8V53FA6JJ",
+              "disclosure": "withheld_changed_basis",
+              "answer_hash": "sha256:50021c55b62d94c0a5035069f1a030827766b34ece05d67430a6ff6a1faa4f22",
+              "context_hash": "sha256:16d03dac7a881b55640134a125b6369b54d25cc895bf45a5b7e77527a1831604",
+              "question_hash": "sha256:a43a235ebc4136fe5dc346cef8a84ec94ad5fd04fcf77b3a474f02a7130fccfa"
+            },
+            {
+              "run_id": "run_10YDRANSG0T7B7GFS6ZXAX6CCM",
+              "disclosure": "withheld_changed_basis",
+              "answer_hash": "sha256:50021c55b62d94c0a5035069f1a030827766b34ece05d67430a6ff6a1faa4f22",
+              "context_hash": "sha256:8e41860b1d4a32b9f4e450fad59d7312f0f1421b08b557549c3991aadd1694a9",
+              "question_hash": "sha256:a43a235ebc4136fe5dc346cef8a84ec94ad5fd04fcf77b3a474f02a7130fccfa"
+            },
+            {
+              "run_id": "run_7XC027P29BYG5YDH37X2RRYA0A",
+              "disclosure": "withheld_changed_basis",
+              "answer_hash": "sha256:50021c55b62d94c0a5035069f1a030827766b34ece05d67430a6ff6a1faa4f22",
+              "context_hash": "sha256:53c58d4239f7cf0fd72ca77801885d2a2102b71e054776d378ff690d41fbf051",
+              "question_hash": "sha256:a43a235ebc4136fe5dc346cef8a84ec94ad5fd04fcf77b3a474f02a7130fccfa"
+            },
+            {
+              "run_id": "run_675T9J0HYFXB893YETKK9MM8DD",
+              "disclosure": "withheld_changed_basis",
+              "answer_hash": "sha256:50021c55b62d94c0a5035069f1a030827766b34ece05d67430a6ff6a1faa4f22",
+              "context_hash": "sha256:dddc688082ac5bd427ee8b9c6c47945c5c84b5409aa4dcadff0f2ca8566fa344",
+              "question_hash": "sha256:a43a235ebc4136fe5dc346cef8a84ec94ad5fd04fcf77b3a474f02a7130fccfa"
+            },
+            {
+              "run_id": "run_5TY3QKTGT6WDJG92JAQW9F004B",
+              "disclosure": "withheld_changed_basis",
+              "answer_hash": "sha256:50021c55b62d94c0a5035069f1a030827766b34ece05d67430a6ff6a1faa4f22",
+              "context_hash": "sha256:01cd4952db6a92c79d874dabd6aaaf5696d044051004a03ea4d4b16867290920",
+              "question_hash": "sha256:a43a235ebc4136fe5dc346cef8a84ec94ad5fd04fcf77b3a474f02a7130fccfa"
+            },
+            {
+              "run_id": "run_1YX7CSXCNNQTA24HEWYA32R1H8",
+              "disclosure": "included_current_basis",
+              "answer_hash": "sha256:31a62fc842f611d600456fd8b680364fe135606f44d89f9e4bf06eff922ade7c",
+              "context_hash": "sha256:2eb7da3fd10ba2627d7202dee35e43794f8f7d559f5e81a6e6bf3dbd87579f14",
+              "question_hash": "sha256:9ffeeefdf2f11df68de2391b2e5996d9ee2a804e7566cea47071f6638c1ae3bf"
+            },
+            {
+              "run_id": "run_3G5V83Z9RC5N885JHHTNP49GAX",
+              "disclosure": "included_current_basis",
+              "answer_hash": "sha256:74e3409f891ac182ccbfe7e6f245f917a657889cec3bf73ec9e0ee185f6758ec",
+              "context_hash": "sha256:274fcb2e80ce0c98fdcd0e720c3e2daa92c5f5f27a52a5e43dcd07c705d74d40",
+              "question_hash": "sha256:24075f3385ece63502c3453bb98c275163c8d1f04cc117ce5b1c1e5522e9475b"
+            },
+            {
+              "run_id": "run_6WFGRMDD9W61DM4DN1NE08EY6S",
+              "disclosure": "included_current_basis",
+              "answer_hash": "sha256:b77c310b24b313d1a700248b9fffd59494defd33000a021561be48fd84354008",
+              "context_hash": "sha256:098ebdffd077af6e14bb31dcaa452f2d528aa574be082651a7d8ac5cfdf3ec09",
+              "question_hash": "sha256:70344c30255ea78b64eb4cc3b5ea77e07168558a4e6a879780fba1165faef850"
+            }
+          ],
+          "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+          "authority": "advisory_input_only",
+          "thread_id": "thread_417PHGY55GKB1GRA9ZVV8W75SB",
+          "project_id": "project_4GNM3G166Z7RCBSW5K6TXZ3XZ9",
+          "input_bytes": 19604,
+          "prepared_at": "2026-10-11T03:52:01.239Z",
+          "context_hash": "sha256:c03b96e81b1d567de72d9e04e7d9100f2fa96e722456a386fadfcce338fba50f",
+          "profile_hash": "sha256:39706626f815827e098a83c9a842900f73c9fe58c38f03688cfd48a08c51e00d",
+          "history_bytes": 10218,
+          "input_payload_hash": "sha256:9ab575398feb2b1385c89c4111adb1640a5a53c61ea318315a39d152823ac1c3",
+          "context_record_keys": [
+            "project-definition",
+            "pre-creation-discussion",
+            "scene:30d12a7e4c914227"
+          ],
+          "history_query_limit": 200,
+          "excluded_history_count": 11,
+          "retained_history_count": 23,
+          "history_query_may_have_omissions": false
+        },
+        "schema_name": "petra.copilot-input-manifest",
+        "content_hash": "sha256:483a0d1e467380a8653151c3b4f492234e446bcdcce9dca5caa682813773a2f5",
+        "schema_version": "1.0.0"
+      }
+    },
+    {
+      "run_id": "run_1CR2PH60PT0E4S1PEPQJRN3EGR",
+      "context": {
+        "basis": {
+          "objective": {
+            "revision": 1,
+            "record_id": "objective_0YK8W4VBK9GWDB1NTQ37WBNVSF",
+            "content_hash": "sha256:8cb3ce4a8387caef06631f09854284fcde878e57b1f2828ca08d5b88e1011fc2"
+          },
+          "definition": {
+            "revision": 1,
+            "record_id": "project_definition_1YVF468MMHV3NMMRZ6W26Z5AXT",
+            "content_hash": "sha256:81f8cda949a62f2ff9dc453bd0b53a82cf12a8599ad17003ff43a2271cca6bcb"
+          },
+          "event_position": 15,
+          "stream_revision": 0,
+          "project_revision": 1
+        },
+        "records": [
+          {
+            "key": "project-definition",
+            "ref": {
+              "revision": 1,
+              "record_id": "project_definition_1YVF468MMHV3NMMRZ6W26Z5AXT",
+              "record_hash": "sha256:dc59e90c4642a8a8ec98a5f8d0f5e104a7bef564d524c459ff914f34620ddb65"
+            },
+            "kind": "project-definition-context",
+            "text": "{\"authority\":\"definition_semantics_only\",\"definition_ref\":{\"project_definition_id\":\"project_definition_1YVF468MMHV3NMMRZ6W26Z5AXT\",\"revision\":1,\"content_hash\":\"sha256:81f8cda949a62f2ff9dc453bd0b53a82cf12a8599ad17003ff43a2271cca6bcb\",\"definition_family\":\"petra.project-authored\"},\"registrations\":[{\"contract\":{\"name\":\"petra.project-objective\",\"version\":\"1.0.0\",\"content_hash\":\"sha256:fc8a37e66cfd29feb5613f744497b3b82f6623372a2a19dda9ff0ada02fab792\"},\"semantic_key\":\"project.outcome\",\"registration_kind\":\"objective_schema\"},{\"contract\":{\"name\":\"petra.rights-decision\",\"version\":\"1.0.0\",\"content_hash\":\"sha256:460d2ca3f9d3b9fff92f2b4280cf223c37ba3781b416b3a8c414b4ca44d93e94\"},\"semantic_key\":\"project.reference\",\"registration_kind\":\"source_role\"}],\"terms\":[{\"plural\":\"Outcomes\",\"singular\":\"Outcome\",\"definition\":\"The exact result this Project is trying to produce.\",\"semantic_key\":\"project.outcome\",\"generic_family\":\"focus\"},{\"plural\":\"Results\",\"singular\":\"Result\",\"definition\":\"A durable Project object produced while pursuing the outcome.\",\"semantic_key\":\"project.result\",\"generic_family\":\"finding\"},{\"plural\":\"References\",\"singular\":\"Reference\",\"definition\":\"A retained source or other exact basis available to the Project.\",\"semantic_key\":\"project.reference\",\"generic_family\":\"reference\"},{\"plural\":\"Relationships\",\"singular\":\"Relationship\",\"definition\":\"An explicit graph connection between Project objects.\",\"semantic_key\":\"project.relationship\",\"generic_family\":\"relationship\"}],\"supported_places\":[\"brief\",\"sources\",\"review\",\"graph\",\"work\",\"petra\",\"composition\",\"history\",\"settings\"],\"omitted_flows\":[\"Domain-specific automation not selected\",\"External filesystem editing\",\"Multi-user collaboration\"],\"omitted_registrations\":0,\"omitted_terms\":0,\"omitted_flow_descriptions\":0,\"disclosure\":\"Exact declared contracts and meanings; registration alone proves no installed examiner, executable workflow, source egress permission, command authority or completed inquiry. Omitted entries are unavailable to this turn.\"}",
+            "label": "Declared Project meaning",
+            "destination": "/projects/project_4GNM3G166Z7RCBSW5K6TXZ3XZ9/profile"
+          },
+          {
+            "key": "pre-creation-discussion",
+            "ref": {
+              "revision": 1,
+              "record_id": "intake_session_3GPA5AFC3NAA06XRHTWM5FDH34",
+              "record_hash": "sha256:16d5f0a320273248f90aa473e51209601377c614a04ad16722d164cceb5e6efd"
+            },
+            "kind": "pre_project_discussion",
+            "text": "{\"authority\":\"pre_project_advice_only\",\"creation_binding_hash\":\"sha256:128d5d5ff1f44c2f43fa2e8451fa5433246d8a6fedbead443c498680809fa5da\",\"retained_turn_count\":1,\"included_turn_count\":1,\"discussion\":[{\"run_id\":\"run_15XFFY7Q670C6KAV0PRV8KVM0W\",\"user_wording\":\"Synthetic A1 inspection: help me plan a neighborhood volunteer checklist for families, with a $500 budget and an indoor rain option. What consequential choices need clarification before I review a Project?\",\"advisory_answer\":{\"blocks\":[{\"kind\":\"question\",\"text\":\"Before proposing an outcome for your “neighborhood volunteer checklist for families,” these choices need clarification:\\n\\n1. Purpose: Is this a checklist for organizing a volunteer event, or for families choosing and doing volunteer tasks? What should it help them accomplish?\\n2. Audience: Who will use it—organizers, parents, or children? How many families and what age ranges should it accommodate?\\n3. Scope: What volunteer activities, neighborhood, date, and duration do you have in mind?\\n4. Budget: Is $500 an all-in cap? Must it cover supplies, food, venue, transport, or other costs? Are any donated resources already available?\\n5. Rain option: Should the same activity move indoors, or should there be a different indoor activity? Is a suitable space available, with sufficient capacity and accessibility?\\n6. Safety and responsibilities: What supervision, accessibility, allergy, safeguarding, venue-permission, or activity-specific constraints should the checklist address, and who will confirm them?\\n7. Inputs and output: Do you have activity details or venue rules to supply? Do you want a printable family checklist, an organizer checklist with assignments, a budget breakdown, or a combination?\",\"citations\":[]},{\"kind\":\"advice\",\"text\":\"Planning wording should distinguish confirmed arrangements from items someone still needs to check. Any proposed outcome would remain for human review—not an approved definition or a created Project.\",\"citations\":[]}],\"authority\":\"advisory_only\",\"focus_keys\":[],\"schema_name\":\"petra.copilot-output\",\"schema_version\":\"1.0.0\"},\"outcome\":\"completed\"}]}",
+            "label": "Original user wording and pre-creation advice",
+            "destination": "/projects/project_4GNM3G166Z7RCBSW5K6TXZ3XZ9/brief#copilot-intake-origin"
+          },
+          {
+            "key": "scene:30d12a7e4c914227",
+            "ref": {
+              "revision": 1,
+              "record_id": "graph_scene_3KH9X2CTHBCETMPBCHRY1MPRV6",
+              "record_hash": "sha256:df0cb0786bb1b661b706b313af0b1fa65ed5c6b419ec4464522500263f6138ff"
+            },
+            "kind": "project-examination-scene",
+            "text": "{\"scene_content_hash\":\"sha256:30d12a7e4c9142277cef5e9f045c09d7334fdeff258936078958d1d1c778d2b0\",\"graph_content_hash\":\"sha256:96d0674b7404a52ec8aed99fa803bad2b627cab0ea02586b2f2548df6e6c877f\",\"nodes\":[],\"relationships\":[],\"omitted_nodes\":0,\"omitted_relationships\":0,\"has_more_history\":false,\"limitations\":[\"This is a bounded derived scene of exact native material and retained examination lineage. Drawing a link creates no new relationship, verification, permission, or completed Work.\",\"Reference nodes may lie outside this history page or current working graph. Currentness is computed against the examined graph; earlier assessment content remains immutable.\",\"Only explicit criteria evidence and recorded obligation evidence form evidence links. Labels and layout provide navigation, never scientific support.\"],\"disclosure\":\"Exact identities and paths selected from the local scene. Native labels and any omitted nodes or paths are withheld; no support is inferred from layout.\"}",
+            "label": "Examination lineage semantic result",
+            "destination": "/projects/project_4GNM3G166Z7RCBSW5K6TXZ3XZ9/graph"
+          }
+        ],
+        "project_id": "project_4GNM3G166Z7RCBSW5K6TXZ3XZ9",
+        "limitations": [
+          "This role is advisory. Its answer creates no Project facts, permission, approval, assessment, closure, or completed Work.",
+          "Context contains a bounded selection of authorized current record summaries and working material. It is not an exhaustive evidence search or the complete bytes of a Source.",
+          "Managed model execution uses the registered remote provider; Project routing preferences and per-call price accounting are not available through this role.",
+          "Inquiry metadata is unavailable on this read; no resolved inquiry or missing inquiry is inferred.",
+          "Work context contains lifecycle metadata from a bounded page; 4 entries lie outside this page; more available: true. 20 conversational Work entries are excluded here because exact prior-turn input is separately bound by the conversation manifest. Work proposals and packet/output bytes require their own exact authorized read and are not silently substituted.",
+          "The original pre-creation discussion is untrusted user wording and advisory answers, not Project evidence, an approved definition or a domain examination. Its excerpt preserves whole turns and declares omissions.",
+          "Native working records are included as exact-schema excerpts. Their candidacy, stale definition basis, and lack of domain authority remain explicit. Only the first 40 working objects are selected.",
+          "The examined graph basis is sha256:96d0674b7404a52ec8aed99fa803bad2b627cab0ea02586b2f2548df6e6c877f. Only 0 retained examination records from one bounded history page are selected; more history: false. Human assessment, posture and disposition records retain their own authority. They do not establish Work success or permit the copilot to act.",
+          "No registered graph evidence selection is currently available for this Project."
+        ],
+        "schema_name": "petra.copilot-context",
+        "content_hash": "sha256:8f9657622eb5e9dceb984d5f6755f692d3bbd94b8d7b3d199df76a8b64dd28b2",
+        "project_label": "Plan a neighborhood volunteer checklist for families, with a $500 budget and an indoor rain option.",
+        "schema_version": "1.0.0",
+        "definition_family": "petra.project-authored",
+        "objective_statement": "Plan a neighborhood volunteer checklist for families, with a $500 budget and an indoor rain option."
+      },
+      "actor_id": "actor_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+      "question": "Synthetic A1 model-route inspection: which of those missing inputs should I clarify first, and why?",
+      "thread_id": "thread_417PHGY55GKB1GRA9ZVV8W75SB",
+      "focus_keys": [],
+      "project_id": "project_4GNM3G166Z7RCBSW5K6TXZ3XZ9",
+      "started_at": "2026-10-11T03:52:10.471Z",
+      "instance_id": "copilot_instance_3DXGERNRWQS60ZR0MRZFYG7X87",
+      "schema_name": "petra.copilot-turn",
+      "request_hash": "sha256:09a8551e061fdac15180371c761840aeefc6cead68dc5258ad34772153e67d28",
+      "parent_run_id": "run_55AP6VN8EC8A1K89Q6GV4GBRZ1",
+      "schema_version": "1.0.0",
+      "terminal": {
+        "model": "gpt-6-astra",
+        "state": "completed",
+        "output": {
+          "blocks": [
+            {
+              "kind": "advice",
+              "text": "Clarify users and purpose first: who will use the checklist, and what should their volunteering accomplish? These choices guide which tasks belong, who owns them, and what makes the checklist useful.",
+              "citations": []
+            },
+            {
+              "kind": "advice",
+              "text": "Next, clarify activities, participant numbers and ages, and timing. Then consider supervision and safety, indoor venue suitability, and what the $500 covers together—these constraints may change the activity. The supplied context does not settle these details; leave final formatting until later.",
+              "citations": []
+            },
+            {
+              "kind": "question",
+              "text": "Should the checklist serve organizers, participating families, or both—and what volunteer activity or benefit do you have in mind?",
+              "citations": []
+            }
+          ],
+          "authority": "advisory_only",
+          "focus_keys": [
+            "pre-creation-discussion"
+          ],
+          "schema_name": "petra.copilot-output",
+          "schema_version": "1.0.0"
+        },
+        "finished_at": "2026-10-11T03:52:18.395Z",
+        "provider_turn_id": "01a12916-ecb6-7a80-bce3-8e4a6d4912ce",
+        "provider_thread_id": "01a12916-ec97-7081-88c1-324ecf910390"
+      },
+      "input_manifest": {
+        "content": {
+          "run_id": "run_1CR2PH60PT0E4S1PEPQJRN3EGR",
+          "history": [
+            {
+              "run_id": "run_4ZGFT7FXM154QR08T178KCE1N8",
+              "disclosure": "excluded_history_budget",
+              "answer_hash": "sha256:1211da2b1bfc52d0a9e183621530b54b8b1c51067ebb5c9d165e4cbbbf90ebbb",
+              "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+              "question_hash": "sha256:19783897bc75b83c3941e3f31b91345acd636042c0e6ad68d26ad182e416b562"
+            },
+            {
+              "run_id": "run_7BQ9E34CHVRVKRRN52R67AREDD",
+              "disclosure": "excluded_history_budget",
+              "answer_hash": "sha256:e15b5b864e941018c214d3ea55f72855567b1a1ac26f2fa13606007969ab442a",
+              "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+              "question_hash": "sha256:44c39eb6633bae27422dc22e252dbf5d8f4500f4343dd2a8de42ee5718e679b8"
+            },
+            {
+              "run_id": "run_0C8J3EEPBRMB5PPRZJTD3K3PTM",
+              "disclosure": "excluded_history_budget",
+              "answer_hash": "sha256:b8c6d3b141472e9b984bdb18a9a61fa50d5fe2f06a9de12e2578b597a43efeff",
+              "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+              "question_hash": "sha256:a6e643897278706b4395ebe0f8cb6867a0b84ac81319da447769437e2e19d9b4"
+            },
+            {
+              "run_id": "run_5YK8JJ2D2VHR8ZTZSBKP6FCRB9",
+              "disclosure": "excluded_history_budget",
+              "answer_hash": "sha256:eaf5dbafcc516b98c60b0e4eb42f15395766859d3b65274ae5779ab2dfc50c93",
+              "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+              "question_hash": "sha256:44c39eb6633bae27422dc22e252dbf5d8f4500f4343dd2a8de42ee5718e679b8"
+            },
+            {
+              "run_id": "run_0RM85C025KY7FERTHCYWG5WXK4",
+              "disclosure": "excluded_history_budget",
+              "answer_hash": "sha256:ef89980f5050796870d9d225927785fa75ed20abb9d8dbaf705d307584a08247",
+              "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+              "question_hash": "sha256:a6e643897278706b4395ebe0f8cb6867a0b84ac81319da447769437e2e19d9b4"
+            },
+            {
+              "run_id": "run_68EGGCCHVWX7A88XB72YR5B0BZ",
+              "disclosure": "excluded_history_budget",
+              "answer_hash": "sha256:b0dda2ac9584783ffef2804318f0245349364d41e43f93f9d802cb6f264498d9",
+              "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+              "question_hash": "sha256:44c39eb6633bae27422dc22e252dbf5d8f4500f4343dd2a8de42ee5718e679b8"
+            },
+            {
+              "run_id": "run_3EM89XY1W98BRV2XBCAETC0M2Y",
+              "disclosure": "excluded_history_budget",
+              "answer_hash": "sha256:08860e7ec01b5a852678b5ed1a2ec043e49cbac61d2ba91dab5775c17999a936",
+              "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+              "question_hash": "sha256:a6e643897278706b4395ebe0f8cb6867a0b84ac81319da447769437e2e19d9b4"
+            },
+            {
+              "run_id": "run_4EV6WSAGT5QXF6A4ZFND52N4A1",
+              "disclosure": "excluded_history_budget",
+              "answer_hash": "sha256:0ee292ab136982620fe33f7295bf6ad5bf39e38ea295b1103e219d3f18ba9df7",
+              "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+              "question_hash": "sha256:9ffeeefdf2f11df68de2391b2e5996d9ee2a804e7566cea47071f6638c1ae3bf"
+            },
+            {
+              "run_id": "run_5N9WYQW7Y58APNYNEZY5R24BR5",
+              "disclosure": "excluded_history_budget",
+              "answer_hash": "sha256:a708e277cea754be602ea0536476ea6e3164147187012c147c813ce2ae3b9ba4",
+              "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+              "question_hash": "sha256:24075f3385ece63502c3453bb98c275163c8d1f04cc117ce5b1c1e5522e9475b"
+            },
+            {
+              "run_id": "run_0Y7C46CXSXHG4Z7KHBVZRW356W",
+              "disclosure": "excluded_history_budget",
+              "answer_hash": "sha256:b81bae725708647cdc80378bc09f3f82083640f93e93e4dd1a2dbaf778b80c13",
+              "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+              "question_hash": "sha256:70344c30255ea78b64eb4cc3b5ea77e07168558a4e6a879780fba1165faef850"
+            },
+            {
+              "run_id": "run_2KBDEN526RH4WV9YY832Y1P6CY",
+              "disclosure": "excluded_history_budget",
+              "answer_hash": "sha256:a1623ce53deffecd1d6a4418f50267a4504ce970bf412d4e64759df2b9fd9177",
+              "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+              "question_hash": "sha256:9ffeeefdf2f11df68de2391b2e5996d9ee2a804e7566cea47071f6638c1ae3bf"
+            },
+            {
+              "run_id": "run_3JPQ9JT2RSP3Q7S4EG1VS7PA4A",
+              "disclosure": "excluded_history_budget",
+              "answer_hash": "sha256:6836a72455cceb8b261373e41c95cc1bf888f2b52311b7e1b7c086fc0785ea0d",
+              "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+              "question_hash": "sha256:24075f3385ece63502c3453bb98c275163c8d1f04cc117ce5b1c1e5522e9475b"
+            },
+            {
+              "run_id": "run_1Y3Z8ZQR31MP1GX66FW6AVF6T1",
+              "disclosure": "included_current_basis",
+              "answer_hash": "sha256:f0aa16c646083568304379cd7197b5d809f1bc957a512a5b768a390bf7eb673c",
+              "context_hash": "sha256:124ccca8cbd3edaad84239271c1492bf65122bd19c4bd4936858164fdc7f00ed",
+              "question_hash": "sha256:70344c30255ea78b64eb4cc3b5ea77e07168558a4e6a879780fba1165faef850"
+            },
+            {
+              "run_id": "run_58233FN1948677R43XAPDN5KMQ",
+              "disclosure": "withheld_changed_basis",
+              "answer_hash": "sha256:50021c55b62d94c0a5035069f1a030827766b34ece05d67430a6ff6a1faa4f22",
+              "context_hash": "sha256:b53d76797e07b7f75fbfe4b80297d10780e3d15862b153bb39ff2e53f33dc79c",
+              "question_hash": "sha256:a43a235ebc4136fe5dc346cef8a84ec94ad5fd04fcf77b3a474f02a7130fccfa"
+            },
+            {
+              "run_id": "run_0VG3SQHJ636Y5VC1ZMPPEPDTAW",
+              "disclosure": "withheld_changed_basis",
+              "answer_hash": "sha256:50021c55b62d94c0a5035069f1a030827766b34ece05d67430a6ff6a1faa4f22",
+              "context_hash": "sha256:d7262b483d6f2aff6362cbfacd8583d3728a85fec99949e84364ecd7e46bc616",
+              "question_hash": "sha256:a43a235ebc4136fe5dc346cef8a84ec94ad5fd04fcf77b3a474f02a7130fccfa"
+            },
+            {
+              "run_id": "run_1C0E6Q8JV79RAKRMT8V53FA6JJ",
+              "disclosure": "withheld_changed_basis",
+              "answer_hash": "sha256:50021c55b62d94c0a5035069f1a030827766b34ece05d67430a6ff6a1faa4f22",
+              "context_hash": "sha256:16d03dac7a881b55640134a125b6369b54d25cc895bf45a5b7e77527a1831604",
+              "question_hash": "sha256:a43a235ebc4136fe5dc346cef8a84ec94ad5fd04fcf77b3a474f02a7130fccfa"
+            },
+            {
+              "run_id": "run_10YDRANSG0T7B7GFS6ZXAX6CCM",
+              "disclosure": "withheld_changed_basis",
+              "answer_hash": "sha256:50021c55b62d94c0a5035069f1a030827766b34ece05d67430a6ff6a1faa4f22",
+              "context_hash": "sha256:8e41860b1d4a32b9f4e450fad59d7312f0f1421b08b557549c3991aadd1694a9",
+              "question_hash": "sha256:a43a235ebc4136fe5dc346cef8a84ec94ad5fd04fcf77b3a474f02a7130fccfa"
+            },
+            {
+              "run_id": "run_7XC027P29BYG5YDH37X2RRYA0A",
+              "disclosure": "withheld_changed_basis",
+              "answer_hash": "sha256:50021c55b62d94c0a5035069f1a030827766b34ece05d67430a6ff6a1faa4f22",
+              "context_hash": "sha256:53c58d4239f7cf0fd72ca77801885d2a2102b71e054776d378ff690d41fbf051",
+              "question_hash": "sha256:a43a235ebc4136fe5dc346cef8a84ec94ad5fd04fcf77b3a474f02a7130fccfa"
+            },
+            {
+              "run_id": "run_675T9J0HYFXB893YETKK9MM8DD",
+              "disclosure": "withheld_changed_basis",
+              "answer_hash": "sha256:50021c55b62d94c0a5035069f1a030827766b34ece05d67430a6ff6a1faa4f22",
+              "context_hash": "sha256:dddc688082ac5bd427ee8b9c6c47945c5c84b5409aa4dcadff0f2ca8566fa344",
+              "question_hash": "sha256:a43a235ebc4136fe5dc346cef8a84ec94ad5fd04fcf77b3a474f02a7130fccfa"
+            },
+            {
+              "run_id": "run_5TY3QKTGT6WDJG92JAQW9F004B",
+              "disclosure": "withheld_changed_basis",
+              "answer_hash": "sha256:50021c55b62d94c0a5035069f1a030827766b34ece05d67430a6ff6a1faa4f22",
+              "context_hash": "sha256:01cd4952db6a92c79d874dabd6aaaf5696d044051004a03ea4d4b16867290920",
+              "question_hash": "sha256:a43a235ebc4136fe5dc346cef8a84ec94ad5fd04fcf77b3a474f02a7130fccfa"
+            },
+            {
+              "run_id": "run_1YX7CSXCNNQTA24HEWYA32R1H8",
+              "disclosure": "included_current_basis",
+              "answer_hash": "sha256:31a62fc842f611d600456fd8b680364fe135606f44d89f9e4bf06eff922ade7c",
+              "context_hash": "sha256:2eb7da3fd10ba2627d7202dee35e43794f8f7d559f5e81a6e6bf3dbd87579f14",
+              "question_hash": "sha256:9ffeeefdf2f11df68de2391b2e5996d9ee2a804e7566cea47071f6638c1ae3bf"
+            },
+            {
+              "run_id": "run_3G5V83Z9RC5N885JHHTNP49GAX",
+              "disclosure": "included_current_basis",
+              "answer_hash": "sha256:74e3409f891ac182ccbfe7e6f245f917a657889cec3bf73ec9e0ee185f6758ec",
+              "context_hash": "sha256:274fcb2e80ce0c98fdcd0e720c3e2daa92c5f5f27a52a5e43dcd07c705d74d40",
+              "question_hash": "sha256:24075f3385ece63502c3453bb98c275163c8d1f04cc117ce5b1c1e5522e9475b"
+            },
+            {
+              "run_id": "run_6WFGRMDD9W61DM4DN1NE08EY6S",
+              "disclosure": "included_current_basis",
+              "answer_hash": "sha256:b77c310b24b313d1a700248b9fffd59494defd33000a021561be48fd84354008",
+              "context_hash": "sha256:098ebdffd077af6e14bb31dcaa452f2d528aa574be082651a7d8ac5cfdf3ec09",
+              "question_hash": "sha256:70344c30255ea78b64eb4cc3b5ea77e07168558a4e6a879780fba1165faef850"
+            },
+            {
+              "run_id": "run_55AP6VN8EC8A1K89Q6GV4GBRZ1",
+              "disclosure": "included_current_basis",
+              "answer_hash": "sha256:2bd2e7d6e69758bb29e3d606ee84b23eba016be9c93bf79159dd1233fb95012f",
+              "context_hash": "sha256:c03b96e81b1d567de72d9e04e7d9100f2fa96e722456a386fadfcce338fba50f",
               "question_hash": "sha256:44c39eb6633bae27422dc22e252dbf5d8f4500f4343dd2a8de42ee5718e679b8"
             }
           ],
@@ -718,24 +998,24 @@
           "authority": "advisory_input_only",
           "thread_id": "thread_417PHGY55GKB1GRA9ZVV8W75SB",
           "project_id": "project_4GNM3G166Z7RCBSW5K6TXZ3XZ9",
-          "input_bytes": 26458,
-          "prepared_at": "2026-10-11T01:45:20.357Z",
-          "context_hash": "sha256:d7262b483d6f2aff6362cbfacd8583d3728a85fec99949e84364ecd7e46bc616",
+          "input_bytes": 19855,
+          "prepared_at": "2026-10-11T03:52:10.635Z",
+          "context_hash": "sha256:8f9657622eb5e9dceb984d5f6755f692d3bbd94b8d7b3d199df76a8b64dd28b2",
           "profile_hash": "sha256:39706626f815827e098a83c9a842900f73c9fe58c38f03688cfd48a08c51e00d",
-          "history_bytes": 15879,
-          "input_payload_hash": "sha256:d224748aa45c37dc013117537313cade5805580e47866e20004563ef7425d9e7",
+          "history_bytes": 10484,
+          "input_payload_hash": "sha256:df22b3d0e8ad0dd83f5313b01ae24e286020eee684cf3a21f71dec47f29305c6",
           "context_record_keys": [
             "project-definition",
             "pre-creation-discussion",
             "scene:30d12a7e4c914227"
           ],
           "history_query_limit": 200,
-          "excluded_history_count": 2,
-          "retained_history_count": 14,
+          "excluded_history_count": 12,
+          "retained_history_count": 24,
           "history_query_may_have_omissions": false
         },
         "schema_name": "petra.copilot-input-manifest",
-        "content_hash": "sha256:09552b19d7d105ffc38c81edaa0b083158b594147df6b2b010e75799c63d4743",
+        "content_hash": "sha256:05be356615cb78f8c094dcf59c0752b515521f14af02a595297c881dd52e2f85",
         "schema_version": "1.0.0"
       }
     }
@@ -743,7 +1023,7 @@
   "browser_errors": [],
   "working_role_readiness": {
     "project_id": "project_4GNM3G166Z7RCBSW5K6TXZ3XZ9",
-    "context_hash": "sha256:b53d76797e07b7f75fbfe4b80297d10780e3d15862b153bb39ff2e53f33dc79c",
+    "context_hash": "sha256:c03b96e81b1d567de72d9e04e7d9100f2fa96e722456a386fadfcce338fba50f",
     "role": "petra.copilot-working-plan@1.0.0",
     "output_contract": "petra.copilot-working-plan@1.0.0",
     "authority": "proposed_only",

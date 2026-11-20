@@ -11,6 +11,7 @@ import type {
 import {
   CopilotCommandBridge,
   copilotCommandPreview,
+  copilotCommandActivity,
   copilotHash,
   derivePetraId,
   type CopilotTurn,
@@ -301,6 +302,16 @@ const ownerTest = (name: string, activity: () => Promise<void>) =>
             proposal.proposal_id,
           ),
         ).toEqual(proposal);
+        const attached = await restarted.listActivities(
+          project.project_id,
+          actor.actor_id,
+          origin.run_id,
+        );
+        expect(attached).toEqual([proposal]);
+        const activity = copilotCommandActivity(attached[0]!);
+        expect(activity.origin).toEqual(original);
+        expect(activity.output).toEqual(proposal.output);
+        expect(activity).not.toHaveProperty("input");
         expect(
           await restarted.readOrigin(
             project.project_id,

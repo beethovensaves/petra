@@ -1,0 +1,153 @@
+{
+  "schema_name": "petra.a1-roadmap-review-pass",
+  "schema_version": "1.0.0",
+  "status": "passed_for_user_review",
+  "recorded_at": "2026-10-11T04:59:55.171825+00:00",
+  "scope_binding": "sha256:3438657eca7150a5c7f6c6b4e61c13def514963f444ef06f6baf96cd65bd7a4a",
+  "document_set_binding": "sha256:06cef6d7048cbc5be74b0efa09bbc7d5a52be5a4fca2108f484c3636e03c11c7",
+  "captured_at": "2026-10-11T04:57:43.165150+00:00",
+  "candidate_base_commit": "752ca6393b833c25079439b6a198a4f0e2d90e5c",
+  "candidate_state": "Uncommitted planning proposal; interrupted product changes are preserved and excluded from this planning work.",
+  "sources": {
+    "ROADMAP.md": "sha256:20f57aeef7ef009f70a3da924850a5906c25443e1e319e2e10a0550dbe99a36a",
+    "WAVE_HANDOFF_AUTOMATION.md": "sha256:97596ad625df8570b9518ca17c029de6edf53707ed3987aa9aacac493b6c6067",
+    "design_implementation_roadmap.md": "sha256:b163e5a0bca959972ddb006ed3e64f85f625086ed7fdd88bd2574052573019c4",
+    "implementation_roadmap.md": "sha256:e512a186dfb8cf785c5e2472a0771f6532bcd972921db1226b58dd3e91303545",
+    "reports/FE-A1-CONTRACT-IMPLEMENTATION-LEDGER.md": "sha256:c34f74c26a27c691062560b02f1190aba8c0899ea37a36ca040ad438751c74f8",
+    "reports/FE-A1-EVIDENCE-INDEX.json": "sha256:84358dfebd35d2064abf070f887c6cb7c97f85cca0f725be0dc61aa3103c3441",
+    "reports/FE-A1-ROADMAP-APPROVAL.md": "sha256:052ebe71abc72e4b8e58eb26f8f92982681f7d7ee3d44be98d648099874001ba",
+    "reports/FRONTEND-ADAPTATION-MILESTONE.md": "sha256:8a037d86a96ce5332a23f17bae2098db5edb9849b94c5564f5ac497ab5cd640b",
+    "reports/UX-BACKEND-HANDOFF.md": "sha256:a83ef60b04c24e1182c2c5bec9de1a7d5d66137299b23a163e52f221c1cb9177",
+    "reports/UX-RUNTIME-ARCHITECTURE-DISPOSITION.md": "sha256:9a72d0207c5bc6052f356d4ed6c2118320560c76970e3483e5b759545e196ed3",
+    "reports/a1-roadmap-review/helpers.mjs": "sha256:4d5a64a346cdd5d5edb03d22514000dc6af313f6219b59914b15d20d2c14e2d5",
+    "reports/a1-roadmap-review/roadmap.critical.test.mjs": "sha256:a8502ffe6e14a0ae337a8afd38c6f6381fcc9fc221d2c30bd4fda57d8d4c155a",
+    "reports/a1-roadmap-review/roadmap.execution.test.mjs": "sha256:15ff02d1c38d39a65bfc395fe081e2d8c3a189024720cd948330361ac669ff6c",
+    "scripts/audit-frontend-a1.mjs": "sha256:1941cb03c99aa4951ea8aec976ae605d1626d3a1b966aa2c16b171fb17c1056b",
+    "scripts/frontend-a1-execute.mjs": "sha256:f692c6a1acaa1820a7a301c91b30672abd5bfdfa407f4a7b822e1e16a01e00cd",
+    "scripts/frontend-a1-execution.md": "sha256:56ff815df765d10bbd657b4f400b16d0e4f94af1ff51be9158f93083b81c56a0",
+    "scripts/frontend-a1-process.mjs": "sha256:70eaf0d24870e0b12a730e4c59045a9e13c7b738ad90a068bcee9ee5f85282ff",
+    "scripts/frontend-a1-work-inventory.json": "sha256:4c3aec7d5f9788f92528eeae98ea0fe73451f66679f4fcaa8a8eef325e893e03",
+    "scripts/wave-handoff-wave-3.md": "sha256:c9f5f4a4ee1528a3b07e563051d920d49c8472054fbd06474cdb0789d9cc229e",
+    "scripts/wave-handoff-wave-4.md": "sha256:63317e6433c977241902cf39a756ffc8e7ba302d4d2a421caadef62f94036e76",
+    "scripts/wave-handoff-wave-5.md": "sha256:eafc01876c90cb96307dfac481ce73d9954db2d28347e31e80b2efd418203396",
+    "scripts/wave-handoff-wave-6.md": "sha256:b5d499e1d08571627f28678e3601a0a4e91bd0a6cfd45bc431beceb32959b2fc",
+    "scripts/wave-handoff-wave-7.md": "sha256:b961d2ed604c58af12cc707355d5a0eed43ad3d4a4a02442de68daae9577628e",
+    "scripts/wave-handoff-wave-8.md": "sha256:f1d1bed7c4f69c79ec231e05d8d54c8a26351959412cfeb97190ad5964be46bd",
+    "scripts/wave-handoff.mjs": "sha256:dd5025e27ab82282f73bf12ab3d98ebd9b043e305c39268086d554bf9e5580e3"
+  },
+  "boundary": "Planning documents, scope, ownership, dependency sequence, existing execution gates and planning-only adverse fixtures. No backend/frontend construction, product builds/tests, model invocation or migration was performed. This evidence neither approves the roadmap nor closes product functions.",
+  "roadmap_approval": "pending_explicit_user_decision",
+  "product_acceptance": null,
+  "active_product_work": null,
+  "product_ready_items": [],
+  "product_and_controller_files_unchanged": {
+    "/Users/felipe.casadei/vscode/graphRAG/petra": {
+      "file_count": 1763,
+      "fingerprint": "7fd26283519ba750b7ab5b95b8c362df2c0e89eddbf446c99f6470d5eb831e23"
+    },
+    "/Users/felipe.casadei/vscode/graphRAG/petra-design": {
+      "file_count": 1761,
+      "fingerprint": "c231ff38557089d6ae6c17b31f1115b6647ad5ffd18c8dfcfc4d343e2b7d6a32"
+    }
+  },
+  "counts": {
+    "mandatory_items": 90,
+    "function_areas": 8,
+    "operation_assignments": 116,
+    "a1_operations": 97,
+    "wave_7_operations": 15,
+    "wave_8_operations": 4,
+    "accepted_requests": 23,
+    "accepted_flows": 18,
+    "optional_late_scenarios": 16,
+    "unchanged_scoped_control_closures": 5,
+    "previous_closures_retained": 9
+  },
+  "planning_criteria": [
+    {
+      "criterion": "Readable roadmap and exact generated instructions/copies agree",
+      "status": "passed"
+    },
+    {
+      "criterion": "Seven resolutions and all accepted mandatory functions retain owners",
+      "status": "passed"
+    },
+    {
+      "criterion": "Pending items contain ordered construction and separate check recipes",
+      "status": "passed"
+    },
+    {
+      "criterion": "No product execution before explicit user approval",
+      "status": "hold_verified_approval_pending"
+    },
+    {
+      "criterion": "Scope changes, critical findings and repeated failures require reconciliation",
+      "status": "planning_contract_and_adverse_gate_checks_passed"
+    }
+  ],
+  "pass": "execution",
+  "run": {
+    "argv": [
+      "/opt/homebrew/opt/node@24/bin/node",
+      "--test",
+      "--test-reporter=tap",
+      "reports/a1-roadmap-review/roadmap.execution.test.mjs",
+      "scripts/a1/contract-reconciliation.test.mjs"
+    ],
+    "output": "reports/a1-roadmap-review/execution.tap",
+    "output_hash": "sha256:fefbd58366c7f9ce5cc353c298d858412da00fe76cb5a5582e91b1f263abe633",
+    "exit_code": 0,
+    "counts": {
+      "tests": 26,
+      "pass": 26,
+      "fail": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "test_names": [
+      "Planning execution: preserve all required IDs, operations, requests and flows",
+      "Planning execution: no active product work and explicit approval prerequisite",
+      "Planning execution: each pending construction has ordered steps and two distinct check recipes",
+      "Planning execution: dependency order is acyclic, complete and copilot-first",
+      "Planning execution: generic turn ownership and complete action mediation are separate",
+      "Planning execution: three native definitions and complete repeated-cycle dependencies remain mandatory",
+      "Planning execution: all seven diagnoses retain ordered owners",
+      "Planning execution: optional late scenarios and excluded native screen-reader evaluation retain their scope",
+      "Planning execution: all generated roadmaps and both configured execution copies agree",
+      "Planning execution: scope binding identifies the exact proposed contract",
+      "Planning execution: existing pure selection gate rejects every product item before approval",
+      "Planning execution: legacy and later-wave mutation gates remain closed",
+      "Planning execution: interrupted work and old proofs remain historical",
+      "Planning execution: no product or controller files changed in either worktree",
+      "FE-A1.0-W01-AC01 execution: inspection rejection remains explicit",
+      "FE-A1.0-W01-AC02 execution: historical mechanics retain their original limits",
+      "FE-A1.0-W02-AC01 execution: all eight stages retain granular criteria and owners",
+      "FE-A1.0-W02-AC02 execution: completion requires criterion evidence and prerequisites",
+      "FE-A1.0-W03-AC01 execution: all 97 adapted operations have exact A1 owners",
+      "FE-A1.0-W03-AC02 execution: later-wave operations keep explicit boundaries",
+      "FE-A1.0-W03-AC03 execution: connected cycles remain independent required construction",
+      "FE-A1.0-W04-AC01 execution: incomplete A1 blocks all mutating delivery entries",
+      "FE-A1.0-W04-AC02 execution: status and stop remain available",
+      "FE-A1.0-W04-AC03 execution: controller preserves actual user acceptance authority",
+      "FE-A1.0-W05-AC01 execution: every current roadmap agrees with the canonical queue",
+      "FE-A1.0-W05-AC02 execution: the immediate sequence ends at explicit acceptance"
+    ]
+  },
+  "observations": [
+    "The canonical inventory retains all baseline mandatory IDs and complete operation/request/flow coverage.",
+    "Every pending item has at least three ordered construction steps plus execution and critical check recipes.",
+    "The approved-scope gate is not released: W05 is blocked, every product item depends on it, and the current selector has no ready product item.",
+    "Existing control primitives retain their bounded proofs; amended roadmap/accounting/interaction closures remain historical.",
+    "The final document snapshot remained unchanged across final execution and critical checks."
+  ],
+  "prior_attempts": [
+    {
+      "artifact": "reports/a1-roadmap-review/execution-initial.tap",
+      "result": "25 passed; one assertion failed because the construction wording omitted the explicit ordinary-command qualification. The existing intended owner was unchanged; wording was made explicit and rerun."
+    },
+    {
+      "artifact": "reports/a1-roadmap-review/execution-before-critical-repair.tap",
+      "result": "26 passed on the pre-repair proposal. Preserved before the critical dependency repair."
+    }
+  ]
+}

@@ -276,6 +276,13 @@ export const startPetraServer = async (
     petra = createPetraApp({
       workingPlanDeployment,
       ...options,
+      ...((options.copilotCommandProposals ??
+        options.projectShellPersistence?.copilotCommandProposals) === undefined
+        ? {}
+        : {
+            copilotCommandProposals: (options.copilotCommandProposals ??
+              options.projectShellPersistence?.copilotCommandProposals)!,
+          }),
       ...((options.projectExaminations ??
         options.projectShellPersistence?.examinations) === undefined
         ? {}

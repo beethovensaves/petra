@@ -78,7 +78,17 @@
     "scripts/a1/owned-conversation.test.mjs",
     "scripts/a1/owned-postgres.mjs",
     "scripts/a1/run-browser.mjs",
-    "scripts/a1/run-vitest.mjs"
+    "scripts/a1/run-vitest.mjs",
+    "apps/server/src/copilot-command-activity-routes.ts",
+    "apps/server/src/server.ts",
+    "apps/server/test/copilot-command-activity-routes.test.ts",
+    "packages/core/src/copilot-command-bridge.ts",
+    "packages/core/src/copilot-command-preview.ts",
+    "packages/core/src/copilot-command-receipt.ts",
+    "packages/core/test/copilot-command-bridge.test.ts",
+    "packages/postgres/src/copilot-command-proposal-repository.ts",
+    "packages/postgres/test/copilot-command-proposal-repository.test.ts",
+    "infra/postgres/migrations/V068__copilot_command_proposals.sql"
   ],
   "criteria": [
     {
@@ -91,7 +101,7 @@
       "id": "FE-A1.3-W03-AC02",
       "result": "passed",
       "test": "FE-A1.3-W03-AC02 execution: actual readable content is backed by retained Artifacts rather than a metadata view",
-      "observation": "Canonical Thread/Work views remain metadata; exact retained private input and registered result Artifacts provide readable conversation bytes."
+      "observation": "Canonical Thread/Work views remain metadata; exact retained private input and registered result Artifacts provide readable conversation bytes. Exact proposed activities restore private typed input/output Artifact lineage and real canonical Work/Run attached to the unchanged original turn; the read-only HTTP route releases a typed public attachment without substituting the private input."
     },
     {
       "id": "FE-A1.3-W03-AC03",
@@ -103,14 +113,14 @@
       "id": "FE-A1.3-W03-AC04",
       "result": "passed",
       "test": "FE-A1.3-W03-AC04 execution: completed failed cancelled and imported content resolves to existing native owners",
-      "observation": "Native completed/failed/cancelled conversation and explicit historical adoption resolve to actual canonical Thread, Run and Work; writing retains its native basis without a scientific snapshot."
+      "observation": "Native completed/failed/cancelled conversation and explicit historical adoption resolve to actual canonical Thread, Run and Work; writing retains its native basis without a scientific snapshot. Invalid model output retains actual failed proposal Work without a fabricated successful artifact."
     },
     {
       "id": "FE-A1.3-W03-AC05",
       "result": "passed",
       "test": "FE-A1.3-W03-AC05 execution: actual inquiry Work Review and cycle lineage remains exact on replay",
-      "observation": "A positive PostgreSQL function resolves actual inquiry, additional Work, Review, hypothesis, assessment, posture and cycle records; repeated reads create no second Work."
+      "observation": "A positive PostgreSQL function resolves actual inquiry, additional Work, Review, hypothesis, assessment, posture and cycle records; repeated reads create no second Work. Explicit human accept/reject, serialized ordinary Work effect and immutable observed receipt restore after restart and direct replay."
     }
   ],
-  "boundary": "Canonical ownership and retained readable advisory conversation only. Provider internal CPU, memory, network, tokens and price remain unavailable; unknown values never satisfy applicable hard limits. Historical adoption records actual import Work and preserves original bytes without reconstructing original execution authority. Proposal decisions/commands, progressive AG-UI activities/interrupts, native examiners, reactive Workspace graph cycles and A1 product acceptance remain open required ledger items."
+  "boundary": "Canonical conversation and proposed-activity ownership with exact private Artifacts, actual Work/Run/origin lineage, current owner-bound read-only HTTP attachment, immutable decision/ordinary Work receipt retention and real QA restoration. Proposal fixtures use a controlled typed-role port and memory byte-store; production eligible-model command selection and visible chat human decisions/Workspace convergence remain separate command-bridge work. No native examiner or connected cycle closure is claimed."
 }

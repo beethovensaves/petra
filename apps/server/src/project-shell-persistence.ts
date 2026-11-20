@@ -1,4 +1,8 @@
-import { PostgresIntakeCopilotRepository } from "@petra/postgres";
+import {
+  PostgresIntakeCopilotRepository,
+  PostgresCopilotCommandProposalRepository,
+} from "@petra/postgres";
+import type { CopilotCommandProposalRepository } from "@petra/core";
 import type { IntakeCopilotRepository } from "@petra/core";
 import {
   PostgresProjectExaminationCommandAuthority,
@@ -184,6 +188,7 @@ const readBuiltInProfiles = async (): Promise<
 export interface ProjectShellPersistence {
   readonly examinations?: ProjectExaminationService;
   readonly copilotTurns: CopilotTurnRepository;
+  readonly copilotCommandProposals?: CopilotCommandProposalRepository;
   readonly copilotHistory?: ConversationHistoryReader;
   readonly copilotPermission?: ConversationPermissionAuthority;
   readonly intakeCopilot?: IntakeCopilotRepository;
@@ -456,6 +461,27 @@ export const createProjectShellPersistenceFromEnvironment = async (
     configuredActorId === undefined || configuredActorId === ""
       ? undefined
       : new PostgresCopilotPermissionAuthority(pool, configuredActorId);
+  // Both graph-backed and graph-free persistence must expose the same exact
+  // conversation owners. A branch-local owner can pass isolated route tests
+  // while the configured inspection runtime silently lacks it.
+  const conversationOwners = {
+    copilotTurns,
+    copilotHistory: copilotTurns,
+    ...(copilotPermission === undefined ? {} : { copilotPermission }),
+    intakeCopilot: new PostgresIntakeCopilotRepository(pool),
+    ...(configuredActorId === undefined || configuredActorId === ""
+      ? {}
+      : {
+          copilotCommandProposals: new PostgresCopilotCommandProposalRepository(
+            pool,
+            {
+              actorId: configuredActorId,
+              artifactStore,
+              artifacts: artifactAuthority,
+            },
+          ),
+        }),
+  };
   const contracts = new PetraContractRegistry();
   const semanticGraphs = new PostgresProjectSemanticGraphReader(
     pool,
@@ -689,6 +715,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
           AND to_regclass('petra.working_candidate_revisions') IS NOT NULL
           AND to_regclass('petra.review_session_lifecycle_receipts') IS NOT NULL
           AND to_regclass('petra.project_copilot_input_manifests') IS NOT NULL
+          AND to_regclass('petra.copilot_command_proposals') IS NOT NULL
           AND to_regclass('petra.intake_project_bindings') IS NOT NULL
           AND to_regclass('petra.project_examination_authority_receipts') IS NOT NULL
           AND to_regclass('petra.assessment_catalog_records') IS NOT NULL
@@ -726,7 +753,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
     );
     if (schema.rows[0]?.ready !== true) {
       throw new ProjectShellPersistenceConfigurationError(
-        "PostgreSQL is reachable, but the required Project runtime through V065 intake and examination authority is unavailable.",
+        "PostgreSQL is reachable, but the required Project runtime through V068 canonical copilot command proposals is unavailable.",
       );
     }
     for (const name of ["assessment-profile", "assessment-policy"]) {
@@ -803,10 +830,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
           contracts,
         );
       return {
-        copilotTurns,
-        copilotHistory: copilotTurns,
-        ...(copilotPermission === undefined ? {} : { copilotPermission }),
-        intakeCopilot: new PostgresIntakeCopilotRepository(pool),
+        ...conversationOwners,
         semanticGraphs,
         ...(examinations === undefined ? {} : { examinations }),
         ...(configuredActorId === undefined
@@ -926,10 +950,7 @@ export const createProjectShellPersistenceFromEnvironment = async (
   }
 
   return {
-    copilotTurns,
-    copilotHistory: copilotTurns,
-    ...(copilotPermission === undefined ? {} : { copilotPermission }),
-    intakeCopilot: new PostgresIntakeCopilotRepository(pool),
+    ...conversationOwners,
     semanticGraphs,
     ...(examinations === undefined ? {} : { examinations }),
     ...(configuredActorId === undefined

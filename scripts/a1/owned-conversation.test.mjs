@@ -22,6 +22,18 @@ test("FE-A1.3-W03-AC01 execution: retained questions answers citations and outco
 test("FE-A1.3-W03-AC02 execution: actual readable content is backed by retained Artifacts rather than a metadata view", () => {
   runVitest(
     "@petra/postgres",
+    ["copilot-command-proposal-repository.test.ts"],
+    "retains typed proposal Artifacts",
+    1,
+  );
+  runVitest(
+    "@petra/server",
+    ["copilot-command-activity-routes.test.ts"],
+    "execution:",
+    1,
+  );
+  runVitest(
+    "@petra/postgres",
     ["project-copilot-repository.test.ts"],
     "binds readable native question",
     1,
@@ -52,12 +64,24 @@ test("FE-A1.3-W03-AC03 execution: exact actor Project and immutable model input 
 test("FE-A1.3-W03-AC04 execution: completed failed cancelled and imported content resolves to existing native owners", () => {
   runVitest(
     "@petra/postgres",
+    ["copilot-command-proposal-repository.test.ts"],
+    "records model validation failure",
+    1,
+  );
+  runVitest(
+    "@petra/postgres",
     ["project-copilot-repository.test.ts"],
     "retains failed and cancelled|adopts immutable historical|preserves a controlled-writing",
     3,
   );
 });
 test("FE-A1.3-W03-AC05 execution: actual inquiry Work Review and cycle lineage remains exact on replay", () => {
+  runVitest(
+    "@petra/postgres",
+    ["copilot-command-proposal-repository.test.ts"],
+    "retains a human acceptance|retains rejection",
+    2,
+  );
   runVitest(
     "@petra/postgres",
     ["working-state-authority-repository.test.ts"],
